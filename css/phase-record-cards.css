@@ -5,18 +5,20 @@
   gap: 0.75rem;
   margin-top: 0.75rem;
 }
+/* Record cards — defer surfaces/borders to unified card tokens (Batch A step 5) */
 .hub-record-card {
-  background: var(--paper, #fff);
-  border: 1px solid var(--line, #e5ddd0);
-  border-radius: 12px;
+  background: var(--card-bg, transparent);
+  border: 1px solid var(--card-border, var(--line, #d9cdb8));
+  border-radius: var(--card-radius, 8px);
   padding: 0.85rem 0.95rem;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s;
   text-align: left;
+  box-shadow: none;
 }
 .hub-record-card:hover {
   border-color: var(--gold, #c4a576);
-  box-shadow: 0 4px 14px rgba(45, 74, 53, 0.08);
+  box-shadow: none;
 }
 .hub-record-card-head {
   display: flex;

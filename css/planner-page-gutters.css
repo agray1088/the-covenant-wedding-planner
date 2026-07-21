@@ -693,6 +693,16 @@ body.editorial-v4 #main .panel .tasks-stat-grid > .task-stat-card {
   border-right: 0 !important;
 }
 
+/* Dashboard stat tiles use token card borders (Batch A step 5) */
+body.editorial-v4 #main #panel-dashboard .ued-band > .ued-stat {
+  border: 1px solid var(--card-border) !important;
+  border-radius: var(--card-radius) !important;
+  box-shadow: none !important;
+}
+body.editorial-v4 #main #panel-dashboard .ued-band > .ued-stat:last-child {
+  border-right: 1px solid var(--card-border) !important;
+}
+
 body.editorial-v4 #panel-guests .cwp-table td.guest-family-cell {
   text-align: center !important;
   vertical-align: middle !important;

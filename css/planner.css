@@ -43699,17 +43699,22 @@ body.dark-mode #panel-dashboard .dash-hero-meta{ border-left-color:#333; }
 body.dark-mode #panel-dashboard .dash-hero-couple{ color:#ededed; }
 body.dark-mode #panel-dashboard .dash-hero-date{ color:#c9c4bb; }
 
-/* Stat cards — hairline outline via inset shadow until step 5 token border migration */
-body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat{
-  background:transparent !important; border-radius:8px !important;
-  padding:.85rem .9rem !important; text-align:center !important; box-shadow:inset 0 0 0 1px #d9cdb8 !important;
+/* Stat cards — token hairline border (Batch A step 5) */
+body.editorial-v4 #main #panel-dashboard .ued-band > .ued-stat {
+  background: transparent !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: var(--card-radius) !important;
+  padding: .85rem .9rem !important;
+  text-align: center !important;
+  box-shadow: none !important;
+}
+body.editorial-v4 #main #panel-dashboard .ued-band > .ued-stat:last-child {
+  border-right: 1px solid var(--card-border) !important;
+  padding-right: .9rem !important;
 }
 body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat b,
 body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat span,
-body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat small{ display:block; text-align:center !important; }
-body.dark-mode #main #panel-dashboard .ued-band .ued-stat{
-  background:transparent !important; box-shadow:inset 0 0 0 1px #333 !important;
-}
+body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat small { display: block; text-align: center !important; }
 /* Dashboard bar graphs — uniform, thicker, rounded */
 #panel-dashboard .ued-track,
 #panel-dashboard .ued-bar-track{ height:9px !important; border-radius:999px !important; overflow:hidden !important; }
