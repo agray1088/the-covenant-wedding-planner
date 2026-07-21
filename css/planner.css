@@ -44117,8 +44117,8 @@ body.editorial-v4:not(.dark-mode) {
   --page-bg:        #F9F7F4;
   --section-bg:     #FFFFFF;
   --card-bg:        transparent;
-  --card-border:    transparent;
-  --card-radius:    0;
+  --card-border:    #d9cdb8;
+  --card-radius:    8px;
   --card-pad:       0;
   --table-bg:       transparent;
   --table-header-bg: var(--forest, #2D4A3E);
