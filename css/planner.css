@@ -31433,13 +31433,68 @@ body.editorial-v4 {
   display: none !important;
 }
 
-/* ── Universal flatten: de-"card" every bespoke *-card / *-box container ──
-The page redesigns share a suffix convention (venue-stat-card, budget-card,
-payment-table-card, wday-side-card, prayer-card, etc.). One substring rule
-removes the rounded-card shell everywhere → the v4 shapeless editorial look. */
+/* ── Flatten nested *-card fragments only (canonical containers use token borders) ── */
 
-body.editorial-v4 .panel [class*="-card"],
 body.editorial-v4 .panel [class*="-box"] {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+body.editorial-v4 .panel [class*="-card"]:not(:is(
+  .card,
+  .note-card,
+  .chart-wrap,
+  .banner-scripture-card,
+  .ued-panel,
+  .ued-table-card,
+  .m-card,
+  .m-panel,
+  .log-card,
+  .rfl-card,
+  .email-card,
+  .faq-card,
+  .guide-card,
+  .instruction-card,
+  .setup-card,
+  .budget-card,
+  .gift-card,
+  .gift-note-card,
+  .hm-card,
+  .venue-panel-card,
+  .venue-aside-card,
+  .venue-bottom-card,
+  .ceremony-card,
+  .calendar-card,
+  .timeline-card,
+  .table-card,
+  .filter-card,
+  .vendor-card,
+  .vendor-note-card,
+  .vendors-note-card,
+  .pinned-vendor-card,
+  .pinned-vendor-note,
+  .hub-record-card,
+  .hub-preview-card,
+  .phase-record-card,
+  .guest-insight-card,
+  .essentials-hub-card,
+  .dash-breakdown-card,
+  .app-card,
+  .bcard,
+  .bsum-card,
+  .cat-card,
+  .cat-table-card,
+  .templates-gallery-card,
+  .template-detail-card,
+  .budget-category-card,
+  .payment-progress-card,
+  .contracts-table-card,
+  .rentals-table-card,
+  .venue-system-compare-card
+)) {
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
@@ -33223,9 +33278,8 @@ body.editorial-v4 .m-tab.on {
 
 }
 
-/* ── Square ALL cards/tables/fields in panels (keep circles: photos, donuts, dots, checkboxes) ── */
+/* ── Square tables/fields in panels (canonical cards keep token radius) ── */
 
-body.editorial-v4 #main [class*="-card"],
 body.editorial-v4 #main [class*="-wrap"]:not(.side-photo-wrap),
 body.editorial-v4 #main [class*="-table"],
 body.editorial-v4 #main table,
@@ -33234,7 +33288,6 @@ body.editorial-v4 #main .m-banner,
 body.editorial-v4 #main .m-soft,
 body.editorial-v4 #main .m-info,
 body.editorial-v4 #main .m-progcard,
-body.editorial-v4 #main .bsum-card,
 body.editorial-v4 #main td,
 body.editorial-v4 #main th,
 body.editorial-v4 #main input:not([type=checkbox]):not([type=radio]),
@@ -38300,38 +38353,7 @@ body,
   padding: 0 0 1rem!important;
 }
 
-/* Flat editorial cards and panels across legacy pages */
-
-#main .panel .card,
-#main .panel .m-card,
-#main .panel .m-panel,
-#main .panel .ued-panel,
-#main .panel .ued-table-card,
-#main .panel .log-card,
-#main .panel .rfl-card,
-#main .panel .email-card,
-#main .panel .faq-card,
-#main .panel .guide-card,
-#main .panel .instruction-card,
-#main .panel .setup-card,
-#main .panel .budget-card,
-#main .panel .gift-card,
-#main .panel .hm-card,
-#main .panel .venue-panel-card,
-#main .panel .venue-aside-card,
-#main .panel .venue-bottom-card,
-#main .panel .ceremony-card,
-#main .panel .calendar-card,
-#main .panel .timeline-card,
-#main .panel .table-card,
-#main .panel .filter-card,
-#main .panel [class*="-card"] {
-  background: #fff!important;
-  background-image: none!important;
-  border: 1px solid var(--er-line)!important;
-  border-radius: 0!important;
-  box-shadow: none!important;
-}
+/* Legacy flat-card block retired — canonical containers use token borders (Batch A step 3). */
 
 #main .panel [class*="-card"]:not(.mood-photo-card):not(.vision-photo-card):not(.photo-card) {
   overflow: visible;
@@ -39182,36 +39204,7 @@ apply everywhere the planner renders page panels.
   background-image: none!important;
 }
 
-.panel .card,
-.panel .m-card,
-.panel .m-panel,
-.panel .ued-panel,
-.panel .ued-table-card,
-.panel .log-card,
-.panel .rfl-card,
-.panel .email-card,
-.panel .faq-card,
-.panel .guide-card,
-.panel .instruction-card,
-.panel .setup-card,
-.panel .budget-card,
-.panel .gift-card,
-.panel .hm-card,
-.panel .venue-panel-card,
-.panel .venue-aside-card,
-.panel .venue-bottom-card,
-.panel .ceremony-card,
-.panel .calendar-card,
-.panel .timeline-card,
-.panel .table-card,
-.panel .filter-card,
-.panel [class*="-card"] {
-  background: #fff!important;
-  background-image: none!important;
-  border: 1px solid var(--er-line)!important;
-  border-radius: 0!important;
-  box-shadow: none!important;
-}
+/* Legacy flat-card block retired — canonical containers use token borders (Batch A step 3). */
 
 .panel .planner-table-control-card,
 .panel .bulk-bar,
