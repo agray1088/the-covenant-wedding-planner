@@ -64,6 +64,26 @@ body.editorial-v4[data-theme="dark"] {
   --dm-neutral:       #909090;
   --dm-neutral-bg:    rgba(144, 144, 144, 0.13);
 
+  /* Status token aliases (dark whisper) */
+  --status-green-bg:    var(--dm-success-bg);
+  --status-green-text:  var(--dm-success);
+  --status-green-border: rgba(255, 255, 255, 0.12);
+  --status-gold-bg:     var(--dm-warning-bg);
+  --status-gold-text:   var(--dm-warning);
+  --status-gold-border: rgba(255, 255, 255, 0.14);
+  --status-gray-bg:     var(--dm-neutral-bg);
+  --status-gray-text:   var(--dm-neutral);
+  --status-gray-border: var(--dm-border);
+  --status-red-bg:      var(--dm-danger-bg);
+  --status-red-text:    var(--dm-danger);
+  --status-red-border:  rgba(255, 255, 255, 0.12);
+  --status-blue-bg:     var(--dm-info-bg);
+  --status-blue-text:   var(--dm-info);
+  --status-blue-border: rgba(255, 255, 255, 0.12);
+  --status-badge-bg:    rgba(255, 255, 255, 0.08);
+  --status-badge-text:  #dcd0b2;
+  --status-badge-border: #2e2e2e;
+
   /* ── Shadows — flat panels; soft elevation only for popovers ── */
   --dm-shadow-sm: none;
   --dm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
@@ -3590,4 +3610,92 @@ body.editorial-v4.dark-mode #main .panel .ued-btn:disabled,
 body.editorial-v4.dark-mode #main .panel .btn:disabled {
   opacity: .45 !important;
   cursor: not-allowed !important;
+}
+
+/* ═══ Batch C — unified status pills / chips (loads last; token-driven) ═══ */
+
+body.editorial-v4 #main .panel :is(
+  .cwp-status,
+  .status-pill,
+  .task-status-wrap,
+  .task-status-not-started,
+  .task-status-in-progress,
+  .task-status-complete,
+  .budget-status-pill,
+  .payment-status-pill,
+  .app-status-pill,
+  .contract-status-pill,
+  [class*="-status-pill"],
+  [class*="-status-wrap"]
+) {
+  border-radius: var(--status-chip-radius, 0) !important;
+}
+
+body.editorial-v4 #main .panel :is(
+  .cwp-status--green,
+  .status-pill--green,
+  .status-pill--success,
+  .status-pill--forest,
+  .task-status-complete
+) {
+  background: var(--status-green-bg) !important;
+  color: var(--status-green-text) !important;
+  border-color: var(--status-green-border) !important;
+}
+
+body.editorial-v4 #main .panel :is(
+  .cwp-status--gold,
+  .status-pill--gold,
+  .status-pill--warning,
+  .status-pill--amber
+) {
+  background: var(--status-gold-bg) !important;
+  color: var(--status-gold-text) !important;
+  border-color: var(--status-gold-border) !important;
+}
+
+body.editorial-v4 #main .panel :is(
+  .cwp-status--gray,
+  .status-pill--neutral,
+  .status-pill--muted,
+  .status-pill--grey,
+  .task-status-not-started
+) {
+  background: var(--status-gray-bg) !important;
+  color: var(--status-gray-text) !important;
+  border-color: var(--status-gray-border) !important;
+}
+
+body.editorial-v4 #main .panel :is(
+  .cwp-status--red,
+  .cwp-status--redmuted,
+  .status-pill--red,
+  .status-pill--danger
+) {
+  background: var(--status-red-bg) !important;
+  color: var(--status-red-text) !important;
+  border-color: var(--status-red-border) !important;
+}
+
+body.editorial-v4 #main .panel :is(
+  .cwp-status--blue,
+  .status-pill--blue,
+  .task-status-in-progress
+) {
+  background: var(--status-blue-bg) !important;
+  color: var(--status-blue-text) !important;
+  border-color: var(--status-blue-border) !important;
+}
+
+body.editorial-v4 #main .panel .ro-badge-inline {
+  background: var(--status-badge-bg) !important;
+  color: var(--status-badge-text) !important;
+  border-color: var(--status-badge-border) !important;
+}
+
+body.editorial-v4 #main .panel :is(.cwp-status select, .status-pill--interactive select) {
+  background: transparent !important;
+  border: 0 !important;
+  color: inherit !important;
+  box-shadow: none !important;
 }

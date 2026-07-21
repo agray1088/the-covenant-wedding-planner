@@ -47918,32 +47918,6 @@ body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel table td
   box-shadow: none !important;
 }
 
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-status--green {
-  background: #eef6f0 !important;
-  color: #2f6b45 !important;
-  border-color: #cfe3d5 !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-status--gold {
-  background: #fff7df !important;
-  color: #8a640f !important;
-  border-color: #e7ce80 !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-status--gray {
-  background: #eef1f2 !important;
-  color: #626d74 !important;
-  border-color: #dde3e4 !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-status--red,
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-status--redmuted {
-  background: #fff0ed !important;
-  color: #a33b28 !important;
-  border-color: #ebb4aa !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-status--blue {
-  background: #e9eef8 !important;
-  color: #4a5691 !important;
-  border-color: #cfd8ef !important;
-}
 body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-status select {
   background: transparent !important;
   border: 0 !important;
@@ -47951,31 +47925,10 @@ body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-sta
   box-shadow: none !important;
 }
 
+/* Batch C — status semantics delegated to planner-tokens.css + planner-dark-editorial.css */
+
 body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) [id^="panel-"].ued-scope {
   --ued-forest: var(--theme-primary, var(--v4-forest, #2c4a3e));
   --ued-gold: var(--theme-accent, var(--v4-gold, #9c7c4a));
   --ued-danger: #a5432f;
-}
-
-/* Batch B — button hierarchy delegated to planner-dark-editorial.css (loads last) */
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .ro-badge-inline {
-  background: var(--gold-pale, #efe8dd) !important;
-  color: #5c5c58 !important;
-}
-
-/* Task status wraps — Batch 1 semantics */
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .task-status-not-started {
-  background: #eef1f2 !important;
-  color: #626d74 !important;
-  border-color: #dde3e4 !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .task-status-in-progress {
-  background: #e9eef8 !important;
-  color: #4a5691 !important;
-  border-color: #cfd8ef !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .task-status-complete {
-  background: #eef6f0 !important;
-  color: #2f6b45 !important;
-  border-color: #cfe3d5 !important;
 }

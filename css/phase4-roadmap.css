@@ -66,38 +66,7 @@
   cursor: pointer;
   color: inherit;
 }
-.status-pill.status-pill--success,
-.status-pill.status-pill--forest,
-.status-pill.status-pill--green {
-  background: rgba(47, 74, 62, .12);
-  color: var(--forest, #2f4a3e);
-  border-color: rgba(47, 74, 62, .22);
-}
-.status-pill.status-pill--warning,
-.status-pill.status-pill--amber,
-.status-pill.status-pill--gold {
-  background: rgba(193, 154, 75, .16);
-  color: #7a5c24;
-  border-color: rgba(193, 154, 75, .28);
-}
-.status-pill.status-pill--danger,
-.status-pill.status-pill--red {
-  background: rgba(197, 48, 48, .1);
-  color: #9b2c2c;
-  border-color: rgba(197, 48, 48, .22);
-}
-.status-pill.status-pill--muted,
-.status-pill.status-pill--grey,
-.status-pill.status-pill--neutral {
-  background: rgba(138, 128, 113, .12);
-  color: #6b6358;
-  border-color: rgba(138, 128, 113, .2);
-}
-.status-pill.status-pill--blue {
-  background: rgba(59, 130, 180, .12);
-  color: #2c5282;
-  border-color: rgba(59, 130, 180, .22);
-}
+/* 4b Unified status pills — colors from planner-tokens.css / Batch C */
 .budget-status-pill .status-pill,
 .payment-status-pill.status-pill,
 .gift-thanks .status-pill {

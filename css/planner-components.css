@@ -2857,34 +2857,34 @@ body.editorial-v4.dark-mode .vcmp-mx-enrich {
 .status-pill.status-pill--success,
 .status-pill.status-pill--forest,
 .status-pill.status-pill--green {
-  background: rgba(47, 74, 62, .12);
-  color: var(--forest, #2f4a3e);
-  border-color: rgba(47, 74, 62, .22);
+  background: var(--status-green-bg);
+  color: var(--status-green-text);
+  border-color: var(--status-green-border);
 }
 .status-pill.status-pill--warning,
 .status-pill.status-pill--amber,
 .status-pill.status-pill--gold {
-  background: rgba(193, 154, 75, .16);
-  color: #7a5c24;
-  border-color: rgba(193, 154, 75, .28);
+  background: var(--status-gold-bg);
+  color: var(--status-gold-text);
+  border-color: var(--status-gold-border);
 }
 .status-pill.status-pill--danger,
 .status-pill.status-pill--red {
-  background: rgba(197, 48, 48, .1);
-  color: #9b2c2c;
-  border-color: rgba(197, 48, 48, .22);
+  background: var(--status-red-bg);
+  color: var(--status-red-text);
+  border-color: var(--status-red-border);
 }
 .status-pill.status-pill--muted,
 .status-pill.status-pill--grey,
 .status-pill.status-pill--neutral {
-  background: rgba(138, 128, 113, .12);
-  color: #6b6358;
-  border-color: rgba(138, 128, 113, .2);
+  background: var(--status-gray-bg);
+  color: var(--status-gray-text);
+  border-color: var(--status-gray-border);
 }
 .status-pill.status-pill--blue {
-  background: rgba(59, 130, 180, .12);
-  color: #2c5282;
-  border-color: rgba(59, 130, 180, .22);
+  background: var(--status-blue-bg);
+  color: var(--status-blue-text);
+  border-color: var(--status-blue-border);
 }
 
 /* System consistency foundation: read-only CWP previews used by tracker pages. */
@@ -2895,8 +2895,9 @@ body.editorial-v4.dark-mode .vcmp-mx-enrich {
   margin-left: .5rem;
   padding: .12rem .5rem;
   border-radius: 999px;
-  background: var(--gold-pale, #efe8dd);
-  color: var(--text-muted, #5c5c58);
+  background: var(--status-badge-bg, var(--gold-pale, #efe8dd));
+  color: var(--status-badge-text, var(--text-muted, #5c5c58));
+  border: 1px solid var(--status-badge-border, transparent);
   font-size: .62rem;
   font-weight: 800;
   letter-spacing: .08em;
@@ -2956,9 +2957,9 @@ body.editorial-v4.dark-mode .vcmp-mx-enrich {
 }
 
 body.editorial-v4.dark-mode .ro-badge-inline {
-  background: rgba(255, 255, 255, 0.08);
-  color: #dcd0b2;
-  border-color: #2e2e2e;
+  background: var(--status-badge-bg);
+  color: var(--status-badge-text);
+  border-color: var(--status-badge-border);
 }
 
 .record-editor-inline-shell {
