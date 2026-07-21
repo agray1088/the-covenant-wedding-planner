@@ -47957,33 +47957,7 @@ body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) [id^="panel-"].ued-sc
   --ued-danger: #a5432f;
 }
 
-/* Batch 1 Tracker Contract — button hierarchy (light mode only) */
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .btn-gold,
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel button.btn-gold {
-  background: var(--v4-gold, #B89968) !important;
-  color: #fff !important;
-  border-color: var(--v4-gold, #B89968) !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .btn-outline,
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel button.btn-outline,
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .ued-btn:not(.primary):not(.danger),
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-btn-ghost {
-  background: #fff !important;
-  color: #946f33 !important;
-  border: 1px solid var(--v4-gold, #B89968) !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .btn-danger,
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel button.btn-danger {
-  background: #a5432f !important;
-  color: #fff !important;
-  border-color: #a5432f !important;
-}
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .cwp-btn-danger,
-body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .ued-btn.danger {
-  background: #fff8f5 !important;
-  color: #b54b3f !important;
-  border: 1px solid rgba(197,78,63,.35) !important;
-}
+/* Batch B — button hierarchy delegated to planner-dark-editorial.css (loads last) */
 body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel .ro-badge-inline {
   background: var(--gold-pale, #efe8dd) !important;
   color: #5c5c58 !important;

@@ -22,6 +22,13 @@
   --component-button-height: 40px;
   --component-table-row-height: 42px;
   --component-icon-button-size: 36px;
+  --btn-radius: 8px;
+  --btn-pad-y: 0.55rem;
+  --btn-pad-x: 1rem;
+  --btn-font-size: 0.82rem;
+  --btn-toolbar-pad-y: 0.45rem;
+  --btn-toolbar-pad-x: 0.85rem;
+  --btn-toolbar-font-size: 0.78rem;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -57,5 +64,6 @@
     --planner-panel-padding: var(--space-4);
     --planner-section-gap: var(--space-4);
     --hub-main-pad: var(--space-4);
+    --btn-pad-x: 0.85rem;
   }
 }

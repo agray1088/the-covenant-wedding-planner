@@ -3391,3 +3391,203 @@ body.editorial-v4 #main .panel :is(
   border-radius: var(--card-radius) !important;
   box-shadow: none !important;
 }
+
+/* ═══ Batch B — unified button system (loads last; token-driven) ═══ */
+
+/* Shared shape for all panel button families */
+body.editorial-v4 #main .panel :is(.btn, .ued-btn, .cwp-btn) {
+  border-radius: var(--card-radius, var(--btn-radius, 8px)) !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  filter: none;
+  transition: background .15s ease, border-color .15s ease, color .15s ease !important;
+}
+
+body.editorial-v4 #main .panel .ued-btn {
+  padding: var(--btn-pad-y, 0.55rem) var(--btn-pad-x, 1rem) !important;
+  font-size: .66rem !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+}
+
+body.editorial-v4 #main .panel .cwp-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: .4rem !important;
+  padding: var(--btn-toolbar-pad-y, 0.45rem) var(--btn-toolbar-pad-x, 0.85rem) !important;
+  font-size: var(--btn-toolbar-font-size, 0.78rem) !important;
+  white-space: nowrap !important;
+}
+
+body.editorial-v4 #main .panel .cwp-btn-sm {
+  padding: .38rem .65rem !important;
+  font-size: .72rem !important;
+}
+
+/* ── Light mode roles ── */
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(
+  .btn-forest,
+  .ued-btn.primary,
+  .cwp-btn-primary,
+  .cwp-btn-forest,
+  button.primary,
+  .m-btn-primary,
+  button.m-btn-primary,
+  .guest-add-btn
+) {
+  background: var(--forest, #2D4A3E) !important;
+  color: #fffdf6 !important;
+  border: 1px solid var(--forest, #2D4A3E) !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(
+  .btn-forest,
+  .ued-btn.primary,
+  .cwp-btn-primary,
+  .cwp-btn-forest,
+  button.primary,
+  .m-btn-primary,
+  button.m-btn-primary,
+  .guest-add-btn
+):hover {
+  background: var(--forest-deep, #243d32) !important;
+  border-color: var(--forest-deep, #243d32) !important;
+  color: #fffdf6 !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(
+  .btn-outline,
+  .ued-btn:not(.primary):not(.danger),
+  .cwp-btn-ghost,
+  .cwp-btn:not(.cwp-btn-primary):not(.cwp-btn-ghost):not(.cwp-btn-danger):not(.cwp-btn-forest)
+) {
+  background: transparent !important;
+  color: var(--forest, #2D4A3E) !important;
+  border: 1px solid var(--card-border, #d9cdb8) !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(
+  .btn-outline,
+  .ued-btn:not(.primary):not(.danger),
+  .cwp-btn-ghost,
+  .cwp-btn:not(.cwp-btn-primary):not(.cwp-btn-ghost):not(.cwp-btn-danger):not(.cwp-btn-forest)
+):hover {
+  background: var(--gold-pale, #f5efe4) !important;
+  border-color: var(--v4-gold, #B89968) !important;
+  color: var(--forest, #2D4A3E) !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(.btn-gold, button.btn-gold) {
+  background: var(--v4-gold, #B89968) !important;
+  color: #fff !important;
+  border: 1px solid var(--v4-gold, #B89968) !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(.btn-gold, button.btn-gold):hover {
+  background: #a98a52 !important;
+  border-color: #a98a52 !important;
+  color: #fff !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(.btn-danger, button.btn-danger) {
+  background: #a5432f !important;
+  color: #fff !important;
+  border: 1px solid #a5432f !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(.btn-danger, button.btn-danger):hover {
+  background: #8f3828 !important;
+  border-color: #8f3828 !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(.cwp-btn-danger, .ued-btn.danger) {
+  background: #fff8f5 !important;
+  color: #b54b3f !important;
+  border: 1px solid rgba(197, 78, 63, .35) !important;
+}
+
+body.editorial-v4:not(.dark-mode):not([data-theme="dark"]) #main .panel :is(.cwp-btn-danger, .ued-btn.danger):hover {
+  background: #fbe9e3 !important;
+  border-color: rgba(197, 78, 63, .45) !important;
+}
+
+/* ── Dark mode roles (monochrome lock) ── */
+body.editorial-v4.dark-mode #main .panel :is(
+  .btn-forest,
+  .ued-btn.primary,
+  .cwp-btn-primary,
+  .cwp-btn-forest,
+  button.primary,
+  .m-btn-primary,
+  button.m-btn-primary,
+  .guest-add-btn
+),
+body.editorial-v4[data-theme="dark"] #main .panel :is(
+  .btn-forest,
+  .ued-btn.primary,
+  .cwp-btn-primary,
+  .cwp-btn-forest
+) {
+  background: var(--dm-accent, #ececec) !important;
+  color: var(--dm-on-accent, #111111) !important;
+  border: 1px solid transparent !important;
+}
+
+body.editorial-v4.dark-mode #main .panel :is(
+  .btn-forest,
+  .ued-btn.primary,
+  .cwp-btn-primary,
+  .cwp-btn-forest,
+  button.primary,
+  .m-btn-primary,
+  button.m-btn-primary,
+  .guest-add-btn
+):hover,
+body.editorial-v4[data-theme="dark"] #main .panel :is(.btn-forest, .ued-btn.primary, .cwp-btn-primary, .cwp-btn-forest):hover {
+  background: #ffffff !important;
+  color: #0a0a0a !important;
+  filter: none !important;
+}
+
+body.editorial-v4.dark-mode #main .panel :is(
+  .btn-outline,
+  .ued-btn:not(.primary):not(.danger),
+  .cwp-btn-ghost,
+  .cwp-btn:not(.cwp-btn-primary):not(.cwp-btn-ghost):not(.cwp-btn-danger):not(.cwp-btn-forest),
+  .btn-gold
+),
+body.editorial-v4[data-theme="dark"] #main .panel :is(.btn-outline, .ued-btn:not(.primary):not(.danger), .cwp-btn-ghost, .btn-gold) {
+  background: var(--dm-surface-2, #222222) !important;
+  color: var(--dm-text, #e6e6e6) !important;
+  border: 1px solid var(--dm-border, #2e2e2e) !important;
+}
+
+body.editorial-v4.dark-mode #main .panel :is(
+  .btn-outline,
+  .ued-btn:not(.primary):not(.danger),
+  .cwp-btn-ghost,
+  .cwp-btn:not(.cwp-btn-primary):not(.cwp-btn-ghost):not(.cwp-btn-danger):not(.cwp-btn-forest),
+  .btn-gold
+):hover {
+  filter: brightness(1.08) !important;
+}
+
+body.editorial-v4.dark-mode #main .panel :is(.btn-danger, button.btn-danger) {
+  background: rgba(206, 128, 120, .22) !important;
+  color: var(--dm-danger, #c4c4c4) !important;
+  border: 1px solid rgba(206, 128, 120, .42) !important;
+}
+
+body.editorial-v4.dark-mode #main .panel :is(.cwp-btn-danger, .ued-btn.danger) {
+  background: rgba(206, 128, 120, .16) !important;
+  color: var(--dm-danger, #c4c4c4) !important;
+  border: 1px solid rgba(206, 128, 120, .42) !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .cwp-btn:disabled,
+body.editorial-v4.dark-mode #main .panel .ued-btn:disabled,
+body.editorial-v4.dark-mode #main .panel .btn:disabled {
+  opacity: .45 !important;
+  cursor: not-allowed !important;
+}
