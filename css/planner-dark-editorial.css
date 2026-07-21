@@ -3332,3 +3332,62 @@ body.editorial-v4.dark-mode #main .panel [style*="background:#fff"] {
   background: #1a1a1a !important;
   color: #e6e6e6 !important;
 }
+
+/* ═══ Batch A step 2 — authoritative card containers (loads last; token-driven) ═══ */
+body.editorial-v4 #main .panel :is(
+  .card,
+  .note-card,
+  .chart-wrap,
+  .banner-scripture-card,
+  .ued-panel,
+  .ued-table-card,
+  .m-card,
+  .m-panel,
+  .log-card,
+  .rfl-card,
+  .email-card,
+  .faq-card,
+  .guide-card,
+  .instruction-card,
+  .setup-card,
+  .budget-card,
+  .gift-card,
+  .gift-note-card,
+  .hm-card,
+  .venue-panel-card,
+  .venue-aside-card,
+  .venue-bottom-card,
+  .ceremony-card,
+  .calendar-card,
+  .timeline-card,
+  .table-card,
+  .filter-card,
+  .vendor-card,
+  .vendor-note-card,
+  .vendors-note-card,
+  .pinned-vendor-card,
+  .pinned-vendor-note,
+  .hub-record-card,
+  .hub-preview-card,
+  .phase-record-card,
+  .guest-insight-card,
+  .essentials-hub-card,
+  .dash-breakdown-card,
+  .app-card,
+  .bcard,
+  .bsum-card,
+  .cat-card,
+  .cat-table-card,
+  .templates-gallery-card,
+  .template-detail-card,
+  .budget-category-card,
+  .payment-progress-card,
+  .contracts-table-card,
+  .rentals-table-card,
+  .venue-system-compare-card
+) {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: var(--card-radius) !important;
+  box-shadow: none !important;
+}

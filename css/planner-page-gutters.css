@@ -640,22 +640,12 @@ body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-tab
   border-color: #2e2e2e !important;
 }
 
-/* Borderless card shells: keep tables/fields structured, remove card hairlines. */
+/* Borderless stat/toolbar shells only — canonical card containers use token borders (Batch A step 2). */
 body.editorial-v4 #main .panel :is(
-  .card,
-  .note-card,
-  .chart-wrap,
-  .banner-scripture-card,
-  .ued-panel,
-  .ued-table-card,
   .ued-countdown-c,
   .ued-stat,
-  .m-card,
-  .m-panel,
   .m-block,
   .m-soft,
-  .cat-card,
-  .cat-table-card,
   .cat-kids-card,
   .inst-card,
   .record-editor-section,
@@ -664,26 +654,10 @@ body.editorial-v4 #main .panel :is(
   .vendor-stat-card,
   .task-stat-card,
   .dash-stat-card,
-  .hub-preview-card,
-  .hub-record-card,
-  .templates-gallery-card,
-  .template-detail-card,
-  .budget-category-card,
-  .payment-progress-card,
-  .planner-table-control-card,
-  .phase-record-card,
-  .guest-insight-card,
   .contracts-stat-card,
   .contracts-toolbar-card,
-  .contracts-table-card,
-  .rentals-toolbar-card,
-  .rentals-table-card,
-  .contracts-scripture-card,
-  .venue-panel-card,
-  .venue-aside-card,
-  .venue-bottom-card,
-  .venue-system-compare-card,
-  #panel-budget .bcard
+  .planner-table-control-card,
+  .contracts-scripture-card
 ) {
   border: 0 !important;
   border-color: transparent !important;

@@ -41736,10 +41736,9 @@ count-up stats, drawing bars, and drawing donut charts.
   border: 0 !important;
 }
 
-/* Remove border around table cards */
+/* Remove border around table cards — canonical containers use token borders (Batch A step 2) */
 
-#main .panel .ued-table-card,
-#main .panel [class*="table-card"] {
+#main .panel [class*="table-card"]:not(.ued-table-card) {
   border: 0 !important;
 }
 
@@ -41820,40 +41819,60 @@ Will be replaced by a unified system applied consistently to all tables.
   box-shadow: none !important;
 }
 
-/* Remove visible outlines around card containers while preserving table/grid lines inside them. */
+/* Strip accidental card chrome from nested *-card fragments only (not canonical containers). */
 
-body.editorial-v4 #main .panel .card,
-body.editorial-v4 #main .panel .m-card,
-body.editorial-v4 #main .panel .m-panel,
-body.editorial-v4 #main .panel .ued-panel,
-body.editorial-v4 #main .panel .ued-table-card,
-body.editorial-v4 #main .panel .log-card,
-body.editorial-v4 #main .panel .rfl-card,
-body.editorial-v4 #main .panel .email-card,
-body.editorial-v4 #main .panel .faq-card,
-body.editorial-v4 #main .panel .guide-card,
-body.editorial-v4 #main .panel .instruction-card,
-body.editorial-v4 #main .panel .setup-card,
-body.editorial-v4 #main .panel .budget-card,
-body.editorial-v4 #main .panel .gift-card,
-body.editorial-v4 #main .panel .gift-note-card,
-body.editorial-v4 #main .panel .hm-card,
-body.editorial-v4 #main .panel .venue-panel-card,
-body.editorial-v4 #main .panel .venue-aside-card,
-body.editorial-v4 #main .panel .venue-bottom-card,
-body.editorial-v4 #main .panel .ceremony-card,
-body.editorial-v4 #main .panel .calendar-card,
-body.editorial-v4 #main .panel .timeline-card,
-body.editorial-v4 #main .panel .table-card,
-body.editorial-v4 #main .panel .filter-card,
-body.editorial-v4 #main .panel .vendor-card,
-body.editorial-v4 #main .panel .vendor-note-card,
-body.editorial-v4 #main .panel .vendors-note-card,
-body.editorial-v4 #main .panel .pinned-vendor-card,
-body.editorial-v4 #main .panel .pinned-vendor-note,
-body.editorial-v4 #main .panel [class*="note-card"],
-body.editorial-v4 #main .panel [class*="-note-card"],
-body.editorial-v4 #main .panel [class*="-card"] {
+body.editorial-v4 #main .panel [class*="-card"]:not(:is(
+  .card,
+  .note-card,
+  .chart-wrap,
+  .banner-scripture-card,
+  .ued-panel,
+  .ued-table-card,
+  .m-card,
+  .m-panel,
+  .log-card,
+  .rfl-card,
+  .email-card,
+  .faq-card,
+  .guide-card,
+  .instruction-card,
+  .setup-card,
+  .budget-card,
+  .gift-card,
+  .gift-note-card,
+  .hm-card,
+  .venue-panel-card,
+  .venue-aside-card,
+  .venue-bottom-card,
+  .ceremony-card,
+  .calendar-card,
+  .timeline-card,
+  .table-card,
+  .filter-card,
+  .vendor-card,
+  .vendor-note-card,
+  .vendors-note-card,
+  .pinned-vendor-card,
+  .pinned-vendor-note,
+  .hub-record-card,
+  .hub-preview-card,
+  .phase-record-card,
+  .guest-insight-card,
+  .essentials-hub-card,
+  .dash-breakdown-card,
+  .app-card,
+  .bcard,
+  .bsum-card,
+  .cat-card,
+  .cat-table-card,
+  .templates-gallery-card,
+  .template-detail-card,
+  .budget-category-card,
+  .payment-progress-card,
+  .contracts-table-card,
+  .rentals-table-card,
+  .venue-system-compare-card
+)) {
   border: 0!important;
   outline: 0!important;
   box-shadow: none!important;
@@ -44063,41 +44082,6 @@ body.editorial-v4.dark-mode .divider,
 body.editorial-v4.dark-mode .section-divider { border-color: #2e2e2e !important; }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   CUSTOM CARD TOKENS (Theme Builder: Card Fill / Border / Corners)
-   These stay invisible until a custom theme sets them, so built-in themes
-   keep the flat editorial look. Appended last to win the cascade.
-   ═══════════════════════════════════════════════════════════════════════ */
-
-body.editorial-v4 .ued-panel,
-body.editorial-v4 .panel .card,
-body.editorial-v4 .panel .note-card,
-body.editorial-v4 .panel .chart-wrap,
-body.editorial-v4 .panel .banner-scripture-card {
-  background: var(--card-bg, transparent) !important;
-  border: 1px solid var(--card-border, transparent) !important;
-  border-radius: var(--card-radius, 0) !important;
-}
-/* Give content cards inner padding only when they carry a fill/border */
-body.editorial-v4 .panel .card,
-body.editorial-v4 .panel .note-card,
-body.editorial-v4 .panel .chart-wrap,
-body.editorial-v4 .panel .banner-scripture-card {
-  padding: var(--card-pad, 0) !important;
-}
-
-/* Dark mode: same tokens win, but fall back to the premium dark surface
-   when the user hasn't chosen a custom card color. */
-body.editorial-v4.dark-mode .ued-panel,
-body.editorial-v4.dark-mode .panel .card,
-body.editorial-v4.dark-mode .panel .note-card,
-body.editorial-v4.dark-mode .panel .chart-wrap,
-body.editorial-v4.dark-mode .panel .banner-scripture-card {
-  background: var(--card-bg, #161b24) !important;
-  border: 1px solid var(--card-border, #232a36) !important;
-  border-radius: var(--card-radius, 0) !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
    UNIFIED SURFACE THEMING SYSTEM
    One set of tokens drives every surface. Light/dark supply the DEFAULT
    token values; a custom theme (applyTheme sets these inline on :root)
@@ -44148,19 +44132,63 @@ body.editorial-v4 #main { background: var(--section-bg) !important; }
 /* Section sheet behind the text */
 body.editorial-v4 #main .panel { background: var(--section-bg) !important; }
 
-/* Cards */
-body.editorial-v4 #main .panel .card,
-body.editorial-v4 #main .panel .note-card,
-body.editorial-v4 #main .panel .chart-wrap,
-body.editorial-v4 #main .panel .banner-scripture-card,
-body.editorial-v4 #main .panel .ued-panel,
-body.editorial-v4 #main .panel .ued-table-card,
-body.editorial-v4 #main .panel .ued-countdown-c,
-body.editorial-v4 #main .panel .m-card,
-body.editorial-v4 #main .panel .m-panel {
+/* ── Authoritative card containers (token-driven; explicit classes only) ── */
+body.editorial-v4 #main .panel :is(
+  .card,
+  .note-card,
+  .chart-wrap,
+  .banner-scripture-card,
+  .ued-panel,
+  .ued-table-card,
+  .m-card,
+  .m-panel,
+  .log-card,
+  .rfl-card,
+  .email-card,
+  .faq-card,
+  .guide-card,
+  .instruction-card,
+  .setup-card,
+  .budget-card,
+  .gift-card,
+  .gift-note-card,
+  .hm-card,
+  .venue-panel-card,
+  .venue-aside-card,
+  .venue-bottom-card,
+  .ceremony-card,
+  .calendar-card,
+  .timeline-card,
+  .table-card,
+  .filter-card,
+  .vendor-card,
+  .vendor-note-card,
+  .vendors-note-card,
+  .pinned-vendor-card,
+  .pinned-vendor-note,
+  .hub-record-card,
+  .hub-preview-card,
+  .phase-record-card,
+  .guest-insight-card,
+  .essentials-hub-card,
+  .dash-breakdown-card,
+  .app-card,
+  .bcard,
+  .bsum-card,
+  .cat-card,
+  .cat-table-card,
+  .templates-gallery-card,
+  .template-detail-card,
+  .budget-category-card,
+  .payment-progress-card,
+  .contracts-table-card,
+  .rentals-table-card,
+  .venue-system-compare-card
+) {
   background: var(--card-bg) !important;
   border: 1px solid var(--card-border) !important;
   border-radius: var(--card-radius) !important;
+  box-shadow: none !important;
 }
 /* Inner padding only for content cards (dashboard .ued-panel keeps its own) */
 body.editorial-v4 #main .panel .card,
