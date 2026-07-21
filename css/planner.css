@@ -10775,13 +10775,10 @@ body.editorial-v4 #main #panel-venue .m-stat-val { font-size: 1rem !important; l
    DASHBOARD BENTO — theme-driven, squared corners, responsive.
    Scoped to #panel-dashboard so it never affects other pages.
    ============================================================ */
-/* Card-ify: consistent squared corners + subtle depth (light) */
-#panel-dashboard .ued-panel,
+/* Card-ify: squared corners on dashboard layout shells (canonical cards use token radius) */
 #panel-dashboard .dash-breakdown-card,
 #panel-dashboard .ued-band,
 #panel-dashboard .dash-needs { border-radius: 8px !important; }
-#panel-dashboard .ued-panel { box-shadow: 0 1px 3px rgba(0,0,0,.05); }
-body.dark-mode #panel-dashboard .ued-panel { box-shadow: none; }
 
 /* Countdown blends into the page — no filled card, no border, no shadow */
 #panel-dashboard .ued-countdown-c {
@@ -35024,32 +35021,12 @@ body.simple-mode .simple-mode-banner {
 }
 .simple-mode-banner-dismiss:hover { background: rgba(0,0,0,.06); }
 
-/* Record cards (Vendors, Tasks, Wedding Party, Guests) — make them read as real
-   cards: distinct surface, visible border, lightly-rounded (not fully square) corners.
-   Extra .hub-record-card-grid ancestor beats the editorial border-stripping :is() rule. */
-body.editorial-v4 #main #vendor-card-grid .hub-record-card,
-body.editorial-v4 #main #task-card-grid .hub-record-card,
-body.editorial-v4 #main #party-card-grid .hub-record-card,
-body.editorial-v4 #main #guest-card-grid .hub-record-card {
-  background: #faf7f1 !important;
-  border: 1px solid #d9cdb8 !important;
-  border-radius: 4px !important;
-  box-shadow: inset 0 0 0 1px #d9cdb8, 0 1px 2px rgba(45,38,28,.06) !important;
-}
+/* Record cards — hover accent only (surfaces/borders from token rule, Batch A step 4) */
 body.editorial-v4 #main #vendor-card-grid .hub-record-card:hover,
 body.editorial-v4 #main #task-card-grid .hub-record-card:hover,
 body.editorial-v4 #main #party-card-grid .hub-record-card:hover,
 body.editorial-v4 #main #guest-card-grid .hub-record-card:hover {
   border-color: var(--gold, #c4a576) !important;
-  box-shadow: 0 4px 14px rgba(45,74,53,.09) !important;
-}
-body.dark-mode #main #vendor-card-grid .hub-record-card,
-body.dark-mode #main #task-card-grid .hub-record-card,
-body.dark-mode #main #party-card-grid .hub-record-card,
-body.dark-mode #main #guest-card-grid .hub-record-card {
-  background: #1e1e1e !important;
-  border: 1px solid #333 !important;
-  box-shadow: inset 0 0 0 1px #333 !important;
 }
 /* Inner card parts must show the card surface, not white boxes behind the text */
 body.editorial-v4 #main #vendor-card-grid .hub-record-card [class*="-card"]:not(.hub-record-card-badge),
@@ -43722,7 +43699,7 @@ body.dark-mode #panel-dashboard .dash-hero-meta{ border-left-color:#333; }
 body.dark-mode #panel-dashboard .dash-hero-couple{ color:#ededed; }
 body.dark-mode #panel-dashboard .dash-hero-date{ color:#c9c4bb; }
 
-/* Stat cards — hairline outline, no fill, centered text */
+/* Stat cards — hairline outline via inset shadow until step 5 token border migration */
 body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat{
   background:transparent !important; border-radius:8px !important;
   padding:.85rem .9rem !important; text-align:center !important; box-shadow:inset 0 0 0 1px #d9cdb8 !important;
@@ -43732,16 +43709,6 @@ body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat span,
 body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat small{ display:block; text-align:center !important; }
 body.dark-mode #main #panel-dashboard .ued-band .ued-stat{
   background:transparent !important; box-shadow:inset 0 0 0 1px #333 !important;
-}
-
-/* All dashboard cards — hairline outline, no background fill, no drop shadow */
-body.editorial-v4 #main #panel-dashboard .ued-panel{
-  background:transparent !important;
-  box-shadow:inset 0 0 0 1px #d9cdb8 !important;
-  border-radius:8px !important;
-}
-body.dark-mode #main #panel-dashboard .ued-panel{
-  box-shadow:inset 0 0 0 1px #333 !important;
 }
 /* Dashboard bar graphs — uniform, thicker, rounded */
 #panel-dashboard .ued-track,
