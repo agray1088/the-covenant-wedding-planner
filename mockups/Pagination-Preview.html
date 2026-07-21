@@ -1,0 +1,1551 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pagination + Full Details Preview</title></head><body>
+<script>
+function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+function pvDate(s){return s?new Date(s+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}):'';}
+function pvMoney(v){return '$'+(Math.round(parseFloat(v)||0)).toLocaleString('en-US');}
+function safeArray(a){return Array.isArray(a)?a:[];}
+function _cNum(v){return parseFloat(v)||0;}
+function computeMealCounts(){var by={};(data.guests||[]).forEach(function(g){if(/^(no|declin)/i.test(g.rsvp||''))return;var m=g.meal||'(no selection)';by[m]=(by[m]||0)+1;});return{meals:Object.keys(by).map(function(m){return{meal:m,count:by[m]};}),total:(data.guests||[]).filter(function(g){return /^(yes|accept)/i.test(g.rsvp||'');}).length};}
+var FIRST=['Zoe','Ben','Cara','Dan','Eve','Finn','Gina','Hank','Ivy','Jake','Kara','Leo','Mia','Noah','Ola','Pat','Quinn','Rae','Sam','Tara'];
+var LAST=['Adams','Brooks','Carter','Dell','Ellis','Ford','Gray','Hale','Ives','Jones'];
+var MEAL=['Chicken','Beef','Vegetarian',''];var DIET=['','Gluten-free','Nut allergy','Vegan',''];
+var guests=[];for(var i=0;i<58;i++){guests.push({name:FIRST[i%FIRST.length]+' '+LAST[i%LAST.length],side:['Bride','Groom','Both'][i%3],rsvp:['Yes','Pending','No','Yes'][i%4],meal:MEAL[i%4],table:String((i%12)+1),household:LAST[i%LAST.length]+' family',dietary:DIET[i%5],phone:'(555) 01'+(1000+i),email:FIRST[i%FIRST.length].toLowerCase()+'@example.com',address:(100+i)+' Chapel Rd, Springfield',notes:i%6===0?'Needs a ride from the hotel':'',companions:i%4===0?[{name:'Guest of '+FIRST[i%FIRST.length],role:'Plus-one',meal:MEAL[(i+1)%4]}]:[]});}
+var data={setup:{bride:'Arian',groom:'Jordan',date:'2026-11-13'},guests:guests};
+const COVENANT_PRINT_CSS = `
+@page{size:8.5in 11in;margin:0}
+#cvp-root{--forest-d:#1F3A2F;--forest:#2D4A3E;--forest-l:#3D5E50;
+  --gold:#B89968;--gold-s:#D9C7A4;--bone:#F9F7F4;--linen:#EFE8DD;--charcoal:#2A2A2A;
+  --muted:#8A8174;--line:#E5DFD3;--mauve-pale:#F2E8EB;--mauve:#C4919E;--mauve-d:#8B5D68;
+  --burg:#6B2737;--burg-m:#8C3A4A;--burg-pale:#F5EAED;
+  position:fixed;inset:0;z-index:2147483647;overflow:auto;background:#CDC7BE;padding:36px 20px;
+  box-sizing:border-box;color:var(--charcoal);font:11px/1.5 Georgia,"Times New Roman",serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+#cvp-root *,#cvp-root *::before,#cvp-root *::after{box-sizing:border-box}
+#cvp-root .cvp-toolbar{position:sticky;top:0;z-index:5;display:flex;gap:8px;margin:0 auto 18px;max-width:8.5in}
+#cvp-root .cvp-toolbar button{border:0;border-radius:4px;background:#1F3A2F;color:#fff;padding:9px 16px;font:700 11px Arial,sans-serif;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+#cvp-root .cvp-page{position:relative;width:8.5in;min-height:11in;margin:0 auto 30px;background:var(--bone);
+  box-shadow:0 6px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12);
+  display:flex;flex-direction:column;padding:0.5in 0.55in 0.44in}
+#cvp-root .cvp-page::before{content:"";position:absolute;left:0.3in;top:0.3in;right:0.3in;bottom:0.3in;border:1px solid var(--line);pointer-events:none}
+#cvp-root .cvp-page::after{content:"";position:absolute;left:0.35in;top:0.35in;right:0.35in;bottom:0.35in;border:1px solid var(--gold);opacity:.4;pointer-events:none}
+#cvp-root .cvp-mast{flex:0 0 auto;text-align:center;padding:2px 0 12px}
+#cvp-root .cvp-crest{width:40px;height:40px;margin:0 auto 9px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold);font:11px Georgia,serif;background:var(--linen)}
+#cvp-root .cvp-eyebrow{margin:0 0 7px;color:var(--gold);font-size:9px;letter-spacing:.28em;text-transform:uppercase}
+#cvp-root .cvp-title{margin:0;color:var(--forest-d);font:400 27px Georgia,"Times New Roman",serif;letter-spacing:.03em}
+#cvp-root .cvp-subtitle{margin:8px auto 0;max-width:5in;color:var(--muted);font:italic 10.5px Georgia,serif}
+#cvp-root .cvp-rule{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto 2px}
+#cvp-root .cvp-rule::before,#cvp-root .cvp-rule::after{content:"";height:1px;width:1.2in;background:linear-gradient(to right,transparent,var(--mauve-d) 60%,var(--gold))}
+#cvp-root .cvp-rule::after{background:linear-gradient(to left,transparent,var(--mauve-d) 60%,var(--gold))}
+#cvp-root .cvp-rule span{color:var(--gold);font-size:11px}
+#cvp-root .cvp-body{flex:1 1 auto;padding:4px 0.12in 0}
+#cvp-root .cvp-sec{display:block;text-align:center;margin:13px 0 9px;color:var(--forest);font-size:9px;letter-spacing:.22em;text-transform:uppercase}
+#cvp-root .cvp-sec::before{content:"";display:block;width:16px;height:1px;background:var(--gold);margin:0 auto 7px}
+#cvp-root .cvp-sec:first-child{margin-top:0}
+#cvp-root .cvp-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 18px}
+#cvp-root .cvp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+#cvp-root .cvp-flabel{color:var(--mauve-d);font-size:8px;letter-spacing:.14em;text-transform:uppercase}
+#cvp-root .cvp-fval{margin-top:3px;color:var(--forest-d);font:12px Georgia,serif}
+#cvp-root .cvp-p{margin:5px 0 0;color:var(--charcoal);font-size:10.5px}
+#cvp-root .cvp-note{padding:11px 15px;margin:0 0 11px;break-inside:avoid;background:var(--linen);border-left:2px solid var(--forest)}
+#cvp-root .cvp-note.mauve{background:var(--mauve-pale);border-left-color:var(--mauve-d)}
+#cvp-root .cvp-note.burg{background:var(--burg-pale);border-left-color:var(--burg)}
+#cvp-root .cvp-note.gold{border-left-color:var(--gold)}
+#cvp-root .cvp-note .cvp-flabel{color:var(--forest)}
+#cvp-root .cvp-note.mauve .cvp-flabel{color:var(--mauve-d)}
+#cvp-root .cvp-note.burg .cvp-flabel{color:var(--burg)}
+#cvp-root .cvp-writeline{height:18px;border-bottom:1px solid var(--line);margin-top:8px}
+#cvp-root .cvp-prio{display:flex;gap:11px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);break-inside:avoid}
+#cvp-root .cvp-prio:last-child{border-bottom:0}
+#cvp-root .cvp-prio .cvp-n{flex:0 0 auto;width:22px;height:22px;border-radius:50%;color:#fff;display:grid;place-items:center;font:12px Georgia,serif}
+#cvp-root .cvp-prio.c-forest .cvp-n{background:var(--forest)}
+#cvp-root .cvp-prio.c-gold .cvp-n{background:var(--gold)}
+#cvp-root .cvp-prio.c-mauve .cvp-n{background:var(--mauve-d)}
+#cvp-root .cvp-prio.c-burg .cvp-n{background:var(--burg)}
+#cvp-root .cvp-prio .cvp-t{color:var(--charcoal);font-size:11px}
+#cvp-root .cvp-prio .cvp-t b{font-weight:400;font-size:12px;color:var(--forest-d)}
+#cvp-root .cvp-blank{display:inline-block;min-width:60%;border-bottom:1px solid var(--line)}
+#cvp-root .cvp-verse{text-align:center;margin:2px auto 8px;padding:14px 18px;background:var(--mauve-pale);border-left:2px solid var(--mauve-d)}
+#cvp-root .cvp-verse .q{margin:0;color:var(--forest-d);font:italic 15px/1.65 Georgia,serif}
+#cvp-root .cvp-verse .r{margin:8px 0 0;color:var(--gold);font-size:9px;letter-spacing:.18em;text-transform:uppercase}
+#cvp-root .cvp-foot{flex:0 0 auto;text-align:center;padding-top:9px;color:var(--muted);font-size:8px;letter-spacing:.06em}
+#cvp-root .cvp-foot .fb{color:var(--gold);letter-spacing:.2em;text-transform:uppercase;font-size:7.5px}
+#cvp-root .cvp-foot .fv{font-style:italic;margin-top:2px;color:var(--forest)}
+#cvp-root .cvp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px}
+#cvp-root .cvp-stat{text-align:center;padding:9px 6px 8px;border-top:2px solid var(--forest);background:var(--linen)}
+#cvp-root .cvp-stat.mauve{border-top-color:var(--mauve-d)}
+#cvp-root .cvp-stat.gold{border-top-color:var(--gold)}
+#cvp-root .cvp-stat.burg{border-top-color:var(--burg)}
+#cvp-root .cvp-stat-label{color:var(--muted);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root .cvp-stat-value{margin-top:3px;color:var(--forest-d);font:400 22px Georgia,serif}
+#cvp-root .cvp-stat.mauve .cvp-stat-value{color:var(--mauve-d)}
+#cvp-root .cvp-stat.burg .cvp-stat-value{color:var(--burg)}
+#cvp-root .cvp-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+#cvp-root .cvp-tile{padding:9px 11px;background:var(--bone);border:1px solid var(--line);border-top:2px solid var(--forest);break-inside:avoid}
+#cvp-root .cvp-tile.mauve{border-top-color:var(--mauve-d)}
+#cvp-root .cvp-tile.gold{border-top-color:var(--gold)}
+#cvp-root .cvp-tile.burg{border-top-color:var(--burg)}
+#cvp-root .cvp-tile-label{color:var(--muted);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root .cvp-tile-value{margin-top:2px;color:var(--forest-d);font:400 14px Georgia,serif}
+#cvp-root .cvp-tile p{margin:4px 0 0;color:var(--muted);font-size:9.5px}
+#cvp-root .cvp-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:2px}
+#cvp-root .cvp-table th{padding:6px 8px;text-align:left;color:var(--forest-d);font:400 8px Georgia,serif;letter-spacing:.13em;text-transform:uppercase;border-bottom:1.5px solid var(--gold)}
+#cvp-root .cvp-table td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--charcoal)}
+#cvp-root .cvp-table tbody tr:nth-child(even) td{background:var(--linen)}
+#cvp-root .cvp-table .num,#cvp-root .cvp-table .date{color:var(--forest);font-weight:700;white-space:nowrap}
+#cvp-root .cvp-table .strong{color:var(--forest-d);font-weight:700}
+#cvp-root .cvp-sessions th:nth-child(-n+3){font-size:7px}
+#cvp-root .cvp-sessions td.num,#cvp-root .cvp-sessions td.date,#cvp-root .cvp-sessions td.strong{font-size:8.5px}
+#cvp-root .cvp-status{display:inline-block;padding:2px 7px;border:1px solid currentColor;border-radius:12px;font-size:8px;letter-spacing:.03em;white-space:nowrap}
+#cvp-root .cvp-status.done{color:var(--forest)}
+#cvp-root .cvp-status.praying{color:var(--mauve-d)}
+#cvp-root .cvp-status.waiting{color:var(--burg)}
+#cvp-root .cvp-empty{padding:10px;text-align:center;color:var(--muted);font-style:italic;font-size:10px}
+#cvp-root .cvp-table .money{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#cvp-root .cvp-table td.money{color:var(--forest-d)}
+#cvp-root .cvp-table .neg{color:var(--burg)}
+#cvp-root .cvp-table tr.cvp-tot td{border-top:1.5px solid var(--gold);border-bottom:0;font-weight:700;color:var(--forest-d);background:var(--linen)}
+#cvp-root .cvp-catrow td{background:color-mix(in srgb,var(--forest-d) 8%,var(--bone));color:var(--forest-d);font:400 10px Georgia,serif;letter-spacing:.04em;text-transform:uppercase}
+#cvp-root .cvp-phasehead{display:flex;align-items:baseline;justify-content:space-between;margin:16px 0 0}
+#cvp-root .cvp-phasehead .pn{color:var(--forest-d);font:400 16px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-phasehead .pc{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+#cvp-root .cvp-phaserule{height:3px;margin:6px 0 8px;background:linear-gradient(to right,var(--forest),var(--gold-s),transparent)}
+#cvp-root .cvp-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:2px 0 8px}
+#cvp-root .cvp-card{position:relative;padding:16px 14px 14px;background:#fff;border:1px solid var(--line);border-radius:4px;break-inside:avoid}
+#cvp-root .cvp-card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--forest)}
+#cvp-root .cvp-card.mauve::before{background:var(--mauve-d)}
+#cvp-root .cvp-card-title{margin:0 0 8px;color:var(--forest-d);font:400 15px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-card p{margin:0;color:var(--muted);font-size:10px}
+/* rich reference content (FAQ answers, page guide) */
+#cvp-root .cvp-q{margin:15px 0 4px;color:var(--forest-d);font:400 13px Georgia,"Times New Roman",serif;break-after:avoid}
+#cvp-root .cvp-rich{color:var(--charcoal);font-size:10.5px;line-height:1.5;margin:0 0 6px}
+#cvp-root .cvp-rich h4{margin:11px 0 4px;color:var(--forest-d);font:400 11.5px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-rich p{margin:0 0 6px;font-size:10.5px;line-height:1.5}
+#cvp-root .cvp-rich ul{margin:0 0 8px;padding-left:16px}
+#cvp-root .cvp-rich li{margin:0 0 3px;font-size:10.5px;line-height:1.45}
+#cvp-root .cvp-rich code{background:var(--linen);padding:1px 4px;border-radius:3px;font-size:9.5px}
+#cvp-root .cvp-rich strong{color:var(--forest-d)}
+/* Full-details record cards (one shared renderer for every page). Hidden
+   unless #cvp-root has .cvp-details (the Summary / Full details toggle). */
+#cvp-root:not(.cvp-details) .cvp-detail{display:none!important}
+#cvp-root .cvp-record{padding:11px 14px;margin:0 0 9px;background:var(--bone);border:1px solid var(--line);border-left:2px solid var(--forest);border-radius:3px;break-inside:avoid}
+#cvp-root .cvp-record.mauve{border-left-color:var(--mauve-d)}
+#cvp-root .cvp-rec-title{margin:0 0 6px;color:var(--forest-d);font:400 13px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:5px 18px}
+#cvp-root .cvp-rf .l{color:var(--mauve-d);font-size:8px;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root .cvp-rf .v{margin-top:1px;color:var(--forest-d);font-size:11px}
+#cvp-root .cvp-rf.full{grid-column:1/-1}
+#cvp-root .cvp-rf.full .v{color:var(--charcoal);font-size:10.5px;line-height:1.45}
+#cvp-root .cvp-subitems{margin-top:7px;padding-left:11px;border-left:1px solid var(--line)}
+#cvp-root .cvp-subitems .si{margin:2px 0;color:var(--charcoal);font-size:10px}
+#cvp-root .cvp-subitems .si b{color:var(--forest-d);font-weight:400}
+/* ── LETTERHEAD SKIN ──────────────────────────────────────────────
+   A second style layered over the same markup. Active when #cvp-root
+   has class .skin-letterhead. Dark forest banner, KPI cards, filled
+   table headers — the Planning-Timeline look. ───────────────────── */
+#cvp-root.skin-letterhead .cvp-page{padding:0}
+/* left spine gradient (like the mockup) */
+#cvp-root.skin-letterhead .cvp-page::before{display:block;content:"";position:absolute;left:0;top:16%;width:3px;height:34%;background:linear-gradient(var(--burg),var(--mauve-d),transparent);opacity:.48;border:0}
+#cvp-root.skin-letterhead .cvp-page::after{display:none}
+/* dark forest banner with a gold→mauve→gold gradient rule at the bottom */
+#cvp-root.skin-letterhead .cvp-mast{display:block;text-align:left;padding:30px 52px 23px;background:var(--forest-d);color:#fff;position:relative;border-bottom:3px solid transparent;border-image:linear-gradient(to right,var(--gold),var(--mauve),var(--gold-s)) 1}
+/* right-side brand meta: two lines + gold diamond, matching the mockup */
+#cvp-root.skin-letterhead .cvp-mast::before{content:"The Covenant\\A Wedding Planner";white-space:pre;position:absolute;top:30px;right:52px;text-align:right;color:var(--gold-s);font:9px/1.7 Georgia,"Times New Roman",serif;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root.skin-letterhead .cvp-mast::after{content:"◆";position:absolute;top:62px;right:52px;color:var(--gold);font-size:18px}
+#cvp-root.skin-letterhead .cvp-crest,#cvp-root.skin-letterhead .cvp-rule{display:none}
+#cvp-root.skin-letterhead .cvp-eyebrow{margin:0 0 5px;color:var(--gold);text-align:left;letter-spacing:.16em}
+#cvp-root.skin-letterhead .cvp-title{color:#fff;font-size:27px;letter-spacing:.02em}
+#cvp-root.skin-letterhead .cvp-subtitle{margin:6px 0 0;color:var(--gold-s);max-width:none;font-style:normal;font-size:10px;letter-spacing:.08em}
+#cvp-root.skin-letterhead .cvp-body{padding:31px 52px 70px}
+#cvp-root.skin-letterhead .cvp-sec{text-align:left;color:var(--forest-d);font:400 18px Georgia,"Times New Roman",serif;letter-spacing:.02em;text-transform:none;border-bottom:1px solid var(--line);padding-bottom:7px;margin:20px 0 14px}
+#cvp-root.skin-letterhead .cvp-sec::before{display:none}
+#cvp-root.skin-letterhead .cvp-info{background:var(--forest-d);border-radius:4px;padding:14px 18px;gap:0;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+#cvp-root.skin-letterhead .cvp-info>div{padding:0 12px;border-left:1px solid rgba(255,255,255,.16)}
+#cvp-root.skin-letterhead .cvp-info>div:first-child{padding-left:0;border-left:0}
+#cvp-root.skin-letterhead .cvp-flabel{color:var(--gold-s);font:700 8px Georgia,"Times New Roman",serif;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root.skin-letterhead .cvp-fval{min-height:25px;background:var(--linen);border-radius:2px;padding:6px 7px;margin-top:6px;color:var(--forest-d);font:11px Georgia,"Times New Roman",serif}
+#cvp-root.skin-letterhead .cvp-stat{background:#fff;border:1px solid var(--line);border-top:3px solid var(--forest);padding:12px 13px}
+#cvp-root.skin-letterhead .cvp-stat.mauve{border-top-color:var(--mauve-d)}
+#cvp-root.skin-letterhead .cvp-stat.gold{border-top-color:var(--gold)}
+#cvp-root.skin-letterhead .cvp-stat.burg{border-top-color:var(--burg)}
+#cvp-root.skin-letterhead .cvp-stat-label{color:var(--muted);font-size:8px;letter-spacing:.1em}
+#cvp-root.skin-letterhead .cvp-stat-value{font:700 22px Georgia,"Times New Roman",serif}
+#cvp-root.skin-letterhead .cvp-table th{padding:8px 9px;background:var(--forest-d);color:var(--gold-s);border-bottom:0;letter-spacing:.13em}
+#cvp-root.skin-letterhead .cvp-table th:first-child{border-radius:4px 0 0 0}
+#cvp-root.skin-letterhead .cvp-table th:last-child{border-radius:0 4px 0 0}
+#cvp-root.skin-letterhead .cvp-table td{padding:7px 9px}
+#cvp-root.skin-letterhead .cvp-catrow td{background:var(--forest-d);color:var(--gold-s)}
+#cvp-root.skin-letterhead .cvp-note{background:var(--linen)}
+#cvp-root.skin-letterhead .cvp-foot{text-align:left;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line);padding:10px 52px}
+#cvp-root.skin-letterhead .cvp-foot .fb{color:var(--muted);letter-spacing:.14em}
+#cvp-root.skin-letterhead .cvp-foot .fv{font-style:italic;color:var(--forest-d);margin-top:0}
+#cvp-root .cvp-toolbar button[data-cvp-style]{background:var(--gold);color:var(--forest-d)}
+body.cvp-printing > :not(#cvp-root){visibility:hidden!important}
+body.cvp-printing #cvp-root{visibility:visible!important}
+@media print{
+  body.cvp-printing > :not(#cvp-root){display:none!important}
+  body.cvp-printing{background:none!important;padding:0!important}
+  #cvp-root{position:static;overflow:visible;background:none;padding:0}
+  #cvp-root .cvp-toolbar{display:none!important}
+  #cvp-root .cvp-page{margin:0!important;box-shadow:none!important;page-break-after:always;break-after:page}
+  #cvp-root .cvp-page:last-of-type{page-break-after:auto;break-after:auto}
+}`;
+
+/* Measured height of an element including its vertical margins. */
+function _cvpBlockH(el){
+  const r = el.getBoundingClientRect();
+  const cs = getComputedStyle(el);
+  return r.height + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0);
+}
+function _cvpIsHeading(el){
+  return el.classList && (el.classList.contains('cvp-sec') || el.classList.contains('cvp-phasehead') || el.classList.contains('cvp-q'));
+}
+/* Content-height budget for one physical 8.5x11 sheet (page minus masthead,
+   footer, and paddings). Uses CSS pixels: 11in = 1056px. */
+function _cvpSheetBudget(sheet){
+  const cs = getComputedStyle(sheet);
+  const body = sheet.querySelector('.cvp-body');
+  const mast = sheet.querySelector('.cvp-mast');
+  const foot = sheet.querySelector('.cvp-foot');
+  const mastH = mast ? mast.getBoundingClientRect().height : 0;
+  const footH = foot ? foot.getBoundingClientRect().height : 0;
+  const bcs = body ? getComputedStyle(body) : null;
+  const pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+  const bpad = bcs ? ((parseFloat(bcs.paddingTop) || 0) + (parseFloat(bcs.paddingBottom) || 0)) : 0;
+  return 1056 - pad - mastH - footH - bpad - 8;
+}
+/* Reflow each logical builder page into real 8.5x11 sheets: repeat the
+   masthead + footer per sheet, split long tables (repeating their header),
+   and keep section headings with the content that follows. */
+function cvpPaginate(container){
+  try {
+    const sources = Array.prototype.slice.call(container.querySelectorAll(':scope > main.cvp-page'));
+    if (!sources.length) return;
+    sources.forEach(src => {
+      const mast = src.querySelector('.cvp-mast');
+      const foot = src.querySelector('.cvp-foot');
+      const bodyEl = src.querySelector('.cvp-body');
+      const blocks = bodyEl ? Array.prototype.slice.call(bodyEl.children) : [];
+      const ctx = { sheet: null, body: null, used: 0, budget: 0 };
+      const newSheet = () => {
+        ctx.sheet = document.createElement('main');
+        ctx.sheet.className = 'cvp-page';
+        if (mast) ctx.sheet.appendChild(mast.cloneNode(true));
+        ctx.body = document.createElement('section');
+        ctx.body.className = 'cvp-body';
+        ctx.sheet.appendChild(ctx.body);
+        if (foot) ctx.sheet.appendChild(foot.cloneNode(true));
+        container.appendChild(ctx.sheet);   // append live so it can be measured
+        ctx.used = 0;
+        ctx.budget = _cvpSheetBudget(ctx.sheet);
+      };
+      newSheet();
+      let guard = 0;
+      blocks.forEach(block => {
+        if (guard++ > 5000) return;
+        if (getComputedStyle(block).display === 'none') return;  // skip hidden (Summary mode)
+        if (block.tagName === 'TABLE') { _cvpPlaceTable(block, ctx, newSheet); return; }
+        ctx.body.appendChild(block);
+        const h = _cvpBlockH(block);
+        // avoid orphaned headings near the bottom of a sheet
+        if (_cvpIsHeading(block) && ctx.used > 0 && (ctx.budget - ctx.used) < h + 70) {
+          ctx.body.removeChild(block); newSheet(); ctx.body.appendChild(block); ctx.used = _cvpBlockH(block); return;
+        }
+        if (ctx.used + h <= ctx.budget) { ctx.used += h; return; }
+        if (ctx.used > 0) { ctx.body.removeChild(block); newSheet(); ctx.body.appendChild(block); ctx.used = _cvpBlockH(block); }
+        else { ctx.used += h; } // single block taller than a page: accept
+      });
+    });
+    // remove the original logical pages, leaving the paginated sheets
+    sources.forEach(s => s.remove());
+  } catch (err) {
+    if (typeof console !== 'undefined') console.error('cvpPaginate failed:', err);
+  }
+}
+/* Place a table into the current sheet, spilling extra rows onto new sheets
+   with the header row repeated. */
+function _cvpPlaceTable(table, ctx, newSheet){
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+  const rows = tbody ? Array.prototype.slice.call(tbody.children) : [];
+  const shell = () => {
+    const t = table.cloneNode(false);
+    if (thead) t.appendChild(thead.cloneNode(true));
+    const tb = document.createElement('tbody');
+    t.appendChild(tb);
+    return { t: t, tb: tb };
+  };
+  let s = shell();
+  ctx.body.appendChild(s.t);
+  ctx.used += _cvpBlockH(s.t); // header height
+  let guard = 0;
+  rows.forEach(row => {
+    if (guard++ > 20000) return;
+    s.tb.appendChild(row);
+    const rh = _cvpBlockH(row);
+    if (ctx.used + rh <= ctx.budget) { ctx.used += rh; return; }
+    s.tb.removeChild(row);
+    newSheet();
+    s = shell();
+    ctx.body.appendChild(s.t);
+    ctx.used += _cvpBlockH(s.t);
+    s.tb.appendChild(row);
+    ctx.used += _cvpBlockH(row);
+  });
+}
+
+function openCovenantPrintTemplate(sheetsHtml){
+  const rootId = 'cvp-root';
+  const old = document.getElementById(rootId); if (old) old.remove();
+  const oldStyle = document.getElementById(rootId + '-style'); if (oldStyle) oldStyle.remove();
+  const style = document.createElement('style');
+  style.id = rootId + '-style';
+  style.textContent = COVENANT_PRINT_CSS;
+  document.head.appendChild(style);
+  const root = document.createElement('div');
+  root.id = rootId;
+  root.className = 'skin-letterhead';  // default style
+  const source = sheetsHtml || '';
+  root.innerHTML = '<div class="cvp-toolbar no-print"><button type="button" data-cvp-style>Style: Letterhead</button><button type="button" data-cvp-details>View: Summary</button><button type="button" data-cvp-print>Print</button><button type="button" data-cvp-close>Close</button></div><div class="cvp-pages"></div>';
+  document.body.classList.add('cvp-printing');
+  document.body.appendChild(root);
+  const pagesEl = root.querySelector('.cvp-pages');
+  const render = () => { pagesEl.innerHTML = source; cvpPaginate(pagesEl); };
+  render();
+  const detailsBtn = root.querySelector('[data-cvp-details]');
+  detailsBtn.addEventListener('click', () => {
+    const on = root.classList.toggle('cvp-details');
+    detailsBtn.textContent = 'View: ' + (on ? 'Full details' : 'Summary');
+    render();               // re-paginate: details add/remove content
+    root.scrollTop = 0;
+  });
+  const close = () => {
+    root.remove(); style.remove();
+    document.body.classList.remove('cvp-printing');
+    window.removeEventListener('afterprint', close);
+  };
+  const styleBtn = root.querySelector('[data-cvp-style]');
+  styleBtn.addEventListener('click', () => {
+    const keepsake = root.classList.toggle('skin-keepsake');
+    root.classList.toggle('skin-letterhead', !keepsake);
+    styleBtn.textContent = 'Style: ' + (keepsake ? 'Keepsake' : 'Letterhead');
+    render();               // re-paginate: sheet heights differ per skin
+    root.scrollTop = 0;
+  });
+  root.querySelector('[data-cvp-close]').addEventListener('click', close);
+  root.querySelector('[data-cvp-print]').addEventListener('click', () => window.print());
+  window.addEventListener('afterprint', close);
+  /* No auto-print: the preview opens first so the couple can pick a style. */
+  root.scrollTop = 0;
+  return root;
+}
+
+/* Value helpers for Covenant print builders. */
+function _cvpStr(v){ return (v == null ? '' : String(v)).trim(); }
+function _cvpMultiline(v){ return escapeHtml(_cvpStr(v)).replace(/\n/g, '<br>'); }
+/* A filled value as a paragraph, or N blank ruled lines to write on. */
+function _cvpOrLines(v, n){
+  const t = _cvpStr(v);
+  if (t) return '<p class="cvp-p">' + _cvpMultiline(t) + '</p>';
+  let s = ''; for (let i = 0; i < (n || 2); i++) s += '<div class="cvp-writeline"></div>';
+  return s;
+}
+/* Inline value or a short write-on blank (used in the priority rows). */
+function _cvpInline(v){
+  const t = _cvpStr(v);
+  return t ? escapeHtml(t) : '<span class="cvp-blank">&nbsp;</span>';
+}
+
+/* Builder — Vision & Foundation (Start Here). Reads data.vision + data.setup. */
+function buildVisionFoundationPrintSheets(){
+  const v = (data && data.vision) || {};
+  const s = (data && data.setup) || {};
+  const couple = [s.bride, s.groom].filter(Boolean).join(' & ');
+  const dateStr = pvDate(s.date) || _cvpStr(s.date);
+  const crest = '&#9670;';
+  const orn = '&#10086;';
+
+  const sheet1 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast">'
+    +     '<div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Start Here &middot; Essentials Collection</div>'
+    +     '<h1 class="cvp-title">Vision &amp; Foundation</h1>'
+    +     '<p class="cvp-subtitle">A covenant-first page for priorities, prayers, and purpose</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div>'
+    +   '</header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">The foundation we are building from</span>'
+    +     '<div class="cvp-info">'
+    +       '<div><div class="cvp-flabel">Couple</div><div class="cvp-fval">' + (_cvpStr(couple) ? escapeHtml(couple) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Wedding date</div><div class="cvp-fval">' + (dateStr ? escapeHtml(dateStr) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Marriage verse</div><div class="cvp-fval">' + (_cvpStr(v.marriageVerseReference) ? escapeHtml(_cvpStr(v.marriageVerseReference)) : '&nbsp;') + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">Our marriage vision</span>'
+    +     '<div class="cvp-note mauve"><div class="cvp-flabel">What a Christ-centered marriage looks like to us</div>' + _cvpOrLines(v.marriageVision, 2) + '</div>'
+    +     '<span class="cvp-sec">The decisions that guide everything else</span>'
+    +     '<div class="cvp-prio c-forest"><span class="cvp-n">1</span><span class="cvp-t"><b>Priority 1</b> &mdash; ' + _cvpInline(v.priority1) + '</span></div>'
+    +     '<div class="cvp-prio c-gold"><span class="cvp-n">2</span><span class="cvp-t"><b>Priority 2</b> &mdash; ' + _cvpInline(v.priority2) + '</span></div>'
+    +     '<div class="cvp-prio c-mauve"><span class="cvp-n">3</span><span class="cvp-t"><b>Priority 3</b> &mdash; ' + _cvpInline(v.priority3) + '</span></div>'
+    +     '<div class="cvp-prio c-burg"><span class="cvp-n">&#10022;</span><span class="cvp-t"><b>What guests should feel</b> &mdash; ' + _cvpInline(v.guestExperience) + '</span></div>'
+    +     '<div style="margin-top:11px"><div class="cvp-note gold"><div class="cvp-flabel">Keeping our marriage at the center</div>' + _cvpOrLines(v.marriageFirst, 2) + '</div></div>'
+    +     '<div class="cvp-note burg"><div class="cvp-flabel">Boundaries we are choosing</div>' + _cvpOrLines(v.avoid, 2) + '</div>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Before the spreadsheets, remember the covenant. &middot; Vision &amp; Foundation, Page 1</div></footer>'
+    + '</main>';
+
+  const verseFull = _cvpStr(v.marriageVerseFull);
+  const verseRef = _cvpStr(v.marriageVerseReference);
+  const verseBlock = verseFull
+    ? '<div class="cvp-verse"><p class="q">&ldquo;' + _cvpMultiline(verseFull) + '&rdquo;</p>' + (verseRef ? '<p class="r">' + escapeHtml(verseRef) + '</p>' : '') + '</div>'
+    : '<div class="cvp-note gold"><div class="cvp-flabel">Our marriage verse (write it in full)</div><div class="cvp-writeline"></div><div class="cvp-writeline"></div>' + (verseRef ? '<p class="cvp-p">' + escapeHtml(verseRef) + '</p>' : '') + '</div>';
+
+  const sheet2 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast">'
+    +     '<div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Start Here &middot; Prayer</div>'
+    +     '<h1 class="cvp-title">Marriage Verse &amp; Prayers</h1>'
+    +     '<p class="cvp-subtitle">A printable keepsake for the spiritual center of the season</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div>'
+    +   '</header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">A verse for our marriage</span>'
+    +     verseBlock
+    +     '<span class="cvp-sec">What this verse means to us</span>'
+    +     '<div class="cvp-note gold"><div class="cvp-flabel">For the bride</div>' + _cvpOrLines(v.marriageVerseBrideMeaning, 2) + '</div>'
+    +     '<div class="cvp-note mauve"><div class="cvp-flabel">For the groom</div>' + _cvpOrLines(v.marriageVerseGroomMeaning, 2) + '</div>'
+    +     '<span class="cvp-sec">What we are asking the Lord to build in us</span>'
+    +     '<div class="cvp-note burg"><div class="cvp-flabel">A prayer over this marriage</div>' + _cvpOrLines(v.marriagePrayer, 2) + '</div>'
+    +     '<span class="cvp-sec">Our prayers for each other</span>'
+    +     '<div class="cvp-note"><div class="cvp-flabel">His prayer for her</div>' + _cvpOrLines(v.hisPrayerForHer, 2) + '</div>'
+    +     '<div class="cvp-note mauve"><div class="cvp-flabel">Her prayer for him</div>' + _cvpOrLines(v.herPrayerForHim, 2) + '</div>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">A shared planning and covenant reference. &middot; Vision &amp; Foundation, Page 2</div></footer>'
+    + '</main>';
+
+  return sheet1 + sheet2;
+}
+
+/* Short date like "Feb 15" for print tables; falls back to raw text. */
+function _cvpShortDate(v){
+  const t = _cvpStr(v); if (!t) return '';
+  const d = new Date(t.length <= 10 ? t + 'T00:00:00' : t);
+  return isNaN(d.getTime()) ? escapeHtml(t) : d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+/* Status pill colour class from free-text status. */
+function _cvpStatusClass(s){
+  const t = _cvpStr(s).toLowerCase();
+  /* negatives first so they don't match the positive substrings (paid/booked/signed) */
+  if (/unpaid|not paid|overdue|not signed|unsigned|not booked|not started|declin|regret/.test(t)) return 'waiting';
+  if (/yes|accept|attend|going|confirm|\bpaid\b|complete|answer|done|booked|received|signed|order|included/.test(t)) return 'done';
+  if (/partial|deposit|progress|praying|maybe|waitlist|tentative|tasting|trial|fitting/.test(t)) return 'praying';
+  if (/pending|scheduled|waiting|wait|schedul|next|upcoming|owe|due\b|idea|research/.test(t)) return 'waiting';
+  return '';
+}
+function _cvpPill(s){
+  const t = _cvpStr(s); if (!t) return '';
+  return '<span class="cvp-status ' + _cvpStatusClass(t) + '">' + escapeHtml(t) + '</span>';
+}
+
+/* Builder — Premarital Counseling (Start Here). Reads data.counseling + curriculum. */
+function buildCounselingPrintSheets(){
+  const s = (data && data.setup) || {};
+  const sessions = (typeof safeArray === 'function') ? safeArray(data && data.counseling) : ((data && data.counseling) || []);
+  const couple = [s.bride, s.groom].filter(Boolean).join(' & ');
+  const dateStr = pvDate(s.date) || _cvpStr(s.date);
+  const crest = '&#9670;', orn = '&#10086;';
+  const total = sessions.length;
+  const done = sessions.filter(c => /complete/i.test(_cvpStr(c.status))).length;
+  const inProg = sessions.filter(c => /progress/i.test(_cvpStr(c.status))).length;
+  const qCount = sessions.filter(c => _cvpStr(c.questions)).length;
+  const goal = parseFloat(s.counselingCurriculum && s.counselingCurriculum.hoursGoal) || 8;
+  let hours = done * 1.5;
+  try { if (typeof counselingCurriculumHours === 'function') hours = counselingCurriculumHours(); } catch (e) {}
+  const nextDate = (typeof counselingNextDate === 'function') ? counselingNextDate() : '';
+  const nextTopic = (typeof counselingNextTopic === 'function') ? counselingNextTopic() : '';
+
+  const topics = [];
+  sessions.forEach(c => { const t = _cvpStr(c.topic); if (t && topics.indexOf(t) < 0) topics.push(t); });
+  const tileCls = ['', 'mauve', 'burg', 'gold', '', 'mauve'];
+  const tilesHtml = topics.slice(0, 6).map((t, i) =>
+    '<div class="cvp-tile ' + tileCls[i % tileCls.length] + '"><div class="cvp-tile-label">Topic</div><div class="cvp-tile-value">' + escapeHtml(t) + '</div></div>'
+  ).join('');
+
+  const rows = sessions.map((c, i) =>
+    '<tr><td class="num">' + escapeHtml(_cvpStr(c.num) || String(i + 1)) + '</td>'
+    + '<td class="date">' + _cvpShortDate(c.date) + '</td>'
+    + '<td class="strong">' + escapeHtml(_cvpStr(c.topic)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(c.homework)) + '</td>'
+    + '<td>' + _cvpPill(c.status) + '</td></tr>'
+  ).join('') || '<tr><td colspan="5" class="cvp-empty">No counseling sessions logged yet.</td></tr>';
+
+  const takeaways = sessions.filter(c => _cvpStr(c.takeaway));
+  const takeawaysHtml = takeaways.length
+    ? takeaways.map((c, i) => '<div class="cvp-note' + (i % 2 ? ' mauve' : '') + '"><div class="cvp-flabel">' + escapeHtml(_cvpStr(c.topic) || ('Session ' + (i + 1))) + ' — takeaway</div><p class="cvp-p">' + _cvpMultiline(c.takeaway) + '</p></div>').join('')
+    : '<div class="cvp-note"><div class="cvp-flabel">Session takeaways</div><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>';
+
+  const questions = sessions.filter(c => _cvpStr(c.questions));
+  const questionRows = questions.map(c =>
+    '<tr><td class="strong">' + escapeHtml(_cvpStr(c.topic)) + '</td><td>' + escapeHtml(_cvpStr(c.questions)) + '</td></tr>'
+  ).join('') || '<tr><td colspan="2" class="cvp-empty">No open questions recorded — add them on the page.</td></tr>';
+
+  const sheet1 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Start Here &middot; Essentials Collection</div>'
+    +     '<h1 class="cvp-title">Premarital Counseling</h1>'
+    +     '<p class="cvp-subtitle">Sessions, homework, and the conversations to keep carrying forward</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">Preparation at a glance</span>'
+    +     '<div class="cvp-info">'
+    +       '<div><div class="cvp-flabel">Couple</div><div class="cvp-fval">' + (_cvpStr(couple) ? escapeHtml(couple) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Wedding date</div><div class="cvp-fval">' + (dateStr ? escapeHtml(dateStr) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Curriculum hours</div><div class="cvp-fval">' + hours + ' / ' + goal + '</div></div>'
+    +       '<div><div class="cvp-flabel">Next session</div><div class="cvp-fval">' + (escapeHtml(_cvpStr(nextDate)) || '&nbsp;') + (_cvpStr(nextTopic) && nextTopic !== 'No upcoming session' ? ' &middot; ' + escapeHtml(nextTopic) : '') + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">Progress</span>'
+    +     '<div class="cvp-stats">'
+    +       '<div class="cvp-stat"><div class="cvp-stat-label">Sessions</div><div class="cvp-stat-value">' + total + '</div></div>'
+    +       '<div class="cvp-stat mauve"><div class="cvp-stat-label">Completed</div><div class="cvp-stat-value">' + done + '</div></div>'
+    +       '<div class="cvp-stat gold"><div class="cvp-stat-label">In progress</div><div class="cvp-stat-value">' + inProg + '</div></div>'
+    +       '<div class="cvp-stat burg"><div class="cvp-stat-label">Questions</div><div class="cvp-stat-value">' + qCount + '</div></div>'
+    +     '</div>'
+    +     (tilesHtml ? '<span class="cvp-sec">Topics worked through together</span><div class="cvp-tiles">' + tilesHtml + '</div>' : '')
+    +     '<span class="cvp-sec">Counseling sessions</span>'
+    +     '<table class="cvp-table cvp-sessions"><thead><tr><th>#</th><th>Date</th><th>Topic</th><th>Homework</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Iron sharpeneth iron; so a man sharpeneth the countenance of his friend. &middot; Premarital Counseling, Page 1</div></footer>'
+    + '</main>';
+
+  const sheet2 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Premarital Counseling &middot; Reflection</div>'
+    +     '<h1 class="cvp-title">Takeaways &amp; Questions</h1>'
+    +     '<p class="cvp-subtitle">A calm layout for the conversations that deserve more time</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">What we are learning</span>'
+    +     takeawaysHtml
+    +     '<span class="cvp-sec">Bring these back to the conversation</span>'
+    +     '<table class="cvp-table"><thead><tr><th>Topic</th><th>Question</th></tr></thead><tbody>' + questionRows + '</tbody></table>'
+    +     '<span class="cvp-sec">Notes after counseling</span>'
+    +     '<div class="cvp-note gold"><div class="cvp-flabel">Where we agree</div><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>'
+    +     '<div class="cvp-note mauve"><div class="cvp-flabel">Where we need more conversation</div><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Preparation is an act of love. &middot; Premarital Counseling, Page 2</div></footer>'
+    + '</main>';
+
+  return sheet1 + sheet2;
+}
+
+/* Builder — Prayer Journal (Start Here). Reads data.prayer + data.setup. */
+function buildPrayerPrintSheets(){
+  const s = (data && data.setup) || {};
+  const prayers = (typeof safeArray === 'function') ? safeArray(data && data.prayer) : ((data && data.prayer) || []);
+  const couple = [s.bride, s.groom].filter(Boolean).join(' & ');
+  const crest = '&#9670;', orn = '&#10086;';
+  const total = prayers.length;
+  const answered = prayers.filter(p => _cvpStr(p.answer)).length;
+  const withScripture = prayers.filter(p => _cvpStr(p.scripture)).length;
+  const pending = total - answered;
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  const focus = prayers.filter(p => !_cvpStr(p.answer)).slice(0, 5);
+  const focusHtml = focus.length
+    ? focus.map((p, i) => '<div class="cvp-note' + (i % 3 === 1 ? ' mauve' : i % 3 === 2 ? ' burg' : ' gold') + '"><div class="cvp-flabel">' + (escapeHtml(_cvpStr(p.focus)) || 'Prayer request') + '</div><p class="cvp-p">' + _cvpMultiline(p.request) + (_cvpStr(p.scripture) ? '<br><em>' + escapeHtml(_cvpStr(p.scripture)) + '</em>' : '') + '</p></div>').join('')
+    : '<div class="cvp-note gold"><div class="cvp-flabel">Requests to revisit this week</div><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>';
+
+  const rows = prayers.map(p => {
+    const status = _cvpStr(p.answer) ? 'Answered' : (_cvpStr(p.status) || 'Praying');
+    return '<tr><td class="date">' + _cvpShortDate(p.date) + '</td>'
+      + '<td class="strong">' + escapeHtml(_cvpStr(p.focus)) + '</td>'
+      + '<td>' + escapeHtml(_cvpStr(p.request)) + '</td>'
+      + '<td>' + escapeHtml(_cvpStr(p.scripture)) + '</td>'
+      + '<td>' + _cvpPill(status) + '</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="cvp-empty">No prayers recorded yet.</td></tr>';
+
+  const answeredList = prayers.filter(p => _cvpStr(p.answer)).slice(0, 6);
+  const answeredHtml = answeredList.length
+    ? answeredList.map((p, i) => '<div class="cvp-note' + (i % 2 ? ' mauve' : '') + '"><div class="cvp-flabel">' + (escapeHtml(_cvpStr(p.focus)) || 'Answered prayer') + '</div><p class="cvp-p">' + _cvpMultiline(p.answer) + '</p></div>').join('')
+    : '<div class="cvp-note"><div class="cvp-flabel">Remember how the Lord provided</div><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>';
+
+  const sheet1 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Start Here &middot; Essentials Collection</div>'
+    +     '<h1 class="cvp-title">Prayer Journal</h1>'
+    +     '<p class="cvp-subtitle">Requests, scriptures, answers, and quiet reminders during planning</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">What we are carrying in prayer</span>'
+    +     '<div class="cvp-info">'
+    +       '<div><div class="cvp-flabel">Couple</div><div class="cvp-fval">' + (_cvpStr(couple) ? escapeHtml(couple) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Planning season</div><div class="cvp-fval">Engagement to wedding day</div></div>'
+    +       '<div><div class="cvp-flabel">Anchor scripture</div><div class="cvp-fval">Philippians 4:6</div></div>'
+    +       '<div><div class="cvp-flabel">Last updated</div><div class="cvp-fval">' + escapeHtml(today) + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">Prayer at a glance</span>'
+    +     '<div class="cvp-stats">'
+    +       '<div class="cvp-stat"><div class="cvp-stat-label">Prayer entries</div><div class="cvp-stat-value">' + total + '</div></div>'
+    +       '<div class="cvp-stat mauve"><div class="cvp-stat-label">Answered</div><div class="cvp-stat-value">' + answered + '</div></div>'
+    +       '<div class="cvp-stat gold"><div class="cvp-stat-label">With scripture</div><div class="cvp-stat-value">' + withScripture + '</div></div>'
+    +       '<div class="cvp-stat burg"><div class="cvp-stat-label">Still praying</div><div class="cvp-stat-value">' + pending + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">Requests to revisit this week</span>'
+    +     focusHtml
+    +     '<div class="cvp-verse"><p class="q">&ldquo;Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God.&rdquo;</p><p class="r">Philippians 4:6</p></div>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Let your planning season become a prayerful season. &middot; Prayer Journal, Page 1</div></footer>'
+    + '</main>';
+
+  const sheet2 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Prayer Journal &middot; Tracker</div>'
+    +     '<h1 class="cvp-title">Prayer Log</h1>'
+    +     '<p class="cvp-subtitle">A printable record of requests, scriptures, and answered prayers</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">Requests and answers</span>'
+    +     '<table class="cvp-table"><thead><tr><th>Date</th><th>Focus</th><th>Prayer request</th><th>Scripture</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    +     '<span class="cvp-sec">Remember how the Lord provided</span>'
+    +     answeredHtml
+    +     '<span class="cvp-sec">Prayer prompts for this week</span>'
+    +     '<div class="cvp-note"><div class="cvp-writeline"></div><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">With thanksgiving, let your requests be made known unto God. &middot; Prayer Journal, Page 2</div></footer>'
+    + '</main>';
+
+  return sheet1 + sheet2;
+}
+
+/* Builder — Budget (Finances). Reads data.budget (+ items) and data.setup. */
+function buildBudgetPrintSheets(){
+  const s = (data && data.setup) || {};
+  const cats = (typeof safeArray === 'function') ? safeArray(data && data.budget) : ((data && data.budget) || []);
+  const couple = [s.bride, s.groom].filter(Boolean).join(' & ');
+  const dateStr = pvDate(s.date) || _cvpStr(s.date);
+  const crest = '&#9670;', orn = '&#10086;';
+  const num = (typeof _cNum === 'function') ? _cNum : (v => parseFloat(v) || 0);
+  const money = (typeof pvMoney === 'function') ? pvMoney : (v => '$' + Math.round(num(v)).toLocaleString('en-US'));
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  const va = (typeof computeBudgetVariance === 'function')
+    ? computeBudgetVariance()
+    : { categories: [], totalPlanned: 0, totalActual: 0, totalVariance: 0, totalBudget: num(s.budget) };
+  const overall = num(s.budget) || num(va.totalBudget) || 0;
+  const remaining = overall - num(va.totalActual);
+
+  const varCell = (planned, actual) => {
+    const v = num(planned) - num(actual); const neg = v < 0;
+    return '<td class="money' + (neg ? ' neg' : '') + '">' + (neg ? '&minus;' : '') + money(Math.abs(v)) + '</td>';
+  };
+  const catRows = (va.categories || []).map(c =>
+    '<tr><td class="strong">' + escapeHtml(_cvpStr(c.cat)) + '</td>'
+    + '<td class="money">' + money(c.planned) + '</td>'
+    + '<td class="money">' + money(c.actual) + '</td>'
+    + varCell(c.planned, c.actual) + '</tr>'
+  ).join('') || '<tr><td colspan="4" class="cvp-empty">No budget categories yet.</td></tr>';
+  const totalsRow = (va.categories && va.categories.length)
+    ? '<tr class="cvp-tot"><td>Total</td><td class="money">' + money(va.totalPlanned) + '</td><td class="money">' + money(va.totalActual) + '</td>' + varCell(va.totalPlanned, va.totalActual) + '</tr>'
+    : '';
+
+  let itemRows = '';
+  (cats || []).forEach(cat => {
+    const items = (typeof safeArray === 'function') ? safeArray(cat.items) : (cat.items || []);
+    if (!items.length) return;
+    itemRows += '<tr class="cvp-catrow"><td colspan="4">' + escapeHtml(_cvpStr(cat.cat) || '(uncategorized)') + '</td></tr>';
+    items.forEach(it => {
+      const budg = (typeof itemBudgeted === 'function') ? itemBudgeted(it) : (num(it.budgeted) || num(it.cost));
+      const st = _cvpStr(it.status) || (it.paid ? 'Paid' : '');
+      itemRows += '<tr><td>' + escapeHtml(_cvpStr(it.name)) + '</td>'
+        + '<td class="money">' + money(budg) + '</td>'
+        + '<td class="money">' + money(it.actual) + '</td>'
+        + '<td>' + (st ? _cvpPill(st) : '') + '</td></tr>';
+    });
+  });
+  if (!itemRows) itemRows = '<tr><td colspan="4" class="cvp-empty">No line items yet.</td></tr>';
+
+  const sheet1 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Finances &middot; Essentials Collection</div>'
+    +     '<h1 class="cvp-title">Budget</h1>'
+    +     '<p class="cvp-subtitle">Planned versus actual spending across every category</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">Overview</span>'
+    +     '<div class="cvp-info">'
+    +       '<div><div class="cvp-flabel">Couple</div><div class="cvp-fval">' + (_cvpStr(couple) ? escapeHtml(couple) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Wedding date</div><div class="cvp-fval">' + (dateStr ? escapeHtml(dateStr) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Total budget</div><div class="cvp-fval">' + money(overall) + '</div></div>'
+    +       '<div><div class="cvp-flabel">Prepared</div><div class="cvp-fval">' + escapeHtml(today) + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">Where the money stands</span>'
+    +     '<div class="cvp-stats">'
+    +       '<div class="cvp-stat"><div class="cvp-stat-label">Total budget</div><div class="cvp-stat-value">' + money(overall) + '</div></div>'
+    +       '<div class="cvp-stat gold"><div class="cvp-stat-label">Planned</div><div class="cvp-stat-value">' + money(va.totalPlanned) + '</div></div>'
+    +       '<div class="cvp-stat mauve"><div class="cvp-stat-label">Actual spend</div><div class="cvp-stat-value">' + money(va.totalActual) + '</div></div>'
+    +       '<div class="cvp-stat ' + (remaining < 0 ? 'burg' : '') + '"><div class="cvp-stat-label">' + (remaining < 0 ? 'Over budget' : 'Remaining') + '</div><div class="cvp-stat-value">' + money(Math.abs(remaining)) + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">Category summary</span>'
+    +     '<table class="cvp-table"><thead><tr><th>Category</th><th class="money">Planned</th><th class="money">Actual</th><th class="money">Variance</th></tr></thead><tbody>' + catRows + totalsRow + '</tbody></table>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Commit thy works unto the Lord, and thy thoughts shall be established. &middot; Budget, Page 1</div></footer>'
+    + '</main>';
+
+  const sheet2 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Budget &middot; Itemized</div>'
+    +     '<h1 class="cvp-title">Line Items</h1>'
+    +     '<p class="cvp-subtitle">Every budgeted line, grouped by category</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">Itemized budget</span>'
+    +     '<table class="cvp-table"><thead><tr><th>Item</th><th class="money">Budgeted</th><th class="money">Actual</th><th>Status</th></tr></thead><tbody>' + itemRows + '</tbody></table>'
+    +     _cvpBudgetDetails(cats)
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">A faithful steward plans with wisdom. &middot; Budget, Page 2</div></footer>'
+    + '</main>';
+
+  return sheet1 + sheet2;
+}
+
+/* Builder — Guest List (People). Reads data.guests + meal counts. */
+function buildGuestListPrintSheets(){
+  const s = (data && data.setup) || {};
+  const guests = (typeof safeArray === 'function') ? safeArray(data && data.guests) : ((data && data.guests) || []);
+  const couple = [s.bride, s.groom].filter(Boolean).join(' & ');
+  const dateStr = pvDate(s.date) || _cvpStr(s.date);
+  const crest = '&#9670;', orn = '&#10086;';
+  const declined = g => /^(no|declined|regret)/i.test(_cvpStr(g.rsvp));
+  const isYes = g => /^(yes|accept)/i.test(_cvpStr(g.rsvp));
+  const isPending = (typeof guestRsvpPending === 'function') ? guestRsvpPending : (g => { const r = _cvpStr(g.rsvp); return !r || /pending/i.test(r); });
+
+  const totalRows = guests.length;
+  const yes = guests.filter(isYes).length;
+  const pending = guests.filter(isPending).length;
+  const decl = guests.filter(declined).length;
+  const meals = (typeof computeMealCounts === 'function') ? computeMealCounts() : { meals: [], total: yes };
+  const headcount = meals.total || yes;
+
+  const mealRows = (meals.meals || []).filter(m => m.count).map(m =>
+    '<tr><td class="strong">' + escapeHtml(_cvpStr(m.meal)) + '</td><td class="money">' + m.count + '</td></tr>'
+  ).join('') || '<tr><td colspan="2" class="cvp-empty">No meal selections yet.</td></tr>';
+
+  const tableLabelOf = t => {
+    const v = _cvpStr(t); if (!v) return '';
+    return (typeof tableLabel === 'function') ? escapeHtml(_cvpStr(tableLabel(t))) : escapeHtml(v);
+  };
+  /* Party size = the guest + their companions (or plus-one + children). */
+  const partySize = g => {
+    const comps = Array.isArray(g.companions) ? g.companions : [];
+    const extra = comps.length ? comps.length : ((g.plusone ? 1 : 0) + (parseInt(g.children, 10) || 0));
+    return 1 + extra;
+  };
+  let totalParty = 0;
+  const rosterRows = guests.slice().sort((a, b) => _cvpStr(a.name).localeCompare(_cvpStr(b.name))).map(g => {
+    const ps = partySize(g); totalParty += ps;
+    return '<tr><td class="strong">' + escapeHtml(_cvpStr(g.name)) + '</td>'
+    + '<td class="money">' + ps + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(g.side)) + '</td>'
+    + '<td>' + (_cvpStr(g.rsvp) ? _cvpPill(g.rsvp) : '') + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(g.meal)) + '</td>'
+    + '<td>' + tableLabelOf(g.table) + '</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="cvp-empty">No guests added yet.</td></tr>';
+  const rosterTotal = guests.length
+    ? '<tr class="cvp-tot"><td>Total party</td><td class="money">' + totalParty + '</td><td colspan="4"></td></tr>'
+    : '';
+
+  const sheet1 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">People &middot; Essentials Collection</div>'
+    +     '<h1 class="cvp-title">Guest List</h1>'
+    +     '<p class="cvp-subtitle">RSVPs, meal counts, and seating at a glance</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">Overview</span>'
+    +     '<div class="cvp-info">'
+    +       '<div><div class="cvp-flabel">Couple</div><div class="cvp-fval">' + (_cvpStr(couple) ? escapeHtml(couple) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Wedding date</div><div class="cvp-fval">' + (dateStr ? escapeHtml(dateStr) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Households / invites</div><div class="cvp-fval">' + totalRows + '</div></div>'
+    +       '<div><div class="cvp-flabel">Attending headcount</div><div class="cvp-fval">' + headcount + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">RSVP status</span>'
+    +     '<div class="cvp-stats">'
+    +       '<div class="cvp-stat"><div class="cvp-stat-label">On the list</div><div class="cvp-stat-value">' + totalRows + '</div></div>'
+    +       '<div class="cvp-stat gold"><div class="cvp-stat-label">Attending</div><div class="cvp-stat-value">' + yes + '</div></div>'
+    +       '<div class="cvp-stat mauve"><div class="cvp-stat-label">Pending</div><div class="cvp-stat-value">' + pending + '</div></div>'
+    +       '<div class="cvp-stat burg"><div class="cvp-stat-label">Declined</div><div class="cvp-stat-value">' + decl + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">Meal counts</span>'
+    +     '<table class="cvp-table"><thead><tr><th>Meal selection</th><th class="money">Count</th></tr></thead><tbody>' + mealRows + '</tbody></table>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Given to hospitality. &middot; Guest List, Page 1</div></footer>'
+    + '</main>';
+
+  const sheet2 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Guest List &middot; Roster</div>'
+    +     '<h1 class="cvp-title">Guest Roster</h1>'
+    +     '<p class="cvp-subtitle">Every guest with RSVP, meal, and table</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">All guests</span>'
+    +     '<table class="cvp-table"><thead><tr><th>Guest</th><th class="money">Party</th><th>Side</th><th>RSVP</th><th>Meal</th><th>Table</th></tr></thead><tbody>' + rosterRows + rosterTotal + '</tbody></table>'
+    +     _cvpGuestDetails(guests)
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Every name matters. &middot; Guest List, Page 2</div></footer>'
+    + '</main>';
+
+  return sheet1 + sheet2;
+}
+
+/* Builder — Vendors (Venue & Vendors). Reads data.vendors. */
+function buildVendorsPrintSheets(){
+  const s = (data && data.setup) || {};
+  const vendors = (typeof safeArray === 'function') ? safeArray(data && data.vendors) : ((data && data.vendors) || []);
+  const couple = [s.bride, s.groom].filter(Boolean).join(' & ');
+  const dateStr = pvDate(s.date) || _cvpStr(s.date);
+  const crest = '&#9670;', orn = '&#10086;';
+  const num = (typeof _cNum === 'function') ? _cNum : (v => parseFloat(v) || 0);
+  const money = (typeof pvMoney === 'function') ? pvMoney : (v => '$' + Math.round(num(v)).toLocaleString('en-US'));
+  const isBooked = v => (typeof vendorBookedStatus === 'function' ? vendorBookedStatus(v.status) : /book|confirm/i.test(_cvpStr(v.status))) || !!v.contract;
+
+  const total = vendors.length;
+  const booked = vendors.filter(isBooked).length;
+  const notBooked = vendors.filter(v => /not booked/i.test(_cvpStr(v.status))).length;
+  const considering = Math.max(0, total - booked - notBooked);
+  const totalQuote = vendors.reduce((a, v) => a + num(v.quote), 0);
+  const totalDeposit = vendors.reduce((a, v) => a + num(v.deposit), 0);
+  const totalBalance = vendors.reduce((a, v) => a + num(v.balance), 0);
+
+  const rows = vendors.slice().sort((a, b) => _cvpStr(a.cat).localeCompare(_cvpStr(b.cat)) || _cvpStr(a.name).localeCompare(_cvpStr(b.name))).map(v => {
+    const contact = _cvpStr(v.contact) || _cvpStr(v.phone) || _cvpStr(v.email);
+    return '<tr><td class="strong">' + escapeHtml(_cvpStr(v.name)) + '</td>'
+      + '<td>' + escapeHtml(_cvpStr(v.cat)) + '</td>'
+      + '<td>' + escapeHtml(contact) + '</td>'
+      + '<td>' + (_cvpStr(v.status) ? _cvpPill(v.status) : '') + '</td>'
+      + '<td class="money">' + (num(v.balance) ? money(v.balance) : '') + '</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="cvp-empty">No vendors added yet.</td></tr>';
+
+  const sheet1 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Venue &amp; Vendors &middot; Essentials Collection</div>'
+    +     '<h1 class="cvp-title">Vendors</h1>'
+    +     '<p class="cvp-subtitle">Contacts, booking status, and balances due</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">Overview</span>'
+    +     '<div class="cvp-info">'
+    +       '<div><div class="cvp-flabel">Couple</div><div class="cvp-fval">' + (_cvpStr(couple) ? escapeHtml(couple) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Wedding date</div><div class="cvp-fval">' + (dateStr ? escapeHtml(dateStr) : '&nbsp;') + '</div></div>'
+    +       '<div><div class="cvp-flabel">Vendors tracked</div><div class="cvp-fval">' + total + '</div></div>'
+    +       '<div><div class="cvp-flabel">Booked</div><div class="cvp-fval">' + booked + ' of ' + total + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">Booking status</span>'
+    +     '<div class="cvp-stats">'
+    +       '<div class="cvp-stat"><div class="cvp-stat-label">Total</div><div class="cvp-stat-value">' + total + '</div></div>'
+    +       '<div class="cvp-stat gold"><div class="cvp-stat-label">Booked</div><div class="cvp-stat-value">' + booked + '</div></div>'
+    +       '<div class="cvp-stat mauve"><div class="cvp-stat-label">Considering</div><div class="cvp-stat-value">' + considering + '</div></div>'
+    +       '<div class="cvp-stat burg"><div class="cvp-stat-label">Not booked</div><div class="cvp-stat-value">' + notBooked + '</div></div>'
+    +     '</div>'
+    +     '<span class="cvp-sec">By the numbers</span>'
+    +     '<div class="cvp-stats">'
+    +       '<div class="cvp-stat"><div class="cvp-stat-label">Total quotes</div><div class="cvp-stat-value">' + money(totalQuote) + '</div></div>'
+    +       '<div class="cvp-stat gold"><div class="cvp-stat-label">Deposits paid</div><div class="cvp-stat-value">' + money(totalDeposit) + '</div></div>'
+    +       '<div class="cvp-stat burg"><div class="cvp-stat-label">Balance due</div><div class="cvp-stat-value">' + money(totalBalance) + '</div></div>'
+    +     '</div>'
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">In the multitude of counsellors there is safety. &middot; Vendors, Page 1</div></footer>'
+    + '</main>';
+
+  const sheet2 = ''
+    + '<main class="cvp-page">'
+    +   '<header class="cvp-mast"><div class="cvp-crest">' + crest + '</div>'
+    +     '<div class="cvp-eyebrow">Vendors &middot; Directory</div>'
+    +     '<h1 class="cvp-title">Vendor Directory</h1>'
+    +     '<p class="cvp-subtitle">Every vendor with contact, status, and balance</p>'
+    +     '<div class="cvp-rule"><span>' + orn + '</span></div></header>'
+    +   '<section class="cvp-body">'
+    +     '<span class="cvp-sec">All vendors</span>'
+    +     '<table class="cvp-table"><thead><tr><th>Vendor</th><th>Category</th><th>Contact</th><th>Status</th><th class="money">Balance</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    +     _cvpVendorDetails(vendors)
+    +   '</section>'
+    +   '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Plans are established by counsel. &middot; Vendors, Page 2</div></footer>'
+    + '</main>';
+
+  return sheet1 + sheet2;
+}
+
+/* Shared masthead + overview helpers for the single-sheet table templates. */
+function _cvpEyebrow(eyebrow){
+  /* Drop the brand prefix (the brand now sits in the right-hand meta) and
+     frame the left eyebrow as "[Section] · Essentials Collection". */
+  var eb = String(eyebrow == null ? '' : eyebrow).replace(/^\s*The Covenant Wedding Planner\s*(?:&middot;|·)\s*/i, '').trim();
+  return eb ? (eb + ' &middot; Essentials Collection') : 'Essentials Collection';
+}
+function _cvpMast(eyebrow, title, subtitle){
+  return '<header class="cvp-mast"><div class="cvp-crest">&#9670;</div>'
+    + '<div class="cvp-eyebrow">' + _cvpEyebrow(eyebrow) + '</div>'
+    + '<h1 class="cvp-title">' + title + '</h1>'
+    + '<p class="cvp-subtitle">' + subtitle + '</p>'
+    + '<div class="cvp-rule"><span>&#10086;</span></div></header>';
+}
+function _cvpInfoCell(label, value){
+  return '<div><div class="cvp-flabel">' + label + '</div><div class="cvp-fval">' + (value === 0 || value ? escapeHtml(String(value)) : '&nbsp;') + '</div></div>';
+}
+function _cvpStat(label, value, variant){
+  return '<div class="cvp-stat ' + (variant || '') + '"><div class="cvp-stat-label">' + label + '</div><div class="cvp-stat-value">' + value + '</div></div>';
+}
+function _cvpFoot(verse, page){
+  return '<footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">' + verse + ' &middot; ' + page + '</div></footer>';
+}
+function _cvpCouple(){ const s = (data && data.setup) || {}; return [s.bride, s.groom].filter(Boolean).join(' & '); }
+function _cvpWedDate(){ const s = (data && data.setup) || {}; return pvDate(s.date) || _cvpStr(s.date); }
+
+/* Builder — Payments (Finances). */
+function buildPaymentsPrintSheets(){
+  const rows0 = safeArray(data && data.payments);
+  const totalDue = rows0.reduce((a, p) => a + _cNum(p.due), 0);
+  const totalPaid = rows0.reduce((a, p) => a + _cNum(p.paid), 0);
+  const remaining = totalDue - totalPaid;
+  const rows = rows0.slice().sort((a, b) => _cvpStr(a.date).localeCompare(_cvpStr(b.date))).map(p =>
+    '<tr><td class="strong">' + escapeHtml(_cvpStr(p.vendor)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(p.desc)) + '</td>'
+    + '<td class="date">' + _cvpShortDate(p.date) + '</td>'
+    + '<td class="money">' + pvMoney(p.due) + '</td>'
+    + '<td class="money">' + pvMoney(p.paid) + '</td>'
+    + '<td>' + (_cvpStr(p.status) ? _cvpPill(p.status) : '') + '</td></tr>'
+  ).join('') || '<tr><td colspan="6" class="cvp-empty">No payments logged yet.</td></tr>';
+  const tot = rows0.length ? '<tr class="cvp-tot"><td colspan="3">Total</td><td class="money">' + pvMoney(totalDue) + '</td><td class="money">' + pvMoney(totalPaid) + '</td><td></td></tr>' : '';
+  return '<main class="cvp-page">'
+    + _cvpMast('The Covenant Wedding Planner &middot; Finances', 'Payments', 'Deposits, balances, and what is still owed')
+    + '<section class="cvp-body">'
+    + '<span class="cvp-sec">Overview</span><div class="cvp-info">'
+    + _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
+    + _cvpInfoCell('Payments', rows0.length) + _cvpInfoCell('Balance due', pvMoney(remaining)) + '</div>'
+    + '<span class="cvp-sec">Where payments stand</span><div class="cvp-stats">'
+    + _cvpStat('Total owed', pvMoney(totalDue)) + _cvpStat('Paid', pvMoney(totalPaid), 'gold')
+    + _cvpStat('Remaining', pvMoney(Math.abs(remaining)), remaining > 0 ? 'burg' : '') + '</div>'
+    + '<span class="cvp-sec">Payment schedule</span>'
+    + '<table class="cvp-table"><thead><tr><th>Vendor</th><th>For</th><th>Due</th><th class="money">Amount</th><th class="money">Paid</th><th>Status</th></tr></thead><tbody>' + rows + tot + '</tbody></table>'
+    + '</section>' + _cvpFoot('Owe no man any thing, but to love one another.', 'Payments') + '</main>';
+}
+
+/* Builder — Contracts, Invoices & Rentals (Finances). */
+function buildContractsPrintSheets(){
+  const contracts = safeArray(data && data.contracts);
+  const rentals = safeArray(data && data.rentals);
+  const signed = contracts.filter(c => _cvpStatusClass(c.status) === 'done').length;
+  const totalVal = contracts.reduce((a, c) => a + (_cNum(c.amount) || _cNum(c.total)), 0);
+  const totalDep = contracts.reduce((a, c) => a + _cNum(c.deposit), 0);
+  const cRows = contracts.map(c =>
+    '<tr><td class="strong">' + escapeHtml(_cvpStr(c.name)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(c.vendor)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(c.type)) + '</td>'
+    + '<td class="money">' + pvMoney(_cNum(c.amount) || _cNum(c.total)) + '</td>'
+    + '<td>' + (_cvpStr(c.status) ? _cvpPill(c.status) : '') + '</td></tr>'
+  ).join('') || '<tr><td colspan="5" class="cvp-empty">No documents yet.</td></tr>';
+  const rRows = rentals.map(r =>
+    '<tr><td class="strong">' + escapeHtml(_cvpStr(r.item)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(r.vendor)) + '</td>'
+    + '<td class="date">' + _cvpShortDate(r.pickup) + '</td>'
+    + '<td class="date">' + _cvpShortDate(r.ret) + '</td>'
+    + '<td class="money">' + (_cNum(r.cost) ? pvMoney(r.cost) : '') + '</td></tr>'
+  ).join('') || '<tr><td colspan="5" class="cvp-empty">No rentals yet.</td></tr>';
+  return '<main class="cvp-page">'
+    + _cvpMast('The Covenant Wedding Planner &middot; Finances', 'Contracts, Invoices &amp; Rentals', 'Signed agreements, documents, and rented items')
+    + '<section class="cvp-body">'
+    + '<span class="cvp-sec">Overview</span><div class="cvp-info">'
+    + _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
+    + _cvpInfoCell('Documents', contracts.length) + _cvpInfoCell('Rentals', rentals.length) + '</div>'
+    + '<span class="cvp-sec">At a glance</span><div class="cvp-stats">'
+    + _cvpStat('Documents', contracts.length) + _cvpStat('Signed', signed, 'gold')
+    + _cvpStat('Total value', pvMoney(totalVal), 'mauve') + _cvpStat('Deposits', pvMoney(totalDep), 'burg') + '</div>'
+    + '<span class="cvp-sec">Documents</span>'
+    + '<table class="cvp-table"><thead><tr><th>Document</th><th>Vendor</th><th>Type</th><th class="money">Amount</th><th>Status</th></tr></thead><tbody>' + cRows + '</tbody></table>'
+    + '<span class="cvp-sec">Rentals</span>'
+    + '<table class="cvp-table"><thead><tr><th>Item</th><th>Vendor</th><th>Pickup</th><th>Return</th><th class="money">Cost</th></tr></thead><tbody>' + rRows + '</tbody></table>'
+    + '</section>' + _cvpFoot('Let all things be done decently and in order.', 'Contracts') + '</main>';
+}
+
+/* Builder — Wedding Party (People). */
+function buildPartyPrintSheets(){
+  const party = safeArray(data && data.party);
+  const confirmed = party.filter(p => _cvpStatusClass(p.status) === 'done').length;
+  const pending = party.length - confirmed;
+  const rows = party.map(p =>
+    '<tr><td class="strong">' + escapeHtml(_cvpStr(p.name)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(p.role)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(p.attire)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(p.size)) + '</td>'
+    + '<td>' + (_cvpStr(p.status) ? _cvpPill(p.status) : '') + '</td></tr>'
+  ).join('') || '<tr><td colspan="5" class="cvp-empty">No wedding party members yet.</td></tr>';
+  return '<main class="cvp-page">'
+    + _cvpMast('The Covenant Wedding Planner &middot; People', 'Wedding Party', 'Roles, attire, and readiness')
+    + '<section class="cvp-body">'
+    + '<span class="cvp-sec">Overview</span><div class="cvp-info">'
+    + _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
+    + _cvpInfoCell('Members', party.length) + _cvpInfoCell('Attire ready', confirmed) + '</div>'
+    + '<span class="cvp-sec">Readiness</span><div class="cvp-stats">'
+    + _cvpStat('Members', party.length) + _cvpStat('Ready', confirmed, 'gold') + _cvpStat('In progress', pending, 'mauve') + '</div>'
+    + '<span class="cvp-sec">The party</span>'
+    + '<table class="cvp-table"><thead><tr><th>Name</th><th>Role</th><th>Attire</th><th>Size</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '</section>' + _cvpFoot('Two are better than one.', 'Wedding Party') + '</main>';
+}
+
+/* Builder — Catering & Menu (Venue & Vendors). */
+function buildCateringPrintSheets(){
+  const menu = safeArray(data && data.menu);
+  const bev = safeArray(data && data.beverages);
+  const courses = (typeof CATERING_COURSES !== 'undefined') ? CATERING_COURSES : ['Appetizer','Salad','Main','Side','Dessert','Late-Night','Other'];
+  const usedCourses = courses.filter(c => menu.some(m => (_cvpStr(m.course) || 'Main') === c));
+  const confirmed = menu.filter(m => _cvpStatusClass(m.status) === 'done').length;
+  let gCount = _cNum((data && data.setup) ? data.setup.guests : 0);
+  try { if (typeof cateringGuests === 'function') { const cg = cateringGuests(); if (cg && cg.total) gCount = cg.total; } } catch (e) {}
+  let menuRows = '';
+  usedCourses.forEach(course => {
+    const items = menu.filter(m => (_cvpStr(m.course) || 'Main') === course);
+    if (!items.length) return;
+    menuRows += '<tr class="cvp-catrow"><td colspan="4">' + escapeHtml(course) + '</td></tr>';
+    items.forEach(m => {
+      menuRows += '<tr><td class="strong">' + escapeHtml(_cvpStr(m.dish) || _cvpStr(m.item)) + '</td>'
+        + '<td>' + escapeHtml(_cvpStr(m.service)) + '</td>'
+        + '<td>' + escapeHtml(_cvpStr(m.dietary)) + '</td>'
+        + '<td>' + (_cvpStr(m.status) ? _cvpPill(m.status) : '') + '</td></tr>';
+    });
+  });
+  if (!menuRows) menuRows = '<tr><td colspan="4" class="cvp-empty">No menu items yet.</td></tr>';
+  const bevRows = bev.map(b =>
+    '<tr><td class="strong">' + escapeHtml(_cvpStr(b.name) || _cvpStr(b.barType)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(b.service)) + '</td>'
+    + '<td>' + (_cvpStr(b.status) ? _cvpPill(b.status) : '') + '</td></tr>'
+  ).join('') || '<tr><td colspan="3" class="cvp-empty">No beverages yet.</td></tr>';
+  return '<main class="cvp-page">'
+    + _cvpMast('The Covenant Wedding Planner &middot; Venue &amp; Vendors', 'Catering &amp; Menu', 'Courses, dishes, and drinks for the day')
+    + '<section class="cvp-body">'
+    + '<span class="cvp-sec">Overview</span><div class="cvp-info">'
+    + _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
+    + _cvpInfoCell('Dishes', menu.length) + _cvpInfoCell('Guests served', gCount || '') + '</div>'
+    + '<span class="cvp-sec">Menu at a glance</span><div class="cvp-stats">'
+    + _cvpStat('Courses', usedCourses.length) + _cvpStat('Dishes', menu.length, 'gold')
+    + _cvpStat('Confirmed', confirmed, 'mauve') + _cvpStat('Beverages', bev.length, 'burg') + '</div>'
+    + '<span class="cvp-sec">Menu</span>'
+    + '<table class="cvp-table"><thead><tr><th>Dish</th><th>Service</th><th>Dietary</th><th>Status</th></tr></thead><tbody>' + menuRows + '</tbody></table>'
+    + '<span class="cvp-sec">Beverages</span>'
+    + '<table class="cvp-table"><thead><tr><th>Beverage</th><th>Service</th><th>Status</th></tr></thead><tbody>' + bevRows + '</tbody></table>'
+    + _cvpCateringDetails()
+    + '</section>' + _cvpFoot('Eat thy bread with joy.', 'Catering &amp; Menu') + '</main>';
+}
+
+/* Builder — Wedding Day Timeline (Ceremony & Reception). */
+function buildTimelinePrintSheets(){
+  const tl = safeArray(data && data.timeline).slice();
+  const who = r => _cvpStr(r.responsible) || _cvpStr(r.person);
+  const rows = tl.map(r =>
+    '<tr><td class="date">' + escapeHtml(_cvpStr(r.time)) + '</td>'
+    + '<td class="strong">' + escapeHtml(_cvpStr(r.event)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(r.location)) + '</td>'
+    + '<td>' + escapeHtml(who(r)) + '</td></tr>'
+  ).join('') || '<tr><td colspan="4" class="cvp-empty">No timeline events yet.</td></tr>';
+  const first = tl.length ? _cvpStr(tl[0].time) : '';
+  const last = tl.length ? _cvpStr(tl[tl.length - 1].time) : '';
+  return '<main class="cvp-page">'
+    + _cvpMast('The Covenant Wedding Planner &middot; Ceremony &amp; Reception', 'Wedding Day Timeline', 'The minute-by-minute flow of the day')
+    + '<section class="cvp-body">'
+    + '<span class="cvp-sec">Overview</span><div class="cvp-info">'
+    + _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
+    + _cvpInfoCell('Events', tl.length) + _cvpInfoCell('First / last', (first || last) ? (first + (last ? ' – ' + last : '')) : '') + '</div>'
+    + '<span class="cvp-sec">Run of show</span>'
+    + '<table class="cvp-table"><thead><tr><th>Time</th><th>Event</th><th>Location</th><th>Who</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '</section>' + _cvpFoot('To every thing there is a season.', 'Wedding Day Timeline') + '</main>';
+}
+
+/* Builder — Appointments (Planning). */
+function buildAppointmentsPrintSheets(){
+  const appts = safeArray(data && data.appointments);
+  const confirmed = appts.filter(a => _cvpStatusClass(a.status) === 'done').length;
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const upcoming = appts.filter(a => _cvpStr(a.date) >= todayISO).length;
+  const rows = appts.slice().sort((a, b) => (_cvpStr(a.date) + _cvpStr(a.time)).localeCompare(_cvpStr(b.date) + _cvpStr(b.time))).map(a =>
+    '<tr><td class="date">' + _cvpShortDate(a.date) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(a.time)) + '</td>'
+    + '<td class="strong">' + escapeHtml(_cvpStr(a.title)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(a.vendor)) + '</td>'
+    + '<td>' + escapeHtml(_cvpStr(a.location)) + '</td>'
+    + '<td>' + (_cvpStr(a.status) ? _cvpPill(a.status) : '') + '</td></tr>'
+  ).join('') || '<tr><td colspan="6" class="cvp-empty">No appointments yet.</td></tr>';
+  return '<main class="cvp-page">'
+    + _cvpMast('The Covenant Wedding Planner &middot; Planning', 'Appointments', 'Fittings, tastings, and meetings')
+    + '<section class="cvp-body">'
+    + '<span class="cvp-sec">Overview</span><div class="cvp-info">'
+    + _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
+    + _cvpInfoCell('Appointments', appts.length) + _cvpInfoCell('Upcoming', upcoming) + '</div>'
+    + '<span class="cvp-sec">At a glance</span><div class="cvp-stats">'
+    + _cvpStat('Total', appts.length) + _cvpStat('Confirmed', confirmed, 'gold') + _cvpStat('Upcoming', upcoming, 'mauve') + '</div>'
+    + '<span class="cvp-sec">Schedule</span>'
+    + '<table class="cvp-table"><thead><tr><th>Date</th><th>Time</th><th>Appointment</th><th>With</th><th>Location</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '</section>' + _cvpFoot('Prepare thy work, and make it fit.', 'Appointments') + '</main>';
+}
+
+/* Small shared builders for the remaining single-sheet table templates. */
+function _cvpSec(l){ return '<span class="cvp-sec">' + l + '</span>'; }
+function _cvpTable(headers, body, empty){
+  const th = headers.map(h => (h.money ? '<th class="money">' : '<th>') + h.label + '</th>').join('');
+  const tb = body ? body : '<tr><td colspan="' + headers.length + '" class="cvp-empty">' + (empty || 'Nothing here yet.') + '</td></tr>';
+  return '<table class="cvp-table"><thead><tr>' + th + '</tr></thead><tbody>' + tb + '</tbody></table>';
+}
+function _cvpPage(eyebrow, title, subtitle, infoCells, body, verse, footpage){
+  return '<main class="cvp-page">' + _cvpMast(eyebrow, title, subtitle) + '<section class="cvp-body">'
+    + (infoCells ? (_cvpSec('Overview') + '<div class="cvp-info">' + infoCells + '</div>') : '')
+    + body + '</section>' + _cvpFoot(verse, footpage) + '</main>';
+}
+const _CVP_BRAND = 'The Covenant Wedding Planner';
+
+/* ── Shared "Full details" record card renderer ───────────────────
+   Renders one record as a titled card with a label/value grid, showing
+   ONLY fields that have a value. Long text uses {full:true} to span the
+   row. Cards carry .cvp-detail so they appear only in Full-details view. */
+function _cvpField(label, value, opts){ return { l: label, v: value, full: !!(opts && opts.full), html: !!(opts && opts.html) }; }
+function _cvpRecord(title, fields, subHtml, variant){
+  const cells = (fields || []).filter(f => f && _cvpStr(f.v) !== '').map(f =>
+    '<div class="cvp-rf' + (f.full ? ' full' : '') + '"><div class="l">' + escapeHtml(f.l) + '</div><div class="v">' + (f.html ? f.v : _cvpMultiline(f.v)) + '</div></div>'
+  ).join('');
+  if (!cells && !subHtml) return '';
+  return '<div class="cvp-record cvp-detail' + (variant ? (' ' + variant) : '') + '">'
+    + (title ? ('<div class="cvp-rec-title">' + escapeHtml(_cvpStr(title)) + '</div>') : '')
+    + (cells ? ('<div class="cvp-rec-grid">' + cells + '</div>') : '')
+    + (subHtml || '')
+    + '</div>';
+}
+/* A section heading that only shows in Full-details view. */
+function _cvpDetailSec(label){ return '<span class="cvp-sec cvp-detail">' + label + '</span>'; }
+/* A simple detail table (hidden unless Full-details). cols = [[Header,key],...] */
+function _cvpDetailTable(label, rows, cols){
+  if (!rows || !rows.length) return '';
+  const head = cols.map(c => '<th>' + c[0] + '</th>').join('');
+  const body = rows.map(r => '<tr>' + cols.map((c, i) => '<td' + (i === 0 ? ' class="strong"' : '') + '>' + (c[2] ? c[2](r) : escapeHtml(_cvpStr(r[c[1]]))) + '</td>').join('') + '</tr>').join('');
+  return _cvpDetailSec(label) + '<table class="cvp-table cvp-detail"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table>';
+}
+
+/* Per-page Full-details builders (each returns '' when there is nothing extra). */
+function _cvpGuestDetails(guests){
+  const cards = (guests || []).slice().sort((a, b) => _cvpStr(a.name).localeCompare(_cvpStr(b.name))).map(g => {
+    const comps = Array.isArray(g.companions) ? g.companions : [];
+    let sub = '';
+    if (comps.length) {
+      sub = '<div class="cvp-subitems">' + comps.map(c => '<div class="si"><b>' + escapeHtml(_cvpStr(c.name) || 'Companion') + '</b>' + (_cvpStr(c.role) ? ' &middot; ' + escapeHtml(_cvpStr(c.role)) : '') + (_cvpStr(c.meal) ? ' &middot; ' + escapeHtml(_cvpStr(c.meal)) : '') + '</div>').join('') + '</div>';
+    } else {
+      const kids = parseInt(g.children, 10) || 0; const extra = (g.plusone ? 1 : 0) + kids;
+      if (extra) sub = '<div class="cvp-subitems"><div class="si">' + (g.plusone ? 'Plus-one' : '') + (kids ? ((g.plusone ? ' &middot; ' : '') + kids + ' child' + (kids > 1 ? 'ren' : '')) : '') + '</div></div>';
+    }
+    return _cvpRecord(g.name, [
+      _cvpField('Side', g.side), _cvpField('RSVP', g.rsvp), _cvpField('Meal', g.meal), _cvpField('Table', g.table),
+      _cvpField('Household', g.household), _cvpField('Group', g.group), _cvpField('Role', g.role),
+      _cvpField('Dietary', g.dietary), _cvpField('Invite decision', g.inviteDecision), _cvpField('Thank-you', g.thankyou ? 'Sent' : ''),
+      _cvpField('Phone', g.phone), _cvpField('Email', g.email),
+      _cvpField('Address', g.address, { full: true }), _cvpField('Notes', g.notes, { full: true })
+    ], sub);
+  }).join('');
+  return cards ? (_cvpDetailSec('Full guest details') + cards) : '';
+}
+function _cvpVendorDetails(vendors){
+  const money = (typeof pvMoney === 'function') ? pvMoney : (v => '$' + (Math.round(_cNum(v)) || 0));
+  const cards = (vendors || []).slice().sort((a, b) => _cvpStr(a.cat).localeCompare(_cvpStr(b.cat))).map(v => _cvpRecord(_cvpStr(v.name) || _cvpStr(v.cat), [
+    _cvpField('Category', v.cat), _cvpField('Status', v.status), _cvpField('Contact', v.contact),
+    _cvpField('Phone', v.phone), _cvpField('Email', v.email),
+    _cvpField('Quote', _cNum(v.quote) ? money(v.quote) : ''), _cvpField('Deposit', _cNum(v.deposit) ? money(v.deposit) : ''), _cvpField('Balance', _cNum(v.balance) ? money(v.balance) : ''),
+    _cvpField('Rating', _cNum(v.rating) ? (_cNum(v.rating) + ' / 5') : ''), _cvpField('Contract', v.contract ? 'Signed' : ''),
+    _cvpField('Pros', v.pros, { full: true }), _cvpField('Cons', v.cons, { full: true }), _cvpField('Review', v.review, { full: true }), _cvpField('Notes', v.notes, { full: true })
+  ])).join('');
+  return cards ? (_cvpDetailSec('Full vendor details') + cards) : '';
+}
+function _cvpNotesDetails(rows){
+  const cards = (rows || []).map(n => _cvpRecord((n.pinned ? '★ ' : '') + (_cvpStr(n.title) || 'Note'), [
+    _cvpField('Category', n.category), _cvpField('Tags', n.tags), _cvpField('Status', n.status), _cvpField('Date', n.date),
+    _cvpField('Next step', n.nextStep, { full: true }), _cvpField('Note', n.note, { full: true })
+  ])).join('');
+  return cards ? (_cvpDetailSec('Full notes') + cards) : '';
+}
+function _cvpBudgetDetails(cats){
+  const parts = (cats || []).map(c => {
+    const items = (typeof safeArray === 'function') ? safeArray(c.items) : (c.items || []);
+    const withExtra = items.filter(it => _cvpStr(it.due) || _cvpStr(it.notes));
+    let sub = '';
+    if (withExtra.length) sub = '<div class="cvp-subitems">' + withExtra.map(it => '<div class="si"><b>' + escapeHtml(_cvpStr(it.name)) + '</b>' + (_cvpStr(it.due) ? ' &middot; due ' + escapeHtml(_cvpShortDate(it.due)) : '') + (_cvpStr(it.notes) ? ' &mdash; ' + escapeHtml(_cvpStr(it.notes)) : '') + '</div>').join('') + '</div>';
+    if (!_cvpStr(c.tip) && !sub) return '';
+    return _cvpRecord(c.cat, [_cvpField('Planning note', c.tip, { full: true })], sub);
+  }).filter(Boolean).join('');
+  return parts ? (_cvpDetailSec('Budget notes &amp; due dates') + parts) : '';
+}
+function _cvpCeremonyDetails(){
+  const rd = safeArray(data && data.ceremonyReceptionDetails), tr = safeArray(data && data.ceremonyTraditions), ck = safeArray(data && data.ceremonyChecklist);
+  let out = '';
+  out += _cvpDetailTable('Reception details', rd, [['Moment','moment'],['Who','person'],['Timing','timing'],['Notes','notes']]);
+  if (tr.length) out += _cvpDetailSec('Traditions') + tr.map(t => _cvpRecord(t.moment, [
+    _cvpField('Part', t.part), _cvpField('Context', t.context), _cvpField('People', t.people), _cvpField('Items', t.items), _cvpField('Timing', t.timing),
+    _cvpField('Meaning', t.meaning, { full: true }), _cvpField('Instructions', t.instructions, { full: true }), _cvpField('Notes', t.notes, { full: true })
+  ])).join('');
+  out += _cvpDetailTable('Ceremony checklist', ck, [['Item','item'],['Done','', r => r.done ? '&#10003;' : ''],['Notes','notes']]);
+  return out;
+}
+function _cvpMusicDetails(){
+  const ent = safeArray(data && data.entertainment), must = safeArray(data && data.mustPlay), pl = safeArray(data && data.receptionPlaylist);
+  let out = '';
+  if (ent.length) out += _cvpDetailSec('Entertainment vendors') + ent.map(v => _cvpRecord(v.name, [
+    _cvpField('Service', v.service), _cvpField('Status', v.status), _cvpField('Contact', v.contact), _cvpField('Phone', v.phone), _cvpField('Email', v.email), _cvpField('Contract', v.contractSigned ? 'Signed' : ''), _cvpField('Notes', v.notes, { full: true })
+  ])).join('');
+  out += _cvpDetailTable('Must-play', must, [['Song','song'],['Artist','artist']]);
+  out += _cvpDetailTable('Reception playlist', pl, [['Title','title'],['Artist','artist'],['Genre','genre'],['For','assignment']]);
+  return out;
+}
+function _cvpCateringDetails(){
+  const menu = safeArray(data && data.menu), bev = safeArray(data && data.beverages);
+  let out = '';
+  const dishCards = menu.map(m => _cvpRecord(_cvpStr(m.dish) || _cvpStr(m.item), [
+    _cvpField('Course', m.course), _cvpField('Service', m.service), _cvpField('Servings', m.servings), _cvpField('Dietary', m.dietary), _cvpField('Status', m.status), _cvpField('Notes', m.notes, { full: true })
+  ])).join('');
+  if (dishCards) out += _cvpDetailSec('Menu details') + dishCards;
+  const bevCards = bev.map(b => _cvpRecord(_cvpStr(b.name) || _cvpStr(b.barType), [
+    _cvpField('Bar type', b.barType), _cvpField('Service', b.service), _cvpField('Quantity', b.qty), _cvpField('Status', b.status), _cvpField('Notes', b.notes, { full: true })
+  ])).join('');
+  if (bevCards) out += _cvpDetailSec('Beverage details') + bevCards;
+  out += _cvpDetailTable('Kids menu', safeArray(data && data.kidsMenu), [['Option','option'],['Count','count'],['Status','status']]);
+  out += _cvpDetailTable('Rentals', safeArray(data && data.cateringRentals), [['Item','item'],['Source','source'],['Status','status']]);
+  out += _cvpDetailTable('Snacks', safeArray(data && data.snacks), [['Item','item'],['When','when'],['Qty','qty'],['Notes','notes']]);
+  out += _cvpDetailTable('Vendor meals', safeArray(data && data.vendorMeals), [['Vendor','vendor'],['Count','count'],['Notes','notes']]);
+  out += _cvpDetailTable('Place settings', safeArray(data && data.placeSettings), [['Item','item'],['Color','color'],['Material','material']]);
+  return out;
+}
+
+/* Planning Timeline (tasks) */
+function buildTasksPrintSheets(){
+  const rows0 = safeArray(data && data.tasks);
+  const done = rows0.filter(t => _cvpStatusClass(t.status) === 'done').length;
+  const prog = rows0.filter(t => _cvpStatusClass(t.status) === 'praying').length;
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const nextDue = rows0.filter(t => _cvpStatusClass(t.status) !== 'done' && _cvpStr(t.date || t.suggestedDue) >= todayISO).length;
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  /* group tasks by phase, preserving first-seen order */
+  const phases = [];
+  rows0.forEach(t => { const p = _cvpStr(t.phase) || _cvpStr(t.cat) || 'General'; if (phases.indexOf(p) < 0) phases.push(p); });
+  const cur = rows0.find(t => _cvpStatusClass(t.status) !== 'done') || rows0[0] || {};
+  const curPhaseName = _cvpStr(cur.phase) || _cvpStr(cur.cat) || '—';
+
+  const phaseBlocks = phases.map(p => {
+    const items = rows0.filter(t => (_cvpStr(t.phase) || _cvpStr(t.cat) || 'General') === p);
+    const rowsHtml = items.map(t =>
+      '<tr><td class="date">' + _cvpShortDate(t.date || t.suggestedDue) + '</td>'
+      + '<td class="strong">' + escapeHtml(_cvpStr(t.task)) + '</td>'
+      + '<td>' + escapeHtml(_cvpStr(t.assigned)) + '</td>'
+      + '<td>' + (_cvpStr(t.status) ? _cvpPill(t.status) : '') + '</td>'
+      + '<td>' + escapeHtml(_cvpStr(t.notes)) + '</td></tr>'
+    ).join('');
+    return '<div class="cvp-phasehead"><span class="pn">' + escapeHtml(p) + '</span><span class="pc">' + items.length + (items.length === 1 ? ' task' : ' tasks') + '</span></div>'
+      + '<div class="cvp-phaserule"></div>'
+      + '<table class="cvp-table"><thead><tr><th>Due</th><th>Task</th><th>Owner</th><th>Status</th><th>Notes / details</th></tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+  }).join('') || '<div class="cvp-empty">No tasks yet.</div>';
+
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
+    + _cvpInfoCell('Current phase', curPhaseName) + _cvpInfoCell('Last updated', today);
+  const stats = _cvpSec('Where planning stands') + '<div class="cvp-stats">'
+    + _cvpStat('Total tasks', rows0.length) + _cvpStat('Completed', done, 'mauve')
+    + _cvpStat('In progress', prog, 'gold') + _cvpStat('Next due', nextDue, 'burg') + '</div>';
+  const register = _cvpSec('Task register by phase') + phaseBlocks;
+  const cards = _cvpSec('How to use this timeline')
+    + '<div class="cvp-cards">'
+    + '<div class="cvp-card"><h3 class="cvp-card-title">This season</h3><p>Choose the few decisions that unlock the next group of tasks. Keep the conversation calm, clear, and shared.</p><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>'
+    + '<div class="cvp-card mauve"><h3 class="cvp-card-title">Partner handoff</h3><p>Bring this page into your weekly planning conversation and assign one clear owner to each next step.</p><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>'
+    + '</div>';
+  const notes = _cvpSec('Notes &amp; reminders') + '<div class="cvp-note"><div class="cvp-writeline"></div><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div>';
+
+  return _cvpPage(_CVP_BRAND + ' &middot; Planning', 'Planning Timeline', 'Every planning task by phase — from proposal to honeymoon', info, stats + register + cards + notes, 'She looketh well to the ways of her household.', 'Planning Timeline');
+}
+
+/* Smart Calendar (aggregated dates) */
+function buildCalendarPrintSheets(){
+  const items = [];
+  safeArray(data && data.calendarEvents).forEach(e => { if (_cvpStr(e.date)) items.push({ date:_cvpStr(e.date), time:_cvpStr(e.time), label:_cvpStr(e.title), type:_cvpStr(e.category) || 'Event' }); });
+  safeArray(data && data.appointments).forEach(a => { if (_cvpStr(a.date)) items.push({ date:_cvpStr(a.date), time:_cvpStr(a.time), label:_cvpStr(a.title), type:'Appointment' }); });
+  safeArray(data && data.payments).forEach(p => { if (_cvpStr(p.date) && _cNum(p.due) > _cNum(p.paid)) items.push({ date:_cvpStr(p.date), time:'', label:(_cvpStr(p.vendor) || 'Payment') + (_cvpStr(p.desc) ? ' — ' + _cvpStr(p.desc) : ''), type:'Payment due' }); });
+  safeArray(data && data.tasks).forEach(t => { const d = _cvpStr(t.date); if (d) items.push({ date:d, time:'', label:_cvpStr(t.task), type:'Task' }); });
+  items.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const body = items.map(i => '<tr><td class="date">' + _cvpShortDate(i.date) + '</td><td>' + escapeHtml(i.time) + '</td><td class="strong">' + escapeHtml(i.label) + '</td><td>' + escapeHtml(i.type) + '</td></tr>').join('');
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Dates tracked', items.length);
+  const table = _cvpSec('Everything with a date') + _cvpTable([{label:'Date'},{label:'Time'},{label:'What'},{label:'Type'}], body, 'No dated items yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; Planning', 'Smart Calendar', 'Every dated item across the planner, in order', info, table, 'To every thing there is a season.', 'Smart Calendar');
+}
+
+/* Notes */
+function buildNotesPrintSheets(){
+  const rows0 = safeArray(data && data.notesDetails);
+  const open = rows0.filter(n => /open/i.test(_cvpStr(n.status))).length;
+  const body = rows0.slice().sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0)).map(n => '<tr><td class="strong">' + (n.pinned ? '&#9733; ' : '') + escapeHtml(_cvpStr(n.title)) + '</td><td>' + escapeHtml(_cvpStr(n.category)) + '</td><td>' + escapeHtml(_cvpStr(n.nextStep)) + '</td><td>' + (_cvpStr(n.status) ? _cvpPill(n.status) : '') + '</td></tr>').join('');
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Notes', rows0.length) + _cvpInfoCell('Open', open);
+  const table = _cvpSec('Notes') + _cvpTable([{label:'Note'},{label:'Category'},{label:'Next step'},{label:'Status'}], body, 'No notes yet.') + _cvpNotesDetails(rows0);
+  return _cvpPage(_CVP_BRAND + ' &middot; Planning', 'Notes', 'Quick and detailed notes in one place', info, table, 'Write the vision, and make it plain.', 'Notes');
+}
+
+/* Wedding Weekend Logistics */
+function buildLogisticsPrintSheets(){
+  const wk = safeArray(data && data.weekendTimeline), hotels = safeArray(data && data.hotelBlocks), trans = safeArray(data && data.transportation), vip = safeArray(data && data.vipCare);
+  const wkBody = wk.map(w => '<tr><td class="date">' + _cvpShortDate(w.date) + '</td><td>' + escapeHtml(_cvpStr(w.start)) + '</td><td class="strong">' + escapeHtml(_cvpStr(w.event)) + '</td><td>' + escapeHtml(_cvpStr(w.location)) + '</td></tr>').join('');
+  const hBody = hotels.map(h => '<tr><td class="strong">' + escapeHtml(_cvpStr(h.hotel)) + '</td><td>' + escapeHtml(_cvpStr(h.rate)) + '</td><td class="date">' + _cvpShortDate(h.cutoff) + '</td><td>' + escapeHtml(_cvpStr(h.contact)) + '</td></tr>').join('');
+  const tBody = trans.map(t => '<tr><td>' + escapeHtml(_cvpStr(t.pickupTime)) + '</td><td class="strong">' + escapeHtml(_cvpStr(t.pickup)) + '</td><td>' + escapeHtml(_cvpStr(t.dropoff)) + '</td><td>' + escapeHtml(_cvpStr(t.vehicle)) + '</td><td>' + (_cvpStr(t.status) ? _cvpPill(t.status) : '') + '</td></tr>').join('');
+  const vBody = vip.map(v => '<tr><td class="strong">' + escapeHtml(_cvpStr(v.person)) + '</td><td>' + escapeHtml(_cvpStr(v.need)) + '</td><td>' + escapeHtml(_cvpStr(v.helper)) + '</td><td>' + (_cvpStr(v.status) ? _cvpPill(v.status) : '') + '</td></tr>').join('');
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Weekend events', wk.length) + _cvpInfoCell('Hotels', hotels.length);
+  const body = _cvpSec('Weekend timeline') + _cvpTable([{label:'Date'},{label:'Time'},{label:'Event'},{label:'Location'}], wkBody, 'No weekend events yet.')
+    + _cvpSec('Hotel blocks') + _cvpTable([{label:'Hotel'},{label:'Rate'},{label:'Cutoff'},{label:'Contact'}], hBody, 'No hotel blocks yet.')
+    + _cvpSec('Transportation') + _cvpTable([{label:'Time'},{label:'Pickup'},{label:'Dropoff'},{label:'Vehicle'},{label:'Status'}], tBody, 'No transportation yet.')
+    + _cvpSec('VIP care') + _cvpTable([{label:'Person'},{label:'Need'},{label:'Helper'},{label:'Status'}], vBody, 'No VIP care items yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; Planning', 'Wedding Weekend Logistics', 'Travel, hotels, transport, and VIP care', info, body, 'Let all things be done decently and in order.', 'Weekend Logistics');
+}
+
+/* Wedding Venue (object) */
+function buildVenuePrintSheets(){
+  const v = (data && data.venue) || {};
+  const field = (l, k) => { const val = _cvpStr(v[k]); return '<div><div class="cvp-flabel">' + l + '</div><div class="cvp-fval">' + (val ? escapeHtml(val) : '&nbsp;') + '</div></div>'; };
+  const panel = pfx => '<div class="cvp-info">' + field('Venue name', pfx + '-name') + field('Type', pfx + '-space') + field('Capacity', pfx + '-capacity') + field('Contact', pfx + '-contact') + field('Phone / email', pfx + '-phone') + field('Rental hours', pfx + '-hours') + field('Total cost', pfx + '-cost') + field('Deposit', pfx + '-deposit') + '</div>'
+    + '<div class="cvp-note gold"><div class="cvp-flabel">Address</div><p class="cvp-p">' + (_cvpStr(v[pfx + '-address']) ? escapeHtml(_cvpStr(v[pfx + '-address'])) : '&nbsp;') + '</p></div>';
+  const body = _cvpSec('Ceremony venue') + panel('c') + _cvpSec('Reception venue') + panel('r');
+  return _cvpPage(_CVP_BRAND + ' &middot; Venue &amp; Vendors', 'Wedding Venue', 'Ceremony and reception venue details', null, body, 'In my Father&rsquo;s house are many mansions.', 'Wedding Venue');
+}
+
+/* Table Layout */
+function buildTablesPrintSheets(){
+  let rowsData = [];
+  try { if (typeof computeTableCapacityIssues === 'function') { const r = computeTableCapacityIssues(); rowsData = (r && r.tables) || (Array.isArray(r) ? r : []); } } catch (e) {}
+  if (!rowsData.length) rowsData = safeArray(data && data.tables).map(t => ({ label:_cvpStr(t.name), capacity:_cNum(t.capacity), seated:0 }));
+  const totCap = rowsData.reduce((a, t) => a + _cNum(t.capacity), 0), totSeat = rowsData.reduce((a, t) => a + _cNum(t.seated), 0);
+  const body = rowsData.map(t => '<tr><td class="strong">' + escapeHtml(_cvpStr(t.label || t.name)) + '</td><td class="money">' + (_cNum(t.capacity) || '') + '</td><td class="money">' + (_cNum(t.seated) || 0) + '</td><td class="money">' + (_cNum(t.capacity) - _cNum(t.seated)) + '</td></tr>').join('');
+  const tot = rowsData.length ? '<tr class="cvp-tot"><td>Total</td><td class="money">' + totCap + '</td><td class="money">' + totSeat + '</td><td class="money">' + (totCap - totSeat) + '</td></tr>' : '';
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Tables', rowsData.length) + _cvpInfoCell('Total seats', totCap);
+  const table = _cvpSec('Seating by table') + _cvpTable([{label:'Table'},{label:'Capacity',money:true},{label:'Seated',money:true},{label:'Open',money:true}], body + tot, 'No tables yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; People', 'Table Layout', 'Seating capacity and fill by table', info, table, 'Thou preparest a table before me.', 'Table Layout');
+}
+
+/* Ceremony & Reception */
+function buildCeremonyPrintSheets(){
+  const order = safeArray(data && data.ceremonyOrder), proc = safeArray(data && data.ceremonyProcessional), rec = safeArray(data && data.ceremonyRecessional), scr = safeArray(data && data.scriptures);
+  const oBody = order.map(o => '<tr><td class="strong">' + escapeHtml(_cvpStr(o.moment) || _cvpStr(o.step)) + '</td><td>' + escapeHtml(_cvpStr(o.person)) + '</td><td>' + escapeHtml(_cvpStr(o.length)) + '</td></tr>').join('');
+  const pBody = proc.map(p => '<tr><td class="strong">' + escapeHtml(_cvpStr(p.name)) + '</td><td>' + escapeHtml(_cvpStr(p.role)) + '</td></tr>').join('');
+  const rBody = rec.map(p => '<tr><td class="strong">' + escapeHtml(_cvpStr(p.name)) + '</td><td>' + escapeHtml(_cvpStr(p.role)) + '</td></tr>').join('');
+  const sBody = scr.map(sc => '<tr><td class="strong">' + escapeHtml(_cvpStr(sc.passage)) + '</td><td>' + escapeHtml(_cvpStr(sc.reader)) + '</td><td>' + escapeHtml(_cvpStr(sc.translation)) + '</td></tr>').join('');
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Order steps', order.length) + _cvpInfoCell('Readings', scr.length);
+  const body = _cvpSec('Order of service') + _cvpTable([{label:'Moment'},{label:'Who'},{label:'Length'}], oBody, 'No order of service yet.')
+    + _cvpSec('Processional') + _cvpTable([{label:'Name'},{label:'Role'}], pBody, 'No processional yet.')
+    + _cvpSec('Recessional') + _cvpTable([{label:'Name'},{label:'Role'}], rBody, 'No recessional yet.')
+    + _cvpSec('Scripture readings') + _cvpTable([{label:'Passage'},{label:'Reader'},{label:'Translation'}], sBody, 'No readings yet.')
+    + _cvpCeremonyDetails();
+  return _cvpPage(_CVP_BRAND + ' &middot; Ceremony &amp; Reception', 'Ceremony &amp; Reception', 'Order of service, processional, and readings', info, body, 'What therefore God hath joined together.', 'Ceremony');
+}
+
+/* Music & Speeches */
+function buildEntertainmentPrintSheets(){
+  const rec = safeArray(data && data.recSongs), sp = safeArray(data && data.speeches), dnp = safeArray(data && data.doNotPlay);
+  const rBody = rec.map(r => '<tr><td class="strong">' + escapeHtml(_cvpStr(r.moment)) + '</td><td>' + escapeHtml(_cvpStr(r.song)) + '</td><td>' + escapeHtml(_cvpStr(r.artist)) + '</td></tr>').join('');
+  const sBody = sp.map(s => '<tr><td>' + escapeHtml(_cvpStr(s.order)) + '</td><td class="strong">' + escapeHtml(_cvpStr(s.speaker)) + '</td><td>' + escapeHtml(_cvpStr(s.role)) + '</td><td>' + escapeHtml(_cvpStr(s.moment)) + '</td></tr>').join('');
+  const dBody = dnp.map(d => '<tr><td class="strong">' + escapeHtml(_cvpStr(d.song)) + '</td><td>' + escapeHtml(_cvpStr(d.artist)) + '</td></tr>').join('');
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Key songs', rec.length) + _cvpInfoCell('Speeches', sp.length);
+  const body = _cvpSec('Special moment songs') + _cvpTable([{label:'Moment'},{label:'Song'},{label:'Artist'}], rBody, 'No songs yet.')
+    + _cvpSec('Speeches &amp; toasts') + _cvpTable([{label:'Order'},{label:'Speaker'},{label:'Role'},{label:'Moment'}], sBody, 'No speeches yet.')
+    + _cvpSec('Do-not-play list') + _cvpTable([{label:'Song'},{label:'Artist'}], dBody, 'No do-not-play songs yet.')
+    + _cvpMusicDetails();
+  return _cvpPage(_CVP_BRAND + ' &middot; Ceremony &amp; Reception', 'Music &amp; Speeches', 'Playlists, key songs, and toasts', info, body, 'Sing unto him a new song.', 'Music &amp; Speeches');
+}
+
+/* Photo & Video Shot Lists */
+function buildShotlistPrintSheets(){
+  const photo = safeArray(data && data.shotlist), video = safeArray(data && data.videoShots);
+  const grouped = arr => {
+    const secs = []; arr.forEach(s => { const sec = _cvpStr(s.section) || 'Other'; if (secs.indexOf(sec) < 0) secs.push(sec); });
+    let out = ''; secs.forEach(sec => { out += '<tr class="cvp-catrow"><td colspan="3">' + escapeHtml(sec) + '</td></tr>'; arr.filter(s => (_cvpStr(s.section) || 'Other') === sec).forEach(s => { out += '<tr><td class="strong">' + escapeHtml(_cvpStr(s.shot)) + '</td><td>' + escapeHtml(_cvpStr(s.people)) + '</td><td>' + escapeHtml(_cvpStr(s.priority)) + '</td></tr>'; }); });
+    return out;
+  };
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Photo shots', photo.length) + _cvpInfoCell('Video shots', video.length);
+  const body = _cvpSec('Photo shot list') + _cvpTable([{label:'Shot'},{label:'People'},{label:'Priority'}], grouped(photo), 'No photo shots yet.')
+    + _cvpSec('Video shot list') + _cvpTable([{label:'Shot'},{label:'People'},{label:'Priority'}], grouped(video), 'No video shots yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; Ceremony &amp; Reception', 'Photo &amp; Video Shot Lists', 'Must-have shots for the day', info, body, 'This is the day which the Lord hath made.', 'Shot Lists');
+}
+
+/* Vision Board (design) */
+function buildMoodPrintSheets(){
+  const items = safeArray(data && data.moodItems);
+  const secs = []; items.forEach(m => { const s = _cvpStr(m.section) || 'Other'; if (secs.indexOf(s) < 0) secs.push(s); });
+  let body = '';
+  secs.forEach(sec => { body += '<tr class="cvp-catrow"><td colspan="4">' + escapeHtml(sec) + '</td></tr>'; items.filter(m => (_cvpStr(m.section) || 'Other') === sec).forEach(m => { body += '<tr><td class="strong">' + escapeHtml(_cvpStr(m.item)) + '</td><td>' + escapeHtml(_cvpStr(m.colorStory)) + '</td><td>' + escapeHtml(_cvpStr(m.vendorMatch)) + '</td><td>' + (_cvpStr(m.finalized) ? _cvpPill(m.finalized) : '') + '</td></tr>'; }); });
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Ideas', items.length);
+  const table = _cvpSec('Vision board') + _cvpTable([{label:'Item'},{label:'Color story'},{label:'Vendor'},{label:'Status'}], body, 'No vision items yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; Design &amp; Details', 'Vision Board', 'Palette, inspiration, and design decisions', info, table, 'He hath made every thing beautiful in his time.', 'Vision Board');
+}
+
+/* Essentials Checklist */
+function buildEssentialsPrintSheets(){
+  const items = safeArray(data && data.essentials);
+  const packed = items.filter(i => i.packed).length;
+  const cats = []; items.forEach(i => { const c = _cvpStr(i.cat) || 'Other'; if (cats.indexOf(c) < 0) cats.push(c); });
+  let body = '';
+  cats.forEach(c => { body += '<tr class="cvp-catrow"><td colspan="4">' + escapeHtml(c) + '</td></tr>'; items.filter(i => (_cvpStr(i.cat) || 'Other') === c).forEach(i => { body += '<tr><td class="strong">' + escapeHtml(_cvpStr(i.item)) + '</td><td>' + escapeHtml(_cvpStr(i.assigned)) + '</td><td>' + escapeHtml(_cvpStr(i.location)) + '</td><td class="money">' + (i.packed ? '&#10003;' : '') + '</td></tr>'; }); });
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Items', items.length) + _cvpInfoCell('Packed', packed);
+  const stats = _cvpSec('Packing progress') + '<div class="cvp-stats">' + _cvpStat('Items', items.length) + _cvpStat('Packed', packed, 'gold') + _cvpStat('Remaining', items.length - packed, 'burg') + '</div>';
+  const table = _cvpSec('Checklist') + _cvpTable([{label:'Item'},{label:'Assigned'},{label:'Location'},{label:'Packed',money:true}], body, 'No items yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; Design &amp; Details', 'Essentials Checklist', 'Everything to pack and bring', info, stats + table, 'Be prepared in season.', 'Essentials');
+}
+
+/* Gift Log */
+function buildGiftsPrintSheets(){
+  const gifts = safeArray(data && data.gifts);
+  const totalVal = gifts.reduce((a, g) => a + _cNum(g.value), 0);
+  const thanks = gifts.filter(g => g.thankyou).length;
+  const body = gifts.map(g => '<tr><td class="strong">' + escapeHtml(_cvpStr(g.from)) + '</td><td>' + escapeHtml(_cvpStr(g.desc)) + '</td><td>' + escapeHtml(_cvpStr(g.category)) + '</td><td class="money">' + (_cNum(g.value) ? pvMoney(g.value) : '') + '</td><td class="money">' + (g.thankyou ? '&#10003;' : '') + '</td></tr>').join('');
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Gifts', gifts.length) + _cvpInfoCell('Thank-yous', thanks + ' / ' + gifts.length);
+  const stats = _cvpSec('At a glance') + '<div class="cvp-stats">' + _cvpStat('Gifts', gifts.length) + _cvpStat('Total value', pvMoney(totalVal), 'gold') + _cvpStat('Thank-yous sent', thanks, 'mauve') + '</div>';
+  const table = _cvpSec('Gift log') + _cvpTable([{label:'From'},{label:'Gift'},{label:'Category'},{label:'Value',money:true},{label:'Thanked',money:true}], body, 'No gifts logged yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; Design &amp; Details', 'Gift Log', 'Gifts received and thank-you tracking', info, stats + table, 'Every good gift is from above.', 'Gift Log');
+}
+
+/* Honeymoon & After */
+function buildHoneymoonPrintSheets(){
+  const it = safeArray(data && data.honeyItinerary), tr = safeArray(data && data.honeyTransport), pk = safeArray(data && data.packing);
+  const iBody = it.map(r => '<tr><td>' + escapeHtml(_cvpStr(r.day)) + '</td><td>' + escapeHtml(_cvpStr(r.time)) + '</td><td class="strong">' + escapeHtml(_cvpStr(r.plan)) + '</td><td>' + escapeHtml(_cvpStr(r.location)) + '</td></tr>').join('');
+  const tBody = tr.map(r => '<tr><td class="strong">' + escapeHtml(_cvpStr(r.type)) + '</td><td class="date">' + _cvpShortDate(r.date) + '</td><td>' + escapeHtml(_cvpStr(r.from)) + '</td><td>' + escapeHtml(_cvpStr(r.to)) + '</td></tr>').join('');
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Itinerary days', it.length) + _cvpInfoCell('Packing items', pk.length);
+  const body = _cvpSec('Itinerary') + _cvpTable([{label:'Day'},{label:'Time'},{label:'Plan'},{label:'Location'}], iBody, 'No itinerary yet.')
+    + _cvpSec('Travel') + _cvpTable([{label:'Type'},{label:'Date'},{label:'From'},{label:'To'}], tBody, 'No travel legs yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; After the Day', 'Honeymoon &amp; After', 'Travel, itinerary, and rest', info, body, 'They twain shall be one flesh.', 'Honeymoon');
+}
+
+/* First-Month Rhythms (reflect / rhythms) */
+function buildRhythmsPrintSheets(){
+  const fm = (data && data.firstmonth) || {};
+  const f = (l, k) => '<div><div class="cvp-flabel">' + l + '</div><div class="cvp-fval">' + (_cvpStr(fm[k]) ? escapeHtml(_cvpStr(fm[k])) : '&nbsp;') + '</div></div>';
+  const grid = '<div class="cvp-info">' + f('Weekly Sabbath / rest', 'sabbath') + f('Weekly date night', 'date') + f('Daily devotion', 'devotion') + f('Weekly budget meeting', 'budgetMeeting') + f('Monthly check-in', 'checkin') + f('Local church plan', 'church') + '</div>';
+  const body = _cvpSec('Our first-month rhythms') + grid
+    + _cvpSec('Rhythms to keep simple') + '<div class="cvp-note mauve">' + _cvpOrLines(fm.simple, 2) + '</div>'
+    + _cvpSec('Conversations to have') + '<div class="cvp-note burg">' + _cvpOrLines(fm.convos, 2) + '</div>';
+  return _cvpPage(_CVP_BRAND + ' &middot; Marriage Rhythms', 'First-Month Rhythms', 'Date nights, devotions, and gentle habits', _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()), body, 'Establish thou the work of our hands.', 'First-Month Rhythms');
+}
+
+/* Newlywed Homecoming (reflect / homecoming) */
+function buildHomecomingPrintSheets(){
+  const home = safeArray(data && data.homecoming), names = safeArray(data && data.nameChange);
+  const hcats = []; home.forEach(h => { const c = _cvpStr(h.cat) || 'Other'; if (hcats.indexOf(c) < 0) hcats.push(c); });
+  let hBody = ''; hcats.forEach(c => { hBody += '<tr class="cvp-catrow"><td colspan="3">' + escapeHtml(c) + '</td></tr>'; home.filter(h => (_cvpStr(h.cat) || 'Other') === c).forEach(h => { hBody += '<tr><td class="strong">' + escapeHtml(_cvpStr(h.item)) + '</td><td>' + escapeHtml(_cvpStr(h.owner)) + '</td><td>' + (_cvpStr(h.status) ? _cvpPill(h.status) : '') + '</td></tr>'; }); });
+  const nBody = names.map(n => '<tr><td class="strong">' + escapeHtml(_cvpStr(n.task)) + '</td><td>' + escapeHtml(_cvpStr(n.category)) + '</td><td class="date">' + _cvpShortDate(n.due) + '</td><td>' + (_cvpStr(n.status) ? _cvpPill(n.status) : '') + '</td></tr>').join('');
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Homecoming items', home.length) + _cvpInfoCell('Name-change tasks', names.length);
+  const body = _cvpSec('Homecoming checklist') + _cvpTable([{label:'Item'},{label:'Owner'},{label:'Status'}], hBody, 'No homecoming items yet.')
+    + _cvpSec('Name change') + _cvpTable([{label:'Task'},{label:'Category'},{label:'Due'},{label:'Status'}], nBody, 'No name-change tasks yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; Marriage Rhythms', 'Newlywed Homecoming', 'Settling in and name-change tasks', info, body, 'As for me and my house, we will serve the Lord.', 'Newlywed Homecoming');
+}
+
+/* Dashboard — a one-page snapshot of the whole plan. */
+function buildDashboardPrintSheets(){
+  const s = (data && data.setup) || {};
+  const g = safeArray(data && data.guests), t = safeArray(data && data.tasks), pays = safeArray(data && data.payments), vends = safeArray(data && data.vendors);
+  const dISO = _cvpStr(s.date);
+  let daysLeft = '—';
+  if (dISO) { const d = new Date(dISO.length <= 10 ? dISO + 'T00:00:00' : dISO); if (!isNaN(d.getTime())) daysLeft = Math.max(0, Math.ceil((d - new Date()) / 86400000)); }
+  const overall = _cNum(s.budget);
+  let spent = 0; try { if (typeof computeBudgetVariance === 'function') spent = _cNum(computeBudgetVariance().totalActual); } catch (e) {}
+  const budgetPct = overall ? Math.round(spent / overall * 100) + '%' : '—';
+  const yes = g.filter(x => /^(yes|accept)/i.test(_cvpStr(x.rsvp))).length;
+  const tasksDone = t.filter(x => _cvpStatusClass(x.status) === 'done').length;
+  const paid = pays.reduce((a, p) => a + _cNum(p.paid), 0), dueTot = pays.reduce((a, p) => a + _cNum(p.due), 0);
+  const booked = vends.filter(v => (typeof vendorBookedStatus === 'function' ? vendorBookedStatus(v.status) : /book|confirm/i.test(_cvpStr(v.status))) || v.contract).length;
+  const verse = _cvpStr(s.bannerVerse), verseRef = _cvpStr(s.bannerRef);
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Days to go', daysLeft) + _cvpInfoCell('Current phase', _cvpStr(s.phase) || '—');
+  const stats = _cvpSec('At a glance') + '<div class="cvp-stats">'
+    + _cvpStat('Days left', daysLeft) + _cvpStat('Budget used', budgetPct, 'gold') + _cvpStat('Guests attending', yes, 'mauve') + _cvpStat('Tasks done', tasksDone + ' / ' + t.length, 'burg') + '</div>'
+    + '<div class="cvp-stats" style="margin-top:10px">' + _cvpStat('Paid', pvMoney(paid)) + _cvpStat('Balance due', pvMoney(Math.max(0, dueTot - paid)), 'burg') + _cvpStat('Vendors booked', booked + ' / ' + vends.length, 'gold') + '</div>';
+  const verseBlock = verse ? (_cvpSec('A word over your planning') + '<div class="cvp-verse"><p class="q">&ldquo;' + _cvpMultiline(verse) + '&rdquo;</p>' + (verseRef ? '<p class="r">' + escapeHtml(verseRef) + '</p>' : '') + '</div>') : '';
+  return _cvpPage(_CVP_BRAND + ' &middot; Planning', 'Dashboard', 'Your wedding at a glance', info, stats + verseBlock, 'Commit thy works unto the Lord, and thy thoughts shall be established.', 'Dashboard');
+}
+
+/* Wedding Setup — the core details the whole planner is built on. */
+function buildSetupPrintSheets(){
+  const s = (data && data.setup) || {};
+  const info = _cvpInfoCell('Bride', _cvpStr(s.bride)) + _cvpInfoCell('Groom', _cvpStr(s.groom)) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Total budget', s.budget ? pvMoney(s.budget) : '');
+  const details = '<div class="cvp-info">' + _cvpInfoCell('Guest target', _cvpStr(s.guests)) + _cvpInfoCell('Ceremony venue', _cvpStr(s['venue-ceremony'])) + _cvpInfoCell('Reception venue', _cvpStr(s['venue-reception'])) + _cvpInfoCell('Colors', _cvpStr(s.colors)) + '</div>';
+  const mission = _cvpStr(s.mission) || _cvpStr(s.moodStatement);
+  const verse = _cvpStr(s.bannerVerse), verseRef = _cvpStr(s.bannerRef);
+  const body = _cvpSec('Venues, guests &amp; palette') + details
+    + _cvpSec('Mission &amp; vision') + '<div class="cvp-note mauve">' + _cvpOrLines(mission, 2) + '</div>'
+    + _cvpSec('Marriage verse') + '<div class="cvp-note gold">' + (verse ? ('<p class="cvp-p">&ldquo;' + _cvpMultiline(verse) + '&rdquo;</p>' + (verseRef ? '<p class="cvp-p"><em>' + escapeHtml(verseRef) + '</em></p>' : '')) : '<div class="cvp-writeline"></div><div class="cvp-writeline"></div>') + '</div>';
+  return _cvpPage(_CVP_BRAND + ' &middot; Start Planning', 'Wedding Setup', 'Names, date, budget, and the foundations', info, body, 'Except the Lord build the house, they labour in vain that build it.', 'Wedding Setup');
+}
+
+/* Database Hub — record counts across every table. */
+function buildDataHubPrintSheets(){
+  const defs = [['Guests','guests'],['Budget categories','budget'],['Payments','payments'],['Vendors','vendors'],['Contracts','contracts'],['Rentals','rentals'],['Tasks','tasks'],['Appointments','appointments'],['Menu items','menu'],['Beverages','beverages'],['Wedding party','party'],['Tables','tables'],['Ceremony order','ceremonyOrder'],['Scripture readings','scriptures'],['Day-of timeline','timeline'],['Gifts','gifts'],['Essentials','essentials'],['Vision board items','moodItems'],['Prayer entries','prayer'],['Counseling sessions','counseling']];
+  const budgetItems = safeArray(data && data.budget).reduce((a, c) => a + safeArray(c.items).length, 0);
+  let body = defs.map(d => '<tr><td class="strong">' + escapeHtml(d[0]) + '</td><td class="money">' + safeArray(data && data[d[1]]).length + '</td></tr>').join('');
+  body += '<tr><td class="strong">Budget line items</td><td class="money">' + budgetItems + '</td></tr>';
+  const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate());
+  const table = _cvpSec('Records by table') + _cvpTable([{label:'Table'},{label:'Records',money:true}], body, 'No records yet.');
+  return _cvpPage(_CVP_BRAND + ' &middot; Start Planning', 'Database Hub', 'Every table and how many records it holds', info, table, 'Let all things be done decently and in order.', 'Database Hub');
+}
+
+/* FAQ — common questions about the planner. */
+function buildFaqPrintSheets(){
+  const items = (typeof FAQ_ITEMS !== 'undefined') ? FAQ_ITEMS : [];
+  const body = items.map(it => '<h3 class="cvp-q">' + escapeHtml(String(it[0] || '')) + '</h3><div class="cvp-rich">' + String(it[1] || '') + '</div>').join('') || '<div class="cvp-empty">No FAQs available.</div>';
+  return _cvpPage(_CVP_BRAND + ' &middot; Start Planning', 'FAQ', 'Answers to common questions', _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()), _cvpSec('Frequently asked questions') + body, 'If any of you lack wisdom, let him ask of God.', 'FAQ');
+}
+
+/* Page-by-Page Guide — what each page does. */
+function buildGuidePrintSheets(){
+  const g = (typeof PAGE_GUIDE !== 'undefined') ? PAGE_GUIDE : [];
+  const body = g.map(e => '<h3 class="cvp-q">' + escapeHtml(String(e[0] || '')) + (e[1] ? ' <span style="color:var(--muted);font-size:9px">&middot; ' + escapeHtml(String(e[1])) + '</span>' : '') + '</h3><div class="cvp-rich">' + String(e[2] || '') + '</div>').join('') || '<div class="cvp-empty">No guide available.</div>';
+  return _cvpPage(_CVP_BRAND + ' &middot; Start Planning', 'Page-by-Page Guide', 'What each page does and how to use it', _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()), _cvpSec('Guide') + body, 'Wisdom is the principal thing; therefore get wisdom.', 'Page-by-Page Guide');
+}
+
+/* Get Started — how the planner works. */
+function buildInstructionsPrintSheets(){
+  const g = (typeof PAGE_GUIDE !== 'undefined') ? PAGE_GUIDE : [];
+  const entry = g.find(e => /get started/i.test(String(e[0] || '')));
+  const body = (entry && entry[2])
+    ? ('<div class="cvp-rich">' + String(entry[2]) + '</div>')
+    : ('<div class="cvp-rich"><h4>Welcome</h4><p>Everything you type saves automatically in this browser. Download a <code>.sqlite</code> backup to protect your work and to move it between devices.</p><h4>Getting started</h4><ul><li>Begin with Wedding Setup — names, date, and budget.</li><li>Work through the pages by category using the top menu.</li><li>Use Print section on any page for a clean handoff.</li></ul></div>');
+  return _cvpPage(_CVP_BRAND + ' &middot; Start Planning', 'Get Started', 'How the planner works', _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()), _cvpSec('Welcome') + body, 'Prepare thy work, and make it fit for thyself.', 'Get Started');
+}
+
+/* Registry + dispatch: which pages have a dedicated Covenant print template. */
+function tryCovenantPrintTemplate(target){
+  const reg = {
+    vendors: buildVendorsPrintSheets, guests: buildGuestListPrintSheets, budget: buildBudgetPrintSheets,
+    counseling: buildCounselingPrintSheets, prayer: buildPrayerPrintSheets, payments: buildPaymentsPrintSheets,
+    contracts: buildContractsPrintSheets, party: buildPartyPrintSheets, catering: buildCateringPrintSheets,
+    timeline: buildTimelinePrintSheets, appointments: buildAppointmentsPrintSheets, tasks: buildTasksPrintSheets,
+    calendar: buildCalendarPrintSheets, notes: buildNotesPrintSheets, logistics: buildLogisticsPrintSheets,
+    venue: buildVenuePrintSheets, tables: buildTablesPrintSheets, ceremony: buildCeremonyPrintSheets,
+    entertainment: buildEntertainmentPrintSheets, shotlist: buildShotlistPrintSheets, mood: buildMoodPrintSheets,
+    essentials: buildEssentialsPrintSheets, gifts: buildGiftsPrintSheets, honeymoon: buildHoneymoonPrintSheets,
+    dashboard: buildDashboardPrintSheets, setup: buildSetupPrintSheets, 'data-hub': buildDataHubPrintSheets,
+    faq: buildFaqPrintSheets, guide: buildGuidePrintSheets, instructions: buildInstructionsPrintSheets
+  };
+  try {
+    if (target === 'reflect' && typeof _rflTab !== 'undefined') {
+      if (_rflTab === 'vision') { openCovenantPrintTemplate(buildVisionFoundationPrintSheets()); return true; }
+      if (_rflTab === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
+      if (_rflTab === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
+    }
+    if (typeof reg[target] === 'function') {
+      openCovenantPrintTemplate(reg[target]());
+      return true;
+    }
+  } catch (err) {
+    if (typeof console !== 'undefined') console.error('Covenant print template failed:', err);
+  }
+  return false;
+}
+
+window.addEventListener('DOMContentLoaded',function(){ openCovenantPrintTemplate(buildGuestListPrintSheets()); });
+</script></body></html>

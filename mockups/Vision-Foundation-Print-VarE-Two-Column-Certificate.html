@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vision &amp; Foundation — Print Template (Variation E: Two-Column Certificate)</title>
+<style>
+/* ============================================================
+   VARIATION E — "Two-column certificate"
+   Keepsake/letterpress family, new layout:
+   - Gold L-shaped corner ornaments framing the sheet
+   - Centered header on a linen band w/ burgundy hairlines
+   - TWO-COLUMN body with a thin gold divider between columns
+   - Scripture ribbon across the bottom
+   Palette: full color set from 00-Shared-Print-Template-Reference.html
+   Print spec: 8.5 x 11 portrait, borderless, color-exact.
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --forest-d:#1F3A2F;--forest:#2D4A3E;--forest-l:#3D5E50;
+  --gold:#B89968;--gold-s:#D9C7A4;
+  --bone:#F9F7F4;--linen:#EFE8DD;--charcoal:#2A2A2A;
+  --muted:#8A8174;--line:#E5DFD3;
+  --mauve-pale:#F2E8EB;--mauve:#C4919E;--mauve-d:#8B5D68;
+  --burg:#6B2737;--burg-m:#8C3A4A;--burg-pale:#F5EAED;
+  --page-w:8.5in; --page-h:11in;
+}
+html{background:#CDC7BE}
+body{margin:0;padding:36px 20px;background:#CDC7BE;color:var(--charcoal);
+  font:11px/1.5 Georgia,"Times New Roman",serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.no-print{position:fixed;top:16px;right:18px;z-index:20;border:0;border-radius:4px;
+  background:var(--forest-d);color:#fff;padding:9px 14px;font:700 11px Arial,sans-serif;cursor:pointer;
+  box-shadow:0 3px 10px rgba(0,0,0,.2)}
+
+.page{position:relative;width:var(--page-w);height:var(--page-h);margin:0 auto 30px;
+  background:var(--bone);overflow:hidden;
+  box-shadow:0 6px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12);
+  display:flex;flex-direction:column;padding:0.5in 0.55in 0.42in}
+
+/* gold L-shaped corner ornaments */
+.corner{position:absolute;width:0.4in;height:0.4in;border-color:var(--gold);border-style:solid;border-width:0;opacity:.75}
+.corner.tl{left:0.28in;top:0.28in;border-left-width:1.5px;border-top-width:1.5px}
+.corner.tr{right:0.28in;top:0.28in;border-right-width:1.5px;border-top-width:1.5px}
+.corner.bl{left:0.28in;bottom:0.28in;border-left-width:1.5px;border-bottom-width:1.5px}
+.corner.br{right:0.28in;bottom:0.28in;border-right-width:1.5px;border-bottom-width:1.5px}
+
+/* HEADER — centered on a linen band */
+.masthead{flex:0 0 auto;text-align:center;background:var(--linen);padding:16px 20px 15px;margin-bottom:16px;
+  border-top:2px solid var(--burg);border-bottom:2px solid var(--burg);position:relative}
+.masthead::after{content:"";position:absolute;left:12px;right:12px;bottom:4px;height:1px;background:var(--gold);opacity:.5}
+.eyebrow{margin:0 0 6px;color:var(--gold);font-size:9px;letter-spacing:.26em;text-transform:uppercase}
+.title{margin:0;color:var(--forest-d);font:400 28px Georgia,"Times New Roman",serif;letter-spacing:.03em}
+.title .di{color:var(--gold);font-size:16px;vertical-align:middle;margin:0 8px}
+.subtitle{margin:7px 0 0;color:var(--mauve-d);font:italic 11px Georgia,serif}
+
+/* TWO-COLUMN body */
+.body{flex:1 1 auto;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;gap:0 24px;position:relative}
+.body::before{content:"";position:absolute;left:50%;top:4px;bottom:4px;width:1px;background:var(--gold);opacity:.5;transform:translateX(-0.5px)}
+.col{min-width:0}
+
+.section-title{margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid var(--gold);
+  color:var(--forest);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase}
+.section-title:not(:first-child){margin-top:15px}
+
+.field{margin:0 0 9px}
+.field-label{color:var(--mauve-d);font-size:8.5px;letter-spacing:.15em;text-transform:uppercase}
+.field-value{margin-top:3px;color:var(--forest-d);font:12px Georgia,serif;padding-bottom:4px;border-bottom:1px solid var(--line)}
+
+.panel{padding:11px 13px;margin:0 0 11px;background:var(--linen);break-inside:avoid;border-left:2px solid var(--forest)}
+.panel.mauve{background:var(--mauve-pale);border-left-color:var(--mauve-d)}
+.panel.burg{background:var(--burg-pale);border-left-color:var(--burg)}
+.panel.gold{border-left-color:var(--gold)}
+.panel .field-label{color:var(--forest)}
+.panel.mauve .field-label{color:var(--mauve-d)}
+.panel.burg .field-label{color:var(--burg)}
+.panel p{margin:5px 0 0;color:var(--charcoal);font-size:10.5px}
+.writeline{height:18px;border-bottom:1px solid var(--line);margin-top:7px}
+
+.prio{display:flex;gap:9px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line);break-inside:avoid}
+.prio:last-child{border-bottom:0}
+.prio .n{flex:0 0 auto;width:20px;height:20px;border-radius:50%;color:#fff;display:grid;place-items:center;font:11px Georgia,serif}
+.prio.c-forest .n{background:var(--forest)} .prio.c-gold .n{background:var(--gold)}
+.prio.c-mauve .n{background:var(--mauve-d)} .prio.c-burg .n{background:var(--burg)}
+.prio .t{color:var(--charcoal);font-size:10.5px}
+.prio .t b{font-weight:400;font-size:11px;color:var(--forest-d)}
+
+.verse-in{text-align:center;padding:2px 0}
+.verse-in .q{margin:0;color:var(--forest-d);font:italic 13px/1.6 Georgia,serif}
+.verse-in .r{margin:6px 0 0;color:var(--gold);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase}
+.seal{width:60px;height:60px;margin:10px auto 0;border:1px solid var(--gold);border-radius:50%;
+  display:grid;place-items:center;color:var(--gold);font:9px Georgia,serif;letter-spacing:.1em;
+  line-height:1.3;text-align:center;text-transform:uppercase;background:var(--bone)}
+
+/* scripture ribbon across the bottom */
+.ribbon{flex:0 0 auto;margin-top:14px;background:var(--forest-d);color:var(--gold-s);
+  text-align:center;padding:10px 16px;position:relative}
+.ribbon::after{content:"";position:absolute;inset:4px;border:1px solid var(--gold);opacity:.5;pointer-events:none}
+.ribbon .rq{margin:0;font:italic 11px Georgia,serif;color:#fff}
+.ribbon .rb{margin:5px 0 0;color:var(--gold);font-size:8px;letter-spacing:.2em;text-transform:uppercase}
+
+.footer{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding-top:9px;color:var(--muted);font-size:8px}
+.footer .fb{color:var(--gold);letter-spacing:.2em;text-transform:uppercase}
+.footer .fv{font-style:italic;color:var(--forest)}
+
+/* ---- PRINT: 8.5x11 portrait, borderless ---- */
+@page{size:8.5in 11in;margin:0}
+@media print{
+  html,body{padding:0;margin:0;background:#fff}
+  .no-print{display:none!important}
+  .page{width:8.5in;height:11in;margin:0;box-shadow:none;page-break-after:always;break-after:page}
+  .page:last-of-type{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<button class="no-print" type="button" onclick="window.print()">Print section</button>
+
+<!-- SHEET 1 -->
+<main class="page">
+  <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+  <header class="masthead">
+    <div class="eyebrow">The Covenant Wedding Planner &middot; Start Here</div>
+    <h1 class="title">Vision <span class="di">&#9670;</span> Foundation</h1>
+    <p class="subtitle">Priorities, prayers, and purpose — the covenant first</p>
+  </header>
+  <section class="body">
+    <div class="col">
+      <h2 class="section-title">The foundation we are building from</h2>
+      <div class="field"><div class="field-label">Couple</div><div class="field-value">Arian &amp; Jordan</div></div>
+      <div class="field"><div class="field-label">Wedding date</div><div class="field-value">November 13, 2026</div></div>
+      <div class="field"><div class="field-label">Marriage verse</div><div class="field-value">Ecclesiastes 4:12</div></div>
+      <div class="field"><div class="field-label">Planning focus</div><div class="field-value">Christ-centered hospitality</div></div>
+
+      <h2 class="section-title">Our marriage vision</h2>
+      <div class="panel mauve">
+        <div class="field-label">Vision statement</div>
+        <p>A marriage where Christ is the foundation — where we serve, forgive quickly, pray together, and point others to Him.</p>
+        <div class="writeline"></div><div class="writeline"></div>
+      </div>
+    </div>
+    <div class="col">
+      <h2 class="section-title">Decisions that guide everything else</h2>
+      <div class="prio c-forest"><span class="n">1</span><span class="t"><b>Reverent ceremony</b> — prayerful, centered on covenant.</span></div>
+      <div class="prio c-gold"><span class="n">2</span><span class="t"><b>Honor both families</b> — everyone feels welcomed.</span></div>
+      <div class="prio c-mauve"><span class="n">3</span><span class="t"><b>Protect peace &amp; unity</b> — clarity through every decision.</span></div>
+      <div class="prio c-burg"><span class="n">&#10022;</span><span class="t"><b>What guests should feel</b> — loved, encouraged, invited into joy.</span></div>
+
+      <h2 class="section-title">Boundaries we are choosing</h2>
+      <div class="panel burg">
+        <div class="field-label">Pressures &amp; traditions to release</div>
+        <div class="writeline"></div><div class="writeline"></div><div class="writeline"></div>
+      </div>
+    </div>
+  </section>
+  <div class="ribbon">
+    <p class="rq">"A threefold cord is not quickly broken."</p>
+    <p class="rb">Ecclesiastes 4:12</p>
+  </div>
+  <footer class="footer"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Before the spreadsheets, remember the covenant. &middot; Page 1</div></footer>
+</main>
+
+<!-- SHEET 2 -->
+<main class="page">
+  <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+  <header class="masthead">
+    <div class="eyebrow">Start Here &middot; Prayer</div>
+    <h1 class="title">Verse <span class="di">&#9670;</span> Prayers</h1>
+    <p class="subtitle">A printable keepsake for the spiritual center of the season</p>
+  </header>
+  <section class="body">
+    <div class="col">
+      <h2 class="section-title">A verse for our marriage</h2>
+      <div class="panel gold">
+        <div class="verse-in">
+          <p class="q">"And if one prevail against him, two shall withstand him; and a threefold cord is not quickly broken."</p>
+          <p class="r">Ecclesiastes 4:12</p>
+          <div class="seal">United<br>As One</div>
+        </div>
+      </div>
+      <h2 class="section-title">His prayer for her</h2>
+      <div class="panel"><div class="writeline"></div><div class="writeline"></div><div class="writeline"></div></div>
+    </div>
+    <div class="col">
+      <h2 class="section-title">What this verse means to us</h2>
+      <div class="panel"><div class="field-label">For the bride</div><p>Strengthened by the Lord, not by our effort alone.</p><div class="writeline"></div></div>
+      <div class="panel mauve"><div class="field-label">For the groom</div><p>A call to lead with humility, prayer, and gentleness.</p><div class="writeline"></div></div>
+      <h2 class="section-title">Her prayer for him</h2>
+      <div class="panel"><div class="writeline"></div><div class="writeline"></div><div class="writeline"></div></div>
+    </div>
+  </section>
+  <div class="ribbon">
+    <p class="rq">"Let this wedding point us back to the marriage You are forming."</p>
+    <p class="rb">Our shared prayer</p>
+  </div>
+  <footer class="footer"><div class="fb">The Covenant Wedding Planner</div><div class="fv">A shared planning and covenant reference. &middot; Page 2</div></footer>
+</main>
+</body>
+</html>

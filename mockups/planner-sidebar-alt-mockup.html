@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CWP — Alternative Sidebar Layout (Tabbed)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/planner-sidebar-alt-mockup.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="app-shell">
+    <header class="topbar" role="banner">
+      <button type="button" class="topbar__mobile" id="mobile-btn" aria-label="Open sidebar">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="topbar__brand">
+        <div class="topbar__mark" aria-hidden="true">✦</div>
+        <div>
+          <div class="topbar__title">The Covenant Wedding Planner</div>
+          <div class="topbar__sub">Alternative sidebar mockup</div>
+        </div>
+      </div>
+      <span class="topbar__chip" id="layout-label">Tabbed layout</span>
+      <div class="topbar__spacer"></div>
+      <button type="button" class="topbar__btn" id="theme-toggle" aria-pressed="false">Dark preview</button>
+      <button type="button" class="topbar__btn" id="collapse-btn" aria-pressed="false" title="Collapse to icon rail ( [ )">Collapse sidebar</button>
+    </header>
+
+    <div class="scrim" id="scrim" aria-hidden="true"></div>
+
+    <div class="workspace">
+      <aside class="alt-sidebar" id="sidebar" aria-label="Planner sidebar">
+        <div class="alt-sidebar__rail" id="sidebar-rail" aria-hidden="true"></div>
+
+        <div class="alt-sidebar__panel">
+          <div class="sidebar-wedding">
+            <div class="sidebar-wedding__inner">
+              <div class="sidebar-wedding__photo" aria-hidden="true"></div>
+              <div>
+                <p class="sidebar-wedding__names">Anderson Wedding</p>
+                <div class="sidebar-wedding__meta">Oct 18, 2026 · Nashville</div>
+              </div>
+            </div>
+            <div class="sidebar-wedding__countdown">
+              <span>Days until covenant day</span>
+              <strong>128</strong>
+            </div>
+          </div>
+
+          <div class="sidebar-tabs" role="tablist" aria-label="Sidebar sections">
+            <button type="button" class="sidebar-tab is-active" role="tab" aria-selected="true" data-tab="context" id="tab-context">This page</button>
+            <button type="button" class="sidebar-tab" role="tab" aria-selected="false" data-tab="navigate" id="tab-navigate">Navigate</button>
+            <button type="button" class="sidebar-tab" role="tab" aria-selected="false" data-tab="shortcuts" id="tab-shortcuts">Shortcuts</button>
+          </div>
+
+          <div class="sidebar-panels">
+            <div class="sidebar-panel is-active" id="panel-context" role="tabpanel" aria-labelledby="tab-context"></div>
+            <div class="sidebar-panel" id="panel-navigate" role="tabpanel" aria-labelledby="tab-navigate" hidden>
+              <div class="nav-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input type="search" id="nav-filter" placeholder="Filter pages…" autocomplete="off">
+              </div>
+              <div id="nav-groups"></div>
+            </div>
+            <div class="sidebar-panel" id="panel-shortcuts" role="tabpanel" aria-labelledby="tab-shortcuts" hidden>
+              <button type="button" class="shortcut-card" data-goto="guests">
+                <span class="shortcut-card__icon">👥</span>
+                <span><div class="shortcut-card__title">Guest List</div><div class="shortcut-card__desc">RSVPs, meals, and chase queue</div></span>
+              </button>
+              <button type="button" class="shortcut-card" data-goto="budget">
+                <span class="shortcut-card__icon">💰</span>
+                <span><div class="shortcut-card__title">Budget</div><div class="shortcut-card__desc">True total &amp; category targets</div></span>
+              </button>
+              <button type="button" class="shortcut-card" data-goto="tasks">
+                <span class="shortcut-card__icon">✓</span>
+                <span><div class="shortcut-card__title">Tasks</div><div class="shortcut-card__desc">Phase checklist &amp; priorities</div></span>
+              </button>
+              <button type="button" class="shortcut-card" data-goto="vendors">
+                <span class="shortcut-card__icon">📋</span>
+                <span><div class="shortcut-card__title">Vendors</div><div class="shortcut-card__desc">Contracts &amp; research status</div></span>
+              </button>
+              <button type="button" class="shortcut-card" data-goto="timeline">
+                <span class="shortcut-card__icon">📅</span>
+                <span><div class="shortcut-card__title">Timeline</div><div class="shortcut-card__desc">Day-of run sheet</div></span>
+              </button>
+            </div>
+          </div>
+
+          <footer class="sidebar-footer">
+            <div class="sidebar-progress__label"><span>Planning progress</span><span id="progress-pct">62%</span></div>
+            <div class="sidebar-progress__bar"><div class="sidebar-progress__fill" id="progress-fill"></div></div>
+            <div class="sidebar-footer__actions">
+              <button type="button" id="expand-all-nav">Expand nav</button>
+              <button type="button" id="goto-dashboard">Dashboard</button>
+            </div>
+          </footer>
+        </div>
+      </aside>
+
+      <main class="main" id="main">
+        <div class="main__inner">
+          <div class="mockup-banner">
+            <strong>Design concept B — Tabbed sidebar.</strong> Unlike the current single-scroll sidebar, this layout keeps wedding identity pinned at top, splits <em>This page</em> / <em>Navigate</em> / <em>Shortcuts</em> into tabs, and collapses to an icon rail. Try switching pages, tabs, collapse, and dark preview.
+          </div>
+
+          <section class="page-panel is-active" id="page-dashboard" data-page="dashboard">
+            <div class="page-eyebrow">Planning overview</div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-desc">Main content stays focused — context stats and actions live in the <strong>This page</strong> tab instead of scrolling past full navigation.</p>
+            <div class="demo-card"><h2>Next on your list</h2><p style="margin:0;color:var(--muted);font-size:0.86rem">Book final venue walk-through · Send rehearsal invitations · Confirm catering headcount</p></div>
+            <div class="demo-card"><h2>Smart alerts</h2><p style="margin:0;color:var(--muted);font-size:0.86rem">3 guests pending RSVP · Budget buffer at 8% · Officiant contract unsigned</p></div>
+          </section>
+
+          <section class="page-panel" id="page-guests" data-page="guests">
+            <div class="page-eyebrow">People</div>
+            <h1 class="page-title">Guest List</h1>
+            <p class="page-desc">Table and filters in main area; RSVP chase, meal gaps, and sync links in sidebar context tab.</p>
+            <div class="demo-card"><h2>Guest table preview</h2><p style="margin:0;color:var(--muted);font-size:0.86rem">142 invited · 98 attending · 28 pending · 69% RSVP rate</p></div>
+          </section>
+
+          <section class="page-panel" id="page-budget" data-page="budget">
+            <div class="page-eyebrow">Stewardship</div>
+            <h1 class="page-title">Budget</h1>
+            <p class="page-desc">Category rows and True Total in main; sidebar shows quick category jumps and buffer status.</p>
+            <div class="demo-card"><h2>Budget summary</h2><p style="margin:0;color:var(--muted);font-size:0.86rem">Planned $28,400 · Committed $24,100 · Buffer $2,800</p></div>
+          </section>
+
+          <section class="page-panel" id="page-tasks" data-page="tasks">
+            <div class="page-eyebrow">Checklist</div>
+            <h1 class="page-title">Tasks</h1>
+            <p class="page-desc">Phase tasks in main; sidebar highlights overdue and high-priority items for the active page.</p>
+            <div class="demo-card"><h2>This phase</h2><p style="margin:0;color:var(--muted);font-size:0.86rem">6–9 months before · 12 open · 3 high priority</p></div>
+          </section>
+
+          <section class="page-panel" id="page-vendors" data-page="vendors">
+            <div class="page-eyebrow">Partners</div>
+            <h1 class="page-title">Vendors</h1>
+            <p class="page-desc">Vendor grid in main; sidebar lists unsigned contracts and research placeholders.</p>
+            <div class="demo-card"><h2>Status snapshot</h2><p style="margin:0;color:var(--muted);font-size:0.86rem">8 booked · 2 researching · 1 contract pending signature</p></div>
+          </section>
+
+          <section class="page-panel" id="page-timeline" data-page="timeline">
+            <div class="page-eyebrow">Day of</div>
+            <h1 class="page-title">Timeline</h1>
+            <p class="page-desc">Run sheet in main; sidebar shows next milestone block and vendor arrival windows.</p>
+            <div class="demo-card"><h2>Next block</h2><p style="margin:0;color:var(--muted);font-size:0.86rem">2:00 PM — Processional rehearsal with officiant</p></div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  'use strict';
+
+  var NAV = [
+    { id: 'plan', icon: '🏠', label: 'Plan', pages: [
+      { id: 'dashboard', label: 'Dashboard', sub: 'Overview & alerts' },
+      { id: 'tasks', label: 'Tasks', sub: 'Phase checklist' },
+      { id: 'timeline', label: 'Timeline', sub: 'Day-of run sheet' }
+    ]},
+    { id: 'people', icon: '👥', label: 'People', pages: [
+      { id: 'guests', label: 'Guest List', sub: 'RSVP & seating' }
+    ]},
+    { id: 'money', icon: '💰', label: 'Money', pages: [
+      { id: 'budget', label: 'Budget', sub: 'Categories & True Total' }
+    ]},
+    { id: 'vendors', icon: '📋', label: 'Vendors', pages: [
+      { id: 'vendors', label: 'Vendor List', sub: 'Contracts & status' }
+    ]}
+  ];
+
+  var CONTEXT = {
+    dashboard: {
+      stats: [{ val: '128', lbl: 'Days left' }, { val: '62%', lbl: 'Progress' }, { val: '3', lbl: 'Alerts' }, { val: '12', lbl: 'Open tasks' }],
+      queue: [{ label: 'RSVP follow-ups due', action: 'guests' }, { label: 'Review True Total', action: 'budget' }],
+      actions: [{ label: '+ Task', primary: true }, { label: 'Backup', primary: false }, { label: 'Database Hub', primary: false }, { label: 'Help', primary: false }]
+    },
+    guests: {
+      stats: [{ val: '142', lbl: 'Invited' }, { val: '98', lbl: 'Attending' }, { val: '28', lbl: 'Pending' }, { val: '69%', lbl: 'RSVP rate' }],
+      queue: [{ label: 'Sarah Mitchell — no response', action: null }, { label: 'Meal choice missing (4)', action: null }],
+      actions: [{ label: '+ Guest', primary: true }, { label: 'Import CSV', primary: false }, { label: 'Copy follow-up', primary: false }, { label: 'Seating chart', primary: false }]
+    },
+    budget: {
+      stats: [{ val: '$28.4k', lbl: 'Planned' }, { val: '$24.1k', lbl: 'Committed' }, { val: '$2.8k', lbl: 'Buffer' }, { val: '8%', lbl: 'Buffer left' }],
+      queue: [{ label: 'Florist quote over target', action: null }, { label: 'Emergency fund untouched', action: null }],
+      actions: [{ label: '+ Category', primary: true }, { label: 'True Total', primary: false }, { label: 'Export', primary: false }, { label: 'Vendors', primary: false }]
+    },
+    tasks: {
+      stats: [{ val: '12', lbl: 'Open' }, { val: '3', lbl: 'High' }, { val: '6', lbl: 'This phase' }, { val: '48', lbl: 'Done' }],
+      queue: [{ label: 'Book officiant rehearsal', action: null }, { label: 'Finalize processional order', action: null }],
+      actions: [{ label: '+ Task', primary: true }, { label: 'By phase', primary: false }, { label: 'Print list', primary: false }, { label: 'Dashboard', primary: false }]
+    },
+    vendors: {
+      stats: [{ val: '8', lbl: 'Booked' }, { val: '2', lbl: 'Researching' }, { val: '1', lbl: 'Contract' }, { val: '11', lbl: 'Total rows' }],
+      queue: [{ label: 'Photographer — contract unsigned', action: null }, { label: 'DJ deposit due Friday', action: null }],
+      actions: [{ label: '+ Vendor', primary: true }, { label: 'By category', primary: false }, { label: 'Budget link', primary: false }, { label: 'Timeline', primary: false }]
+    },
+    timeline: {
+      stats: [{ val: '14', lbl: 'Blocks' }, { val: '6', lbl: 'Vendors' }, { val: '4h 30m', lbl: 'Ceremony window' }, { val: '2', lbl: 'TBD' }],
+      queue: [{ label: '2:00 PM Processional rehearsal', action: null }, { label: '5:30 PM Reception entrance', action: null }],
+      actions: [{ label: '+ Block', primary: true }, { label: 'Print run sheet', primary: false }, { label: 'Vendor view', primary: false }, { label: 'Tasks', primary: false }]
+    }
+  };
+
+  var RAIL_ICONS = { dashboard: '🏠', guests: '👥', budget: '💰', tasks: '✓', vendors: '📋', timeline: '📅' };
+
+  var currentPage = 'dashboard';
+  var body = document.body;
+  var sidebar = document.getElementById('sidebar');
+  var scrim = document.getElementById('scrim');
+  var contextPanel = document.getElementById('panel-context');
+  var navGroupsEl = document.getElementById('nav-groups');
+  var railEl = document.getElementById('sidebar-rail');
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  }
+
+  function renderContext(pageId) {
+    var ctx = CONTEXT[pageId] || CONTEXT.dashboard;
+    var statsHtml = ctx.stats.map(function (s) {
+      return '<div class="ctx-stat"><div class="ctx-stat__val">' + esc(s.val) + '</div><div class="ctx-stat__lbl">' + esc(s.lbl) + '</div></div>';
+    }).join('');
+    var queueHtml = ctx.queue.map(function (q) {
+      var btn = q.action ? '<button type="button" data-goto="' + q.action + '">Open</button>' : '';
+      return '<li><span>' + esc(q.label) + '</span>' + btn + '</li>';
+    }).join('');
+    var actionsHtml = ctx.actions.map(function (a) {
+      return '<button type="button" class="' + (a.primary ? 'primary' : '') + '">' + esc(a.label) + '</button>';
+    }).join('');
+    contextPanel.innerHTML =
+      '<div class="ctx-block"><h3 class="ctx-block__title">At a glance</h3><div class="ctx-stats">' + statsHtml + '</div></div>' +
+      '<div class="ctx-block"><h3 class="ctx-block__title">Needs attention</h3><ul class="ctx-list">' + queueHtml + '</ul></div>' +
+      '<div class="ctx-block"><h3 class="ctx-block__title">Quick actions</h3><div class="ctx-actions">' + actionsHtml + '</div></div>';
+    contextPanel.querySelectorAll('[data-goto]').forEach(function (btn) {
+      btn.addEventListener('click', function () { goToPage(btn.getAttribute('data-goto')); });
+    });
+  }
+
+  function renderNav(filter) {
+    var q = (filter || '').trim().toLowerCase();
+    navGroupsEl.innerHTML = NAV.map(function (group) {
+      var pages = group.pages.filter(function (p) {
+        if (!q) return true;
+        return (p.label + ' ' + (p.sub || '')).toLowerCase().indexOf(q) !== -1;
+      });
+      if (!pages.length) return '';
+      var links = pages.map(function (p) {
+        var active = p.id === currentPage ? ' is-active' : '';
+        return '<button type="button" class="nav-link' + active + '" data-page="' + p.id + '">' +
+          '<span><span>' + esc(p.label) + '</span><span class="nav-link__sub">' + esc(p.sub || '') + '</span></span></button>';
+      }).join('');
+      return '<div class="nav-group is-open" data-group="' + group.id + '">' +
+        '<button type="button" class="nav-group__head"><span class="nav-group__icon">' + group.icon + '</span>' + esc(group.label) +
+        '<span class="nav-group__chev">⌄</span></button><div class="nav-group__pages">' + links + '</div></div>';
+    }).join('');
+
+    navGroupsEl.querySelectorAll('.nav-group__head').forEach(function (head) {
+      head.addEventListener('click', function () {
+        head.parentElement.classList.toggle('is-open');
+      });
+    });
+    navGroupsEl.querySelectorAll('.nav-link').forEach(function (link) {
+      link.addEventListener('click', function () {
+        goToPage(link.getAttribute('data-page'));
+      });
+    });
+  }
+
+  function renderRail() {
+    var keys = ['dashboard', 'guests', 'budget', 'tasks', 'vendors', 'timeline'];
+    railEl.innerHTML = keys.map(function (id) {
+      var active = id === currentPage ? ' is-active' : '';
+      var tip = (CONTEXT[id] && NAV.flatMap(function(g){ return g.pages; }).find(function(p){ return p.id === id; }) || {}).label || id;
+      return '<button type="button" class="rail-btn' + active + '" data-page="' + id + '" data-tip="' + esc(tip) + '">' + (RAIL_ICONS[id] || '•') + '</button>';
+    }).join('') + '<button type="button" class="rail-btn" id="rail-expand" data-tip="Expand sidebar" style="margin-top:auto">›</button>';
+    railEl.querySelectorAll('[data-page]').forEach(function (btn) {
+      btn.addEventListener('click', function () { goToPage(btn.getAttribute('data-page')); });
+    });
+    document.getElementById('rail-expand').addEventListener('click', function () {
+      body.classList.remove('sidebar-collapsed');
+      document.getElementById('collapse-btn').setAttribute('aria-pressed', 'false');
+    });
+  }
+
+  function goToPage(pageId) {
+    if (!pageId || !document.getElementById('page-' + pageId)) return;
+    currentPage = pageId;
+    document.querySelectorAll('.page-panel').forEach(function (el) {
+      el.classList.toggle('is-active', el.getAttribute('data-page') === pageId);
+    });
+    renderContext(pageId);
+    renderNav(document.getElementById('nav-filter').value);
+    renderRail();
+    if (window.matchMedia('(max-width: 900px)').matches) closeMobile();
+  }
+
+  function setTab(tabId) {
+    document.querySelectorAll('.sidebar-tab').forEach(function (tab) {
+      var on = tab.getAttribute('data-tab') === tabId;
+      tab.classList.toggle('is-active', on);
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.sidebar-panel').forEach(function (panel) {
+      var on = panel.id === 'panel-' + tabId;
+      panel.classList.toggle('is-active', on);
+      panel.hidden = !on;
+    });
+  }
+
+  function closeMobile() {
+    sidebar.classList.remove('is-mobile-open');
+    scrim.classList.remove('is-visible');
+  }
+
+  document.querySelectorAll('.sidebar-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () { setTab(tab.getAttribute('data-tab')); });
+  });
+
+  document.getElementById('nav-filter').addEventListener('input', function (e) {
+    renderNav(e.target.value);
+  });
+
+  document.getElementById('collapse-btn').addEventListener('click', function () {
+    var collapsed = body.classList.toggle('sidebar-collapsed');
+    this.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+    this.textContent = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  });
+
+  document.getElementById('theme-toggle').addEventListener('click', function () {
+    var dark = body.classList.toggle('dark');
+    this.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    this.textContent = dark ? 'Light preview' : 'Dark preview';
+  });
+
+  document.getElementById('mobile-btn').addEventListener('click', function () {
+    sidebar.classList.add('is-mobile-open');
+    scrim.classList.add('is-visible');
+  });
+  scrim.addEventListener('click', closeMobile);
+
+  document.getElementById('expand-all-nav').addEventListener('click', function () {
+    document.querySelectorAll('.nav-group').forEach(function (g) { g.classList.add('is-open'); });
+    setTab('navigate');
+  });
+
+  document.getElementById('goto-dashboard').addEventListener('click', function () {
+    goToPage('dashboard');
+    setTab('context');
+  });
+
+  document.querySelectorAll('.shortcut-card[data-goto]').forEach(function (card) {
+    card.addEventListener('click', function () {
+      goToPage(card.getAttribute('data-goto'));
+      setTab('context');
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '[' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      document.getElementById('collapse-btn').click();
+    }
+  });
+
+  renderContext(currentPage);
+  renderNav('');
+  renderRail();
+})();
+  </script>
+</body>
+</html>

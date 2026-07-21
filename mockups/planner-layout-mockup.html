@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Covenant Wedding Planner — Layout Structure Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/planner-layout-mockup.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+
+  <div class="app-shell">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         1. HEADER / TOP BAR — global controls & planner-wide tools
+         ═══════════════════════════════════════════════════════════════════ -->
+    <header class="planner-topbar" role="banner">
+      <button type="button" class="planner-topbar__menu-toggle" id="sidebar-toggle" aria-label="Open navigation menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+
+      <div class="planner-topbar__brand">
+        <div class="planner-topbar__mark" aria-hidden="true">&#10022;</div>
+        <div class="planner-topbar__brand-text">
+          <div class="planner-topbar__title">The Covenant Wedding Planner</div>
+          <div class="planner-topbar__tagline">Christ-Centered Planning</div>
+        </div>
+      </div>
+
+      <div class="planner-topbar__center">
+        <div class="planner-topbar__profile">
+          <span class="planner-topbar__profile-label">Profile</span>
+          <select class="planner-topbar__profile-select" aria-label="Wedding profile">
+            <option>Anderson Wedding</option>
+            <option>New Wedding</option>
+          </select>
+          <div class="planner-topbar__profile-actions">
+            <button type="button" class="btn btn--sm" title="New profile">+ New</button>
+            <button type="button" class="btn btn--sm" title="Rename profile">Rename</button>
+            <button type="button" class="btn btn--sm" title="Delete profile">Delete</button>
+          </div>
+        </div>
+
+        <div class="planner-topbar__save" role="status" aria-live="polite">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg>
+          <span>Autosaved locally</span>
+        </div>
+      </div>
+
+      <div class="planner-topbar__actions">
+        <button type="button" class="btn btn--gold" title="Download backup file">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          <span class="btn-text">Backup</span>
+        </button>
+
+        <div class="topbar-dropdown" data-dropdown>
+          <button type="button" class="btn btn--gold" aria-haspopup="true" aria-expanded="false">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h16"/></svg>
+            <span class="btn-text">Data Tools</span>
+          </button>
+          <div class="topbar-dropdown__menu" role="menu">
+            <button type="button" role="menuitem">Restore Backup</button>
+            <button type="button" role="menuitem">Export CSV</button>
+            <button type="button" role="menuitem">Print Section</button>
+            <button type="button" role="menuitem">Download Backup</button>
+          </div>
+        </div>
+
+        <div class="topbar-dropdown" data-dropdown>
+          <button type="button" class="btn" aria-haspopup="true" aria-expanded="false">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <span class="btn-text">Display</span>
+          </button>
+          <div class="topbar-dropdown__menu" role="menu">
+            <button type="button" role="menuitem">Theme: Editorial Ivory</button>
+            <button type="button" role="menuitem">Font: Cormorant + Inter</button>
+            <button type="button" role="menuitem">Focus on Essentials</button>
+            <button type="button" role="menuitem">Preview Mode</button>
+          </div>
+        </div>
+
+        <div class="topbar-dropdown" data-dropdown>
+          <button type="button" class="btn" aria-haspopup="true" aria-expanded="false">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 17v-5"/><path d="M12 8h.01"/></svg>
+            <span class="btn-text">Help</span>
+          </button>
+          <div class="topbar-dropdown__menu" role="menu">
+            <a href="#footer-start" role="menuitem">Get Started</a>
+            <a href="#footer-start" role="menuitem">Page-by-Page Guide</a>
+            <a href="#footer-start" role="menuitem">FAQ</a>
+            <button type="button" role="menuitem">Keyboard Shortcuts</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Profile / appearance bar (matches real planner — global display controls) -->
+    <div class="planner-profilebar" role="region" aria-label="Profile and display settings">
+      <div class="planner-profilebar__group">
+        <span class="planner-profilebar__label">Theme</span>
+        <select class="btn btn--sm" aria-label="Theme"><option>Editorial Ivory</option><option>Champagne Garden</option></select>
+      </div>
+      <div class="planner-profilebar__group">
+        <span class="planner-profilebar__label">Font</span>
+        <select class="btn btn--sm" aria-label="Font"><option>Cormorant + Inter</option><option>Playfair + Lato</option></select>
+      </div>
+      <div class="planner-profilebar__group">
+        <span class="planner-profilebar__label">Focus</span>
+        <select class="btn btn--sm" aria-label="Focus preset"><option>Full planner</option><option>Planning core</option><option>Guests &amp; seating</option><option>Money</option><option>Wedding weekend</option></select>
+      </div>
+      <button type="button" class="btn btn--sm">Focus on Essentials</button>
+      <button type="button" class="btn btn--sm">Preview Mode</button>
+    </div>
+
+    <div class="app-body">
+      <div class="planner-sidebar-scrim" id="sidebar-scrim" aria-hidden="true"></div>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           2. MENU BAR / SIDEBAR — full planner navigation (NOT in footer)
+           ═════════════════════════════════════════════════════════════════ -->
+      <nav class="planner-sidebar" id="planner-sidebar" aria-label="Planner pages">
+        <div class="planner-sidebar__scroll">
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">Start Here</div>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 6.5-7 11-7 11z"/></svg></span> Vision &amp; Foundation</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M4 5h12l4 4v10H4z"/><path d="M8 13h8M8 16h6"/></svg></span> Premarital Counseling</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M8 7l4-4 4 4"/></svg></span> Prayer Journal</a>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">Start Planning</div>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M5 12H2M22 12h-3"/><circle cx="12" cy="12" r="4"/></svg></span> Get Started</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M4 5h12l4 4v10H4z"/><path d="M8 13h6"/></svg></span> Page-by-Page Guide</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 17v-5"/><path d="M12 8h.01"/></svg></span> FAQ</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2"/></svg></span> Wedding Setup</a>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">Planning</div>
+            <a href="#" class="sidebar-link is-active" aria-current="page"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span> Dashboard</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h16"/></svg></span> Planning Timeline</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span> Smart Calendar</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 3v4M16 3v4M9 14l2 2 4-4"/></svg></span> Appointments</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M4 5h12l4 4v10H4z"/><path d="M8 13h8M8 16h6"/></svg></span> Notes</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="6" y="7" width="12" height="14" rx="1"/><path d="M9 7V5h6v2"/></svg></span> Wedding Weekend Logistics</a>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">Finances</div>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg></span> Budget</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span> Payments</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M6 4h9l5 5v11H6z"/><path d="M15 4v5h5"/></svg></span> Contracts, Invoices &amp; Rentals</a>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">Venue &amp; Vendors</div>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21V9l6-5 6 5v12"/><path d="M9 21v-6h6v6"/></svg></span> Wedding Venue</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M4 10h16v10H4z"/><path d="M8 10V6h8v4"/></svg></span> Vendors</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M4 11h16"/><path d="M6 11V7h12v4"/><path d="M8 21v-6h8v6"/></svg></span> Catering &amp; Menu</a>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">People</div>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="9" r="2.5"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M14 20a5 5 0 0 1 8-2"/></svg></span> Guest List</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="8" r="2.5"/><path d="M4 18a4 4 0 0 1 8 0"/><path d="M12 18a4 4 0 0 1 8 0"/></svg></span> Wedding Party</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="10" rx="1"/><path d="M7 8V6h10v2"/></svg></span> Table Layout</a>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">Ceremony &amp; Reception</div>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M12 3 4 21h16L12 3z"/></svg></span> Ceremony &amp; Reception</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Wedding Day Timeline</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/></svg></span> Music &amp; Speeches</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg></span> Photo &amp; Video Shot Lists</a>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">Design &amp; Details</div>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="2"/><circle cx="16" cy="10" r="2"/><circle cx="10" cy="16" r="2"/></svg></span> Vision Board</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M9 11l2 2 4-4"/><rect x="4" y="4" width="16" height="16" rx="2"/></svg></span> Essentials Checklist</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1"/><path d="M8 10h8M8 14h5"/></svg></span> Gift Log</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span> Email Templates</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M4 6h10l6 6v10H4z"/><path d="M14 6v6h6"/></svg></span> Share Packets</a>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-section__label">After the Day</div>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M3 17h18"/><path d="M6 17V9l6-4 6 4v8"/></svg></span> Honeymoon &amp; After</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-4 10.5V17h8v-3.5A6 6 0 0 0 12 3z"/></svg></span> First-Month Rhythms</a>
+            <a href="#" class="sidebar-link"><span class="sidebar-link__icon"><svg viewBox="0 0 24 24"><path d="M3 11h18"/><path d="M6 11V7l6-4 6 4v4"/></svg></span> Newlywed Homecoming</a>
+          </div>
+
+        </div>
+      </nav>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           3. MAIN CONTENT — page header + page body + footer
+           ═════════════════════════════════════════════════════════════════ -->
+      <main class="main-content" id="main">
+
+        <div class="main-content__inner">
+
+          <!-- PAGE HEADER (Dashboard example — changes per page) -->
+          <header class="page-header">
+            <div class="page-header__eyebrow">Planning overview</div>
+            <h1 class="page-header__title">Dashboard</h1>
+            <p class="page-header__desc">
+              A high-level view of your wedding countdown, planning progress, upcoming tasks, budget snapshot, guest count, and next important details.
+            </p>
+
+            <div class="page-actions">
+              <button type="button" class="btn btn--primary">Update Wedding Setup</button>
+              <button type="button" class="btn">View Smart Calendar</button>
+              <button type="button" class="btn">Review Planning Timeline</button>
+            </div>
+
+            <div class="quick-stats" role="group" aria-label="Dashboard quick stats">
+              <div class="quick-stat">
+                <div class="quick-stat__label">Days Until Wedding</div>
+                <div class="quick-stat__value">142</div>
+                <div class="quick-stat__sub">October 18, 2026</div>
+              </div>
+              <div class="quick-stat">
+                <div class="quick-stat__label">Budget Used</div>
+                <div class="quick-stat__value">62%</div>
+                <div class="quick-stat__sub">$18,600 of $30,000</div>
+              </div>
+              <div class="quick-stat">
+                <div class="quick-stat__label">Open Tasks</div>
+                <div class="quick-stat__value">24</div>
+                <div class="quick-stat__sub">8 due this month</div>
+              </div>
+              <div class="quick-stat">
+                <div class="quick-stat__label">Confirmed Guests</div>
+                <div class="quick-stat__value">86</div>
+                <div class="quick-stat__sub">12 pending RSVP</div>
+              </div>
+            </div>
+
+            <a href="#" class="page-header__help">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 17v-5"/><path d="M12 8h.01"/></svg>
+              How this page works
+            </a>
+          </header>
+
+          <!-- PAGE CONTENT (sample dashboard cards) -->
+          <div class="page-content">
+            <div class="content-grid">
+              <section class="content-card">
+                <div class="content-card__head">
+                  <h2 class="content-card__title">Next on your list</h2>
+                  <button type="button" class="btn btn--sm">View all tasks</button>
+                </div>
+                <ul class="content-card__list">
+                  <li><span class="task-dot"></span><span>Book final venue walk-through with coordinator</span></li>
+                  <li><span class="task-dot"></span><span>Send rehearsal dinner invitations</span></li>
+                  <li><span class="task-dot"></span><span>Confirm catering headcount with kitchen</span></li>
+                  <li><span class="task-dot"></span><span>Review ceremony music selections with pastor</span></li>
+                </ul>
+              </section>
+
+              <section class="content-card">
+                <div class="content-card__head">
+                  <h2 class="content-card__title">Planning progress</h2>
+                  <span style="font-size:0.85rem;color:var(--c-text-muted);">62% complete</span>
+                </div>
+                <p style="margin:0 0 0.5rem;font-size:0.88rem;color:var(--c-text-muted);">You are in a strong place. Focus on guest responses and vendor confirmations next.</p>
+                <div class="progress-bar" role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar__fill"></div></div>
+              </section>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             4. FOOTER — support, trust, shortcuts, legal (NOT full nav)
+             ═══════════════════════════════════════════════════════════════ -->
+        <footer class="planner-footer" role="contentinfo">
+          <div class="footer-brand">
+            <h2 class="footer-brand__title">The Covenant Wedding Planner</h2>
+            <div class="footer-brand__tagline">Christ-Centered Planning</div>
+            <p class="footer-brand__desc">A Christ-centered wedding planning system designed to help couples organize every detail with clarity, peace, and intention.</p>
+            <p class="footer-brand__reassurance"><strong>Runs locally. Saves in your browser. Backup anytime.</strong></p>
+            <p class="footer-brand__faith">Rooted in faith. Designed for clarity. Created for the journey to “I do.”</p>
+          </div>
+
+          <div class="footer-columns">
+            <div class="footer-column" id="footer-start">
+              <h3 class="footer-column__title">Start Here</h3>
+              <ul>
+                <li><a href="#">Get Started</a></li>
+                <li><a href="#">Page-by-Page Guide</a></li>
+                <li><a href="#">FAQ</a></li>
+                <li><a href="#">Wedding Setup</a></li>
+                <li><a href="#">Backup &amp; Restore Help</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3 class="footer-column__title">Key Shortcuts</h3>
+              <ul>
+                <li><a href="#">Dashboard</a></li>
+                <li><a href="#">Smart Calendar</a></li>
+                <li><a href="#">Budget</a></li>
+                <li><a href="#">Payments</a></li>
+                <li><a href="#">Guest List</a></li>
+                <li><a href="#">Share Packets</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3 class="footer-column__title">Support Tools</h3>
+              <ul>
+                <li><a href="#">Download Backup</a></li>
+                <li><a href="#">Restore Backup</a></li>
+                <li><a href="#">Export CSV</a></li>
+                <li><a href="#">Print Section</a></li>
+                <li><a href="#">Preview Mode</a></li>
+                <li><a href="#">Troubleshooting</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3 class="footer-column__title">Contact / Social</h3>
+              <ul>
+                <li><a href="mailto:hello@example.com">Email</a></li>
+                <li><a href="#">Website</a></li>
+                <li><a href="#">Instagram</a></li>
+                <li><a href="#">Pinterest</a></li>
+                <li><a href="#">Etsy Shop</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h3 class="footer-column__title">Legal</h3>
+              <ul>
+                <li><a href="#">Terms of Use</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Refund Policy</a></li>
+                <li><a href="#">License / Personal Use Terms</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-bottom">
+            &copy; 2026 The Covenant Wedding Planner. All rights reserved.
+          </div>
+        </footer>
+
+      </main>
+    </div>
+  </div>
+
+  <div class="mockup-banner" role="note">
+    <strong>Layout mockup only</strong> — demonstrates Header / Sidebar / Page Header / Footer roles.
+    See also <a href="planner-sidebar-mockup.html" style="color:var(--c-gold-light)">planner-wide collapsible sidebar mockup</a>.
+  </div>
+
+  <script>
+    (function () {
+      var sidebar = document.getElementById('planner-sidebar');
+      var scrim = document.getElementById('sidebar-scrim');
+      var toggle = document.getElementById('sidebar-toggle');
+
+      function setNavOpen(open) {
+        sidebar.classList.toggle('is-open', open);
+        scrim.classList.toggle('is-visible', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      toggle.addEventListener('click', function () {
+        setNavOpen(!sidebar.classList.contains('is-open'));
+      });
+      scrim.addEventListener('click', function () { setNavOpen(false); });
+
+      document.querySelectorAll('[data-dropdown]').forEach(function (wrap) {
+        var btn = wrap.querySelector('button');
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var open = wrap.classList.contains('is-open');
+          document.querySelectorAll('[data-dropdown].is-open').forEach(function (w) {
+            w.classList.remove('is-open');
+            w.querySelector('button').setAttribute('aria-expanded', 'false');
+          });
+          if (!open) {
+            wrap.classList.add('is-open');
+            btn.setAttribute('aria-expanded', 'true');
+          }
+        });
+      });
+      document.addEventListener('click', function () {
+        document.querySelectorAll('[data-dropdown].is-open').forEach(function (w) {
+          w.classList.remove('is-open');
+          w.querySelector('button').setAttribute('aria-expanded', 'false');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

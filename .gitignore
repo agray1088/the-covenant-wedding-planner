@@ -1,0 +1,11 @@
+# Dev-only files — NOT part of the distributed customer product.
+# The shipped product is the single-file rebundle (see "02 Customer Download
+# Version"); nothing below reaches that bundle. Listed here to mark these as
+# developer-only artifacts. (Files already committed stay tracked; this is an
+# explicit marker of intent.)
+
+# Editor workspace settings (2-byte dev convenience file)
+.vscode/
+
+# Developer documentation / planning notes (not shipped to customers)
+pages/README*

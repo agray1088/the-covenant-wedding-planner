@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prayer Journal — Print Template (Variation B: Letterpress Keepsake)</title>
+<style>
+/* ============================================================
+   PRAYER JOURNAL — Variation B "Letterpress keepsake"
+   Reuses keepsake stat-row, table, note, and verse components.
+   Palette: full set from 00-Shared-Print-Template-Reference.html
+   Print spec: 8.5 x 11 portrait, borderless, color-exact.
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --forest-d:#1F3A2F;--forest:#2D4A3E;--forest-l:#3D5E50;
+  --gold:#B89968;--gold-s:#D9C7A4;
+  --bone:#F9F7F4;--linen:#EFE8DD;--charcoal:#2A2A2A;
+  --muted:#8A8174;--line:#E5DFD3;
+  --mauve-pale:#F2E8EB;--mauve:#C4919E;--mauve-d:#8B5D68;
+  --burg:#6B2737;--burg-m:#8C3A4A;--burg-pale:#F5EAED;
+  --page-w:8.5in; --page-h:11in;
+}
+html{background:#CDC7BE}
+body{margin:0;padding:36px 20px;background:#CDC7BE;color:var(--charcoal);
+  font:11px/1.5 Georgia,"Times New Roman",serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.no-print{position:fixed;top:16px;right:18px;z-index:20;border:0;border-radius:4px;
+  background:var(--forest-d);color:#fff;padding:9px 14px;font:700 11px Arial,sans-serif;cursor:pointer;
+  box-shadow:0 3px 10px rgba(0,0,0,.2)}
+
+.page{position:relative;width:var(--page-w);height:var(--page-h);margin:0 auto 30px;
+  background:var(--bone);overflow:hidden;
+  box-shadow:0 6px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12);
+  display:flex;flex-direction:column;padding:0.5in 0.55in 0.44in}
+.page::before{content:"";position:absolute;left:0.3in;top:0.3in;right:0.3in;bottom:0.3in;border:1px solid var(--line);pointer-events:none}
+.page::after{content:"";position:absolute;left:0.35in;top:0.35in;right:0.35in;bottom:0.35in;border:1px solid var(--gold);opacity:.4;pointer-events:none}
+
+.masthead{flex:0 0 auto;text-align:center;padding:2px 0 12px}
+.crest{width:40px;height:40px;margin:0 auto 9px;border:1px solid var(--gold);border-radius:50%;
+  display:grid;place-items:center;color:var(--gold);font:11px Georgia,serif;background:var(--linen)}
+.eyebrow{margin:0 0 7px;color:var(--gold);font-size:9px;letter-spacing:.28em;text-transform:uppercase}
+.title{margin:0;color:var(--forest-d);font:400 27px Georgia,"Times New Roman",serif;letter-spacing:.03em}
+.subtitle{margin:8px auto 0;max-width:5in;color:var(--muted);font:italic 10.5px Georgia,serif}
+.rule{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto 2px}
+.rule::before,.rule::after{content:"";height:1px;width:1.2in;background:linear-gradient(to right,transparent,var(--mauve-d) 60%,var(--gold))}
+.rule::after{background:linear-gradient(to left,transparent,var(--mauve-d) 60%,var(--gold))}
+.rule span{color:var(--gold);font-size:11px}
+
+.body{flex:1 1 auto;overflow:hidden;padding:4px 0.12in 0}
+.section-label{display:block;text-align:center;margin:13px 0 9px;color:var(--forest);
+  font-size:9px;letter-spacing:.22em;text-transform:uppercase}
+.section-label::before{content:"";display:block;width:16px;height:1px;background:var(--gold);margin:0 auto 7px}
+.section-label:first-child{margin-top:0}
+
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 18px}
+.field-label{color:var(--mauve-d);font-size:8px;letter-spacing:.14em;text-transform:uppercase}
+.field-value{margin-top:3px;color:var(--forest-d);font:12px Georgia,serif}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{text-align:center;padding:9px 6px 8px;border-top:2px solid var(--forest);background:var(--linen)}
+.stat.mauve{border-top-color:var(--mauve-d)} .stat.gold{border-top-color:var(--gold)} .stat.burg{border-top-color:var(--burg)}
+.stat-label{color:var(--muted);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+.stat-value{margin-top:3px;color:var(--forest-d);font:400 22px Georgia,serif}
+.stat.mauve .stat-value{color:var(--mauve-d)} .stat.burg .stat-value{color:var(--burg)}
+
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{padding:10px 13px;background:var(--bone);border:1px solid var(--line);border-left:2px solid var(--forest);break-inside:avoid}
+.card.mauve{border-left-color:var(--mauve-d)} .card.gold{border-left-color:var(--gold)} .card.burg{border-left-color:var(--burg)}
+.card-title{margin:0 0 4px;color:var(--forest-d);font:400 13px Georgia,serif}
+.card p{margin:0;color:var(--muted);font-size:10px}
+.card .field-label{margin-top:6px}
+
+.table{width:100%;border-collapse:collapse;font-size:9.5px}
+.table th{padding:6px 7px;text-align:left;color:var(--forest-d);
+  font:400 8px Georgia,serif;letter-spacing:.12em;text-transform:uppercase;border-bottom:1.5px solid var(--gold)}
+.table td{padding:5px 7px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--charcoal)}
+.table tbody tr:nth-child(even) td{background:var(--linen)}
+.table .date{color:var(--forest);font-weight:700;white-space:nowrap}
+.table .strong{color:var(--forest-d);font-weight:700}
+.status{display:inline-block;padding:2px 7px;border:1px solid currentColor;border-radius:12px;font-size:7.5px;letter-spacing:.03em;white-space:nowrap}
+.status.answered{color:var(--forest)} .status.praying{color:var(--mauve-d)} .status.waiting{color:var(--burg)}
+
+.verse{text-align:center;margin:2px auto 0;padding:12px 18px;background:var(--mauve-pale);border-left:2px solid var(--mauve-d)}
+.verse .q{margin:0;color:var(--forest-d);font:italic 13px/1.6 Georgia,serif}
+.verse .r{margin:6px 0 0;color:var(--gold);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase}
+
+.note{padding:11px 15px;margin:0;break-inside:avoid;background:var(--linen);border-left:2px solid var(--gold)}
+.note .field-label{color:var(--forest)}
+.writeline{height:18px;border-bottom:1px solid var(--line);margin-top:8px}
+
+.footer{flex:0 0 auto;text-align:center;padding-top:9px;color:var(--muted);font-size:8px;letter-spacing:.06em}
+.footer .fb{color:var(--gold);letter-spacing:.2em;text-transform:uppercase;font-size:7.5px}
+.footer .fv{font-style:italic;margin-top:2px;color:var(--forest)}
+
+@page{size:8.5in 11in;margin:0}
+@media print{
+  html,body{padding:0;margin:0;background:#fff}
+  .no-print{display:none!important}
+  .page{width:8.5in;height:11in;margin:0;box-shadow:none;page-break-after:always;break-after:page}
+  .page:last-of-type{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<button class="no-print" type="button" onclick="window.print()">Print section</button>
+
+<!-- SHEET 1 -->
+<main class="page">
+  <header class="masthead">
+    <div class="crest">&#9670;</div>
+    <div class="eyebrow">The Covenant Wedding Planner &middot; Start Here</div>
+    <h1 class="title">Prayer Journal</h1>
+    <p class="subtitle">Requests, scriptures, answers, and quiet reminders during planning</p>
+    <div class="rule"><span>&#10086;</span></div>
+  </header>
+  <section class="body">
+    <span class="section-label">What we are carrying in prayer</span>
+    <div class="grid4">
+      <div><div class="field-label">Couple</div><div class="field-value">Arian &amp; Jordan</div></div>
+      <div><div class="field-label">Planning season</div><div class="field-value">Engagement to wedding day</div></div>
+      <div><div class="field-label">Anchor scripture</div><div class="field-value">Philippians 4:6</div></div>
+      <div><div class="field-label">Last updated</div><div class="field-value">July 14, 2026</div></div>
+    </div>
+
+    <span class="section-label">Prayer at a glance</span>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Prayer entries</div><div class="stat-value">12</div></div>
+      <div class="stat mauve"><div class="stat-label">Answered</div><div class="stat-value">4</div></div>
+      <div class="stat gold"><div class="stat-label">With scripture</div><div class="stat-value">12</div></div>
+      <div class="stat burg"><div class="stat-label">Still praying</div><div class="stat-value">8</div></div>
+    </div>
+
+    <span class="section-label">Requests to revisit this week</span>
+    <div class="cards">
+      <div class="card"><h3 class="card-title">Wedding budget</h3><p>Wisdom to plan a budget that honors God and does not cause anxiety.</p><div class="field-label">Scripture</div><p>Philippians 4:6–7</p></div>
+      <div class="card mauve"><h3 class="card-title">Family relationships</h3><p>Unity between both families as plans come together.</p><div class="field-label">Scripture</div><p>Romans 12:18</p></div>
+      <div class="card gold"><h3 class="card-title">Guest list</h3><p>Grace in navigating difficult guest list decisions.</p><div class="field-label">Scripture</div><p>Colossians 3:13</p></div>
+      <div class="card burg"><h3 class="card-title">The marriage ahead</h3><p>That our marriage would point others to Christ.</p><div class="field-label">Scripture</div><p>Matthew 5:16</p></div>
+    </div>
+
+    <span class="section-label">Anchor scripture</span>
+    <div class="verse">
+      <p class="q">"Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God."</p>
+      <p class="r">Philippians 4:6</p>
+    </div>
+  </section>
+  <footer class="footer"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Let your planning season become a prayerful season. &middot; Page 1</div></footer>
+</main>
+
+<!-- SHEET 2 -->
+<main class="page">
+  <header class="masthead">
+    <div class="crest">&#9670;</div>
+    <div class="eyebrow">Prayer Journal &middot; Tracker</div>
+    <h1 class="title">Prayer Log</h1>
+    <p class="subtitle">A printable record of requests, scriptures, and answered prayers</p>
+    <div class="rule"><span>&#10086;</span></div>
+  </header>
+  <section class="body">
+    <span class="section-label">Requests and answers</span>
+    <table class="table">
+      <thead><tr><th>Date</th><th>Focus</th><th>Prayer request</th><th>Scripture</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="date">Dec 28</td><td class="strong">Engagement</td><td>Thankfulness for the proposal and wisdom as we begin planning.</td><td>James 1:5</td><td><span class="status answered">Answered</span></td></tr>
+        <tr><td class="date">Jan 11</td><td class="strong">Wedding budget</td><td>Wisdom to plan a budget that honors God and does not cause anxiety.</td><td>Philippians 4:6–7</td><td><span class="status praying">Praying</span></td></tr>
+        <tr><td class="date">Jan 25</td><td class="strong">Venue search</td><td>Guidance in choosing the right ceremony and reception venues.</td><td>Proverbs 3:5–6</td><td><span class="status answered">Answered</span></td></tr>
+        <tr><td class="date">Feb 08</td><td class="strong">Family relationships</td><td>Unity between both families as plans come together.</td><td>Romans 12:18</td><td><span class="status waiting">Waiting</span></td></tr>
+        <tr><td class="date">Feb 22</td><td class="strong">Counseling</td><td>Open hearts as we begin counseling with Pastor Reynolds.</td><td>Proverbs 27:17</td><td><span class="status answered">Answered</span></td></tr>
+        <tr><td class="date">Mar 08</td><td class="strong">Finances</td><td>Wisdom for vendor payments and staying within budget.</td><td>Luke 14:28</td><td><span class="status praying">Praying</span></td></tr>
+        <tr><td class="date">Mar 22</td><td class="strong">Patience</td><td>Patience with each other during a stressful planning season.</td><td>Ephesians 4:2</td><td><span class="status praying">Praying</span></td></tr>
+      </tbody>
+    </table>
+
+    <span class="section-label">Remember how the Lord provided</span>
+    <div class="cards">
+      <div class="card"><h3 class="card-title">Venue search</h3><p>Found Grace Community Church and The Magnolia Barn.</p><div class="writeline"></div></div>
+      <div class="card mauve"><h3 class="card-title">Honeymoon planning</h3><p>Flights booked, felt provided for, and the trip feels restful.</p><div class="writeline"></div></div>
+    </div>
+
+    <span class="section-label" style="margin-top:11px">Prayer prompts for this week</span>
+    <div class="note"><div class="writeline"></div><div class="writeline"></div><div class="writeline"></div></div>
+  </section>
+  <footer class="footer"><div class="fb">The Covenant Wedding Planner</div><div class="fv">With thanksgiving, let your requests be made known unto God. &middot; Page 2</div></footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,95 @@
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --forest-d:#1F3A2F;
+  --forest:#2D4A3E;
+  --forest-l:#3D5E50;
+  --gold:#B89968;
+  --gold-s:#D9C7A4;
+  --bone:#F9F7F4;
+  --linen:#EFE8DD;
+  --charcoal:#2A2A2A;
+  --muted:#8A8174;
+  --line:#E5DFD3;
+  --mauve-pale:#F2E8EB;
+  --mauve:#C4919E;
+  --mauve-d:#8B5D68;
+  --burg:#6B2737;
+  --burg-m:#8C3A4A;
+  --burg-pale:#F5EAED;
+}
+html{background:#CDC7BE}
+body{margin:0;padding:48px 24px;background:#CDC7BE;color:var(--charcoal);font:11px/1.45 "Helvetica Neue",Arial,sans-serif}
+.no-print{position:fixed;top:16px;right:18px;z-index:20;border:0;border-radius:4px;background:var(--forest-d);color:#fff;padding:9px 14px;font:700 11px Arial,sans-serif;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.page{position:relative;max-width:816px;min-height:1056px;margin:0 auto 48px;overflow:hidden;background:var(--bone);box-shadow:0 6px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12)}
+.page::before{content:"";position:absolute;left:0;top:14%;width:3px;height:38%;background:linear-gradient(to bottom,transparent,var(--burg) 28%,var(--mauve-d) 70%,transparent);opacity:.48}
+.masthead{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:30px 52px 23px;background:var(--forest-d);color:#fff;position:relative}
+.masthead::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(to right,var(--gold),var(--mauve),var(--gold-s))}
+.eyebrow,.kicker,.section-label,.field-label,.footer-brand,.table-label{font-family:Georgia,"Times New Roman",serif;text-transform:uppercase;letter-spacing:.16em}
+.eyebrow{margin:0 0 5px;color:var(--gold);font-size:9px}
+.title{margin:0;font:400 27px Georgia,"Times New Roman",serif;letter-spacing:.02em}
+.subtitle{margin:6px 0 0;color:var(--gold-s);font-size:10px;letter-spacing:.08em}
+.header-meta{text-align:right;color:var(--gold-s);font-size:9px;line-height:1.7;letter-spacing:.12em;text-transform:uppercase}
+.diamond{color:var(--gold);font-size:18px}
+.body{padding:31px 52px 75px}
+.kicker,.section-label{margin:0 0 4px;color:var(--gold);font-size:9px}
+.section-title{margin:0 0 14px;padding-bottom:7px;border-bottom:1px solid var(--line);color:var(--forest-d);font:400 18px Georgia,"Times New Roman",serif;letter-spacing:.03em}
+.info-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-bottom:23px;padding:14px 18px;background:var(--forest-d);border-radius:4px}
+.info-cell{min-width:0;padding:0 12px;border-left:1px solid rgba(255,255,255,.16)}
+.info-cell:first-child{padding-left:0;border-left:0}
+.info-label{color:var(--gold-s);font:700 8px Georgia,"Times New Roman",serif;letter-spacing:.12em;text-transform:uppercase}
+.info-value{min-height:25px;margin-top:6px;padding:6px 7px;border-radius:2px;background:var(--linen);color:var(--forest-d);font:11px Georgia,"Times New Roman",serif}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:23px}
+.kpi{position:relative;padding:12px 13px;background:#fff;border:1px solid var(--line);border-radius:4px}
+.kpi::before,.card::before,.tile::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--forest)}
+.kpi.mauve::before,.card.mauve::before,.tile.mauve::before{background:var(--mauve-d)}
+.kpi.gold::before,.card.gold::before,.tile.gold::before{background:var(--gold)}
+.kpi.burg::before,.card.burg::before,.tile.burg::before{background:var(--burg)}
+.kpi-label,.tile-label{color:var(--muted);font-size:8px;letter-spacing:.1em;text-transform:uppercase}
+.kpi-value{margin-top:5px;color:var(--forest-d);font:700 22px Georgia,"Times New Roman",serif}
+.kpi.mauve .kpi-value{color:var(--mauve-d)}
+.kpi.burg .kpi-value{color:var(--burg)}
+.kpi.gold .kpi-value{color:var(--forest-d)}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 22px}
+.card{position:relative;padding:17px 14px 14px;background:#fff;border:1px solid var(--line);border-radius:4px;break-inside:avoid}
+.card-title{margin:0 0 9px;color:var(--forest-d);font:400 15px Georgia,"Times New Roman",serif}
+.small{color:var(--muted);font-size:10px}
+.field-label{margin:10px 0 3px;color:var(--muted);font-size:8px;letter-spacing:.1em}
+.line{height:19px;border-bottom:1px solid rgba(138,129,116,.35);margin-top:6px}
+.writing-box,.notes,.verse-panel{margin:0 0 22px;padding:16px 22px 20px;background:var(--linen);border-radius:4px;break-inside:avoid}
+.writing-box.mauve,.verse-panel{background:var(--mauve-pale)}
+.writing-title{margin:0 0 13px;color:var(--mauve-d);font:400 9px Georgia,"Times New Roman",serif;letter-spacing:.15em;text-transform:uppercase}
+.writing-box .line,.notes .line{height:22px;margin:0 0 12px}
+.quote{margin:0;color:var(--forest-d);font:italic 15px/1.6 Georgia,"Times New Roman",serif;text-align:center}
+.quote-ref{margin:8px 0 0;color:var(--muted);font-size:9px;letter-spacing:.1em;text-align:center;text-transform:uppercase}
+.seal{width:82px;height:82px;margin:18px auto 0;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold);font:10px Georgia,"Times New Roman",serif;letter-spacing:.1em;line-height:1.25;text-align:center;text-transform:uppercase}
+.tile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 22px}
+.tile{position:relative;min-height:88px;padding:16px 14px 12px;background:#fff;border:1px solid var(--line);border-radius:4px;break-inside:avoid}
+.tile-value{margin-top:5px;color:var(--forest-d);font:700 18px Georgia,"Times New Roman",serif}
+.table{width:100%;border-collapse:collapse;margin:8px 0 22px;font-size:10px}
+.table th{padding:8px 9px;background:var(--forest-d);color:var(--gold-s);text-align:left;font:400 8px Georgia,"Times New Roman",serif;letter-spacing:.13em;text-transform:uppercase}
+.table th:first-child{border-radius:4px 0 0 0}
+.table th:last-child{border-radius:0 4px 0 0}
+.table td{padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+.table tbody tr:nth-child(even) td{background:var(--linen)}
+.table .strong{color:var(--forest-d);font-weight:700}
+.table .date,.table .num{width:74px;color:var(--forest-d);font-weight:700}
+.status{display:inline-block;padding:3px 7px;border:1px solid currentColor;border-radius:12px;font-size:8px;letter-spacing:.03em;white-space:nowrap}
+.status.done,.status.answered{color:var(--forest);background:rgba(45,74,62,.06)}
+.status.progress,.status.praying{color:var(--mauve-d);background:rgba(139,93,104,.07)}
+.status.next,.status.waiting{color:var(--burg);background:rgba(107,39,55,.05)}
+.footer{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 52px;border-top:1px solid var(--line);color:var(--muted);font-size:8px}
+.footer-brand{font-size:8px;color:var(--muted)}
+.footer-verse{font:italic 8px Georgia,"Times New Roman",serif;color:var(--forest-d)}
+@page{size:Letter portrait;margin:0}
+@media print{html,body{padding:0;background:none}.no-print{display:none!important}.page{max-width:none;min-height:100vh;margin:0;box-shadow:none}}
+@media(max-width:700px){
+  body{padding:0}
+  .masthead{display:block;padding:24px}
+  .header-meta{text-align:left;margin-top:10px}
+  .body{padding:24px 24px 65px}
+  .info-bar,.kpi-grid,.card-grid,.tile-grid{grid-template-columns:1fr}
+  .info-cell{border-left:0;border-top:1px solid rgba(255,255,255,.16);padding:10px 0 0;margin-top:10px}
+  .info-cell:first-child{border-top:0;padding-top:0;margin-top:0}
+  .footer{padding:10px 24px}
+  .table{display:block;overflow-x:auto;white-space:nowrap}
+}

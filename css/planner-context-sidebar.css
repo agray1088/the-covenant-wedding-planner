@@ -1,0 +1,999 @@
+/* Planner context sidebar — page context + quick access, single scroll */
+
+:root {
+  --context-sidebar-surface: #f9f5ef;
+  --context-sidebar-head: #f2ece4;
+}
+
+body.editorial-v4.dark-mode,
+body.editorial-v4[data-theme="dark"] {
+  --context-sidebar-surface: var(--surface-chrome, #161616);
+  --context-sidebar-head: var(--surface-chrome, #161616);
+}
+
+:root {
+  --context-sidebar-w: 288px;
+  --context-sidebar-rail: 52px;
+}
+
+body.context-sidebar-mode {
+  --context-sidebar-current: var(--context-sidebar-w);
+}
+
+body.context-sidebar-mode.context-sidebar-collapsed {
+  --context-sidebar-current: 0;
+}
+
+/* Early collapse hint (inline script in index.html) — prevents layout flash before JS loads */
+html.context-sidebar-collapsed-early body.context-sidebar-mode {
+  --context-sidebar-current: 0;
+}
+html.context-sidebar-collapsed-early body.context-sidebar-mode #planner-context-sidebar {
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  border-right: none;
+  pointer-events: none;
+}
+html.context-sidebar-collapsed-early body.context-sidebar-mode #main-column {
+  flex: 1 1 auto !important;
+  width: auto !important;
+}
+html.context-sidebar-collapsed-early body.context-sidebar-mode #main {
+  width: auto !important;
+}
+html.context-sidebar-collapsed-early body.context-sidebar-mode #planner-footer {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+body.context-sidebar-mode #nav-menu-drawer,
+body.context-sidebar-mode #nav-menu-drawer-scrim {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.context-sidebar-mode.nav-menu-drawer-open {
+  overflow: auto;
+}
+
+/* Split-pane shell: top chrome in flow; sidebar + main column each scroll independently */
+body.context-sidebar-mode {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.context-sidebar-mode #topbar,
+body.context-sidebar-mode #nav-category-bar {
+  flex-shrink: 0;
+}
+
+body.context-sidebar-mode #app-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body.context-sidebar-mode #backup-banner,
+body.context-sidebar-mode #backup-reminder,
+body.context-sidebar-mode .simple-mode-banner,
+body.context-sidebar-mode #storage-warning {
+  flex-shrink: 0;
+}
+
+body.context-sidebar-mode #app-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.context-sidebar-mode.editorial-v4 #layout,
+body.context-sidebar-mode.nav-category-mode.editorial-v4 #layout,
+body.context-sidebar-mode #layout {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+body.context-sidebar-mode #planner-context-sidebar {
+  position: relative;
+  flex: 0 0 var(--context-sidebar-current);
+  width: var(--context-sidebar-current);
+  min-width: var(--context-sidebar-current);
+  height: auto;
+  align-self: stretch;
+  z-index: 1;
+  overflow: hidden;
+  transition:
+    flex-basis 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    min-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.28s ease;
+  pointer-events: auto;
+}
+
+body.context-sidebar-mode.context-sidebar-collapsed #planner-context-sidebar {
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  border-right-color: transparent;
+  pointer-events: none;
+}
+
+body.context-sidebar-mode #planner-context-sidebar .planner-context-sidebar__scroll {
+  width: var(--context-sidebar-w);
+  transform: translateX(0);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.context-sidebar-mode.context-sidebar-collapsed #planner-context-sidebar .planner-context-sidebar__scroll {
+  transform: translateX(calc(-1 * var(--context-sidebar-w)));
+}
+
+/* Right column — scroll container; footer fills to bottom when content is short */
+body.context-sidebar-mode #main-column {
+  flex: 1 1 auto !important;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: flex 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.context-sidebar-mode.editorial-v4 #main,
+body.context-sidebar-mode #main {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: none !important;
+  min-width: 0 !important;
+  min-height: 100%;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: visible !important;
+}
+
+body.context-sidebar-mode #main > .panel.active {
+  flex: 0 0 auto;
+}
+
+body.context-sidebar-mode #main #planner-footer {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  clear: both;
+  margin-top: auto;
+  margin-bottom: 0;
+  margin-left: calc(-1 * clamp(1rem, 3vw, 3rem));
+  margin-right: calc(-1 * clamp(1rem, 3vw, 3rem));
+  width: calc(100% + 2 * clamp(1rem, 3vw, 3rem));
+  max-width: none !important;
+  padding-bottom: 0 !important;
+  box-sizing: border-box;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--theme-primary, var(--forest, #2D4A3E)) 92%, #000) 0%,
+    var(--theme-primary, var(--forest, #2D4A3E)) 100%
+  );
+}
+
+body.context-sidebar-mode #main #planner-footer .footer-main {
+  flex: 0 0 auto;
+}
+
+body.context-sidebar-mode #main #planner-footer .footer-bottom {
+  margin-top: auto;
+}
+
+body.editorial-v4 #topbar .topbar-nav-cluster {
+  grid-area: nav;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+#context-sidebar-collapse-btn,
+#context-sidebar-mobile-btn {
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+}
+
+body.context-sidebar-mode #nav-toggle {
+  display: none !important;
+}
+
+/* Full page navigation — lives in context sidebar (replaces nav-menu-drawer) */
+#planner-context-sidebar .pcs-nav {
+  padding-bottom: 0.75rem;
+}
+
+#planner-context-sidebar .pcs-nav .nav-drawer-section {
+  border-bottom: 1px solid var(--border-subtle, #e0d9ce);
+}
+
+/* Category headers — fixed original light editorial colors (not theme --forest remaps) */
+#planner-context-sidebar .pcs-nav .nav-drawer-cat {
+  color: #2d4a3e !important;
+  background: transparent;
+}
+
+#planner-context-sidebar .pcs-nav .nav-drawer-cat:hover {
+  background: rgba(196, 165, 118, 0.1);
+}
+
+#planner-context-sidebar .pcs-nav .nav-drawer-cat-icon,
+#planner-context-sidebar .pcs-nav .nav-drawer-cat .material-symbols-sharp {
+  color: #b89968 !important;
+  opacity: 0.85;
+  font-size: 1.1rem;
+}
+
+#planner-context-sidebar .pcs-nav .nav-drawer-cat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2d4a3e !important;
+}
+
+#planner-context-sidebar .pcs-nav .nav-drawer-cat-sub {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: #8a8071 !important;
+}
+
+#planner-context-sidebar .pcs-nav .nav-drawer-cat-chevron {
+  font-size: 0.65rem;
+  color: #8a8071 !important;
+  opacity: 0.65;
+}
+
+#planner-context-sidebar .pcs-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.08rem;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.42rem 0.55rem 0.42rem 2rem;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  color: #2d4a3e !important;
+  font-size: 0.78rem;
+}
+
+#planner-context-sidebar .pcs-nav .nav-item .nav-item-label {
+  color: #2d4a3e !important;
+}
+
+#planner-context-sidebar .pcs-nav .nav-item:hover {
+  background: var(--champagne-soft, #efe8dd);
+}
+
+#planner-context-sidebar .pcs-nav .nav-item.active,
+#planner-context-sidebar .pcs-nav .nav-item[aria-current="page"] {
+  background: color-mix(in srgb, #2d4a3e 12%, var(--context-sidebar-surface, #f9f5ef));
+  color: #1f3a2f !important;
+  font-weight: 600;
+}
+
+#planner-context-sidebar .pcs-nav .nav-item.active .nav-item-label,
+#planner-context-sidebar .pcs-nav .nav-item[aria-current="page"] .nav-item-label {
+  color: #1f3a2f !important;
+}
+
+#planner-context-sidebar .pcs-nav .nav-item-sub {
+  font-size: 0.66rem;
+  color: #8a8071 !important;
+  font-weight: 400;
+}
+
+body.context-sidebar-mode .panel.active {
+  display: block;
+  min-height: min-content;
+}
+
+body.context-sidebar-mode #panel-data-hub.data-hub-panel {
+  min-height: min-content;
+}
+
+body.context-sidebar-mode #panel-data-hub .data-hub-layout {
+  min-height: min(480px, 100%);
+}
+
+body.context-sidebar-mode #panel-data-hub .data-hub-sidebar {
+  max-height: none;
+}
+body.context-sidebar-mode .panel.active:not(#panel-data-hub) > .ued-page,
+body.context-sidebar-mode .panel.active:not(#panel-data-hub) > .dashboard-v4,
+body.context-sidebar-mode .panel.active:not(#panel-data-hub) > .inst-title-wrap {
+  max-width: none;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Guest page: stats + insight cards live in sidebar */
+body.context-sidebar-mode #panel-guests #guest-stats,
+body.context-sidebar-mode #panel-guests .guest-insight-cards-section,
+body.context-sidebar-mode #panel-guests #guest-rsvp-chase-banner-wrap {
+  display: none !important;
+}
+
+#context-sidebar-collapse-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 0.45rem 0 0.35rem;
+  margin-right: 0.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gold-lt, #d4b896);
+  flex-shrink: 0;
+  cursor: pointer;
+  font: inherit;
+}
+body.context-sidebar-mode #context-sidebar-collapse-btn {
+  display: inline-flex;
+}
+#context-sidebar-collapse-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+#context-sidebar-collapse-btn .sidebar-toggle-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+body.context-sidebar-collapsed #context-sidebar-collapse-btn svg {
+  transform: rotate(180deg);
+}
+
+#context-sidebar-expand-tab {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: calc(var(--planner-topbar-height, 52px) + var(--nav-category-bar-height, 44px) + 0.75rem);
+  z-index: 120;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid var(--border-subtle, #e0d9ce);
+  border-left: none;
+  border-radius: 0 var(--radius-sm, 6px) var(--radius-sm, 6px) 0;
+  background: var(--context-sidebar-surface, #f9f5ef);
+  color: var(--forest, #2d4a3e);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(45, 74, 62, 0.1));
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+#context-sidebar-expand-tab:hover {
+  background: var(--champagne-soft, #efe8dd);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(45, 74, 62, 0.14));
+  transform: translateX(2px);
+}
+#context-sidebar-expand-tab svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+body.context-sidebar-mode.context-sidebar-collapsed #context-sidebar-expand-tab {
+  display: inline-flex;
+}
+
+
+#planner-context-sidebar {
+  display: none;
+  flex-direction: column;
+  background: var(--context-sidebar-surface, #f9f5ef);
+  border-right: 1px solid var(--border-subtle, #e0d9ce);
+  overflow: hidden;
+  min-height: 0;
+}
+
+body.context-sidebar-mode #planner-context-sidebar {
+  display: flex;
+}
+
+.planner-context-sidebar__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  will-change: transform;
+  background: var(--context-sidebar-surface, #f9f5ef);
+}
+
+.planner-context-sidebar__rail {
+  display: none !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar,
+body.editorial-v4.dark-mode #planner-context-sidebar .planner-context-sidebar__scroll,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-divider,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .planner-context-sidebar__scroll,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-divider {
+  background: var(--context-sidebar-surface, #161616);
+}
+
+body.editorial-v4.dark-mode #context-sidebar-expand-tab,
+body.editorial-v4[data-theme="dark"] #context-sidebar-expand-tab {
+  background: var(--context-sidebar-surface, #161616);
+}
+
+.pcs-rail-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-raised, #efe8dd);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.pcs-rail-btn.has-badge::after {
+  content: attr(data-badge);
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #8a5f55;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.pcs-head {
+  padding: 0.6rem 0.6rem 0.4rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--context-sidebar-head, #ebe3d8);
+}
+.pcs-head__kicker {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold, #b89968);
+  font-weight: 600;
+}
+.pcs-head__title {
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 1.02rem;
+  color: var(--forest-deep, #1f3a2f);
+  margin: 0.12rem 0 0;
+  line-height: 1.15;
+}
+
+.pcs-block {
+  padding: 0.45rem 0.55rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.pcs-block__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #5c5c58);
+  margin-bottom: 0.35rem;
+}
+
+.pcs-stat-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
+}
+.pcs-stat {
+  padding: 0.35rem 0.45rem;
+  background: var(--surface-content, #fff);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 6px);
+}
+.pcs-stat__val {
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--forest, #2d4a3e);
+  line-height: 1.1;
+}
+.pcs-stat__lbl {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pcs-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.pcs-chip {
+  padding: 0.22rem 0.45rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--surface-content, #fff);
+  font-size: 0.68rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.pcs-chip.is-active {
+  background: var(--forest, #2d4a3e);
+  border-color: var(--forest, #2d4a3e);
+  color: #fff;
+}
+
+.pcs-queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pcs-queue li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.32rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.78rem;
+}
+.pcs-queue li:last-child { border-bottom: none; }
+.pcs-queue button {
+  padding: 0.15rem 0.35rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--surface-content);
+  font-size: 0.65rem;
+  cursor: pointer;
+}
+.pcs-queue li.is-clickable {
+  cursor: pointer;
+  border-radius: var(--radius-sm, 6px);
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+.pcs-queue li.is-clickable:hover {
+  background: var(--champagne-soft, #efe8dd);
+}
+
+.pcs-badge {
+  display: inline-block;
+  min-width: 1.25rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-align: center;
+}
+.pcs-badge--warn { background: rgba(201, 169, 160, 0.25); color: #8a5f55; }
+.pcs-badge--ok { background: rgba(107, 143, 122, 0.18); color: var(--forest); }
+
+.pcs-reminder {
+  padding: 0.4rem 0.45rem;
+  background: rgba(184, 153, 104, 0.12);
+  border: 1px solid rgba(184, 153, 104, 0.3);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.74rem;
+}
+
+.pcs-sync-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  padding: 0.28rem 0;
+}
+.pcs-sync-row button {
+  border: none;
+  background: none;
+  color: var(--forest);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+}
+
+.pcs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.pcs-actions .ued-btn,
+.pcs-actions .btn,
+.pcs-actions button {
+  flex: 1 1 auto;
+  min-width: calc(50% - 0.2rem);
+  font-size: 0.72rem !important;
+  padding: 0.32rem 0.4rem !important;
+}
+
+.pcs-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.55rem 0.4rem;
+  background: var(--context-sidebar-surface, #f9f5ef);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.pcs-divider::before,
+.pcs-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+.pcs-divider span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pcs-global-alert {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  padding: 0.4rem 0.45rem;
+  background: rgba(201, 169, 160, 0.1);
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid rgba(201, 169, 160, 0.25);
+}
+
+.pcs-global-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pcs-global-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.pcs-global-list button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.35rem;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  text-align: left;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.pcs-global-list button:hover {
+  background: var(--champagne-soft, #efe8dd);
+}
+.pcs-star-btn {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  opacity: 0.45;
+  cursor: pointer;
+}
+.pcs-star-btn.is-fav {
+  opacity: 1;
+  color: var(--gold, #b89968);
+}
+
+.pcs-global-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+
+.pcs-global-meta {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  padding: 0.35rem 0.55rem 0.55rem;
+  text-align: center;
+}
+
+.pcs-shortcuts {
+  padding: 0.35rem 0.55rem 0.65rem;
+}
+.pcs-shortcuts.is-highlight {
+  animation: pcs-shortcuts-flash 1.6s ease;
+}
+@keyframes pcs-shortcuts-flash {
+  0%, 100% { background: transparent; }
+  20%, 60% { background: color-mix(in srgb, var(--gold, #b89968) 14%, transparent); }
+}
+.pcs-shortcuts-group + .pcs-shortcuts-group {
+  margin-top: 0.55rem;
+}
+.pcs-shortcuts-group__title {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold, #b89968);
+  margin-bottom: 0.25rem;
+}
+.pcs-shortcut-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pcs-shortcut-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: start;
+  padding: 0.22rem 0;
+}
+.pcs-shortcut-keys {
+  display: inline-block;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.64rem;
+  line-height: 1.25;
+  padding: 0.12rem 0.28rem;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-subtle, #e0d9ce);
+  background: var(--surface-raised, #efe8dd);
+  color: var(--forest-deep, #1f3a2f);
+  white-space: nowrap;
+}
+.pcs-shortcut-label {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--forest, #2d4a3e);
+}
+
+.pcs-empty {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.hub-record-card.is-sidebar-highlight {
+  outline: 2px solid var(--gold, #b89968);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold, #b89968) 25%, transparent);
+}
+
+#context-sidebar-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 155;
+  background: rgba(31, 58, 47, 0.35);
+}
+#context-sidebar-scrim.is-visible { display: block; }
+
+@media (max-width: 900px) {
+  body.context-sidebar-mode {
+    height: auto;
+    overflow: auto;
+  }
+
+  body.context-sidebar-mode #app-shell,
+  body.context-sidebar-mode #app-workspace {
+    overflow: visible;
+  }
+
+  body.context-sidebar-mode #layout {
+    display: block;
+    overflow: visible;
+  }
+
+  body.context-sidebar-mode #main-column {
+    overflow: visible;
+    height: auto;
+  }
+
+  body.context-sidebar-mode #main {
+    overflow: visible !important;
+  }
+
+  body.context-sidebar-mode #main,
+  body.context-sidebar-mode #planner-footer {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  body.context-sidebar-mode #planner-context-sidebar {
+    position: fixed;
+    top: var(--planner-topbar-height, 52px);
+    left: 0;
+    bottom: 0;
+    flex: none;
+    width: min(300px, 92vw) !important;
+    min-width: 0 !important;
+    z-index: 160;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-md, 0 8px 28px rgba(45, 74, 62, 0.12));
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  body.context-sidebar-mode #planner-context-sidebar .planner-context-sidebar__scroll {
+    width: 100%;
+    transform: none;
+    transition: none;
+  }
+
+  #context-sidebar-expand-tab {
+    display: none !important;
+  }
+  body.context-sidebar-mode.context-sidebar-mobile-open #planner-context-sidebar {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+  body.context-sidebar-mode.context-sidebar-mobile-open.context-sidebar-collapsed #planner-context-sidebar {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+  body.context-sidebar-mode.context-sidebar-collapsed #planner-context-sidebar {
+    flex: none;
+    width: min(300px, 92vw) !important;
+  }
+  #context-sidebar-mobile-btn {
+    display: inline-flex !important;
+  }
+  body.context-sidebar-mode #context-sidebar-collapse-btn {
+    display: none;
+  }
+}
+
+#context-sidebar-mobile-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gold-lt, #d4b896);
+  cursor: pointer;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THEMED CONTEXT SIDEBAR (light mode)
+   Surface = the selected theme's MAIN color (--forest); text and
+   details use the theme's lighter supporting colors (--gold-pale,
+   --gold-lt). Achieved by re-scoping the sidebar's design tokens so
+   every token-based rule flips automatically, plus a few explicit
+   text overrides where a rule hard-references a dark color.
+   Real dark mode is excluded so its own treatment still applies.
+   ══════════════════════════════════════════════════════════════ */
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar {
+  /* main color surface (with a slightly deeper header band) */
+  --context-sidebar-surface: var(--forest, #2d4a3e);
+  --context-sidebar-head: color-mix(in srgb, var(--forest, #2d4a3e) 84%, #000);
+  /* tiles, chips, raised bits → soft translucent white on the dark surface */
+  --surface-content: rgba(255, 255, 255, 0.06);
+  --surface-raised: rgba(255, 255, 255, 0.10);
+  --champagne-soft: rgba(255, 255, 255, 0.10);
+  --border-subtle: rgba(255, 255, 255, 0.16);
+  --border-strong: rgba(255, 255, 255, 0.24);
+  /* muted text → a dimmed version of the light supporting color */
+  --text-muted: color-mix(in srgb, var(--gold-pale, #f5efe4) 76%, transparent);
+  background: var(--forest, #2d4a3e);
+  color: var(--gold-pale, #f5efe4);
+}
+/* Explicit light text where the base rule hard-references a dark color */
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-head__title,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-stat__val,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-shortcut-label,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-shortcut-keys,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-chip,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-global-list button,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-nav .nav-item,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-nav .nav-item-label {
+  color: var(--gold-pale, #f5efe4) !important;
+}
+/* Section labels / kickers in the mid supporting tone */
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-block__title,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-head__kicker,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-nav .nav-drawer-cat-label {
+  color: var(--gold-lt, #d4b896) !important;
+}
+/* Active chip / current page → a gold accent pill with dark text */
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-chip.is-active,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-nav .nav-item[aria-current="page"] {
+  background: var(--gold, #b89968) !important;
+  border-color: var(--gold, #b89968) !important;
+  color: var(--forest-deep, #1f3a2f) !important;
+}
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-nav .nav-item[aria-current="page"] .nav-item-label {
+  color: var(--forest-deep, #1f3a2f) !important;
+}
+/* Collapse control on the dark surface */
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #context-sidebar-collapse-btn {
+  color: var(--gold-lt, #d4b896);
+}
+/* Quick Links / Common Actions buttons (.ued-btn) — translucent chips on
+   the dark surface with light text; primary/add actions become gold. */
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .ued-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: var(--gold-pale, #f5efe4) !important;
+}
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .ued-btn:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .ued-btn.primary {
+  background: var(--gold, #b89968) !important;
+  border-color: var(--gold, #b89968) !important;
+  color: var(--forest-deep, #1f3a2f) !important;
+}
+/* The "Quick access" info card → translucent panel with light text */
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-global-alert {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: var(--gold-pale, #f5efe4) !important;
+}
+/* Category name + subtitle on the themed surface — readable & adaptive:
+   dark theme → light text; light theme → dark text (--theme-on-primary*). */
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar {
+  color: var(--theme-on-primary, #f5efe4);
+  --text-muted: color-mix(in srgb, var(--theme-on-primary, #f5efe4) 74%, transparent);
+}
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-nav .nav-drawer-cat-label,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .nav-cat-page-label {
+  color: var(--theme-on-primary, #f5efe4) !important;
+}
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-nav .nav-drawer-cat-sub,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .pcs-nav .nav-drawer-cat-chevron,
+body.context-sidebar-mode:not(.dark-mode):not(.dark):not([data-theme="dark"]) #planner-context-sidebar .nav-cat-page-sub {
+  color: var(--theme-on-primary-dim, #d4b896) !important;
+}

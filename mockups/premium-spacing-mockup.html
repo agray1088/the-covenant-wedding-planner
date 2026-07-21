@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Premium Spacing — Pilot Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Same spacing tokens as planner-tokens.css — light + dark share rhythm */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --planner-page-gutter: clamp(2rem, 5vw, 4rem);
+  --planner-card-gap: var(--space-4);
+  --planner-section-gap: var(--space-5);
+  --planner-panel-padding: var(--space-5);
+  --planner-grid-gap: var(--space-4);
+  --planner-form-gap: var(--space-3);
+  --planner-field-stack: var(--space-2);
+  --planner-table-cell-y: 0.55rem;
+  --planner-table-cell-x: 0.65rem;
+  --planner-stat-pad-x: var(--space-5);
+  --planner-modal-pad: var(--space-5);
+  --r: 3px;
+
+  --page: #f9f7f4;
+  --chrome: #fdfcfa;
+  --surface: #ffffff;
+  --raised: #fdfcfa;
+  --border: #e7e1d4;
+  --text: #2a2a28;
+  --text-2: #5c5c58;
+  --muted: #8a8071;
+  --accent: #2d4a3e;
+  --on-accent: #fff;
+}
+html.dark {
+  --page: #111111;
+  --chrome: #161616;
+  --surface: #1a1a1a;
+  --raised: #222222;
+  --border: #2e2e2e;
+  --text: #e6e6e6;
+  --text-2: #b8b8b8;
+  --muted: #8a8a8a;
+  --accent: #ececec;
+  --on-accent: #111111;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Source Sans 3", system-ui, sans-serif;
+  background: #0a0a0a;
+  color: var(--text);
+  min-height: 100vh;
+}
+html:not(.dark) body { background: #e8e4dc; }
+h1, h2, h3 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+.studio {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--planner-form-gap); padding: var(--planner-form-gap) var(--planner-panel-padding);
+  background: #111; color: #e6e6e6; border-bottom: 1px solid #2e2e2e;
+  position: sticky; top: 0; z-index: 20;
+}
+.studio strong { font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.2rem; }
+.studio .note { font-size: .78rem; color: #8a8a8a; max-width: 36rem; }
+.seg { display: inline-flex; gap: 2px; padding: 2px; background: #161616; border: 1px solid #2e2e2e; border-radius: var(--r); }
+.seg button { border: 0; background: transparent; color: #8a8a8a; padding: .35rem .7rem; border-radius: 2px; font-size: .75rem; }
+.seg button[aria-pressed="true"] { background: #2a2a2a; color: #f0f0f0; }
+
+.stage { padding: var(--planner-form-gap); display: grid; gap: var(--planner-grid-gap); justify-items: center; }
+.device {
+  width: min(1100px, 100%);
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  color: var(--text);
+}
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--planner-form-gap) var(--planner-panel-padding);
+  background: var(--chrome); border-bottom: 1px solid var(--border);
+  font-size: .8rem;
+}
+.brand { font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.15rem; }
+.shell { display: grid; grid-template-columns: 220px 1fr; min-height: 560px; }
+.side {
+  background: var(--chrome); border-right: 1px solid var(--border);
+  padding: var(--planner-form-gap); display: flex; flex-direction: column; gap: var(--planner-form-gap);
+}
+.side h3 { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.side .stat {
+  padding: var(--planner-field-stack) var(--planner-form-gap);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+}
+.side .stat b { display: block; font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.2rem; }
+.side .stat span { font-size: .62rem; text-transform: uppercase; color: var(--muted); }
+.chip {
+  padding: var(--planner-field-stack) var(--planner-form-gap);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  font-size: .78rem; text-align: left;
+}
+.chip.active { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+
+.main { padding: var(--planner-panel-padding); }
+.mast { margin-bottom: var(--planner-section-gap); padding-bottom: var(--planner-form-gap); border-bottom: 1px solid var(--border); }
+.mast .kicker { font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--planner-field-stack); }
+.mast h1 { font-size: 1.85rem; }
+.mast p { margin: var(--planner-field-stack) 0 0; color: var(--text-2); font-size: .9rem; }
+
+.stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: var(--planner-grid-gap); margin-bottom: var(--planner-section-gap);
+}
+.stat-tile {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  padding: var(--planner-form-gap) var(--planner-stat-pad-x);
+}
+.stat-tile b { display: block; font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.45rem; }
+.stat-tile span { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+
+.grid {
+  display: grid; grid-template-columns: 1.2fr 1fr;
+  gap: var(--planner-grid-gap);
+}
+.panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  padding: var(--planner-panel-padding);
+}
+.panel h2 { font-size: 1.15rem; margin-bottom: var(--planner-form-gap); }
+.panel p { margin: 0; color: var(--text-2); font-size: .88rem; line-height: 1.5; }
+.panel .rows { margin-top: var(--planner-form-gap); display: flex; flex-direction: column; gap: var(--planner-form-gap); }
+.row { display: flex; justify-content: space-between; gap: var(--planner-form-gap); font-size: .85rem; padding-bottom: var(--planner-field-stack); border-bottom: 1px solid var(--border); }
+.row:last-child { border-bottom: 0; padding-bottom: 0; }
+
+/* Modal */
+.modal-scrim {
+  margin-top: var(--planner-grid-gap);
+  width: min(1100px, 100%);
+  display: grid; place-items: center;
+  padding: var(--planner-panel-padding);
+  background: rgba(0,0,0,.45);
+  border-radius: 8px;
+}
+html:not(.dark) .modal-scrim { background: rgba(40,30,20,.28); }
+.modal {
+  width: min(720px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  color: var(--text);
+}
+.modal-head {
+  padding: var(--planner-modal-pad);
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; gap: var(--planner-grid-gap);
+  background: var(--chrome);
+}
+.modal-head h2 { font-size: 1.45rem; }
+.modal-head .sub { font-size: .78rem; color: var(--muted); margin-top: var(--planner-field-stack); }
+.nav {
+  display: flex; gap: var(--planner-form-gap); align-items: center;
+  padding: var(--planner-form-gap) var(--planner-modal-pad);
+  border-bottom: 1px solid var(--border);
+  background: var(--chrome);
+}
+.nav button {
+  padding: var(--planner-field-stack) var(--planner-form-gap);
+  border: 1px solid var(--border); background: var(--raised); border-radius: var(--r); font-size: .75rem;
+}
+.modal-body { padding: var(--planner-modal-pad); }
+.section { margin-bottom: var(--planner-section-gap); padding-bottom: var(--planner-section-gap); border-bottom: 1px solid var(--border); }
+.section:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+.section h3 { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--planner-form-gap); font-family: "Source Sans 3", sans-serif; font-weight: 700; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--planner-form-gap); }
+.field label { display: block; font-size: .72rem; font-weight: 600; margin-bottom: var(--planner-field-stack); color: var(--text-2); }
+.field input, .field select {
+  width: 100%; padding: var(--planner-field-stack) var(--planner-form-gap);
+  border: 1px solid var(--border); background: var(--page); border-radius: var(--r);
+}
+.checks { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--planner-form-gap); }
+.check {
+  display: flex; align-items: center; gap: var(--planner-field-stack);
+  padding: var(--planner-form-gap) var(--planner-panel-padding);
+  border: 1px solid var(--border); background: var(--raised); border-radius: var(--r);
+  font-size: .78rem; font-weight: 600;
+}
+table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+th, td { padding: var(--planner-table-cell-y) var(--planner-table-cell-x); border: 1px solid var(--border); text-align: left; }
+th { background: var(--raised); color: var(--muted); font-size: .65rem; text-transform: uppercase; letter-spacing: .06em; }
+.actions {
+  display: flex; justify-content: space-between; gap: var(--planner-form-gap); flex-wrap: wrap;
+  padding: var(--planner-form-gap) var(--planner-modal-pad);
+  border-top: 1px solid var(--border); background: var(--chrome);
+}
+.actions .group { display: flex; gap: var(--planner-field-stack); flex-wrap: wrap; }
+.actions button {
+  padding: var(--planner-field-stack) var(--planner-form-gap);
+  border: 1px solid var(--border); background: var(--raised); border-radius: var(--r); font-size: .8rem;
+}
+.actions .primary { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 600; }
+
+.legend {
+  width: min(1100px, 100%);
+  padding: var(--planner-panel-padding);
+  background: var(--page); border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+}
+.legend h2 { font-size: 1.2rem; margin-bottom: var(--planner-form-gap); }
+.legend ul { margin: 0; padding-left: 1.2rem; color: var(--text-2); font-size: .88rem; line-height: 1.55; }
+.legend code { font-size: .8rem; background: var(--raised); padding: .1rem .35rem; border-radius: 2px; }
+
+@media (max-width: 800px) {
+  .shell { grid-template-columns: 1fr; }
+  .side { border-right: 0; border-bottom: 1px solid var(--border); }
+  .grid, .stats, .fields, .checks { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+  <div class="studio">
+    <div>
+      <strong>Premium Spacing Pilot</strong>
+      <div class="note">Dashboard + Edit Guest using the live planner spacing tokens. Toggle light/dark — rhythm stays the same.</div>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" id="btn-light" aria-pressed="true">Light</button>
+      <button type="button" id="btn-dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="device" id="dash">
+      <div class="topbar">
+        <span class="brand">The Covenant Wedding Planner</span>
+        <span>Dashboard · spacing pilot</span>
+      </div>
+      <div class="shell">
+        <aside class="side">
+          <h3>This page</h3>
+          <div class="stat"><b>128</b><span>Days to go</span></div>
+          <div class="stat"><b>64%</b><span>Essentials</span></div>
+          <h3>Common actions</h3>
+          <button type="button" class="chip active">Add guest</button>
+          <button type="button" class="chip">Log payment</button>
+          <button type="button" class="chip">Open Data Hub</button>
+        </aside>
+        <div class="main">
+          <header class="mast">
+            <div class="kicker">Overview</div>
+            <h1>Dashboard</h1>
+            <p>Even gaps between mast, stats, and panels — <code>--planner-section-gap</code> / <code>--planner-grid-gap</code>.</p>
+          </header>
+          <div class="stats">
+            <div class="stat-tile"><b>142</b><span>Guests</span></div>
+            <div class="stat-tile"><b>$18.4k</b><span>Budget used</span></div>
+            <div class="stat-tile"><b>12</b><span>Next up</span></div>
+          </div>
+          <div class="grid">
+            <section class="panel">
+              <h2>Progress</h2>
+              <p>Inner padding uses <code>--planner-panel-padding</code> (1.5rem) on all sides.</p>
+              <div class="rows">
+                <div class="row"><span>Venue</span><strong>Booked</strong></div>
+                <div class="row"><span>Catering</span><strong>In progress</strong></div>
+                <div class="row"><span>Invitations</span><strong>Next</strong></div>
+              </div>
+            </section>
+            <section class="panel">
+              <h2>Next up</h2>
+              <p>Sibling panels share <code>--planner-grid-gap</code> — no uneven margins.</p>
+              <div class="rows">
+                <div class="row"><span>Taste test</span><strong>Fri</strong></div>
+                <div class="row"><span>Deposit</span><strong>Mon</strong></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-scrim">
+      <div class="modal" role="dialog" aria-label="Edit Guest">
+        <div class="modal-head">
+          <div>
+            <div class="sub">Guest relationship record</div>
+            <h2>Edit Guest</h2>
+          </div>
+          <button type="button" class="chip" style="align-self:start">Close</button>
+        </div>
+        <div class="nav">
+          <button type="button">Previous</button>
+          <button type="button">Next</button>
+          <span style="margin-left:auto;font-size:.75rem;color:var(--muted)">3 of 142</span>
+        </div>
+        <div class="modal-body">
+          <section class="section">
+            <h3>Contact</h3>
+            <div class="fields">
+              <div class="field"><label>First name</label><input value="Jordan"></div>
+              <div class="field"><label>Last name</label><input value="Lee"></div>
+              <div class="field"><label>Email</label><input value="jordan@example.com"></div>
+              <div class="field"><label>Phone</label><input value="(555) 010-2200"></div>
+            </div>
+          </section>
+          <section class="section">
+            <h3>Invitation workflow</h3>
+            <div class="fields" style="margin-bottom: var(--planner-form-gap)">
+              <div class="field"><label>Invite decision</label><select><option>Invite</option></select></div>
+              <div class="field"><label>RSVP status</label><select><option>Pending</option></select></div>
+            </div>
+            <div class="checks">
+              <label class="check"><input type="checkbox" checked> Invite sent</label>
+              <label class="check"><input type="checkbox"> Plus-one allowed</label>
+              <label class="check"><input type="checkbox"> Family / household</label>
+            </div>
+          </section>
+          <section class="section">
+            <h3>Event invitations</h3>
+            <table>
+              <thead><tr><th>Use</th><th>Event</th><th>Decision</th><th>RSVP</th></tr></thead>
+              <tbody>
+                <tr><td><input type="checkbox" checked></td><td>Ceremony</td><td>Invite</td><td>Pending</td></tr>
+                <tr><td><input type="checkbox" checked></td><td>Reception</td><td>Invite</td><td>Pending</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
+        <div class="actions">
+          <div class="group"><button type="button">Delete</button></div>
+          <div class="group">
+            <button type="button">Cancel</button>
+            <button type="button">Save &amp; add another</button>
+            <button type="button" class="primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <h2>Token map</h2>
+      <ul>
+        <li><code>--planner-panel-padding</code> / <code>--planner-modal-pad</code> — card &amp; modal inner pad (1.5rem)</li>
+        <li><code>--planner-section-gap</code> — mast → stats → panels; modal sections (1.5rem)</li>
+        <li><code>--planner-grid-gap</code> / <code>--planner-card-gap</code> — between cards (1rem)</li>
+        <li><code>--planner-form-gap</code> / <code>--planner-field-stack</code> — fields &amp; labels</li>
+        <li><code>--planner-table-cell-y/x</code> — table cell padding</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const light = document.getElementById('btn-light');
+    const dark = document.getElementById('btn-dark');
+    function setDark(on) {
+      document.documentElement.classList.toggle('dark', on);
+      light.setAttribute('aria-pressed', String(!on));
+      dark.setAttribute('aria-pressed', String(on));
+    }
+    light.addEventListener('click', () => setDark(false));
+    dark.addEventListener('click', () => setDark(true));
+  </script>
+</body>
+</html>

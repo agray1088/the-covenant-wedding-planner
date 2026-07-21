@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vision &amp; Foundation — Print Template (Variation C: Engraved Stationery)</title>
+<style>
+/* ============================================================
+   VARIATION C — "Engraved stationery"
+   Same keepsake/letterpress family as B, but a different take:
+   - Asymmetric, left-aligned masthead with a gold monogram block
+   - Slim forest ribbon + gold hairline at the very top
+   - A vertical gold rule down the page as a margin rail
+   - Section heads: left small-caps with a burgundy square marker
+   Palette: full color set from 00-Shared-Print-Template-Reference.html
+   Print spec: 8.5 x 11 portrait, borderless, color-exact.
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --forest-d:#1F3A2F;--forest:#2D4A3E;--forest-l:#3D5E50;
+  --gold:#B89968;--gold-s:#D9C7A4;
+  --bone:#F9F7F4;--linen:#EFE8DD;--charcoal:#2A2A2A;
+  --muted:#8A8174;--line:#E5DFD3;
+  --mauve-pale:#F2E8EB;--mauve:#C4919E;--mauve-d:#8B5D68;
+  --burg:#6B2737;--burg-m:#8C3A4A;--burg-pale:#F5EAED;
+  --page-w:8.5in; --page-h:11in;
+}
+html{background:#CDC7BE}
+body{margin:0;padding:36px 20px;background:#CDC7BE;color:var(--charcoal);
+  font:11px/1.5 Georgia,"Times New Roman",serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.no-print{position:fixed;top:16px;right:18px;z-index:20;border:0;border-radius:4px;
+  background:var(--forest-d);color:#fff;padding:9px 14px;font:700 11px Arial,sans-serif;cursor:pointer;
+  box-shadow:0 3px 10px rgba(0,0,0,.2)}
+
+.page{position:relative;width:var(--page-w);height:var(--page-h);margin:0 auto 30px;
+  background:var(--bone);overflow:hidden;
+  box-shadow:0 6px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12);
+  display:flex;flex-direction:column}
+/* top ribbon: slim forest band + gold hairline (full bleed) */
+.ribbon{flex:0 0 auto;height:0.22in;background:var(--forest-d);position:relative}
+.ribbon::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--gold)}
+
+/* MASTHEAD — asymmetric, left aligned with monogram block */
+.masthead{flex:0 0 auto;display:flex;align-items:center;gap:18px;padding:0.36in 0.62in 0.2in}
+.monogram{flex:0 0 auto;width:58px;height:58px;background:var(--forest-d);color:var(--gold-s);
+  display:grid;place-items:center;font:400 20px Georgia,serif;letter-spacing:.04em;position:relative}
+.monogram::after{content:"";position:absolute;inset:4px;border:1px solid var(--gold)}
+.head-text{min-width:0}
+.eyebrow{margin:0 0 5px;color:var(--gold);font-size:9px;letter-spacing:.26em;text-transform:uppercase}
+.title{margin:0;color:var(--forest-d);font:400 28px Georgia,"Times New Roman",serif;letter-spacing:.02em}
+.subtitle{margin:6px 0 0;color:var(--mauve-d);font:italic 11px Georgia,serif}
+
+/* BODY with a vertical gold rail on the left */
+.body{flex:1 1 auto;overflow:hidden;position:relative;padding:0.16in 0.62in 0.1in 0.9in}
+.body::before{content:"";position:absolute;left:0.62in;top:0.16in;bottom:0.1in;width:1px;background:var(--gold);opacity:.55}
+.body::after{content:"";position:absolute;left:calc(0.62in - 2px);top:0.16in;width:5px;height:5px;background:var(--burg);border-radius:50%}
+
+.section-head{display:flex;align-items:center;gap:8px;margin:16px 0 9px;color:var(--forest);
+  font-size:9.5px;letter-spacing:.2em;text-transform:uppercase}
+.section-head:first-child{margin-top:0}
+.section-head::before{content:"";width:6px;height:6px;background:var(--burg);flex:0 0 auto}
+.section-head .g{color:var(--gold);font-weight:400}
+
+.field{margin:0 0 11px}
+.field-label{color:var(--mauve-d);font-size:8.5px;letter-spacing:.15em;text-transform:uppercase}
+.field-value{margin-top:3px;color:var(--forest-d);font:13px Georgia,serif;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px 24px}
+
+.panel{padding:12px 15px;margin:0 0 13px;background:var(--linen);break-inside:avoid;border-top:2px solid var(--forest)}
+.panel.mauve{background:var(--mauve-pale);border-top-color:var(--mauve-d)}
+.panel.burg{background:var(--burg-pale);border-top-color:var(--burg)}
+.panel.gold{background:var(--linen);border-top-color:var(--gold)}
+.panel .field-label{color:var(--forest)}
+.panel.mauve .field-label{color:var(--mauve-d)}
+.panel.burg .field-label{color:var(--burg)}
+.panel p{margin:6px 0 0;color:var(--charcoal);font-size:11px}
+.writeline{height:19px;border-bottom:1px solid var(--line);margin-top:8px}
+
+/* priorities as a bordered list with colored index letters */
+.prio{display:flex;gap:11px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);break-inside:avoid}
+.prio:last-child{border-bottom:0}
+.prio .n{flex:0 0 auto;width:20px;text-align:center;font:400 15px Georgia,serif}
+.prio.c-forest .n{color:var(--forest)}
+.prio.c-gold .n{color:var(--gold)}
+.prio.c-mauve .n{color:var(--mauve-d)}
+.prio.c-burg .n{color:var(--burg)}
+.prio .t{color:var(--charcoal);font-size:11px}
+.prio .t b{font-weight:400;font-size:12px;color:var(--forest-d)}
+
+.verse{margin:4px 0 10px;padding:14px 18px;background:var(--forest-d);color:var(--gold-s);text-align:center;position:relative}
+.verse::after{content:"";position:absolute;inset:5px;border:1px solid var(--gold);opacity:.5;pointer-events:none}
+.verse .q{margin:0;font:italic 15px/1.65 Georgia,serif;color:#fff}
+.verse .r{margin:8px 0 0;color:var(--gold);font-size:9px;letter-spacing:.18em;text-transform:uppercase}
+
+.footer{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:9px 0.62in;border-top:1px solid var(--line);color:var(--muted);font-size:8px}
+.footer .fb{color:var(--gold);letter-spacing:.2em;text-transform:uppercase}
+.footer .fv{font-style:italic;color:var(--forest)}
+
+/* ---- PRINT: 8.5x11 portrait, borderless ---- */
+@page{size:8.5in 11in;margin:0}
+@media print{
+  html,body{padding:0;margin:0;background:#fff}
+  .no-print{display:none!important}
+  .page{width:8.5in;height:11in;margin:0;box-shadow:none;page-break-after:always;break-after:page}
+  .page:last-of-type{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<button class="no-print" type="button" onclick="window.print()">Print section</button>
+
+<!-- SHEET 1 -->
+<main class="page">
+  <div class="ribbon"></div>
+  <header class="masthead">
+    <div class="monogram">C&#9670;W</div>
+    <div class="head-text">
+      <div class="eyebrow">The Covenant Wedding Planner &middot; Start Here</div>
+      <h1 class="title">Vision &amp; Foundation</h1>
+      <p class="subtitle">Priorities, prayers, and purpose — the covenant first</p>
+    </div>
+  </header>
+  <section class="body">
+    <div class="section-head">The foundation we are building from</div>
+    <div class="grid2">
+      <div class="field"><div class="field-label">Couple</div><div class="field-value">Arian &amp; Jordan</div></div>
+      <div class="field"><div class="field-label">Wedding date</div><div class="field-value">November 13, 2026</div></div>
+      <div class="field"><div class="field-label">Marriage verse</div><div class="field-value">Ecclesiastes 4:12</div></div>
+      <div class="field"><div class="field-label">Planning focus</div><div class="field-value">Christ-centered hospitality</div></div>
+    </div>
+
+    <div class="section-head">What a Christ-centered marriage looks like to us</div>
+    <div class="panel mauve">
+      <div class="field-label">Marriage vision statement</div>
+      <p>A marriage where Christ is the foundation, where we serve each other, forgive quickly, pray together, and point others to Him through how we love.</p>
+      <div class="writeline"></div><div class="writeline"></div>
+    </div>
+
+    <div class="section-head">The decisions that should guide everything else</div>
+    <div class="prio c-forest"><span class="n">I</span><span class="t"><b>Keep the ceremony reverent</b> — prayerful, and centered on covenant.</span></div>
+    <div class="prio c-gold"><span class="n">II</span><span class="t"><b>Honor both families</b> — a warm guest experience where everyone feels welcomed.</span></div>
+    <div class="prio c-mauve"><span class="n">III</span><span class="t"><b>Protect peace &amp; unity</b> — clarity and calm through every planning decision.</span></div>
+    <div class="prio c-burg"><span class="n">&#10022;</span><span class="t"><b>What guests should feel</b> — loved, spiritually encouraged, invited into the joy of the day.</span></div>
+  </section>
+  <footer class="footer"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Before the spreadsheets, remember the covenant. &middot; Page 1</div></footer>
+</main>
+
+<!-- SHEET 2 -->
+<main class="page">
+  <div class="ribbon"></div>
+  <header class="masthead">
+    <div class="monogram">C&#9670;W</div>
+    <div class="head-text">
+      <div class="eyebrow">Start Here &middot; Prayer</div>
+      <h1 class="title">Marriage Verse &amp; Prayers</h1>
+      <p class="subtitle">A printable keepsake for the spiritual center of the season</p>
+    </div>
+  </header>
+  <section class="body">
+    <div class="section-head">A verse for our marriage</div>
+    <div class="verse">
+      <p class="q">"And if one prevail against him, two shall withstand him; and a threefold cord is not quickly broken."</p>
+      <p class="r">Ecclesiastes 4:12</p>
+    </div>
+
+    <div class="section-head">What this verse means to us</div>
+    <div class="grid2">
+      <div class="panel gold"><div class="field-label">For the bride</div><p>Our marriage is strengthened by the Lord, not by our effort alone.</p><div class="writeline"></div></div>
+      <div class="panel mauve"><div class="field-label">For the groom</div><p>A call to lead with humility, prayer, protection, and gentleness.</p><div class="writeline"></div></div>
+    </div>
+
+    <div class="section-head">What we are asking the Lord to build in us</div>
+    <div class="panel burg">
+      <div class="field-label">Our shared prayer</div>
+      <p>Lord, teach us to love with patience, joy, humility, and forgiveness. Let this wedding point us back to the marriage You are forming.</p>
+      <div class="writeline"></div><div class="writeline"></div>
+    </div>
+  </section>
+  <footer class="footer"><div class="fb">The Covenant Wedding Planner</div><div class="fv">A shared planning and covenant reference. &middot; Page 2</div></footer>
+</main>
+</body>
+</html>

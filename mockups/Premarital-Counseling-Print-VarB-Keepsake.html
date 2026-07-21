@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Premarital Counseling — Print Template (Variation B: Letterpress Keepsake)</title>
+<style>
+/* ============================================================
+   PREMARITAL COUNSELING — Variation B "Letterpress keepsake"
+   Extends the keepsake style with stat-row, table, and tile
+   components (light, ink-economical, print-correct).
+   Palette: full set from 00-Shared-Print-Template-Reference.html
+   Print spec: 8.5 x 11 portrait, borderless, color-exact.
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --forest-d:#1F3A2F;--forest:#2D4A3E;--forest-l:#3D5E50;
+  --gold:#B89968;--gold-s:#D9C7A4;
+  --bone:#F9F7F4;--linen:#EFE8DD;--charcoal:#2A2A2A;
+  --muted:#8A8174;--line:#E5DFD3;
+  --mauve-pale:#F2E8EB;--mauve:#C4919E;--mauve-d:#8B5D68;
+  --burg:#6B2737;--burg-m:#8C3A4A;--burg-pale:#F5EAED;
+  --page-w:8.5in; --page-h:11in;
+}
+html{background:#CDC7BE}
+body{margin:0;padding:36px 20px;background:#CDC7BE;color:var(--charcoal);
+  font:11px/1.5 Georgia,"Times New Roman",serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.no-print{position:fixed;top:16px;right:18px;z-index:20;border:0;border-radius:4px;
+  background:var(--forest-d);color:#fff;padding:9px 14px;font:700 11px Arial,sans-serif;cursor:pointer;
+  box-shadow:0 3px 10px rgba(0,0,0,.2)}
+
+.page{position:relative;width:var(--page-w);height:var(--page-h);margin:0 auto 30px;
+  background:var(--bone);overflow:hidden;
+  box-shadow:0 6px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12);
+  display:flex;flex-direction:column;padding:0.5in 0.55in 0.44in}
+.page::before{content:"";position:absolute;left:0.3in;top:0.3in;right:0.3in;bottom:0.3in;border:1px solid var(--line);pointer-events:none}
+.page::after{content:"";position:absolute;left:0.35in;top:0.35in;right:0.35in;bottom:0.35in;border:1px solid var(--gold);opacity:.4;pointer-events:none}
+
+/* MASTHEAD */
+.masthead{flex:0 0 auto;text-align:center;padding:2px 0 12px}
+.crest{width:40px;height:40px;margin:0 auto 9px;border:1px solid var(--gold);border-radius:50%;
+  display:grid;place-items:center;color:var(--gold);font:11px Georgia,serif;background:var(--linen)}
+.eyebrow{margin:0 0 7px;color:var(--gold);font-size:9px;letter-spacing:.28em;text-transform:uppercase}
+.title{margin:0;color:var(--forest-d);font:400 27px Georgia,"Times New Roman",serif;letter-spacing:.03em}
+.subtitle{margin:8px auto 0;max-width:5in;color:var(--muted);font:italic 10.5px Georgia,serif}
+.rule{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto 2px}
+.rule::before,.rule::after{content:"";height:1px;width:1.2in;background:linear-gradient(to right,transparent,var(--mauve-d) 60%,var(--gold))}
+.rule::after{background:linear-gradient(to left,transparent,var(--mauve-d) 60%,var(--gold))}
+.rule span{color:var(--gold);font-size:11px}
+
+.body{flex:1 1 auto;overflow:hidden;padding:4px 0.12in 0}
+.section-label{display:block;text-align:center;margin:13px 0 9px;color:var(--forest);
+  font-size:9px;letter-spacing:.22em;text-transform:uppercase}
+.section-label::before{content:"";display:block;width:16px;height:1px;background:var(--gold);margin:0 auto 7px}
+.section-label:first-child{margin-top:0}
+
+/* fields */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 18px}
+.field-label{color:var(--mauve-d);font-size:8px;letter-spacing:.14em;text-transform:uppercase}
+.field-value{margin-top:3px;color:var(--forest-d);font:12px Georgia,serif}
+
+/* keepsake stat row */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:2px 0 2px}
+.stat{text-align:center;padding:9px 6px 8px;border-top:2px solid var(--forest);background:var(--linen)}
+.stat.mauve{border-top-color:var(--mauve-d)} .stat.gold{border-top-color:var(--gold)} .stat.burg{border-top-color:var(--burg)}
+.stat-label{color:var(--muted);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+.stat-value{margin-top:3px;color:var(--forest-d);font:400 22px Georgia,serif}
+.stat.mauve .stat-value{color:var(--mauve-d)} .stat.burg .stat-value{color:var(--burg)}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.tile{padding:9px 11px;background:var(--bone);border:1px solid var(--line);border-top:2px solid var(--forest);break-inside:avoid}
+.tile.mauve{border-top-color:var(--mauve-d)} .tile.gold{border-top-color:var(--gold)} .tile.burg{border-top-color:var(--burg)}
+.tile-label{color:var(--muted);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+.tile-value{margin-top:2px;color:var(--forest-d);font:400 14px Georgia,serif}
+.tile p{margin:4px 0 0;color:var(--muted);font-size:9.5px}
+
+/* keepsake table — light, gold rule header, tinted alt rows */
+.table{width:100%;border-collapse:collapse;font-size:10px}
+.table th{padding:6px 8px;text-align:left;color:var(--forest-d);
+  font:400 8px Georgia,serif;letter-spacing:.13em;text-transform:uppercase;
+  border-bottom:1.5px solid var(--gold)}
+.table td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--charcoal)}
+.table tbody tr:nth-child(even) td{background:var(--linen)}
+.table .num,.table .date{color:var(--forest);font-weight:700;white-space:nowrap}
+.table .strong{color:var(--forest-d);font-weight:700}
+.status{display:inline-block;padding:2px 7px;border:1px solid currentColor;border-radius:12px;font-size:8px;letter-spacing:.03em;white-space:nowrap}
+.status.done,.status.answered{color:var(--forest)}
+.status.progress,.status.praying{color:var(--mauve-d)}
+.status.next,.status.waiting{color:var(--burg)}
+
+/* notes */
+.note{padding:11px 15px;margin:0 0 11px;break-inside:avoid;background:var(--linen);border-left:2px solid var(--forest)}
+.note.mauve{background:var(--mauve-pale);border-left-color:var(--mauve-d)}
+.note.burg{background:var(--burg-pale);border-left-color:var(--burg)}
+.note.gold{border-left-color:var(--gold)}
+.note .field-label{color:var(--forest)}
+.note.mauve .field-label{color:var(--mauve-d)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.note p{margin:5px 0 0;color:var(--charcoal);font-size:10.5px}
+.writeline{height:18px;border-bottom:1px solid var(--line);margin-top:8px}
+
+.footer{flex:0 0 auto;text-align:center;padding-top:9px;color:var(--muted);font-size:8px;letter-spacing:.06em}
+.footer .fb{color:var(--gold);letter-spacing:.2em;text-transform:uppercase;font-size:7.5px}
+.footer .fv{font-style:italic;margin-top:2px;color:var(--forest)}
+
+@page{size:8.5in 11in;margin:0}
+@media print{
+  html,body{padding:0;margin:0;background:#fff}
+  .no-print{display:none!important}
+  .page{width:8.5in;height:11in;margin:0;box-shadow:none;page-break-after:always;break-after:page}
+  .page:last-of-type{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+<button class="no-print" type="button" onclick="window.print()">Print section</button>
+
+<!-- SHEET 1 -->
+<main class="page">
+  <header class="masthead">
+    <div class="crest">&#9670;</div>
+    <div class="eyebrow">The Covenant Wedding Planner &middot; Start Here</div>
+    <h1 class="title">Premarital Counseling</h1>
+    <p class="subtitle">Sessions, homework, and the conversations to keep carrying forward</p>
+    <div class="rule"><span>&#10086;</span></div>
+  </header>
+  <section class="body">
+    <span class="section-label">Preparation at a glance</span>
+    <div class="grid4">
+      <div><div class="field-label">Couple</div><div class="field-value">Arian &amp; Jordan</div></div>
+      <div><div class="field-label">Counselor</div><div class="field-value">Pastor David Reynolds</div></div>
+      <div><div class="field-label">Next session</div><div class="field-value">April 15, 2026</div></div>
+      <div><div class="field-label">Goal</div><div class="field-value">8–10 hours</div></div>
+    </div>
+
+    <span class="section-label">Progress</span>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Sessions</div><div class="stat-value">4</div></div>
+      <div class="stat mauve"><div class="stat-label">Completed</div><div class="stat-value">2</div></div>
+      <div class="stat gold"><div class="stat-label">Hours logged</div><div class="stat-value">3</div></div>
+      <div class="stat burg"><div class="stat-label">Questions</div><div class="stat-value">5</div></div>
+    </div>
+
+    <span class="section-label">Core topics to work through together</span>
+    <div class="tiles">
+      <div class="tile"><div class="tile-label">Foundation</div><div class="tile-value">Covenant</div><p>Purpose, vows, and spiritual leadership.</p></div>
+      <div class="tile mauve"><div class="tile-label">Communication</div><div class="tile-value">Conflict</div><p>Patterns, repair, and expectations.</p></div>
+      <div class="tile burg"><div class="tile-label">Household</div><div class="tile-value">Finances</div><p>Budget, generosity, and stewardship.</p></div>
+      <div class="tile gold"><div class="tile-label">Family</div><div class="tile-value">Roles</div><p>Family, holidays, and boundaries.</p></div>
+      <div class="tile"><div class="tile-label">Future</div><div class="tile-value">Rhythms</div><p>Prayer, rest, and shared decisions.</p></div>
+      <div class="tile mauve"><div class="tile-label">Follow-up</div><div class="tile-value">Notes</div><p>Questions for the next session.</p></div>
+    </div>
+
+    <span class="section-label">Counseling sessions</span>
+    <table class="table">
+      <thead><tr><th>#</th><th>Date</th><th>Topic</th><th>Homework</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td class="date">Feb 15</td><td class="strong">Foundations of a Christ-centered marriage</td><td>Read chapters 1–2</td><td><span class="status done">Complete</span></td></tr>
+        <tr><td class="num">2</td><td class="date">Mar 15</td><td class="strong">Communication styles</td><td>Complete assessment</td><td><span class="status done">Complete</span></td></tr>
+        <tr><td class="num">3</td><td class="date">Apr 15</td><td class="strong">Finances as a couple</td><td>Build joint budget worksheet</td><td><span class="status next">Scheduled</span></td></tr>
+        <tr><td class="num">4</td><td class="date">May 15</td><td class="strong">Roles, expectations, and family</td><td>Discuss family expectations</td><td><span class="status praying">Not started</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+  <footer class="footer"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Iron sharpeneth iron; so a man sharpeneth the countenance of his friend. &middot; Page 1</div></footer>
+</main>
+
+<!-- SHEET 2 -->
+<main class="page">
+  <header class="masthead">
+    <div class="crest">&#9670;</div>
+    <div class="eyebrow">Premarital Counseling &middot; Reflection</div>
+    <h1 class="title">Takeaways &amp; Questions</h1>
+    <p class="subtitle">A calm layout for the conversations that deserve more time</p>
+    <div class="rule"><span>&#10086;</span></div>
+  </header>
+  <section class="body">
+    <span class="section-label">What we are learning</span>
+    <div class="grid2">
+      <div class="note"><div class="field-label">Session 1 takeaway</div><p>Marriage is a covenant, not just a contract.</p><div class="writeline"></div></div>
+      <div class="note mauve"><div class="field-label">Session 2 takeaway</div><p>We process conflict differently — a strength when handled gently.</p><div class="writeline"></div></div>
+    </div>
+
+    <span class="section-label">Bring these back to the conversation</span>
+    <table class="table">
+      <thead><tr><th>Topic</th><th>Question</th><th>Person / follow-up</th></tr></thead>
+      <tbody>
+        <tr><td class="strong">Spiritual rhythms</td><td>How do we keep Christ at the center during busy seasons?</td><td>Ask Pastor David</td></tr>
+        <tr><td class="strong">Conflict</td><td>What does healthy conflict look like when one of us needs time to cool down?</td><td>Practice this week</td></tr>
+        <tr><td class="strong">Finances</td><td>How should we talk about giving, saving, and spending as a household?</td><td>Bring budget sheet</td></tr>
+        <tr><td class="strong">Family</td><td>Which boundaries should be named before the wedding day?</td><td>Discuss together</td></tr>
+      </tbody>
+    </table>
+
+    <span class="section-label">Notes after counseling</span>
+    <div class="note gold"><div class="field-label">Where we agree</div><div class="writeline"></div><div class="writeline"></div></div>
+    <div class="note mauve"><div class="field-label">Where we need more conversation</div><div class="writeline"></div><div class="writeline"></div></div>
+  </section>
+  <footer class="footer"><div class="fb">The Covenant Wedding Planner</div><div class="fv">Preparation is an act of love. &middot; Page 2</div></footer>
+</main>
+</body>
+</html>

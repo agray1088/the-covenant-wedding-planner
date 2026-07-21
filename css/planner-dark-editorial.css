@@ -1,0 +1,3334 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE COVENANT WEDDING PLANNER — Monochrome Dark Mode
+   Locked target: mockups/monochrome-dark-mode-mockup.html
+   Load AFTER planner.css. Does not alter light mode.
+   Toggle: body.editorial-v4.dark-mode (data.setup.darkMode)
+   Also matches: body.editorial-v4[data-theme="dark"]
+   Palette: charcoal surfaces, light-grey text, near-white primary only.
+   Theme-independent (fixed greyscale — no navy / green / cream).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.editorial-v4.dark-mode,
+body.editorial-v4[data-theme="dark"] {
+  /* ── Surface depth — mockup lock ── */
+  --dm-page:        #111111;
+  --dm-page-deep:   #0a0a0a;
+  --dm-sidebar:     #161616;
+  --dm-header:      #161616;
+  --dm-profile:     #161616;
+  --dm-surface:     #1a1a1a;
+  --dm-surface-2:   #222222;
+  --dm-surface-3:   #2a2a2a;
+  --dm-elevated:    #2a2a2a;
+  --dm-modal:       #1f1f1f;
+  --dm-popover:     #2a2a2a;
+  --dm-input:       #141414;
+
+  /* Chrome alias used by context sidebar */
+  --surface-chrome: #161616;
+  --context-sidebar-surface: #161616;
+  --context-sidebar-head: #161616;
+
+  /* ── Borders & dividers ── */
+  --dm-border:      #2e2e2e;
+  --dm-border-soft: #262626;
+  --dm-hair:        rgba(255, 255, 255, 0.07);
+  --dm-divider:     rgba(255, 255, 255, 0.12);
+
+  /* ── Text ramp ── */
+  --dm-text:        #e6e6e6;
+  --dm-head:        #f0f0f0;
+  --dm-muted:       #8a8a8a;
+  --dm-muted2:      #727272;
+  --dm-placeholder: #656565;
+
+  /* ── Primary = near-white (mockup); links = light grey ── */
+  --dm-accent:        #ececec;
+  --dm-on-accent:     #111111;
+  --dm-accent-soft:   #cfcfcf;
+  --dm-accent-muted:  #222222;
+  --dm-accent-text:   #cfcfcf;
+  --dm-accent-bg:     rgba(255, 255, 255, 0.08);
+  --dm-accent-border: rgba(255, 255, 255, 0.18);
+  --dm-focus-ring:    rgba(255, 255, 255, 0.2);
+
+  /* ── Status — greyscale only (no green/blue/amber chrome) ── */
+  --dm-success:       #b8b8b8;
+  --dm-success-bg:    rgba(255, 255, 255, 0.08);
+  --dm-warning:       #cfcfcf;
+  --dm-warning-bg:    rgba(255, 255, 255, 0.1);
+  --dm-danger:        #c4c4c4;
+  --dm-danger-bg:     rgba(255, 255, 255, 0.1);
+  --dm-info:          #a8a8a8;
+  --dm-info-bg:       rgba(255, 255, 255, 0.08);
+  --dm-neutral:       #909090;
+  --dm-neutral-bg:    rgba(144, 144, 144, 0.13);
+
+  /* ── Shadows — flat panels; soft elevation only for popovers ── */
+  --dm-shadow-sm: none;
+  --dm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --dm-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+
+  /* ── Scrollbars ── */
+  --dm-scroll-track: #0c0c0c;
+  --dm-scroll-thumb: #333333;
+  --dm-scroll-hover: #444444;
+
+  /* ── Radius lock (mockup ~2–3px) ── */
+  --dm-radius: 3px;
+  --dm-radius-sm: 2px;
+  --radius-sm: 3px;
+  --radius: 3px;
+
+  /* ── Legacy aliases ── */
+  --dm-bg:     var(--dm-page);
+  --dm-elev:   var(--dm-elevated);
+  --dm-accent-2: var(--dm-accent-muted);
+  --dm-ok:     var(--dm-success);
+  --dm-gold:   var(--dm-muted);
+
+  --ivory:        var(--dm-page);
+  --ivory-dk:     var(--dm-page-deep);
+  --charcoal:     var(--dm-text);
+  --page-bg:      var(--dm-page);
+  --section-bg:   var(--dm-page);
+  --card-bg:      var(--dm-surface);
+  --card-border:  var(--dm-border);
+  --card-radius:  3px;
+  --card-pad:     var(--component-card-padding, var(--planner-panel-padding, 1.5rem));
+  --table-bg:     transparent;
+  --table-header-bg: var(--dm-surface-2);
+
+  --v4-content: var(--dm-page);
+  --v4-page:    var(--dm-page-deep);
+  --v4-soft:    var(--dm-surface);
+  --v4-ink:     var(--dm-text);
+  --v4-muted:   var(--dm-muted);
+  --v4-muted2:  var(--dm-muted2);
+  --v4-muted3:  #8a8a8a;
+  --v4-hair:    var(--dm-border);
+  --v4-card:    var(--dm-surface);
+
+  --ued-ink:    var(--dm-text);
+  --ued-muted:  var(--dm-muted);
+  --ued-muted2: var(--dm-muted2);
+  --ued-line:   var(--dm-hair);
+  --ued-line2:  var(--dm-divider);
+  --ued-panel:  var(--dm-surface);
+  --ued-paper:  var(--dm-surface);
+  --ued-sage:   var(--dm-surface-2);
+  --ued-forest: var(--dm-accent-text);
+  --ued-gold:   var(--dm-muted);
+  --ued-danger: var(--dm-danger);
+
+  --chart-1:       #9a9a9a;
+  --chart-2:       #6f6f6f;
+  --cwp-accent:    var(--dm-accent-text);
+
+  --theme-on-primary: var(--dm-on-accent);
+  --theme-on-primary-dim: var(--dm-muted);
+
+  color: var(--dm-text);
+  background: var(--dm-page) !important;
+}
+
+body.editorial-v4.dark-mode,
+body.editorial-v4[data-theme="dark"] {
+  /* Theme-independent: neutralize accent tokens so no green/gold bleeds. */
+  --forest:        var(--dm-accent-text);
+  --forest-lt:     #dcdcdc;
+  --forest-deep:   var(--dm-muted);
+  --forest-deeper: #333333;
+  --gold:          var(--dm-muted);
+  --gold-lt:       var(--dm-accent-text);
+  --gold-pale:     var(--dm-surface-2);
+  --theme-primary: var(--dm-accent-muted);
+  --theme-accent:  var(--dm-accent-text);
+  --er-forest:     var(--dm-accent-text);
+  --v4-forest:     var(--dm-accent-text);
+  --v4-gold:       var(--dm-muted);
+  --champagne-soft: var(--dm-surface-2);
+  --surface-content: var(--dm-surface);
+  --surface-raised: var(--dm-surface-2);
+  --border-subtle: var(--dm-border);
+  --text-muted: var(--dm-muted);
+}
+
+/* ued-scope panels inherit tokens */
+body.editorial-v4.dark-mode [id^="panel-"].ued-scope,
+body.editorial-v4[data-theme="dark"] [id^="panel-"].ued-scope {
+  --ued-paper:  var(--dm-surface);
+  --ued-panel:  var(--dm-surface);
+  --ued-ink:    var(--dm-text);
+  --ued-muted:  var(--dm-muted);
+  --ued-muted2: var(--dm-muted2);
+  --ued-line:   var(--dm-hair);
+  --ued-line2:  var(--dm-divider);
+  --ued-sage:   var(--dm-surface-2);
+  --ued-forest: var(--dm-accent-text);
+  --ued-gold:   var(--dm-muted);
+}
+
+/* ── Scrollbars (WebKit + Firefox) ── */
+body.editorial-v4.dark-mode *,
+body.editorial-v4[data-theme="dark"] * {
+  scrollbar-color: var(--dm-scroll-thumb) var(--dm-scroll-track);
+}
+body.editorial-v4.dark-mode *::-webkit-scrollbar,
+body.editorial-v4[data-theme="dark"] *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+body.editorial-v4.dark-mode *::-webkit-scrollbar-track,
+body.editorial-v4[data-theme="dark"] *::-webkit-scrollbar-track {
+  background: var(--dm-scroll-track);
+}
+body.editorial-v4.dark-mode *::-webkit-scrollbar-thumb,
+body.editorial-v4[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: var(--dm-scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--dm-scroll-track);
+}
+body.editorial-v4.dark-mode *::-webkit-scrollbar-thumb:hover,
+body.editorial-v4[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+  background: var(--dm-scroll-hover);
+}
+
+/* ── Page shell ── */
+body.editorial-v4.dark-mode,
+body.editorial-v4.dark-mode #layout,
+body.editorial-v4.dark-mode #main,
+body.editorial-v4[data-theme="dark"],
+body.editorial-v4[data-theme="dark"] #layout,
+body.editorial-v4[data-theme="dark"] #main {
+  background: var(--dm-page) !important;
+  color: var(--dm-text);
+}
+
+/* ── Top header / brand bar ── */
+body.editorial-v4.dark-mode #topbar,
+body.editorial-v4[data-theme="dark"] #topbar {
+  background: var(--dm-header) !important;
+  border-bottom: 1px solid var(--dm-border) !important;
+  box-shadow: var(--dm-shadow-sm);
+}
+body.editorial-v4.dark-mode #topbar .brand-main,
+body.editorial-v4.dark-mode #topbar .brand-sub,
+body.editorial-v4.dark-mode #topbar .top-save-status,
+body.editorial-v4.dark-mode #topbar .line-icon,
+body.editorial-v4[data-theme="dark"] #topbar .brand-main,
+body.editorial-v4[data-theme="dark"] #topbar .brand-sub,
+body.editorial-v4[data-theme="dark"] #topbar .top-save-status {
+  color: var(--dm-text);
+}
+body.editorial-v4.dark-mode #topbar input,
+body.editorial-v4.dark-mode #topbar select,
+body.editorial-v4.dark-mode #topbar .global-search,
+body.editorial-v4.dark-mode #topbar .gs-results,
+body.editorial-v4[data-theme="dark"] #topbar input,
+body.editorial-v4[data-theme="dark"] #topbar .global-search,
+body.editorial-v4[data-theme="dark"] #topbar .gs-results {
+  background: var(--dm-input) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #topbar .gs-results .gs-item:hover,
+body.editorial-v4[data-theme="dark"] #topbar .gs-results .gs-item:hover {
+  background: var(--dm-surface-2) !important;
+}
+body.editorial-v4.dark-mode #topbar .btn-gold,
+body.editorial-v4[data-theme="dark"] #topbar .btn-gold {
+  background: var(--dm-surface-2) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #topbar .btn-gold:hover,
+body.editorial-v4[data-theme="dark"] #topbar .btn-gold:hover {
+  background: var(--dm-surface-3) !important;
+  border-color: var(--dm-accent-border) !important;
+  color: var(--dm-head) !important;
+}
+body.editorial-v4.dark-mode #topbar .btn-forest,
+body.editorial-v4[data-theme="dark"] #topbar .btn-forest {
+  background: var(--dm-accent-muted) !important;
+  color: var(--dm-head) !important;
+  border-color: var(--dm-accent-border) !important;
+}
+body.editorial-v4.dark-mode .topbar-overflow,
+body.editorial-v4[data-theme="dark"] .topbar-overflow {
+  background: var(--dm-popover) !important;
+  border-color: var(--dm-border) !important;
+  box-shadow: var(--dm-shadow-lg);
+}
+
+/* ── Profile / appearance bar ── */
+body.editorial-v4.dark-mode #profile-bar,
+body.editorial-v4[data-theme="dark"] #profile-bar {
+  background: var(--dm-profile) !important;
+  border-bottom: 1px solid var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #profile-bar .pbar-label,
+body.editorial-v4[data-theme="dark"] #profile-bar .pbar-label {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode #profile-bar .btn,
+body.editorial-v4.dark-mode #profile-bar button,
+body.editorial-v4.dark-mode #profile-bar select,
+body.editorial-v4.dark-mode #profile-bar input,
+body.editorial-v4[data-theme="dark"] #profile-bar .btn,
+body.editorial-v4[data-theme="dark"] #profile-bar select {
+  background: var(--dm-input) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #profile-bar .btn:hover,
+body.editorial-v4[data-theme="dark"] #profile-bar .btn:hover {
+  background: var(--dm-surface-2) !important;
+  color: var(--dm-head) !important;
+}
+body.editorial-v4.dark-mode #profile-bar .btn.active,
+body.editorial-v4.dark-mode #profile-bar .btn[aria-pressed="true"],
+body.editorial-v4[data-theme="dark"] #profile-bar .btn.active {
+  background: var(--dm-accent-bg) !important;
+  color: var(--dm-accent-soft) !important;
+  border-color: var(--dm-accent-border) !important;
+}
+body.editorial-v4.dark-mode #quick-jump-drop,
+body.editorial-v4[data-theme="dark"] #quick-jump-drop,
+body.editorial-v4.dark-mode .topbar-notifications-drop,
+body.editorial-v4[data-theme="dark"] .topbar-notifications-drop {
+  background: var(--dm-popover) !important;
+  border-color: var(--dm-border) !important;
+  box-shadow: var(--dm-shadow-lg);
+}
+body.editorial-v4.dark-mode .topbar-notifications-badge,
+body.editorial-v4[data-theme="dark"] .topbar-notifications-badge {
+  box-shadow: 0 0 0 2px var(--dm-popover, #1a2420);
+}
+body.editorial-v4.dark-mode .tb-notif-section-head,
+body.editorial-v4[data-theme="dark"] .tb-notif-section-head {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode .tb-notif-item,
+body.editorial-v4[data-theme="dark"] .tb-notif-item {
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .tb-notif-item:hover,
+body.editorial-v4[data-theme="dark"] .tb-notif-item:hover {
+  background: var(--dm-accent-bg) !important;
+}
+body.editorial-v4.dark-mode .tb-notif-item-copy strong,
+body.editorial-v4[data-theme="dark"] .tb-notif-item-copy strong {
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .tb-notif-item-copy span,
+body.editorial-v4.dark-mode .tb-notif-empty,
+body.editorial-v4[data-theme="dark"] .tb-notif-item-copy span,
+body.editorial-v4[data-theme="dark"] .tb-notif-empty {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode .tb-notif-section + .tb-notif-section,
+body.editorial-v4[data-theme="dark"] .tb-notif-section + .tb-notif-section {
+  border-top-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode .topbar-notifications-drop-scroll,
+body.editorial-v4[data-theme="dark"] .topbar-notifications-drop-scroll {
+  scrollbar-color: rgba(255,255,255,.22) transparent;
+}
+body.editorial-v4.dark-mode .topbar-notifications-drop-scroll::-webkit-scrollbar-thumb,
+body.editorial-v4[data-theme="dark"] .topbar-notifications-drop-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,.2);
+}
+body.editorial-v4.dark-mode .topbar-notifications-drop-scroll::-webkit-scrollbar-thumb:hover,
+body.editorial-v4[data-theme="dark"] .topbar-notifications-drop-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255,255,255,.32);
+}
+
+/* ── Sidebar navigation ── */
+body.editorial-v4.dark-mode #sidebar,
+body.editorial-v4[data-theme="dark"] #sidebar {
+  background: linear-gradient(180deg, var(--dm-sidebar), var(--dm-page-deep)) !important;
+  border-right: 1px solid var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #sidebar .nav-item,
+body.editorial-v4[data-theme="dark"] #sidebar .nav-item {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode #sidebar .nav-item svg,
+body.editorial-v4.dark-mode #sidebar .nav-item .material-symbols-sharp,
+body.editorial-v4[data-theme="dark"] #sidebar .nav-item svg {
+  color: currentColor !important;
+  stroke: currentColor;
+}
+body.editorial-v4.dark-mode #sidebar .nav-item:hover,
+body.editorial-v4[data-theme="dark"] #sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--dm-head) !important;
+}
+body.editorial-v4.dark-mode #sidebar .nav-item[aria-current="page"],
+body.editorial-v4[data-theme="dark"] #sidebar .nav-item[aria-current="page"] {
+  background: var(--dm-accent-bg) !important;
+  color: var(--dm-accent-soft) !important;
+  box-shadow: inset 3px 0 0 var(--dm-accent) !important;
+}
+
+/* ── Typography ── */
+body.editorial-v4.dark-mode #main .panel h1,
+body.editorial-v4.dark-mode #main .panel h2,
+body.editorial-v4.dark-mode #main .panel h3,
+body.editorial-v4.dark-mode #main .panel h4,
+body.editorial-v4.dark-mode #main .panel .page-title,
+body.editorial-v4.dark-mode #main .panel .ued-stat b,
+body.editorial-v4.dark-mode #main .panel .cdc-tile b,
+body.editorial-v4.dark-mode #main .panel .m-stat-val,
+body.editorial-v4[data-theme="dark"] #main .panel h1,
+body.editorial-v4[data-theme="dark"] #main .panel h2,
+body.editorial-v4[data-theme="dark"] #main .panel h3 {
+  color: var(--dm-head) !important;
+}
+body.editorial-v4.dark-mode #main .panel p,
+body.editorial-v4.dark-mode #main .panel li,
+body.editorial-v4.dark-mode #main .panel label,
+body.editorial-v4.dark-mode #main .panel td,
+body.editorial-v4.dark-mode #main .panel span:not(.material-symbols-sharp),
+body.editorial-v4[data-theme="dark"] #main .panel p,
+body.editorial-v4[data-theme="dark"] #main .panel td {
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #main .panel .muted,
+body.editorial-v4.dark-mode #main .panel small,
+body.editorial-v4.dark-mode #main .panel .ued-muted,
+body.editorial-v4.dark-mode #main .panel .ued-stat-label,
+body.editorial-v4.dark-mode #main .panel th,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-muted {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode #main .panel a,
+body.editorial-v4.dark-mode #main .panel .link,
+body.editorial-v4.dark-mode #main .panel [class*="-link"],
+body.editorial-v4[data-theme="dark"] #main .panel a {
+  color: var(--dm-accent-text) !important;
+}
+
+/* ── Cards & raised surfaces ── */
+body.editorial-v4.dark-mode #main .panel .card,
+body.editorial-v4.dark-mode #main .panel .ued-panel,
+body.editorial-v4.dark-mode #main .panel .note-card,
+body.editorial-v4.dark-mode #main .panel .chart-wrap,
+body.editorial-v4.dark-mode #main .panel .banner-scripture-card,
+body.editorial-v4.dark-mode #main .panel .m-block,
+body.editorial-v4.dark-mode #main .panel .m-card,
+body.editorial-v4.dark-mode #main .panel .m-panel,
+body.editorial-v4.dark-mode #main .panel .ued-table-card,
+body.editorial-v4.dark-mode #main .panel .stat-card,
+body.editorial-v4.dark-mode #main .panel .m-stat,
+body.editorial-v4.dark-mode #main .panel [class*="bulk-card"],
+body.editorial-v4.dark-mode #main .panel .app-bulk-card,
+body.editorial-v4.dark-mode #main .panel .app-insight-band,
+body.editorial-v4.dark-mode #main .panel .app-side-card,
+body.editorial-v4.dark-mode #main .panel .smart-insight-band,
+body.editorial-v4.dark-mode #main .panel .smart-side-card,
+body.editorial-v4[data-theme="dark"] #main .panel .card,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-panel {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+  color: var(--dm-text);
+  box-shadow: none !important;
+  border-radius: var(--dm-radius, 3px) !important;
+}
+body.editorial-v4.dark-mode #main .panel .m-stats,
+body.editorial-v4.dark-mode #main .panel .stat-grid,
+body.editorial-v4[data-theme="dark"] #main .panel .m-stats {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+}
+
+/* ── Filter bars & toolbars ── */
+body.editorial-v4.dark-mode #main .panel .m-toolbar,
+body.editorial-v4.dark-mode #main .panel .ued-filter-card,
+body.editorial-v4.dark-mode #main .panel .ued-table-control-card,
+body.editorial-v4.dark-mode #main .panel .app-toolbar-row,
+body.editorial-v4.dark-mode #main .panel .smart-toolbar-row,
+body.editorial-v4.dark-mode .cwp-toolbar,
+body.editorial-v4.dark-mode .cwp-bulkbar,
+body.editorial-v4[data-theme="dark"] #main .panel .m-toolbar {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text);
+}
+body.editorial-v4.dark-mode #main .panel .sel,
+body.editorial-v4.dark-mode #main .panel .app-filter,
+body.editorial-v4.dark-mode #main .panel .smart-filter,
+body.editorial-v4.dark-mode .cwp-search,
+body.editorial-v4.dark-mode .cwp-filter,
+body.editorial-v4[data-theme="dark"] #main .panel select {
+  background: var(--dm-input) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+
+/* ── Tables ── */
+body.editorial-v4.dark-mode #main .panel table thead th,
+body.editorial-v4.dark-mode #main .panel [class*="-table"] thead th,
+body.editorial-v4.dark-mode .cwp-table thead th,
+body.editorial-v4[data-theme="dark"] #main .panel table thead th {
+  --forest: var(--dm-surface-2);
+  --er-forest: var(--dm-surface-2);
+  --theme-primary: var(--dm-surface-2);
+  --v4-forest: var(--dm-surface-2);
+  --gold: var(--dm-surface-2);
+  background: var(--dm-surface-2) !important;
+  color: var(--dm-muted) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #main .panel table td,
+body.editorial-v4.dark-mode .cwp-table td,
+body.editorial-v4[data-theme="dark"] #main .panel table td {
+  background: transparent !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-hair) !important;
+}
+body.editorial-v4.dark-mode #main .panel table tbody tr:nth-child(even) td,
+body.editorial-v4.dark-mode .cwp-table tbody tr:nth-child(even) td,
+body.editorial-v4[data-theme="dark"] #main .panel table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+body.editorial-v4.dark-mode #main .panel table tbody tr:hover td,
+body.editorial-v4.dark-mode .cwp-table tbody tr:hover td,
+body.editorial-v4[data-theme="dark"] #main .panel table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+body.editorial-v4.dark-mode #main .panel .ued-table-wrap,
+body.editorial-v4.dark-mode #main .panel .guest-table-wrap,
+body.editorial-v4.dark-mode .cwp-table-wrap {
+  background: var(--dm-surface) !important;
+}
+body.editorial-v4.dark-mode table thead tr.bulk-table-row th,
+body.editorial-v4[data-theme="dark"] table thead tr.bulk-table-row th {
+  background: var(--dm-surface-2) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .col-resizer::before,
+body.editorial-v4.dark-mode .cwp-col-resizer::before,
+body.editorial-v4[data-theme="dark"] .col-resizer::before {
+  background: rgba(174, 188, 214, 0.22);
+}
+body.editorial-v4.dark-mode .col-resizer:hover::before,
+body.editorial-v4.dark-mode .col-resizer.active::before,
+body.editorial-v4.dark-mode .cwp-col-resizer:hover::before,
+body.editorial-v4.dark-mode .cwp-col-resizer.active::before,
+body.editorial-v4[data-theme="dark"] .col-resizer.active::before {
+  background: var(--dm-accent) !important;
+}
+
+/* ── Form controls ── */
+body.editorial-v4.dark-mode #main .panel input:not([type="checkbox"]):not([type="radio"]),
+body.editorial-v4.dark-mode #main .panel select,
+body.editorial-v4.dark-mode #main .panel textarea,
+body.editorial-v4.dark-mode .cwp-table td input:not([type="checkbox"]),
+body.editorial-v4.dark-mode .cwp-table td select,
+body.editorial-v4.dark-mode .cwp-table td textarea,
+body.editorial-v4[data-theme="dark"] #main .panel input,
+body.editorial-v4[data-theme="dark"] #main .panel select,
+body.editorial-v4[data-theme="dark"] #main .panel textarea {
+  background: var(--dm-input) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode input::placeholder,
+body.editorial-v4.dark-mode textarea::placeholder,
+body.editorial-v4[data-theme="dark"] input::placeholder {
+  color: var(--dm-placeholder) !important;
+}
+body.editorial-v4.dark-mode input:focus,
+body.editorial-v4.dark-mode select:focus,
+body.editorial-v4.dark-mode textarea:focus,
+body.editorial-v4[data-theme="dark"] input:focus {
+  border-color: var(--dm-accent) !important;
+  box-shadow: 0 0 0 3px var(--dm-focus-ring) !important;
+  outline: none;
+}
+body.editorial-v4.dark-mode input[type="checkbox"]:not(.app-check),
+body.editorial-v4.dark-mode .cwp-table input[type="checkbox"],
+body.editorial-v4[data-theme="dark"] .cwp-table input[type="checkbox"] {
+  background: var(--dm-input) !important;
+  border-color: var(--dm-accent-border) !important;
+}
+body.editorial-v4.dark-mode .cwp-table input[type="checkbox"]:checked,
+body.editorial-v4[data-theme="dark"] .cwp-table input[type="checkbox"]:checked {
+  background: var(--dm-accent-muted) !important;
+  border-color: var(--dm-accent) !important;
+}
+body.editorial-v4.dark-mode .app-check,
+body.editorial-v4[data-theme="dark"] .app-check {
+  background: var(--dm-input) !important;
+  border-color: var(--dm-accent-border) !important;
+}
+body.editorial-v4.dark-mode .app-check:checked,
+body.editorial-v4[data-theme="dark"] .app-check:checked {
+  background: var(--dm-accent-muted) !important;
+  border-color: var(--dm-accent) !important;
+}
+
+/* ── Buttons ── */
+body.editorial-v4.dark-mode #main .panel .btn,
+body.editorial-v4.dark-mode #main .panel .ued-btn,
+body.editorial-v4.dark-mode #main .panel .m-btn,
+body.editorial-v4.dark-mode #main .panel button.btn-outline,
+body.editorial-v4.dark-mode .cwp-btn,
+body.editorial-v4[data-theme="dark"] #main .panel .btn {
+  background: var(--dm-surface-2) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #main .panel .btn:hover,
+body.editorial-v4.dark-mode #main .panel .ued-btn:hover,
+body.editorial-v4.dark-mode #main .panel .m-btn:hover,
+body.editorial-v4[data-theme="dark"] #main .panel .btn:hover {
+  background: var(--dm-surface-3) !important;
+  border-color: var(--dm-accent-border) !important;
+  color: var(--dm-head) !important;
+}
+body.editorial-v4.dark-mode #main .panel .btn.primary,
+body.editorial-v4.dark-mode #main .panel .ued-btn.primary,
+body.editorial-v4.dark-mode #main .panel .btn-forest,
+body.editorial-v4.dark-mode #main .panel .btn-primary,
+body.editorial-v4.dark-mode #main .panel .m-btn-primary,
+body.editorial-v4.dark-mode .cwp-btn-primary,
+body.editorial-v4[data-theme="dark"] #main .panel .btn-forest,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-btn.primary {
+  background: var(--dm-accent) !important;
+  color: var(--dm-on-accent) !important;
+  border-color: transparent !important;
+  font-weight: 600;
+}
+body.editorial-v4.dark-mode #main .panel .btn.primary:hover,
+body.editorial-v4.dark-mode #main .panel .ued-btn.primary:hover,
+body.editorial-v4.dark-mode #main .panel .btn-forest:hover,
+body.editorial-v4[data-theme="dark"] #main .panel .btn-forest:hover {
+  background: #ffffff !important;
+  color: #0a0a0a !important;
+  filter: none;
+}
+body.editorial-v4.dark-mode #main .panel .btn:disabled,
+body.editorial-v4.dark-mode #main .panel .ued-btn:disabled,
+body.editorial-v4[data-theme="dark"] #main .panel .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Tabs ── */
+body.editorial-v4.dark-mode #main .panel .m-tabbar,
+body.editorial-v4.dark-mode #main .panel [class*="tabbar"],
+body.editorial-v4[data-theme="dark"] #main .panel .m-tabbar {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #main .panel .m-tab,
+body.editorial-v4.dark-mode #main .panel [class*="tabbar"] [class*="tab"],
+body.editorial-v4[data-theme="dark"] #main .panel .m-tab {
+  color: var(--dm-muted) !important;
+  background: transparent !important;
+}
+body.editorial-v4.dark-mode #main .panel .m-tab.on,
+body.editorial-v4.dark-mode #main .panel .m-tab.active,
+body.editorial-v4.dark-mode #main .panel [class*="tabbar"] .active,
+body.editorial-v4[data-theme="dark"] #main .panel .m-tab.on {
+  background: var(--dm-accent-bg) !important;
+  color: var(--dm-accent-soft) !important;
+  border-color: var(--dm-accent-border) !important;
+}
+
+/* ── Modals, pop-outs, drawers ── */
+body.editorial-v4.dark-mode .tb-overlay,
+body.editorial-v4.dark-mode .modal-overlay,
+body.editorial-v4.dark-mode .record-editor-overlay,
+body.editorial-v4[data-theme="dark"] .tb-overlay {
+  background: rgba(4, 6, 10, 0.72) !important;
+}
+body.editorial-v4.dark-mode .tb-modal,
+body.editorial-v4.dark-mode .modal,
+body.editorial-v4.dark-mode .modal-content,
+body.editorial-v4.dark-mode .record-editor-shell,
+body.editorial-v4.dark-mode .cwp-modal,
+body.editorial-v4.dark-mode .history-drawer,
+body.editorial-v4.dark-mode .theme-picker-menu,
+body.editorial-v4.dark-mode .payment-plan-popover-root,
+body.editorial-v4.dark-mode .col-filter-pop,
+body.editorial-v4.dark-mode .field-picker,
+body.editorial-v4.dark-mode .record-picker,
+body.editorial-v4.dark-mode .shot-people-picker-pop,
+body.editorial-v4[data-theme="dark"] .tb-modal,
+body.editorial-v4[data-theme="dark"] .record-editor-shell {
+  background: var(--dm-modal) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+  box-shadow: var(--dm-shadow-lg);
+}
+body.editorial-v4.dark-mode .record-editor-head,
+body.editorial-v4.dark-mode .record-editor-body,
+body.editorial-v4.dark-mode .tb-head,
+body.editorial-v4.dark-mode .modal-head,
+body.editorial-v4[data-theme="dark"] .record-editor-body {
+  background: var(--dm-modal) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .record-editor-shell input,
+body.editorial-v4.dark-mode .record-editor-shell select,
+body.editorial-v4.dark-mode .record-editor-shell textarea,
+body.editorial-v4.dark-mode .tb-modal input,
+body.editorial-v4.dark-mode .tb-modal select,
+body.editorial-v4.dark-mode .modal input,
+body.editorial-v4[data-theme="dark"] .record-editor-shell input {
+  background: var(--dm-input) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+
+/* ── Payment installment panels ── */
+body.editorial-v4.dark-mode .payment-plan-card,
+body.editorial-v4.dark-mode .payment-plan-container,
+body.editorial-v4.dark-mode .payment-plan-table-wrap,
+body.editorial-v4[data-theme="dark"] .payment-plan-card {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text);
+}
+body.editorial-v4.dark-mode .payment-plan-table thead th,
+body.editorial-v4[data-theme="dark"] .payment-plan-table thead th {
+  background: var(--dm-surface-2) !important;
+  color: var(--dm-muted) !important;
+}
+
+/* ── Status chips & pills (softened fills) ── */
+body.editorial-v4.dark-mode #main .panel .ued-tag,
+body.editorial-v4.dark-mode #main .panel [class*="-pill"],
+body.editorial-v4.dark-mode #main .panel [class*="-badge"],
+body.editorial-v4.dark-mode #main .panel .cwp-status,
+body.editorial-v4.dark-mode #main .panel [class*="-status"],
+body.editorial-v4[data-theme="dark"] #main .panel [class*="-pill"] {
+  background: var(--dm-neutral-bg) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #panel-payments .cwp-table tbody tr.payment-overdue-row td,
+body.editorial-v4[data-theme="dark"] #panel-payments .cwp-table tbody tr.payment-overdue-row td {
+  background: var(--dm-danger-bg) !important;
+}
+body.editorial-v4.dark-mode #panel-payments .cwp-table tbody tr.payment-plan-active-row td,
+body.editorial-v4[data-theme="dark"] #panel-payments .cwp-table tbody tr.payment-plan-active-row td {
+  background: var(--dm-info-bg) !important;
+}
+body.editorial-v4.dark-mode #panel-payments .cwp-table tbody tr.payment-plan-active-row td:first-child,
+body.editorial-v4[data-theme="dark"] #panel-payments .cwp-table tbody tr.payment-plan-active-row td:first-child {
+  box-shadow: inset 3px 0 0 var(--dm-accent-muted) !important;
+}
+body.editorial-v4.dark-mode #panel-tasks .cwp-table tbody tr.task-overdue-row td,
+body.editorial-v4[data-theme="dark"] #panel-tasks .cwp-table tbody tr.task-overdue-row td {
+  background: var(--dm-danger-bg) !important;
+}
+
+/* ── Calendar & appointments ── */
+body.editorial-v4.dark-mode #main .panel .smart-calendar-grid,
+body.editorial-v4.dark-mode #main .panel .smart-day,
+body.editorial-v4.dark-mode #main .panel .smart-month-picker,
+body.editorial-v4[data-theme="dark"] #main .panel .smart-calendar-grid {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #main .panel .smart-event-chip,
+body.editorial-v4.dark-mode #main .panel .guest-event-chip,
+body.editorial-v4[data-theme="dark"] #main .panel .smart-event-chip {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #main .panel .smart-event-chip.tasks        { border-left-color: #8a9aaa !important; }
+body.editorial-v4.dark-mode #main .panel .smart-event-chip.appointments { border-left-color: var(--dm-accent) !important; }
+body.editorial-v4.dark-mode #main .panel .smart-event-chip.budget       { border-left-color: #7a94b8 !important; }
+body.editorial-v4.dark-mode #main .panel .smart-event-chip.payments     { border-left-color: #b88880 !important; }
+body.editorial-v4.dark-mode #main .panel .smart-event-chip.vendors      { border-left-color: #9a8aaa !important; }
+body.editorial-v4.dark-mode #main .panel .smart-event-chip.timeline     { border-left-color: #7a8088 !important; }
+body.editorial-v4.dark-mode #main .panel .smart-event-chip.planning     { border-left-color: #a09870 !important; }
+body.editorial-v4.dark-mode #main .panel .smart-event-chip.honeymoon    { border-left-color: #7a9888 !important; }
+
+/* ── Pagination ── */
+body.editorial-v4.dark-mode .cwp-page-btn,
+body.editorial-v4.dark-mode #main .panel [class*="-page-btn"],
+body.editorial-v4[data-theme="dark"] .cwp-page-btn {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .cwp-page-btn:hover:not([disabled]),
+body.editorial-v4[data-theme="dark"] .cwp-page-btn:hover:not([disabled]) {
+  border-color: var(--dm-accent-border) !important;
+  color: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode .cwp-pager-count,
+body.editorial-v4.dark-mode .cwp-page-of,
+body.editorial-v4[data-theme="dark"] .cwp-pager-count {
+  color: var(--dm-muted) !important;
+}
+
+/* ── Icons (currentColor) ── */
+body.editorial-v4.dark-mode .line-icon,
+body.editorial-v4.dark-mode svg.line-icon,
+body.editorial-v4[data-theme="dark"] .line-icon {
+  stroke: currentColor;
+  color: inherit;
+}
+body.editorial-v4.dark-mode #main .panel .payment-icon-btn,
+body.editorial-v4.dark-mode #main .panel .tracker-open-btn,
+body.editorial-v4[data-theme="dark"] #main .panel .payment-icon-btn {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode #main .panel .payment-icon-btn:hover,
+body.editorial-v4[data-theme="dark"] #main .panel .payment-icon-btn:hover {
+  color: var(--dm-danger) !important;
+  background: var(--dm-danger-bg) !important;
+}
+
+/* ── CWP stars / reviews ── */
+body.editorial-v4.dark-mode .cwp-star,
+body.editorial-v4[data-theme="dark"] .cwp-star {
+  color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode .cwp-star.on,
+body.editorial-v4.dark-mode .cwp-star:hover,
+body.editorial-v4[data-theme="dark"] .cwp-star.on {
+  color: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode .cwp-review-btn,
+body.editorial-v4[data-theme="dark"] .cwp-review-btn {
+  border-color: var(--dm-border) !important;
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode .cwp-review-btn.has,
+body.editorial-v4[data-theme="dark"] .cwp-review-btn.has {
+  color: var(--dm-text) !important;
+}
+
+/* ── Theme picker ── */
+body.editorial-v4.dark-mode .theme-picker-menu,
+body.editorial-v4.dark-mode .theme-picker-option:hover,
+body.editorial-v4.dark-mode .theme-picker-option.active,
+body.editorial-v4[data-theme="dark"] .theme-picker-option.active {
+  background: var(--dm-popover) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .theme-picker-option.active,
+body.editorial-v4[data-theme="dark"] .theme-picker-option.active {
+  background: var(--dm-accent-bg) !important;
+  color: var(--dm-accent-soft) !important;
+}
+
+/* ── Empty states & help ── */
+body.editorial-v4.dark-mode #main .panel .smart-empty-note,
+body.editorial-v4.dark-mode #main .panel .v4-help-note,
+body.editorial-v4.dark-mode #main .panel .planner-table-col-tip,
+body.editorial-v4[data-theme="dark"] #main .panel .smart-empty-note {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode #main .panel .page-help-banner,
+body.editorial-v4.dark-mode #main .panel .ued-scripture,
+body.editorial-v4[data-theme="dark"] #main .panel .page-help-banner {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-muted) !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .page-scripture-footer,
+body.editorial-v4.dark-mode #main .panel .ued-scripture,
+body.editorial-v4.dark-mode #main .panel [class*="-scripture-footer"],
+body.editorial-v4[data-theme="dark"] #main .panel .page-scripture-footer,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-scripture,
+body.editorial-v4[data-theme="dark"] #main .panel [class*="-scripture-footer"] {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+/* ── Dividers ── */
+body.editorial-v4.dark-mode hr,
+body.editorial-v4.dark-mode .divider,
+body.editorial-v4.dark-mode .section-divider,
+body.editorial-v4[data-theme="dark"] hr {
+  border-color: var(--dm-border) !important;
+  background: var(--dm-border) !important;
+}
+
+/* ── Floor plan / table layout canvas ── */
+body.editorial-v4.dark-mode #main .panel #table-map,
+body.editorial-v4[data-theme="dark"] #main .panel #table-map {
+  background-color: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #main .panel .table-node,
+body.editorial-v4[data-theme="dark"] #main .panel .table-node {
+  background: var(--dm-accent-muted) !important;
+  color: var(--dm-head) !important;
+}
+
+/* ── Shot list tabs ── */
+body.editorial-v4.dark-mode .shotlist-tabs-shell,
+body.editorial-v4[data-theme="dark"] .shotlist-tabs-shell {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #panel-shotlist .shotlist-tabs-shell .m-tab.active,
+body.editorial-v4[data-theme="dark"] #panel-shotlist .shotlist-tabs-shell .m-tab.active {
+  background: var(--dm-surface-3) !important;
+  border-color: var(--dm-accent-border) !important;
+  color: var(--dm-head) !important;
+}
+
+/* ── Progress tracks ── */
+body.editorial-v4.dark-mode #main .panel .progress-track,
+body.editorial-v4.dark-mode #main .panel [class*="-track"]:not([class*="fill"]),
+body.editorial-v4[data-theme="dark"] #main .panel .progress-track {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+body.editorial-v4.dark-mode #main .panel .progress-fill,
+body.editorial-v4.dark-mode #main .panel [class*="-fill"],
+body.editorial-v4[data-theme="dark"] #main .panel .progress-fill {
+  background: var(--dm-accent-muted) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   V3 — DEEP PASS: banners, chrome, all panels, pop-outs, status semantics
+   Appended last within this file to win over planner.css dark fragments.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Global banners (outside #main) ── */
+body.editorial-v4.dark-mode #backup-banner,
+body.editorial-v4[data-theme="dark"] #backup-banner {
+  background: var(--dm-surface-2) !important;
+  border-bottom: 1px solid var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #backup-banner strong,
+body.editorial-v4[data-theme="dark"] #backup-banner strong {
+  color: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode #backup-banner .backup-banner-dismiss,
+body.editorial-v4[data-theme="dark"] #backup-banner .backup-banner-dismiss {
+  background: var(--dm-surface-3) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #backup-banner .backup-banner-dismiss:hover,
+body.editorial-v4[data-theme="dark"] #backup-banner .backup-banner-dismiss:hover {
+  background: var(--dm-surface-4, var(--dm-surface-3)) !important;
+  border-color: var(--dm-accent) !important;
+}
+body.editorial-v4.dark-mode .simple-mode-banner,
+body.editorial-v4[data-theme="dark"] .simple-mode-banner {
+  background: var(--dm-accent-bg) !important;
+  border-bottom: 1px solid var(--dm-accent-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .simple-mode-banner strong,
+body.editorial-v4[data-theme="dark"] .simple-mode-banner strong {
+  color: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode #storage-warning,
+body.editorial-v4[data-theme="dark"] #storage-warning {
+  background: var(--dm-danger-bg) !important;
+  border-bottom: 2px solid var(--dm-danger) !important;
+  color: #e8c8c4 !important;
+}
+body.editorial-v4.dark-mode #storage-warning strong,
+body.editorial-v4[data-theme="dark"] #storage-warning strong {
+  color: #e8a8a0 !important;
+}
+body.editorial-v4.dark-mode #storage-warning .sw-btn,
+body.editorial-v4[data-theme="dark"] #storage-warning .sw-btn {
+  background: var(--dm-surface-2) !important;
+  border: 1px solid var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #storage-warning .sw-backup,
+body.editorial-v4[data-theme="dark"] #storage-warning .sw-backup {
+  background: var(--dm-danger-bg) !important;
+  border-color: var(--dm-danger) !important;
+  color: #f0d4d0 !important;
+}
+body.editorial-v4.dark-mode #scripture-banner,
+body.editorial-v4[data-theme="dark"] #scripture-banner {
+  background: var(--dm-surface-2) !important;
+  border-bottom: 1px solid var(--dm-border) !important;
+  color: var(--dm-muted) !important;
+}
+
+/* ── Theme picker & swatches ── */
+body.editorial-v4.dark-mode .theme-picker-btn,
+body.editorial-v4[data-theme="dark"] .theme-picker-btn {
+  background: var(--dm-input) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .theme-picker-label,
+body.editorial-v4.dark-mode .theme-picker-name,
+body.editorial-v4.dark-mode .theme-picker-option,
+body.editorial-v4[data-theme="dark"] .theme-picker-label {
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .theme-picker-chevron,
+body.editorial-v4[data-theme="dark"] .theme-picker-chevron {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode .theme-swatch,
+body.editorial-v4[data-theme="dark"] .theme-swatch {
+  border-color: rgba(174, 188, 214, 0.35) !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45) inset !important;
+}
+body.editorial-v4.dark-mode .theme-picker-option:hover,
+body.editorial-v4.dark-mode .theme-picker-option.active,
+body.editorial-v4[data-theme="dark"] .theme-picker-option.active {
+  background: var(--dm-accent-bg) !important;
+}
+body.editorial-v4.dark-mode .theme-picker-option.active::after,
+body.editorial-v4[data-theme="dark"] .theme-picker-option.active::after {
+  color: var(--dm-accent-soft) !important;
+}
+
+/* ── Top chrome & nav drawer ── */
+body.editorial-v4.dark-mode #nav-toggle,
+body.editorial-v4.dark-mode #nav-close,
+body.editorial-v4.dark-mode #nav-expand,
+body.editorial-v4[data-theme="dark"] #nav-toggle {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .top-save-status,
+body.editorial-v4[data-theme="dark"] .top-save-status {
+  background: var(--dm-accent-bg) !important;
+  border: 1px solid var(--dm-accent-border) !important;
+  color: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode #nav-scrim,
+body.editorial-v4[data-theme="dark"] #nav-scrim {
+  background: rgba(4, 6, 10, 0.72) !important;
+}
+body.editorial-v4.dark-mode #sidebar .nav-label,
+body.editorial-v4.dark-mode #sidebar .side-photo-help,
+body.editorial-v4[data-theme="dark"] #sidebar .nav-label {
+  color: var(--dm-muted2) !important;
+}
+body.editorial-v4.dark-mode #sidebar .side-photo-cutout,
+body.editorial-v4.dark-mode #sidebar .side-photo-placeholder,
+body.editorial-v4[data-theme="dark"] #sidebar .side-photo-cutout {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-muted) !important;
+}
+
+/* ── Every panel shell ── */
+body.editorial-v4.dark-mode #main .panel,
+body.editorial-v4[data-theme="dark"] #main .panel {
+  background: var(--dm-page) !important;
+  color: var(--dm-text);
+}
+
+body.editorial-v4.dark-mode .app-bulk-card,
+body.editorial-v4.dark-mode .app-bulk-field select,
+body.editorial-v4.dark-mode .app-search-wrap input,
+body.editorial-v4[data-theme="dark"] .app-bulk-card {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .app-metric,
+body.editorial-v4.dark-mode .app-side-card,
+body.editorial-v4.dark-mode .smart-appointment-support-grid > *,
+body.editorial-v4[data-theme="dark"] .app-metric {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode .app-metric-value,
+body.editorial-v4.dark-mode .app-metric-label,
+body.editorial-v4[data-theme="dark"] .app-metric-value {
+  color: var(--dm-text) !important;
+}
+
+/* ── CWP status chip colors (softened dark fills) ── */
+body.editorial-v4.dark-mode .cwp-status--green,
+body.editorial-v4[data-theme="dark"] .cwp-status--green {
+  background: var(--dm-success-bg) !important;
+  color: var(--dm-success) !important;
+  border-color: rgba(127, 168, 146, 0.35) !important;
+}
+body.editorial-v4.dark-mode .cwp-status--gold,
+body.editorial-v4[data-theme="dark"] .cwp-status--gold {
+  background: var(--dm-warning-bg) !important;
+  color: var(--dm-warning) !important;
+  border-color: rgba(184, 160, 112, 0.35) !important;
+}
+body.editorial-v4.dark-mode .cwp-status--gray,
+body.editorial-v4[data-theme="dark"] .cwp-status--gray {
+  background: var(--dm-neutral-bg) !important;
+  color: var(--dm-neutral) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode .cwp-status--red,
+body.editorial-v4.dark-mode .cwp-status--redmuted,
+body.editorial-v4[data-theme="dark"] .cwp-status--red {
+  background: var(--dm-danger-bg) !important;
+  color: var(--dm-danger) !important;
+  border-color: rgba(196, 132, 122, 0.35) !important;
+}
+body.editorial-v4.dark-mode .cwp-status--blue,
+body.editorial-v4[data-theme="dark"] .cwp-status--blue {
+  background: var(--dm-info-bg) !important;
+  color: var(--dm-info) !important;
+  border-color: rgba(122, 148, 184, 0.35) !important;
+}
+
+/* ── Legacy status pills ── */
+body.editorial-v4.dark-mode .payment-status-paid,
+body.editorial-v4.dark-mode .payment-status-select.payment-status-paid,
+body.editorial-v4[data-theme="dark"] .payment-status-paid {
+  background: var(--dm-success-bg) !important;
+  color: var(--dm-success) !important;
+  border-color: rgba(127, 168, 146, 0.35) !important;
+}
+body.editorial-v4.dark-mode .payment-status-overdue,
+body.editorial-v4.dark-mode .payment-status-select.payment-status-overdue,
+body.editorial-v4[data-theme="dark"] .payment-status-overdue {
+  background: var(--dm-danger-bg) !important;
+  color: var(--dm-danger) !important;
+  border-color: rgba(196, 132, 122, 0.35) !important;
+}
+body.editorial-v4.dark-mode .guest-decision-pill,
+body.editorial-v4[data-theme="dark"] .guest-decision-pill {
+  background: var(--dm-neutral-bg) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode .guest-decision-pill.must-invite,
+body.editorial-v4[data-theme="dark"] .guest-decision-pill.must-invite {
+  background: var(--dm-success-bg) !important;
+  color: var(--dm-success) !important;
+}
+body.editorial-v4.dark-mode .guest-decision-pill.do-not-invite,
+body.editorial-v4[data-theme="dark"] .guest-decision-pill.do-not-invite {
+  background: var(--dm-danger-bg) !important;
+  color: var(--dm-danger) !important;
+}
+body.editorial-v4.dark-mode .app-status-confirmed,
+body.editorial-v4.dark-mode .app-status-completed,
+body.editorial-v4[data-theme="dark"] .app-status-confirmed {
+  background: var(--dm-success-bg) !important;
+  color: var(--dm-success) !important;
+  border-color: rgba(127, 168, 146, 0.35) !important;
+}
+body.editorial-v4.dark-mode .app-status-pending,
+body.editorial-v4.dark-mode .app-status-unconfirmed,
+body.editorial-v4[data-theme="dark"] .app-status-pending {
+  background: var(--dm-warning-bg) !important;
+  color: var(--dm-warning) !important;
+  border-color: rgba(184, 160, 112, 0.35) !important;
+}
+body.editorial-v4.dark-mode .app-status-cancelled,
+body.editorial-v4[data-theme="dark"] .app-status-cancelled {
+  background: var(--dm-danger-bg) !important;
+  color: var(--dm-danger) !important;
+}
+
+/* ── Theme Builder modal ── */
+body.editorial-v4.dark-mode .tb-overlay,
+body.editorial-v4[data-theme="dark"] .tb-overlay {
+  background: rgba(4, 6, 10, 0.72) !important;
+}
+body.editorial-v4.dark-mode .tb-modal,
+body.editorial-v4.dark-mode .tb-head,
+body.editorial-v4.dark-mode .tb-saved,
+body.editorial-v4.dark-mode .tb-actions,
+body.editorial-v4[data-theme="dark"] .tb-modal {
+  background: var(--dm-modal) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .tb-head h3,
+body.editorial-v4[data-theme="dark"] .tb-head h3 {
+  color: var(--dm-head) !important;
+}
+body.editorial-v4.dark-mode .tb-close,
+body.editorial-v4[data-theme="dark"] .tb-close {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode .tb-modal input,
+body.editorial-v4.dark-mode .tb-modal select,
+body.editorial-v4[data-theme="dark"] .tb-modal input {
+  background: var(--dm-input) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode .tb-save,
+body.editorial-v4[data-theme="dark"] .tb-save {
+  background: var(--dm-accent-muted) !important;
+  color: var(--dm-head) !important;
+  border-color: var(--dm-accent-border) !important;
+}
+
+/* ── Record editor & CWP modals ── */
+body.editorial-v4.dark-mode .record-editor-overlay,
+body.editorial-v4.dark-mode .cwp-modal-overlay,
+body.editorial-v4.dark-mode .modal-overlay,
+body.editorial-v4.dark-mode .smart-create-overlay,
+body.editorial-v4[data-theme="dark"] .record-editor-overlay {
+  background: rgba(4, 6, 10, 0.72) !important;
+}
+body.editorial-v4.dark-mode .record-editor-shell,
+body.editorial-v4.dark-mode .record-editor-section,
+body.editorial-v4.dark-mode .record-editor-nav,
+body.editorial-v4.dark-mode .record-editor-actions,
+body.editorial-v4.dark-mode .cwp-modal,
+body.editorial-v4.dark-mode .cwp-modal-shell,
+body.editorial-v4[data-theme="dark"] .record-editor-shell {
+  background: var(--dm-modal) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .record-editor-title,
+body.editorial-v4.dark-mode .record-editor-section h4,
+body.editorial-v4[data-theme="dark"] .record-editor-title {
+  color: var(--dm-head) !important;
+}
+body.editorial-v4.dark-mode .record-editor-nav button,
+body.editorial-v4.dark-mode .record-editor-close,
+body.editorial-v4[data-theme="dark"] .record-editor-nav button {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .record-editor-field input,
+body.editorial-v4.dark-mode .record-editor-field select,
+body.editorial-v4.dark-mode .record-editor-field textarea,
+body.editorial-v4[data-theme="dark"] .record-editor-field input {
+  background: var(--dm-input) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+
+/* ── Generic modals & confirmations ── */
+body.editorial-v4.dark-mode .modal,
+body.editorial-v4.dark-mode .modal-content,
+body.editorial-v4.dark-mode .modal-card,
+body.editorial-v4.dark-mode .smart-delete-confirm,
+body.editorial-v4[data-theme="dark"] .modal {
+  background: var(--dm-modal) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+  box-shadow: var(--dm-shadow-lg);
+}
+body.editorial-v4.dark-mode .modal h3,
+body.editorial-v4.dark-mode .smart-delete-confirm strong,
+body.editorial-v4[data-theme="dark"] .modal h3 {
+  color: var(--dm-head) !important;
+}
+body.editorial-v4.dark-mode .modal .btn,
+body.editorial-v4.dark-mode .modal-actions .btn,
+body.editorial-v4[data-theme="dark"] .modal .btn {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+/* ── History drawer ── */
+body.editorial-v4.dark-mode .history-drawer,
+body.editorial-v4.dark-mode .history-drawer-head,
+body.editorial-v4.dark-mode #history-drawer-body,
+body.editorial-v4[data-theme="dark"] .history-drawer {
+  background: var(--dm-modal) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode .history-drawer-item,
+body.editorial-v4[data-theme="dark"] .history-drawer-item {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode .history-drawer-time,
+body.editorial-v4[data-theme="dark"] .history-drawer-time {
+  color: var(--dm-muted) !important;
+}
+
+/* ── Popovers & pickers (body-level) ── */
+body.editorial-v4.dark-mode .payment-plan-popover,
+body.editorial-v4.dark-mode .payment-plan-popover-root,
+body.editorial-v4.dark-mode .review-popover,
+body.editorial-v4.dark-mode .field-picker,
+body.editorial-v4.dark-mode .record-picker,
+body.editorial-v4.dark-mode .col-filter-pop,
+body.editorial-v4.dark-mode #smart-month-picker,
+body.editorial-v4.dark-mode .shot-people-picker-pop,
+body.editorial-v4.dark-mode #quick-jump-drop,
+body.editorial-v4.dark-mode .topbar-notifications-drop,
+body.editorial-v4[data-theme="dark"] #quick-jump-drop,
+body.editorial-v4[data-theme="dark"] .topbar-notifications-drop,
+body.editorial-v4[data-theme="dark"] .payment-plan-popover {
+  background: var(--dm-popover) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+  box-shadow: var(--dm-shadow-lg);
+}
+body.editorial-v4.dark-mode .review-popover textarea,
+body.editorial-v4.dark-mode .payment-plan-popover input,
+body.editorial-v4.dark-mode .payment-plan-popover select,
+body.editorial-v4[data-theme="dark"] .review-popover textarea {
+  background: var(--dm-input) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode .col-filter-pop .cfp-btn-primary,
+body.editorial-v4[data-theme="dark"] .col-filter-pop .cfp-btn-primary {
+  background: var(--dm-accent-muted) !important;
+  color: var(--dm-head) !important;
+  border-color: var(--dm-accent-border) !important;
+}
+
+/* ── Global search results ── */
+body.editorial-v4.dark-mode .gs-results,
+body.editorial-v4[data-theme="dark"] .gs-results {
+  background: var(--dm-popover) !important;
+  border-color: var(--dm-border) !important;
+  box-shadow: var(--dm-shadow-lg);
+}
+body.editorial-v4.dark-mode .gs-results .gs-item,
+body.editorial-v4[data-theme="dark"] .gs-results .gs-item {
+  color: var(--dm-text) !important;
+  border-color: var(--dm-hair) !important;
+}
+body.editorial-v4.dark-mode .gs-results .gs-item:hover,
+body.editorial-v4.dark-mode .gs-results .gs-item[aria-selected="true"],
+body.editorial-v4[data-theme="dark"] .gs-results .gs-item:hover {
+  background: var(--dm-accent-bg) !important;
+}
+
+/* ── Instructions / FAQ / Guide content pages ── */
+body.editorial-v4.dark-mode #panel-instructions .inst-guide-item,
+body.editorial-v4.dark-mode #panel-instructions .inst-tip,
+body.editorial-v4.dark-mode #panel-instructions .inst-alert,
+body.editorial-v4.dark-mode #panel-faq .faq-item,
+body.editorial-v4.dark-mode #panel-guide .inst-guide-item,
+body.editorial-v4.dark-mode #panel-guide .pg-journey,
+body.editorial-v4.dark-mode #panel-guide .pg-md-detail,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-journey,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-detail,
+body.editorial-v4.dark-mode #panel-history .history-entry,
+body.editorial-v4[data-theme="dark"] #panel-faq .faq-item {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-md,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md {
+  border-top-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-track,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-track,
+body.editorial-v4.dark-mode #panel-guide .pg-dot,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-dot {
+  background: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-dot.on,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-dot.on {
+  background: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-j-title,
+body.editorial-v4.dark-mode #panel-guide .pg-md-title,
+body.editorial-v4.dark-mode #panel-guide .pg-j-body h4,
+body.editorial-v4.dark-mode #panel-guide .pg-md-body h4,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-j-title,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-title {
+  color: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-j-body,
+body.editorial-v4.dark-mode #panel-guide .pg-md-body,
+body.editorial-v4.dark-mode #panel-guide .pg-md-item,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-j-body,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-body,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-item {
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-step,
+body.editorial-v4.dark-mode #panel-guide .pg-md-cat,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-step,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-cat {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-j-eyebrow,
+body.editorial-v4.dark-mode #panel-guide .pg-md-tag,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-j-eyebrow,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-tag {
+  color: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-btn,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-btn {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-btn.primary,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-btn.primary {
+  background: var(--dm-accent) !important;
+  border-color: transparent !important;
+  color: var(--dm-on-accent) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-md-item:hover,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-item:hover {
+  background: var(--dm-surface-2) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-md-item.sel,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-item.sel {
+  background: var(--dm-accent-bg) !important;
+  border-left-color: var(--dm-accent-soft) !important;
+  color: var(--dm-accent-soft) !important;
+}
+body.editorial-v4.dark-mode #panel-guide .pg-j-body .inst-auto,
+body.editorial-v4.dark-mode #panel-guide .pg-md-body .inst-auto,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-j-body .inst-auto,
+body.editorial-v4[data-theme="dark"] #panel-guide .pg-md-body .inst-auto {
+  background: var(--dm-accent-bg) !important;
+  border-left-color: var(--dm-accent-soft) !important;
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #panel-instructions .inst-copy,
+body.editorial-v4.dark-mode #panel-instructions .inst-muted,
+body.editorial-v4.dark-mode #panel-faq .faq-a,
+body.editorial-v4[data-theme="dark"] #panel-instructions .inst-muted {
+  color: var(--dm-muted) !important;
+}
+body.editorial-v4.dark-mode #panel-instructions .inst-num,
+body.editorial-v4.dark-mode #panel-faq .faq-icon,
+body.editorial-v4[data-theme="dark"] #panel-instructions .inst-num {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-accent-soft) !important;
+}
+
+/* ── Mood board & media ── */
+body.editorial-v4.dark-mode #panel-mood .mood-card,
+body.editorial-v4.dark-mode #panel-mood .mood-upload-zone,
+body.editorial-v4.dark-mode #panel-mood .mood-season-btn,
+body.editorial-v4[data-theme="dark"] #panel-mood .mood-card {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+}
+body.editorial-v4.dark-mode #panel-mood .mood-card-caption,
+body.editorial-v4[data-theme="dark"] #panel-mood .mood-card-caption {
+  background: linear-gradient(transparent, rgba(8, 11, 18, 0.88)) !important;
+  color: var(--dm-text) !important;
+}
+
+/* ── Honeymoon / logistics / reflect / packets ── */
+body.editorial-v4.dark-mode #panel-honeymoon .hm-stat-card,
+body.editorial-v4.dark-mode #panel-honeymoon .hm-cc-card,
+body.editorial-v4.dark-mode #panel-logistics .log-card,
+body.editorial-v4.dark-mode #panel-reflect .rfl-panel,
+body.editorial-v4.dark-mode #panel-packets .share-card,
+body.editorial-v4.dark-mode #panel-emails .email-template-card,
+body.editorial-v4[data-theme="dark"] #panel-honeymoon .hm-stat-card {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+/* ── Smart calendar editor overlay ── */
+body.editorial-v4.dark-mode .smart-create-overlay .smart-create-card,
+body.editorial-v4.dark-mode .smart-selected-event,
+body.editorial-v4.dark-mode .smart-due-row,
+body.editorial-v4.dark-mode .smart-agenda-row,
+body.editorial-v4[data-theme="dark"] .smart-selected-event {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+/* ── Bulk bars & footers sitewide ── */
+body.editorial-v4.dark-mode .bulk-bar,
+body.editorial-v4.dark-mode .cwp-bulkbar,
+body.editorial-v4.dark-mode [class*="table-footer"],
+body.editorial-v4.dark-mode [class*="-pager"],
+body.editorial-v4[data-theme="dark"] .bulk-bar {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+/* ── Accordion / collapsible help ── */
+body.editorial-v4.dark-mode .page-help-banner,
+body.editorial-v4.dark-mode .m-help-toggle,
+body.editorial-v4.dark-mode [class*="help-banner"],
+body.editorial-v4.dark-mode details,
+body.editorial-v4.dark-mode summary,
+body.editorial-v4[data-theme="dark"] .page-help-banner {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+/* ── Charts / donuts (SVG text only) ── */
+body.editorial-v4.dark-mode #main .panel svg text,
+body.editorial-v4.dark-mode .ued-donut text,
+body.editorial-v4[data-theme="dark"] #main .panel svg text {
+  fill: var(--dm-head) !important;
+}
+
+/* ── Override legacy gold-tab active states from planner.css ── */
+body.editorial-v4.dark-mode #main .panel .m-tab.on,
+body.editorial-v4.dark-mode #sidebar .nav-item[aria-current="page"],
+body.editorial-v4[data-theme="dark"] #main .panel .m-tab.on {
+  background: var(--dm-accent-bg) !important;
+  color: var(--dm-accent-soft) !important;
+  border-color: var(--dm-accent-border) !important;
+  box-shadow: inset 3px 0 0 var(--dm-accent) !important;
+}
+
+/* ═══ Shell redesign — semantic tokens & new components (dark) ═══ */
+body.editorial-v4.dark-mode,
+body.editorial-v4[data-theme="dark"] {
+  --surface-canvas: var(--dm-page);
+  --surface-content: var(--dm-surface);
+  --surface-raised: var(--dm-surface-2);
+  --surface-footer: var(--dm-sidebar);
+  --surface-chrome: var(--dm-header);
+  --text-primary: var(--dm-text);
+  --text-muted: var(--dm-muted);
+  --border-subtle: var(--dm-border);
+}
+
+body.editorial-v4.dark-mode #nav-category-bar,
+body.editorial-v4[data-theme="dark"] #nav-category-bar {
+  background: var(--dm-header) !important;
+  border-bottom-color: var(--dm-border) !important;
+}
+
+body.editorial-v4.dark-mode .nav-cat-btn,
+body.editorial-v4[data-theme="dark"] .nav-cat-btn {
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode .nav-cat-btn .nav-cat-label,
+body.editorial-v4.dark-mode .nav-cat-btn > span:not(.material-symbols-sharp),
+body.editorial-v4[data-theme="dark"] .nav-cat-btn .nav-cat-label,
+body.editorial-v4[data-theme="dark"] .nav-cat-btn > span:not(.material-symbols-sharp) {
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode .nav-cat-btn:hover,
+body.editorial-v4.dark-mode .nav-cat-btn[aria-expanded="true"],
+body.editorial-v4[data-theme="dark"] .nav-cat-btn:hover {
+  background: var(--dm-accent-bg) !important;
+  color: var(--dm-accent-soft) !important;
+  border-bottom-color: var(--dm-accent) !important;
+}
+
+body.editorial-v4.dark-mode .nav-cat-dropdown,
+body.editorial-v4[data-theme="dark"] .nav-cat-dropdown {
+  background: var(--dm-popover) !important;
+  border-color: var(--dm-border) !important;
+  box-shadow: var(--dm-shadow-md) !important;
+}
+
+body.editorial-v4.dark-mode .nav-cat-page,
+body.editorial-v4[data-theme="dark"] .nav-cat-page {
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode .nav-cat-page:hover,
+body.editorial-v4.dark-mode .nav-cat-page.active,
+body.editorial-v4[data-theme="dark"] .nav-cat-page:hover {
+  background: var(--dm-accent-bg) !important;
+}
+
+body.editorial-v4.dark-mode #planner-footer,
+body.editorial-v4[data-theme="dark"] #planner-footer {
+  background: var(--dm-header) !important;
+  border-top: 1px solid var(--dm-border) !important;
+  color: var(--dm-muted) !important;
+}
+
+body.editorial-v4.dark-mode #planner-footer a,
+body.editorial-v4[data-theme="dark"] #planner-footer a,
+body.editorial-v4.dark-mode #planner-footer .footer-brand,
+body.editorial-v4.dark-mode #planner-footer .footer-brand__title,
+body.editorial-v4.dark-mode #planner-footer .footer-brand__desc,
+body.editorial-v4.dark-mode #planner-footer .footer-link,
+body.editorial-v4.dark-mode #planner-footer .footer-column__title,
+body.editorial-v4.dark-mode #planner-footer .footer-bottom__copy,
+body.editorial-v4[data-theme="dark"] #planner-footer .footer-brand,
+body.editorial-v4[data-theme="dark"] #planner-footer .footer-brand__title {
+  color: var(--dm-muted) !important;
+}
+
+body.editorial-v4.dark-mode #planner-footer .footer-brand__title,
+body.editorial-v4[data-theme="dark"] #planner-footer .footer-brand__title {
+  color: var(--dm-text) !important;
+  opacity: 0.88;
+}
+
+body.editorial-v4.dark-mode #planner-footer .footer-link:hover,
+body.editorial-v4.dark-mode #planner-footer a:hover,
+body.editorial-v4[data-theme="dark"] #planner-footer .footer-link:hover {
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode #planner-footer .footer-trust-row,
+body.editorial-v4.dark-mode #planner-footer .footer-trust-pill,
+body.editorial-v4[data-theme="dark"] #planner-footer .footer-trust-row,
+body.editorial-v4[data-theme="dark"] #planner-footer .footer-trust-pill {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: var(--dm-radius-sm, 2px) !important;
+  color: var(--dm-muted) !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4.dark-mode .app-card,
+body.editorial-v4.dark-mode .page-context-strip,
+body.editorial-v4.dark-mode .page-help-banner,
+body.editorial-v4.dark-mode .dash-foundation-meter,
+body.editorial-v4.dark-mode .dash-overview-more,
+body.editorial-v4[data-theme="dark"] .app-card {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode .dash-priority-row .next-step-card,
+body.editorial-v4[data-theme="dark"] .dash-priority-row .next-step-card {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+}
+
+body.editorial-v4.dark-mode .wiz-suggestion-chips button,
+body.editorial-v4[data-theme="dark"] .wiz-suggestion-chips button {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode .wz-gift-list li,
+body.editorial-v4[data-theme="dark"] .wz-gift-list li {
+  border-bottom-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode .wz-ready-progress,
+body.editorial-v4[data-theme="dark"] .wz-ready-progress {
+  background: linear-gradient(135deg, var(--dm-surface-2) 0%, var(--dm-elevated) 100%) !important;
+  border: 1px solid var(--dm-border);
+}
+
+body.editorial-v4.dark-mode .wizard-progress-wrap,
+body.editorial-v4[data-theme="dark"] .wizard-progress-wrap {
+  background: var(--dm-border) !important;
+}
+
+body.editorial-v4.dark-mode .sync-toast,
+body.editorial-v4[data-theme="dark"] .sync-toast {
+  background: var(--dm-elevated) !important;
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode #app-shell,
+body.editorial-v4[data-theme="dark"] #app-shell {
+  background: var(--dm-page) !important;
+}
+
+body.editorial-v4.dark-mode #main,
+body.editorial-v4[data-theme="dark"] #main {
+  background: var(--dm-page) !important;
+}
+
+/* UX kit — dark mode */
+body.editorial-v4.dark-mode .ux-goal-bar,
+body.editorial-v4[data-theme="dark"] .ux-goal-bar {
+  background: linear-gradient(135deg, var(--dm-surface-2) 0%, var(--dm-surface) 100%);
+  color: var(--dm-head);
+}
+
+body.editorial-v4.dark-mode .ux-goal-bar__k,
+body.editorial-v4.dark-mode .ux-goal-bar__cap,
+body.editorial-v4[data-theme="dark"] .ux-goal-bar__k,
+body.editorial-v4[data-theme="dark"] .ux-goal-bar__cap {
+  color: var(--dm-muted);
+}
+
+body.editorial-v4.dark-mode .ux-goal-bar__fill,
+body.editorial-v4[data-theme="dark"] .ux-goal-bar__fill {
+  background: var(--dm-accent-soft);
+}
+
+body.editorial-v4.dark-mode .ux-related-note,
+body.editorial-v4.dark-mode .ux-empty,
+body.editorial-v4.dark-mode .ux-risk-banner,
+body.editorial-v4.dark-mode .ux-stat,
+body.editorial-v4.dark-mode .ux-sequence-list,
+body.editorial-v4[data-theme="dark"] .ux-related-note,
+body.editorial-v4[data-theme="dark"] .ux-empty,
+body.editorial-v4[data-theme="dark"] .ux-risk-banner,
+body.editorial-v4[data-theme="dark"] .ux-stat,
+body.editorial-v4[data-theme="dark"] .ux-sequence-list {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode .ux-related-chip,
+body.editorial-v4.dark-mode .ux-empty__btn,
+body.editorial-v4.dark-mode .ux-risk-banner__action,
+body.editorial-v4.dark-mode .ux-risk-banner__dismiss,
+body.editorial-v4[data-theme="dark"] .ux-related-chip,
+body.editorial-v4[data-theme="dark"] .ux-empty__btn,
+body.editorial-v4[data-theme="dark"] .ux-risk-banner__action,
+body.editorial-v4[data-theme="dark"] .ux-risk-banner__dismiss {
+  background: var(--dm-surface-2) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode .ux-empty__btn--primary,
+body.editorial-v4.dark-mode .ux-celebrate__btn,
+body.editorial-v4[data-theme="dark"] .ux-empty__btn--primary,
+body.editorial-v4[data-theme="dark"] .ux-celebrate__btn {
+  background: var(--dm-accent) !important;
+  border-color: var(--dm-accent) !important;
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode .ux-celebrate,
+body.editorial-v4[data-theme="dark"] .ux-celebrate {
+  background: linear-gradient(135deg, var(--dm-surface-2), var(--dm-surface)) !important;
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode .ux-celebrate__burst,
+body.editorial-v4[data-theme="dark"] .ux-celebrate__burst {
+  background: var(--dm-accent) !important;
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode .ux-risk-banner--warn,
+body.editorial-v4[data-theme="dark"] .ux-risk-banner--warn {
+  background: var(--dm-danger-bg) !important;
+  border-color: color-mix(in srgb, var(--dm-danger) 35%, var(--dm-border)) !important;
+}
+
+body.editorial-v4.dark-mode .ux-risk-banner--info,
+body.editorial-v4[data-theme="dark"] .ux-risk-banner--info {
+  background: var(--dm-info-bg) !important;
+  border-color: color-mix(in srgb, var(--dm-info) 35%, var(--dm-border)) !important;
+}
+
+body.editorial-v4.dark-mode .ux-empty__title,
+body.editorial-v4.dark-mode .ux-risk-banner__body strong,
+body.editorial-v4.dark-mode .ux-stat__val,
+body.editorial-v4.dark-mode .ux-pill,
+body.editorial-v4[data-theme="dark"] .ux-empty__title,
+body.editorial-v4[data-theme="dark"] .ux-risk-banner__body strong,
+body.editorial-v4[data-theme="dark"] .ux-stat__val,
+body.editorial-v4[data-theme="dark"] .ux-pill {
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode .ux-empty__body,
+body.editorial-v4.dark-mode .ux-empty__hint,
+body.editorial-v4.dark-mode .ux-smart-hint,
+body.editorial-v4.dark-mode .ux-related-note__label,
+body.editorial-v4.dark-mode .ux-stat__label,
+body.editorial-v4.dark-mode .ux-risk-banner__body span,
+body.editorial-v4[data-theme="dark"] .ux-empty__body,
+body.editorial-v4[data-theme="dark"] .ux-empty__hint,
+body.editorial-v4[data-theme="dark"] .ux-smart-hint,
+body.editorial-v4[data-theme="dark"] .ux-related-note__label,
+body.editorial-v4[data-theme="dark"] .ux-stat__label,
+body.editorial-v4[data-theme="dark"] .ux-risk-banner__body span {
+  color: var(--dm-muted) !important;
+}
+
+body.editorial-v4.dark-mode .ux-social-proof,
+body.editorial-v4[data-theme="dark"] .ux-social-proof {
+  background: var(--dm-accent-bg) !important;
+  border-color: var(--dm-accent-border) !important;
+  color: var(--dm-head) !important;
+}
+
+/* Phase C responsive chrome — dark mode */
+body.editorial-v4.dark-mode.layout-mobile .ux-mobile-bottom-nav,
+body.editorial-v4[data-theme="dark"].layout-mobile .ux-mobile-bottom-nav {
+  background: var(--dm-panel, #1b1e24) !important;
+  border-top-color: var(--dm-line, #2a2f38) !important;
+}
+
+body.editorial-v4.dark-mode.layout-mobile .ux-mobile-bottom-nav button.active,
+body.editorial-v4[data-theme="dark"].layout-mobile .ux-mobile-bottom-nav button.active {
+  color: #f0f0f0 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.editorial-v4.dark-mode.layout-mobile .cwp-table tbody tr,
+body.editorial-v4[data-theme="dark"].layout-mobile .cwp-table tbody tr {
+  background: var(--dm-panel, #1b1e24) !important;
+  border-color: var(--dm-line, #2a2f38) !important;
+}
+
+body.editorial-v4.dark-mode.layout-tablet .ux-tablet-rail,
+body.editorial-v4[data-theme="dark"].layout-tablet .ux-tablet-rail {
+  background: #161616 !important;
+  border-right-color: #2e2e2e !important;
+}
+
+/* Phase E wizard polish — dark mode */
+body.editorial-v4.dark-mode .wz-theme-card,
+body.editorial-v4[data-theme="dark"] .wz-theme-card {
+  background: var(--dm-surface, #1b1e24) !important;
+  border-color: var(--dm-border, #2a2f38) !important;
+  color: var(--dm-text, #e8e4dc) !important;
+}
+
+body.editorial-v4.dark-mode .wz-theme-card.active,
+body.editorial-v4[data-theme="dark"] .wz-theme-card.active {
+  border-color: var(--dm-gold, #8a8a8a) !important;
+  box-shadow: 0 0 0 3px rgba(212, 184, 150, 0.18) !important;
+}
+
+body.editorial-v4.dark-mode .wz-budget-anchor,
+body.editorial-v4[data-theme="dark"] .wz-budget-anchor {
+  background: rgba(212, 184, 150, 0.12) !important;
+  color: var(--dm-muted, #a8a096) !important;
+}
+
+body.editorial-v4.dark-mode .wz-budget-anchor b,
+body.editorial-v4[data-theme="dark"] .wz-budget-anchor b {
+  color: var(--dm-head, #f0ebe3) !important;
+}
+
+body.editorial-v4.dark-mode .wiz-suggestion-chips .wiz-chip.active,
+body.editorial-v4[data-theme="dark"] .wiz-suggestion-chips .wiz-chip.active {
+  border-color: var(--dm-gold, #8a8a8a) !important;
+  background: rgba(212, 184, 150, 0.16) !important;
+}
+
+body.editorial-v4.dark-mode .ux-panel-skeleton,
+body.editorial-v4[data-theme="dark"] .ux-panel-skeleton {
+  background: color-mix(in srgb, var(--dm-panel, #1b1e24) 94%, transparent) !important;
+}
+
+/* ── Budget category grid cards ── */
+body.editorial-v4.dark-mode #panel-budget .bcard,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard {
+  background: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard:hover,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard:hover {
+  border-color: var(--dm-accent-border) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard.active,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard.active {
+  outline-color: var(--dm-accent-soft) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard.over,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard.over {
+  border-color: var(--dm-danger) !important;
+  background: var(--dm-danger-bg) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard-nm,
+body.editorial-v4.dark-mode #panel-budget .bcard-nums b,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard-nm,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard-nums b {
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard-pct,
+body.editorial-v4.dark-mode #panel-budget .bcard-nums,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard-pct,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard-nums {
+  color: var(--dm-muted) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard-track,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard-track {
+  background: var(--dm-border) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard-fill,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard-fill {
+  background: var(--dm-accent-muted) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard.over .bcard-fill,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard.over .bcard-fill {
+  background: var(--dm-danger) !important;
+}
+
+body.editorial-v4.dark-mode #panel-budget .bcard-over,
+body.editorial-v4[data-theme="dark"] #panel-budget .bcard-over {
+  color: var(--dm-danger) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MONOCHROME MOCKUP LOCK — card shapes, sidebar, chrome radii, leftover leaks
+   Source: mockups/monochrome-dark-mode-mockup.html
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Flat 2–3px card / panel shapes ── */
+body.editorial-v4.dark-mode #main .panel .ued-panel,
+body.editorial-v4.dark-mode #main .panel .ued-stat,
+body.editorial-v4.dark-mode #main .panel .m-stat,
+body.editorial-v4.dark-mode #main .panel .cdc-tile,
+body.editorial-v4.dark-mode #main .panel .ued-countdown-c,
+body.editorial-v4.dark-mode #main .panel .essentials-hub-card,
+body.editorial-v4.dark-mode #main .panel .dash-breakdown-card,
+body.editorial-v4.dark-mode #main .panel .dash-breakdown-card > *,
+body.editorial-v4.dark-mode #main .panel .m-block,
+body.editorial-v4.dark-mode #main .panel .m-card,
+body.editorial-v4.dark-mode #main .panel .app-card,
+body.editorial-v4.dark-mode #main .panel .note-card,
+body.editorial-v4.dark-mode #main .panel .ued-table-card,
+body.editorial-v4.dark-mode #main .panel .stat-card,
+body.editorial-v4.dark-mode #main .panel .bcard,
+body.editorial-v4.dark-mode #main .panel input:not([type="checkbox"]):not([type="radio"]),
+body.editorial-v4.dark-mode #main .panel select,
+body.editorial-v4.dark-mode #main .panel textarea,
+body.editorial-v4.dark-mode #main .panel .btn,
+body.editorial-v4.dark-mode #main .panel .ued-btn,
+body.editorial-v4.dark-mode #topbar .btn,
+body.editorial-v4.dark-mode #topbar .btn-gold,
+body.editorial-v4.dark-mode #topbar .global-search,
+body.editorial-v4.dark-mode #topbar input,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-panel,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-stat,
+body.editorial-v4[data-theme="dark"] #main .panel .cdc-tile,
+body.editorial-v4[data-theme="dark"] #main .panel .btn,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-btn {
+  border-radius: var(--dm-radius, 3px) !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .ued-stat,
+body.editorial-v4.dark-mode #main .panel .m-stat,
+body.editorial-v4.dark-mode #main .panel .cdc-tile,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-stat,
+body.editorial-v4[data-theme="dark"] #main .panel .cdc-tile {
+  background: var(--dm-surface-2) !important;
+  border: 1px solid var(--dm-border-soft) !important;
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .ued-band > .ued-stat,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-band > .ued-stat {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .essentials-hub-card,
+body.editorial-v4.dark-mode #main .panel [data-dash-card="essentials-hub"] > *,
+body.editorial-v4[data-theme="dark"] #main .panel .essentials-hub-card {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: var(--dm-radius, 3px) !important;
+  box-shadow: none !important;
+  color: var(--dm-text) !important;
+}
+
+/* Kill cream / white / ivory leftovers under main */
+body.editorial-v4.dark-mode #main .panel [style*="background: #fff"],
+body.editorial-v4.dark-mode #main .panel [style*="background:#fff"],
+body.editorial-v4.dark-mode #main .panel [style*="background: white"],
+body.editorial-v4.dark-mode #main .panel [style*="background:#f"],
+body.editorial-v4[data-theme="dark"] #main .panel .ued-paper,
+body.editorial-v4[data-theme="dark"] #main .panel .paper {
+  background: var(--dm-surface) !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .ued-fill,
+body.editorial-v4.dark-mode #main .panel .ued-bar-fill,
+body.editorial-v4.dark-mode #main .panel .ued-vbar-fill,
+body.editorial-v4.dark-mode #main .panel .breakdown-fill,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-fill {
+  background: #cfcfcf !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .ued-track,
+body.editorial-v4.dark-mode #main .panel .ued-bar-track,
+body.editorial-v4.dark-mode #main .panel .breakdown-track,
+body.editorial-v4[data-theme="dark"] #main .panel .ued-track {
+  background: var(--dm-elevated) !important;
+  border-radius: 1px !important;
+}
+
+/* Topbar: charcoal chrome buttons (Dark Mode primary stays near-white) */
+body.editorial-v4.dark-mode #topbar .btn-gold,
+body.editorial-v4.dark-mode #topbar .btn,
+body.editorial-v4[data-theme="dark"] #topbar .btn-gold {
+  background: var(--dm-surface) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: var(--dm-radius, 3px) !important;
+}
+body.editorial-v4.dark-mode #topbar #dark-mode-btn,
+body.editorial-v4[data-theme="dark"] #topbar #dark-mode-btn {
+  background: var(--dm-accent) !important;
+  color: var(--dm-on-accent) !important;
+  border-color: transparent !important;
+}
+body.editorial-v4.dark-mode #topbar .btn-forest,
+body.editorial-v4[data-theme="dark"] #topbar .btn-forest {
+  background: var(--dm-accent) !important;
+  color: var(--dm-on-accent) !important;
+  border-color: transparent !important;
+}
+
+body.editorial-v4.dark-mode #topbar,
+body.editorial-v4.dark-mode #nav-category-bar,
+body.editorial-v4[data-theme="dark"] #topbar,
+body.editorial-v4[data-theme="dark"] #nav-category-bar {
+  background: var(--dm-header) !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4.dark-mode .nav-category-bar button,
+body.editorial-v4[data-theme="dark"] .nav-category-bar button {
+  color: var(--dm-muted) !important;
+  border-radius: 0 !important;
+}
+body.editorial-v4.dark-mode .nav-category-bar button:hover,
+body.editorial-v4.dark-mode .nav-category-bar button.is-active,
+body.editorial-v4.dark-mode .nav-category-bar button[aria-current="true"],
+body.editorial-v4[data-theme="dark"] .nav-category-bar button:hover {
+  color: var(--dm-text) !important;
+  background: transparent !important;
+}
+
+/* ── Context sidebar — no cream / navy / forest chips ── */
+body.editorial-v4.dark-mode #planner-context-sidebar,
+body.editorial-v4.dark-mode #planner-context-sidebar .planner-context-sidebar__scroll,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-divider,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-head,
+body.editorial-v4.dark-mode #context-sidebar-expand-tab,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-head {
+  background: var(--dm-sidebar) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-head__kicker,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-block__title,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-head__kicker {
+  color: var(--dm-placeholder) !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-head__title,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-stat__val,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-head__title {
+  color: var(--dm-text) !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-stat__lbl,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-stat__lbl {
+  color: var(--dm-muted) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-stat,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-stat {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border-soft) !important;
+  border-radius: var(--dm-radius, 3px) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-actions .ued-btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-actions .btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-actions button,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-actions .ued-btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-actions button,
+body.editorial-v4.dark-mode #planner-context-sidebar .ued-btn,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .ued-btn {
+  background: var(--dm-surface) !important;
+  color: var(--dm-text) !important;
+  border: 1px solid var(--dm-border) !important;
+  border-radius: var(--dm-radius, 3px) !important;
+  box-shadow: none !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-actions .ued-btn:hover,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-actions .ued-btn:hover,
+body.editorial-v4.dark-mode #planner-context-sidebar .ued-btn:hover,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .ued-btn:hover {
+  background: var(--dm-surface-2) !important;
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-chip,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-chip {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+  color: var(--dm-text) !important;
+  border-radius: var(--dm-radius, 3px) !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-chip.is-active,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-chip.is-active {
+  background: var(--dm-surface-3) !important;
+  border-color: var(--dm-accent-border) !important;
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-alert,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-global-alert {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border-soft) !important;
+  color: var(--dm-muted) !important;
+  border-radius: var(--dm-radius, 3px) !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-alert strong {
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-list button,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-global-list button {
+  background: transparent !important;
+  color: var(--dm-text) !important;
+  border-radius: var(--dm-radius-sm, 2px) !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-list button:hover,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-queue li.is-clickable:hover,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-global-list button:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--dm-head) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-star-btn,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-star-btn {
+  color: var(--dm-placeholder) !important;
+  opacity: 1 !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-star-btn.is-fav,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-star-btn.is-fav {
+  color: var(--dm-text) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-badge,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-badge--warn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-badge--ok,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-badge {
+  background: var(--dm-surface-3) !important;
+  color: var(--dm-text) !important;
+  border-radius: var(--dm-radius-sm, 2px) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-sync-row button,
+body.editorial-v4.dark-mode #planner-context-sidebar a,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-sync-row button {
+  color: var(--dm-accent-text) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-queue button,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-queue button {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+  color: var(--dm-text) !important;
+  border-radius: var(--dm-radius-sm, 2px) !important;
+}
+
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-reminder,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar .pcs-reminder {
+  background: var(--dm-surface) !important;
+  border: 1px solid var(--dm-border) !important;
+  color: var(--dm-muted) !important;
+  border-radius: var(--dm-radius, 3px) !important;
+}
+
+/* Footer bottom legal row */
+body.editorial-v4.dark-mode #planner-footer .footer-bottom,
+body.editorial-v4[data-theme="dark"] #planner-footer .footer-bottom {
+  border-top: 1px solid var(--dm-hair) !important;
+  color: var(--dm-placeholder) !important;
+}
+body.editorial-v4.dark-mode #planner-footer .footer-column__title,
+body.editorial-v4[data-theme="dark"] #planner-footer .footer-column__title {
+  color: var(--dm-placeholder) !important;
+}
+
+/* Wizard leftovers that still used gold tint */
+body.editorial-v4.dark-mode .wz-theme-card.active,
+body.editorial-v4[data-theme="dark"] .wz-theme-card.active {
+  border-color: var(--dm-accent-border) !important;
+  box-shadow: 0 0 0 2px var(--dm-accent-bg) !important;
+}
+body.editorial-v4.dark-mode .wz-budget-anchor,
+body.editorial-v4.dark-mode .wiz-suggestion-chips .wiz-chip.active,
+body.editorial-v4[data-theme="dark"] .wz-budget-anchor,
+body.editorial-v4[data-theme="dark"] .wiz-suggestion-chips .wiz-chip.active {
+  background: var(--dm-accent-bg) !important;
+  border-color: var(--dm-accent-border) !important;
+  color: var(--dm-muted) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EXHAUSTIVE MONOCHROME SWEEP — loads last; beats gold/green/cream/low-contrast
+   Covers: Get Started, Data Hub, icons, tables, footer, CWP, every panel
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Force greyscale tokens with !important so leftover gold/green vars die */
+body.editorial-v4.dark-mode,
+body.editorial-v4[data-theme="dark"] {
+  --gold: #8a8a8a !important;
+  --gold-lt: #cfcfcf !important;
+  --gold-pale: #222222 !important;
+  --forest: #cfcfcf !important;
+  --forest-lt: #dcdcdc !important;
+  --forest-deep: #b8b8b8 !important;
+  --forest-deeper: #333333 !important;
+  --theme-primary: #222222 !important;
+  --theme-accent: #cfcfcf !important;
+  --er-forest: #cfcfcf !important;
+  --v4-forest: #cfcfcf !important;
+  --v4-gold: #8a8a8a !important;
+  --ued-forest: #cfcfcf !important;
+  --ued-gold: #8a8a8a !important;
+  --cwp-accent: #cfcfcf !important;
+  --dm-gold: #8a8a8a !important;
+  --dm-accent: #ececec !important;
+  --dm-accent-2: #cfcfcf !important;
+  --dm-accent-soft: #cfcfcf !important;
+  --dm-accent-text: #cfcfcf !important;
+  --dm-on-accent: #111111 !important;
+  --champagne-soft: #222222 !important;
+  --line: #2e2e2e !important;
+  --border: #2e2e2e !important;
+  --paper: #1a1a1a !important;
+  --ivory: #111111 !important;
+  --muted: #8a8a8a !important;
+  --text: #e6e6e6 !important;
+  --card: #1a1a1a !important;
+}
+
+/* ── Get Started / Instructions — kill cream cards + gold lines ── */
+body.editorial-v4.dark-mode #panel-instructions .inst-card,
+body.editorial-v4.dark-mode #panel-instructions .inst-welcome,
+body.editorial-v4.dark-mode #panel-instructions .inst-step,
+body.editorial-v4.dark-mode #panel-instructions .inst-tip,
+body.editorial-v4.dark-mode #panel-instructions .inst-note-box,
+body.editorial-v4.dark-mode #panel-instructions .inst-backup-item,
+body.editorial-v4.dark-mode #panel-instructions .inst-action-card,
+body.editorial-v4.dark-mode #panel-instructions .inst-guide-item,
+body.editorial-v4.dark-mode #panel-instructions .inst-alert,
+body.editorial-v4.dark-mode #panel-instructions .inst-alone,
+body.editorial-v4.dark-mode #panel-instructions .inst-quote,
+body.editorial-v4[data-theme="dark"] #panel-instructions .inst-card {
+  background: #1a1a1a !important;
+  border: 1px solid #2e2e2e !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+  color: #e6e6e6 !important;
+}
+
+body.editorial-v4.dark-mode #panel-instructions .inst-title,
+body.editorial-v4.dark-mode #panel-instructions .inst-card-title,
+body.editorial-v4.dark-mode #panel-instructions .inst-section-title,
+body.editorial-v4.dark-mode #panel-instructions .inst-step h4,
+body.editorial-v4.dark-mode #panel-instructions .inst-tip h4,
+body.editorial-v4.dark-mode #panel-instructions .inst-alone h3,
+body.editorial-v4.dark-mode #panel-instructions .inst-action-card h3,
+body.editorial-v4[data-theme="dark"] #panel-instructions .inst-title {
+  color: #f0f0f0 !important;
+}
+
+body.editorial-v4.dark-mode #panel-instructions .inst-kicker,
+body.editorial-v4.dark-mode #panel-instructions .leaf-orn,
+body.editorial-v4.dark-mode #panel-instructions .inst-title-wrap .leaf-orn,
+body.editorial-v4.dark-mode #panel-instructions .inst-emblem,
+body.editorial-v4[data-theme="dark"] #panel-instructions .inst-kicker {
+  color: #cfcfcf !important;
+}
+
+body.editorial-v4.dark-mode #panel-instructions .inst-copy,
+body.editorial-v4.dark-mode #panel-instructions .inst-step p,
+body.editorial-v4.dark-mode #panel-instructions .inst-tip p,
+body.editorial-v4.dark-mode #panel-instructions .inst-backup-item p,
+body.editorial-v4.dark-mode #panel-instructions .inst-action-card p,
+body.editorial-v4.dark-mode #panel-instructions .inst-note-box p,
+body.editorial-v4[data-theme="dark"] #panel-instructions .inst-copy {
+  color: #e6e6e6 !important;
+}
+
+body.editorial-v4.dark-mode #panel-instructions .inst-muted,
+body.editorial-v4.dark-mode #panel-instructions .inst-section-sub,
+body.editorial-v4.dark-mode #panel-instructions .inst-disclaimer,
+body.editorial-v4.dark-mode #panel-instructions .inst-quote-ref,
+body.editorial-v4[data-theme="dark"] #panel-instructions .inst-muted {
+  color: #8a8a8a !important;
+}
+
+body.editorial-v4.dark-mode #panel-instructions .inst-emblem,
+body.editorial-v4.dark-mode #panel-instructions .inst-round-icon,
+body.editorial-v4.dark-mode #panel-instructions .inst-num,
+body.editorial-v4.dark-mode #panel-instructions .bec-icon,
+body.editorial-v4[data-theme="dark"] #panel-instructions .inst-emblem {
+  background: #222222 !important;
+  border: 1px solid #2e2e2e !important;
+  color: #e6e6e6 !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4.dark-mode #panel-instructions .inst-emblem svg,
+body.editorial-v4.dark-mode #panel-instructions .inst-round-icon svg,
+body.editorial-v4.dark-mode #panel-instructions .bec-icon svg,
+body.editorial-v4.dark-mode #panel-instructions .leaf-orn,
+body.editorial-v4[data-theme="dark"] #panel-instructions svg {
+  color: #cfcfcf !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+body.editorial-v4.dark-mode #panel-instructions [style*="background"],
+body.editorial-v4.dark-mode #panel-instructions .inst-card[style] {
+  background-color: #1a1a1a !important;
+}
+
+/* Start-here / essentials hub / backup callouts on any page */
+body.editorial-v4.dark-mode #start-here-card,
+body.editorial-v4.dark-mode .backup-education-callout,
+body.editorial-v4.dark-mode .essentials-hub-card,
+body.editorial-v4.dark-mode .blended-family-prompt,
+body.editorial-v4.dark-mode .ess-hub-link,
+body.editorial-v4[data-theme="dark"] .essentials-hub-card {
+  background: #1a1a1a !important;
+  border: 1px solid #2e2e2e !important;
+  color: #e6e6e6 !important;
+  box-shadow: none !important;
+  border-radius: 3px !important;
+}
+body.editorial-v4.dark-mode #start-here-card .sh-kicker,
+body.editorial-v4.dark-mode #start-here-card .sh-progress,
+body.editorial-v4.dark-mode .ess-hub-kicker {
+  color: #8a8a8a !important;
+}
+body.editorial-v4.dark-mode #start-here-card .sh-title,
+body.editorial-v4.dark-mode .ess-hub-title,
+body.editorial-v4.dark-mode .bec-title,
+body.editorial-v4.dark-mode .bfp-title {
+  color: #f0f0f0 !important;
+}
+body.editorial-v4.dark-mode #start-here-card .sh-lead,
+body.editorial-v4.dark-mode .ess-hub-lead,
+body.editorial-v4.dark-mode .ess-hub-note,
+body.editorial-v4.dark-mode .backup-education-callout p {
+  color: #b8b8b8 !important;
+}
+body.editorial-v4.dark-mode #start-here-card .sh-bar {
+  background: #2a2a2a !important;
+}
+body.editorial-v4.dark-mode #start-here-card .sh-bar i {
+  background: #cfcfcf !important;
+}
+
+/* ── Data Hub sidebar — readable light text/icons on charcoal ── */
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-sidebar,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-sidebar {
+  background: #161616 !important;
+  border-right: 1px solid #2e2e2e !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-cat-btn {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #cfcfcf !important;
+  border-radius: 3px !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn .material-symbols-sharp,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn svg,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-cat-btn .material-symbols-sharp {
+  color: #e6e6e6 !important;
+  opacity: 1 !important;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn:hover,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-cat-btn:hover {
+  background: #222222 !important;
+  border-color: #2e2e2e !important;
+  color: #f0f0f0 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn.active,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-cat-btn.active {
+  background: #ececec !important;
+  border-color: transparent !important;
+  color: #111111 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn.active .material-symbols-sharp,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-cat-btn.active .material-symbols-sharp {
+  color: #111111 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-head h2,
+body.editorial-v4.dark-mode #panel-data-hub .hub-link,
+body.editorial-v4.dark-mode #panel-data-hub .budget-preview-chip b,
+body.editorial-v4.dark-mode #panel-data-hub .contract-money-display,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-head h2 {
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-head p,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-table-tab,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-head p {
+  color: #8a8a8a !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-table-tab.active,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-table-tab.active {
+  background: #ececec !important;
+  color: #111111 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-table-tabs,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-toolbar,
+body.editorial-v4.dark-mode #panel-data-hub .preview-foot {
+  border-color: #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-main,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-main {
+  background: #111111 !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub [class*="data-hub-"][class*="-mount"] .cwp-section,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-catering-mount .cwp-section {
+  border: 1px solid #2e2e2e !important;
+  border-radius: 3px !important;
+  background: #1a1a1a !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .contract-row-icon,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .contract-row-icon {
+  background: #222222 !important;
+  color: #e6e6e6 !important;
+  border: 1px solid #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .contract-status-select,
+body.editorial-v4.dark-mode #panel-data-hub .contract-file-pill,
+body.editorial-v4.dark-mode #panel-data-hub .budget-preview-chip {
+  background: #1a1a1a !important;
+  border-color: #2e2e2e !important;
+  color: #e6e6e6 !important;
+  border-radius: 3px !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .contract-status-select.signed,
+body.editorial-v4.dark-mode #panel-data-hub .contract-status-select.paid,
+body.editorial-v4.dark-mode #panel-data-hub .contract-status-select.invoiced,
+body.editorial-v4.dark-mode #panel-data-hub .contract-status-select.not-signed {
+  color: #e6e6e6 !important;
+  background: #222222 !important;
+  border-color: #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .hub-link:hover {
+  color: #ffffff !important;
+}
+
+/* ── Global: kill gold/green text + borders on every panel ── */
+body.editorial-v4.dark-mode #main .panel,
+body.editorial-v4.dark-mode #main .panel * {
+  border-color: #2e2e2e;
+}
+body.editorial-v4.dark-mode #main .panel a,
+body.editorial-v4.dark-mode #main .panel .link,
+body.editorial-v4.dark-mode #main .panel .hub-link,
+body.editorial-v4.dark-mode #main .panel [class*="-link"],
+body.editorial-v4.dark-mode #main .panel .ued-link {
+  color: #cfcfcf !important;
+}
+body.editorial-v4.dark-mode #main .panel a:hover,
+body.editorial-v4.dark-mode #main .panel .hub-link:hover,
+body.editorial-v4.dark-mode #main .panel .ued-link:hover {
+  color: #ffffff !important;
+}
+
+/* Hardcoded gold/green hex leftovers → greyscale */
+body.editorial-v4.dark-mode #main .panel [style*="#B89968"],
+body.editorial-v4.dark-mode #main .panel [style*="#b89968"],
+body.editorial-v4.dark-mode #main .panel [style*="#C7A66B"],
+body.editorial-v4.dark-mode #main .panel [style*="#DcC088"],
+body.editorial-v4.dark-mode #main .panel [style*="#2D4A3E"],
+body.editorial-v4.dark-mode #main .panel [style*="#2d4a3e"] {
+  color: #cfcfcf !important;
+}
+
+/* Cream / near-white card backgrounds that leak under dark mode */
+body.editorial-v4.dark-mode #main .panel [class*="card"],
+body.editorial-v4.dark-mode #main .panel [class*="-box"],
+body.editorial-v4.dark-mode #main .panel [class*="-tile"],
+body.editorial-v4.dark-mode #main .panel [class*="-panel"],
+body.editorial-v4.dark-mode #main .panel [class*="-well"],
+body.editorial-v4.dark-mode #main .panel [class*="-banner"],
+body.editorial-v4.dark-mode #main .panel [class*="-callout"],
+body.editorial-v4.dark-mode #main .panel [class*="-prompt"],
+body.editorial-v4.dark-mode #main .panel [class*="-note"],
+body.editorial-v4.dark-mode #main .panel [class*="chip"] {
+  background-color: #1a1a1a !important;
+  border-color: #2e2e2e !important;
+  color: #e6e6e6 !important;
+  box-shadow: none !important;
+}
+
+/* Icon holders — charcoal fill + light icon (readable) */
+body.editorial-v4.dark-mode #main .panel .faq-icon,
+body.editorial-v4.dark-mode #main .panel .inst-round-icon,
+body.editorial-v4.dark-mode #main .panel .inst-emblem,
+body.editorial-v4.dark-mode #main .panel .inst-num,
+body.editorial-v4.dark-mode #main .panel .cat-section-icon,
+body.editorial-v4.dark-mode #main .panel .budget-cat-icon,
+body.editorial-v4.dark-mode #main .panel .smart-side-icon,
+body.editorial-v4.dark-mode #main .panel .wday-contact-icon,
+body.editorial-v4.dark-mode #main .panel .ent-small-icon,
+body.editorial-v4.dark-mode #main .panel .notes-small-icon,
+body.editorial-v4.dark-mode #main .panel .notes-pinned-icon,
+body.editorial-v4.dark-mode #main .panel .app-side-icon,
+body.editorial-v4.dark-mode #main .panel .contract-row-icon,
+body.editorial-v4.dark-mode #main .panel .vendor-row-icon,
+body.editorial-v4.dark-mode #main .panel .venue-media-icon,
+body.editorial-v4.dark-mode #main .panel .next-step-icon,
+body.editorial-v4.dark-mode #main .panel .guide-path-num,
+body.editorial-v4.dark-mode #main .panel .setup-photo-plus,
+body.editorial-v4.dark-mode #main .panel .bec-icon,
+body.editorial-v4.dark-mode #main .panel .brand-mark,
+body.editorial-v4.dark-mode #main .panel [class*="-icon"]:not(svg):not(img):not(.material-symbols-sharp),
+body.editorial-v4[data-theme="dark"] #main .panel .inst-round-icon {
+  background: #222222 !important;
+  border: 1px solid #3a3a3a !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #main .panel [class*="-icon"] svg,
+body.editorial-v4.dark-mode #main .panel [class*="-icon"] .material-symbols-sharp,
+body.editorial-v4.dark-mode #main .panel .material-symbols-sharp {
+  color: #e6e6e6 !important;
+  stroke: currentColor !important;
+}
+
+/* Tabs — no gold wash */
+body.editorial-v4.dark-mode #main .panel .m-tabbar .active,
+body.editorial-v4.dark-mode #main .panel .m-tabbar [aria-selected="true"],
+body.editorial-v4.dark-mode #main .panel [class*="tabbar"] .active,
+body.editorial-v4.dark-mode #main .panel [class*="-tabs"] .active,
+body.editorial-v4.dark-mode #main .panel [class*="-tab"].active {
+  background: #2a2a2a !important;
+  color: #f0f0f0 !important;
+  border-color: #3a3a3a !important;
+  box-shadow: none !important;
+}
+
+/* Buttons — no gold/forest */
+body.editorial-v4.dark-mode #main .panel .btn-gold,
+body.editorial-v4.dark-mode #topbar .btn-gold,
+body.editorial-v4.dark-mode .btn-gold {
+  background: #222222 !important;
+  color: #e6e6e6 !important;
+  border: 1px solid #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #main .panel .btn-forest,
+body.editorial-v4.dark-mode #main .panel .btn.primary,
+body.editorial-v4.dark-mode #main .panel .ued-btn.primary,
+body.editorial-v4.dark-mode .btn-forest {
+  background: #ececec !important;
+  color: #111111 !important;
+  border-color: transparent !important;
+}
+
+/* CWP / stars / pagination — no gold */
+body.editorial-v4.dark-mode .cwp-star.on,
+body.editorial-v4.dark-mode .cwp-star:hover,
+body.editorial-v4.dark-mode .cwp-page-btn:hover:not([disabled]),
+body.editorial-v4.dark-mode #cwp-vendorCompare .vcmp-h2h-choose button.win {
+  color: #e6e6e6 !important;
+  border-color: #3a3a3a !important;
+  background: #2a2a2a !important;
+}
+
+/* Progress / bar fills — light grey not gold/green */
+body.editorial-v4.dark-mode #main .panel .ued-fill,
+body.editorial-v4.dark-mode #main .panel .ued-bar-fill,
+body.editorial-v4.dark-mode #main .panel .ued-vbar-fill,
+body.editorial-v4.dark-mode #main .panel [class*="-fill"]:not(input):not(svg),
+body.editorial-v4.dark-mode #main .panel .sh-bar i,
+body.editorial-v4.dark-mode #main .panel .bcard-fill {
+  background: #cfcfcf !important;
+  background-color: #cfcfcf !important;
+}
+
+/* Table headers — charcoal, not forest green */
+body.editorial-v4.dark-mode #main .panel table thead th,
+body.editorial-v4.dark-mode #main .panel .cwp-table thead th,
+body.editorial-v4.dark-mode .cwp-table thead th {
+  --forest: #222222 !important;
+  --gold: #222222 !important;
+  --theme-primary: #222222 !important;
+  --er-forest: #222222 !important;
+  --v4-forest: #222222 !important;
+  background: #222222 !important;
+  color: #b8b8b8 !important;
+  border-color: #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #main .panel table thead th *,
+body.editorial-v4.dark-mode .cwp-table thead th * {
+  color: #b8b8b8 !important;
+}
+
+/* Footer — no gold titles/lines */
+body.editorial-v4.dark-mode #planner-footer,
+body.editorial-v4.dark-mode #planner-footer *,
+body.editorial-v4.dark-mode #main .footer-brand__title,
+body.editorial-v4.dark-mode #main .footer-brand__desc,
+body.editorial-v4.dark-mode #main .footer-brand__faith,
+body.editorial-v4.dark-mode #main .footer-brand__reassurance,
+body.editorial-v4.dark-mode #main .footer-column__title,
+body.editorial-v4.dark-mode #main .footer-link,
+body.editorial-v4.dark-mode #main .footer-bottom {
+  color: #8a8a8a !important;
+  border-color: #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #planner-footer .footer-brand__title,
+body.editorial-v4.dark-mode #main .footer-brand__title {
+  color: #cfcfcf !important;
+}
+body.editorial-v4.dark-mode #planner-footer .footer-link:hover,
+body.editorial-v4.dark-mode #main .footer-link:hover {
+  color: #e6e6e6 !important;
+}
+
+/* Nav category active — no gold underline wash */
+body.editorial-v4.dark-mode .nav-category-bar button.is-active,
+body.editorial-v4.dark-mode .nav-category-bar button[aria-current="true"],
+body.editorial-v4.dark-mode .nav-cat-page.active {
+  color: #f0f0f0 !important;
+  background: transparent !important;
+  box-shadow: inset 0 -2px 0 #cfcfcf !important;
+}
+
+/* Mobile/tablet chrome leftovers that still used gold */
+body.editorial-v4.dark-mode.layout-mobile .ux-mobile-bottom-nav button.active,
+body.editorial-v4[data-theme="dark"].layout-mobile .ux-mobile-bottom-nav button.active {
+  color: #f0f0f0 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+body.editorial-v4.dark-mode.layout-tablet .ux-tablet-rail,
+body.editorial-v4[data-theme="dark"].layout-tablet .ux-tablet-rail {
+  background: #161616 !important;
+  border-right-color: #2e2e2e !important;
+}
+
+/* Context sidebar — ensure action buttons stay readable charcoal */
+body.editorial-v4.dark-mode #planner-context-sidebar,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-actions .ued-btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-actions .ued-btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-stat,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-chip {
+  background: #1a1a1a !important;
+  color: #e6e6e6 !important;
+  border-color: #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-head__title,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-stat__val,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-list button {
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .material-symbols-sharp {
+  color: #e6e6e6 !important;
+  opacity: 1 !important;
+}
+
+/* FAQ + Guide pages — same cream-card problem */
+body.editorial-v4.dark-mode #panel-faq .faq-card,
+body.editorial-v4.dark-mode #panel-guide .pg-card,
+body.editorial-v4.dark-mode #panel-guide [class*="card"] {
+  background: #1a1a1a !important;
+  border-color: #2e2e2e !important;
+  color: #e6e6e6 !important;
+}
+
+/* Col filter / modal primary that still assumed gold fill */
+body.editorial-v4.dark-mode .col-filter-pop .cfp-btn-primary,
+body.editorial-v4.dark-mode .modal .btn-forest,
+body.editorial-v4.dark-mode .tb-modal .tb-save {
+  background: #ececec !important;
+  color: #111111 !important;
+  border-color: transparent !important;
+}
+/* Eyebrows / hairlines that hardcode gold hex */
+body.editorial-v4.dark-mode #main .panel .m-eyebrow,
+body.editorial-v4.dark-mode #main .panel [class*="eyebrow"],
+body.editorial-v4.dark-mode #main .panel [class*="kicker"],
+body.editorial-v4[data-theme="dark"] #main .panel .m-eyebrow {
+  color: #8a8a8a !important;
+}
+
+/* Any remaining gold/green hex in dark mode (hardcoded !important) */
+body.editorial-v4.dark-mode #main .panel,
+body.editorial-v4.dark-mode #planner-footer,
+body.editorial-v4.dark-mode #planner-context-sidebar,
+body.editorial-v4.dark-mode #panel-data-hub {
+  --gold: #8a8a8a !important;
+  --gold-lt: #cfcfcf !important;
+  --gold-pale: #222222 !important;
+  --forest: #cfcfcf !important;
+  --forest-lt: #dcdcdc !important;
+  --forest-deep: #b8b8b8 !important;
+  --v4-gold: #8a8a8a !important;
+  --v4-forest: #cfcfcf !important;
+}
+
+body.editorial-v4.dark-mode #planner-footer,
+body.editorial-v4.dark-mode #main #planner-footer,
+body.editorial-v4.dark-mode #main .planner-footer {
+  border-top-color: #2e2e2e !important;
+}
+
+/* Icon text must stay light on dark icon wells — never gold */
+body.editorial-v4.dark-mode #main .panel .inst-round-icon,
+body.editorial-v4.dark-mode #main .panel .inst-num,
+body.editorial-v4.dark-mode #main .panel .faq-icon,
+body.editorial-v4.dark-mode #main .panel .next-step-icon,
+body.editorial-v4.dark-mode #main .panel .contract-row-icon,
+body.editorial-v4.dark-mode #main .panel .vendor-row-icon {
+  color: #e6e6e6 !important;
+}
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINAL MONOCHROME LOCK — last rules win; kill gold lines, green fills,
+   cream cards, and low-contrast light-on-light from remapped --forest fills
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Force charcoal borders on all panel chrome (kills gold rgba hairlines) */
+body.editorial-v4.dark-mode #main .panel,
+body.editorial-v4.dark-mode #main .panel *,
+body.editorial-v4.dark-mode #cwp-vendorCompare,
+body.editorial-v4.dark-mode #cwp-vendorCompare * {
+  border-color: #2e2e2e !important;
+}
+
+/* Gold hairlines / hr.gold / dashed gold borders everywhere in dark */
+body.editorial-v4.dark-mode hr,
+body.editorial-v4.dark-mode hr.gold,
+body.editorial-v4.dark-mode #main hr,
+body.editorial-v4.dark-mode #main .panel hr,
+body.editorial-v4.dark-mode #main .panel hr.gold,
+body.editorial-v4[data-theme="dark"] hr.gold {
+  border-color: #2e2e2e !important;
+  background: #2e2e2e !important;
+  color: #2e2e2e !important;
+}
+
+/* Any gold-tinted rgba borders → charcoal (specificity via body+dark) */
+body.editorial-v4.dark-mode #main,
+body.editorial-v4.dark-mode #main .panel,
+body.editorial-v4.dark-mode #panel-data-hub,
+body.editorial-v4.dark-mode #planner-context-sidebar,
+body.editorial-v4.dark-mode #planner-footer,
+body.editorial-v4.dark-mode #sidebar,
+body.editorial-v4.dark-mode #topbar,
+body.editorial-v4.dark-mode .nav-category-bar {
+  --line: #2e2e2e !important;
+  --border: #2e2e2e !important;
+  --v4-line: #2e2e2e !important;
+  --dm-hair: rgba(255,255,255,0.08) !important;
+}
+
+/* Get Started — force EVERY surface dark + readable (background shorthand too) */
+body.editorial-v4.dark-mode #panel-instructions,
+body.editorial-v4.dark-mode #panel-instructions.instructions-mockup,
+body.editorial-v4[data-theme="dark"] #panel-instructions {
+  background: #111111 !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-instructions [class*="inst-"],
+body.editorial-v4.dark-mode #panel-instructions [class*="card"],
+body.editorial-v4.dark-mode #panel-instructions [class*="step"],
+body.editorial-v4.dark-mode #panel-instructions [class*="tip"],
+body.editorial-v4.dark-mode #panel-instructions [class*="note"],
+body.editorial-v4.dark-mode #panel-instructions [class*="guide"],
+body.editorial-v4.dark-mode #panel-instructions [class*="welcome"],
+body.editorial-v4.dark-mode #panel-instructions [class*="action"],
+body.editorial-v4.dark-mode #panel-instructions [class*="backup"],
+body.editorial-v4.dark-mode #panel-instructions [class*="alone"],
+body.editorial-v4.dark-mode #panel-instructions [class*="quote"],
+body.editorial-v4.dark-mode #panel-instructions [class*="alert"],
+body.editorial-v4.dark-mode #panel-instructions .m-stat,
+body.editorial-v4.dark-mode #panel-instructions .stat-card,
+body.editorial-v4.dark-mode #panel-instructions details,
+body.editorial-v4.dark-mode #panel-instructions .accordion {
+  background: #1a1a1a !important;
+  background-image: none !important;
+  border-color: #2e2e2e !important;
+  color: #e6e6e6 !important;
+  box-shadow: none !important;
+}
+body.editorial-v4.dark-mode #panel-instructions h1,
+body.editorial-v4.dark-mode #panel-instructions h2,
+body.editorial-v4.dark-mode #panel-instructions h3,
+body.editorial-v4.dark-mode #panel-instructions h4,
+body.editorial-v4.dark-mode #panel-instructions .inst-title,
+body.editorial-v4.dark-mode #panel-instructions .inst-card-title,
+body.editorial-v4.dark-mode #panel-instructions .inst-section-title,
+body.editorial-v4.dark-mode #panel-instructions .instructions-title {
+  color: #f0f0f0 !important;
+}
+body.editorial-v4.dark-mode #panel-instructions p,
+body.editorial-v4.dark-mode #panel-instructions li,
+body.editorial-v4.dark-mode #panel-instructions span:not(.material-symbols-sharp),
+body.editorial-v4.dark-mode #panel-instructions label,
+body.editorial-v4.dark-mode #panel-instructions .inst-copy {
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-instructions .inst-muted,
+body.editorial-v4.dark-mode #panel-instructions .inst-section-sub,
+body.editorial-v4.dark-mode #panel-instructions .inst-disclaimer,
+body.editorial-v4.dark-mode #panel-instructions .inst-kicker {
+  color: #8a8a8a !important;
+}
+/* Icon wells on Get Started — charcoal + light glyph (never cream/gold) */
+body.editorial-v4.dark-mode #panel-instructions .inst-emblem,
+body.editorial-v4.dark-mode #panel-instructions .inst-round-icon,
+body.editorial-v4.dark-mode #panel-instructions .inst-num,
+body.editorial-v4.dark-mode #panel-instructions .bec-icon,
+body.editorial-v4.dark-mode #panel-instructions [class*="icon"]:not(svg):not(img):not(.material-symbols-sharp) {
+  background: #222222 !important;
+  background-image: none !important;
+  border: 1px solid #3a3a3a !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-instructions svg,
+body.editorial-v4.dark-mode #panel-instructions .material-symbols-sharp,
+body.editorial-v4.dark-mode #panel-instructions .leaf-orn {
+  color: #cfcfcf !important;
+  stroke: #cfcfcf !important;
+  fill: none !important;
+}
+/* Primary CTAs stay near-white on dark */
+body.editorial-v4.dark-mode #panel-instructions .btn-forest,
+body.editorial-v4.dark-mode #panel-instructions .btn.primary,
+body.editorial-v4.dark-mode #panel-instructions .ued-btn.primary {
+  background: #ececec !important;
+  color: #111111 !important;
+  border-color: transparent !important;
+}
+
+/* Data Hub sidebar — max specificity readable chrome */
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-sidebar,
+body.editorial-v4.dark-mode #panel-data-hub aside.data-hub-sidebar,
+body.editorial-v4[data-theme="dark"] #panel-data-hub .data-hub-sidebar {
+  background: #161616 !important;
+  border-right: 1px solid #2e2e2e !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-sidebar .data-hub-cat-btn {
+  color: #e6e6e6 !important;
+  background: transparent !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn .material-symbols-sharp,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-sidebar .material-symbols-sharp,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn span {
+  color: #e6e6e6 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn.active,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-sidebar .data-hub-cat-btn.active {
+  background: #ececec !important;
+  color: #111111 !important;
+}
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn.active .material-symbols-sharp,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-cat-btn.active span {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+/* Kill gold rgba borders inside Data Hub */
+body.editorial-v4.dark-mode #panel-data-hub *,
+body.editorial-v4.dark-mode #panel-data-hub .cwp-section,
+body.editorial-v4.dark-mode #panel-data-hub .data-hub-table-tabs,
+body.editorial-v4.dark-mode #panel-data-hub .budget-preview-chip,
+body.editorial-v4.dark-mode #panel-data-hub .contract-file-pill {
+  border-color: #2e2e2e !important;
+  outline-color: #2e2e2e !important;
+}
+
+/* Remapped --forest used as FILL (light grey) + white/light text = unreadable.
+   Force any leftover forest/gold fills on interactive chrome to monochrome. */
+body.editorial-v4.dark-mode #main .panel .btn-forest:not(.btn-ghost),
+body.editorial-v4.dark-mode #main .panel .btn.primary,
+body.editorial-v4.dark-mode #main .panel .ued-btn.primary,
+body.editorial-v4.dark-mode #main .panel [class*="tab"].on,
+body.editorial-v4.dark-mode #main .panel [class*="tab"].active,
+body.editorial-v4.dark-mode #main .panel [class*="-tab"].on,
+body.editorial-v4.dark-mode #main .panel [class*="-tab"].active,
+body.editorial-v4.dark-mode .vnd-cat-tab.on,
+body.editorial-v4.dark-mode .vcmp-style-btn.on,
+body.editorial-v4.dark-mode .vcmp-book,
+body.editorial-v4.dark-mode .vcmp-h2h-choose button.win {
+  background: #ececec !important;
+  background-image: none !important;
+  color: #111111 !important;
+  border-color: transparent !important;
+}
+
+/* Vendor compare leftovers */
+body.editorial-v4.dark-mode #cwp-vendorCompare table.vcmp-cmp thead th,
+body.editorial-v4.dark-mode table.vcmp-cmp thead th {
+  background: #222222 !important;
+  color: #b8b8b8 !important;
+}
+body.editorial-v4.dark-mode .vcmp-rate,
+body.editorial-v4.dark-mode .vcmp-badge.rated,
+body.editorial-v4.dark-mode .vcmp-chip,
+body.editorial-v4.dark-mode .vcmp-caption,
+body.editorial-v4.dark-mode .vcmp-vcard.top,
+body.editorial-v4.dark-mode .vcmp-opt.top {
+  color: #cfcfcf !important;
+  background: #222222 !important;
+  border-color: #2e2e2e !important;
+  outline-color: #3a3a3a !important;
+}
+
+/* Appointments bulk card (sage/cream leak) */
+body.editorial-v4.dark-mode #panel-appointments .appointments-bulk-card {
+  background: #1a1a1a !important;
+  border: 1px solid #2e2e2e !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #panel-appointments .appointments-bulk-card .bulk-head strong {
+  color: #8a8a8a !important;
+}
+
+/* Premarital Counseling — curriculum card + topic accordions (cream leak) */
+body.editorial-v4.dark-mode #panel-counseling.counseling-mockup,
+body.editorial-v4[data-theme="dark"] #panel-counseling.counseling-mockup {
+  background: #111111 !important;
+  background-image: none !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-curriculum,
+body.editorial-v4.dark-mode #panel-counseling #counseling-curriculum-host .counseling-curriculum,
+body.editorial-v4.dark-mode #panel-counseling .counseling-card,
+body.editorial-v4.dark-mode #panel-counseling .counseling-table-card,
+body.editorial-v4.dark-mode #panel-counseling .counseling-inline-editor,
+body.editorial-v4[data-theme="dark"] #panel-counseling .counseling-curriculum {
+  background: #1a1a1a !important;
+  border: 1px solid #2e2e2e !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+  color: #e6e6e6 !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-card-head,
+body.editorial-v4.dark-mode #panel-counseling .counseling-table-head,
+body.editorial-v4[data-theme="dark"] #panel-counseling .counseling-card-head {
+  background: #1a1a1a !important;
+  border-bottom-color: #2e2e2e !important;
+  color: #e6e6e6 !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-curriculum-head h3,
+body.editorial-v4.dark-mode #panel-counseling .counseling-topic summary,
+body.editorial-v4[data-theme="dark"] #panel-counseling .counseling-curriculum-head h3 {
+  color: #f0f0f0 !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-curriculum .ued-soft,
+body.editorial-v4.dark-mode #panel-counseling .counseling-prompts,
+body.editorial-v4.dark-mode #panel-counseling .counseling-hours-track,
+body.editorial-v4[data-theme="dark"] #panel-counseling .counseling-curriculum .ued-soft {
+  color: #8a8a8a !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-topic,
+body.editorial-v4[data-theme="dark"] #panel-counseling .counseling-topic {
+  background: #161616 !important;
+  border: 1px solid #2e2e2e !important;
+  border-radius: 3px !important;
+  color: #e6e6e6 !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-hours-bar {
+  background: #222222 !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-hours-bar b {
+  background: #cfcfcf !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-topic-fields label {
+  color: #b8b8b8 !important;
+}
+
+body.editorial-v4.dark-mode #panel-counseling .counseling-topic-fields input,
+body.editorial-v4.dark-mode #panel-counseling .counseling-topic-fields textarea,
+body.editorial-v4.dark-mode #panel-counseling .counseling-topic-hours input,
+body.editorial-v4[data-theme="dark"] #panel-counseling .counseling-topic-fields input,
+body.editorial-v4[data-theme="dark"] #panel-counseling .counseling-topic-fields textarea {
+  background: #1a1a1a !important;
+  border: 1px solid #333333 !important;
+  color: #e6e6e6 !important;
+  border-radius: 3px !important;
+}
+
+/* Phase roadmap gold washes / crumb */
+body.editorial-v4.dark-mode .m-crumb-page,
+body.editorial-v4.dark-mode .setup-checklist-card,
+body.editorial-v4.dark-mode .cmd-palette,
+body.editorial-v4.dark-mode .milestone-toast,
+body.editorial-v4.dark-mode .pinned-strip-item {
+  background: #1a1a1a !important;
+  border-color: #2e2e2e !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode .setup-check-ring-fill,
+body.editorial-v4.dark-mode .setup-check-pct {
+  stroke: #cfcfcf !important;
+  color: #cfcfcf !important;
+}
+
+/* Nav / sidebar gold borders & scrollbar thumbs */
+body.editorial-v4.dark-mode #sidebar,
+body.editorial-v4.dark-mode.nav-sidebar #sidebar,
+body.editorial-v4.dark-mode:not(.nav-sidebar) #sidebar {
+  border-color: #2e2e2e !important;
+  border-right-color: #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #sidebar::-webkit-scrollbar-thumb,
+body.editorial-v4.dark-mode.nav-sidebar #sidebar::-webkit-scrollbar-thumb {
+  background: #3a3a3a !important;
+}
+
+/* Scripture / footer gold text */
+body.editorial-v4.dark-mode #planner-footer #scripture-banner .ref,
+body.editorial-v4.dark-mode #planner-footer .ref,
+body.editorial-v4.dark-mode #main .planner-footer {
+  color: #8a8a8a !important;
+  background: #161616 !important;
+  border-top-color: #2e2e2e !important;
+}
+
+/* Profile drawer if open in dark */
+body.editorial-v4.dark-mode #profile-drawer.pd-modern {
+  background: #161616 !important;
+  color: #e6e6e6 !important;
+}
+
+/* Global: kill leftover gold hex text/borders that used !important in light rules */
+body.editorial-v4.dark-mode #main .panel .m-eyebrow,
+body.editorial-v4.dark-mode .m-eyebrow {
+  color: #8a8a8a !important;
+}
+
+/* Ensure primary fills that still resolve via --forest to light-grey get dark text */
+body.editorial-v4.dark-mode #main .panel [style*="background"][style*="2D4A3E"],
+body.editorial-v4.dark-mode #main .panel [style*="background"][style*="2d4a3e"],
+body.editorial-v4.dark-mode #main .panel [style*="background"][style*="B89968"],
+body.editorial-v4.dark-mode #main .panel [style*="background"][style*="DCC088"] {
+  background: #222222 !important;
+  color: #e6e6e6 !important;
+}
+
+/* Record-editor tables — beat page-gutters cream/gold !important */
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > th,
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > td,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table thead tr > th,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table thead tr > td,
+body.editorial-v4[data-theme="dark"] #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > th {
+  background: #222222 !important;
+  color: #b8b8b8 !important;
+  border: 1px solid #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > th *,
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > td *,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table thead tr > th *,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table thead tr > td * {
+  color: #b8b8b8 !important;
+}
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table tbody td,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table tbody td,
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table td {
+  background: #1a1a1a !important;
+  color: #e6e6e6 !important;
+  border: 1px solid #2e2e2e !important;
+}
+
+/* Cream icon wells (info-icon etc.) */
+body.editorial-v4.dark-mode #main .panel .info-icon,
+body.editorial-v4.dark-mode #main .panel .faq-icon,
+body.editorial-v4.dark-mode #main .panel [class*="-icon"]:not(svg):not(img):not(.material-symbols-sharp) {
+  background: #222222 !important;
+  background-image: none !important;
+  border-color: #3a3a3a !important;
+  color: #e6e6e6 !important;
+}
+
+/* Honeymoon / scripture gold hairlines */
+body.editorial-v4.dark-mode #panel-honeymoon #hm-currency-converter.hm-cc-card,
+body.editorial-v4.dark-mode #main .panel .dash-scripture-footer,
+body.editorial-v4.dark-mode #main .panel .bulk-table-row th {
+  border-color: #2e2e2e !important;
+  background: #1a1a1a !important;
+  color: #e6e6e6 !important;
+}
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIDEBAR + PROFILE DRAWER — dedicated monochrome lock (loads last)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Context sidebar — full charcoal family, readable text/icons */
+body.editorial-v4.dark-mode #planner-context-sidebar,
+body.editorial-v4.dark-mode #planner-context-sidebar .planner-context-sidebar__scroll,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-head,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-divider,
+body.editorial-v4.dark-mode #context-sidebar-expand-tab,
+body.editorial-v4[data-theme="dark"] #planner-context-sidebar {
+  background: #161616 !important;
+  border-color: #2e2e2e !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-head__kicker,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-block__title,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-stat__lbl,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-shortcut-keys,
+body.editorial-v4.dark-mode #planner-context-sidebar .nav-drawer-cat-sub,
+body.editorial-v4.dark-mode #planner-context-sidebar .nav-cat-page-sub {
+  color: #8a8a8a !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-head__title,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-stat__val,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-shortcut-label,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-list button,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-nav .nav-item,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-nav .nav-item-label,
+body.editorial-v4.dark-mode #planner-context-sidebar .nav-drawer-cat-label,
+body.editorial-v4.dark-mode #planner-context-sidebar .nav-cat-page-label {
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .material-symbols-sharp,
+body.editorial-v4.dark-mode #planner-context-sidebar .nav-icon,
+body.editorial-v4.dark-mode #planner-context-sidebar svg {
+  color: #e6e6e6 !important;
+  stroke: #cfcfcf !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-stat,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-chip,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-reminder,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-alert,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-actions .ued-btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-global-actions .ued-btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .ued-btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-rail-btn,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-queue button {
+  background: #1a1a1a !important;
+  border: 1px solid #2e2e2e !important;
+  color: #e6e6e6 !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-chip.is-active,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-nav .nav-item[aria-current="page"],
+body.editorial-v4.dark-mode #planner-context-sidebar .ued-btn.primary {
+  background: #ececec !important;
+  color: #111111 !important;
+  border-color: transparent !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-chip.is-active .material-symbols-sharp,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-nav .nav-item[aria-current="page"] .material-symbols-sharp,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-nav .nav-item[aria-current="page"] .nav-item-label,
+body.editorial-v4.dark-mode #planner-context-sidebar .ued-btn.primary {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-star-btn { color: #8a8a8a !important; }
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-star-btn.is-fav { color: #e6e6e6 !important; }
+body.editorial-v4.dark-mode #planner-context-sidebar a,
+body.editorial-v4.dark-mode #planner-context-sidebar .pcs-sync-row button {
+  color: #cfcfcf !important;
+}
+
+/* Profile & Display drawer — beat forest gradient head + gold strokes */
+body.editorial-v4.dark-mode #profile-drawer.pd-modern,
+body.editorial-v4[data-theme="dark"] #profile-drawer.pd-modern {
+  background: #161616 !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .profile-drawer-head {
+  background: #111111 !important;
+  background-image: none !important;
+  border-bottom: 1px solid #2e2e2e !important;
+  color: #f0f0f0 !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .profile-drawer-title,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .profile-drawer-close {
+  color: #f0f0f0 !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .profile-drawer-sub {
+  color: #8a8a8a !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-sec {
+  background: #1a1a1a !important;
+  border: 1px solid #2e2e2e !important;
+  border-radius: 3px !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-sec-head,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-sec-head svg {
+  color: #cfcfcf !important;
+  stroke: #cfcfcf !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-tr-icon,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-custom-colors {
+  background: #222222 !important;
+  border-color: #3a3a3a !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-tr-icon svg,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern svg {
+  stroke: #cfcfcf !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-switch.on {
+  background: #ececec !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-switch.on::after {
+  background: #111111 !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .theme-picker-btn,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .font-picker-btn,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-field select,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-mini,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .pd-tool-btn {
+  background: #111111 !important;
+  color: #e6e6e6 !important;
+  border-color: #2e2e2e !important;
+}
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .font-picker-option:hover,
+body.editorial-v4.dark-mode #profile-drawer.pd-modern .font-picker-option.active,
+body.editorial-v4.dark-mode .font-picker-menu.font-picker-menu-portal .font-picker-option:hover,
+body.editorial-v4.dark-mode .font-picker-menu.font-picker-menu-portal .font-picker-option.active {
+  background: rgba(255,255,255,.08) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WHITE + LIGHT-TEXT FIX — readable charcoal tiles, monochrome checkboxes
+   Targets: record-editor checks, modal tiles, any leftover white fills
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Invitation Workflow check tiles (Invite Sent / Plus-One / Family) */
+body.editorial-v4.dark-mode .record-editor-check,
+body.editorial-v4.dark-mode .record-editor-shell .record-editor-check,
+body.editorial-v4.dark-mode .record-editor-overlay .record-editor-check,
+body.editorial-v4[data-theme="dark"] .record-editor-check {
+  background: #1a1a1a !important;
+  background-image: none !important;
+  border: 1px solid #2e2e2e !important;
+  border-radius: 3px !important;
+  color: #e6e6e6 !important;
+  box-shadow: none !important;
+}
+body.editorial-v4.dark-mode .record-editor-check span,
+body.editorial-v4.dark-mode .record-editor-check label,
+body.editorial-v4.dark-mode .record-editor-shell .record-editor-check * {
+  color: #e6e6e6 !important;
+  -webkit-text-fill-color: #e6e6e6 !important;
+}
+
+/* Native checkboxes — no blue; light grey accent on dark */
+body.editorial-v4.dark-mode,
+body.editorial-v4[data-theme="dark"] {
+  accent-color: #cfcfcf;
+}
+body.editorial-v4.dark-mode .record-editor-check input[type="checkbox"],
+body.editorial-v4.dark-mode .record-editor-shell input[type="checkbox"],
+body.editorial-v4.dark-mode .record-editor-shell input[type="radio"],
+body.editorial-v4.dark-mode #main input[type="checkbox"],
+body.editorial-v4.dark-mode #main input[type="radio"],
+body.editorial-v4.dark-mode .modal input[type="checkbox"],
+body.editorial-v4.dark-mode .tb-modal input[type="checkbox"] {
+  accent-color: #cfcfcf !important;
+  background-color: #111111 !important;
+  border-color: #3a3a3a !important;
+  color-scheme: dark;
+}
+
+/* Record editor action bar (was cream #fffaf2) */
+body.editorial-v4.dark-mode .record-editor-actions,
+body.editorial-v4.dark-mode .record-editor-shell .record-editor-actions {
+  background: #161616 !important;
+  border-top-color: #2e2e2e !important;
+}
+
+/* Primary Save in editors — near-white fill + dark text (readable) */
+body.editorial-v4.dark-mode .record-editor-shell .btn.primary,
+body.editorial-v4.dark-mode .record-editor-shell .btn-forest,
+body.editorial-v4.dark-mode .record-editor-actions .btn.primary,
+body.editorial-v4.dark-mode .record-editor-actions button.primary,
+body.editorial-v4.dark-mode .modal .btn.primary,
+body.editorial-v4.dark-mode .tb-modal .btn.primary,
+body.editorial-v4.dark-mode .tb-modal .tb-save {
+  background: #ececec !important;
+  color: #111111 !important;
+  border-color: transparent !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+
+/* Generic: white/cream tiles inside dark modals/overlays → charcoal + light text */
+body.editorial-v4.dark-mode .record-editor-shell [class*="check"],
+body.editorial-v4.dark-mode .record-editor-shell [class*="tile"],
+body.editorial-v4.dark-mode .record-editor-shell [class*="chip"],
+body.editorial-v4.dark-mode .modal [class*="check"]:not(input),
+body.editorial-v4.dark-mode .tb-modal [class*="check"]:not(input),
+body.editorial-v4.dark-mode .cwp-modal [class*="check"]:not(input),
+body.editorial-v4.dark-mode .app-check-row,
+body.editorial-v4.dark-mode .smart-check-row {
+  background: #1a1a1a !important;
+  background-image: none !important;
+  border-color: #2e2e2e !important;
+  color: #e6e6e6 !important;
+}
+body.editorial-v4.dark-mode .app-check-row span,
+body.editorial-v4.dark-mode .smart-check-row span {
+  color: #e6e6e6 !important;
+}
+
+/* Check-tile labels only (not every field label) */
+body.editorial-v4.dark-mode .record-editor-overlay label.record-editor-check,
+body.editorial-v4.dark-mode #main .panel label.record-editor-check,
+body.editorial-v4.dark-mode #main .panel label[class*="check-row"],
+body.editorial-v4.dark-mode #main .panel label[class*="check-tile"] {
+  background-color: #1a1a1a !important;
+  color: #e6e6e6 !important;
+}
+
+/* If something still paints near-white and inherits light text, force dark text
+   ONLY when the control is intentionally a primary (near-white) surface */
+body.editorial-v4.dark-mode .record-editor-shell .btn.primary *,
+body.editorial-v4.dark-mode .modal .btn.primary *,
+body.editorial-v4.dark-mode #main .panel .btn.primary *,
+body.editorial-v4.dark-mode #main .panel .btn-forest *,
+body.editorial-v4.dark-mode #main .panel .ued-btn.primary * {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+
+/* Small tables / cream cells inside record editor overlay */
+body.editorial-v4.dark-mode .record-editor-shell .record-editor-small-table,
+body.editorial-v4.dark-mode .record-editor-shell .record-editor-small-table td,
+body.editorial-v4.dark-mode .record-editor-shell .record-editor-small-table th {
+  background: #1a1a1a !important;
+  color: #e6e6e6 !important;
+  border-color: #2e2e2e !important;
+}
+body.editorial-v4.dark-mode .record-editor-shell .record-editor-small-table thead th {
+  background: #222222 !important;
+  color: #b8b8b8 !important;
+}
+
+/* Catch-all for white/cream !important fills that beat softer dark rules */
+body.editorial-v4.dark-mode .record-editor-shell [style*="background: #fff"],
+body.editorial-v4.dark-mode .record-editor-shell [style*="background:#fff"],
+body.editorial-v4.dark-mode .record-editor-shell [style*="background: white"],
+body.editorial-v4.dark-mode .modal [style*="background: #fff"],
+body.editorial-v4.dark-mode #main .panel [style*="background: #fff"],
+body.editorial-v4.dark-mode #main .panel [style*="background:#fff"] {
+  background: #1a1a1a !important;
+  color: #e6e6e6 !important;
+}

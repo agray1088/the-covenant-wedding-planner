@@ -1,0 +1,658 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Premium spacing — comfortable editorial rhythm (light + dark)
+   Loads after page-gutters, before dark-editorial. Spacing only; colors untouched.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Page chrome ─────────────────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .ued-page,
+body.editorial-v4 #main .panel .m-mast-wrap,
+body.editorial-v4 #main .panel .ued-mast,
+body.editorial-v4 #main .panel [class*="-title-wrap"],
+body.editorial-v4 #main .panel .page-header,
+body.editorial-v4 #main .panel .instructions-title-wrap {
+  margin-bottom: var(--planner-section-gap, 1.5rem) !important;
+}
+
+body.editorial-v4 #main .panel .ued-mast {
+  padding-bottom: var(--planner-form-gap, 0.75rem) !important;
+  gap: var(--planner-grid-gap, 1rem) !important;
+}
+
+body.editorial-v4 #main .panel .ued-scripture {
+  padding: var(--planner-form-gap, 0.75rem) var(--planner-panel-padding, 1.5rem) !important;
+  margin: 0 0 var(--planner-section-gap, 1.5rem) !important;
+}
+
+/* ── Grids ───────────────────────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .ued-grid,
+body.editorial-v4 #main .panel .inst-grid-3,
+body.editorial-v4 #main .panel .inst-wide-row,
+body.editorial-v4 #main .panel [class*="-grid"]:not(table):not(.cwp-table) {
+  gap: var(--planner-grid-gap, 1rem) !important;
+}
+
+/* ── Card / panel shells ─────────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .ued-panel,
+body.editorial-v4 #main .panel .card,
+body.editorial-v4 #main .panel .inst-card,
+body.editorial-v4 #main .panel .m-block,
+body.editorial-v4 #main .panel .m-card,
+body.editorial-v4 #main .panel .faq-card,
+body.editorial-v4 #main .panel .pg-card,
+body.editorial-v4 #main .panel .essentials-hub-card,
+body.editorial-v4 #main .panel .backup-education-callout,
+body.editorial-v4 #main .panel .blended-family-prompt,
+body.editorial-v4 #main .panel .note-card,
+body.editorial-v4 #main .panel .chart-wrap,
+body.editorial-v4 #main .panel .banner-scripture-card,
+body.editorial-v4 #main .panel .app-card,
+body.editorial-v4 #main .panel .dash-foundation-meter,
+body.editorial-v4 #main .panel .dash-alerts-stack,
+body.editorial-v4 #main .panel .setup-checklist-card,
+body.editorial-v4 #main .panel .true-total-banner,
+body.editorial-v4 #main .panel .pinned-strip-card {
+  padding: var(--planner-panel-padding, 1.5rem) !important;
+  margin-bottom: 0;
+  box-sizing: border-box;
+}
+
+/* Table cards keep horizontal flush for table edges; pad the head only */
+body.editorial-v4 #main .panel .ued-table-card {
+  padding: 0 !important;
+}
+body.editorial-v4 #main .panel .ued-table-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap;
+  padding: var(--planner-form-gap, 0.75rem) 0.7rem !important;
+  gap: 0.5rem 1rem !important;
+}
+body.editorial-v4 #main .panel .ued-table-head > .ued-table-title,
+body.editorial-v4 #main .panel .ued-table-head > .ued-actions {
+  align-self: center !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+body.editorial-v4 #main .panel .ued-table-head > .ued-actions {
+  gap: 0.6rem !important;
+  margin-left: 0.5rem !important;
+}
+body.editorial-v4 #main .panel .ued-table-head > .ued-actions > * { align-self: center !important; margin-top: 0 !important; margin-bottom: 0 !important; }
+
+/* Unify the header items — the READ ONLY badge and both action buttons become
+   identical hairline chips; the title uses the same small-caps text so all four
+   read as one consistent set instead of four different treatments. */
+body.editorial-v4 #main .panel .ued-table-head .ro-badge-inline,
+body.editorial-v4 #main .panel .ued-table-head > .ued-actions .ued-link,
+body.editorial-v4 #main .panel .ued-table-head > .ued-actions .ued-btn {
+  font: 700 0.66rem/1 var(--font-sans, Inter, system-ui, sans-serif) !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--ued-gold, #b28a4c) !important;
+  background: transparent !important;
+  border: 1px solid var(--ued-line, #e0d6c2) !important;
+  border-radius: 6px !important;
+  padding: 0.42rem 0.7rem !important;
+  min-height: 0 !important;
+  height: auto !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+body.editorial-v4 #main .panel .ued-table-head > .ued-actions .ued-link:hover,
+body.editorial-v4 #main .panel .ued-table-head > .ued-actions .ued-btn:hover {
+  border-color: var(--ued-gold, #b28a4c) !important;
+  background: rgba(178, 138, 76, 0.08) !important;
+  color: var(--ued-gold, #b28a4c) !important;
+}
+body.editorial-v4 #main .panel .ued-table-head > .ued-table-title {
+  font: 700 0.66rem/1 var(--font-sans, Inter, system-ui, sans-serif) !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--ued-gold, #b28a4c) !important;
+  gap: 0.5rem !important;
+}
+body.editorial-v4 #main .panel .ued-table-head > .ued-table-title svg { display: none !important; }
+body.dark-mode #main .panel .ued-table-head .ro-badge-inline,
+body.dark-mode #main .panel .ued-table-head > .ued-actions .ued-link,
+body.dark-mode #main .panel .ued-table-head > .ued-actions .ued-btn { border-color: #3a3a3a !important; }
+
+/* Items folded into the table toolbar (Read only badge + Export/Edit) */
+body.editorial-v4 #main .cwp-toolbar { display: flex !important; flex-wrap: wrap; align-items: center; gap: 0.5rem !important; }
+body.editorial-v4 #main .cwp-toolbar [data-ro-merged].ro-badge-inline {
+  border: 1px solid var(--border, #d9cdb8) !important;
+  background: transparent !important;
+  color: var(--muted, #8a857c) !important;
+  font: 700 0.64rem/1 var(--font-sans, Inter, system-ui, sans-serif) !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  padding: 0.4rem 0.6rem !important;
+  border-radius: 6px !important;
+}
+body.dark-mode #main .cwp-toolbar [data-ro-merged].ro-badge-inline { border-color: #3a3a3a !important; }
+
+/* Stacked panels / sibling cards */
+body.editorial-v4 #main .panel .ued-grid > .ued-panel + .ued-panel,
+body.editorial-v4 #main .panel > .card + .card,
+body.editorial-v4 #main .panel > .inst-card + .inst-card,
+body.editorial-v4 #main .panel > section + section {
+  margin-top: 0;
+}
+
+body.editorial-v4 #main .panel > .card,
+body.editorial-v4 #main .panel > .inst-card,
+body.editorial-v4 #main .panel > .m-block,
+body.editorial-v4 #main .panel > section:not(.ued-grid) {
+  margin-bottom: var(--planner-card-gap, 1rem) !important;
+}
+
+/* Non-Dashboard .ued-page stacks — cards are often nested under .ued-page, not .panel > */
+body.editorial-v4 #main .panel .ued-page > .ued-panel,
+body.editorial-v4 #main .panel .ued-page > .m-block,
+body.editorial-v4 #main .panel .ued-page > .app-card,
+body.editorial-v4 #main .panel .ued-page > .card,
+body.editorial-v4 #main .panel .ued-page > .inst-card,
+body.editorial-v4 #main .panel .ued-page > .essentials-hub-card,
+body.editorial-v4 #main .panel .ued-page > .setup-checklist-card,
+body.editorial-v4 #main .panel .ued-page > .true-total-banner,
+body.editorial-v4 #main .panel .ued-page > .pinned-strip-card {
+  margin-bottom: var(--planner-card-gap, 1rem) !important;
+}
+
+body.editorial-v4 #main .panel .ued-page > .ued-panel:last-child,
+body.editorial-v4 #main .panel .ued-page > .m-block:last-child,
+body.editorial-v4 #main .panel .ued-page > .app-card:last-child,
+body.editorial-v4 #main .panel .ued-page > .card:last-child,
+body.editorial-v4 #main .panel .ued-page > .inst-card:last-child,
+body.editorial-v4 #main .panel .ued-page > .essentials-hub-card:last-child,
+body.editorial-v4 #main .panel .ued-page > .setup-checklist-card:last-child,
+body.editorial-v4 #main .panel .ued-page > .true-total-banner:last-child,
+body.editorial-v4 #main .panel .ued-page > .pinned-strip-card:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* ── Dashboard stack (after applyDashboardCardLayout flattens cards) ───────
+   Cards leave .ued-grid and become direct .ued-page children; grid gap no
+   longer applies, so restore section rhythm with flex gap. */
+#dash-v4-root > .ued-page {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--planner-section-gap, 1.5rem) !important;
+}
+
+#dash-v4-root > .ued-page > [data-dash-card],
+#dash-v4-root > .ued-page > .dash-breakdown-row,
+#dash-v4-root > .ued-page > .dash-layout-bar,
+#dash-v4-root > .ued-page > .dash-layout-panel {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Nested shells inside wrappers — parent flex gap owns the rhythm */
+#dash-v4-root > .ued-page > [data-dash-card] > .ued-panel,
+#dash-v4-root > .ued-page > [data-dash-card] > .essentials-hub-card,
+#dash-v4-root > .ued-page > [data-dash-card] > .app-card,
+#dash-v4-root > .ued-page > [data-dash-card] > .setup-checklist-card,
+#dash-v4-root > .ued-page > [data-dash-card] > .true-total-banner,
+#dash-v4-root > .ued-page > [data-dash-card] > .pinned-strip-card,
+#dash-v4-root > .ued-page > .ued-band,
+#dash-v4-root > .ued-page > [data-dash-card].ued-band {
+  margin-bottom: 0 !important;
+}
+
+#dash-v4-root [data-dash-card="countdown"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--planner-card-gap, 1rem);
+}
+
+#dash-v4-root [data-dash-card="countdown"] .ued-mast,
+#dash-v4-root [data-dash-card="countdown"] .ued-countdown-c {
+  margin-bottom: 0 !important;
+}
+
+/* Empty leftover grids after flatten — remove ghost margins */
+#dash-v4-root > .ued-page > .ued-grid:not(:has(*)),
+#dash-v4-root > .ued-page > .dash-priority-row:not(:has(*)) {
+  display: none !important;
+  margin: 0 !important;
+  gap: 0 !important;
+}
+
+#dash-v4-root .dash-breakdown-row {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--planner-grid-gap, 1rem) !important;
+}
+
+#dash-v4-root .ued-guidance-grid {
+  margin: 0 !important;
+}
+
+/* ── Stat bands ──────────────────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .ued-band,
+body.editorial-v4 #main .panel .m-stats,
+body.editorial-v4 #main .panel [class*="-stat-grid"],
+body.editorial-v4 #main .panel .stat-grid {
+  gap: var(--planner-grid-gap, 1rem) !important;
+  margin-bottom: var(--planner-section-gap, 1.5rem) !important;
+}
+
+body.editorial-v4 #main .panel .ued-band > *,
+body.editorial-v4 #main .panel .m-stats > *,
+body.editorial-v4 #main .panel .m-stat,
+body.editorial-v4 #main .panel .ued-stat,
+body.editorial-v4 #main .panel .stat-card {
+  padding: var(--planner-form-gap, 0.75rem) var(--planner-stat-pad-x, 1.5rem) !important;
+  box-sizing: border-box;
+}
+
+/* ── Sections inside panels ──────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .ued-section,
+body.editorial-v4 #main .panel [class*="-section"]:not(table):not(thead):not(tbody) {
+  margin-bottom: var(--planner-section-gap, 1.5rem);
+}
+
+body.editorial-v4 #main .panel .inst-section-title,
+body.editorial-v4 #main .panel [class*="-section-title"],
+body.editorial-v4 #main .panel .budget-section-title,
+body.editorial-v4 #main .panel .vendors-section-title {
+  margin-bottom: var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 #main .panel .inst-section-sub {
+  margin-bottom: var(--planner-section-gap, 1.5rem) !important;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .cwp-table-wrap,
+body.editorial-v4 #main .panel .ued-table-wrap,
+body.editorial-v4 #main .panel [class*="-table-wrap"] {
+  margin-bottom: var(--planner-card-gap, 1rem);
+}
+
+body.editorial-v4 #main .panel table.cwp-table th,
+body.editorial-v4 #main .panel table.cwp-table td,
+body.editorial-v4 #main .panel .cwp-table th,
+body.editorial-v4 #main .panel .cwp-table td,
+body.editorial-v4 #main .panel .ued-table th,
+body.editorial-v4 #main .panel .ued-table td,
+body.editorial-v4 #main .panel table.panel-table th,
+body.editorial-v4 #main .panel table.panel-table td {
+  padding: var(--planner-table-cell-y, 0.55rem) var(--planner-table-cell-x, 0.65rem) !important;
+}
+
+/* ── Forms (in-page) ─────────────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .record-editor-grid,
+body.editorial-v4 #main .panel .form-grid,
+body.editorial-v4 #main .panel [class*="-form-grid"] {
+  gap: var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 #main .panel .record-editor-field,
+body.editorial-v4 #main .panel .form-field,
+body.editorial-v4 #main .panel .pd-field {
+  margin-bottom: var(--planner-form-gap, 0.75rem);
+}
+
+body.editorial-v4 #main .panel .record-editor-field > label,
+body.editorial-v4 #main .panel .record-editor-mini-label,
+body.editorial-v4 #main .panel .form-field > label {
+  display: block;
+  margin-bottom: var(--planner-field-stack, 0.5rem) !important;
+}
+
+/* ── Record editor modal ─────────────────────────────────────────────────── */
+body.editorial-v4 .record-editor-shell {
+  gap: 0;
+}
+
+body.editorial-v4 .record-editor-head {
+  padding: var(--planner-modal-pad, 1.5rem) !important;
+  gap: var(--planner-grid-gap, 1rem) !important;
+}
+
+body.editorial-v4 .record-editor-nav {
+  padding: var(--planner-form-gap, 0.75rem) var(--planner-modal-pad, 1.5rem) !important;
+  gap: var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 .record-editor-body {
+  padding: var(--planner-modal-pad, 1.5rem) !important;
+}
+
+body.editorial-v4 .record-editor-section {
+  margin-bottom: var(--planner-section-gap, 1.5rem) !important;
+  padding-bottom: var(--planner-section-gap, 1.5rem) !important;
+}
+
+body.editorial-v4 .record-editor-section:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+body.editorial-v4 .record-editor-section h4 {
+  margin: 0 0 var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 .record-editor-grid {
+  display: grid;
+  gap: var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 .record-editor-field {
+  margin-bottom: 0 !important;
+}
+
+body.editorial-v4 .record-editor-field > label,
+body.editorial-v4 .record-editor-mini-label {
+  margin-bottom: var(--planner-field-stack, 0.5rem) !important;
+}
+
+body.editorial-v4 .record-editor-check {
+  padding: var(--planner-form-gap, 0.75rem) var(--planner-panel-padding, 1.5rem) !important;
+  gap: var(--planner-field-stack, 0.5rem) !important;
+  min-height: calc(var(--component-input-height, 40px) + 0.5rem);
+  box-sizing: border-box;
+}
+
+body.editorial-v4 .record-editor-actions {
+  padding: var(--planner-form-gap, 0.75rem) var(--planner-modal-pad, 1.5rem) !important;
+  gap: var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 .record-editor-actions-left,
+body.editorial-v4 .record-editor-actions-right {
+  gap: var(--planner-field-stack, 0.5rem) !important;
+}
+
+body.editorial-v4 .record-editor-small-table th,
+body.editorial-v4 .record-editor-small-table td,
+body.editorial-v4 .record-editor-overlay .record-editor-small-table th,
+body.editorial-v4 .record-editor-overlay .record-editor-small-table td,
+body.editorial-v4 #main .panel .record-editor-small-table th,
+body.editorial-v4 #main .panel .record-editor-small-table td {
+  padding: var(--planner-table-cell-y, 0.55rem) var(--planner-table-cell-x, 0.65rem) !important;
+}
+
+body.editorial-v4 .record-editor-inline-actions {
+  margin-top: var(--planner-form-gap, 0.75rem) !important;
+  gap: var(--planner-field-stack, 0.5rem) !important;
+}
+
+body.editorial-v4 .record-editor-note {
+  margin: 0 0 var(--planner-form-gap, 0.75rem) !important;
+}
+
+/* ── Get Started / FAQ / Guide ───────────────────────────────────────────── */
+body.editorial-v4 #panel-instructions .inst-card,
+body.editorial-v4 #panel-guide .inst-card,
+body.editorial-v4 #panel-guide .pg-card,
+body.editorial-v4 #panel-faq .faq-card {
+  padding: var(--planner-panel-padding, 1.5rem) !important;
+  margin-bottom: var(--planner-card-gap, 1rem) !important;
+}
+
+body.editorial-v4 #panel-instructions .inst-grid-3,
+body.editorial-v4 #panel-instructions .inst-wide-row,
+body.editorial-v4 #panel-guide .inst-grid-3 {
+  gap: var(--planner-grid-gap, 1rem) !important;
+  margin-bottom: var(--planner-section-gap, 1.5rem) !important;
+}
+
+body.editorial-v4 #panel-faq .faq-list,
+body.editorial-v4 #panel-faq .faq-grid {
+  gap: var(--planner-card-gap, 1rem) !important;
+}
+
+body.editorial-v4 #panel-faq .faq-card,
+body.editorial-v4 #panel-faq details.faq-item {
+  margin-bottom: var(--planner-card-gap, 1rem) !important;
+  padding: var(--planner-panel-padding, 1.5rem) !important;
+}
+
+/* ── Context sidebar ─────────────────────────────────────────────────────── */
+body.editorial-v4 #planner-context-sidebar .pcs-head {
+  padding: var(--planner-sidebar-pad, 0.75rem) !important;
+}
+
+body.editorial-v4 #planner-context-sidebar .pcs-block {
+  padding: var(--planner-sidebar-pad, 0.75rem) !important;
+}
+
+body.editorial-v4 #planner-context-sidebar .pcs-block__title {
+  margin-bottom: var(--planner-field-stack, 0.5rem) !important;
+}
+
+body.editorial-v4 #planner-context-sidebar .pcs-stat-row {
+  gap: var(--planner-field-stack, 0.5rem) !important;
+}
+
+body.editorial-v4 #planner-context-sidebar .pcs-stat {
+  padding: var(--planner-field-stack, 0.5rem) var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 #planner-context-sidebar .pcs-actions,
+body.editorial-v4 #planner-context-sidebar .pcs-global-actions {
+  gap: var(--planner-field-stack, 0.5rem) !important;
+}
+
+body.editorial-v4 #planner-context-sidebar .pcs-chip,
+body.editorial-v4 #planner-context-sidebar .ued-btn {
+  padding: var(--planner-field-stack, 0.5rem) var(--planner-form-gap, 0.75rem) !important;
+}
+
+/* ── Profile & Display drawer ────────────────────────────────────────────── */
+body.editorial-v4 #profile-drawer.pd-modern .profile-drawer-head {
+  padding: var(--planner-modal-pad, 1.5rem) !important;
+}
+
+body.editorial-v4 #profile-drawer.pd-modern .profile-drawer-body {
+  padding: var(--planner-modal-pad, 1.5rem) !important;
+}
+
+body.editorial-v4 #profile-drawer.pd-modern .pd-sec {
+  padding: var(--planner-panel-padding, 1.5rem) !important;
+  margin-bottom: var(--planner-card-gap, 1rem) !important;
+}
+
+body.editorial-v4 #profile-drawer.pd-modern .pd-sec-head {
+  margin-bottom: var(--planner-form-gap, 0.75rem) !important;
+  gap: var(--planner-field-stack, 0.5rem) !important;
+}
+
+body.editorial-v4 #profile-drawer.pd-modern .pd-field {
+  margin-bottom: var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 #profile-drawer.pd-modern .pd-field > label {
+  margin-bottom: var(--planner-field-stack, 0.5rem) !important;
+}
+
+body.editorial-v4 #profile-drawer.pd-modern .pd-toggle-row {
+  padding: var(--planner-form-gap, 0.75rem) 0 !important;
+  gap: var(--planner-form-gap, 0.75rem) !important;
+}
+
+body.editorial-v4 #profile-drawer.pd-modern .pd-identity {
+  gap: var(--planner-form-gap, 0.75rem) !important;
+}
+
+/* ── Footer bleed aligns to page gutter ──────────────────────────────────── */
+body.editorial-v4 #planner-footer .footer-main,
+body.editorial-v4 #main #planner-footer .footer-main,
+body.context-sidebar-mode #planner-footer .footer-main {
+  padding-left: var(--planner-page-gutter) !important;
+  padding-right: var(--planner-page-gutter) !important;
+  padding-top: var(--planner-section-gap, 1.5rem) !important;
+  padding-bottom: var(--planner-section-gap, 1.5rem) !important;
+  box-sizing: border-box;
+}
+
+body.editorial-v4 #planner-footer .footer-bottom {
+  padding: var(--planner-form-gap, 0.75rem) var(--planner-page-gutter) !important;
+}
+
+/* ── Data Hub ────────────────────────────────────────────────────────────── */
+#panel-data-hub .data-hub-sidebar {
+  padding: var(--hub-sidebar-pad, 0.75rem) !important;
+  gap: var(--planner-field-stack, 0.5rem) !important;
+}
+
+#panel-data-hub .data-hub-cat-btn {
+  padding: var(--planner-field-stack, 0.5rem) var(--planner-form-gap, 0.75rem) !important;
+  gap: var(--planner-field-stack, 0.5rem) !important;
+}
+
+#panel-data-hub .data-hub-main {
+  padding: var(--hub-main-pad, 1.5rem) !important;
+  box-sizing: border-box;
+}
+
+#panel-data-hub .data-hub-head {
+  margin-bottom: var(--planner-section-gap, 1.5rem) !important;
+  gap: var(--planner-grid-gap, 1rem) !important;
+}
+
+#panel-data-hub .data-hub-table-tabs {
+  gap: var(--planner-field-stack, 0.5rem) !important;
+  margin-bottom: var(--planner-form-gap, 0.75rem) !important;
+  padding-bottom: var(--planner-form-gap, 0.75rem) !important;
+}
+
+#panel-data-hub .data-hub-toolbar {
+  gap: var(--planner-form-gap, 0.75rem) !important;
+  margin-bottom: var(--planner-card-gap, 1rem) !important;
+}
+
+#panel-data-hub .cwp-table th,
+#panel-data-hub .cwp-table td {
+  padding: var(--planner-table-cell-y, 0.55rem) var(--planner-table-cell-x, 0.65rem) !important;
+}
+
+/* ── Preview / action rails ──────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .preview-foot,
+body.editorial-v4 #main .panel .ued-actions,
+body.editorial-v4 #main .panel .log-actions,
+body.editorial-v4 #main .panel .m-actions {
+  gap: var(--planner-form-gap, 0.75rem) !important;
+  margin-top: var(--planner-card-gap, 1rem) !important;
+  padding-top: var(--planner-form-gap, 0.75rem) !important;
+}
+
+/* ── Generic modal / popover padding ─────────────────────────────────────── */
+body.editorial-v4 .modal .modal-content,
+body.editorial-v4 .modal-card,
+body.editorial-v4 .tb-modal,
+body.editorial-v4 .cwp-modal-shell {
+  box-sizing: border-box;
+}
+
+body.editorial-v4 .tb-head,
+body.editorial-v4 .modal-head,
+body.editorial-v4 .cwp-modal-head {
+  padding: var(--planner-modal-pad, 1.5rem) !important;
+}
+
+body.editorial-v4 .tb-body,
+body.editorial-v4 .modal-body,
+body.editorial-v4 .cwp-modal-body {
+  padding: var(--planner-modal-pad, 1.5rem) !important;
+}
+
+body.editorial-v4 .modal-actions,
+body.editorial-v4 .tb-actions {
+  padding: var(--planner-form-gap, 0.75rem) var(--planner-modal-pad, 1.5rem) !important;
+  gap: var(--planner-form-gap, 0.75rem) !important;
+}
+
+/* ── Outer gutter fallbacks — always use the token ───────────────────────── */
+body.editorial-v4 #main,
+body.context-sidebar-mode #main,
+body.nav-category-mode #main,
+#main {
+  padding-left: var(--planner-page-gutter) !important;
+  padding-right: var(--planner-page-gutter) !important;
+}
+
+/* ── Content column left-align lock ────────────────────────────────────────
+   Titles, quotes, countdowns, empty states, and scripture footers sit in the
+   shared content column — not centered marketing blocks.
+   Exceptions (checkbox cols, icon wells, Save rails) are intentionally omitted. */
+body.editorial-v4 #main .panel .inst-title-wrap,
+body.editorial-v4 #main .panel .faq-title-wrap,
+body.editorial-v4 #main .panel .guide-title-wrap,
+body.editorial-v4 #main .panel .inst-section-title,
+body.editorial-v4 #main .panel .inst-section-sub,
+body.editorial-v4 #main .panel .inst-alone,
+body.editorial-v4 #main .panel .inst-alone h3,
+body.editorial-v4 #main .panel .inst-quote,
+body.editorial-v4 #main .panel .inst-quote-ref,
+body.editorial-v4 #main .panel .inst-final-footer,
+body.editorial-v4 #main .panel .dash-title,
+body.editorial-v4 #main .panel .dash-orn,
+body.editorial-v4 #main .panel .dash-scripture-footer,
+body.editorial-v4 #main .panel .countdown-display,
+body.editorial-v4 #main .panel .countdown-card,
+body.editorial-v4 #main .panel .countdown-note,
+body.editorial-v4 #main .panel .ued-countdown,
+body.editorial-v4 #main .panel .ued-countdown-c,
+body.editorial-v4 #main .panel .ued-countdown-wide,
+body.editorial-v4 #main .panel .ued-countdown-wide .ued-count-sub,
+body.editorial-v4 #main .panel .ued-countdown-wide .ued-count-date,
+body.editorial-v4 #main .panel .ued-countdown-wide .ued-count-tz,
+body.editorial-v4 #main .panel .m-countdown-card,
+body.editorial-v4 #main .panel .m-countdown-card .m-verse,
+body.editorial-v4 #main .panel .empty-state,
+body.editorial-v4 #main .panel .table-empty-state,
+body.editorial-v4 #main .panel .qj-empty,
+body.editorial-v4 #main .panel .pkt-empty,
+body.editorial-v4 #main .panel .workflow-empty-state,
+body.editorial-v4 #main .panel .progress-suite .card-title,
+body.editorial-v4 #main .panel .next-up-card .card-title {
+  text-align: left !important;
+}
+
+body.editorial-v4 #main .panel .inst-alone,
+body.editorial-v4 #main .panel .table-empty-state {
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+}
+
+body.editorial-v4 #main .panel .inst-final-footer,
+body.editorial-v4 #main .panel .dash-scripture-footer,
+body.editorial-v4 #main .panel .ued-countdown-wide .ued-caption,
+body.editorial-v4 #main .panel .ued-countdown-wide .ued-count-grid,
+body.editorial-v4 #main .panel .cdc-tiles,
+body.editorial-v4 #main .panel .table-empty-state .tes-actions {
+  justify-content: flex-start !important;
+}
+
+body.editorial-v4 #main .panel .inst-quote,
+body.editorial-v4 #main .panel .m-countdown-card .m-verse,
+body.editorial-v4 #main .panel .faq-search-wrap,
+body.editorial-v4 #main .panel .cdc-tiles {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+@media (max-width: 900px) {
+  body.editorial-v4 #main .panel .dash-hero {
+    justify-items: start !important;
+    text-align: left !important;
+  }
+
+  body.editorial-v4 #main .panel .dash-hero .hero-meta {
+    justify-content: flex-start !important;
+  }
+
+  body.editorial-v4 #main .panel .dash-hero .page-subtitle {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}

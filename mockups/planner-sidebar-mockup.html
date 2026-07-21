@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Covenant Wedding Planner — Planner-Wide Sidebar Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/planner-sidebar-mockup.css">
+</head>
+<body>
+  <a href="#main" class="skip-link" style="position:absolute;left:-9999px">Skip to content</a>
+
+  <div class="app-shell">
+    <header class="planner-topbar" role="banner">
+      <button type="button" class="planner-topbar__mobile-nav" id="mobile-nav-btn" aria-label="Open navigation">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <button type="button" class="planner-topbar__collapse" id="sidebar-collapse-btn" aria-label="Collapse sidebar" aria-pressed="false" title="Collapse sidebar ( [ )">
+        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+
+      <div class="planner-topbar__brand">
+        <div class="planner-topbar__mark" aria-hidden="true">&#10022;</div>
+        <div>
+          <div class="planner-topbar__title">The Covenant Wedding Planner</div>
+          <div class="planner-topbar__tagline">Anderson Wedding · Oct 18, 2026</div>
+        </div>
+      </div>
+
+      <div class="planner-topbar__center">
+        <div class="planner-topbar__save" role="status">
+          <span>Autosaved locally</span>
+        </div>
+        <div class="planner-topbar__actions">
+          <button type="button" class="btn btn--ghost-light btn--sm" id="pages-menu-btn">Pages</button>
+          <button type="button" class="btn btn--ghost-light btn--sm">Backup</button>
+          <button type="button" class="btn btn--ghost-light btn--sm">Help</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <div class="sidebar-scrim" id="sidebar-scrim" aria-hidden="true"></div>
+
+      <nav class="planner-sidebar" id="planner-sidebar" aria-label="Planner navigation">
+        <div class="sidebar-context-rail" id="sidebar-context-rail" aria-hidden="true"></div>
+
+        <div class="sidebar-scroll" id="sidebar-scroll">
+          <div class="sidebar-zone sidebar-zone--context" id="sidebar-context" aria-live="polite"></div>
+          <div class="sidebar-section-divider" aria-hidden="true"><span>Quick access</span></div>
+          <div class="sidebar-zone sidebar-zone--global" id="sidebar-global" aria-live="polite"></div>
+        </div>
+
+        <div class="sidebar-global-rail" id="sidebar-global-rail" aria-hidden="true"></div>
+      </nav>
+
+      <main class="main-content" id="main">
+        <div class="main-content__inner">
+
+          <!-- Dashboard -->
+          <section class="page-panel is-active" id="panel-dashboard" data-page="dashboard">
+            <header class="page-header page-header--slim">
+              <div class="page-header__eyebrow">Planning overview</div>
+              <h1 class="page-header__title">Dashboard</h1>
+              <p class="page-header__desc">Overview cards only — countdown, stats, and alerts live in the sidebar context panel.</p>
+            </header>
+            <div class="content-grid content-grid--2">
+              <section class="content-card">
+                <div class="content-card__head"><h2 class="content-card__title">Next on your list</h2><button type="button" class="btn btn--sm" data-goto="tasks">View all</button></div>
+                <ul class="content-card__list">
+                  <li><span class="task-dot"></span><span>Book final venue walk-through</span></li>
+                  <li><span class="task-dot"></span><span>Send rehearsal dinner invitations</span></li>
+                  <li><span class="task-dot"></span><span>Confirm catering headcount</span></li>
+                </ul>
+              </section>
+              <section class="content-card">
+                <div class="content-card__head"><h2 class="content-card__title">Planning progress</h2><span style="font-size:0.82rem;color:var(--c-text-muted)">62%</span></div>
+                <p style="margin:0;font-size:0.86rem;color:var(--c-text-muted)">Focus on guest responses and vendor confirmations next.</p>
+                <div class="progress-bar"><div class="progress-bar__fill" style="width:62%"></div></div>
+              </section>
+            </div>
+          </section>
+
+          <!-- Guest List -->
+          <section class="page-panel" id="panel-guests" data-page="guests">
+            <header class="page-header page-header--slim">
+              <div class="page-header__eyebrow">People</div>
+              <h1 class="page-header__title">Guest List</h1>
+              <p class="page-header__desc">Guest record cards only. Stats, filters, chase queue, and actions are in the sidebar → <em>This page</em> section.</p>
+            </header>
+            <div class="guest-card-grid" id="guest-cards">
+              <article class="guest-card" data-name="Sarah Mitchell" data-rsvp="yes" data-meal="yes" data-side="bride" tabindex="0"><h3 class="guest-card__name">Sarah Mitchell</h3><div class="guest-card__meta"><span class="rsvp-pill rsvp-pill--yes">Attending</span><span>Bride's side</span><span>Chicken · Table 4</span></div></article>
+              <article class="guest-card" data-name="James Mitchell" data-rsvp="yes" data-meal="yes" data-side="bride" tabindex="0"><h3 class="guest-card__name">James Mitchell</h3><div class="guest-card__meta"><span class="rsvp-pill rsvp-pill--yes">Attending</span><span>Household</span><span>Chicken · Table 4</span></div></article>
+              <article class="guest-card" data-name="Emily Carter" data-rsvp="pending" data-meal="no" data-side="groom" tabindex="0"><h3 class="guest-card__name">Emily Carter</h3><div class="guest-card__meta"><span class="rsvp-pill rsvp-pill--pending">Pending</span><span>Groom's side</span><span>Meal TBD</span></div></article>
+              <article class="guest-card" data-name="Pastor David Reed" data-rsvp="yes" data-meal="yes" data-side="officiant" tabindex="0"><h3 class="guest-card__name">Pastor David Reed</h3><div class="guest-card__meta"><span class="rsvp-pill rsvp-pill--yes">Attending</span><span>Officiant</span><span>Vegetarian</span></div></article>
+              <article class="guest-card" data-name="Maria Santos" data-rsvp="no" data-meal="na" data-side="friend" tabindex="0"><h3 class="guest-card__name">Maria Santos</h3><div class="guest-card__meta"><span class="rsvp-pill rsvp-pill--no">Declined</span><span>Family friend</span></div></article>
+              <article class="guest-card" data-name="Tyler Brooks" data-rsvp="pending" data-meal="no" data-side="friend" tabindex="0"><h3 class="guest-card__name">Tyler Brooks</h3><div class="guest-card__meta"><span class="rsvp-pill rsvp-pill--pending">Pending</span><span>College friend</span><span>+1 allowed</span></div></article>
+            </div>
+          </section>
+
+          <!-- Budget -->
+          <section class="page-panel" id="panel-budget" data-page="budget">
+            <header class="page-header page-header--slim">
+              <div class="page-header__eyebrow">Finances</div>
+              <h1 class="page-header__title">Budget</h1>
+              <p class="page-header__desc">Category breakdown in main column. Spending snapshot and alerts are in the sidebar.</p>
+            </header>
+            <div class="content-card">
+              <div class="content-card__head"><h2 class="content-card__title">Top categories</h2><button type="button" class="btn btn--sm" data-goto="data-hub">Budget tables</button></div>
+              <ul class="content-card__list">
+                <li><span class="task-dot"></span><span><strong>Venue &amp; catering</strong> — $9,200 of $12,000</span></li>
+                <li><span class="task-dot"></span><span><strong>Photography</strong> — $3,400 of $3,500</span></li>
+                <li><span class="task-dot"></span><span><strong>Attire &amp; beauty</strong> — $2,100 of $2,800</span></li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Database Hub -->
+          <section class="page-panel" id="panel-data-hub" data-page="data-hub">
+            <header class="page-header">
+              <div class="page-header__eyebrow">All tables</div>
+              <h1 class="page-header__title">Database Hub</h1>
+              <p class="page-header__desc">The hub keeps its own inner category rail for tables. The planner sidebar stays put — you never lose global navigation.</p>
+            </header>
+            <div class="hub-preview">
+              <div class="hub-preview__cats">
+                <button type="button" class="hub-preview__cat is-active">People</button>
+                <button type="button" class="hub-preview__cat">Finances</button>
+                <button type="button" class="hub-preview__cat">Catering</button>
+                <button type="button" class="hub-preview__cat">Planning</button>
+                <button type="button" class="hub-preview__cat">Vendors</button>
+              </div>
+              <div class="hub-preview__table">
+                <table>
+                  <thead><tr><th>Name</th><th>RSVP</th><th>Meal</th><th>Table</th></tr></thead>
+                  <tbody>
+                    <tr><td>Sarah Mitchell</td><td>Yes</td><td>Chicken</td><td>4</td></tr>
+                    <tr><td>Emily Carter</td><td>Pending</td><td>—</td><td>—</td></tr>
+                    <tr><td>Tyler Brooks</td><td>Pending</td><td>—</td><td>—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Generic fallback for other pages -->
+          <section class="page-panel" id="panel-generic" data-page="generic">
+            <header class="page-header">
+              <div class="page-header__eyebrow" id="generic-eyebrow">Planner</div>
+              <h1 class="page-header__title" id="generic-title">Page</h1>
+              <p class="page-header__desc" id="generic-desc">Use topbar Pages, favorites, or recents in the sidebar to switch pages. Page context appears in zone ①.</p>
+            </header>
+            <div class="content-card">
+              <p style="margin:0;color:var(--c-text-muted);font-size:0.9rem">In the live planner, this area would show the minimal page view (stats, cards, hub links) with content width capped around <strong>960px</strong> so it never feels stretched across a wide monitor.</p>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="pages-menu-scrim" id="pages-menu-scrim" aria-hidden="true"></div>
+  <aside class="pages-menu-drawer" id="pages-menu-drawer" aria-label="All planner pages" aria-hidden="true">
+    <div class="pages-menu-drawer__head">
+      <div>
+        <h2 class="pages-menu-drawer__title">All pages</h2>
+        <p class="pages-menu-drawer__sub">Full planner navigation lives here — not in the sidebar.</p>
+      </div>
+      <button type="button" class="pages-menu-drawer__close" id="pages-menu-close" aria-label="Close">&times;</button>
+    </div>
+    <label class="sidebar-search pages-menu-drawer__search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="pages-menu-search" placeholder="Search pages…" autocomplete="off" aria-label="Search planner pages">
+    </label>
+    <div class="pages-menu-drawer__body" id="pages-menu-body"></div>
+  </aside>
+
+  <div class="mockup-banner" role="note">
+    <strong>2-zone sidebar · one scroll</strong> — Page context flows into quick access in a single column.
+    Topbar <strong>Pages</strong> for full navigation · <a href="#guests" style="color:var(--c-gold-light)">Guest List</a> · Collapse: &#9664; or <kbd>[</kbd>
+  </div>
+
+  <script>
+    (function () {
+      var NAV = [
+        { id: 'start-here', label: 'Start Here', pages: [
+          { id: 'reflect', label: 'Vision & Foundation', sub: 'Prayer & priorities', icon: '♥' },
+          { id: 'counseling', label: 'Premarital Counseling', sub: 'Sessions', icon: '📖' },
+          { id: 'prayer', label: 'Prayer Journal', sub: 'Requests', icon: '🙏' }
+        ]},
+        { id: 'start-planning', label: 'Start Planning', pages: [
+          { id: 'instructions', label: 'Get Started', sub: 'How it works', icon: '🚀' },
+          { id: 'guide', label: 'Page-by-Page Guide', sub: 'Expand sections', icon: '📚' },
+          { id: 'faq', label: 'FAQ', sub: 'Common questions', icon: '?' },
+          { id: 'data-hub', label: 'Database Hub', sub: 'All tables', icon: '🗄' },
+          { id: 'setup', label: 'Wedding Setup', sub: 'Names, date, budget', icon: '⚙' }
+        ]},
+        { id: 'planning', label: 'Planning', pages: [
+          { id: 'dashboard', label: 'Dashboard', sub: 'Overview', icon: '▦' },
+          { id: 'tasks', label: 'Planning Timeline', sub: 'Tasks', icon: '📋' },
+          { id: 'calendar', label: 'Smart Calendar', sub: 'All dates', icon: '📅' },
+          { id: 'appointments', label: 'Appointments', sub: 'Meetings', icon: '✓' },
+          { id: 'notes', label: 'Notes', sub: 'Quick notes', icon: '📝' },
+          { id: 'logistics', label: 'Weekend Logistics', sub: 'Travel & VIP', icon: '🧳' }
+        ]},
+        { id: 'finances', label: 'Finances', pages: [
+          { id: 'budget', label: 'Budget', sub: 'Spending', icon: '💰' },
+          { id: 'payments', label: 'Payments', sub: 'Deposits', icon: '💳' },
+          { id: 'contracts', label: 'Contracts & Rentals', sub: 'Documents', icon: '📄' }
+        ]},
+        { id: 'venue-vendors', label: 'Venue & Vendors', pages: [
+          { id: 'venue', label: 'Wedding Venue', sub: 'Compare', icon: '🏛' },
+          { id: 'vendors', label: 'Vendors', sub: 'Contacts', icon: '🏪' },
+          { id: 'catering', label: 'Catering & Menu', sub: 'Food & drinks', icon: '🍽' }
+        ]},
+        { id: 'people', label: 'People', pages: [
+          { id: 'guests', label: 'Guest List', sub: 'RSVPs & meals', icon: '👥' },
+          { id: 'party', label: 'Wedding Party', sub: 'Roles', icon: '💍' },
+          { id: 'tables', label: 'Table Layout', sub: 'Seating', icon: '🪑' }
+        ]},
+        { id: 'ceremony', label: 'Ceremony & Reception', pages: [
+          { id: 'ceremony', label: 'Ceremony & Reception', sub: 'Order of service', icon: '⛪' },
+          { id: 'timeline', label: 'Wedding Day Timeline', sub: 'Minute-by-minute', icon: '⏱' },
+          { id: 'entertainment', label: 'Music & Speeches', sub: 'Playlists', icon: '🎵' },
+          { id: 'shotlist', label: 'Photo & Video', sub: 'Shot lists', icon: '📷' }
+        ]},
+        { id: 'design', label: 'Design & Details', pages: [
+          { id: 'mood', label: 'Vision Board', sub: 'Palette', icon: '🎨' },
+          { id: 'essentials', label: 'Essentials Checklist', sub: 'Packing', icon: '☑' },
+          { id: 'gifts', label: 'Gift Log', sub: 'Thank-yous', icon: '🎁' },
+          { id: 'emails', label: 'Email Templates', sub: 'Messages', icon: '✉' },
+          { id: 'packets', label: 'Share Packets', sub: 'Print handoffs', icon: '📁' }
+        ]},
+        { id: 'after', label: 'After the Day', pages: [
+          { id: 'honeymoon', label: 'Honeymoon & After', sub: 'Travel', icon: '🏖' }
+        ]}
+      ];
+
+      var PAGE_MAP = {};
+      var PAGE_ICON = {};
+      NAV.forEach(function (cat) {
+        cat.pages.forEach(function (p) {
+          PAGE_MAP[p.id] = { label: p.label, sub: p.sub, category: cat.label };
+          PAGE_ICON[p.id] = p.icon;
+        });
+      });
+
+      var activePage = 'dashboard';
+      var guestFilter = 'all';
+      var favorites = [];
+      var recents = [];
+      var sidebar = document.getElementById('planner-sidebar');
+      var scrim = document.getElementById('sidebar-scrim');
+      var contextHost = document.getElementById('sidebar-context');
+      var globalHost = document.getElementById('sidebar-global');
+      var contextRail = document.getElementById('sidebar-context-rail');
+      var globalRail = document.getElementById('sidebar-global-rail');
+      var collapseBtn = document.getElementById('sidebar-collapse-btn');
+      var mobileBtn = document.getElementById('mobile-nav-btn');
+      var pagesMenuBtn = document.getElementById('pages-menu-btn');
+      var pagesMenuDrawer = document.getElementById('pages-menu-drawer');
+      var pagesMenuScrim = document.getElementById('pages-menu-scrim');
+      var pagesMenuClose = document.getElementById('pages-menu-close');
+      var pagesMenuBody = document.getElementById('pages-menu-body');
+      var pagesMenuSearch = document.getElementById('pages-menu-search');
+
+      function loadState() {
+        try {
+          favorites = JSON.parse(sessionStorage.getItem('cwp-mock-favorites') || '["dashboard","guests","budget"]');
+          recents = JSON.parse(sessionStorage.getItem('cwp-mock-recents') || '[]');
+          guestFilter = sessionStorage.getItem('cwp-mock-guest-filter') || 'all';
+        } catch (e) {
+          favorites = ['dashboard', 'guests', 'budget'];
+          recents = [];
+        }
+      }
+
+      function saveState() {
+        try {
+          sessionStorage.setItem('cwp-mock-favorites', JSON.stringify(favorites));
+          sessionStorage.setItem('cwp-mock-recents', JSON.stringify(recents));
+          sessionStorage.setItem('cwp-mock-guest-filter', guestFilter);
+        } catch (e) {}
+      }
+
+      function trackRecent(id) {
+        if (!PAGE_MAP[id]) return;
+        recents = recents.filter(function (p) { return p !== id; });
+        recents.unshift(id);
+        if (recents.length > 8) recents.length = 8;
+        saveState();
+      }
+
+      function toggleFavorite(id) {
+        if (!PAGE_MAP[id]) return;
+        var i = favorites.indexOf(id);
+        if (i >= 0) favorites.splice(i, 1);
+        else favorites.push(id);
+        saveState();
+        renderGlobalZone();
+      }
+
+      function ctxHead(title, kicker) {
+        return '<div class="ctx-head"><div class="ctx-head__kicker">' + (kicker || 'This page') + '</div><h2 class="ctx-head__title">' + title + '</h2></div>';
+      }
+
+      function ctxStats(stats) {
+        return '<div class="ctx-block"><div class="ctx-stat-row">' + stats.map(function (s) {
+          return '<div class="ctx-stat"><div class="ctx-stat__val">' + s.val + '</div><div class="ctx-stat__lbl">' + s.lbl + '</div></div>';
+        }).join('') + '</div></div>';
+      }
+
+      var CONTEXT_RENDERERS = {
+        dashboard: function () {
+          return ctxHead('Dashboard', 'This page') +
+            ctxStats([
+              { val: '142', lbl: 'Days left' },
+              { val: '62%', lbl: 'Progress' },
+              { val: '86', lbl: 'Guests yes' },
+              { val: '24', lbl: 'Open tasks' }
+            ]) +
+            '<div class="ctx-block"><div class="ctx-block__title">Needs attention <span class="ctx-badge ctx-badge--warn">3</span></div>' +
+            '<ul class="ctx-queue">' +
+            '<li><span>12 pending RSVPs</span><button type="button" data-goto="guests">Go</button></li>' +
+            '<li><span>Photography near cap</span><button type="button" data-goto="budget">Go</button></li>' +
+            '<li><span>8 tasks due this month</span><button type="button" data-goto="tasks">Go</button></li>' +
+            '</ul></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Foundation</div>' +
+            '<div style="font-size:0.78rem;color:var(--c-text-muted)">Wedding Setup · 7 of 11 complete</div>' +
+            '<div class="ctx-progress"><b style="width:64%"></b></div>' +
+            '<div class="ctx-actions" style="margin-top:0.4rem"><button type="button" class="btn btn--primary btn--sm" data-goto="setup">Continue setup</button></div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Page actions</div><div class="ctx-actions">' +
+            '<button type="button" class="btn btn--sm" data-goto="calendar">Calendar</button>' +
+            '<button type="button" class="btn btn--sm" data-goto="tasks">Timeline</button></div></div>';
+        },
+        guests: function () {
+          var chips = [
+            { id: 'all', label: 'All' },
+            { id: 'pending', label: 'Pending' },
+            { id: 'meal', label: 'Needs meal' },
+            { id: 'yes', label: 'Attending' }
+          ];
+          var chipsHtml = chips.map(function (c) {
+            return '<button type="button" class="ctx-chip' + (guestFilter === c.id ? ' is-active' : '') + '" data-guest-filter="' + c.id + '">' + c.label + '</button>';
+          }).join('');
+          return ctxHead('Guest List', 'This page') +
+            ctxStats([
+              { val: '98', lbl: 'Invited' },
+              { val: '86', lbl: 'Attending' },
+              { val: '12', lbl: 'Pending' },
+              { val: '88%', lbl: 'RSVP rate' }
+            ]) +
+            '<div class="ctx-block"><div class="ctx-reminder">&#128197; RSVP deadline in <strong>18 days</strong> · 3 guests need follow-up this week</div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Filters</div><div class="ctx-filter-chips">' + chipsHtml + '</div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">RSVP chase queue <span class="ctx-badge ctx-badge--warn">3</span></div>' +
+            '<ul class="ctx-queue">' +
+            '<li class="is-clickable" data-highlight-guest="Emily Carter"><span>Emily Carter</span><button type="button">Copy</button></li>' +
+            '<li class="is-clickable" data-highlight-guest="Tyler Brooks"><span>Tyler Brooks</span><button type="button">Copy</button></li>' +
+            '<li class="is-clickable" data-highlight-guest="Jordan Lee"><span>Jordan Lee</span><button type="button">Copy</button></li>' +
+            '</ul></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Notifications</div>' +
+            '<ul class="ctx-queue">' +
+            '<li><span>3 meals missing</span><span class="ctx-badge ctx-badge--warn">3</span></li>' +
+            '<li><span>2 unseated guests</span><span class="ctx-badge ctx-badge--warn">2</span></li>' +
+            '<li><span>Dietary OK</span><span class="ctx-badge ctx-badge--ok">✓</span></li>' +
+            '</ul></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Sync</div>' +
+            '<div class="ctx-sync-row"><span>Catering: 86 / 90 target</span><button type="button" data-goto="catering">Open</button></div>' +
+            '<div class="ctx-sync-row"><span>Seating: 84 / 86 assigned</span><button type="button" data-goto="tables">Open</button></div>' +
+            '<div class="ctx-sync-row"><span>Per guest: $349</span><button type="button" data-goto="budget">Budget</button></div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Page actions</div><div class="ctx-actions">' +
+            '<button type="button" class="btn btn--primary btn--sm">+ Add guest</button>' +
+            '<button type="button" class="btn btn--sm">Import CSV</button>' +
+            '<button type="button" class="btn btn--sm">Copy follow-up</button>' +
+            '<button type="button" class="btn btn--sm" data-goto="data-hub">Database Hub</button></div></div>';
+        },
+        budget: function () {
+          return ctxHead('Budget', 'This page') +
+            ctxStats([
+              { val: '$30k', lbl: 'Target' },
+              { val: '$18.6k', lbl: 'Spent' },
+              { val: '$11.4k', lbl: 'Left' },
+              { val: '62%', lbl: 'Used' }
+            ]) +
+            '<div class="ctx-block"><div class="ctx-block__title">Alerts</div>' +
+            '<ul class="ctx-queue"><li><span>Photography at 97% of cap</span></li><li><span>Attire on track</span></li></ul></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Per guest</div><div style="font-size:0.85rem"><strong>$349</strong> · 86 attending</div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Related</div>' +
+            '<div class="ctx-sync-row"><span>4 payments due soon</span><button type="button" data-goto="payments">Payments</button></div>' +
+            '<div class="ctx-sync-row"><span>Headcount from guests</span><button type="button" data-goto="guests">Guest List</button></div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Page actions</div><div class="ctx-actions">' +
+            '<button type="button" class="btn btn--sm" data-goto="data-hub">Budget tables</button>' +
+            '<button type="button" class="btn btn--sm" data-goto="payments">Add payment</button></div></div>';
+        },
+        payments: function () {
+          return ctxHead('Payments', 'This page') +
+            ctxStats([
+              { val: '14', lbl: 'Total' },
+              { val: '9', lbl: 'Paid' },
+              { val: '5', lbl: 'Outstanding' },
+              { val: '$4.2k', lbl: 'Due soon' }
+            ]) +
+            '<div class="ctx-block"><div class="ctx-block__title">Due this month</div>' +
+            '<ul class="ctx-queue"><li><span>Florist deposit</span><span>$800</span></li><li><span>Cake balance</span><span>$450</span></li></ul></div>' +
+            '<div class="ctx-block"><div class="ctx-sync-row"><span>Budget remaining</span><button type="button" data-goto="budget">Budget</button></div></div>';
+        },
+        tasks: function () {
+          return ctxHead('Planning Timeline', 'This page') +
+            ctxStats([
+              { val: '24', lbl: 'Open' },
+              { val: '8', lbl: 'Due soon' },
+              { val: '3', lbl: 'Overdue' },
+              { val: '62%', lbl: 'Done' }
+            ]) +
+            '<div class="ctx-block"><div class="ctx-block__title">Filter phase</div><div class="ctx-filter-chips">' +
+            '<button type="button" class="ctx-chip is-active">All</button><button type="button" class="ctx-chip">12 mo</button><button type="button" class="ctx-chip">6 mo</button><button type="button" class="ctx-chip">Month of</button></div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Overdue</div><ul class="ctx-queue"><li><span>Book rehearsal venue</span></li><li><span>Finalize menu tasting</span></li></ul></div>';
+        },
+        catering: function () {
+          return ctxHead('Catering & Menu', 'This page') +
+            ctxStats([
+              { val: '90', lbl: 'Target' },
+              { val: '86', lbl: 'Confirmed' },
+              { val: '3', lbl: 'Meals TBD' },
+              { val: '4', lbl: 'Menu items' }
+            ]) +
+            '<div class="ctx-block"><div class="ctx-block__title">Guest sync</div><div class="ctx-sync-row"><span>From Guest List</span><button type="button" data-goto="guests">Open</button></div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Alerts</div><ul class="ctx-queue"><li><span>3 attending guests need meal choice</span></li></ul></div>';
+        },
+        'data-hub': function () {
+          return ctxHead('Database Hub', 'This page') +
+            '<div class="ctx-block"><div class="ctx-block__title">Hub category</div><div class="ctx-filter-chips">' +
+            '<button type="button" class="ctx-chip is-active">People</button><button type="button" class="ctx-chip">Finances</button><button type="button" class="ctx-chip">Catering</button><button type="button" class="ctx-chip">Planning</button></div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Table</div><div style="font-size:0.78rem">Guest List · 98 rows</div></div>' +
+            '<div class="ctx-block"><div class="ctx-block__title">Hub actions</div><div class="ctx-actions">' +
+            '<button type="button" class="btn btn--sm">+ Add row</button><button type="button" class="btn btn--sm">Export</button></div></div>' +
+            '<div class="ctx-block" style="font-size:0.72rem;color:var(--c-text-muted)">Hub table categories show here as page context. Full page list is in topbar → Pages.</div>';
+        },
+        setup: function () {
+          return ctxHead('Wedding Setup', 'This page') +
+            ctxStats([{ val: '7/11', lbl: 'Checklist' }, { val: '64%', lbl: 'Complete' }]) +
+            '<div class="ctx-block"><div class="ctx-block__title">Missing</div><ul class="ctx-queue"><li><span>Reception start time</span></li><li><span>Guest target</span></li></ul></div>';
+        },
+        tables: function () {
+          return ctxHead('Table Layout', 'This page') +
+            ctxStats([{ val: '10', lbl: 'Tables' }, { val: '84', lbl: 'Seated' }, { val: '2', lbl: 'Unseated' }, { val: '96', lbl: 'Capacity' }]) +
+            '<div class="ctx-block"><div class="ctx-sync-row"><span>Guest List</span><button type="button" data-goto="guests">Open</button></div></div>';
+        }
+      };
+
+      function defaultContext(id) {
+        var meta = PAGE_MAP[id];
+        if (!meta) return '';
+        return ctxHead(meta.label, 'This page') +
+          '<div class="ctx-block"><p style="margin:0;font-size:0.78rem;color:var(--c-text-muted)">' + meta.sub + ' — page-specific stats, filters, and quick actions would appear here in the live planner.</p></div>' +
+          '<div class="ctx-block"><div class="ctx-block__title">Related</div><div class="ctx-sync-row"><span>Database Hub tables</span><button type="button" data-goto="data-hub">Open</button></div></div>';
+      }
+
+      function getContextBadge(id) {
+        if (id === 'guests') return '5';
+        if (id === 'dashboard') return '3';
+        if (id === 'budget') return '1';
+        if (id === 'tasks') return '3';
+        return '';
+      }
+
+      function renderPageContext(id) {
+        var html = (CONTEXT_RENDERERS[id] || defaultContext)(id);
+        contextHost.innerHTML = html;
+        var badge = getContextBadge(id);
+        var icon = PAGE_ICON[id] || '•';
+        contextRail.innerHTML = badge
+          ? '<button type="button" class="sidebar-rail-btn has-badge" data-badge="' + badge + '" title="Page alerts">' + icon + '</button>'
+          : '<button type="button" class="sidebar-rail-btn" title="Page context">' + icon + '</button>';
+      }
+
+      function renderGlobalZone() {
+        var favHtml = favorites.filter(function (id) { return PAGE_MAP[id]; }).map(function (id) {
+          return '<li><button type="button" data-goto="' + id + '"><span>' + (PAGE_ICON[id] || '•') + '</span><span>' + PAGE_MAP[id].label + '</span></button>' +
+            '<button type="button" class="star-btn is-fav" data-toggle-fav="' + id + '" title="Remove favorite">★</button></li>';
+        }).join('');
+        if (!favHtml) favHtml = '<li style="font-size:0.72rem;color:var(--c-text-muted);padding:0.25rem 0.35rem">Star pages from recents below.</li>';
+
+        var recentHtml = recents.filter(function (id) { return PAGE_MAP[id]; }).slice(0, 5).map(function (id) {
+          var isFav = favorites.indexOf(id) >= 0;
+          return '<li><button type="button" data-goto="' + id + '"><span>' + (PAGE_ICON[id] || '•') + '</span><span>' + PAGE_MAP[id].label + '</span></button>' +
+            '<button type="button" class="star-btn' + (isFav ? ' is-fav' : '') + '" data-toggle-fav="' + id + '" title="Toggle favorite">' + (isFav ? '★' : '☆') + '</button></li>';
+        }).join('');
+        if (!recentHtml) recentHtml = '<li style="font-size:0.72rem;color:var(--c-text-muted);padding:0.25rem 0.35rem">Visit pages to build recents.</li>';
+
+        var isFavActive = favorites.indexOf(activePage) >= 0;
+        globalHost.innerHTML =
+          '<div class="global-block"><div class="global-alert"><strong>Planner-wide:</strong> 12 RSVPs pending · Photography at budget cap · 3 tasks overdue</div></div>' +
+          '<div class="global-block"><div class="ctx-block__title">★ Favorites</div><ul class="global-list">' + favHtml + '</ul></div>' +
+          '<div class="global-block"><div class="ctx-block__title">Recent</div><ul class="global-list">' + recentHtml + '</ul></div>' +
+          '<div class="global-block"><div class="ctx-block__title">Common actions</div><div class="global-actions-grid">' +
+          '<button type="button" class="btn btn--sm" id="open-pages-from-sidebar">📋 All pages</button>' +
+          '<button type="button" class="btn btn--sm" data-goto="data-hub">🗄 Database Hub</button>' +
+          '<button type="button" class="btn btn--sm" data-goto="setup">⚙ Setup</button>' +
+          '<button type="button" class="btn btn--sm">💾 Backup</button>' +
+          '<button type="button" class="btn btn--sm">📤 Export CSV</button>' +
+          '<button type="button" class="btn btn--sm" data-goto="guests">+ Guest</button>' +
+          '<button type="button" class="btn btn--sm" data-goto="tasks">+ Task</button></div></div>' +
+          '<div class="global-block"><button type="button" class="btn btn--sm" style="width:100%" data-toggle-fav="' + activePage + '">' +
+          (isFavActive ? '★ Remove from favorites' : '☆ Add this page to favorites') + '</button></div>' +
+          '<div class="global-meta">142 days to wedding · Last backup: 2 days ago · <kbd style="font-size:0.65rem">⌘K</kbd> search</div>';
+
+        globalRail.innerHTML =
+          '<button type="button" class="sidebar-rail-btn" id="open-pages-from-rail" title="All pages">📋</button>' +
+          '<button type="button" class="sidebar-rail-btn" data-goto="data-hub" title="Database Hub">🗄</button>' +
+          '<button type="button" class="sidebar-rail-btn" title="Backup">💾</button>' +
+          '<button type="button" class="sidebar-rail-btn" data-goto="setup" title="Setup">⚙</button>';
+
+        var openPagesBtn = document.getElementById('open-pages-from-sidebar');
+        if (openPagesBtn) openPagesBtn.addEventListener('click', openPagesMenu);
+        var openPagesRail = document.getElementById('open-pages-from-rail');
+        if (openPagesRail) openPagesRail.addEventListener('click', openPagesMenu);
+      }
+
+      function applyGuestFilter(filter) {
+        guestFilter = filter;
+        saveState();
+        document.querySelectorAll('[data-guest-filter]').forEach(function (btn) {
+          btn.classList.toggle('is-active', btn.getAttribute('data-guest-filter') === filter);
+        });
+        document.querySelectorAll('#guest-cards .guest-card').forEach(function (card) {
+          var rsvp = card.getAttribute('data-rsvp');
+          var meal = card.getAttribute('data-meal');
+          var show = true;
+          if (filter === 'pending') show = rsvp === 'pending';
+          else if (filter === 'meal') show = rsvp === 'yes' && meal === 'no';
+          else if (filter === 'yes') show = rsvp === 'yes';
+          card.classList.toggle('is-filtered-out', !show);
+        });
+      }
+
+      function highlightGuest(name) {
+        document.querySelectorAll('#guest-cards .guest-card').forEach(function (c) {
+          c.classList.remove('is-highlight');
+        });
+        var card = document.querySelector('#guest-cards .guest-card[data-name="' + name + '"]');
+        if (card) {
+          card.classList.add('is-highlight');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+
+      function iconFor(page) { return page.icon || '•'; }
+
+      function renderPagesMenu(filter) {
+        var q = (filter || '').trim().toLowerCase();
+        pagesMenuBody.innerHTML = NAV.map(function (cat) {
+          var pages = cat.pages.filter(function (p) {
+            if (!q) return true;
+            return (p.label + ' ' + p.sub + ' ' + cat.label).toLowerCase().indexOf(q) >= 0;
+          });
+          if (!pages.length) return '';
+          var pagesHtml = pages.map(function (p) {
+            var active = p.id === activePage ? ' is-active' : '';
+            return '<button type="button" class="nav-link' + active + '" data-page="' + p.id + '">' +
+              '<span class="nav-link__icon" aria-hidden="true">' + iconFor(p) + '</span>' +
+              '<span class="nav-link__text"><span class="nav-link__label">' + p.label + '</span>' +
+              (p.sub ? '<span class="nav-link__sub">' + p.sub + '</span>' : '') + '</span></button>';
+          }).join('');
+          return '<div class="nav-group" data-group="' + cat.id + '">' +
+            '<div class="sidebar-zone__label" style="padding-left:0.5rem">' + cat.label + '</div>' +
+            '<div class="nav-group__pages">' + pagesHtml + '</div></div>';
+        }).join('');
+
+        pagesMenuBody.querySelectorAll('[data-page]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            goToPage(btn.getAttribute('data-page'));
+            closePagesMenu();
+          });
+        });
+      }
+
+      function openPagesMenu() {
+        renderPagesMenu(pagesMenuSearch.value);
+        pagesMenuDrawer.classList.add('is-open');
+        pagesMenuScrim.classList.add('is-visible');
+        pagesMenuDrawer.setAttribute('aria-hidden', 'false');
+        pagesMenuSearch.focus();
+      }
+
+      function closePagesMenu() {
+        pagesMenuDrawer.classList.remove('is-open');
+        pagesMenuScrim.classList.remove('is-visible');
+        pagesMenuDrawer.setAttribute('aria-hidden', 'true');
+      }
+
+      function goToPage(id) {
+        if (!PAGE_MAP[id]) return;
+        activePage = id;
+        document.querySelectorAll('.page-panel').forEach(function (el) { el.classList.remove('is-active'); });
+        var target = document.getElementById('panel-' + id);
+        if (target) target.classList.add('is-active');
+        else {
+          var meta = PAGE_MAP[id];
+          document.getElementById('generic-eyebrow').textContent = meta.category;
+          document.getElementById('generic-title').textContent = meta.label;
+          document.getElementById('generic-desc').textContent = meta.sub + ' — main column is slim; page context is in the sidebar.';
+          document.getElementById('panel-generic').classList.add('is-active');
+        }
+        trackRecent(id);
+        renderPageContext(id);
+        renderGlobalZone();
+        if (pagesMenuDrawer.classList.contains('is-open')) renderPagesMenu(pagesMenuSearch.value);
+        if (id === 'guests') applyGuestFilter(guestFilter);
+        closeMobileNav();
+        try { history.replaceState(null, '', '#' + id); } catch (e) {}
+      }
+
+      function setSidebarCollapsed(collapsed) {
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
+        collapseBtn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+        collapseBtn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+        try { sessionStorage.setItem('cwp-mock-sidebar-collapsed', collapsed ? '1' : '0'); } catch (e) {}
+      }
+
+      function toggleCollapse() { setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed')); }
+      function openMobileNav() { sidebar.classList.add('is-mobile-open'); scrim.classList.add('is-visible'); }
+      function closeMobileNav() { sidebar.classList.remove('is-mobile-open'); scrim.classList.remove('is-visible'); }
+
+      collapseBtn.addEventListener('click', toggleCollapse);
+      mobileBtn.addEventListener('click', function () {
+        if (sidebar.classList.contains('is-mobile-open')) closeMobileNav();
+        else openMobileNav();
+      });
+      pagesMenuBtn.addEventListener('click', openPagesMenu);
+      pagesMenuClose.addEventListener('click', closePagesMenu);
+      pagesMenuScrim.addEventListener('click', closePagesMenu);
+      pagesMenuSearch.addEventListener('input', function () { renderPagesMenu(pagesMenuSearch.value); });
+      scrim.addEventListener('click', closeMobileNav);
+
+      document.addEventListener('click', function (e) {
+        var goto = e.target.closest('[data-goto]');
+        if (goto) { e.preventDefault(); goToPage(goto.getAttribute('data-goto')); return; }
+        var fav = e.target.closest('[data-toggle-fav]');
+        if (fav) { e.preventDefault(); toggleFavorite(fav.getAttribute('data-toggle-fav')); renderGlobalZone(); return; }
+        var gf = e.target.closest('[data-guest-filter]');
+        if (gf) { e.preventDefault(); applyGuestFilter(gf.getAttribute('data-guest-filter')); renderPageContext('guests'); return; }
+        var hi = e.target.closest('[data-highlight-guest]');
+        if (hi) { e.preventDefault(); highlightGuest(hi.getAttribute('data-highlight-guest')); return; }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === '[' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          var tag = (document.activeElement && document.activeElement.tagName) || '';
+          if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+          e.preventDefault();
+          toggleCollapse();
+        }
+        if (e.key === 'Escape') { closeMobileNav(); closePagesMenu(); }
+      });
+
+      loadState();
+      try { if (sessionStorage.getItem('cwp-mock-sidebar-collapsed') === '1') setSidebarCollapsed(true); } catch (e) {}
+      var hash = (location.hash || '').replace('#', '');
+      if (hash && PAGE_MAP[hash]) activePage = hash;
+      goToPage(activePage);
+    })();
+  </script>
+</body>
+</html>

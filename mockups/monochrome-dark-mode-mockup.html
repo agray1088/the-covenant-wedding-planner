@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monochrome Dark Mode — Dashboard Target Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Target monochrome dark · structure mirrors real planner Dashboard
+   Corners intentionally sharper than current app chrome. */
+:root {
+  --page: #111111;
+  --chrome: #161616;
+  --surface: #1a1a1a;
+  --raised: #222222;
+  --elev: #2a2a2a;
+  --border: #2e2e2e;
+  --border-soft: #262626;
+  --hair: rgba(255,255,255,0.07);
+  --text: #e6e6e6;
+  --text-2: #b8b8b8;
+  --muted: #8a8a8a;
+  --faint: #656565;
+  --on-accent: #111;
+  --accent: #ececec;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Source Sans 3", system-ui, sans-serif;
+  --r: 3px;
+  --r-sm: 2px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: #080808;
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+/* Studio chrome */
+.studio-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: .75rem; padding: .7rem 1rem;
+  background: #0d0d0d; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 30;
+}
+.studio-bar strong { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; }
+.studio-bar .note { font-size: .75rem; color: var(--muted); }
+.seg {
+  display: inline-flex; gap: 2px; padding: 2px;
+  background: var(--chrome); border: 1px solid var(--border); border-radius: var(--r);
+}
+.seg button {
+  border: 0; background: transparent; color: var(--muted);
+  padding: .35rem .7rem; border-radius: var(--r-sm); font-size: .75rem; font-weight: 500;
+}
+.seg button[aria-pressed="true"] { background: var(--raised); color: var(--text); }
+.hint {
+  margin: 0; padding: .55rem 1rem; font-size: .78rem; color: var(--muted);
+  border-bottom: 1px solid var(--border-soft); background: #0a0a0a;
+}
+.hint em { color: var(--text-2); font-style: normal; }
+
+/* Device */
+.stage { padding: .85rem; display: grid; place-items: center; }
+.device {
+  width: min(1180px, 100%);
+  height: min(760px, calc(100vh - 6.5rem));
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0,0,0,.55);
+  transition: width .4s var(--ease), height .4s var(--ease), border-radius .4s var(--ease);
+  position: relative;
+}
+body[data-device="tablet"] .device {
+  width: min(920px, 100%); height: min(700px, calc(100vh - 6.5rem)); border-radius: 10px;
+}
+body[data-device="phone"] .device {
+  width: min(390px, 100%); height: min(780px, calc(100vh - 5.5rem)); border-radius: 18px;
+}
+.notch {
+  display: none; height: 22px; background: #000; flex-shrink: 0;
+  align-items: center; justify-content: center;
+}
+body[data-device="phone"] .notch { display: flex; }
+.notch i { width: 96px; height: 8px; border-radius: 4px; background: #1a1a1a; }
+
+/* ========== APP SHELL (mirrors real planner) ========== */
+.app {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--page);
+}
+
+/* Topbar — #topbar structure */
+#topbar {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: .55rem;
+  padding: .45rem .65rem;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+  min-height: 52px;
+}
+.topbar-nav-cluster { display: flex; gap: 2px; flex-shrink: 0; }
+.icon-btn {
+  display: inline-flex; align-items: center; gap: .3rem;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-2); padding: .28rem .45rem; border-radius: var(--r);
+  font-size: .72rem;
+}
+.icon-btn:hover { background: var(--raised); color: var(--text); }
+.icon-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+
+.brand { display: flex; align-items: center; gap: .45rem; min-width: 0; flex-shrink: 0; }
+.brand-mark {
+  width: 26px; height: 26px; display: grid; place-items: center;
+  border: 1px solid var(--border); background: var(--surface);
+  border-radius: var(--r); font-size: .85rem; color: var(--text-2);
+}
+.brand-main {
+  font-family: var(--font-serif); font-size: .95rem; font-weight: 600;
+  letter-spacing: .02em; white-space: nowrap; line-height: 1.15;
+}
+.brand-sub {
+  font-size: .62rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
+}
+body[data-device="phone"] .brand-sub { display: none; }
+
+.topbar-row-primary {
+  display: flex; align-items: center; gap: .5rem; flex: 1; min-width: 0;
+}
+.top-save-status {
+  display: flex; align-items: center; gap: .3rem;
+  font-size: .7rem; color: var(--muted); white-space: nowrap; flex-shrink: 0;
+}
+.top-save-status svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+body[data-device="phone"] .top-save-status { display: none; }
+
+.global-search {
+  display: flex; align-items: center; gap: .35rem; flex: 1; min-width: 0;
+  max-width: 320px; background: var(--page); border: 1px solid var(--border);
+  border-radius: var(--r); padding: .28rem .5rem;
+}
+.global-search:focus-within { border-color: #555; box-shadow: 0 0 0 2px rgba(255,255,255,.06); }
+.global-search svg { width: 13px; height: 13px; opacity: .55; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.global-search input {
+  border: 0; outline: 0; background: transparent; width: 100%;
+  font-size: .78rem; color: var(--text);
+}
+.global-search input::placeholder { color: var(--faint); }
+body[data-device="phone"] .global-search { display: none; }
+
+.actions { display: flex; align-items: center; gap: .28rem; flex-shrink: 0; }
+.btn {
+  display: inline-flex; align-items: center; gap: .3rem;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-2); padding: .32rem .55rem; border-radius: var(--r);
+  font-size: .72rem; font-weight: 500; white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.btn:hover { background: var(--raised); color: var(--text); border-color: #444; }
+.btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 600; }
+.btn.primary:hover { background: #fff; color: #0a0a0a; }
+body[data-device="phone"] .btn .btn-text,
+body[data-device="tablet"] .actions .btn:nth-child(n+4) .btn-text { display: none; }
+body[data-device="phone"] .actions .btn:nth-child(n+4) { display: none; }
+
+.photo-cutout {
+  width: 34px; height: 34px; border-radius: var(--r); flex-shrink: 0;
+  border: 1px solid var(--border); background: var(--raised);
+  display: grid; place-items: center; color: var(--faint);
+}
+.photo-cutout svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+body[data-device="phone"] .photo-cutout { display: none; }
+
+/* Category bar — #nav-category-bar */
+.nav-category-bar {
+  flex-shrink: 0; display: flex; gap: 0; overflow-x: auto;
+  background: var(--chrome); border-bottom: 1px solid var(--border);
+  padding: 0 .4rem;
+}
+.nav-category-bar button {
+  border: 0; background: transparent; color: var(--muted);
+  padding: .5rem .7rem; font-size: .72rem; font-weight: 500;
+  letter-spacing: .04em; text-transform: uppercase; white-space: nowrap;
+  border-bottom: 2px solid transparent; border-radius: 0;
+}
+.nav-category-bar button:hover { color: var(--text-2); }
+.nav-category-bar button[aria-current="true"] {
+  color: var(--text); border-bottom-color: var(--text);
+}
+body[data-device="phone"] .nav-category-bar { display: none; }
+
+/* Workspace: sidebar + main */
+.workspace {
+  flex: 1; min-height: 0; display: flex; overflow: hidden;
+}
+
+/* Context sidebar */
+.pcs {
+  width: 260px; flex-shrink: 0; overflow: auto;
+  background: var(--chrome); border-right: 1px solid var(--border);
+  padding: .65rem .55rem .9rem;
+}
+body[data-device="tablet"] .pcs { width: 220px; }
+body[data-device="phone"] .pcs {
+  display: none; position: absolute; inset: 74px 0 48px 0; z-index: 10;
+  width: auto; border-right: 0;
+}
+body[data-device="phone"].sidebar-open .pcs { display: block; }
+
+.pcs-head { margin-bottom: .65rem; padding: 0 .25rem; }
+.pcs-head__kicker {
+  font-size: .62rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; margin-bottom: .15rem;
+}
+.pcs-head__title {
+  margin: 0; font-family: var(--font-serif); font-size: 1.25rem; font-weight: 600;
+}
+.pcs-block { margin-bottom: .75rem; }
+.pcs-block__title {
+  font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; margin: 0 0 .35rem .25rem;
+}
+.pcs-stat-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: .55rem;
+}
+.pcs-stat {
+  background: var(--surface); border: 1px solid var(--border-soft);
+  border-radius: var(--r); padding: .4rem .45rem;
+}
+.pcs-stat__val { font-size: .95rem; font-weight: 600; letter-spacing: -.02em; }
+.pcs-stat__lbl { font-size: .6rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+.pcs-actions, .pcs-global-actions {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.ued-btn {
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-2); text-align: left; padding: .4rem .55rem;
+  border-radius: var(--r); font-size: .78rem; font-weight: 500;
+}
+.ued-btn:hover { background: var(--raised); color: var(--text); }
+.ued-btn.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 600; }
+.ued-btn.primary:hover { background: #fff; }
+
+.pcs-global-alert {
+  font-size: .72rem; color: var(--muted); line-height: 1.4;
+  padding: .45rem .5rem; background: var(--surface);
+  border: 1px solid var(--border-soft); border-radius: var(--r);
+}
+.pcs-global-alert strong { color: var(--text-2); font-weight: 600; }
+
+.pcs-global-list { list-style: none; margin: 0; padding: 0; }
+.pcs-global-list li {
+  display: flex; align-items: center; gap: 2px;
+  border-bottom: 1px solid var(--hair);
+}
+.pcs-global-list li > button:first-child {
+  flex: 1; text-align: left; border: 0; background: transparent;
+  color: var(--text-2); padding: .4rem .4rem; font-size: .8rem; border-radius: var(--r-sm);
+}
+.pcs-global-list li > button:first-child:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.pcs-star-btn {
+  border: 0; background: transparent; color: var(--faint);
+  padding: .35rem .4rem; font-size: .85rem; border-radius: var(--r-sm);
+}
+.pcs-star-btn.is-fav, .pcs-star-btn[aria-pressed="true"] { color: var(--text); }
+.pcs-star-btn:hover { color: var(--text); }
+.pcs-empty { margin: .25rem .4rem; font-size: .72rem; color: var(--faint); }
+
+/* Main column */
+.main-col {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden;
+}
+#main {
+  flex: 1; min-height: 0; overflow: auto;
+  padding: .85rem 1rem 1.25rem;
+  background: var(--page);
+}
+
+/* Dashboard ued-page pieces */
+.ued-page { max-width: 1100px; }
+.ued-mast {
+  display: flex; flex-wrap: wrap; justify-content: space-between;
+  align-items: flex-end; gap: .75rem; margin-bottom: .85rem;
+}
+.ued-kicker {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .65rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600; margin-bottom: .25rem;
+}
+.ued-kicker i {
+  width: 28px; height: 1px; background: var(--border); display: block;
+}
+.ued-title {
+  margin: 0; font-family: var(--font-serif); font-size: clamp(1.6rem, 2.5vw, 2.05rem);
+  font-weight: 600; letter-spacing: .01em; line-height: 1.15;
+}
+.ued-meta {
+  display: flex; flex-wrap: wrap; gap: .35rem .75rem;
+  margin-top: .35rem; font-size: .8rem; color: var(--muted);
+}
+.ued-meta span:nth-child(3) { color: var(--text); font-weight: 600; }
+.ued-actions { display: flex; gap: .35rem; align-items: center; }
+.ued-link {
+  border: 0; background: transparent; color: var(--text-2);
+  font-size: .78rem; text-decoration: underline; text-underline-offset: 3px;
+  padding: .25rem .2rem;
+}
+.ued-link:hover { color: var(--text); }
+
+.ued-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: .85rem .9rem; margin-bottom: .65rem;
+}
+.ued-countdown-c { text-align: center; }
+.cdc-eyebrow {
+  margin: 0 0 .65rem; font-size: .68rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); font-weight: 600;
+}
+.cdc-tiles {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+}
+body[data-device="phone"] .cdc-tiles { grid-template-columns: repeat(3, 1fr); }
+.cdc-tile {
+  background: var(--raised); border: 1px solid var(--border-soft);
+  border-radius: var(--r); padding: .65rem .35rem;
+}
+.cdc-tile b {
+  display: block; font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+  font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+}
+.cdc-tile span {
+  font-size: .6rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.cdc-sub { margin-top: .65rem; font-size: .85rem; color: var(--text-2); }
+.cdc-date { margin-top: .2rem; font-size: .75rem; color: var(--muted); }
+
+.ued-band {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  margin-bottom: .65rem;
+}
+body[data-device="tablet"] .ued-band { grid-template-columns: repeat(3, 1fr); }
+body[data-device="phone"] .ued-band { grid-template-columns: repeat(2, 1fr); }
+.ued-stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: .65rem .7rem;
+}
+.ued-stat b {
+  display: block; font-size: 1.15rem; font-weight: 600; letter-spacing: -.02em;
+}
+.ued-stat-label {
+  font-size: .68rem; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .06em; margin-top: .1rem;
+}
+.ued-stat-sub { font-size: .7rem; color: var(--faint); margin-top: .15rem; }
+
+.ued-grid {
+  display: grid; grid-template-columns: repeat(12, 1fr); gap: .65rem;
+}
+.ued-panel.span7 { grid-column: span 7; margin: 0; }
+.ued-panel.span5 { grid-column: span 5; margin: 0; }
+.ued-panel.span6 { grid-column: span 6; margin: 0; }
+.ued-panel.span4 { grid-column: span 4; margin: 0; }
+.ued-panel.span12 { grid-column: span 12; margin: 0; }
+body[data-device="phone"] .ued-panel.span7,
+body[data-device="phone"] .ued-panel.span5,
+body[data-device="phone"] .ued-panel.span6,
+body[data-device="phone"] .ued-panel.span4 { grid-column: span 12; }
+body[data-device="tablet"] .ued-panel.span7,
+body[data-device="tablet"] .ued-panel.span5 { grid-column: span 12; }
+
+.ued-caption {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .8rem; font-weight: 600; margin-bottom: .55rem;
+}
+.ued-caption span.ic {
+  width: 18px; height: 18px; display: grid; place-items: center;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  font-size: .65rem; color: var(--muted);
+}
+
+.ued-progress { display: flex; flex-direction: column; gap: .45rem; }
+.ued-progress-row { display: grid; grid-template-columns: 88px 1fr 36px; gap: .45rem; align-items: center; }
+.ued-progress-row span { font-size: .72rem; color: var(--muted); }
+.ued-progress-row em { font-style: normal; font-size: .72rem; color: var(--text-2); text-align: right; }
+.ued-track {
+  height: 5px; background: var(--elev); border-radius: 1px; overflow: hidden;
+}
+.ued-fill { height: 100%; background: #cfcfcf; border-radius: 1px; }
+
+.ued-list { list-style: none; margin: 0; padding: 0; }
+.ued-list li {
+  display: grid; grid-template-columns: 28px 1fr auto; gap: .45rem;
+  align-items: baseline; padding: .4rem 0; border-bottom: 1px solid var(--hair);
+  font-size: .8rem;
+}
+.ued-list .num { color: var(--faint); font-variant-numeric: tabular-nums; font-size: .72rem; }
+.ued-list b { font-weight: 500; color: var(--text); }
+.ued-list time, .ued-list small { color: var(--muted); font-size: .72rem; }
+
+.breakdown {
+  display: flex; flex-direction: column; gap: .4rem;
+}
+.breakdown-row {
+  display: grid; grid-template-columns: 72px 1fr 40px; gap: .4rem; align-items: center;
+  font-size: .72rem;
+}
+.breakdown-row span { color: var(--muted); }
+.breakdown-row em { font-style: normal; color: var(--text-2); text-align: right; }
+.breakdown-track { height: 4px; background: var(--elev); border-radius: 1px; overflow: hidden; }
+.breakdown-fill { height: 100%; background: #aaa; }
+
+.essentials-hub {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: .65rem; padding: .7rem .85rem; margin-bottom: .65rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+}
+.essentials-hub h3 {
+  margin: 0; font-size: .85rem; font-weight: 600;
+}
+.essentials-hub p { margin: .15rem 0 0; font-size: .75rem; color: var(--muted); }
+
+.toast {
+  position: absolute; left: 50%; bottom: 3.5rem; transform: translateX(-50%) translateY(8px);
+  background: var(--elev); border: 1px solid #444; color: var(--text);
+  padding: .45rem .85rem; border-radius: var(--r); font-size: .75rem;
+  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 20;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Footer — real multi-column structure, one grey family */
+#planner-footer {
+  flex-shrink: 0; border-top: 1px solid var(--border);
+  background: var(--chrome); color: var(--muted); font-size: .72rem;
+}
+.footer-main {
+  display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: .85rem;
+  padding: .85rem 1rem .65rem;
+}
+body[data-device="tablet"] .footer-main { grid-template-columns: 1fr 1fr 1fr; }
+body[data-device="phone"] .footer-main { grid-template-columns: 1fr 1fr; gap: .65rem; padding: .65rem .75rem; }
+.footer-brand__title {
+  margin: 0 0 .3rem; font-family: var(--font-serif); font-size: .95rem;
+  font-weight: 600; color: var(--text-2);
+}
+.footer-brand__desc {
+  margin: 0 0 .5rem; line-height: 1.4; color: var(--muted); max-width: 22rem;
+}
+.footer-trust-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.footer-trust-pill {
+  display: inline-flex; align-items: center; gap: .25rem;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--muted); padding: .2rem .45rem; border-radius: var(--r-sm);
+  font-size: .65rem;
+}
+.footer-trust-pill svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.footer-column__title {
+  margin: 0 0 .35rem; font-size: .65rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--faint); font-weight: 600;
+}
+.footer-column ul { list-style: none; margin: 0; padding: 0; }
+.footer-link {
+  border: 0; background: transparent; color: var(--muted);
+  padding: .15rem 0; font-size: .72rem; text-align: left; display: block;
+}
+.footer-link:hover { color: var(--text-2); }
+.footer-bottom {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem;
+  padding: .5rem 1rem .65rem; border-top: 1px solid var(--hair);
+}
+.footer-bottom__copy { margin: 0; color: var(--faint); }
+.footer-legal { display: flex; flex-wrap: wrap; gap: .15rem .65rem; }
+body[data-device="phone"] .footer-column:nth-child(n+4) { display: none; }
+
+/* Phone bottom tabs */
+.phone-tabs {
+  display: none; flex-shrink: 0; border-top: 1px solid var(--border);
+  background: var(--chrome); padding: .25rem .3rem .4rem;
+  grid-template-columns: repeat(4, 1fr); gap: 2px;
+}
+body[data-device="phone"] .phone-tabs { display: grid; }
+.phone-tabs button {
+  border: 0; background: transparent; color: var(--faint);
+  padding: .4rem .2rem; font-size: .6rem; font-weight: 500;
+  display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  border-radius: var(--r);
+}
+.phone-tabs button[aria-current="page"],
+.phone-tabs button:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.phone-tabs svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+
+.studio-foot {
+  text-align: center; padding: .55rem 1rem .8rem; font-size: .7rem; color: var(--faint);
+}
+.studio-foot code { color: var(--muted); font-family: ui-monospace, Menlo, monospace; font-size: .68rem; }
+</style>
+</head>
+<body data-device="desktop">
+
+<header class="studio-bar">
+  <div>
+    <strong>Monochrome Dark · Dashboard</strong>
+    <div class="note">Layout mirrors the real planner · sharper corners · no blue / green / cream</div>
+  </div>
+  <div class="seg" role="group" aria-label="Device">
+    <button type="button" data-device-btn="desktop" aria-pressed="true">Desktop</button>
+    <button type="button" data-device-btn="tablet" aria-pressed="false">Tablet</button>
+    <button type="button" data-device-btn="phone" aria-pressed="false">Phone</button>
+  </div>
+</header>
+<p class="hint">Shell matches <em>Dashboard</em>: topbar, category bar, context sidebar (This page + Favorites / Recent / Common actions), ued panels, multi-column footer.</p>
+
+<div class="stage">
+  <div class="device" id="device">
+    <div class="notch" aria-hidden="true"><i></i></div>
+
+    <div class="app">
+      <!-- TOPBAR -->
+      <header id="topbar">
+        <div class="topbar-nav-cluster">
+          <button type="button" class="icon-btn" id="menu-btn" aria-label="Sidebar" title="Sidebar">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+          </button>
+          <button type="button" class="icon-btn" title="Hide sidebar">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            <span class="btn-text" style="display:inline">Sidebar</span>
+          </button>
+        </div>
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">✦</div>
+          <div>
+            <div class="brand-main">The Covenant Wedding Planner</div>
+            <div class="brand-sub">Christ-Centered Planning</div>
+          </div>
+        </div>
+        <div class="topbar-row-primary">
+          <div class="top-save-status">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg>
+            <span>Saved on this device</span>
+          </div>
+          <label class="global-search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
+            <input type="search" placeholder="Find a guest, vendor, task, or page…">
+          </label>
+        </div>
+        <div class="photo-cutout" title="Couple photo" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="9" cy="10" r="1.5"/><path d="m21 15-4.5-4.5L8 19"/></svg>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn" data-toast="Saved"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><path d="M8 20v-6h8v6"/></svg><span class="btn-text">Save</span></button>
+          <button type="button" class="btn" data-toast="Alerts"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="btn-text">Alerts</span></button>
+          <button type="button" class="btn" data-toast="Profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span class="btn-text">Profile &amp; Display</span></button>
+          <button type="button" class="btn" data-toast="Database Hub"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/></svg><span class="btn-text">Database Hub</span></button>
+          <button type="button" class="btn" data-toast="Quick Jump"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="btn-text">Quick Jump</span></button>
+          <button type="button" class="btn primary" data-toast="Dark mode on"><svg viewBox="0 0 24 24"><path d="M12 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z"/></svg><span class="btn-text">Dark Mode</span></button>
+          <button type="button" class="btn" data-toast="More"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg><span class="btn-text">More</span></button>
+        </div>
+      </header>
+
+      <!-- CATEGORY BAR -->
+      <nav class="nav-category-bar" aria-label="Planner sections">
+        <button type="button" aria-current="true">Start</button>
+        <button type="button">Plan</button>
+        <button type="button">People</button>
+        <button type="button">Money</button>
+        <button type="button">Vendors</button>
+        <button type="button">Day-of</button>
+        <button type="button">Design</button>
+        <button type="button">Faith</button>
+      </nav>
+
+      <div class="workspace">
+        <!-- CONTEXT SIDEBAR -->
+        <aside class="pcs" id="sidebar" aria-label="Page context and quick access">
+          <div class="pcs-head">
+            <div class="pcs-head__kicker">This page</div>
+            <h2 class="pcs-head__title">Dashboard</h2>
+          </div>
+          <div class="pcs-stat-row">
+            <div class="pcs-stat"><div class="pcs-stat__val">186</div><div class="pcs-stat__lbl">Days left</div></div>
+            <div class="pcs-stat"><div class="pcs-stat__val">42%</div><div class="pcs-stat__lbl">Budget used</div></div>
+            <div class="pcs-stat"><div class="pcs-stat__val">98</div><div class="pcs-stat__lbl">Guests yes</div></div>
+            <div class="pcs-stat"><div class="pcs-stat__val">18/42</div><div class="pcs-stat__lbl">Tasks done</div></div>
+          </div>
+          <div class="pcs-block">
+            <div class="pcs-block__title">Quick links</div>
+            <div class="pcs-actions">
+              <button type="button" class="ued-btn" data-toast="Wedding Setup">Wedding Setup</button>
+              <button type="button" class="ued-btn" data-toast="Timeline">Timeline</button>
+              <button type="button" class="ued-btn" data-toast="Calendar">Calendar</button>
+            </div>
+          </div>
+
+          <div class="pcs-block">
+            <div class="pcs-global-alert"><strong>Quick access</strong> — favorites, recents, and common actions. Use the category labels above for full navigation.</div>
+          </div>
+          <div class="pcs-block">
+            <div class="pcs-block__title">★ Favorites</div>
+            <ul class="pcs-global-list" id="fav-list">
+              <li><button type="button" data-toast="Dashboard">Dashboard</button><button type="button" class="pcs-star-btn is-fav" aria-pressed="true">★</button></li>
+              <li><button type="button" data-toast="Guest List">Guest List</button><button type="button" class="pcs-star-btn is-fav" aria-pressed="true">★</button></li>
+              <li><button type="button" data-toast="Budget">Budget</button><button type="button" class="pcs-star-btn is-fav" aria-pressed="true">★</button></li>
+            </ul>
+          </div>
+          <div class="pcs-block">
+            <div class="pcs-block__title">Recent</div>
+            <ul class="pcs-global-list">
+              <li><button type="button" data-toast="Planning Timeline">Planning Timeline</button><button type="button" class="pcs-star-btn" aria-pressed="false">☆</button></li>
+              <li><button type="button" data-toast="Payments">Payments</button><button type="button" class="pcs-star-btn" aria-pressed="false">☆</button></li>
+              <li><button type="button" data-toast="Vendors">Vendors</button><button type="button" class="pcs-star-btn is-fav" aria-pressed="true">★</button></li>
+            </ul>
+          </div>
+          <div class="pcs-block">
+            <div class="pcs-block__title">Common actions</div>
+            <div class="pcs-global-actions">
+              <button type="button" class="ued-btn" data-toast="Database Hub">Database Hub</button>
+              <button type="button" class="ued-btn" data-toast="Wedding Setup">Wedding Setup</button>
+              <button type="button" class="ued-btn" data-toast="Backup">Backup</button>
+              <button type="button" class="ued-btn" data-toast="+ Guest">+ Guest</button>
+              <button type="button" class="ued-btn" data-toast="+ Task">+ Task</button>
+            </div>
+          </div>
+          <div class="pcs-block">
+            <button type="button" class="ued-btn" style="width:100%" id="toggle-fav-page">★ Remove from favorites</button>
+          </div>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="main-col">
+          <main id="main">
+            <div class="ued-page">
+              <div class="essentials-hub">
+                <div>
+                  <h3>Essentials Checklist</h3>
+                  <p>12 of 28 packed · keep the short list close while you plan</p>
+                </div>
+                <button type="button" class="btn" data-toast="Essentials">Open checklist</button>
+              </div>
+
+              <header class="ued-mast">
+                <div>
+                  <div class="ued-kicker"><span>01</span><i></i><span>Overview</span></div>
+                  <h1 class="ued-title">Alexandra &amp; Michael</h1>
+                  <div class="ued-meta">
+                    <span>Saturday, January 17, 2027</span>
+                    <span>Grace Covenant Church</span>
+                    <span>186</span>
+                    <span>Days remaining</span>
+                  </div>
+                </div>
+                <div class="ued-actions">
+                  <button type="button" class="ued-link" data-toast="Print">Print</button>
+                  <button type="button" class="btn primary" data-toast="Calendar">Open calendar</button>
+                </div>
+              </header>
+
+              <article class="ued-panel ued-countdown-c">
+                <p class="cdc-eyebrow">Until we say “I do”</p>
+                <div class="cdc-tiles">
+                  <div class="cdc-tile"><b>6</b><span>Months</span></div>
+                  <div class="cdc-tile"><b>2</b><span>Days</span></div>
+                  <div class="cdc-tile"><b>14</b><span>Hours</span></div>
+                  <div class="cdc-tile"><b>32</b><span>Minutes</span></div>
+                  <div class="cdc-tile"><b>08</b><span>Seconds</span></div>
+                </div>
+                <div class="cdc-sub">until your wedding celebration!</div>
+                <div class="cdc-date">Saturday, January 17, 2027</div>
+              </article>
+
+              <section class="ued-band">
+                <div class="ued-stat"><b>$16,240</b><div class="ued-stat-label">Budget left</div><div class="ued-stat-sub">42% used</div></div>
+                <div class="ued-stat"><b>98 / 142</b><div class="ued-stat-label">Attending</div><div class="ued-stat-sub">69% RSVPs in</div></div>
+                <div class="ued-stat"><b>43%</b><div class="ued-stat-label">Tasks</div><div class="ued-stat-sub">18 of 42 complete</div></div>
+                <div class="ued-stat"><b>11</b><div class="ued-stat-label">Payments</div><div class="ued-stat-sub">64% paid</div></div>
+                <div class="ued-stat"><b>9</b><div class="ued-stat-label">Vendors</div><div class="ued-stat-sub">Tracked</div></div>
+              </section>
+
+              <section class="ued-grid">
+                <article class="ued-panel span7">
+                  <div class="ued-caption"><span class="ic">▮</span> Planning Progress</div>
+                  <div class="ued-progress">
+                    <div class="ued-progress-row"><span>Overall</span><div class="ued-track"><div class="ued-fill" style="width:48%"></div></div><em>48%</em></div>
+                    <div class="ued-progress-row"><span>Budget used</span><div class="ued-track"><div class="ued-fill" style="width:42%"></div></div><em>42%</em></div>
+                    <div class="ued-progress-row"><span>Guest RSVPs</span><div class="ued-track"><div class="ued-fill" style="width:69%"></div></div><em>69%</em></div>
+                    <div class="ued-progress-row"><span>Payments paid</span><div class="ued-track"><div class="ued-fill" style="width:64%"></div></div><em>64%</em></div>
+                  </div>
+                </article>
+                <article class="ued-panel span5">
+                  <div class="ued-caption"><span class="ic">⚑</span> Next Up</div>
+                  <ul class="ued-list">
+                    <li><span class="num">01</span><b>Venue walkthrough</b><time>Sat</time></li>
+                    <li><span class="num">02</span><b>Florist deposit due</b><time>Mon</time></li>
+                    <li><span class="num">03</span><b>RSVP nudge — family</b><time>Tue</time></li>
+                    <li><span class="num">04</span><b>Menu tasting</b><time>Sun</time></li>
+                  </ul>
+                </article>
+                <article class="ued-panel span4">
+                  <div class="ued-caption"><span class="ic">✉</span> RSVP Status</div>
+                  <div class="breakdown">
+                    <div class="breakdown-row"><span>Attending</span><div class="breakdown-track"><div class="breakdown-fill" style="width:69%"></div></div><em>98</em></div>
+                    <div class="breakdown-row"><span>Declined</span><div class="breakdown-track"><div class="breakdown-fill" style="width:8%"></div></div><em>11</em></div>
+                    <div class="breakdown-row"><span>Pending</span><div class="breakdown-track"><div class="breakdown-fill" style="width:20%"></div></div><em>28</em></div>
+                    <div class="breakdown-row"><span>Maybe</span><div class="breakdown-track"><div class="breakdown-fill" style="width:3%"></div></div><em>5</em></div>
+                  </div>
+                </article>
+                <article class="ued-panel span4">
+                  <div class="ued-caption"><span class="ic">▭</span> Payments</div>
+                  <div class="breakdown">
+                    <div class="breakdown-row"><span>Paid</span><div class="breakdown-track"><div class="breakdown-fill" style="width:64%"></div></div><em>7</em></div>
+                    <div class="breakdown-row"><span>Pending</span><div class="breakdown-track"><div class="breakdown-fill" style="width:27%"></div></div><em>3</em></div>
+                    <div class="breakdown-row"><span>Overdue</span><div class="breakdown-track"><div class="breakdown-fill" style="width:9%"></div></div><em>1</em></div>
+                  </div>
+                </article>
+                <article class="ued-panel span4">
+                  <div class="ued-caption"><span class="ic">◈</span> Vendor Booking</div>
+                  <div class="breakdown">
+                    <div class="breakdown-row"><span>Research</span><div class="breakdown-track"><div class="breakdown-fill" style="width:22%"></div></div><em>2</em></div>
+                    <div class="breakdown-row"><span>Contacted</span><div class="breakdown-track"><div class="breakdown-fill" style="width:22%"></div></div><em>2</em></div>
+                    <div class="breakdown-row"><span>Booked</span><div class="breakdown-track"><div class="breakdown-fill" style="width:33%"></div></div><em>3</em></div>
+                    <div class="breakdown-row"><span>Paid</span><div class="breakdown-track"><div class="breakdown-fill" style="width:22%"></div></div><em>2</em></div>
+                  </div>
+                </article>
+                <article class="ued-panel span12" style="text-align:center">
+                  <div class="ued-caption" style="justify-content:center"><span class="ic">♡</span> Covenant Encouragement</div>
+                  <div style="font-family:var(--font-serif);font-size:1.05rem;color:var(--text-2);font-style:italic">
+                    Let all that you do be done in love. — 1 Corinthians 16:14
+                  </div>
+                </article>
+              </section>
+            </div>
+
+            <!-- FOOTER (inside scroll, like real planner) -->
+            <footer id="planner-footer" role="contentinfo">
+              <div class="footer-main">
+                <div class="footer-brand">
+                  <h2 class="footer-brand__title">The Covenant Wedding Planner</h2>
+                  <p class="footer-brand__desc">A Christ-centered wedding planning system designed to help couples organize every detail with clarity, peace, and intention.</p>
+                  <div class="footer-trust-pills">
+                    <span class="footer-trust-pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Runs locally</span>
+                    <span class="footer-trust-pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Saves in browser</span>
+                    <button type="button" class="footer-trust-pill" data-toast="Backup" style="cursor:pointer"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Backup anytime</button>
+                  </div>
+                </div>
+                <div class="footer-column">
+                  <h3 class="footer-column__title">Start Here</h3>
+                  <ul>
+                    <li><button type="button" class="footer-link" data-toast="Get Started">Get Started</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Guide">Page-by-Page Guide</button></li>
+                    <li><button type="button" class="footer-link" data-toast="FAQ">FAQ</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Setup">Wedding Setup</button></li>
+                  </ul>
+                </div>
+                <div class="footer-column">
+                  <h3 class="footer-column__title">Key Shortcuts</h3>
+                  <ul>
+                    <li><button type="button" class="footer-link" data-toast="Dashboard">Dashboard</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Calendar">Smart Calendar</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Budget">Budget</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Guests">Guest List</button></li>
+                  </ul>
+                </div>
+                <div class="footer-column">
+                  <h3 class="footer-column__title">Support Tools</h3>
+                  <ul>
+                    <li><button type="button" class="footer-link" data-toast="Backup">Download Backup</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Restore">Restore Backup</button></li>
+                    <li><button type="button" class="footer-link" data-toast="CSV">Export CSV</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Print">Print Section</button></li>
+                  </ul>
+                </div>
+                <div class="footer-column">
+                  <h3 class="footer-column__title">Connect</h3>
+                  <ul>
+                    <li><button type="button" class="footer-link" data-toast="Support">Contact Support</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Website">Website</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Instagram">Instagram</button></li>
+                    <li><button type="button" class="footer-link" data-toast="Etsy">Shop / Etsy</button></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="footer-bottom">
+                <p class="footer-bottom__copy">&copy; 2026 The Covenant Wedding Planner. All rights reserved. For personal wedding planning use only.</p>
+                <nav class="footer-legal" aria-label="Legal">
+                  <button type="button" class="footer-link" data-toast="Terms">Terms of Use</button>
+                  <button type="button" class="footer-link" data-toast="Privacy">Privacy Policy</button>
+                  <button type="button" class="footer-link" data-toast="License">License</button>
+                </nav>
+              </div>
+            </footer>
+          </main>
+        </div>
+      </div>
+
+      <nav class="phone-tabs" aria-label="Primary">
+        <button type="button" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"/></svg>Home</button>
+        <button type="button"><svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>Tasks</button>
+        <button type="button"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3"/></svg>Guests</button>
+        <button type="button"><svg viewBox="0 0 24 24"><path d="M12 3v18M17 8H9.5a2.5 2.5 0 0 0 0 5H14a2.5 2.5 0 0 1 0 5H6"/></svg>Budget</button>
+      </nav>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<p class="studio-foot">
+  <code>mockups/monochrome-dark-mode-mockup.html</code>
+  · Refresh the browser tab if it was already open
+</p>
+
+<script>
+const toastEl = document.getElementById("toast");
+let toastTimer;
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1500);
+}
+
+document.querySelectorAll("[data-device-btn]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.body.setAttribute("data-device", btn.getAttribute("data-device-btn"));
+    document.body.classList.remove("sidebar-open");
+    document.querySelectorAll("[data-device-btn]").forEach(b =>
+      b.setAttribute("aria-pressed", String(b === btn))
+    );
+  });
+});
+
+document.getElementById("menu-btn").addEventListener("click", () => {
+  if (document.body.getAttribute("data-device") === "phone") {
+    document.body.classList.toggle("sidebar-open");
+  } else {
+    showToast("Sidebar visible on this device");
+  }
+});
+
+document.getElementById("toggle-fav-page").addEventListener("click", function () {
+  const on = !this.textContent.includes("Remove");
+  this.textContent = on ? "★ Remove from favorites" : "☆ Add page to favorites";
+  showToast(on ? "Favorited" : "Unfavorited");
+});
+
+document.getElementById("device").addEventListener("click", (e) => {
+  const star = e.target.closest(".pcs-star-btn");
+  if (star) {
+    const on = star.getAttribute("aria-pressed") !== "true";
+    star.setAttribute("aria-pressed", String(on));
+    star.classList.toggle("is-fav", on);
+    star.textContent = on ? "★" : "☆";
+    showToast(on ? "Added to favorites" : "Removed from favorites");
+    return;
+  }
+  const t = e.target.closest("[data-toast]");
+  if (t) showToast(t.getAttribute("data-toast"));
+});
+
+/* Live countdown tick for polish */
+const sec = document.querySelector(".cdc-tile:last-child b");
+if (sec) {
+  let n = 8;
+  setInterval(() => {
+    n = (n + 1) % 60;
+    sec.textContent = String(n).padStart(2, "0");
+  }, 1000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Planning Timeline Preview</title><style>
+@page{size:8.5in 11in;margin:0}
+#cvp-root{position:relative!important;inset:auto!important;--forest-d:#1F3A2F;--forest:#2D4A3E;--forest-l:#3D5E50;
+  --gold:#B89968;--gold-s:#D9C7A4;--bone:#F9F7F4;--linen:#EFE8DD;--charcoal:#2A2A2A;
+  --muted:#8A8174;--line:#E5DFD3;--mauve-pale:#F2E8EB;--mauve:#C4919E;--mauve-d:#8B5D68;
+  --burg:#6B2737;--burg-m:#8C3A4A;--burg-pale:#F5EAED;
+  position:fixed;inset:0;z-index:2147483647;overflow:auto;background:#CDC7BE;padding:36px 20px;
+  box-sizing:border-box;color:var(--charcoal);font:11px/1.5 Georgia,"Times New Roman",serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+#cvp-root *,#cvp-root *::before,#cvp-root *::after{box-sizing:border-box}
+#cvp-root .cvp-toolbar{position:sticky;top:0;z-index:5;display:flex;gap:8px;margin:0 auto 18px;max-width:8.5in}
+#cvp-root .cvp-toolbar button{border:0;border-radius:4px;background:#1F3A2F;color:#fff;padding:9px 16px;font:700 11px Arial,sans-serif;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+#cvp-root .cvp-page{position:relative;width:8.5in;min-height:11in;margin:0 auto 30px;background:var(--bone);
+  box-shadow:0 6px 32px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12);
+  display:flex;flex-direction:column;padding:0.5in 0.55in 0.44in}
+#cvp-root .cvp-page::before{content:"";position:absolute;left:0.3in;top:0.3in;right:0.3in;bottom:0.3in;border:1px solid var(--line);pointer-events:none}
+#cvp-root .cvp-page::after{content:"";position:absolute;left:0.35in;top:0.35in;right:0.35in;bottom:0.35in;border:1px solid var(--gold);opacity:.4;pointer-events:none}
+#cvp-root .cvp-mast{flex:0 0 auto;text-align:center;padding:2px 0 12px}
+#cvp-root .cvp-crest{width:40px;height:40px;margin:0 auto 9px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold);font:11px Georgia,serif;background:var(--linen)}
+#cvp-root .cvp-eyebrow{margin:0 0 7px;color:var(--gold);font-size:9px;letter-spacing:.28em;text-transform:uppercase}
+#cvp-root .cvp-title{margin:0;color:var(--forest-d);font:400 27px Georgia,"Times New Roman",serif;letter-spacing:.03em}
+#cvp-root .cvp-subtitle{margin:8px auto 0;max-width:5in;color:var(--muted);font:italic 10.5px Georgia,serif}
+#cvp-root .cvp-rule{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto 2px}
+#cvp-root .cvp-rule::before,#cvp-root .cvp-rule::after{content:"";height:1px;width:1.2in;background:linear-gradient(to right,transparent,var(--mauve-d) 60%,var(--gold))}
+#cvp-root .cvp-rule::after{background:linear-gradient(to left,transparent,var(--mauve-d) 60%,var(--gold))}
+#cvp-root .cvp-rule span{color:var(--gold);font-size:11px}
+#cvp-root .cvp-body{flex:1 1 auto;padding:4px 0.12in 0}
+#cvp-root .cvp-sec{display:block;text-align:center;margin:13px 0 9px;color:var(--forest);font-size:9px;letter-spacing:.22em;text-transform:uppercase}
+#cvp-root .cvp-sec::before{content:"";display:block;width:16px;height:1px;background:var(--gold);margin:0 auto 7px}
+#cvp-root .cvp-sec:first-child{margin-top:0}
+#cvp-root .cvp-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 18px}
+#cvp-root .cvp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+#cvp-root .cvp-flabel{color:var(--mauve-d);font-size:8px;letter-spacing:.14em;text-transform:uppercase}
+#cvp-root .cvp-fval{margin-top:3px;color:var(--forest-d);font:12px Georgia,serif}
+#cvp-root .cvp-p{margin:5px 0 0;color:var(--charcoal);font-size:10.5px}
+#cvp-root .cvp-note{padding:11px 15px;margin:0 0 11px;break-inside:avoid;background:var(--linen);border-left:2px solid var(--forest)}
+#cvp-root .cvp-note.mauve{background:var(--mauve-pale);border-left-color:var(--mauve-d)}
+#cvp-root .cvp-note.burg{background:var(--burg-pale);border-left-color:var(--burg)}
+#cvp-root .cvp-note.gold{border-left-color:var(--gold)}
+#cvp-root .cvp-note .cvp-flabel{color:var(--forest)}
+#cvp-root .cvp-note.mauve .cvp-flabel{color:var(--mauve-d)}
+#cvp-root .cvp-note.burg .cvp-flabel{color:var(--burg)}
+#cvp-root .cvp-writeline{height:18px;border-bottom:1px solid var(--line);margin-top:8px}
+#cvp-root .cvp-prio{display:flex;gap:11px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);break-inside:avoid}
+#cvp-root .cvp-prio:last-child{border-bottom:0}
+#cvp-root .cvp-prio .cvp-n{flex:0 0 auto;width:22px;height:22px;border-radius:50%;color:#fff;display:grid;place-items:center;font:12px Georgia,serif}
+#cvp-root .cvp-prio.c-forest .cvp-n{background:var(--forest)}
+#cvp-root .cvp-prio.c-gold .cvp-n{background:var(--gold)}
+#cvp-root .cvp-prio.c-mauve .cvp-n{background:var(--mauve-d)}
+#cvp-root .cvp-prio.c-burg .cvp-n{background:var(--burg)}
+#cvp-root .cvp-prio .cvp-t{color:var(--charcoal);font-size:11px}
+#cvp-root .cvp-prio .cvp-t b{font-weight:400;font-size:12px;color:var(--forest-d)}
+#cvp-root .cvp-blank{display:inline-block;min-width:60%;border-bottom:1px solid var(--line)}
+#cvp-root .cvp-verse{text-align:center;margin:2px auto 8px;padding:14px 18px;background:var(--mauve-pale);border-left:2px solid var(--mauve-d)}
+#cvp-root .cvp-verse .q{margin:0;color:var(--forest-d);font:italic 15px/1.65 Georgia,serif}
+#cvp-root .cvp-verse .r{margin:8px 0 0;color:var(--gold);font-size:9px;letter-spacing:.18em;text-transform:uppercase}
+#cvp-root .cvp-foot{flex:0 0 auto;text-align:center;padding-top:9px;color:var(--muted);font-size:8px;letter-spacing:.06em}
+#cvp-root .cvp-foot .fb{color:var(--gold);letter-spacing:.2em;text-transform:uppercase;font-size:7.5px}
+#cvp-root .cvp-foot .fv{font-style:italic;margin-top:2px;color:var(--forest)}
+#cvp-root .cvp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px}
+#cvp-root .cvp-stat{text-align:center;padding:9px 6px 8px;border-top:2px solid var(--forest);background:var(--linen)}
+#cvp-root .cvp-stat.mauve{border-top-color:var(--mauve-d)}
+#cvp-root .cvp-stat.gold{border-top-color:var(--gold)}
+#cvp-root .cvp-stat.burg{border-top-color:var(--burg)}
+#cvp-root .cvp-stat-label{color:var(--muted);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root .cvp-stat-value{margin-top:3px;color:var(--forest-d);font:400 22px Georgia,serif}
+#cvp-root .cvp-stat.mauve .cvp-stat-value{color:var(--mauve-d)}
+#cvp-root .cvp-stat.burg .cvp-stat-value{color:var(--burg)}
+#cvp-root .cvp-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+#cvp-root .cvp-tile{padding:9px 11px;background:var(--bone);border:1px solid var(--line);border-top:2px solid var(--forest);break-inside:avoid}
+#cvp-root .cvp-tile.mauve{border-top-color:var(--mauve-d)}
+#cvp-root .cvp-tile.gold{border-top-color:var(--gold)}
+#cvp-root .cvp-tile.burg{border-top-color:var(--burg)}
+#cvp-root .cvp-tile-label{color:var(--muted);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root .cvp-tile-value{margin-top:2px;color:var(--forest-d);font:400 14px Georgia,serif}
+#cvp-root .cvp-tile p{margin:4px 0 0;color:var(--muted);font-size:9.5px}
+#cvp-root .cvp-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:2px}
+#cvp-root .cvp-table th{padding:6px 8px;text-align:left;color:var(--forest-d);font:400 8px Georgia,serif;letter-spacing:.13em;text-transform:uppercase;border-bottom:1.5px solid var(--gold)}
+#cvp-root .cvp-table td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--charcoal)}
+#cvp-root .cvp-table tbody tr:nth-child(even) td{background:var(--linen)}
+#cvp-root .cvp-table .num,#cvp-root .cvp-table .date{color:var(--forest);font-weight:700;white-space:nowrap}
+#cvp-root .cvp-table .strong{color:var(--forest-d);font-weight:700}
+#cvp-root .cvp-sessions th:nth-child(-n+3){font-size:7px}
+#cvp-root .cvp-sessions td.num,#cvp-root .cvp-sessions td.date,#cvp-root .cvp-sessions td.strong{font-size:8.5px}
+#cvp-root .cvp-status{display:inline-block;padding:2px 7px;border:1px solid currentColor;border-radius:12px;font-size:8px;letter-spacing:.03em;white-space:nowrap}
+#cvp-root .cvp-status.done{color:var(--forest)}
+#cvp-root .cvp-status.praying{color:var(--mauve-d)}
+#cvp-root .cvp-status.waiting{color:var(--burg)}
+#cvp-root .cvp-empty{padding:10px;text-align:center;color:var(--muted);font-style:italic;font-size:10px}
+#cvp-root .cvp-table .money{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#cvp-root .cvp-table td.money{color:var(--forest-d)}
+#cvp-root .cvp-table .neg{color:var(--burg)}
+#cvp-root .cvp-table tr.cvp-tot td{border-top:1.5px solid var(--gold);border-bottom:0;font-weight:700;color:var(--forest-d);background:var(--linen)}
+#cvp-root .cvp-catrow td{background:color-mix(in srgb,var(--forest-d) 8%,var(--bone));color:var(--forest-d);font:400 10px Georgia,serif;letter-spacing:.04em;text-transform:uppercase}
+#cvp-root .cvp-phasehead{display:flex;align-items:baseline;justify-content:space-between;margin:16px 0 0}
+#cvp-root .cvp-phasehead .pn{color:var(--forest-d);font:400 16px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-phasehead .pc{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+#cvp-root .cvp-phaserule{height:3px;margin:6px 0 8px;background:linear-gradient(to right,var(--forest),var(--gold-s),transparent)}
+#cvp-root .cvp-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:2px 0 8px}
+#cvp-root .cvp-card{position:relative;padding:16px 14px 14px;background:#fff;border:1px solid var(--line);border-radius:4px;break-inside:avoid}
+#cvp-root .cvp-card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--forest)}
+#cvp-root .cvp-card.mauve::before{background:var(--mauve-d)}
+#cvp-root .cvp-card-title{margin:0 0 8px;color:var(--forest-d);font:400 15px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-card p{margin:0;color:var(--muted);font-size:10px}
+/* ── LETTERHEAD SKIN ──────────────────────────────────────────────
+   A second style layered over the same markup. Active when #cvp-root
+   has class .skin-letterhead. Dark forest banner, KPI cards, filled
+   table headers — the Planning-Timeline look. ───────────────────── */
+#cvp-root.skin-letterhead .cvp-page{padding:0}
+/* left spine gradient (like the mockup) */
+#cvp-root.skin-letterhead .cvp-page::before{display:block;content:"";position:absolute;left:0;top:16%;width:3px;height:34%;background:linear-gradient(var(--burg),var(--mauve-d),transparent);opacity:.48;border:0}
+#cvp-root.skin-letterhead .cvp-page::after{display:none}
+/* dark forest banner with a gold→mauve→gold gradient rule at the bottom */
+#cvp-root.skin-letterhead .cvp-mast{display:block;text-align:left;padding:30px 52px 23px;background:var(--forest-d);color:#fff;position:relative;border-bottom:3px solid transparent;border-image:linear-gradient(to right,var(--gold),var(--mauve),var(--gold-s)) 1}
+/* right-side brand meta: two lines + gold diamond, matching the mockup */
+#cvp-root.skin-letterhead .cvp-mast::before{content:"The Covenant\A Wedding Planner";white-space:pre;position:absolute;top:30px;right:52px;text-align:right;color:var(--gold-s);font:9px/1.7 Georgia,"Times New Roman",serif;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root.skin-letterhead .cvp-mast::after{content:"◆";position:absolute;top:62px;right:52px;color:var(--gold);font-size:18px}
+#cvp-root.skin-letterhead .cvp-crest,#cvp-root.skin-letterhead .cvp-rule{display:none}
+#cvp-root.skin-letterhead .cvp-eyebrow{margin:0 0 5px;color:var(--gold);text-align:left;letter-spacing:.16em}
+#cvp-root.skin-letterhead .cvp-title{color:#fff;font-size:27px;letter-spacing:.02em}
+#cvp-root.skin-letterhead .cvp-subtitle{margin:6px 0 0;color:var(--gold-s);max-width:none;font-style:normal;font-size:10px;letter-spacing:.08em}
+#cvp-root.skin-letterhead .cvp-body{padding:31px 52px 70px}
+#cvp-root.skin-letterhead .cvp-sec{text-align:left;color:var(--forest-d);font:400 18px Georgia,"Times New Roman",serif;letter-spacing:.02em;text-transform:none;border-bottom:1px solid var(--line);padding-bottom:7px;margin:20px 0 14px}
+#cvp-root.skin-letterhead .cvp-sec::before{display:none}
+#cvp-root.skin-letterhead .cvp-info{background:var(--forest-d);border-radius:4px;padding:14px 18px;gap:0;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+#cvp-root.skin-letterhead .cvp-info>div{padding:0 12px;border-left:1px solid rgba(255,255,255,.16)}
+#cvp-root.skin-letterhead .cvp-info>div:first-child{padding-left:0;border-left:0}
+#cvp-root.skin-letterhead .cvp-flabel{color:var(--gold-s);font:700 8px Georgia,"Times New Roman",serif;letter-spacing:.12em;text-transform:uppercase}
+#cvp-root.skin-letterhead .cvp-fval{min-height:25px;background:var(--linen);border-radius:2px;padding:6px 7px;margin-top:6px;color:var(--forest-d);font:11px Georgia,"Times New Roman",serif}
+#cvp-root.skin-letterhead .cvp-stat{background:#fff;border:1px solid var(--line);border-top:3px solid var(--forest);padding:12px 13px}
+#cvp-root.skin-letterhead .cvp-stat.mauve{border-top-color:var(--mauve-d)}
+#cvp-root.skin-letterhead .cvp-stat.gold{border-top-color:var(--gold)}
+#cvp-root.skin-letterhead .cvp-stat.burg{border-top-color:var(--burg)}
+#cvp-root.skin-letterhead .cvp-stat-label{color:var(--muted);font-size:8px;letter-spacing:.1em}
+#cvp-root.skin-letterhead .cvp-stat-value{font:700 22px Georgia,"Times New Roman",serif}
+#cvp-root.skin-letterhead .cvp-table th{padding:8px 9px;background:var(--forest-d);color:var(--gold-s);border-bottom:0;letter-spacing:.13em}
+#cvp-root.skin-letterhead .cvp-table th:first-child{border-radius:4px 0 0 0}
+#cvp-root.skin-letterhead .cvp-table th:last-child{border-radius:0 4px 0 0}
+#cvp-root.skin-letterhead .cvp-table td{padding:7px 9px}
+#cvp-root.skin-letterhead .cvp-catrow td{background:var(--forest-d);color:var(--gold-s)}
+#cvp-root.skin-letterhead .cvp-note{background:var(--linen)}
+#cvp-root.skin-letterhead .cvp-foot{text-align:left;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line);padding:10px 52px}
+#cvp-root.skin-letterhead .cvp-foot .fb{color:var(--muted);letter-spacing:.14em}
+#cvp-root.skin-letterhead .cvp-foot .fv{font-style:italic;color:var(--forest-d);margin-top:0}
+#cvp-root .cvp-toolbar button[data-cvp-style]{background:var(--gold);color:var(--forest-d)}
+body.cvp-printing > :not(#cvp-root){visibility:hidden!important}
+body.cvp-printing #cvp-root{visibility:visible!important}
+@media print{
+  body.cvp-printing > :not(#cvp-root){display:none!important}
+  body.cvp-printing{background:none!important;padding:0!important}
+  #cvp-root{position:static;overflow:visible;background:none;padding:0}
+  #cvp-root .cvp-toolbar{display:none!important}
+  #cvp-root .cvp-page{margin:0!important;box-shadow:none!important;page-break-after:always;break-after:page}
+  #cvp-root .cvp-page:last-of-type{page-break-after:auto;break-after:auto}
+}</style></head><body><div id="cvp-root" class="skin-letterhead"><div class="cvp-toolbar no-print"><button type="button" id="tg">Style: Letterhead</button></div><main class="cvp-page"><header class="cvp-mast"><div class="cvp-crest">&#9670;</div><div class="cvp-eyebrow">Planning &middot; Essentials Collection</div><h1 class="cvp-title">Planning Timeline</h1><p class="cvp-subtitle">Every planning task by phase — from proposal to honeymoon</p><div class="cvp-rule"><span>&#10086;</span></div></header><section class="cvp-body"><span class="cvp-sec">Overview</span><div class="cvp-info"><div><div class="cvp-flabel">Couple</div><div class="cvp-fval">Arian &amp; Jordan</div></div><div><div class="cvp-flabel">Wedding date</div><div class="cvp-fval">Friday, November 13, 2026</div></div><div><div class="cvp-flabel">Current phase</div><div class="cvp-fval">12-9 Months Before</div></div><div><div class="cvp-flabel">Last updated</div><div class="cvp-fval">July 15, 2026</div></div></div><span class="cvp-sec">Where planning stands</span><div class="cvp-stats"><div class="cvp-stat "><div class="cvp-stat-label">Total tasks</div><div class="cvp-stat-value">5</div></div><div class="cvp-stat mauve"><div class="cvp-stat-label">Completed</div><div class="cvp-stat-value">1</div></div><div class="cvp-stat gold"><div class="cvp-stat-label">In progress</div><div class="cvp-stat-value">1</div></div><div class="cvp-stat burg"><div class="cvp-stat-label">Next due</div><div class="cvp-stat-value">2</div></div></div><span class="cvp-sec">Task register by phase</span><div class="cvp-phasehead"><span class="pn">12-9 Months Before</span><span class="pc">3 tasks</span></div><div class="cvp-phaserule"></div><table class="cvp-table"><thead><tr><th>Due</th><th>Task</th><th>Owner</th><th>Status</th><th>Notes / details</th></tr></thead><tbody><tr><td class="date">Aug 1</td><td class="strong">Finalize wedding vision and priorities</td><td>Both</td><td><span class="cvp-status done">Complete</span></td><td>Keep the covenant and hospitality at the center.</td></tr><tr><td class="date">Aug 8</td><td class="strong">Create preliminary guest list</td><td>Both</td><td><span class="cvp-status praying">In Progress</span></td><td>Review households and plus-ones together.</td></tr><tr><td class="date">Aug 15</td><td class="strong">Reserve ceremony officiant</td><td>Partner 2</td><td><span class="cvp-status waiting">Next</span></td><td>Confirm premarital counseling requirements.</td></tr></tbody></table><div class="cvp-phasehead"><span class="pn">6-3 Months Before</span><span class="pc">2 tasks</span></div><div class="cvp-phaserule"></div><table class="cvp-table"><thead><tr><th>Due</th><th>Task</th><th>Owner</th><th>Status</th><th>Notes / details</th></tr></thead><tbody><tr><td class="date">May 15</td><td class="strong">Send invitations and track responses</td><td>Both</td><td><span class="cvp-status waiting">Next</span></td><td>Use RSVP status on the Guest List.</td></tr><tr><td class="date">Jun 1</td><td class="strong">Confirm vendor contracts and balances</td><td>Partner 1</td><td><span class="cvp-status waiting">Next</span></td><td>Cross-check payment schedule.</td></tr></tbody></table><span class="cvp-sec">How to use this timeline</span><div class="cvp-cards"><div class="cvp-card"><h3 class="cvp-card-title">This season</h3><p>Choose the few decisions that unlock the next group of tasks. Keep the conversation calm, clear, and shared.</p><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div><div class="cvp-card mauve"><h3 class="cvp-card-title">Partner handoff</h3><p>Bring this page into your weekly planning conversation and assign one clear owner to each next step.</p><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div></div><span class="cvp-sec">Notes &amp; reminders</span><div class="cvp-note"><div class="cvp-writeline"></div><div class="cvp-writeline"></div><div class="cvp-writeline"></div></div></section><footer class="cvp-foot"><div class="fb">The Covenant Wedding Planner</div><div class="fv">She looketh well to the ways of her household. &middot; Planning Timeline</div></footer></main></div><script>var r=document.getElementById("cvp-root"),b=document.getElementById("tg");b.onclick=function(){var k=r.classList.toggle("skin-keepsake");r.classList.toggle("skin-letterhead",!k);b.textContent="Style: "+(k?"Keepsake":"Letterhead");};</script></body></html>

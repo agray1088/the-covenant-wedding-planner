@@ -1,0 +1,1299 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Equal page gutters — Notion-style shared left/right edges
+   ───────────────────────────────────────────────────────────────────────────
+   Every title wrap, section header, card, and section shares the same left
+   edge and the same right edge inside #main. Equal white gutters outside.
+   Cards fill that column (proportions kept; text wraps).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 1) Equal outer gutters */
+body.editorial-v4 #main,
+body.context-sidebar-mode #main,
+body.nav-category-mode #main,
+#main {
+  padding-left: var(--planner-page-gutter) !important;
+  padding-right: var(--planner-page-gutter) !important;
+  box-sizing: border-box;
+}
+
+/* 2) Active panels fill between gutters — kill second side insets */
+#main > .panel.active:not(#panel-data-hub) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  box-sizing: border-box;
+}
+
+#main > .panel.active:not(#panel-data-hub).instructions-mockup,
+#main > .panel.active:not(#panel-data-hub).faq-mockup,
+#main > .panel.active:not(#panel-data-hub).setup-mockup,
+#main > .panel.active:not(#panel-data-hub).dashboard-v4,
+#main > .panel.active:not(#panel-data-hub).ued-scope,
+#panel-logistics,
+#panel-reflect,
+#panel-packets,
+#panel-guide.instructions-mockup {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Named panel roots */
+.dashboard-redesign,
+#panel-instructions.instructions-mockup,
+#panel-guide.instructions-mockup,
+#panel-faq.faq-mockup,
+#panel-setup.setup-mockup,
+#panel-venue.venue-mockup,
+#panel-plan.timeline-mockup,
+#panel-budget.budget-mockup,
+#panel-payments.payments-mockup,
+#panel-guests.guestlist-mockup,
+#panel-vendors.vendors-mockup,
+#panel-tasks.tasks-mockup,
+#panel-timeline.wday-mockup,
+#panel-ceremony.ceremony-service-mockup,
+#panel-prayer.prayer-mockup,
+#panel-counseling.counseling-mockup,
+#panel-notes.notes-mockup,
+#panel-tables.table-layout-mockup,
+#panel-party.party-mockup,
+#panel-gifts.gift-log-mockup,
+#panel-shotlist.shotlist-mockup,
+#panel-calendar.smart-calendar-mockup,
+#panel-appointments.appointments-mockup,
+#panel-contracts.contracts-mockup,
+#panel-catering.catering-mockup,
+#panel-entertainment.entertainment-mockup,
+#panel-essentials.essentials-mockup,
+#panel-mood.mood-mockup,
+#panel-honeymoon.honeymoon-mockup,
+#panel-logistics,
+#panel-reflect,
+#panel-packets,
+#panel-emails,
+#panel-history {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  box-sizing: border-box;
+}
+
+/* 3) Shared alignment box — headers, heroes, cards, sections, category titles */
+#main > .panel.active:not(#panel-data-hub) > .ued-page,
+#main > .panel.active:not(#panel-data-hub) > .dashboard-redesign,
+#main > .panel.active:not(#panel-data-hub) > #dash-v4-root,
+#main > .panel.active:not(#panel-data-hub) > .ux-page-chrome,
+#main > .panel.active:not(#panel-data-hub) > .m-mast-wrap,
+#main > .panel.active:not(#panel-data-hub) > .m-stats,
+#main > .panel.active:not(#panel-data-hub) > .card,
+#main > .panel.active:not(#panel-data-hub) > .inst-card,
+#main > .panel.active:not(#panel-data-hub) > .m-block,
+#main > .panel.active:not(#panel-data-hub) > section,
+#main > .panel.active:not(#panel-data-hub) > .inst-grid-3,
+#main > .panel.active:not(#panel-data-hub) > .inst-wide-row,
+#main > .panel.active:not(#panel-data-hub) > [class*="-title-wrap"],
+#main > .panel.active:not(#panel-data-hub) > [class*="-hero"],
+#main > .panel.active:not(#panel-data-hub) > .page-header,
+#main > .panel.active:not(#panel-data-hub) > .ued-mast,
+#main > .panel.active:not(#panel-data-hub) > header,
+#dash-v4-root,
+#dash-v4-root > .ued-page,
+.ued-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Any title / hero / section header inside the page — full column width */
+#main > .panel.active:not(#panel-data-hub) [class*="-title-wrap"],
+#main > .panel.active:not(#panel-data-hub) [class*="-hero"],
+#main > .panel.active:not(#panel-data-hub) [class*="-section-title"],
+#main > .panel.active:not(#panel-data-hub) .page-header,
+#main > .panel.active:not(#panel-data-hub) .ued-mast,
+#main > .panel.active:not(#panel-data-hub) header.ued-mast,
+#main > .panel.active:not(#panel-data-hub) .ux-page-chrome,
+#main > .panel.active:not(#panel-data-hub) .budget-section-title,
+#main > .panel.active:not(#panel-data-hub) .vendors-section-title,
+#main > .panel.active:not(#panel-data-hub) .contracts-section-title,
+#main > .panel.active:not(#panel-data-hub) .inst-section-title {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Cards & major blocks fill the shared column */
+#main > .panel.active:not(#panel-data-hub) .card,
+#main > .panel.active:not(#panel-data-hub) .inst-card,
+#main > .panel.active:not(#panel-data-hub) .m-block,
+#main > .panel.active:not(#panel-data-hub) .m-soft,
+#main > .panel.active:not(#panel-data-hub) .guest-table-card,
+#main > .panel.active:not(#panel-data-hub) .vendors-table-card,
+#main > .panel.active:not(#panel-data-hub) .tasks-table-card,
+#main > .panel.active:not(#panel-data-hub) .payments-table-card,
+#main > .panel.active:not(#panel-data-hub) .budget-detail-card,
+#main > .panel.active:not(#panel-data-hub) .budget-category-card,
+#main > .panel.active:not(#panel-data-hub) .payment-progress-card,
+#main > .panel.active:not(#panel-data-hub) .templates-gallery-card,
+#main > .panel.active:not(#panel-data-hub) .templates-gallery-stack,
+#start-here-templates,
+#start-here-templates .templates-gallery-card,
+#start-here-templates .templates-gallery-stack {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Kill old 960px / centered caps */
+body.context-sidebar-mode .panel.active:not(#panel-data-hub) > .ued-page,
+body.context-sidebar-mode .panel.active:not(#panel-data-hub) > .dashboard-v4,
+body.context-sidebar-mode .panel.active:not(#panel-data-hub) > .inst-title-wrap,
+body.context-sidebar-mode .panel.active:not(#panel-data-hub) > [class*="-title-wrap"] {
+  max-width: none !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Grid rows still span full width (children share the row) */
+#main > .panel.active:not(#panel-data-hub) .inst-grid-3,
+#main > .panel.active:not(#panel-data-hub) .inst-wide-row,
+#main > .panel.active:not(#panel-data-hub) .setup-stat-grid,
+#main > .panel.active:not(#panel-data-hub) .budget-stat-grid,
+#main > .panel.active:not(#panel-data-hub) .payments-stat-grid,
+#main > .panel.active:not(#panel-data-hub) .m-stats {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1120px) {
+  body.context-sidebar-mode #main > .panel.active:not(#panel-data-hub) .ued-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.context-sidebar-mode #main > .panel.active:not(#panel-data-hub) .ued-grid > .ued-panel {
+    grid-column: 1 / -1 !important;
+  }
+
+  body.context-sidebar-mode.layout-tablet-landscape #panel-guests.active > .ued-page:not(:has(#ux-body-guests)) {
+    display: block !important;
+  }
+
+  body.context-sidebar-mode.layout-tablet-landscape #panel-guests.active > .ued-page > .ued-grid {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    width: 100% !important;
+  }
+}
+
+/* 4) Text reflows when width shrinks */
+#main .card,
+#main .inst-card,
+#main .m-block,
+#main .ued-page,
+#main .m-soft,
+#main [class*="-title-wrap"],
+#main [class*="-hero"] {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  box-sizing: border-box;
+}
+
+#main .card > *,
+#main .inst-card > *,
+#main .m-block > *,
+#main .ued-page > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#main .card p,
+#main .card h1,
+#main .card h2,
+#main .card h3,
+#main .card h4,
+#main .inst-card p,
+#main .inst-card h1,
+#main .inst-card h2,
+#main .inst-card h3,
+#main .inst-copy,
+#main .inst-section-title,
+#main .m-block p,
+#main .m-block h2,
+#main .m-block h3,
+#main .ued-page p,
+#main .ued-page h1,
+#main .ued-page h2,
+#main .ued-page h3,
+#main [class*="-title"],
+#main [class*="-section-title"] {
+  overflow-wrap: anywhere;
+  word-break: normal;
+  max-width: 100%;
+}
+
+/* 5) Data Hub full-bleed inside gutters */
+#panel-data-hub.data-hub-panel {
+  max-width: none !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* 6) Footer bleed matches gutter */
+body.context-sidebar-mode #main #planner-footer {
+  margin-left: calc(-1 * var(--planner-page-gutter));
+  margin-right: calc(-1 * var(--planner-page-gutter));
+  width: calc(100% + 2 * var(--planner-page-gutter));
+}
+
+@media (max-width: 640px) {
+  body.editorial-v4 #main,
+  body.context-sidebar-mode #main,
+  body.nav-category-mode #main,
+  #main {
+    /* Phones: a little more than before, but tighter than tablet/desktop so
+       content isn't squeezed. Set the var too so the footer bleed stays aligned. */
+    --planner-page-gutter: 2rem;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+}
+
+/* 7) Kill centered “narrow column” insets that drift from the mast edge
+   (FAQ search 760px, page/subtitle caps, scripture side padding) */
+#main > .panel.active .faq-search-wrap,
+#main > .panel.active .faq-cat-bar,
+#main > .panel.active .faq-layout,
+#main > .panel.active .faq-scripture-footer,
+#main > .panel.active .page-scripture-footer,
+#main > .panel.active .ued-scripture,
+#main > .panel.active [class*="-scripture-footer"],
+#main > .panel.active [class*="-subtitle"],
+#main > .panel.active .banner-editor,
+#main > .panel.active .banner-scripture-card {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box;
+}
+
+#main > .panel.active .page-scripture-footer,
+#main > .panel.active .faq-scripture-footer,
+#main > .panel.active [class*="-scripture-footer"],
+#main > .panel.active .ued-scripture {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+#main > .panel.active .faq-search-wrap input,
+#main > .panel.active .faq-search-wrap #faq-search {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+/* Keep FAQ two-column grid intact — only the row fills the column */
+#main > .panel.active .faq-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 304px) !important;
+  gap: 1.45rem !important;
+  align-items: start !important;
+}
+
+#main > .panel.active .faq-list {
+  width: auto !important;
+  min-width: 0 !important;
+}
+
+#main > .panel.active .faq-side {
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+@media (max-width: 1060px) {
+  #main > .panel.active .faq-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 8) FAQ items — editorial, no boxes: spacing + soft hover only */
+#main > .panel.active #faq-list,
+#panel-faq #faq-list {
+  display: grid !important;
+  gap: 0.85rem !important;
+}
+
+#main > .panel.active#panel-faq .faq-card,
+body.editorial-v4 #main .panel .faq-card,
+#panel-faq .faq-card {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  padding: 0.85rem 0.15rem !important;
+  transform: none !important;
+}
+
+#main > .panel.active#panel-faq .faq-card:hover,
+body.editorial-v4 #main .panel .faq-card:hover,
+#panel-faq .faq-card:hover {
+  background: var(--er-soft, rgba(250, 247, 241, 0.85)) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body.editorial-v4.dark-mode #main > .panel.active#panel-faq .faq-card,
+body.editorial-v4.dark-mode #main .panel .faq-card,
+body.editorial-v4.dark-mode #panel-faq .faq-card {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+body.editorial-v4.dark-mode #main > .panel.active#panel-faq .faq-card:hover,
+body.editorial-v4.dark-mode #main .panel .faq-card:hover,
+body.editorial-v4.dark-mode #panel-faq .faq-card:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+#panel-faq #faq-list:empty::before {
+  content: "Loading FAQ…";
+  display: block;
+  padding: 1rem 0;
+  color: var(--muted, #7a7268);
+  font-style: italic;
+}
+
+@media print {
+  #main {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+/* UI System (developer) page: its dev-only panel is placed after the global
+   footer in the DOM, so the footer renders above the page. Scope #main to a
+   flex column ONLY on this page and send the footer to the bottom. */
+body[data-active-panel="ui-system"] #main {
+  display: flex !important;
+  flex-direction: column;
+}
+body[data-active-panel="ui-system"] #main > #planner-footer {
+  order: 100;
+}
+
+/* Full record-editor mini tables are editable form surfaces, not read-only data grids. */
+#main .record-editor-inline-shell .record-editor-small-table,
+.record-editor-overlay .record-editor-small-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  background: #fff !important;
+  table-layout: auto !important;
+}
+
+#main .record-editor-inline-shell .record-editor-small-table thead,
+.record-editor-overlay .record-editor-small-table thead {
+  display: table-header-group !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#main .record-editor-inline-shell .record-editor-small-table th,
+.record-editor-overlay .record-editor-small-table th {
+  display: table-cell !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: #fff8ef !important;
+  color: #5f5144 !important;
+  border: 1px solid rgba(196,165,118,.28) !important;
+  padding: .5rem .55rem !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+  font-size: .66rem !important;
+  line-height: 1.15 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+#main .record-editor-inline-shell .record-editor-small-table th *,
+.record-editor-overlay .record-editor-small-table th * {
+  color: #5f5144 !important;
+}
+
+#main .record-editor-inline-shell .record-editor-small-table td,
+.record-editor-overlay .record-editor-small-table td {
+  background: #fff !important;
+  border: 1px solid rgba(196,165,118,.18) !important;
+  padding: .38rem .42rem !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+  white-space: normal !important;
+}
+
+#main .record-editor-inline-shell .record-editor-small-table input:not([type="checkbox"]):not([type="radio"]),
+#main .record-editor-inline-shell .record-editor-small-table select,
+#main .record-editor-inline-shell .record-editor-small-table textarea,
+.record-editor-overlay .record-editor-small-table input:not([type="checkbox"]):not([type="radio"]),
+.record-editor-overlay .record-editor-small-table select,
+.record-editor-overlay .record-editor-small-table textarea {
+  width: 100% !important;
+  min-width: 7rem !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(196,165,118,.34) !important;
+  background: #fff !important;
+  color: var(--forest, #2f4a3e) !important;
+  padding: .42rem .45rem !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+#main .record-editor-inline-shell .record-editor-small-table textarea,
+.record-editor-overlay .record-editor-small-table textarea {
+  min-height: 48px !important;
+  resize: vertical !important;
+}
+
+#main .record-editor-inline-shell .record-editor-use-cell,
+.record-editor-overlay .record-editor-use-cell {
+  width: 3.5rem !important;
+  min-width: 3.5rem !important;
+  text-align: center !important;
+}
+
+#main .record-editor-inline-shell .record-editor-small-table input[type="checkbox"],
+.record-editor-overlay .record-editor-small-table input[type="checkbox"] {
+  appearance: auto !important;
+  -webkit-appearance: checkbox !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  display: inline-block !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  accent-color: var(--forest, #2f4a3e) !important;
+  vertical-align: middle !important;
+}
+
+body.editorial-v4.dark-mode #main .record-editor-inline-shell .record-editor-small-table,
+body.editorial-v4.dark-mode .record-editor-overlay .record-editor-small-table {
+  background: #1a1a1a !important;
+}
+
+body.editorial-v4.dark-mode #main .record-editor-inline-shell .record-editor-small-table th,
+body.editorial-v4.dark-mode .record-editor-overlay .record-editor-small-table th {
+  background: #222222 !important;
+  color: #b8b8b8 !important;
+  border-color: #2e2e2e !important;
+}
+
+body.editorial-v4.dark-mode #main .record-editor-inline-shell .record-editor-small-table th *,
+body.editorial-v4.dark-mode .record-editor-overlay .record-editor-small-table th * {
+  color: #b8b8b8 !important;
+}
+
+body.editorial-v4.dark-mode #main .record-editor-inline-shell .record-editor-small-table td,
+body.editorial-v4.dark-mode .record-editor-overlay .record-editor-small-table td {
+  background: #1a1a1a !important;
+  border-color: #2e2e2e !important;
+}
+
+body.editorial-v4.dark-mode #main .record-editor-inline-shell .record-editor-small-table input:not([type="checkbox"]):not([type="radio"]),
+body.editorial-v4.dark-mode #main .record-editor-inline-shell .record-editor-small-table select,
+body.editorial-v4.dark-mode #main .record-editor-inline-shell .record-editor-small-table textarea,
+body.editorial-v4.dark-mode .record-editor-overlay .record-editor-small-table input:not([type="checkbox"]):not([type="radio"]),
+body.editorial-v4.dark-mode .record-editor-overlay .record-editor-small-table select,
+body.editorial-v4.dark-mode .record-editor-overlay .record-editor-small-table textarea {
+  background: #161616 !important;
+  color: #e6e6e6 !important;
+  border-color: #2e2e2e !important;
+}
+
+body.editorial-v4 #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > th,
+body.editorial-v4 #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > td,
+body.editorial-v4 .record-editor-overlay table.record-editor-small-table thead tr > th,
+body.editorial-v4 .record-editor-overlay table.record-editor-small-table thead tr > td {
+  display: table-cell !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: #fff8ef !important;
+  color: #5f5144 !important;
+  border: 1px solid rgba(196,165,118,.28) !important;
+  padding: .5rem .55rem !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+  font-size: .66rem !important;
+  line-height: 1.15 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+body.editorial-v4 #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > th *,
+body.editorial-v4 #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > td *,
+body.editorial-v4 .record-editor-overlay table.record-editor-small-table thead tr > th *,
+body.editorial-v4 .record-editor-overlay table.record-editor-small-table thead tr > td * {
+  color: #5f5144 !important;
+}
+
+body.editorial-v4 #main .panel .record-editor-inline-shell table.record-editor-small-table tbody td,
+body.editorial-v4 .record-editor-overlay table.record-editor-small-table tbody td {
+  background: #fff !important;
+  border: 1px solid rgba(196,165,118,.18) !important;
+  padding: .38rem .42rem !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+  white-space: normal !important;
+}
+
+body.editorial-v4 #main .panel .record-editor-inline-shell table.record-editor-small-table .record-editor-use-cell,
+body.editorial-v4 .record-editor-overlay table.record-editor-small-table .record-editor-use-cell {
+  width: 3.5rem !important;
+  min-width: 3.5rem !important;
+  max-width: 3.5rem !important;
+  text-align: center !important;
+}
+
+body.editorial-v4 #main .panel .record-editor-inline-shell table.record-editor-small-table input[type="checkbox"],
+body.editorial-v4 .record-editor-overlay table.record-editor-small-table input[type="checkbox"] {
+  appearance: auto !important;
+  -webkit-appearance: checkbox !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  display: inline-block !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  accent-color: var(--forest, #2f4a3e) !important;
+  vertical-align: middle !important;
+}
+
+body.editorial-v4 #main .panel .record-editor-inline-shell table.record-editor-small-table input[type="checkbox"]::after,
+body.editorial-v4 .record-editor-overlay table.record-editor-small-table input[type="checkbox"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > th,
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > td,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table thead tr > th,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table thead tr > td {
+  background: #222222 !important;
+  color: #b8b8b8 !important;
+  border-color: #2e2e2e !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > th *,
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table thead tr > td *,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table thead tr > th *,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table thead tr > td * {
+  color: #b8b8b8 !important;
+}
+
+body.editorial-v4.dark-mode #main .panel .record-editor-inline-shell table.record-editor-small-table tbody td,
+body.editorial-v4.dark-mode .record-editor-overlay table.record-editor-small-table tbody td {
+  background: #1a1a1a !important;
+  border-color: #2e2e2e !important;
+}
+
+/* Borderless card shells: keep tables/fields structured, remove card hairlines. */
+body.editorial-v4 #main .panel :is(
+  .card,
+  .note-card,
+  .chart-wrap,
+  .banner-scripture-card,
+  .ued-panel,
+  .ued-table-card,
+  .ued-countdown-c,
+  .ued-stat,
+  .m-card,
+  .m-panel,
+  .m-block,
+  .m-soft,
+  .cat-card,
+  .cat-table-card,
+  .cat-kids-card,
+  .inst-card,
+  .record-editor-section,
+  .guest-stat-card,
+  .payment-stat-card,
+  .vendor-stat-card,
+  .task-stat-card,
+  .dash-stat-card,
+  .hub-preview-card,
+  .hub-record-card,
+  .templates-gallery-card,
+  .template-detail-card,
+  .budget-category-card,
+  .payment-progress-card,
+  .planner-table-control-card,
+  .phase-record-card,
+  .guest-insight-card,
+  .contracts-stat-card,
+  .contracts-toolbar-card,
+  .contracts-table-card,
+  .rentals-toolbar-card,
+  .rentals-table-card,
+  .contracts-scripture-card,
+  .venue-panel-card,
+  .venue-aside-card,
+  .venue-bottom-card,
+  .venue-system-compare-card,
+  #panel-budget .bcard
+) {
+  border: 0 !important;
+  border-color: transparent !important;
+}
+
+body.editorial-v4 #panel-venue.venue-b2-standard .venue-system-compare-card {
+  margin-top: 1rem !important;
+}
+
+body.editorial-v4 #main .panel :is(
+  .ued-stat,
+  .guest-stat-card,
+  .payment-stat-card,
+  .vendor-stat-card,
+  .task-stat-card,
+  .dash-stat-card
+) {
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+body.editorial-v4 #main .panel .ued-band > .ued-stat,
+body.editorial-v4 #main .panel .ued-band > .m-stat,
+body.editorial-v4 #main .panel .dash-stat-grid > .stat-tile,
+body.editorial-v4 #main .panel .guest-stat-grid > .guest-stat-card,
+body.editorial-v4 #main .panel .payments-stat-grid > .payment-stat-card,
+body.editorial-v4 #main .panel .payment-stat-grid > .payment-stat-card,
+body.editorial-v4 #main .panel .vendors-stat-grid > .vendor-stat-card,
+body.editorial-v4 #main .panel .tasks-stat-grid > .task-stat-card {
+  border: 0 !important;
+  border-color: transparent !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+body.editorial-v4 #panel-guests .cwp-table td.guest-family-cell {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+body.editorial-v4 #panel-guests .cwp-table td.guest-family-cell .guest-tiny-check {
+  justify-content: center !important;
+}
+
+/* Phase B Batch 4: Wedding Weekend Logistics shared inline editor + CWP previews. */
+body.editorial-v4 #panel-logistics .log-tabs,
+body.editorial-v4 #panel-logistics .logistics-inline-editor,
+body.editorial-v4 #panel-logistics #log-content,
+body.editorial-v4 #panel-logistics .log-card,
+body.editorial-v4 #panel-logistics .log-hub-preview,
+body.editorial-v4 #panel-logistics .cwp-mount,
+body.editorial-v4 #panel-logistics .cwp-section,
+body.editorial-v4 #panel-logistics .cwp-section-body,
+body.editorial-v4 #panel-logistics .cwp-table-wrap,
+body.editorial-v4 #panel-logistics .preview-foot {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-logistics .logistics-inline-editor,
+body.editorial-v4 #panel-logistics .log-card,
+body.editorial-v4 #panel-logistics .log-hub-preview,
+body.editorial-v4 #panel-logistics .cwp-section,
+body.editorial-v4 #panel-logistics .cwp-section-body {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4 #panel-logistics .cwp-section-head {
+  border-bottom: 0 !important;
+}
+
+body.editorial-v4 #panel-logistics .logistics-inline-tabs,
+body.editorial-v4 #panel-logistics .log-tabs {
+  overflow-x: auto !important;
+  max-width: 100% !important;
+}
+
+body.editorial-v4 #panel-logistics .cwp-table-wrap,
+body.editorial-v4 #panel-logistics .log-table-wrap {
+  overflow-x: auto !important;
+}
+
+body.editorial-v4 #panel-logistics .cwp-table {
+  min-width: 100% !important;
+}
+
+body.editorial-v4 #panel-logistics .preview-foot {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: .65rem !important;
+  margin-top: .65rem !important;
+}
+
+body.editorial-v4 #panel-logistics .log-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: .65rem !important;
+}
+
+@media (max-width: 900px) {
+  body.editorial-v4 #panel-logistics .preview-foot {
+    align-items: stretch !important;
+  }
+
+  body.editorial-v4 #panel-logistics .preview-foot .hub-link,
+  body.editorial-v4 #panel-logistics .log-actions .btn {
+    width: 100% !important;
+  }
+}
+
+/* Phase B Batch 5: Honeymoon / After shared tracker and inline-editor rails. */
+body.editorial-v4 #panel-honeymoon .hm-title-wrap,
+body.editorial-v4 #panel-honeymoon .hm-stat-grid,
+body.editorial-v4 #panel-honeymoon .hm-tabbar,
+body.editorial-v4 #panel-honeymoon .hm-card-grid,
+body.editorial-v4 #panel-honeymoon .hm-table-section,
+body.editorial-v4 #panel-honeymoon .honeymoon-inline-editor,
+body.editorial-v4 #panel-honeymoon .hm-table-section .hub-preview-card,
+body.editorial-v4 #panel-honeymoon .hm-table-section .ued-table-wrap {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-honeymoon .hm-card,
+body.editorial-v4 #panel-honeymoon .hm-table-section,
+body.editorial-v4 #panel-honeymoon .hm-table-head,
+body.editorial-v4 #panel-honeymoon .hub-preview-card,
+body.editorial-v4 #panel-honeymoon .honeymoon-inline-editor,
+body.editorial-v4 #panel-honeymoon .hm-cc-card {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4 #panel-honeymoon .hm-card-grid,
+body.editorial-v4 #panel-honeymoon .hm-stat-grid,
+body.editorial-v4 #panel-honeymoon .honeymoon-inline-tabs {
+  gap: var(--planner-card-gap) !important;
+}
+
+body.editorial-v4 #panel-honeymoon .hm-table-section .ued-table-wrap {
+  overflow-x: auto !important;
+}
+
+body.editorial-v4 #panel-honeymoon .honeymoon-inline-editor .record-editor-inline {
+  min-width: 0 !important;
+}
+
+/* Phase B Batch 5: Get Started editorial onboarding rails. */
+body.editorial-v4 #panel-instructions .m-mast-wrap,
+body.editorial-v4 #panel-instructions .page-scripture-footer,
+body.editorial-v4 #panel-instructions .inst-card,
+body.editorial-v4 #panel-instructions .inst-grid-3,
+body.editorial-v4 #panel-instructions .inst-wide-row,
+body.editorial-v4 #panel-instructions .inst-actions-row,
+body.editorial-v4 #panel-instructions #start-here-card,
+body.editorial-v4 #panel-instructions #start-here-templates,
+body.editorial-v4 #panel-instructions #start-here-essentials-hub,
+body.editorial-v4 #panel-instructions #start-here-checklist {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-instructions .inst-card,
+body.editorial-v4 #panel-instructions #start-here-templates,
+body.editorial-v4 #panel-instructions #start-here-essentials-hub,
+body.editorial-v4 #panel-instructions #start-here-checklist {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4 #panel-instructions .inst-grid-3,
+body.editorial-v4 #panel-instructions .inst-wide-row,
+body.editorial-v4 #panel-instructions .inst-actions-row {
+  gap: var(--planner-card-gap) !important;
+}
+
+/* Phase B Batch 5: FAQ editorial answer rails. */
+body.editorial-v4 #panel-faq .m-mast-wrap,
+body.editorial-v4 #panel-faq .faq-search-wrap,
+body.editorial-v4 #panel-faq .faq-cat-bar,
+body.editorial-v4 #panel-faq .faq-layout,
+body.editorial-v4 #panel-faq .faq-list,
+body.editorial-v4 #panel-faq .faq-side,
+body.editorial-v4 #panel-faq .faq-scripture-footer {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-faq .faq-layout {
+  gap: var(--planner-card-gap) !important;
+}
+
+body.editorial-v4 #panel-faq .faq-card,
+body.editorial-v4 #panel-faq .faq-side-card {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Phase B Batch 5: Prayer Journal editorial/data-entry pattern. */
+body.editorial-v4 #panel-prayer .prayer-hero,
+body.editorial-v4 #panel-prayer .m-soft,
+body.editorial-v4 #panel-prayer .m-stats,
+body.editorial-v4 #panel-prayer #prayer-prompt-card,
+body.editorial-v4 #panel-prayer .prayer-focus-grid,
+body.editorial-v4 #panel-prayer .prayer-inline-editor,
+body.editorial-v4 #panel-prayer .prayer-table-card,
+body.editorial-v4 #panel-prayer .cwp-mount,
+body.editorial-v4 #panel-prayer .cwp-section,
+body.editorial-v4 #panel-prayer .cwp-section-body,
+body.editorial-v4 #panel-prayer .cwp-table-wrap,
+body.editorial-v4 #panel-prayer .preview-foot {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-prayer .m-soft,
+body.editorial-v4 #panel-prayer .m-banner,
+body.editorial-v4 #panel-prayer .ued-panel,
+body.editorial-v4 #panel-prayer .ued-table-card,
+body.editorial-v4 #panel-prayer .hub-preview-card,
+body.editorial-v4 #panel-prayer .prayer-focus-card,
+body.editorial-v4 #panel-prayer .cwp-section,
+body.editorial-v4 #panel-prayer .cwp-section-body {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4 #panel-prayer .cwp-section-head {
+  border-bottom: 0 !important;
+}
+
+body.editorial-v4 #panel-prayer .prayer-focus-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: var(--planner-card-gap) !important;
+  margin: 0 0 1rem !important;
+}
+
+body.editorial-v4 #panel-prayer .prayer-focus-card {
+  background: var(--er-soft, #faf7f1) !important;
+  border-radius: 8px !important;
+  padding: 1rem !important;
+}
+
+body.editorial-v4 #panel-prayer .prayer-focus-card h3 {
+  margin: 0 0 .35rem !important;
+  color: var(--er-forest, #2d4a3e) !important;
+  font-size: 1rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0 !important;
+}
+
+body.editorial-v4 #panel-prayer .prayer-focus-card p {
+  margin: 0 !important;
+  color: var(--er-ink, #1f2a24) !important;
+  font-size: .9rem !important;
+  line-height: 1.45 !important;
+}
+
+body.editorial-v4 #panel-prayer .prayer-focus-card cite {
+  display: block !important;
+  margin-top: .7rem !important;
+  color: var(--er-muted, #6f7a72) !important;
+  font-size: .78rem !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+body.editorial-v4 #panel-prayer .cwp-table-wrap {
+  overflow-x: auto !important;
+}
+
+body.editorial-v4 #panel-prayer .cwp-table {
+  min-width: 100% !important;
+}
+
+body.editorial-v4 #panel-prayer .preview-foot {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: .65rem !important;
+  margin-top: .65rem !important;
+}
+
+@media (max-width: 900px) {
+  body.editorial-v4 #panel-prayer .prayer-focus-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.editorial-v4 #panel-prayer .preview-foot {
+    align-items: stretch !important;
+  }
+
+  body.editorial-v4 #panel-prayer .preview-foot .hub-link {
+    width: 100% !important;
+  }
+}
+
+/* Phase B Batch 5: Premarital Counseling editorial/data-entry pattern. */
+body.editorial-v4 #panel-counseling .m-soft,
+body.editorial-v4 #panel-counseling .m-stats,
+body.editorial-v4 #panel-counseling #counseling-curriculum-host,
+body.editorial-v4 #panel-counseling .counseling-curriculum,
+body.editorial-v4 #panel-counseling .counseling-inline-editor,
+body.editorial-v4 #panel-counseling .counseling-table-card,
+body.editorial-v4 #panel-counseling #counsel-topics-card,
+body.editorial-v4 #panel-counseling .cwp-mount,
+body.editorial-v4 #panel-counseling .cwp-section,
+body.editorial-v4 #panel-counseling .cwp-section-body,
+body.editorial-v4 #panel-counseling .cwp-table-wrap,
+body.editorial-v4 #panel-counseling .preview-foot {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-counseling .m-soft,
+body.editorial-v4 #panel-counseling .m-block,
+body.editorial-v4 #panel-counseling .ued-panel,
+body.editorial-v4 #panel-counseling .ued-table-card,
+body.editorial-v4 #panel-counseling .hub-preview-card,
+body.editorial-v4 #panel-counseling .counseling-curriculum,
+body.editorial-v4 #panel-counseling .counseling-topic,
+body.editorial-v4 #panel-counseling .cwp-section,
+body.editorial-v4 #panel-counseling .cwp-section-body {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4 #panel-counseling .cwp-section-head,
+body.editorial-v4 #panel-counseling .counseling-curriculum-head {
+  border-bottom: 0 !important;
+}
+
+body.editorial-v4 #panel-counseling .counseling-topic-grid {
+  gap: var(--planner-card-gap) !important;
+}
+
+body.editorial-v4 #panel-counseling .counseling-topic {
+  background: var(--er-soft, #faf7f1) !important;
+  border-radius: 8px !important;
+}
+
+body.editorial-v4 #panel-counseling .counseling-topic summary {
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-counseling .counseling-topic-fields {
+  gap: var(--planner-card-gap) !important;
+}
+
+body.editorial-v4 #panel-counseling .cwp-table-wrap {
+  overflow-x: auto !important;
+}
+
+body.editorial-v4 #panel-counseling .cwp-table {
+  min-width: 100% !important;
+}
+
+body.editorial-v4 #panel-counseling .preview-foot {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: .65rem !important;
+  margin-top: .65rem !important;
+}
+
+@media (max-width: 900px) {
+  body.editorial-v4 #panel-counseling .counseling-topic-fields {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.editorial-v4 #panel-counseling .preview-foot {
+    align-items: stretch !important;
+  }
+
+  body.editorial-v4 #panel-counseling .preview-foot .hub-link {
+    width: 100% !important;
+  }
+}
+
+/* Phase B Batch 5: Notes hybrid editorial/data-entry pattern. */
+body.editorial-v4 #panel-notes .notes-title-wrap,
+body.editorial-v4 #panel-notes .m-stats,
+body.editorial-v4 #panel-notes .notes-side-card,
+body.editorial-v4 #panel-notes .notes-toolbar,
+body.editorial-v4 #panel-notes .notes-inline-editor,
+body.editorial-v4 #panel-notes .notes-layout,
+body.editorial-v4 #panel-notes .notes-main,
+body.editorial-v4 #panel-notes .notes-sidebar,
+body.editorial-v4 #panel-notes .notes-card-grid,
+body.editorial-v4 #panel-notes .notes-longform-section,
+body.editorial-v4 #panel-notes .notes-legacy-grid,
+body.editorial-v4 #panel-notes .notes-table-section,
+body.editorial-v4 #panel-notes .notes-tracker-table-card,
+body.editorial-v4 #panel-notes .cwp-mount,
+body.editorial-v4 #panel-notes .cwp-section,
+body.editorial-v4 #panel-notes .cwp-section-body,
+body.editorial-v4 #panel-notes .cwp-table-wrap,
+body.editorial-v4 #panel-notes .preview-foot,
+body.editorial-v4 #panel-notes .notes-scripture-footer {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-notes .notes-side-card,
+body.editorial-v4 #panel-notes .notes-card,
+body.editorial-v4 #panel-notes .notes-longform-section,
+body.editorial-v4 #panel-notes .notes-legacy-card,
+body.editorial-v4 #panel-notes .notes-table-section,
+body.editorial-v4 #panel-notes .notes-tracker-table-card,
+body.editorial-v4 #panel-notes .ued-panel,
+body.editorial-v4 #panel-notes .ued-table-card,
+body.editorial-v4 #panel-notes .cwp-section,
+body.editorial-v4 #panel-notes .cwp-section-body {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4 #panel-notes .cwp-section-head,
+body.editorial-v4 #panel-notes .ued-table-head,
+body.editorial-v4 #panel-notes .notes-section-head,
+body.editorial-v4 #panel-notes .notes-table-head {
+  border-bottom: 0 !important;
+}
+
+body.editorial-v4 #panel-notes .notes-layout,
+body.editorial-v4 #panel-notes .notes-legacy-grid,
+body.editorial-v4 #panel-notes .notes-card-grid {
+  gap: var(--planner-card-gap) !important;
+}
+
+body.editorial-v4 #panel-notes .cwp-table-wrap {
+  overflow-x: auto !important;
+}
+
+body.editorial-v4 #panel-notes .cwp-table {
+  min-width: 100% !important;
+}
+
+body.editorial-v4 #panel-notes .preview-foot {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: .65rem !important;
+  margin-top: .65rem !important;
+}
+
+@media (max-width: 900px) {
+  body.editorial-v4 #panel-notes .notes-layout,
+  body.editorial-v4 #panel-notes .notes-legacy-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.editorial-v4 #panel-notes .notes-toolbar,
+  body.editorial-v4 #panel-notes .ued-table-head,
+  body.editorial-v4 #panel-notes .preview-foot {
+    align-items: stretch !important;
+  }
+
+  body.editorial-v4 #panel-notes .preview-foot .hub-link,
+  body.editorial-v4 #panel-notes .ued-actions,
+  body.editorial-v4 #panel-notes .ued-actions .ued-btn {
+    width: 100% !important;
+  }
+}
+
+/* Phase B Batch 5: Vision Board visual collection/data-entry pattern. */
+body.editorial-v4 #panel-mood .mood-title-wrap,
+body.editorial-v4 #panel-mood .m-stats,
+body.editorial-v4 #panel-mood .vision-tabbar,
+body.editorial-v4 #panel-mood .mood-tabbar,
+body.editorial-v4 #panel-mood .vision-decisions-card,
+body.editorial-v4 #panel-mood .mood-statement-card,
+body.editorial-v4 #panel-mood .mood-board-grid,
+body.editorial-v4 #panel-mood .mood-card,
+body.editorial-v4 #panel-mood .mood-gallery-card,
+body.editorial-v4 #panel-mood .mood-inline-editor,
+body.editorial-v4 #panel-mood .mood-table-card,
+body.editorial-v4 #panel-mood .mood-tracker-table-card,
+body.editorial-v4 #panel-mood .cwp-mount,
+body.editorial-v4 #panel-mood .cwp-section,
+body.editorial-v4 #panel-mood .cwp-section-body,
+body.editorial-v4 #panel-mood .cwp-table-wrap,
+body.editorial-v4 #panel-mood .preview-foot,
+body.editorial-v4 #panel-mood .mood-scripture-footer {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.editorial-v4 #panel-mood .mood-card,
+body.editorial-v4 #panel-mood .vision-decisions-card,
+body.editorial-v4 #panel-mood .mood-statement-card,
+body.editorial-v4 #panel-mood .mood-gallery-card,
+body.editorial-v4 #panel-mood .mood-table-card,
+body.editorial-v4 #panel-mood .mood-tracker-table-card,
+body.editorial-v4 #panel-mood .ued-panel,
+body.editorial-v4 #panel-mood .ued-table-card,
+body.editorial-v4 #panel-mood .cwp-section,
+body.editorial-v4 #panel-mood .cwp-section-body {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4 #panel-mood .cwp-section-head,
+body.editorial-v4 #panel-mood .ued-table-head,
+body.editorial-v4 #panel-mood .mood-card-head,
+body.editorial-v4 #panel-mood .mood-table-head {
+  border-bottom: 0 !important;
+}
+
+body.editorial-v4 #panel-mood .mood-board-grid,
+body.editorial-v4 #panel-mood .mood-preview-grid,
+body.editorial-v4 #panel-mood .mood-gallery-grid,
+body.editorial-v4 #panel-mood .vision-decisions-grid {
+  gap: var(--planner-card-gap) !important;
+}
+
+/* Keep the palette's nested visual tools on the same rails as the page shell. */
+body.editorial-v4 #panel-mood .mood-palette-feature,
+body.editorial-v4 #panel-mood .mood-palette-feature .mood-palette-cards,
+body.editorial-v4 #panel-mood .mood-palette-feature .mood-season-panel,
+body.editorial-v4 #panel-mood .mood-palette-feature .mood-palette-card {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+body.editorial-v4 #panel-mood .mood-palette-feature .mood-palette-cards,
+body.editorial-v4 #panel-mood .mood-palette-feature .mood-season-panel {
+  display: grid !important;
+  gap: var(--planner-card-gap) !important;
+}
+
+body.editorial-v4 #panel-mood .mood-palette-feature .mood-palette-card {
+  width: 100% !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4 #panel-mood .cwp-table-wrap {
+  overflow-x: auto !important;
+}
+
+body.editorial-v4 #panel-mood .cwp-table {
+  min-width: 100% !important;
+}
+
+body.editorial-v4 #panel-mood .preview-foot {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: .65rem !important;
+  margin-top: .65rem !important;
+}
+
+@media (max-width: 900px) {
+  body.editorial-v4 #panel-mood .mood-board-grid,
+  body.editorial-v4 #panel-mood .vision-decisions-grid,
+  body.editorial-v4 #panel-mood .mood-preview-grid,
+  body.editorial-v4 #panel-mood .mood-gallery-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.editorial-v4 #panel-mood .vision-tabbar,
+  body.editorial-v4 #panel-mood .mood-tabbar,
+  body.editorial-v4 #panel-mood .ued-table-head,
+  body.editorial-v4 #panel-mood .preview-foot {
+    align-items: stretch !important;
+  }
+
+  body.editorial-v4 #panel-mood .preview-foot .hub-link,
+  body.editorial-v4 #panel-mood .ued-actions,
+  body.editorial-v4 #panel-mood .ued-actions .ued-btn {
+    width: 100% !important;
+  }
+}

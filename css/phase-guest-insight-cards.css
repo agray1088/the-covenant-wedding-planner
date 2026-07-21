@@ -1,0 +1,226 @@
+/* Guest List insight cards — 3-column grid on desktop */
+.guest-insight-cards-section {
+  margin: 1rem 0 1.25rem;
+}
+
+.guest-insight-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+@media (max-width: 1024px) {
+  .guest-insight-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .guest-insight-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.guest-insight-card {
+  background: var(--paper, #fff);
+  border: 1px solid var(--line, #e5ddd0);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 0;
+}
+
+.guest-insight-card.all-set {
+  border-color: rgba(45, 120, 70, 0.25);
+  background: rgba(45, 120, 70, 0.03);
+}
+
+.guest-insight-card.warn {
+  border-color: rgba(180, 120, 40, 0.35);
+  background: rgba(180, 120, 40, 0.04);
+}
+
+.guest-insight-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.guest-insight-head h3 {
+  margin: 0;
+  font-family: Georgia, "Cormorant Garamond", serif;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--forest, #2d4a35);
+  line-height: 1.25;
+}
+
+.guest-insight-badge {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.18rem 0.45rem;
+  border-radius: 6px;
+  background: rgba(45, 74, 53, 0.1);
+  color: var(--forest, #2d4a35);
+}
+
+.guest-insight-badge.warn {
+  background: rgba(180, 120, 40, 0.14);
+  color: #8a5a18;
+}
+
+.guest-insight-badge.ok {
+  background: rgba(45, 120, 70, 0.12);
+  color: #2d6a45;
+}
+
+.guest-insight-body {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--charcoal, #2a2520);
+  line-height: 1.45;
+}
+
+.guest-insight-body .ued-soft,
+.guest-insight-empty {
+  color: var(--muted, #6b7280);
+  margin: 0;
+}
+
+.guest-insight-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guest-insight-list li {
+  padding: 0.28rem 0;
+  border-bottom: 1px solid rgba(45, 74, 53, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.guest-insight-list li:last-child {
+  border-bottom: none;
+}
+
+.guest-insight-list .guest-insight-more {
+  color: var(--muted, #6b7280);
+  font-style: italic;
+  justify-content: flex-start;
+}
+
+.guest-insight-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.guest-insight-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(45, 74, 53, 0.08);
+  color: var(--forest, #2d4a35);
+}
+
+.guest-insight-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+}
+
+.guest-insight-metric strong {
+  font-size: 1.05rem;
+  color: var(--forest, #2d4a35);
+}
+
+.guest-insight-household {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(45, 74, 53, 0.06);
+}
+
+.guest-insight-household:last-child {
+  border-bottom: none;
+}
+
+.guest-insight-household-name {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--forest, #2d4a35);
+}
+
+.guest-insight-household-members {
+  font-size: 0.74rem;
+  color: var(--muted, #6b7280);
+  margin-top: 0.15rem;
+}
+
+.guest-insight-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(45, 74, 53, 0.1);
+  overflow: hidden;
+  margin: 0.35rem 0;
+}
+
+.guest-insight-progress b {
+  display: block;
+  height: 100%;
+  background: var(--gold, #c4a576);
+  border-radius: 999px;
+}
+
+.guest-insight-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 0.15rem;
+}
+
+.guest-insight-actions .ued-btn,
+.guest-insight-actions .ued-link {
+  font-size: 0.72rem;
+  padding: 0.3rem 0.55rem;
+}
+
+.guest-insight-actions .ued-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--forest, #2d4a35);
+  text-decoration: underline;
+}
+
+.guest-insight-row-actions {
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.guest-insight-row-actions button {
+  font-size: 0.62rem;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid var(--line, #e5ddd0);
+  border-radius: 5px;
+  background: var(--paper, #fff);
+  cursor: pointer;
+  color: var(--forest, #2d4a35);
+}
+
+.guest-insight-row-actions button:hover {
+  border-color: var(--gold, #c4a576);
+}
