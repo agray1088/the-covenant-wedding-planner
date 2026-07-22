@@ -3018,7 +3018,16 @@
                 </ul>
               </div>
             </div>
-            <p class="ui-system-small"><strong>Known overlaps to consolidate:</strong> the <code>ued-*</code> cards vs. the broad <code>[class*="-card"]</code> override layer; the CWP tables vs. the older <code>planner-table-*</code> control system.</p>
+            <p class="ui-system-small"><strong>Phase 2 complete (Batches A–E):</strong> cards, buttons, status, progress, and Venue &amp; Vendors hub are unified. Residual: retire legacy <code>planner-table-*</code> where CWP covers the page.</p>
+          </article>
+          <article class="ui-system-card wide">
+            <div class="ui-system-kicker">Phase 3</div>
+            <h2>Page audit checklist</h2>
+            <p class="ui-system-note">Per-page pass/fail: masthead (single title, no duplicate hero), gutter alignment, token cards, one primary action cluster, CWP tables, typography, dark parity, rhythm, responsive reflow, empty states. Batch order: Dashboard ✅ → Budget → Guest List → Vendors → Tasks → Calendar → Payments → Faith pages → detail pages → Data Hub.</p>
+            <div class="ui-system-row">
+              <button type="button" class="btn btn-forest" onclick="(function(){ const r=phase3AuditBatch(); const el=document.getElementById('phase3-audit-out'); if(el){ el.textContent=JSON.stringify(r,null,2); el.hidden=false; } console.table(r); })()">Run high-traffic audit</button>
+            </div>
+            <pre id="phase3-audit-out" class="ui-system-small" hidden style="margin-top:.75rem;padding:.75rem;background:var(--surface-raised,#fdfcfa);border:1px solid var(--border-subtle,#e7e1d4);border-radius:8px;overflow:auto;max-height:320px"></pre>
           </article>
           <article class="ui-system-card">
             <h2>Typography</h2>

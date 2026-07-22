@@ -10724,6 +10724,43 @@ function injectPageScripture(panelId) {
   else panel.prepend(footer);
 }
 
+/** Phase 3 — run the 10-point checklist against a panel (dev audit helper). */
+function phase3AuditPage(panelId){
+  const panel = document.getElementById('panel-' + panelId);
+  if (!panel) return { panelId, error: 'panel not found' };
+  const mast = !!panel.querySelector(':scope > .m-mast-wrap');
+  const dupSel = ':scope > .ued-mast .ued-title, :scope > .ued-page > .ued-mast .ued-title, :scope > .page-header, :scope > .dash-title';
+  const dup = panel.querySelector(dupSel);
+  const dupTitle = !!(dup && dup.offsetParent !== null && getComputedStyle(dup).display !== 'none');
+  const cards = [...panel.querySelectorAll('.ued-panel, .ued-table-card')].slice(0, 12);
+  const cardIssues = cards.filter(c => {
+    const cs = getComputedStyle(c);
+    return (cs.boxShadow && cs.boxShadow !== 'none') || (parseFloat(cs.borderRadius) || 0) > 12;
+  }).length;
+  const hubPrimaries = panel.querySelectorAll('.db-edit-btn.primary, .db-edit-btn.ued-btn.primary').length;
+  const inlineScripture = panel.querySelectorAll('.tasks-scripture-card, [class*="scripture-card"]:not(.page-scripture-footer)').length;
+  const pageScripture = !!panel.querySelector('.page-scripture-footer');
+  const legacyProgress = panel.querySelectorAll('.ux-goal-bar, .progress-track:not(.ued-track)').length;
+  return {
+    panelId,
+    masthead: mast,
+    dupTitleVisible: dupTitle,
+    cardSamples: cards.length,
+    cardStyleIssues: cardIssues,
+    hubPrimaryConflicts: hubPrimaries,
+    inlineScripturePanels: inlineScripture,
+    injectPageScripture: pageScripture,
+    legacyProgressBars: legacyProgress,
+    pass: mast && !dupTitle && !cardIssues && !hubPrimaries && !inlineScripture && !legacyProgress
+  };
+}
+function phase3AuditBatch(ids){
+  const list = ids || ['dashboard','budget','guests','vendors','payments','tasks'];
+  return list.map(id => { showPanel(id, true); return phase3AuditPage(id); });
+}
+window.phase3AuditPage = phase3AuditPage;
+window.phase3AuditBatch = phase3AuditBatch;
+
 const PAGE_HELP = {
   'ui-system': {title:'UI/UX System',text:'Developer reference for UI components and the UX principles the planner is designed around. Stripped from the customer download.'},
   dashboard: {title:'Dashboard',text:'Your command center. Everything here updates automatically from other pages — countdown, budget health, task progress, RSVP breakdown, the vertical Wedding Day Timeline, and upcoming events. Click the photo circle to upload a couple photo.'},
@@ -10732,7 +10769,7 @@ const PAGE_HELP = {
   budget: {title:'Budget',text:'Track spending by category. Click a category card to edit its line items in a centered pop-out window. <strong>Load Full Budget Categories</strong> adds empty shells; <strong>Load Full Itemized Budget</strong> adds categories with pre-filled items and merges missing items into existing ones. The <strong>Budget Reconciliation</strong> table shows planned, paid, remaining, and % used. Catering & Payments pages auto-sync their items here as read-only lines. <strong>Tip:</strong> Payment categories auto-sync best when they match a Budget category. The planner now uses forgiving matching for small wording differences, and it warns you if a payment still cannot be matched.'},
   payments: {title:'Payments',text:'Track every vendor payment. Assign a <strong>Budget Category</strong> to auto-sync the amount into your budget. Link to a <strong>Contract</strong> to see payment totals on the Contracts page. Click the installment link on any row to expand a sub-table for tracking deposit/balance schedules.'},
   contracts: {title:'Contracts, Invoices & Rentals',text:'Log contracts, invoices, quotes, receipts, and rentals. Note where the actual document is saved. If payments are linked to a contract, a summary shows total paid vs. due. The Rentals table tracks rental items with pickup and return dates.'},
-  vendors: {title:'Vendors',text:'Track every vendor with contact info, quotes, status, and notes. Use the Pros, Cons, and Review fields to compare options. Vendor count and status feed the Dashboard.'},
+  vendors: {title:'Venue & Vendors',text:'Track every vendor with contact info, quotes, status, and notes. Use the hub tabs for Venue details and Shortlist & Compare. Vendor count and status feed the Dashboard.'},
   guests: {title:'Guest List',text:'Your master guest list now works like a private relational tracker. Each guest receives a stable <strong>Guest ID</strong>, an <strong>Invite Decision</strong> (Must Invite, Maybe, Waitlist, etc.), and one or more <strong>Event Invitations</strong> such as Ceremony, Reception, Rehearsal Dinner, or Brunch. Assign a <strong>Role</strong> to each guest (Bridesmaid, Groomsman, etc.) — these roles can be imported into the Wedding Party page. When a guest has +1, children, family, or saved companions, click <strong>Add Companions</strong> or the row <strong>Edit</strong> button to manage each companion\'s details. Table numbers create automatic cards on the Table Layout page. RSVPs and meal counts feed the Dashboard and Catering pages.'},
   party: {title:'Wedding Party',text:'Organize your wedding party. Click <strong>Import from Guest List</strong> to pull in guests who have party roles assigned. Use the tabs to filter by Bride\'s Side, Groom\'s Side, or All. Track attire status, sizes, and contact info.'},
   tables: {title:'Table Layout',text:'Table cards appear automatically from the Table # column on your Guest List. Set each table\'s seat count and notes. Use the <strong>Floor Plan</strong> to drag tables around and toggle circle/rectangle shapes.'},
@@ -15241,8 +15278,8 @@ function uedVendorShell(){
   const panel = document.getElementById('panel-vendors');
   if (!panel) return;
   panel.classList.add('ued-scope');
-  if (panel.dataset.uedShell === 'vendors-tracker-b2') return;
-  panel.dataset.uedShell = 'vendors-tracker-b2';
+  if (panel.dataset.uedShell === 'vendors-tracker-p3') return;
+  panel.dataset.uedShell = 'vendors-tracker-p3';
   panel.innerHTML = `<div class="ued-page">
     <header class="ued-mast"><div><div class="ued-kicker"><span>08</span><i></i><span>Venue &amp; Vendors</span></div><h1 class="ued-title">Venue &amp; Vendors</h1><p class="ued-subtitle">Edit vendor records inline, review the read-only tracker preview, or open the Vendors Hub for the full spreadsheet view.</p></div><div class="ued-actions"><button class="ued-link" onclick="openEntityCSVImport('vendors')">Import CSV</button><button class="ued-link" onclick="exportVendorCSV()">Export CSV</button><button class="ued-btn primary" onclick="addVendorRow()">+ Add vendor</button></div></header>
     <section class="m-stats" id="vendor-stats" aria-label="Vendor summary"></section>
@@ -15263,7 +15300,7 @@ function uedVendorShell(){
           <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add vendor</button>
         </div>
       </section>
-      <section class="ued-table-card vendors-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportVendorCSV()">Export CSV</button><button class="ued-btn primary db-edit-btn" onclick="openDataHub('vendors','vendors')">Edit in Vendors Hub</button></div></div><div id="cwp-vendors" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet editing and bulk actions live in the Vendors Hub.</span></div></section>
+      <section class="ued-table-card vendors-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportVendorCSV()">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('vendors','vendors')">Edit in Vendors Hub</button></div></div><div id="cwp-vendors" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet editing and bulk actions live in the Vendors Hub.</span></div></section>
       <section class="ued-table-card vendor-cards-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor cards</div></div><div class="hub-record-card-grid" id="vendor-card-grid"></div><div class="hub-record-card-pager"><span class="ued-soft" id="vendor-card-foot"></span><span id="vendor-card-pager"></span></div>${hubPreviewFoot('vendors','vendors')}</section>
     </div>
     <div data-vnd-tab="shortlist" style="display:none"><div class="m-block vendors-compare-card"><div class="m-head">Vendor Comparisons</div><p class="v4-help-note">Compare up to 3 vendors side by side — full compare table in Database Hub.</p><div id="vendor-compare-preview"></div>${hubPreviewFoot('vendors','vendorCompare')}</div></div>
@@ -16268,8 +16305,8 @@ function uedTaskShell(){
   const panel = document.getElementById('panel-tasks');
   if (!panel) return;
   panel.classList.add('ued-scope');
-  if (panel.dataset.uedShell === 'tasks-b3-tracker') return;
-  panel.dataset.uedShell = 'tasks-b3-tracker';
+  if (panel.dataset.uedShell === 'tasks-p3') return;
+  panel.dataset.uedShell = 'tasks-p3';
   panel.innerHTML = `<div class="ued-page">
     <header class="ued-mast"><div><div class="ued-kicker"><span>05</span><i></i><span>Planning</span></div><h1 class="ued-title">Planning Timeline</h1><p class="ued-subtitle">Edit one task inline, scan the read-only tracker preview, or open Planning Hub for full spreadsheet editing and bulk work.</p></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Planning Timeline',data.tasks)">Export CSV</button><button class="ued-link" onclick="loadTaskTimelinePreset()">Load 12-Month Timeline</button><button class="ued-link" onclick="loadTaskFullChecklist()">Load Full Checklist</button><button class="ued-btn primary" onclick="addTaskRow()">+ New task</button></div></header>
     <section class="m-stats" id="task-stats"></section>
@@ -16289,10 +16326,9 @@ function uedTaskShell(){
         <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add task</button>
       </div>
     </section>
-    <section class="ued-table-card tasks-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Task tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Planning Timeline',data.tasks)">Export CSV</button><button class="ued-btn primary db-edit-btn" onclick="openDataHub('planning','tasks')">Edit in Planning Hub</button></div></div><div id="cwp-tasks" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Planning Hub.</span></div></section>
+    <section class="ued-table-card tasks-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Task tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Planning Timeline',data.tasks)">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('planning','tasks')">Edit in Planning Hub</button></div></div><div id="cwp-tasks" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Planning Hub.</span></div></section>
     <section class="ued-table-card task-cards-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('grid')} Task cards</div></div><div class="hub-record-card-grid" id="task-card-grid"></div><div class="hub-record-card-pager"><span class="ued-soft" id="task-card-foot"></span><span id="task-card-pager"></span></div>${hubPreviewFoot('planning','tasks')}</section>
     <datalist id="assigned-options"></datalist>
-    <section class="ued-panel span12 tasks-scripture-card"><div class="ued-soft"><i>Commit thy works unto the Lord, and thy thoughts shall be established.</i> Proverbs 16:3</div></section>
   </div>`;
 }
 
@@ -19674,7 +19710,7 @@ function renderSmartAppointmentsView(host){
         <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add appointment</button>
       </div>
     </section>
-    <section class="ued-table-card appointment-preview-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Appointment tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Appointments',data.appointments)">Export CSV</button><button class="ued-btn primary db-edit-btn" onclick="openDataHub('planning','appointments')">Edit in Planning Hub</button></div></div><div id="cwp-appointments" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Planning Hub.</span></div></section>
+    <section class="ued-table-card appointment-preview-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Appointment tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Appointments',data.appointments)">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('planning','appointments')">Edit in Planning Hub</button></div></div><div id="cwp-appointments" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Planning Hub.</span></div></section>
     <div class="app-table-footer"><span id="smart-appointment-foot-count">Showing 0 appointments</span><span>Source: Appointments. Syncs to Month, Week, and Agenda automatically.</span></div>
     <div class="smart-appointment-support-grid">
       <section class="app-side-card" id="smart-appointment-agenda-card"></section>
@@ -21396,8 +21432,8 @@ function uedPartyShell(){
   const panel = document.getElementById('panel-party');
   if (!panel) return;
   panel.classList.add('ued-scope');
-  if (panel.dataset.uedShell === 'party-b4-tracker') return;
-  panel.dataset.uedShell = 'party-b4-tracker';
+  if (panel.dataset.uedShell === 'party-p3') return;
+  panel.dataset.uedShell = 'party-p3';
   const roleTabs = [{ id: 'all', label: 'All' }, { id: 'bridesmaid', label: 'Bridal' }, { id: 'groomsman', label: 'Groomsmen' }, { id: 'other', label: 'Other' }];
   panel.innerHTML = `<div class="ued-page">
     <header class="ued-mast"><div><div class="ued-kicker"><span>16</span><i></i><span>People</span></div><h1 class="ued-title">Wedding Party</h1><p class="ued-subtitle">Roles, attire, and contact cards — open the People Database Hub for the full party table.</p></div><div class="ued-actions"><button class="ued-btn primary" onclick="addPartyRow()">+ Add member</button></div></header>
@@ -21416,7 +21452,7 @@ function uedPartyShell(){
         <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add wedding party member</button>
       </div>
     </section>
-    <section class="ued-table-card party-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Wedding party tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="importPartyFromGuests()">Import from Guest List</button><button class="ued-link" onclick="exportSectionCSV('Wedding Party',data.party)">Export CSV</button><button class="ued-btn primary db-edit-btn" onclick="openDataHub('people','party')">Edit in People Hub</button></div></div><div id="cwp-party" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in People Hub.</span></div></section>
+    <section class="ued-table-card party-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Wedding party tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="importPartyFromGuests()">Import from Guest List</button><button class="ued-link" onclick="exportSectionCSV('Wedding Party',data.party)">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('people','party')">Edit in People Hub</button></div></div><div id="cwp-party" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in People Hub.</span></div></section>
     <div class="party-filter-row ued-actions" style="justify-content:flex-start;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem"><div id="party-tabs" class="party-tabs">${roleTabs.map(t => `<button type="button" class="party-tab" data-role="${t.id}" onclick="setPartyRoleFilter('${t.id}')">${t.label}</button>`).join('')}</div><select id="party-status-filter" class="ued-btn" onchange="setPartyStatusFilter(this.value)"><option value="all">All statuses</option>${PARTY_STATUS_OPTIONS.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}</select><label class="ued-filter search"><input id="party-search" type="search" placeholder="Search party…" oninput="setPartySearch(this.value)"></label></div>
     <section class="ued-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('diversity_3')} Party member cards</div></div><div class="hub-record-card-grid" id="party-card-grid"></div><div class="hub-record-card-pager"><span class="ued-soft" id="party-card-foot"></span><span id="party-card-pager"></span></div>${hubPreviewFoot('people','party')}</section>
   </div>`;
@@ -25764,7 +25800,7 @@ function cateringTableCardHtml(t){
       <div class="cat-card-title">${cateringIcon(t.icon)}<div><h3>${escapeHtml(t.label)} <span class="ro-badge-inline">Read only</span></h3><p>${escapeHtml(t.help)}</p></div></div>
       <div class="cat-table-actions no-print">
         <button type="button" class="ued-link" onclick="setCateringInlineTable('${t.key}',null)">${escapeHtml(t.addLabel)}</button>
-        <button type="button" class="ued-btn primary db-edit-btn" onclick="openDataHub('catering','${t.key}')">Edit in Catering Hub</button>
+        <button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('catering','${t.key}')">Edit in Catering Hub</button>
       </div>
     </div>
     <div id="${escapeHtml(t.mount)}" class="ro-preview"></div>
@@ -27178,8 +27214,8 @@ function contractFileCell(i,r,key,label){
 function uedContractsShell(){
   const panel = document.getElementById('panel-contracts'); if(!panel) return;
   panel.classList.add('ued-scope');
-  if(panel.dataset.uedShell === 'contracts-rentals-b2') return;
-  panel.dataset.uedShell = 'contracts-rentals-b2';
+  if(panel.dataset.uedShell === 'contracts-p3') return;
+  panel.dataset.uedShell = 'contracts-p3';
   const typeOptions = ['All Types'].concat(CONTRACT_TYPES || []).map(v => `<option>${uedEsc(v)}</option>`).join('');
   const statusOptions = ['All Status'].concat(CONTRACT_STATUS || []).map(v => `<option>${uedEsc(v)}</option>`).join('');
   panel.innerHTML = `<div class="ued-page"><datalist id="vendor-name-options"></datalist>
@@ -27213,7 +27249,7 @@ function uedContractsShell(){
         <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add contract / invoice</button>
       </div>
     </section>
-    <section class="ued-table-card contracts-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Contracts, invoices &amp; receipts <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Contracts',data.contracts)">Export CSV</button><button class="ued-btn primary db-edit-btn" onclick="openDataHub('finances','contracts')">Edit in Finances Hub</button></div></div><div id="cwp-contracts" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, uploads, and bulk actions live in Finances Hub.</span></div></section>
+    <section class="ued-table-card contracts-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Contracts, invoices &amp; receipts <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Contracts',data.contracts)">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('finances','contracts')">Edit in Finances Hub</button></div></div><div id="cwp-contracts" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, uploads, and bulk actions live in Finances Hub.</span></div></section>
     <section class="ued-panel span12 contracts-toolbar-card rentals-toolbar-card">
       ${uedCaption('table','Rental filters')}
       <div class="planner-table-controls">
@@ -27238,7 +27274,7 @@ function uedContractsShell(){
         <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add rental</button>
       </div>
     </section>
-    <section class="ued-table-card contracts-table-card rentals-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Rentals <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Rentals',data.rentals)">Export CSV</button><button class="ued-btn primary db-edit-btn" onclick="openDataHub('finances','rentals')">Edit in Finances Hub</button></div></div><div id="cwp-rentals" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Finances Hub.</span></div></section>
+    <section class="ued-table-card contracts-table-card rentals-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Rentals <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Rentals',data.rentals)">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('finances','rentals')">Edit in Finances Hub</button></div></div><div id="cwp-rentals" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Finances Hub.</span></div></section>
     <section class="ued-panel span12 contracts-scripture-card">${uedCaption('book','Scripture')}<div class="ued-soft"><i>But let your communication be, Yea, yea; Nay, nay.</i> Matthew 5:37 (KJV)</div></section>
   </div>`;
 }
@@ -29543,8 +29579,8 @@ function uedGuestShell(){
   const panel=document.getElementById('panel-guests');
   if(!panel) return;
   panel.classList.add('ued-scope');
-  if(panel.dataset.uedShell==='guests-tracker-b1') return;
-  panel.dataset.uedShell='guests-tracker-b1';
+  if(panel.dataset.uedShell==='guests-p3') return;
+  panel.dataset.uedShell='guests-p3';
   panel.innerHTML=`<div class="ued-page">
     <header class="ued-mast"><div><div class="ued-kicker"><span>15</span><i></i><span>People</span></div><h1 class="ued-title">Guest List</h1><p class="ued-subtitle">Headcount, RSVPs, and who still needs a nudge — without scrolling through every row.</p></div><div class="ued-actions"><button class="ued-link" onclick="openGuestCSVImport('guests')">Import CSV</button><button class="ued-link" onclick="exportGuestCSV()">Export CSV</button><button class="ued-link" onclick="openAddressLabels()">Address labels</button><button class="ued-link" onclick="openPlaceCards()">Place cards</button><button class="ued-btn primary" onclick="addGuestRow()">+ Add guest</button></div></header>
     <section class="ued-band" style="--ued-band-cols:6" id="guest-stats"></section>
@@ -29569,7 +29605,7 @@ function uedGuestShell(){
         <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add guest</button>
       </div>
     </section>
-    <section class="ued-table-card guest-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('users')} Guest tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="copyRsvpFollowUpTemplate()">Copy RSVP follow-up</button><button class="ued-btn primary db-edit-btn" onclick="openDataHub('people','guests')">Edit in People Hub</button></div></div><div id="cwp-guests" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in People Hub.</span></div></section>
+    <section class="ued-table-card guest-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('users')} Guest tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="copyRsvpFollowUpTemplate()">Copy RSVP follow-up</button><button class="ued-btn db-edit-btn" onclick="openDataHub('people','guests')">Edit in People Hub</button></div></div><div id="cwp-guests" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in People Hub.</span></div></section>
   </div>`;
   loadGuestCosts();
 }
@@ -29982,16 +30018,15 @@ function renderGuestStats() {
 function uedBudgetShell(){
   const panel=document.getElementById('panel-budget'); if(!panel) return;
   panel.classList.add('ued-scope');
-  if(panel.dataset.uedShell==='budget-hub') return;
-  panel.dataset.uedShell='budget-hub';
+  if(panel.dataset.uedShell==='budget-p3') return;
+  panel.dataset.uedShell='budget-p3';
   panel.innerHTML=`<div class="ued-page">
     <header class="ued-mast"><div><div class="ued-kicker"><span>09</span><i></i><span>Finances</span></div><h1 class="ued-title">Budget</h1><p class="ued-subtitle">How am I doing? Stats, category carousel, and True Total — open the Finances Database Hub for reconciliation and line items.</p></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Budget',budgetExportRows())">Export CSV</button><button class="ued-btn primary" onclick="addBudgetCategory()">+ Add category</button></div></header>
     <section class="ued-band" style="--ued-band-cols:6" id="budget-stats"></section>
     <section class="ued-panel span12" id="budget-true-total-banner" style="margin-bottom:1rem"></section>
     <div id="budget-suggest-chips"></div>
-    <section class="ued-panel span12" style="margin-bottom:1rem">${uedCaption('book','Budget Scripture')}<div class="ued-soft"><i>Honour the Lord with thy substance, and with the firstfruits of all thine increase.</i> Proverbs 3:9</div></section>
     <div id="budget-logic-top">${budgetLogicHelpHTML()}</div>
-    <section class="ued-panel span12" style="margin-bottom:1rem">${uedCaption('bars','Budget by Category')}<div class="ued-actions" style="justify-content:flex-start;margin-bottom:1rem"><button class="ued-btn" onclick="loadBudgetPreset()">Load full categories</button><button class="ued-btn primary" onclick="loadFullItemizedBudget()">Load full itemized</button><button class="ued-btn" onclick="toggleBudgetCategoryDropdown(event)">Choose category</button><button class="ued-btn" id="budget-card-toggle" onclick="toggleBudgetCategoryCards()">Show All Categories</button><button class="ued-btn" onclick="printCurrentPage()">Print page</button><span class="budget-category-menu-wrap"><div class="budget-category-dropdown" id="budget-category-dropdown"></div></span></div><div class="budget-category-carousel" id="budget-category-carousel"><button class="budget-triangle-btn prev" id="budget-card-prev" type="button" title="Previous 8 categories" onclick="slideBudgetCategoryCards(-1)" aria-label="Previous 8 categories"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button><div id="budget-summary" class="budget-summary budget-cat-grid"></div><button class="budget-triangle-btn next" id="budget-card-next" type="button" title="Next 8 categories" onclick="slideBudgetCategoryCards(1)" aria-label="Next 8 categories"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div><div class="budget-card-count-note" id="budget-card-count-note"></div></section>
+    <section class="ued-panel span12" style="margin-bottom:1rem">${uedCaption('bars','Budget by Category')}<div class="ued-actions" style="justify-content:flex-start;margin-bottom:1rem"><button class="ued-btn" onclick="loadBudgetPreset()">Load full categories</button><button class="ued-btn" onclick="loadFullItemizedBudget()">Load full itemized</button><button class="ued-btn" onclick="toggleBudgetCategoryDropdown(event)">Choose category</button><button class="ued-btn" id="budget-card-toggle" onclick="toggleBudgetCategoryCards()">Show All Categories</button><button class="ued-btn" onclick="printCurrentPage()">Print page</button><span class="budget-category-menu-wrap"><div class="budget-category-dropdown" id="budget-category-dropdown"></div></span></div><div class="budget-category-carousel" id="budget-category-carousel"><button class="budget-triangle-btn prev" id="budget-card-prev" type="button" title="Previous 8 categories" onclick="slideBudgetCategoryCards(-1)" aria-label="Previous 8 categories"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button><div id="budget-summary" class="budget-summary budget-cat-grid"></div><button class="budget-triangle-btn next" id="budget-card-next" type="button" title="Next 8 categories" onclick="slideBudgetCategoryCards(1)" aria-label="Next 8 categories"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div><div class="budget-card-count-note" id="budget-card-count-note"></div></section>
     <section class="ued-panel span12 record-editor-inline-shell budget-inline-editor" id="budget-inline-editor-wrap" style="margin-bottom:1rem">
       <div class="inline-editor-head">
         <div><div class="ued-table-title">${uedIcon('coin')} Budget item editor <span class="gie-mode" id="budget-inline-mode">Adding a new item</span></div><p class="gie-note" id="budget-inline-sub">Full editor — name, amounts, status, due date, gift/contribution, and notes.</p></div>
@@ -30088,8 +30123,8 @@ function renderBudget(){
 function uedPaymentsShell(){
   const panel=document.getElementById('panel-payments'); if(!panel) return;
   panel.classList.add('ued-scope');
-  if(panel.dataset.uedShell==='payments-tracker-b1') return;
-  panel.dataset.uedShell='payments-tracker-b1';
+  if(panel.dataset.uedShell==='payments-p3') return;
+  panel.dataset.uedShell='payments-p3';
   panel.innerHTML=`<div class="ued-page"><datalist id="vendor-name-options"></datalist>
     <header class="ued-mast"><div><div class="ued-kicker"><span>10</span><i></i><span>Finances</span></div><h1 class="ued-title">Payments</h1><p class="ued-subtitle">Deposits, balances, installment plans, payment status, gratuity, budget links, and contract connections.</p></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Payments',data.payments)">Export CSV</button><button class="ued-btn primary" onclick="addPaymentRow()">+ Add payment</button></div></header>
     <section class="ued-band" style="--ued-band-cols:4" id="payment-stats"></section>
@@ -30108,7 +30143,7 @@ function uedPaymentsShell(){
         <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add payment</button>
       </div>
     </section>
-    <section class="ued-table-card payments-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('card')} Payment schedule <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Payments',data.payments)">Export CSV</button><button class="ued-btn primary db-edit-btn" onclick="openDataHub('finances','payments')">Edit in Finances Hub</button></div></div><div id="cwp-payments" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Finances Hub.</span></div></section>
+    <section class="ued-table-card payments-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('card')} Payment schedule <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Payments',data.payments)">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('finances','payments')">Edit in Finances Hub</button></div></div><div id="cwp-payments" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Finances Hub.</span></div></section>
   </div>`;
 }
 let _paymentCardPage = 0;
