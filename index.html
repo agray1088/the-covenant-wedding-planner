@@ -959,7 +959,7 @@
     </div>
 
     <!-- CEREMONY -->
-    <div id="panel-ceremony" class="panel ceremony-service-mockup">
+    <div id="panel-ceremony" class="panel ceremony-service-mockup ued-scope">
       <div class="ceremony-title-wrap">
         <div>
           <h2 class="ceremony-title">Ceremony &amp; Reception</h2>
@@ -1286,7 +1286,7 @@
           </div>
           <div class="ued-actions">
             <button class="ued-link" onclick="exportSectionCSV('Notes Tracker',data.notesDetails)">Export CSV</button>
-            <button class="ued-btn primary db-edit-btn" onclick="openDataHub('planning','notesDetails')">Edit in Planning Hub</button>
+            <button class="ued-btn db-edit-btn" onclick="openDataHub('planning','notesDetails')">Edit in Planning Hub</button>
           </div>
         </div>
         <div id="cwp-notesDetails" class="ro-preview"></div>
@@ -1455,7 +1455,7 @@
           <div class="gift-table-help">Track giver, value, category, date received, and thank-you note status.</div>
         </div>
         <datalist id="gift-from-options"></datalist>
-        <div class="ued-table-head"><div class="ued-table-title">Gifts received <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-btn primary db-edit-btn" onclick="openDataHub('design','gifts')">Edit in Design Hub</button></div></div>
+        <div class="ued-table-head"><div class="ued-table-title">Gifts received <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-btn db-edit-btn" onclick="openDataHub('design','gifts')">Edit in Design Hub</button></div></div>
         <div class="ued-table-wrap ro-preview" id="cwp-gifts"></div>
         <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
       </section>
@@ -1464,7 +1464,7 @@
     </div>
 
     <!-- ═══ PHOTO & VIDEO SHOT LISTS ═══ -->
-    <div id="panel-shotlist" class="panel shotlist-mockup">
+    <div id="panel-shotlist" class="panel shotlist-mockup ued-scope">
       <div class="shotlist-title-wrap">
         <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
         <h2 class="shotlist-title">Photo &amp; Video Shot Lists</h2>
@@ -1514,7 +1514,7 @@
         <!-- Photo shot list table now rendered by the CWP unified engine (renderShotlist → cwpRenderTable('shotlist')) -->
         <div class="shotlist-table-actions no-print">
           <button type="button" class="ued-btn" onclick="setShotInlineTable('shotlist',null)">+ Add photo shot</button>
-          <button type="button" class="ued-btn primary" onclick="openDataHub('design','shotlist')">Edit in Design Hub</button>
+          <button type="button" class="ued-btn" onclick="openDataHub('design','shotlist')">Edit in Design Hub</button>
         </div>
         <div class="hub-preview-card"><div id="cwp-shotlist" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div></div>
         <datalist id="shot-section-options">
@@ -1554,7 +1554,7 @@
         <div class="m-block">
           <div class="shotlist-table-actions no-print">
             <button type="button" class="ued-btn" onclick="setShotInlineTable('videoShots',null)">+ Add video shot</button>
-            <button type="button" class="ued-btn primary" onclick="openDataHub('design','videoShots')">Edit in Design Hub</button>
+            <button type="button" class="ued-btn" onclick="openDataHub('design','videoShots')">Edit in Design Hub</button>
           </div>
           <div class="hub-preview-card"><div id="cwp-videoShots" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div></div>
         </div>
@@ -1854,7 +1854,7 @@
 
 
     <!-- ═══ CATERING, MENU & BEVERAGE ═══ -->
-    <div id="panel-catering" class="panel catering-mockup">
+    <div id="panel-catering" class="panel catering-mockup ued-scope">
       <svg class="cat-symbols" aria-hidden="true" focusable="false" width="0" height="0">
         <symbol id="cat-i-guests" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M14.5 15.5A4.6 4.6 0 0 1 20.5 20"/></symbol>
         <symbol id="cat-i-dollar" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.7-1.4-2.3-2.2-5-2.2-3 0-4.7 1.2-4.7 3 0 4.6 9.4 2 9.4 7 0 1.9-1.7 3.4-4.8 3.4-2.6 0-4.4-1-5.2-2.7"/></symbol>
@@ -1925,13 +1925,10 @@
         </div>
       </section>
 
-      <div class="cat-scripture-footer">
-        <div>“And whatsoever ye do, do it heartily, as to the Lord, and not unto men.”<cite>Colossians 3:23</cite></div>
-      </div>
     </div>
 
     <!-- ═══ ENTERTAINMENT ═══ -->
-    <div id="panel-entertainment" class="panel entertainment-mockup">
+    <div id="panel-entertainment" class="panel entertainment-mockup ued-scope">
       <svg class="ent-icon-sprite" aria-hidden="true" focusable="false">
         <symbol id="ent-i-music" viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></symbol>
         <symbol id="ent-i-toast" viewBox="0 0 24 24"><path d="M7 3h4v4c0 2.2-1.8 4-4 4s-4-1.8-4-4V3h4Z"/><path d="M17 3h4v4c0 2.2-1.8 4-4 4s-4-1.8-4-4V3h4Z"/><path d="M7 11v7M17 11v7M4.5 21h5M14.5 21h5"/><path d="M11 6h2"/></symbol>
@@ -2037,7 +2034,7 @@
       <section class="ent-table-card" data-ent-tab="vendors">
         <div class="ent-table-head">
           <div><h3>Entertainment Vendor Tracker <span class="ro-badge-inline">Read only</span></h3><p>Track DJs, bands, ceremony musicians, playlists, and sound contacts.</p></div>
-          <div class="ent-table-actions no-print"><button type="button" class="ued-link" onclick="setMusicInlineTable('entertainment',null)">+ Add vendor</button><button type="button" class="ued-btn primary db-edit-btn" onclick="openDataHub('entertainment','entertainment')">Edit in Music Hub</button></div>
+          <div class="ent-table-actions no-print"><button type="button" class="ued-link" onclick="setMusicInlineTable('entertainment',null)">+ Add vendor</button><button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','entertainment')">Edit in Music Hub</button></div>
         </div>
         <!-- Entertainment Vendor Tracker: read-only preview; full editing in the inline editor and Music Hub -->
         <div id="cwp-entertainment" class="ro-preview"></div>
@@ -2051,7 +2048,7 @@
             <div class="ent-table-actions no-print">
               <button type="button" class="ued-link" onclick="setMusicInlineTable('recSongs',null)">+ Add cue</button>
               <button class="btn btn-outline" onclick="loadRecSongPreset()"><span class="btn-text">Load Moments</span></button>
-              <button type="button" class="ued-btn primary db-edit-btn" onclick="openDataHub('entertainment','recSongs')">Edit in Music Hub</button>
+              <button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','recSongs')">Edit in Music Hub</button>
             </div>
           </div>
           <!-- Reception Music Cues: read-only preview; full editing in the inline editor and Music Hub -->
@@ -2062,7 +2059,7 @@
           <div class="ent-table-head">
             <div><h3>Speeches, Scripture Reading, Prayer, &amp; Toasts</h3><p>Plan your speakers, scripture readers, prayer moments, toasts, and timing — everything your MC or coordinator needs.</p></div>
           </div>
-          <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('speeches',null)">+ Add speaker</button><button type="button" class="ued-btn primary db-edit-btn" onclick="openDataHub('entertainment','speeches')">Edit in Music Hub</button></div>
+          <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('speeches',null)">+ Add speaker</button><button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','speeches')">Edit in Music Hub</button></div>
           <!-- Speeches: read-only preview; full editing in the inline editor and Music Hub -->
           <div id="cwp-speeches" class="ro-preview"></div>
           <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Music Hub.</span></div>
@@ -2071,7 +2068,7 @@
           <div class="ent-table-head">
             <div><h3>Reception Playlist</h3><p>Assign songs to ceremony music, cocktail hour, the reception playlist, special dances, or reception cue moments.</p></div>
           </div>
-          <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('receptionPlaylist',null)">+ Add song</button><button type="button" class="ued-btn primary db-edit-btn" onclick="openDataHub('entertainment','receptionPlaylist')">Edit in Music Hub</button></div>
+          <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('receptionPlaylist',null)">+ Add song</button><button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','receptionPlaylist')">Edit in Music Hub</button></div>
           <!-- Reception Playlist: read-only preview; full editing in the inline editor and Music Hub -->
           <div id="cwp-receptionPlaylist" class="ro-preview"></div>
           <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Music Hub.</span></div>
@@ -2080,15 +2077,12 @@
 
       <section class="ent-table-card" data-ent-tab="playlist">
         <div class="ent-table-head"><div><h3>Do-Not-Play Songs</h3><p>Songs or styles you want avoided.</p></div></div>
-        <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('doNotPlay',null)">+ Add song</button><button type="button" class="ued-btn primary db-edit-btn" onclick="openDataHub('entertainment','doNotPlay')">Edit in Music Hub</button></div>
+        <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('doNotPlay',null)">+ Add song</button><button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','doNotPlay')">Edit in Music Hub</button></div>
         <!-- Do-Not-Play Songs: read-only preview; full editing in the inline editor and Music Hub -->
         <div id="cwp-doNotPlay" class="ro-preview"></div>
         <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Music Hub.</span></div>
       </section>
 
-      <div class="ent-scripture-footer">
-        <div>Let every thing that hath breath praise the Lord. Praise ye the Lord. Praise the Lord.<cite>Psalm 150:6</cite></div>
-      </div>
     </div>
 
     <!-- ESSENTIALS CHECKLIST -->
@@ -2149,7 +2143,7 @@
             <p>Check items off as you pack. Use column filters or search to focus on one category or person.</p>
           </div>
         </div>
-        <div class="ued-table-head"><div class="ued-table-title">Packing checklist <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-btn primary db-edit-btn" onclick="openDataHub('design','essentials')">Edit in Design Hub</button></div></div>
+        <div class="ued-table-head"><div class="ued-table-title">Packing checklist <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-btn db-edit-btn" onclick="openDataHub('design','essentials')">Edit in Design Hub</button></div></div>
         <div class="ued-table-wrap ro-preview" id="cwp-essentials"></div>
         <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
         <datalist id="essentials-cat-options">
@@ -2174,7 +2168,7 @@
       </div>
     </div>
     <!-- VISION BOARD -->
-    <div id="panel-mood" class="panel mood-mockup">
+    <div id="panel-mood" class="panel mood-mockup ued-scope">
       <div class="mood-title-wrap">
         <div class="mood-leaf-wrap" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 120 26"><path d="M6 13h108" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><path d="M52 13c-10-8-18-7-24-2 10 3 17 2 24 2Zm16 0c10-8 18-7 24-2-10 3-17 2-24 2Z" fill="currentColor" opacity=".85"/><path d="M60 13c-7-7-7-12-2-18 4 9 4 14 2 18Zm0 0c7-7 7-12 2-18-4 9-4 14-2 18Z" fill="currentColor" opacity=".65"/></svg></div>
         <h2 class="mood-title">Vision Board</h2>
@@ -2273,18 +2267,17 @@
           </div>
           <div class="ued-actions">
             <button class="ued-link" onclick="exportSectionCSV('Vision Board Details',data.moodItems)">Export CSV</button>
-            <button class="ued-btn primary db-edit-btn" onclick="openDataHub('design','moodItems')">Edit in Design Hub</button>
+            <button class="ued-btn db-edit-btn" onclick="openDataHub('design','moodItems')">Edit in Design Hub</button>
           </div>
         </div>
         <div id="cwp-moodItems" class="ro-preview"></div>
         <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
       </section>
 
-      <div class="mood-scripture-footer"><span>Whatever is lovely, whatever is admirable — think about such things.<cite>Philippians 4:8</cite></span></div>
     </div>
 
     <!-- ═══ HONEYMOON & AFTER ═══ -->
-    <div id="panel-honeymoon" class="panel honeymoon-mockup">
+    <div id="panel-honeymoon" class="panel honeymoon-mockup ued-scope">
       <svg class="hm-symbols" aria-hidden="true" focusable="false">
         <symbol id="hm-plane" viewBox="0 0 24 24"><path d="M4 12 21 4l-4 16-5-7-8-1Z"/><path d="m12 13-4 6"/></symbol>
         <symbol id="hm-suitcase" viewBox="0 0 24 24"><path d="M9 7V5h6v2"/><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M8 12h8M9 7v13M15 7v13"/></symbol>
@@ -2495,11 +2488,10 @@
         <div id="hm-journal-list"></div>
       </section>
 
-      <div class="hm-scripture-footer"><span>Let all that you do be done in love.<cite>1 Corinthians 16:14</cite></span></div>
     </div>
 
     <!-- ═══ MORE PLANNING (Logistics Pages) ═══ -->
-    <div id="panel-logistics" class="panel">
+    <div id="panel-logistics" class="panel ued-scope">
       <div class="log-tabs" id="log-tabs"></div>
       <section class="ued-panel span12 record-editor-inline-shell logistics-inline-editor" id="logistics-inline-editor-wrap">
         <div class="inline-editor-head">
@@ -2989,10 +2981,11 @@
           <article class="ui-system-card wide">
             <div class="ui-system-kicker">Phase 3</div>
             <h2>Page audit checklist</h2>
-            <p class="ui-system-note">Per-page pass/fail: masthead (single title, no duplicate hero), gutter alignment, token cards, one primary action cluster, CWP tables, typography, dark parity, rhythm, responsive reflow, empty states. Batch order: Dashboard ✅ → Budget ✅ → Guest List ✅ → Vendors ✅ → Tasks ✅ → Payments ✅ → Calendar ✅ → Appointments ✅ → Faith pages ✅ → detail pages → Data Hub.</p>
+            <p class="ui-system-note">Per-page pass/fail: masthead (single title, no duplicate hero), gutter alignment, token cards, one primary action cluster, CWP tables, typography, dark parity, rhythm, responsive reflow, empty states. Batch order: Dashboard ✅ → Budget ✅ → Guest List ✅ → Vendors ✅ → Tasks ✅ → Payments ✅ → Calendar ✅ → Appointments ✅ → Faith pages ✅ → Detail pages ✅ → Data Hub.</p>
             <div class="ui-system-row">
               <button type="button" class="btn btn-forest" onclick="(function(){ const r=phase3AuditBatch(); const el=document.getElementById('phase3-audit-out'); if(el){ el.textContent=JSON.stringify(r,null,2); el.hidden=false; } console.table(r); })()">Run page audit</button>
               <button type="button" class="btn btn-outline" onclick="(function(){ const r=phase3AuditBatch(['prayer','counseling','ceremony']); const el=document.getElementById('phase3-audit-out'); if(el){ el.textContent=JSON.stringify(r,null,2); el.hidden=false; } console.table(r); })()">Run faith audit</button>
+              <button type="button" class="btn btn-outline" onclick="(function(){ const r=phase3AuditBatch(['ceremony','catering','entertainment','shotlist','mood','honeymoon','logistics']); const el=document.getElementById('phase3-audit-out'); if(el){ el.textContent=JSON.stringify(r,null,2); el.hidden=false; } console.table(r); })()">Run detail audit</button>
             </div>
             <pre id="phase3-audit-out" class="ui-system-small" hidden style="margin-top:.75rem;padding:.75rem;background:var(--surface-raised,#fdfcfa);border:1px solid var(--border-subtle,#e7e1d4);border-radius:8px;overflow:auto;max-height:320px"></pre>
           </article>
@@ -3071,7 +3064,7 @@
             <p class="ui-system-note"><strong>Guests</strong> and <strong>Payments</strong> now prove the launch tracker pattern: full inline editor, CWP read-only preview, and one Hub edit path for spreadsheet and bulk work.</p>
             <div class="ui-system-row">
               <span class="ro-badge-inline">Read only</span>
-              <button class="ued-btn primary db-edit-btn" type="button">Edit in Hub</button>
+              <button class="ued-btn db-edit-btn" type="button">Edit in Hub</button>
               <button class="ued-btn" type="button">Save & add another</button>
             </div>
           </article>

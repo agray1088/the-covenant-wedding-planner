@@ -3855,3 +3855,22 @@ body.editorial-v4[data-theme="dark"] #main #panel-counseling :is(.counseling-cur
   background: var(--dm-surface, #1a1a1a) !important;
   border-color: var(--dm-border, #2e2e2e) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Phase 3 — Detail pages cards (authoritative token treatment)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.editorial-v4 #main :is(#panel-ceremony .ceremony-card, #panel-catering .cat-card, #panel-entertainment .ent-info-card, #panel-entertainment .ent-table-card, #panel-entertainment .music-inline-editor, #panel-shotlist .shotlist-inline-editor, #panel-shotlist .hub-preview-card, #panel-mood .mood-card, #panel-honeymoon .hm-card, #panel-logistics .log-card, #panel-logistics .logistics-inline-editor),
+body.editorial-v4.dark-mode #main :is(#panel-ceremony .ceremony-card, #panel-catering .cat-card, #panel-entertainment .ent-info-card, #panel-entertainment .ent-table-card, #panel-entertainment .music-inline-editor, #panel-shotlist .shotlist-inline-editor, #panel-shotlist .hub-preview-card, #panel-mood .mood-card, #panel-honeymoon .hm-card, #panel-logistics .log-card, #panel-logistics .logistics-inline-editor),
+body.editorial-v4[data-theme="dark"] #main :is(#panel-ceremony .ceremony-card, #panel-catering .cat-card, #panel-entertainment .ent-info-card, #panel-entertainment .ent-table-card, #panel-entertainment .music-inline-editor, #panel-shotlist .shotlist-inline-editor, #panel-shotlist .hub-preview-card, #panel-mood .mood-card, #panel-honeymoon .hm-card, #panel-logistics .log-card, #panel-logistics .logistics-inline-editor) {
+  border: 1px solid var(--card-border, var(--border-subtle, #e7e1d4)) !important;
+  border-radius: var(--card-radius, 8px) !important;
+  background: var(--card-bg, transparent) !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4.dark-mode #main :is(#panel-ceremony .ceremony-card, #panel-catering .cat-card, #panel-entertainment .ent-info-card, #panel-entertainment .ent-table-card, #panel-entertainment .music-inline-editor, #panel-shotlist .shotlist-inline-editor, #panel-shotlist .hub-preview-card, #panel-mood .mood-card, #panel-honeymoon .hm-card, #panel-logistics .log-card, #panel-logistics .logistics-inline-editor),
+body.editorial-v4[data-theme="dark"] #main :is(#panel-ceremony .ceremony-card, #panel-catering .cat-card, #panel-entertainment .ent-info-card, #panel-entertainment .ent-table-card, #panel-entertainment .music-inline-editor, #panel-shotlist .shotlist-inline-editor, #panel-shotlist .hub-preview-card, #panel-mood .mood-card, #panel-honeymoon .hm-card, #panel-logistics .log-card, #panel-logistics .logistics-inline-editor) {
+  background: var(--dm-surface, #1a1a1a) !important;
+  border-color: var(--dm-border, #2e2e2e) !important;
+}

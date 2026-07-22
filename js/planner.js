@@ -9331,6 +9331,7 @@ function ensureLogisticsInlineEditor(){
 window.setLogisticsInlineTable = setLogisticsInlineTable;
 
 function renderLogisticsPage(options={}){
+  document.getElementById('panel-logistics')?.classList.add('ued-scope');
   const tabs = document.getElementById('log-tabs');
   if (tabs) tabs.innerHTML = LOG_TABS.map(([k,l]) => `<button class="log-tab${_logTab===k?' active':''}" onclick="logSetTab('${k}')">${l}</button>`).join('');
   const renderers = {weekend:renderLogWeekend, travel:renderLogTravel, transport:renderLogTransport, vip:renderLogVIP, compare:renderLogCompare, reception:renderLogReception, attiredecor:renderLogAttire, events:renderLogEvents, maps:renderLogMaps, directory:renderLogDirectory};
@@ -10737,7 +10738,7 @@ function phase3AuditPage(panelId){
     const cs = getComputedStyle(c);
     return (cs.boxShadow && cs.boxShadow !== 'none') || (parseFloat(cs.borderRadius) || 0) > 12;
   }).length;
-  const hubPrimaries = panel.querySelectorAll('.db-edit-btn.primary, .db-edit-btn.ued-btn.primary').length;
+  const hubPrimaries = panel.querySelectorAll('.db-edit-btn.primary, .db-edit-btn.ued-btn.primary, button.ued-btn.primary[onclick*="openDataHub"]').length;
   const inlineScripture = panel.querySelectorAll('.tasks-scripture-card, [class*="scripture-card"]:not(.page-scripture-footer), :scope > .m-soft .m-verse, :scope > .m-block .m-verse').length;
   const staticScriptureFooters = panel.querySelectorAll('[class*="-scripture-footer"]:not(.page-scripture-footer)').length;
   const legacyButtons = panel.querySelectorAll('.smart-search-actions .btn-forest, .smart-search-actions .btn-outline, .app-search-actions .btn-forest').length;
@@ -17258,7 +17259,9 @@ function renderCeremonyTraditions(){
   });
   if(!data.ceremonyTraditions.length) tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:1rem;color:#7a7268;">No traditions or cultural moments yet. Add a custom moment for family heritage, Christian symbolism, blended family inclusion, memorial honor, or hospitality flow.</td></tr>';
 }
-function renderCeremonyPage(){ ceremonySeedDefaults(); loadCeremony(); renderCeremonyStats(); renderCeremonyOrder(); renderProcessional(); renderRecessional(); renderScriptures(); renderCeremonyVows(); renderCeremonyChecklist(); renderCeremonyReceptionDetails(); renderCeremonyTraditions(); renderCeremonyHubPreviews(); save(); cerTab(_cerTab); if (typeof renderPageUxChrome === 'function') renderPageUxChrome('ceremony'); }
+function renderCeremonyPage(){
+  document.getElementById('panel-ceremony')?.classList.add('ued-scope');
+  ceremonySeedDefaults(); loadCeremony(); renderCeremonyStats(); renderCeremonyOrder(); renderProcessional(); renderRecessional(); renderScriptures(); renderCeremonyVows(); renderCeremonyChecklist(); renderCeremonyReceptionDetails(); renderCeremonyTraditions(); renderCeremonyHubPreviews(); save(); cerTab(_cerTab); if (typeof renderPageUxChrome === 'function') renderPageUxChrome('ceremony'); }
 /* Ceremony tab window (Batch 5b) — one section per tab. */
 let _cerTab='overview';
 function cerTab(name){
@@ -23002,6 +23005,7 @@ function renderVideoShotlist(){
   }
 }
 function renderShotlist() {
+  document.getElementById('panel-shotlist')?.classList.add('ued-scope');
   if (!Array.isArray(data.shotlist)) data.shotlist = [];
   data.shotlist.forEach(normalizeShotRow);
   /* Converted to the CWP unified table engine. */
@@ -27577,7 +27581,9 @@ function ensureMusicInlineEditor(){
   setMusicInlineTable(_musicInlineKey || 'entertainment', null, { scroll:false });
 }
 window.setMusicInlineTable = setMusicInlineTable;
-function renderEntertainmentPage(){ renderEntertainment(); renderEntRecSongs(); renderReceptionPlaylist(); renderSpeeches(); renderMustPlay(); renderDoNotPlay(); renderEntertainmentOverview(); renderEntertainmentHubPreviews(); bindMusicPreviewInline(); entTab(_entTab); ensureMusicInlineEditor(); if (typeof renderPageUxChrome === 'function') renderPageUxChrome('entertainment'); }
+function renderEntertainmentPage(){
+  document.getElementById('panel-entertainment')?.classList.add('ued-scope');
+  renderEntertainment(); renderEntRecSongs(); renderReceptionPlaylist(); renderSpeeches(); renderMustPlay(); renderDoNotPlay(); renderEntertainmentOverview(); renderEntertainmentHubPreviews(); bindMusicPreviewInline(); entTab(_entTab); ensureMusicInlineEditor(); if (typeof renderPageUxChrome === 'function') renderPageUxChrome('entertainment'); }
 /* Music & Speeches tab window (Batch 5b) — shows one section group at a time. */
 let _entTab = 'overview';
 function entTab(name){
@@ -27812,6 +27818,7 @@ function syncMoodBulkSectionOptions(){
   sel.innerHTML = opts.map(v => `<option value="${escapeHtml(v)}"${String(v)===String(current)?' selected':''}>${escapeHtml(v || 'Keep section')}</option>`).join('');
 }
 function renderMoodPage(){
+  document.getElementById('panel-mood')?.classList.add('ued-scope');
   ensureMoodData();
   loadMoodStatement();
   renderVisionDecisions();
@@ -28331,6 +28338,7 @@ function hmEnsureData(){
   if(!Array.isArray(data.honeyTransport)) data.honeyTransport = [];
 }
 function loadHoneymoon(){
+  document.getElementById('panel-honeymoon')?.classList.add('ued-scope');
   hmEnsureData();
   HM_FIELDS.forEach(k=>{ const el=document.getElementById('hm-'+k); if(el && data.honeymoon[k]!=null) el.value=data.honeymoon[k]; });
   const img=document.getElementById('hm-dest-photo-img');
