@@ -15989,7 +15989,7 @@ body[data-active-panel="calendar"] #main {
   transform: translateY(2px);
 }
 
-.ceremony-focus-grid .ceremony-card {
+.ceremony-focus-grid :is(.ceremony-card, [class*="ceremony-"][class*="-panel"]) {
   height: 100%;
 }
 

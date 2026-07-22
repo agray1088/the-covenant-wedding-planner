@@ -860,10 +860,11 @@
         <button class="m-btn" type="button" onclick="loadTaskFullChecklist()">Load Full Wedding Checklist</button>
       </div>
 
-      <div class="m-block tasks-table-card">
-        <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg> Task list</div>
-        <div class="hub-preview-card"><div class="ued-table-wrap" id="tasks-hub-preview"></div><span class="ued-soft" id="tasks-hub-preview-foot"></span></div>
-      </div>
+      <section class="ued-table-card tasks-table-card">
+        <div class="ued-table-head"><div class="ued-table-title"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.35em"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg> Task list</div></div>
+        <div class="ued-table-wrap" id="tasks-hub-preview"></div>
+        <span class="ued-soft" id="tasks-hub-preview-foot"></span>
+      </section>
 
       <section class="tasks-progress-card m-block" id="task-progress-card"></section>
 
@@ -937,21 +938,20 @@
           <button class="m-btn" type="button" onclick="clearTimelineFilters()">Clear Filters</button>
         </div>
 
-        <div class="m-block" id="wday-full-timeline">
-          <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg> Day-of timeline
-            <span class="m-actions" style="margin-left:auto;display:inline-flex">
+        <section class="ued-table-card" id="wday-full-timeline">
+          <div class="ued-table-head">
+            <div class="ued-table-title"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.35em"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg> Day-of timeline</div>
+            <div class="ued-actions">
               <button class="m-btn m-btn-primary" type="button" onclick="addTimelineRow()">+ Add event</button>
               <button class="m-btn" type="button" onclick="loadWdayTimelinePreset()">Load starter</button>
               <button class="m-btn" type="button" onclick="openWdayTimelinePrint()">Print section</button>
               <button class="m-btn" type="button" onclick="openDataHub('planning','wdayTimeline')">Edit in Planning Hub</button>
-            </span>
+            </div>
           </div>
           <!-- Day-of Timeline now rendered by the CWP unified engine (renderTimeline -> cwpRenderTable('wdayTimeline')); manual rows editable + vendor-arrival rows synced read-only -->
-          <div class="hub-preview-card">
-            <div id="cwp-wdayTimeline" class="cwp-mount"></div>
-            <span class="ued-soft" id="wday-hub-preview-foot"></span>
-          </div>
-        </div>
+          <div id="cwp-wdayTimeline" class="cwp-mount ro-preview"></div>
+          <div class="preview-foot"><span class="ued-soft" id="wday-hub-preview-foot"></span></div>
+        </section>
       </div>
     </div>
 
@@ -986,8 +986,10 @@
         <button class="m-tab" data-tab="traditions" onclick="cerTab('traditions')">Traditions &amp; Cultural Moments</button>
       </div>
 
-      <section class="ceremony-card ceremony-overview-card" data-cer-tab="overview">
-        <div class="ceremony-card-head"><div><h3>Ceremony Overview</h3></div></div>
+      <section class="ued-panel span12 ceremony-overview-panel" data-cer-tab="overview">
+        <div class="ued-table-head">
+          <div class="ued-table-title">Ceremony Overview</div>
+        </div>
         <div class="ceremony-form-grid">
           <label><span>Ceremony Location</span><select id="cer-location" onchange="saveCeremony()"><option value="">Grace Fellowship Church</option><option>Grace Fellowship Church</option><option>Grace Community Church</option><option>Ceremony Chapel</option><option>Garden Ceremony Site</option></select></label>
           <label><span>Start Time</span><input type="time" id="cer-start" oninput="saveCeremony()"></label>
@@ -999,8 +1001,11 @@
       </section>
 
       <div class="ceremony-flow-grid" id="ceremony-flow-preview">
-        <section class="ceremony-card ceremony-table-card ceremony-order-card" data-cer-tab="order">
-          <div class="ceremony-card-head"><div><h3>Order of Ceremony / Order of Worship</h3></div><div class="ceremony-mini-actions"><button class="ceremony-edit-btn" onclick="addCeremonyOrderRow()">Add Step <span>+</span></button></div></div>
+        <section class="ued-table-card span12 ceremony-order-panel" data-cer-tab="order">
+          <div class="ued-table-head">
+            <div class="ued-table-title">Order of Ceremony / Order of Worship</div>
+            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyOrderRow()">Add Step <span>+</span></button></div>
+          </div>
           <!-- Order of Worship table now rendered by the CWP unified engine (renderCeremonyOrder -> cwpRenderTable('ceremonyOrder')) -->
           <div class="ceremony-cwp-shell">
             <div id="cwp-ceremonyOrder" class="cwp-mount"></div>
@@ -1008,16 +1013,22 @@
           </div>
         </section>
         <div class="ceremony-side-orders">
-        <section class="ceremony-card ceremony-table-card" data-cer-tab="processional">
-          <div class="ceremony-card-head"><div><h3>Processional Order</h3></div><button class="ceremony-edit-btn" onclick="addProcessionalRow()">Add <span>+</span></button></div>
+        <section class="ued-table-card span12 ceremony-processional-panel" data-cer-tab="processional">
+          <div class="ued-table-head">
+            <div class="ued-table-title">Processional Order</div>
+            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addProcessionalRow()">Add <span>+</span></button></div>
+          </div>
           <!-- Processional table now rendered by the CWP unified engine (renderProcessional -> cwpRenderTable('ceremonyProcessional')) -->
           <div class="ceremony-cwp-shell">
             <div id="cwp-ceremonyProcessional" class="cwp-mount"></div>
             <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyProcessional')">Edit in Ceremony Hub</button></div>
           </div>
         </section>
-        <section class="ceremony-card ceremony-table-card" data-cer-tab="recessional">
-          <div class="ceremony-card-head"><div><h3>Recessional Order</h3></div><button class="ceremony-edit-btn" onclick="addRecessionalRow()">Add <span>+</span></button></div>
+        <section class="ued-table-card span12 ceremony-recessional-panel" data-cer-tab="recessional">
+          <div class="ued-table-head">
+            <div class="ued-table-title">Recessional Order</div>
+            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addRecessionalRow()">Add <span>+</span></button></div>
+          </div>
           <!-- Recessional table now rendered by the CWP unified engine (renderRecessional -> cwpRenderTable('ceremonyRecessional')) -->
           <div class="ceremony-cwp-shell">
             <div id="cwp-ceremonyRecessional" class="cwp-mount"></div>
@@ -1027,8 +1038,11 @@
         </div>
       </div>
 
-      <section class="ceremony-card ceremony-table-card" data-cer-tab="scripture">
-        <div class="ceremony-card-head"><div><h3>Scripture, Prayer &amp; Worship</h3></div><div class="cer-scripture-head-actions"><label class="scripture-translation-field">Translation <select id="scripture-translation-select" onchange="setScriptureTranslation(this.value)"></select></label><button class="ceremony-edit-btn" onclick="addScriptureRow()">Add <span>+</span></button></div></div>
+      <section class="ued-table-card span12 ceremony-scripture-panel" data-cer-tab="scripture">
+        <div class="ued-table-head">
+          <div class="ued-table-title">Scripture, Prayer &amp; Worship</div>
+          <div class="ued-actions"><label class="scripture-translation-field">Translation <select id="scripture-translation-select" onchange="setScriptureTranslation(this.value)"></select></label><button class="ceremony-edit-btn" onclick="addScriptureRow()">Add <span>+</span></button></div>
+        </div>
         <!-- Scripture & Prayer table now rendered by the CWP unified engine (renderScriptures -> cwpRenderTable('scriptures')) -->
         <div class="ceremony-cwp-shell">
           <div id="cwp-scriptures" class="cwp-mount"></div>
@@ -1042,16 +1056,22 @@
       </section>
 
       <div class="ceremony-two-col ceremony-focus-grid">
-        <section class="ceremony-card ceremony-table-card" data-cer-tab="vows">
-          <div class="ceremony-card-head"><div><h3>Vows, Rings &amp; Covenant Moment</h3></div><button class="ceremony-edit-btn" onclick="addCeremonyVowRow()">Add Detail <span>+</span></button></div>
+        <section class="ued-table-card span12 ceremony-vows-panel" data-cer-tab="vows">
+          <div class="ued-table-head">
+            <div class="ued-table-title">Vows, Rings &amp; Covenant Moment</div>
+            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyVowRow()">Add Detail <span>+</span></button></div>
+          </div>
           <!-- Vows / rings table rendered by the CWP unified engine (renderCeremonyVows -> cwpRenderTable('ceremonyVows')) -->
           <div class="ceremony-cwp-shell">
             <div id="cwp-ceremonyVows" class="cwp-mount"></div>
             <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyVows')">Edit in Ceremony Hub</button></div>
           </div>
         </section>
-        <section class="ceremony-card ceremony-table-card" data-cer-tab="officiant">
-          <div class="ceremony-card-head"><div><h3>Officiant, Rehearsal &amp; Legal Notes</h3></div><button class="ceremony-edit-btn" onclick="loadCeremonyChecklistPreset()"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button></div>
+        <section class="ued-table-card span12 ceremony-officiant-panel" data-cer-tab="officiant">
+          <div class="ued-table-head">
+            <div class="ued-table-title">Officiant, Rehearsal &amp; Legal Notes</div>
+            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="loadCeremonyChecklistPreset()"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button></div>
+          </div>
           <div class="ceremony-form-grid one-col compact" style="display:none;">
             <label><span>Rehearsal Time</span><input type="text" id="cer-rehearsal" placeholder="Date, time, who must attend" oninput="saveCeremony()"></label>
             <label><span>Witnesses</span><input type="text" id="cer-witnesses" placeholder="Marriage license witnesses" oninput="saveCeremony()"></label>
@@ -1065,8 +1085,14 @@
         </section>
       </div>
 
-      <section class="ceremony-card ceremony-table-card" data-cer-tab="reception">
-        <div class="ceremony-card-head"><div><h3>Reception Details</h3><p>Capture meaningful reception moments that support the ceremony and family flow without duplicating music, speeches, catering, or timeline tables.</p></div><button class="ceremony-edit-btn" onclick="addCeremonyReceptionRow()">Add Detail <span>+</span></button></div>
+      <section class="ued-table-card span12 ceremony-reception-panel" data-cer-tab="reception">
+        <div class="ued-table-head">
+          <div>
+            <div class="ued-table-title">Reception Details</div>
+            <p>Capture meaningful reception moments that support the ceremony and family flow without duplicating music, speeches, catering, or timeline tables.</p>
+          </div>
+          <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyReceptionRow()">Add Detail <span>+</span></button></div>
+        </div>
         <!-- Reception Details table now rendered by the CWP unified engine (renderCeremonyReceptionDetails -> cwpRenderTable('ceremonyReceptionDetails')) -->
         <div class="ceremony-cwp-shell">
           <div id="cwp-ceremonyReceptionDetails" class="cwp-mount"></div>
@@ -1074,8 +1100,14 @@
         </div>
       </section>
 
-      <section class="ceremony-card ceremony-table-card" data-cer-tab="traditions">
-        <div class="ceremony-card-head"><div><h3>Traditions &amp; Cultural Moments</h3><p>Plan family, cultural, and Christ-centered moments with clear meaning, people involved, items needed, wording, and stage directions.</p></div><button class="ceremony-edit-btn" onclick="addCeremonyTraditionRow()">Add Moment <span>+</span></button></div>
+      <section class="ued-table-card span12 ceremony-traditions-panel" data-cer-tab="traditions">
+        <div class="ued-table-head">
+          <div>
+            <div class="ued-table-title">Traditions &amp; Cultural Moments</div>
+            <p>Plan family, cultural, and Christ-centered moments with clear meaning, people involved, items needed, wording, and stage directions.</p>
+          </div>
+          <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyTraditionRow()">Add Moment <span>+</span></button></div>
+        </div>
         <!-- Traditions & Cultural Moments table now rendered by the CWP unified engine (renderCeremonyTraditions -> cwpRenderTable('ceremonyTraditions')) -->
         <div class="ceremony-cwp-shell">
           <div id="cwp-ceremonyTraditions" class="cwp-mount"></div>
@@ -1218,7 +1250,7 @@
 
       <div id="notes-stat-grid" class="m-stats" aria-label="Notes summary"></div>
 
-      <section class="notes-side-card notes-quick-card notes-quick-wide" aria-label="Quick Note">
+      <section class="ued-panel notes-side-panel notes-quick-card notes-quick-wide" aria-label="Quick Note">
         <div class="notes-side-title"><span class="notes-small-icon"><svg><use href="#notes-icon-pencil"></use></svg></span><h3>Quick Note</h3></div>
         <div class="notes-quick-wide-layout">
           <textarea id="notes-quick-text" class="notes-quick-text" placeholder="Jot something down..."></textarea>
@@ -1261,21 +1293,21 @@
           <div id="notes-card-grid" class="notes-card-grid" aria-live="polite"></div>
         </div>
         <aside class="notes-sidebar">
-          <div class="notes-side-card" id="notes-pinned-card"></div>
+          <div class="ued-panel notes-side-panel" id="notes-pinned-card"></div>
         </aside>
       </section>
 
       <section class="notes-longform-section" aria-label="Free-form notes">
         <div class="notes-section-head"><span class="notes-small-icon"><svg><use href="#notes-icon-clipboard"></use></svg></span><div><h3>Free-Form Planning Notes</h3><p>Keep the original long-form planning spaces for deeper thoughts and reminders.</p></div></div>
         <div class="notes-legacy-grid">
-          <div class="notes-legacy-card"><label>General Notes</label><textarea id="note-general" rows="5" placeholder="Any planning notes…" oninput="saveNotes()"></textarea></div>
-          <div class="notes-legacy-card"><label>Family & Hospitality Notes</label><textarea id="note-family" rows="5" placeholder="Family dynamics, special needs, hospitality ideas…" oninput="saveNotes()"></textarea></div>
-          <div class="notes-legacy-card"><label>Vendor Instincts</label><textarea id="note-vendors" rows="5" placeholder="First impressions from vendor meetings…" oninput="saveNotes()"></textarea></div>
-          <div class="notes-legacy-card"><label>Marriage Preparation Reflections</label><textarea id="note-marriage" rows="5" placeholder="Thoughts on the covenant you are entering…" oninput="saveNotes()"></textarea></div>
+          <div class="ued-panel notes-legacy-panel"><label>General Notes</label><textarea id="note-general" rows="5" placeholder="Any planning notes…" oninput="saveNotes()"></textarea></div>
+          <div class="ued-panel notes-legacy-panel"><label>Family & Hospitality Notes</label><textarea id="note-family" rows="5" placeholder="Family dynamics, special needs, hospitality ideas…" oninput="saveNotes()"></textarea></div>
+          <div class="ued-panel notes-legacy-panel"><label>Vendor Instincts</label><textarea id="note-vendors" rows="5" placeholder="First impressions from vendor meetings…" oninput="saveNotes()"></textarea></div>
+          <div class="ued-panel notes-legacy-panel"><label>Marriage Preparation Reflections</label><textarea id="note-marriage" rows="5" placeholder="Thoughts on the covenant you are entering…" oninput="saveNotes()"></textarea></div>
         </div>
       </section>
 
-      <section class="notes-table-section ued-table-card notes-tracker-table-card">
+      <section class="ued-table-card notes-tracker-table-card">
         <div class="ued-table-head notes-table-head">
           <div>
             <div class="ued-table-title">Notes tracker <span class="ro-badge-inline">Read only</span></div>
@@ -1303,14 +1335,14 @@
       <div id="seating-guardrails" aria-live="polite"></div>
       <div id="seating-guest-pool" aria-label="Unseated guests — drag onto tables"></div>
       <section class="table-layout-main-grid">
-        <div class="table-layout-floor-card">
+        <div class="ued-panel table-layout-floor-panel">
           <div class="table-layout-floor-head">
             <div class="table-layout-floor-title"><span class="table-layout-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9h16M6 9v9m12-9v9M8 18h8M9 6h6l2 3H7l2-3Z"/></svg></span><div><h3>Reception Floor Plan</h3><p class="page-subtitle" style="margin:.15rem 0 0;font-size:.78rem;">Drag each table to arrange the room. Tables populate from the Guest List.</p></div></div>
             <div class="table-layout-floor-actions"><button type="button" class="table-layout-tool-btn" id="table-edit-layout-btn" onclick="toggleTableEditMode()"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>Edit Layout</button><span class="table-layout-zoom" aria-label="Zoom controls"><button type="button" onclick="setTableZoom(-.1)" aria-label="Zoom out">−</button><span id="table-zoom-label">100%</span><button type="button" onclick="setTableZoom(.1)" aria-label="Zoom in">+</button></span><button type="button" class="table-layout-tool-btn" onclick="toggleTableMapFull()" title="Expand floor plan"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg></button></div>
           </div>
           <div class="table-map-viewport" id="table-map-viewport"><div id="table-map"></div></div>
         </div>
-        <aside class="table-assign-card">
+        <aside class="ued-panel table-assign-panel">
           <div class="table-assign-head"><div class="table-assign-title"><span class="table-layout-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M6 7v11m12-11v11M8 18h8"/><path d="M9 4h6l2 3H7l2-3Z"/></svg></span><h3>Table Assignments</h3></div></div>
           <div class="table-assign-legend"><span><i class="table-assign-dot vip"></i> VIP Table</span><span><i class="table-assign-dot assigned"></i> Assigned</span><span><i class="table-assign-dot partial"></i> Partially Filled</span><span><i class="table-assign-dot open"></i> Open</span></div>
           <div id="table-assignment-list" class="table-assign-list"></div>
@@ -1338,14 +1370,17 @@
       <div id="party-stats" class="m-stats" aria-label="Wedding party summary"></div>
 
       <!-- Role tabs + status filter removed: filtering now lives in the table's per-column Excel filters + search (CWP engine). -->
-      <div class="party-actions" style="display:flex;gap:.5rem;margin:.5rem 0 .25rem;">
-        <button class="btn btn-outline btn-sm" onclick="importPartyFromGuests()">Import from Guest List</button>
-      </div>
-
-      <div class="m-block party-table-card">
+      <section class="ued-table-card party-table-card">
+        <div class="ued-table-head">
+          <div class="ued-table-title">Wedding party tracker</div>
+          <div class="ued-actions">
+            <button class="btn btn-outline btn-sm" onclick="importPartyFromGuests()">Import from Guest List</button>
+          </div>
+        </div>
         <!-- Wedding party table now rendered by the CWP unified engine (renderParty → cwpRenderTable('party')) -->
-        <div class="hub-preview-card"><div class="ued-table-wrap" id="party-hub-preview"></div><span class="ued-soft" id="party-hub-preview-foot"></span></div>
-      </div>
+        <div class="ued-table-wrap" id="party-hub-preview"></div>
+        <span class="ued-soft" id="party-hub-preview-foot"></span>
+      </section>
     </div>
 
     <!-- ═══ GIFT LOG ═══ -->
@@ -1359,7 +1394,7 @@
       <div class="m-stats" id="gift-stats" aria-label="Gift log summary"></div>
 
       <section class="gift-dashboard-grid">
-        <div class="gift-card gift-recent-card">
+        <div class="ued-panel gift-recent-panel">
           <div class="gift-section-head">
             <div>
               <p class="gift-eyebrow">Recent Gifts</p>
@@ -1376,7 +1411,7 @@
         </div>
 
         <aside class="gift-side-stack">
-          <div class="gift-card gift-summary-card">
+          <div class="ued-panel gift-summary-panel">
             <p class="gift-eyebrow">Gift Summary</p>
             <div class="gift-donut-row">
               <div id="gift-donut" class="gift-donut" aria-hidden="true"></div>
@@ -1388,14 +1423,14 @@
               <svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg>
             </div>
           </div>
-          <div class="gift-card gift-category-card">
+          <div class="ued-panel gift-category-panel">
             <p class="gift-eyebrow">Top Categories by Value</p>
             <div id="gift-category-bars" class="gift-category-bars"></div>
           </div>
         </aside>
       </section>
 
-      <section class="gift-note-card">
+      <section class="ued-panel gift-note-panel">
         <div class="gift-note-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.8-4.9-1.7-6.8.3L12 7l-2-2.1c-1.9-2-4.9-2.1-6.8-.3-2 1.9-2 5.1-.1 7.1L12 20l8.9-8.3c1.9-2 1.9-5.2-.1-7.1Z"/></svg></div>
         <div>
           <h3>A Note of Thankfulness</h3>
@@ -1403,7 +1438,7 @@
         </div>
       </section>
 
-      <section class="gift-toolbar-card">
+      <section class="ued-panel gift-toolbar-panel">
         <div class="gift-filter-tabs" aria-label="Gift filters">
           <button type="button" class="gift-filter active" data-gift-filter="all" onclick="setGiftLogFilter('all')">All Gifts</button>
           <button type="button" class="gift-filter" data-gift-filter="Registry" onclick="setGiftLogFilter('Registry')">Registry</button>
@@ -1502,13 +1537,17 @@
       <!-- Filter card removed: filtering now lives in the table's per-column Excel filters + search (CWP engine). -->
       <datalist id="shot-people-options"></datalist>
 
-      <div class="m-block">
+      <section class="ued-table-card shotlist-table-card">
         <!-- Photo shot list table now rendered by the CWP unified engine (renderShotlist → cwpRenderTable('shotlist')) -->
-        <div class="shotlist-table-actions no-print">
-          <button type="button" class="ued-btn" onclick="setShotInlineTable('shotlist',null)">+ Add photo shot</button>
-          <button type="button" class="ued-btn" onclick="openDataHub('design','shotlist')">Edit in Design Hub</button>
+        <div class="ued-table-head">
+          <div class="ued-table-title">Photo shot list</div>
+          <div class="ued-actions shotlist-table-actions no-print">
+            <button type="button" class="ued-btn" onclick="setShotInlineTable('shotlist',null)">+ Add photo shot</button>
+            <button type="button" class="ued-btn" onclick="openDataHub('design','shotlist')">Edit in Design Hub</button>
+          </div>
         </div>
-        <div class="hub-preview-card"><div id="cwp-shotlist" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div></div>
+        <div id="cwp-shotlist" class="ro-preview"></div>
+        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
         <datalist id="shot-section-options">
           <option value="Getting Ready"></option>
           <option value="Detail"></option>
@@ -1532,7 +1571,7 @@
           <option value="Golden Hour"></option>
           <option value="Send-Off"></option>
         </datalist>
-      </div>
+      </section>
       </div>
 
       <div id="shotlist-video-panel" class="shotlist-tab-panel" hidden>
@@ -1543,13 +1582,17 @@
         </div>
         <div id="video-shotlist-stat-grid" class="m-stats" aria-live="polite"></div>
         <div id="video-shotlist-overview-grid" class="shotlist-overview-grid" aria-live="polite"></div>
-        <div class="m-block">
-          <div class="shotlist-table-actions no-print">
-            <button type="button" class="ued-btn" onclick="setShotInlineTable('videoShots',null)">+ Add video shot</button>
-            <button type="button" class="ued-btn" onclick="openDataHub('design','videoShots')">Edit in Design Hub</button>
+        <section class="ued-table-card shotlist-table-card">
+          <div class="ued-table-head">
+            <div class="ued-table-title">Video shot list</div>
+            <div class="ued-actions shotlist-table-actions no-print">
+              <button type="button" class="ued-btn" onclick="setShotInlineTable('videoShots',null)">+ Add video shot</button>
+              <button type="button" class="ued-btn" onclick="openDataHub('design','videoShots')">Edit in Design Hub</button>
+            </div>
           </div>
-          <div class="hub-preview-card"><div id="cwp-videoShots" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div></div>
-        </div>
+          <div id="cwp-videoShots" class="ro-preview"></div>
+          <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
+        </section>
       </div>
     </div>
 
@@ -1576,7 +1619,7 @@
       </div>
 
       <div class="venue-arrange-grid" id="venue-arrange-grid">
-        <section class="venue-panel-card venue-widget" data-card="details" data-size="half">
+        <section class="ued-panel venue-details-panel venue-widget" data-card="details" data-size="half">
           <div class="venue-widget-toolbar">
             <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Selected Details</span></div>
             <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('details')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
@@ -1645,7 +1688,7 @@
           <div class="venue-full-details" id="venue-full-details"></div>
         </section>
 
-        <aside class="venue-aside-card venue-widget" data-card="shortlist" data-size="half">
+        <aside class="ued-panel venue-shortlist-panel venue-widget" data-card="shortlist" data-size="half">
           <div class="venue-widget-toolbar">
             <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Venue Shortlist</span></div>
             <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('shortlist')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
@@ -1683,7 +1726,7 @@
           <div class="venue-compare-table" id="venue-compare-table"></div>
         </aside>
 
-        <section class="venue-bottom-card venue-widget" data-card="notes" data-size="half">
+        <section class="ued-panel venue-notes-panel venue-widget" data-card="notes" data-size="half">
           <div class="venue-widget-toolbar">
             <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Notes</span></div>
             <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('notes')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
@@ -1697,7 +1740,7 @@
           </div>
           <div class="venue-note-stack" id="venue-note-stack"></div>
         </section>
-        <section class="venue-bottom-card venue-widget" data-card="reminders" data-size="half">
+        <section class="ued-panel venue-reminders-panel venue-widget" data-card="reminders" data-size="half">
           <div class="venue-widget-toolbar">
             <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Reminders</span></div>
             <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('reminders')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
@@ -1714,13 +1757,13 @@
 
     <!-- ═══ SMART CALENDAR ═══ -->
     <div id="panel-calendar" class="panel smart-calendar-mockup ued-scope">
-      <div class="smart-stat-grid" id="smart-calendar-stats"></div>
+      <div class="m-stats" id="smart-calendar-stats"></div>
       <div class="smart-insight-band" id="smart-calendar-insights"></div>
       <div class="smart-side-row">
-        <section class="smart-side-card" id="smart-selected-day"></section>
-        <section class="smart-side-card" id="smart-due-soon"></section>
-        <section class="smart-side-card" id="smart-conflicts" style="display:none"></section>
-        <section class="smart-side-card" id="smart-notes-card"></section>
+        <section class="ued-panel smart-side-panel" id="smart-selected-day"></section>
+        <section class="ued-panel smart-side-panel" id="smart-due-soon"></section>
+        <section class="ued-panel smart-side-panel" id="smart-conflicts" style="display:none"></section>
+        <section class="ued-panel smart-side-panel" id="smart-notes-card"></section>
       </div>
 
       <div class="smart-toolbar-row">
@@ -1752,7 +1795,7 @@
         </div>
       </div>
 
-      <section class="smart-main-card">
+      <section class="ued-panel smart-main-panel">
         <div class="smart-source-strip" id="smart-source-pills"></div>
         <div class="smart-layout">
           <div id="smart-calendar-main"></div>
@@ -1760,10 +1803,10 @@
       </section>
 
       <div class="smart-bottom-grid">
-        <section class="smart-side-card" id="smart-week-agenda"></section>
-        <section class="smart-side-card" id="smart-source-breakdown"></section>
-        <section class="smart-side-card" id="smart-reminders"></section>
-        <section class="smart-side-card" id="smart-unscheduled-tasks"></section>
+        <section class="ued-panel smart-side-panel" id="smart-week-agenda"></section>
+        <section class="ued-panel smart-side-panel" id="smart-source-breakdown"></section>
+        <section class="ued-panel smart-side-panel" id="smart-reminders"></section>
+        <section class="ued-panel smart-side-panel" id="smart-unscheduled-tasks"></section>
       </div>
 
     </div>
@@ -1871,14 +1914,14 @@
       <div class="m-stats" id="catering-stats"></div>
 
       <section class="cat-top-grid" aria-label="Catering overview">
-        <div class="cat-card">
+        <div class="ued-panel cat-menu-panel">
           <div class="cat-card-head">
             <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-menu"></use></svg></span><div><h3>Menu Builder</h3><p>Snapshot by course</p></div></div>
             <span class="cat-badge gold">Summary</span>
           </div>
           <div id="catering-menu-summary"></div>
         </div>
-        <div class="cat-card">
+        <div class="ued-panel cat-bar-panel">
           <div class="cat-card-head">
             <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-glass"></use></svg></span><div><h3>Bar &amp; Beverages</h3><p>Type · signature · calculator</p></div></div>
           </div>
@@ -1894,13 +1937,13 @@
       </div>
 
       <section class="cat-bottom-grid">
-        <div class="cat-card">
+        <div class="ued-panel cat-dietary-panel">
           <div class="cat-card-head">
             <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-alert"></use></svg></span><div><h3>Dietary Summary</h3><p>Auto-counted from your guest list and menu tags</p></div></div>
           </div>
           <div class="cat-dietary-wrap" id="catering-dietary-summary"></div>
         </div>
-        <div class="cat-card">
+        <div class="ued-panel cat-costs-panel">
           <div class="cat-card-head">
             <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-dollar"></use></svg></span><div><h3>Catering Costs</h3><p>Rolls into Budget</p></div></div>
           </div>
@@ -1973,12 +2016,12 @@
       </section>
 
       <div class="ent-card-grid" data-ent-tab="overview">
-        <section class="ent-info-card">
+        <section class="ued-panel ent-info-panel">
           <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-church"></use></svg></span><h3>Ceremony Music</h3></div>
           <div class="ent-data-list" id="ent-ceremony-list"></div>
           <div class="ent-card-note"><span><svg><use href="#ent-i-music"></use></svg></span><em id="ent-ceremony-note">0 songs selected</em></div>
         </section>
-        <section class="ent-info-card">
+        <section class="ued-panel ent-info-panel">
           <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-cocktail"></use></svg></span><h3>Cocktail Hour</h3></div>
           <div class="ent-data-list ent-edit-list">
             <label><span>Vibe</span><input id="ent-meta-cocktailVibe" type="text" oninput="updateEntertainmentMeta('cocktailVibe',this.value)"></label>
@@ -1988,7 +2031,7 @@
           </div>
           <div class="ent-card-note"><span><svg><use href="#ent-i-music"></use></svg></span><em>Playlist curated</em></div>
         </section>
-        <section class="ent-info-card">
+        <section class="ued-panel ent-info-panel">
           <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-playlist"></use></svg></span><h3>Reception Playlist</h3></div>
           <div class="ent-data-list ent-edit-list">
             <label><span>Vibe</span><input id="ent-meta-receptionVibe" type="text" oninput="updateEntertainmentMeta('receptionVibe',this.value)"></label>
@@ -2002,12 +2045,12 @@
       </div>
 
       <div class="ent-wide-grid" data-ent-tab="overview">
-        <section class="ent-info-card ent-wide-card">
+        <section class="ued-panel ent-info-panel ent-wide-card">
           <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-headphones"></use></svg></span><h3>DJ or Band Details</h3></div>
           <div class="ent-data-list" id="ent-vendor-summary"></div>
           <div class="ent-card-note"><span><svg><use href="#ent-i-user"></use></svg></span><em id="ent-vendor-note">Vendor details ready</em></div>
         </section>
-        <section class="ent-info-card ent-wide-card">
+        <section class="ued-panel ent-info-panel ent-wide-card">
           <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-dance"></use></svg></span><h3>Special Dances</h3></div>
           <div class="ent-data-list" id="ent-special-dances"></div>
           <div class="ent-card-note"><span><svg><use href="#ent-i-heart"></use></svg></span><em id="ent-dance-note">0 dances planned</em></div>
@@ -2087,7 +2130,7 @@
         <button type="button" class="ess-quick-link" onclick="startHereBackup()"><span class="ess-quick-label">Download Backup</span><span class="ess-quick-note">Protect your checklist</span></button>
       </nav>
 
-      <div class="card essentials-action-card ess-toolbar-card">
+      <section class="ued-panel essentials-action-card ess-toolbar-card">
         <div class="essentials-card-head">
           <div>
             <h3>Build your checklist</h3>
@@ -2100,7 +2143,7 @@
           <button class="btn btn-forest" onclick="addEssentialRow()"><span class="btn-text">+ Add Checklist Item</span></button>
         </div>
         <div id="essentials-kit-chips"></div>
-      </div>
+      </section>
 
       <div id="essentials-category-progress" class="ess-category-progress" aria-label="Progress by category" hidden></div>
 
@@ -2119,7 +2162,7 @@
         </div>
       </section>
 
-      <div class="card essentials-table-card ess-table-shell">
+      <section class="ued-table-card essentials-table-card ess-table-shell">
         <div class="essentials-card-head ess-table-head">
           <div>
             <h3>Your packing list</h3>
@@ -2148,7 +2191,7 @@
           <option value="Misc"></option>
         </datalist>
         <datalist id="essentials-item-filter-options"></datalist>
-      </div>
+      </section>
     </div>
     <!-- VISION BOARD -->
     <div id="panel-mood" class="panel mood-mockup ued-scope">
@@ -2173,7 +2216,7 @@
         <button class="m-tab" data-tab="details" onclick="visionTab('details')">Vision Board Details Tracker</button>
       </div>
 
-      <section class="mood-statement-card mood-card" data-vision-tab="decisions">
+      <section class="ued-panel mood-statement-card mood-card" data-vision-tab="decisions">
         <div class="mood-card-head">
           <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h7M8 11h8M8 15h5"/></svg></span>
           <div><h3>Visual Statement</h3><p>Gather the visual inspiration that shapes your celebration.</p></div>
@@ -2182,7 +2225,7 @@
       </section>
 
       <section class="mood-board-grid" aria-label="Vision board inspiration cards">
-        <article class="mood-card mood-palette-feature" data-vision-tab="palette">
+        <article class="ued-panel mood-card mood-palette-feature" data-vision-tab="palette">
           <div class="mood-card-head">
             <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 1.3-3.5 1.8 1.8 0 0 1 1.2-3.2H18a3 3 0 0 0 3-3C21 6.7 17 3 12 3Z"/><path d="M7.5 10h.01M10 7.5h.01M14 7.5h.01M16.5 10h.01"/></svg></span>
             <div><h3>Color Palette</h3><p>Pick a ready-made palette or build your own.</p></div>
@@ -2209,14 +2252,14 @@
           <button class="m-tab" data-tab="stationery" onclick="moodTab('stationery')">Stationery</button>
           <button class="m-tab" data-tab="favorites" onclick="moodTab('favorites')">Favorite Details</button>
         </div>
-        <article class="mood-card" data-vision-tab="inspiration" data-mood-tab="floral" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22c-2.5-3.8-4-6.8-4-9.2C8 8 12 3 12 3s4 5 4 9.8c0 2.4-1.5 5.4-4 9.2Z"/><path d="M12 12c-3.6-2-6.2-2.4-8-1.2 1 3.5 4.2 4.9 8 1.2Z"/><path d="M12 12c3.6-2 6.2-2.4 8-1.2-1 3.5-4.2 4.9-8 1.2Z"/></svg></span><div><h3>Floral Inspiration</h3><p>Romantic blooms with natural greenery.</p></div></div><div id="mood-board-floral" class="mood-preview-grid"></div></article>
-        <article class="mood-card" data-vision-tab="inspiration" data-mood-tab="bridal" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l3 5h-6l3-5Z"/><path d="M9 8 5 21h14L15 8"/><path d="M9 13h6"/></svg></span><div><h3>Bridal Style</h3><p>Classic silhouettes, accessories, and attire details.</p></div></div><div id="mood-board-bridal" class="mood-preview-grid"></div></article>
-        <article class="mood-card" data-vision-tab="inspiration" data-mood-tab="decor" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V8l6-4 6 4v12"/><path d="M9 20v-6h6v6"/></svg></span><div><h3>Ceremony &amp; Reception Decor</h3><p>Natural greenery, soft candlelight, and thoughtful touches.</p></div></div><div id="mood-board-decor" class="mood-preview-grid"></div></article>
-        <article class="mood-card" data-vision-tab="inspiration" data-mood-tab="stationery" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg></span><div><h3>Stationery</h3><p>Botanical details with classic typography.</p></div></div><div id="mood-board-stationery" class="mood-preview-grid"></div></article>
-        <article class="mood-card mood-favorites-card" data-vision-tab="inspiration" data-mood-tab="favorites" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 5.7a5.1 5.1 0 0 0-7.2 0L12 7.3l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.1a5.1 5.1 0 0 0 0-7.2Z"/></svg></span><div><h3>Favorite Details</h3><p>The small moments and design touches you want to remember.</p></div></div><div id="mood-favorites-list" class="mood-favorites-list"></div><div class="mood-add-favorite"><input id="mood-favorite-input" type="text" placeholder="Add a new favorite detail"><button class="btn btn-outline btn-sm" onclick="addMoodFavorite()">Add</button></div></article>
+        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="floral" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22c-2.5-3.8-4-6.8-4-9.2C8 8 12 3 12 3s4 5 4 9.8c0 2.4-1.5 5.4-4 9.2Z"/><path d="M12 12c-3.6-2-6.2-2.4-8-1.2 1 3.5 4.2 4.9 8 1.2Z"/><path d="M12 12c3.6-2 6.2-2.4 8-1.2-1 3.5-4.2 4.9-8 1.2Z"/></svg></span><div><h3>Floral Inspiration</h3><p>Romantic blooms with natural greenery.</p></div></div><div id="mood-board-floral" class="mood-preview-grid"></div></article>
+        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="bridal" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l3 5h-6l3-5Z"/><path d="M9 8 5 21h14L15 8"/><path d="M9 13h6"/></svg></span><div><h3>Bridal Style</h3><p>Classic silhouettes, accessories, and attire details.</p></div></div><div id="mood-board-bridal" class="mood-preview-grid"></div></article>
+        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="decor" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V8l6-4 6 4v12"/><path d="M9 20v-6h6v6"/></svg></span><div><h3>Ceremony &amp; Reception Decor</h3><p>Natural greenery, soft candlelight, and thoughtful touches.</p></div></div><div id="mood-board-decor" class="mood-preview-grid"></div></article>
+        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="stationery" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg></span><div><h3>Stationery</h3><p>Botanical details with classic typography.</p></div></div><div id="mood-board-stationery" class="mood-preview-grid"></div></article>
+        <article class="ued-panel mood-card mood-favorites-card" data-vision-tab="inspiration" data-mood-tab="favorites" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 5.7a5.1 5.1 0 0 0-7.2 0L12 7.3l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.1a5.1 5.1 0 0 0 0-7.2Z"/></svg></span><div><h3>Favorite Details</h3><p>The small moments and design touches you want to remember.</p></div></div><div id="mood-favorites-list" class="mood-favorites-list"></div><div class="mood-add-favorite"><input id="mood-favorite-input" type="text" placeholder="Add a new favorite detail"><button class="btn btn-outline btn-sm" onclick="addMoodFavorite()">Add</button></div></article>
       </section>
 
-      <section class="mood-card mood-gallery-card" data-vision-tab="gallery">
+      <section class="ued-panel mood-card mood-gallery-card" data-vision-tab="gallery">
         <div class="mood-card-head">
           <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 15 4-4 4 4 2-2 6 6"/><circle cx="15.5" cy="9.5" r="1.5"/></svg></span>
           <div><h3>Inspiration Gallery</h3><p>Upload images for each part of your design. Photos are shrunk to fit and saved with your planner.</p></div>

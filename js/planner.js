@@ -6747,7 +6747,7 @@ function renderStartHere(){
       <div class="sh-progress">${guidance.doneCount} of ${guidance.stageCount} planning stages ready</div>
     </div>
     <div class="sh-bar"><i style="width:${guidance.progressPct}%"></i></div>
-    <section class="guide-card">
+    <section class="guide-panel ued-panel">
       <div class="guide-card-kicker">Next best step</div>
       <h3 class="guide-card-title">${escapeHtml(guidance.current.label)}</h3>
       <p class="guide-card-copy">${escapeHtml(guidance.current.meta)}</p>
@@ -6849,7 +6849,7 @@ function renderNextBestStepCard(){
     backup:'Download a .sqlite backup so your planner data is protected before you build too much.',
     calendar:'Review the live calendar so Month, Week, Agenda, and Appointments stay aligned.'
   }[step.id] || (step.meta || 'Continue the next useful step in your planning workflow.');
-  return `<div class="next-step-card">
+  return `<div class="next-step-panel ued-panel">
     <span class="next-step-icon">${appointmentIcon('checklist')}</span>
     <div><small>Next best step</small><strong>${escapeHtml(step.label)}</strong><p>${escapeHtml(help)}</p></div>
     <button class="m-btn m-btn-primary" type="button" onclick="${action}">Start</button>
@@ -8833,7 +8833,7 @@ function drawVendorPacket(key){
   const v = safeArray(data.vendors).find(x => (x.cat||'').toLowerCase().includes(key==='photo'?'photo':key==='video'?'video':key==='coord'?'coordinator':key==='music'?'music':key==='beauty'?'attire':key==='officiant'?'officiant':key)) || {};
   const dateStr = s.date ? fmtDate(s.date,'long') : '';
 
-  let html = `<div class="pkt-card">
+  let html = `<div class="pkt-panel ued-panel">
     <div class="pkt-eyebrow">Vendor Share Packet</div>
     <h2>${escapeHtml(cfg.title)}</h2>
     <hr class="gold">
@@ -8940,7 +8940,7 @@ function drawPartyPacket(key){
   const pk = data.partyPackets[key];
   const dateStr = s.date ? fmtDate(s.date,'long') : '';
 
-  let html = `<div class="pkt-card">
+  let html = `<div class="pkt-panel ued-panel">
     <div class="pkt-eyebrow">Wedding Party Share Packet</div>
     <h2>${escapeHtml(cfg.title)}</h2>
     <hr class="gold">
@@ -9057,7 +9057,7 @@ function renderCoordinatorPacket(){
   const coordTasks = safeArray(data.tasks).filter(t => (t.assigned||'').toLowerCase() === 'coordinator');
   const taskRows = coordTasks.map(t => [t.task, t.date, t.priority, t.status]);
 
-  let html = `<div class="pkt-card">
+  let html = `<div class="pkt-panel ued-panel">
     <div class="pkt-eyebrow">Coordinator Handoff Packet</div>
     <h2>${escapeHtml(s.bride||'')} & ${escapeHtml(s.groom||'')} — ${escapeHtml(dateStr)}</h2>
     <hr class="gold">
@@ -9194,7 +9194,7 @@ function renderWeekendPackets(){
   const s = data.setup || {};
   const title = (WEEKEND_PACKET_TABS.find(t=>t[0]===_pktWeekendKey)||WEEKEND_PACKET_TABS[0])[1];
   const dateStr = s.date ? guideFmtDate(s.date) : '';
-  document.getElementById('pkt-content').innerHTML = `<div class="pkt-card">
+  document.getElementById('pkt-content').innerHTML = `<div class="pkt-panel ued-panel">
     <div class="pkt-eyebrow">Wedding Weekend Share Packet</div>
     <h2>${escapeHtml(title)}</h2>
     <hr class="gold">
@@ -9405,7 +9405,7 @@ function renderLogWeekend(){
     <td><input value="${escapeHtml(r.notes||'')}" placeholder="Notes" oninput="logUpd('weekendTimeline',${i},'notes',this.value)"></td>
     <td>${plannerTrashButton("logDel('weekendTimeline',"+i+")",'Delete')}</td>
   </tr>`).join('') : logEmptyRow(12,'No weekend timeline items yet. Add rehearsal dinner, welcome party, ceremony morning, after-party, brunch, or family gatherings.');
-  document.getElementById('log-content').innerHTML = `<div class="log-card">
+  document.getElementById('log-content').innerHTML = `<div class="log-panel ued-panel">
     <h2>Wedding Weekend Timeline</h2>
     <div class="log-intro">Plan the full wedding weekend from rehearsal dinner through morning-after brunch. Dated rows appear in Smart Calendar and activity costs sync to Budget separately.</div>
     <hr class="gold">
@@ -9422,13 +9422,13 @@ function renderLogWeekend(){
 function renderLogTravel(){
   if (!Array.isArray(data.travelAccommodations)) data.travelAccommodations = [];
   if (!Array.isArray(data.hotelBlocks)) data.hotelBlocks = [];
-  document.getElementById('log-content').innerHTML = `${logGuestDatalist()}<div class="log-card">
+  document.getElementById('log-content').innerHTML = `${logGuestDatalist()}<div class="log-panel ued-panel">
     <h2>Travel & Accommodations</h2>
     <div class="log-intro">${logRowCount(data.travelAccommodations)} travel rows · ${logRowCount(data.hotelBlocks)} hotel blocks. Travel arrival/departure and hotel cutoff dates appear in Smart Calendar.</div>
     <hr class="gold">
     ${logHubPreviewBlock('travelAccommodations', 'Travel & Accommodations')}
   </div>
-  <div class="log-card" style="margin-top:1rem">
+  <div class="log-panel ued-panel" style="margin-top:1rem">
     <h2>Hotel Room Blocks</h2>
     <div class="log-intro">Track booking links, cutoff dates, reserved rooms, and booked rooms for family and guests.</div>
     <hr class="gold">
@@ -9441,7 +9441,7 @@ function renderLogTravel(){
 
 function renderLogTransport(){
   if (!Array.isArray(data.transportation)) data.transportation = [];
-  document.getElementById('log-content').innerHTML = `<div class="log-card">
+  document.getElementById('log-content').innerHTML = `<div class="log-panel ued-panel">
     <h2>Transportation</h2>
     <div class="log-intro">${logRowCount(data.transportation)} routes · Plan shuttles, family drivers, airport pickups, hotel transfers, and end-of-night rides. Dated rows appear in Smart Calendar and costs sync to Budget.</div>
     <hr class="gold">
@@ -9453,7 +9453,7 @@ function renderLogTransport(){
 
 function renderLogVIP(){
   if (!Array.isArray(data.vipCare)) data.vipCare = [];
-  document.getElementById('log-content').innerHTML = `${logGuestDatalist()}<div class="log-card">
+  document.getElementById('log-content').innerHTML = `${logGuestDatalist()}<div class="log-panel ued-panel">
     <h2>Family & VIP Care</h2>
     <div class="log-intro">${logRowCount(data.vipCare)} care items · Keep parents, grandparents, out-of-town family, blended families, accessibility needs, and special helpers cared for without burying details in notes.</div>
     <hr class="gold">
@@ -9971,7 +9971,7 @@ function renderVendorCompare(){
 }
 function renderLogCompare(){
   if (!Array.isArray(data.vendorCompare)) data.vendorCompare = [];
-  document.getElementById('log-content').innerHTML = `<div class="log-card">
+  document.getElementById('log-content').innerHTML = `<div class="log-panel ued-panel">
     <h2>Vendor Comparisons</h2>
     <div class="log-intro">Compare up to 3 vendors side by side for each category. Use the questions below during consultations.</div>
     <hr class="gold">
@@ -10012,7 +10012,7 @@ function renderLogReception(){
     if (type==='textarea') return `<div style="grid-column:1/-1"><label>${label}</label><textarea ${h} placeholder="${label}">${val}</textarea></div>`;
     return `<div><label>${label}</label><input value="${val}" placeholder="${label}" ${h}></div>`;
   };
-  document.getElementById('log-content').innerHTML = `<div class="log-card">
+  document.getElementById('log-content').innerHTML = `<div class="log-panel ued-panel">
     <h2>Reception Planner</h2>
     <div class="log-intro">Plan every reception moment — songs, toasts, run-of-show, and special considerations.</div>
     <hr class="gold">
@@ -10074,13 +10074,13 @@ function logBuildTable(dataKey, cols, intro, blank){
   if (!Array.isArray(data[dataKey])) data[dataKey] = [];
   const engineKey = {attire:'logAttire', decor:'logDecor', stationery:'logStationery'}[dataKey];
   const label = dataKey.charAt(0).toUpperCase() + dataKey.slice(1);
-  return `<div class="log-card"><h2>${label}</h2><div class="log-intro">${intro}</div><hr class="gold">${logHubPreviewBlock(engineKey, label)}</div>`;
+  return `<div class="log-panel ued-panel"><h2>${label}</h2><div class="log-intro">${intro}</div><hr class="gold">${logHubPreviewBlock(engineKey, label)}</div>`;
 }
 
 /* — Bachelorette / Bachelor Events — */
 function renderLogEvents(){
   if (!Array.isArray(data.events)) data.events = [];
-  document.getElementById('log-content').innerHTML = `<div class="log-card">
+  document.getElementById('log-content').innerHTML = `<div class="log-panel ued-panel">
     <h2>Bachelorette & Bachelor Events</h2>
     <div class="log-intro">${logRowCount(data.events)} events · Track engagement parties, showers, bachelor/ette, rehearsal dinner, and more.</div>
     <hr class="gold">
@@ -10094,7 +10094,7 @@ function renderLogEvents(){
 /* — Maps & Directions — */
 function renderLogMaps(){
   if (!Array.isArray(data.locations)) data.locations = [];
-  document.getElementById('log-content').innerHTML = `<div class="log-card">
+  document.getElementById('log-content').innerHTML = `<div class="log-panel ued-panel">
     <h2>Maps & Directions</h2>
     <div class="log-intro">${logRowCount(data.locations)} locations · Key venues with addresses, contacts, parking info, and quick links to Google Maps and Apple Maps.</div>
     <hr class="gold">
@@ -10137,7 +10137,7 @@ function renderLogDirectory(){
   if (!Array.isArray(data.contacts)) data.contacts = [];
   const rows = masterContactRows();
   const emergencyCount = rows.filter(r => r.emergency).length;
-  document.getElementById('log-content').innerHTML = `<div class="log-card">
+  document.getElementById('log-content').innerHTML = `<div class="log-panel ued-panel">
     <h2>Master Contact Directory</h2>
     <div class="log-intro">${rows.length} contacts · ${emergencyCount} emergency contacts · Manual rows plus synced contacts from guests, vendors, wedding party, appointments, travel, transportation, and locations.</div>
     <hr class="gold">
@@ -10294,7 +10294,7 @@ function renderVisionTab(){
     if (type === 'textarea') return `<div class="rfl-field"><label>${label}</label><textarea ${handler}>${val}</textarea></div>`;
     return `<div class="rfl-field"><label>${label}</label><input type="text" value="${val}" placeholder="${escapeHtml(label)}" ${handler}></div>`;
   };
-  document.getElementById('rfl-content').innerHTML = `<div class="rfl-card">
+  document.getElementById('rfl-content').innerHTML = `<div class="rfl-panel ued-panel">
     <h2>Vision & Foundation</h2>
     <div class="rfl-intro">Before the spreadsheets and the seating charts, slow down here. What kind of marriage are you building? What kind of wedding day reflects that? Answer these together — out loud or in writing. Revisit them when planning starts to feel heavy.</div>
     <hr class="gold">
@@ -10308,7 +10308,7 @@ function renderVisionTab(){
     ${field('marriagePrayer','A prayer over this marriage','textarea')}
     ${field('hisPrayerForHer','His Prayer for Her - What I ask the Lord to do in your life','textarea')}
     ${field('herPrayerForHim','Her Prayer for Him - What I ask the Lord to do in your life','textarea')}
-    <div class="rfl-card" style="box-shadow:none;margin:1rem 0 0;background:#fffdf9;">
+    <div class="rfl-panel ued-panel" style="box-shadow:none;margin:1rem 0 0;background:#fffdf9;">
       <h2>A Verse for Our Marriage</h2>
       <div class="rfl-intro">Choose one verse that anchors what you and your spouse want this marriage to be. It does not have to be the most popular verse about wedding or love, but a verse that you are declaring over your marriage, as you walk into a holy covenant and as you build your lives together, centered in Jesus. Write it below in full. Write the reference scripture. Write what it means to you. Let it be a constant reminder throughout this planning process that this is a building block in the foundation of your marriage, when seasons are good and when seasons are hard. This is the scripture that will draw you back to the covenant you made with each other before God, family, and friends.</div>
       ${field('marriageVerseFull','Verse written in full','textarea')}
@@ -10338,7 +10338,7 @@ function renderHomecomingTab(){
   const checklistDone = checklistRows.filter(r => r.status === 'Complete').length;
   const nameDone = nameRows.filter(r => r.done || r.status === 'Complete').length;
 
-  let html = `<div class="rfl-card">
+  let html = `<div class="rfl-panel ued-panel">
     <h2>Newlywed Homecoming</h2>
     <div class="rfl-intro">The week you return home is its own season. Use the Homecoming Checklist for the first practical rhythms of married life, and use Name Change for legal, financial, and account updates. These lists stay separate so one starter preset never fills the wrong table.</div>
     <hr class="gold">
@@ -10412,7 +10412,7 @@ function renderRhythmsTab(){
   const fm = data.firstmonth;
   const rhythm = (key, label) => `<div><label>${label}</label><input value="${escapeHtml(fm[key]||'')}" placeholder="${escapeHtml(label)}" oninput="rflSaveRhythm('${key}',this.value)"></div>`;
 
-  document.getElementById('rfl-content').innerHTML = `<div class="rfl-card">
+  document.getElementById('rfl-content').innerHTML = `<div class="rfl-panel ued-panel">
     <h2>First-Month Marriage Rhythms</h2>
     <div class="rfl-intro">Set up rhythms intentionally — not legalistically. These are seeds, not walls.</div>
     <hr class="gold">
@@ -11077,10 +11077,10 @@ function canonicalizeEditorialUI(panelOrId){
     canonicalizeStatCard(card);
   });
 
-  panel.querySelectorAll('.card, .m-card, .m-block, .guide-card, .hm-card, .venue-bottom-card, .rhythm-card').forEach(card => {
-    if(card.closest('.m-mast-wrap') || card.classList.contains('ued-panel') || card.closest('table')) return;
-    stripVisualClasses(card, ['card','m-card','m-block','guide-card','hm-card','venue-bottom-card','rhythm-card']);
-    card.classList.add('ued-panel');
+  panel.querySelectorAll('.card, .m-card, .m-block, .guide-panel, .guide-card, .hm-card, .venue-bottom-panel, .venue-bottom-card, .rhythm-card, .ceremony-card, .smart-side-panel, .smart-side-card, .smart-main-panel, .smart-main-card, .gift-card, .ent-info-panel, .ent-info-card, .venue-panel-panel, .venue-panel-card, .venue-aside-panel, .venue-aside-card, .cat-card, .notes-side-panel, .notes-side-card, .notes-legacy-panel, .notes-legacy-card, .table-layout-floor-panel, .table-layout-floor-card, .table-assign-panel, .table-assign-card, .log-card, .pkt-card, .rfl-card').forEach(card => {
+    if(card.closest('.m-mast-wrap') || card.classList.contains('ued-panel') || card.classList.contains('ued-table-card') || card.closest('table')) return;
+    stripVisualClasses(card, ['card','m-card','m-block','guide-card','guide-panel','hm-card','venue-bottom-card','venue-bottom-panel','rhythm-card','ceremony-card','smart-side-card','smart-side-panel','smart-main-card','smart-main-panel','gift-card','ent-info-card','ent-info-panel','venue-panel-card','venue-panel-panel','venue-aside-card','venue-aside-panel','cat-card','notes-side-card','notes-side-panel','notes-legacy-card','notes-legacy-panel','table-layout-floor-card','table-layout-floor-panel','table-assign-card','table-assign-panel','log-card','pkt-card','rfl-card']);
+    if (!card.classList.contains('ued-table-card')) card.classList.add('ued-panel');
   });
 
   panel.querySelectorAll('.bulk-bar, .bulk-table-row, .planner-table-control-card, .app-bulk-card, .appointments-bulk-card').forEach(bar => {
@@ -11794,7 +11794,7 @@ function renderDataHealthSummaryCard(limit=6){
     <span><b>${escapeHtml(w.title || 'Relationship needs review')}</b><span>${escapeHtml(w.note || w.text || '')}</span></span>
     <span class="guide-alert-go">Open</span>
   </button>`).join('');
-  return `<section class="guide-card">
+  return `<section class="guide-panel ued-panel">
     <div class="guide-card-kicker">Data health</div>
     <h3 class="guide-card-title">${warnings.length ? 'Linked records to review' : 'Linked records look healthy'}</h3>
     <p class="guide-card-copy">These checks help keep vendors, guests, payments, budget categories, tables, calendar entries, and weekend logistics connected as the planner changes.</p>
@@ -15396,7 +15396,7 @@ function uedVendorShell(){
       <section class="ued-table-card vendors-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportVendorCSV()">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('vendors','vendors')">Edit in Vendors Hub</button></div></div><div id="cwp-vendors" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet editing and bulk actions live in the Vendors Hub.</span></div></section>
       <section class="ued-table-card vendor-cards-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor cards</div></div><div class="hub-record-card-grid" id="vendor-card-grid"></div><div class="hub-record-card-pager"><span class="ued-soft" id="vendor-card-foot"></span><span id="vendor-card-pager"></span></div>${hubPreviewFoot('vendors','vendors')}</section>
     </div>
-    <div data-vnd-tab="shortlist" style="display:none"><div class="m-block vendors-compare-card"><div class="m-head">Vendor Comparisons</div><p class="v4-help-note">Compare up to 3 vendors side by side — full compare table in Database Hub.</p><div id="vendor-compare-preview"></div>${hubPreviewFoot('vendors','vendorCompare')}</div></div>
+    <div data-vnd-tab="shortlist" style="display:none"><section class="ued-panel vendors-compare-panel"><div class="ued-table-head"><div class="ued-table-title">Vendor Comparisons</div></div><p class="v4-help-note">Compare up to 3 vendors side by side — full compare table in Database Hub.</p><div id="vendor-compare-preview"></div>${hubPreviewFoot('vendors','vendorCompare')}</section></div>
   </div>`;
 }
 
@@ -16404,7 +16404,7 @@ function uedTaskShell(){
     <header class="ued-mast"><div><div class="ued-kicker"><span>05</span><i></i><span>Planning</span></div><h1 class="ued-title">Planning Timeline</h1><p class="ued-subtitle">Edit one task inline, scan the read-only tracker preview, or open Planning Hub for full spreadsheet editing and bulk work.</p></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Planning Timeline',data.tasks)">Export CSV</button><button class="ued-link" onclick="loadTaskTimelinePreset()">Load 12-Month Timeline</button><button class="ued-link" onclick="loadTaskFullChecklist()">Load Full Checklist</button><button class="ued-btn primary" onclick="addTaskRow()">+ New task</button></div></header>
     <section class="m-stats" id="task-stats"></section>
     <div id="task-phase-suggest-chips"></div>
-    <section class="tasks-progress-card m-block" id="task-progress-card"></section>
+    <section class="ued-panel tasks-progress-panel" id="task-progress-card"></section>
     <section class="ued-panel span12 record-editor-inline-shell task-inline-editor" id="task-inline-editor-wrap">
       <div class="inline-editor-head">
         <div><div class="ued-table-title">${uedIcon('check')} Task editor <span class="gie-mode" data-inline-editor-mode>Adding a new task</span></div><p class="gie-note">Use this full inline editor for phase, assignment, due dates, priority, status, notes, and nested subtasks.</p></div>
@@ -16531,7 +16531,7 @@ function updateTask(i, key, val) {
   if (['status','priority'].includes(key)) renderWhenInputComplete(renderTasks);
 }
 function taskStatCard(label,value,sub,kind,icon){
-  return `<article class="task-stat-card ${kind||''}"><span class="task-stat-icon">${taskIcon(icon||'clipboard')}</span><div><div class="task-stat-kicker">${escapeHtml(label)}</div><div class="task-stat-value">${escapeHtml(String(value))}</div><div class="task-stat-sub">${escapeHtml(sub||'')}</div></div></article>`;
+  return `<div class="m-stat task-stat-panel ${kind||''}"><div class="m-stat-top"><span class="task-stat-icon">${taskIcon(icon||'clipboard')}</span><span class="m-stat-label">${escapeHtml(label)}</span></div><div class="m-stat-val">${escapeHtml(String(value))}</div><div class="m-stat-sub">${escapeHtml(sub||'')}</div></div>`;
 }
 function renderTaskStats() {
   const done = data.tasks.filter(t=>t.status==='Complete').length;
@@ -19459,7 +19459,7 @@ function renderSmartStats(events, all){
   const dueWeek = events.filter(e=>{ const d=dateFromISO(e.date); return d && d>=today && d<=weekEnd && !/complete|paid|confirmed/i.test(e.status||''); });
   const pending = events.filter(e=>/pending|unconfirm|waiting|not paid|partial/i.test(e.status||''));
   const payments = events.filter(e=>e.source==='Payments' && e.date>=todayISO());
-  const card = (icon,label,val,sub,cls='') => `<div class="smart-stat-card ${cls}"><span class="smart-stat-icon">${icon}</span><div><div class="smart-stat-kicker">${label}</div><div class="smart-stat-value">${val}</div><div class="smart-stat-sub">${sub}</div></div><span class="smart-stat-arrow">›</span></div>`;
+  const card = (icon,label,val,sub,cls='') => `<div class="m-stat smart-stat-panel ${cls}"><div class="m-stat-top"><span class="smart-stat-icon">${icon}</span><span class="m-stat-label">${label}</span></div><div class="m-stat-val">${val}</div><div class="m-stat-sub">${sub}</div></div>`;
   host.innerHTML = [
     card(appointmentIcon('calendar'),'Events This Month',monthEvents.length,'Across all sources'),
     card(appointmentIcon('clock'),'Due This Week',dueWeek.length,'Tasks & deadlines','soft'),
@@ -27321,10 +27321,10 @@ function uedContractsShell(){
   panel.innerHTML = `<div class="ued-page"><datalist id="vendor-name-options"></datalist>
     <header class="ued-mast"><div><div class="ued-kicker"><span>11</span><i></i><span>Finances</span></div><h1 class="ued-title">Contracts, Invoices &amp; Rentals</h1><p class="ued-subtitle">Track signed documents, invoices, receipts, saved file locations, and rental return dates. Full spreadsheet editing lives in the Finances Database Hub.</p></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Contracts',data.contracts)">Export CSV</button><button class="ued-btn primary" onclick="addContractRow()">+ Add document</button></div></header>
     <section class="ued-band contracts-stat-grid" style="--ued-band-cols:4" id="contracts-stat-grid">
-      <div class="ued-stat contracts-stat-card"><b id="contracts-total-docs">0</b><span>Total documents</span><small>Contracts, invoices, receipts</small></div>
-      <div class="ued-stat contracts-stat-card"><b id="contracts-signed-docs">0</b><span>Signed / closed</span><small id="contracts-signed-pct">0% of total</small></div>
-      <div class="ued-stat contracts-stat-card"><b id="contracts-pending-docs">0</b><span>Not signed</span><small id="contracts-pending-pct">0% of total</small></div>
-      <div class="ued-stat contracts-stat-card"><b id="contracts-invoices-due">0</b><span>Invoices due</span><small id="contracts-invoices-amount">$0 due</small></div>
+      <div class="ued-stat"><b id="contracts-total-docs">0</b><span>Total documents</span><small>Contracts, invoices, receipts</small></div>
+      <div class="ued-stat"><b id="contracts-signed-docs">0</b><span>Signed / closed</span><small id="contracts-signed-pct">0% of total</small></div>
+      <div class="ued-stat"><b id="contracts-pending-docs">0</b><span>Not signed</span><small id="contracts-pending-pct">0% of total</small></div>
+      <div class="ued-stat"><b id="contracts-invoices-due">0</b><span>Invoices due</span><small id="contracts-invoices-amount">$0 due</small></div>
     </section>
     <section class="ued-panel span12 contracts-toolbar-card">
       ${uedCaption('search','Document filters')}

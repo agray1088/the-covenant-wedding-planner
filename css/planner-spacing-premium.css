@@ -663,6 +663,50 @@ body.editorial-v4 #main .panel .cdc-tiles {
 
 body.editorial-v4 #main .panel :is(
   .ceremony-card,
+  .ceremony-overview-panel,
+  .ceremony-order-panel,
+  .ceremony-processional-panel,
+  .ceremony-recessional-panel,
+  .ceremony-scripture-panel,
+  .ceremony-vows-panel,
+  .ceremony-officiant-panel,
+  .ceremony-reception-panel,
+  .ceremony-traditions-panel,
+  .smart-side-panel,
+  .smart-main-panel,
+  .gift-recent-panel,
+  .gift-summary-panel,
+  .gift-category-panel,
+  .gift-note-panel,
+  .gift-toolbar-panel,
+  .ent-info-panel,
+  .venue-details-panel,
+  .venue-shortlist-panel,
+  .venue-notes-panel,
+  .venue-reminders-panel,
+  .cat-menu-panel,
+  .cat-bar-panel,
+  .cat-dietary-panel,
+  .cat-costs-panel,
+  .notes-side-panel,
+  .notes-legacy-panel,
+  .table-layout-floor-panel,
+  .table-assign-panel,
+  .vendors-compare-panel,
+  .guide-panel,
+  .next-step-panel,
+  .pkt-panel,
+  .log-panel,
+  .rfl-panel,
+  .tasks-progress-panel
+) {
+  padding: var(--planner-panel-padding, 1.5rem) !important;
+  margin-bottom: var(--planner-card-gap, 1rem) !important;
+  box-sizing: border-box !important;
+}
+
+body.editorial-v4 #main .panel :is(
+  .ceremony-card,
   .smart-side-card,
   .smart-main-card,
   .gift-card,
@@ -678,7 +722,6 @@ body.editorial-v4 #main .panel :is(
   .table-assign-card,
   .log-card,
   .pkt-card,
-  .rfl-card,
   .hub-preview-card:not(.ued-table-card .hub-preview-card)
 ) {
   padding: var(--planner-panel-padding, 1.5rem) !important;
