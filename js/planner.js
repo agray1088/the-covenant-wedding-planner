@@ -10738,7 +10738,7 @@ function phase3AuditPage(panelId){
     return (cs.boxShadow && cs.boxShadow !== 'none') || (parseFloat(cs.borderRadius) || 0) > 12;
   }).length;
   const hubPrimaries = panel.querySelectorAll('.db-edit-btn.primary, .db-edit-btn.ued-btn.primary').length;
-  const inlineScripture = panel.querySelectorAll('.tasks-scripture-card, [class*="scripture-card"]:not(.page-scripture-footer)').length;
+  const inlineScripture = panel.querySelectorAll('.tasks-scripture-card, [class*="scripture-card"]:not(.page-scripture-footer), :scope > .m-soft .m-verse, :scope > .m-block .m-verse').length;
   const staticScriptureFooters = panel.querySelectorAll('[class*="-scripture-footer"]:not(.page-scripture-footer)').length;
   const legacyButtons = panel.querySelectorAll('.smart-search-actions .btn-forest, .smart-search-actions .btn-outline, .app-search-actions .btn-forest').length;
   const pageScripture = !!panel.querySelector('.page-scripture-footer');
@@ -10759,7 +10759,7 @@ function phase3AuditPage(panelId){
   };
 }
 function phase3AuditBatch(ids){
-  const list = ids || ['dashboard','budget','guests','vendors','payments','tasks','calendar','appointments'];
+  const list = ids || ['dashboard','budget','guests','vendors','payments','tasks','calendar','appointments','prayer','counseling','ceremony'];
   return list.map(id => { showPanel(id, true); return phase3AuditPage(id); });
 }
 window.phase3AuditPage = phase3AuditPage;
@@ -17340,6 +17340,7 @@ const PRAYER_JOURNAL_PROMPTS = [
 ];
 
 function renderPrayer() {
+  document.getElementById('panel-prayer')?.classList.add('ued-scope');
   /* Converted to the CWP unified table engine (reflective page → bulk off:
      search + per-column filters + shared modal editor, no select-to-delete). */
   if (typeof cwpRenderTable === 'function' && cwpMountOnPanel('prayer')) {
@@ -17419,6 +17420,7 @@ function addCounselingRow() {
 }
 
 function renderCounseling() {
+  document.getElementById('panel-counseling')?.classList.add('ued-scope');
   /* Converted to the CWP unified system — table renders from the descriptor. */
   if (typeof renderCounselingCurriculum === 'function') renderCounselingCurriculum();
   if (typeof cwpRenderTable === 'function' && cwpMountOnPanel('counseling')) {
