@@ -84,6 +84,12 @@ body.editorial-v4[data-theme="dark"] {
   --status-badge-text:  #dcd0b2;
   --status-badge-border: #2e2e2e;
 
+  /* Progress token aliases (dark whisper) */
+  --progress-track-bg: var(--dm-elevated);
+  --progress-fill-bg: var(--dm-accent-soft);
+  --progress-label-color: var(--dm-muted);
+  --progress-value-color: var(--dm-accent-soft);
+
   /* ── Shadows — flat panels; soft elevation only for popovers ── */
   --dm-shadow-sm: none;
   --dm-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
@@ -903,17 +909,7 @@ body.editorial-v4[data-theme="dark"] #panel-shotlist .shotlist-tabs-shell .m-tab
   color: var(--dm-head) !important;
 }
 
-/* ── Progress tracks ── */
-body.editorial-v4.dark-mode #main .panel .progress-track,
-body.editorial-v4.dark-mode #main .panel [class*="-track"]:not([class*="fill"]),
-body.editorial-v4[data-theme="dark"] #main .panel .progress-track {
-  background: rgba(255, 255, 255, 0.07) !important;
-}
-body.editorial-v4.dark-mode #main .panel .progress-fill,
-body.editorial-v4.dark-mode #main .panel [class*="-fill"],
-body.editorial-v4[data-theme="dark"] #main .panel .progress-fill {
-  background: var(--dm-accent-muted) !important;
-}
+/* Batch D: progress track colors delegated to authoritative Batch D block at end of file */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    V3 — DEEP PASS: banners, chrome, all panels, pop-outs, status semantics
@@ -1666,23 +1662,7 @@ body.editorial-v4[data-theme="dark"] #main {
 }
 
 /* UX kit — dark mode */
-body.editorial-v4.dark-mode .ux-goal-bar,
-body.editorial-v4[data-theme="dark"] .ux-goal-bar {
-  background: linear-gradient(135deg, var(--dm-surface-2) 0%, var(--dm-surface) 100%);
-  color: var(--dm-head);
-}
-
-body.editorial-v4.dark-mode .ux-goal-bar__k,
-body.editorial-v4.dark-mode .ux-goal-bar__cap,
-body.editorial-v4[data-theme="dark"] .ux-goal-bar__k,
-body.editorial-v4[data-theme="dark"] .ux-goal-bar__cap {
-  color: var(--dm-muted);
-}
-
-body.editorial-v4.dark-mode .ux-goal-bar__fill,
-body.editorial-v4[data-theme="dark"] .ux-goal-bar__fill {
-  background: var(--dm-accent-soft);
-}
+/* Batch D: ux-goal-bar retired — legacy markup aliased in Batch D progress block below */
 
 body.editorial-v4.dark-mode .ux-related-note,
 body.editorial-v4.dark-mode .ux-empty,
@@ -1984,7 +1964,6 @@ body.editorial-v4.dark-mode #main .panel .ued-bar-track,
 body.editorial-v4.dark-mode #main .panel .breakdown-track,
 body.editorial-v4[data-theme="dark"] #main .panel .ued-track {
   background: var(--dm-elevated) !important;
-  border-radius: 1px !important;
 }
 
 /* Topbar: charcoal chrome buttons (Dark Mode primary stays near-white) */
@@ -3698,4 +3677,131 @@ body.editorial-v4 #main .panel :is(.cwp-status select, .status-pill--interactive
   border: 0 !important;
   color: inherit !important;
   box-shadow: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Batch D — Progress (authoritative; loads last)
+   Canonical: .ued-progress / .ued-progress-row / .ued-track / .ued-fill
+   Legacy aliases: .progress-track, .ux-goal-bar__*, .task-progress-track, etc.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.editorial-v4 #main .panel :is(
+  .ued-track,
+  .progress-track,
+  .task-progress-track,
+  .ux-goal-bar__track,
+  .mood-upload-progress-bar,
+  .payment-progress-track
+),
+body.editorial-v4.dark-mode #main .panel :is(
+  .ued-track,
+  .progress-track,
+  .task-progress-track,
+  .ux-goal-bar__track,
+  .mood-upload-progress-bar,
+  .payment-progress-track
+),
+body.editorial-v4[data-theme="dark"] #main .panel :is(
+  .ued-track,
+  .progress-track,
+  .task-progress-track,
+  .ux-goal-bar__track,
+  .mood-upload-progress-bar,
+  .payment-progress-track
+) {
+  display: block;
+  position: relative;
+  height: var(--progress-track-height, 9px) !important;
+  min-height: var(--progress-track-height, 9px);
+  border-radius: var(--progress-track-radius, 0) !important;
+  background: var(--progress-track-bg, var(--border-subtle, #e7e1d4)) !important;
+  overflow: hidden !important;
+  border: 0 !important;
+}
+
+body.editorial-v4 #main .panel :is(
+  .ued-fill,
+  .progress-track > span,
+  .task-progress-track > span,
+  .ux-goal-bar__fill,
+  .mood-upload-progress-fill,
+  .payment-progress-track > span
+),
+body.editorial-v4.dark-mode #main .panel :is(
+  .ued-fill,
+  .progress-track > span,
+  .task-progress-track > span,
+  .ux-goal-bar__fill,
+  .mood-upload-progress-fill,
+  .payment-progress-track > span
+),
+body.editorial-v4[data-theme="dark"] #main .panel :is(
+  .ued-fill,
+  .progress-track > span,
+  .task-progress-track > span,
+  .ux-goal-bar__fill,
+  .mood-upload-progress-fill,
+  .payment-progress-track > span
+) {
+  display: block !important;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: 100% !important;
+  border-radius: var(--progress-track-radius, 0) !important;
+  background: var(--progress-fill-bg, var(--forest, #2d4a3e)) !important;
+}
+
+body.editorial-v4 #main .panel .ued-progress-row label {
+  color: var(--progress-label-color, var(--text-muted, #5c5c58)) !important;
+}
+
+body.editorial-v4 #main .panel .ued-progress-row em {
+  color: var(--progress-value-color, var(--forest, #2d4a3e)) !important;
+}
+
+body.editorial-v4 #main .panel .ued-progress-cap {
+  font-size: .82rem;
+  color: var(--progress-label-color, var(--text-muted, #5c5c58));
+  padding: 0 0 .45rem;
+  margin-top: -.35rem;
+}
+
+body.editorial-v4 #main .panel .ued-progress--goal .ued-progress-row {
+  border-bottom: 0;
+}
+
+body.editorial-v4 #main #panel-dashboard :is(
+  .ued-track,
+  .ued-bar-track,
+  .ued-fill,
+  .ued-bar-fill
+),
+body.editorial-v4.dark-mode #main #panel-dashboard :is(
+  .ued-track,
+  .ued-bar-track,
+  .ued-fill,
+  .ued-bar-fill
+),
+body.editorial-v4[data-theme="dark"] #main #panel-dashboard :is(
+  .ued-track,
+  .ued-bar-track,
+  .ued-fill,
+  .ued-bar-fill
+) {
+  height: var(--progress-track-height, 9px) !important;
+  border-radius: var(--progress-track-radius, 0) !important;
+  overflow: hidden !important;
+}
+
+body.editorial-v4 #main #panel-dashboard :is(.ued-fill, .ued-bar-fill) {
+  display: block !important;
+  height: 100% !important;
+}
+
+body.editorial-v4 #main #panel-dashboard .ued-progress-track,
+body.editorial-v4 #main #panel-dashboard .ued-bar-track,
+body.editorial-v4 #main #panel-dashboard .ued-vbar-track {
+  border-radius: var(--progress-track-radius, 0) !important;
 }

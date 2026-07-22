@@ -50,6 +50,14 @@
   --status-badge-text: #5c5c58;
   --status-badge-border: transparent;
   --status-chip-radius: 0;
+
+  /* Progress track semantics (light) */
+  --progress-track-height: 9px;
+  --progress-track-radius: 0;
+  --progress-track-bg: var(--border-subtle, #e7e1d4);
+  --progress-fill-bg: var(--forest, #2d4a3e);
+  --progress-label-color: var(--text-muted, #5c5c58);
+  --progress-value-color: var(--forest, #2d4a3e);
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;

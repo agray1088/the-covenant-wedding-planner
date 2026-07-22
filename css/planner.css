@@ -4363,20 +4363,7 @@ body {
   color: var(--muted);
 }
 
-.progress-track {
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(45,74,62,.10);
-  overflow: hidden;
-  border: 1px solid rgba(184,153,104,.12);
-}
-
-.progress-track span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--forest), var(--gold));
-}
+/* Batch D: .progress-track delegated to .ued-track — see planner-dark-editorial.css */
 
 .chart-row-luxury {
   margin-top: 1.25rem;
@@ -10715,7 +10702,7 @@ body.dark-mode .coach-bubble .ued-btn.primary:hover, body.dark-mode .coach-frami
 #main .page-prayer-prompt { padding: .55rem .95rem !important; margin: 0 0 .6rem !important; }
 #main .page-prayer-prompt [class*="title"], #main .page-prayer-prompt h3, #main .page-prayer-prompt h4 { font-size: .74rem !important; }
 /* Slim the full-width progress bar and hug it to the stat band */
-#main .ux-goal-bar { padding: .5rem .95rem !important; margin-top: .4rem !important; margin-bottom: .7rem !important; }
+#main .ued-progress--goal { margin-top: .4rem !important; margin-bottom: .7rem !important; }
 /* Tighten masthead vertical rhythm */
 #main .m-mast, #main .m-mast-wrap { margin-bottom: .5rem !important; padding-bottom: .25rem !important; }
 
@@ -43715,17 +43702,7 @@ body.editorial-v4 #main #panel-dashboard .ued-band > .ued-stat:last-child {
 body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat b,
 body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat span,
 body.editorial-v4 #main #panel-dashboard .ued-band .ued-stat small { display: block; text-align: center !important; }
-/* Dashboard bar graphs — uniform, thicker, rounded */
-#panel-dashboard .ued-track,
-#panel-dashboard .ued-bar-track{ height:9px !important; border-radius:999px !important; overflow:hidden !important; }
-#panel-dashboard .ued-fill{ display:block !important; height:100% !important; border-radius:999px !important; }
-#panel-dashboard .ued-bar-fill{ border-radius:999px !important; }
-
-/* Dashboard bar graphs — square (no rounding) */
-#panel-dashboard .ued-track,
-#panel-dashboard .ued-bar-track,
-#panel-dashboard .ued-fill,
-#panel-dashboard .ued-bar-fill{ border-radius:0 !important; }
+/* Batch D: dashboard progress tracks delegated to authoritative progress block in planner-dark-editorial.css */
 
 /* Smart Alerts — left-align the alert text (leave the Open box) */
 #panel-dashboard .guide-alert{ text-align:left !important; align-items:center !important; }

@@ -18625,11 +18625,7 @@ function escapeHtml(value) {
 
 function progressRow(label, pct, sub) {
   const safePct = Math.max(0, Math.min(100, Number(pct)||0));
-  return `<div class="progress-row">
-    <div class="progress-row-top"><span class="progress-row-label">${escapeHtml(label)}</span><span class="progress-row-sub">${safePct}%</span></div>
-    <div class="progress-track"><span style="width:${safePct}%"></span></div>
-    <div class="progress-row-sub">${escapeHtml(sub)}</div>
-  </div>`;
+  return `<div class="ued-progress"><div class="ued-progress-row"><label>${escapeHtml(label)}</label><span class="ued-track"><b class="ued-fill" style="width:${safePct}%"></b></span><em>${safePct}%</em></div>${sub ? `<div class="ued-progress-cap">${escapeHtml(sub)}</div>` : ''}</div>`;
 }
 
 function formatDue(dateValue) {

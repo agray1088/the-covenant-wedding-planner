@@ -75,11 +75,12 @@
     const cap = total
       ? (done + ' of ' + total + ' — ' + pct + '% ' + (opts.suffix || 'there'))
       : (opts.emptyLabel || 'Add your first items to start tracking progress');
-    return '<section class="ux-goal-bar" aria-label="' + uxEsc(label) + ' progress">' +
-      '<div class="ux-goal-bar__k">' + uxEsc(label) + '</div>' +
-      '<div class="ux-goal-bar__track"><b class="ux-goal-bar__fill" style="width:' + pct + '%"></b></div>' +
-      '<div class="ux-goal-bar__cap">' + uxEsc(cap) + '</div>' +
-    '</section>';
+    return '<div class="ued-progress ued-progress--goal" aria-label="' + uxEsc(label) + ' progress">' +
+      '<div class="ued-progress-row"><label>' + uxEsc(label) + '</label>' +
+      '<span class="ued-track"><b class="ued-fill" style="width:' + pct + '%"></b></span>' +
+      '<em>' + pct + '%</em></div>' +
+      '<div class="ued-progress-cap">' + uxEsc(cap) + '</div>' +
+    '</div>';
   }
   global.goalBar = goalBar;
 
