@@ -2324,9 +2324,9 @@ function historyPanelId() {
 function historyPanelLabel(id = historyPanelId()) {
   const labels = {
     instructions:'Get Started', faq:'FAQ', history:'Planner History', dashboard:'Dashboard', setup:'Wedding Setup', 'data-hub':'Database Hub',
-    budget:'Budget', payments:'Payments', vendors:'Vendors', guests:'Guest List', tasks:'Planning Timeline',
+    budget:'Budget', payments:'Payments', vendors:'Venue & Vendors', guests:'Guest List', tasks:'Planning Timeline',
     calendar:'Smart Calendar', appointments:'Appointments', notes:'Notes', contracts:'Contracts, Invoices & Rentals',
-    venue:'Wedding Venue', catering:'Catering & Menu', party:'Wedding Party', tables:'Table Layout',
+    venue:'Venue & Vendors', catering:'Catering & Menu', party:'Wedding Party', tables:'Table Layout',
     ceremony:'Ceremony & Reception', timeline:'Wedding Day Timeline', entertainment:'Music & Speeches', shotlist:'Photo & Video Shot Lists',
     mood:'Vision Board', essentials:'Essentials Checklist', gifts:'Gift Log', honeymoon:'Honeymoon & After',
     prayer:'Prayer Journal', counseling:'Premarital Counseling'
@@ -3669,8 +3669,7 @@ const NAV_CATEGORIES = [
     { id:'contracts', label:'Contracts, Invoices & Rentals', subtitle:'Documents & rentals', icon:'receipt_long' }
   ]},
   { id:'venue-vendors', label:'Venue & Vendors', subtitle:'Partners & catering', icon:'apartment', pages:[
-    { id:'venue', label:'Wedding Venue', subtitle:'Compare venues', icon:'apartment' },
-    { id:'vendors', label:'Vendors', subtitle:'Contacts & status', icon:'storefront' },
+    { id:'vendors', label:'Venue & Vendors', subtitle:'Vendors, venue & compare', icon:'storefront' },
     { id:'catering', label:'Catering & Menu', subtitle:'Food, drinks, rentals', icon:'restaurant' }
   ]},
   { id:'people', label:'People', subtitle:'Guests & seating', icon:'groups', pages:[
@@ -3841,8 +3840,8 @@ const SYSTEM_PAGE_REGISTRY = {
   budget: { id:'budget', label:'Budget', scopeTier:'launch', archetype:'tracker', status:'exception', primaryAction:'Add category', usesCwpTable:true, tableKeys:['budgetItems'], bulkMode:'hubOnly', hub:'finances', notes:'Hybrid category carousel plus itemized CWP table and reconciliation.' },
   payments: { id:'payments', label:'Payments', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add payment', usesCwpTable:true, tableKeys:['payments'], bulkMode:'shared', hub:'finances', notes:'Batch 1 tracker contract: inline editor, read-only CWP preview, and Finances Hub edit path. Visual rhythm follows .cwp-table / premium tokens.' },
   contracts: { id:'contracts', label:'Contracts, Invoices & Rentals', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add document', usesCwpTable:true, tableKeys:['contracts','rentals'], bulkMode:'shared', hub:'finances' },
-  venue: { id:'venue', label:'Wedding Venue', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Compare venues', usesCwpTable:true, tableKeys:['vendorCompare'], bulkMode:'disabled', hub:'vendors', notes:'Venue cards plus vendor comparison table.' },
-  vendors: { id:'vendors', label:'Vendors', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add vendor', usesCwpTable:true, tableKeys:['vendors','vtimeline','vendorCompare'], bulkMode:'shared', hub:'vendors' },
+  venue: { id:'venue', label:'Venue', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Edit venue details', usesCwpTable:false, tableKeys:[], bulkMode:'disabled', hub:'vendors', notes:'Ceremony and reception venue details — reached via Venue & Vendors hub tab.' },
+  vendors: { id:'vendors', label:'Venue & Vendors', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add vendor', usesCwpTable:true, tableKeys:['vendors','vtimeline','vendorCompare'], bulkMode:'shared', hub:'vendors' },
   catering: { id:'catering', label:'Catering & Menu', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add menu item', usesCwpTable:true, tableKeys:['menu','beverages','kidsMenu','placeSettings','cateringRentals','snacks','vendorMeals'], bulkMode:'hubOnly', hub:'catering', notes:'Multi-table tracker; only one inline editor should be live at a time in Phase B.' },
   guests: { id:'guests', label:'Guest List', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add guest', usesCwpTable:true, tableKeys:['guests'], bulkMode:'shared', hub:'people', notes:'Batch 1 tracker contract proven: inline editor, read-only CWP preview, and People Hub edit path.' },
   party: { id:'party', label:'Wedding Party', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add party member', usesCwpTable:true, tableKeys:['party'], bulkMode:'shared', hub:'people' },
@@ -4442,7 +4441,7 @@ function renderCategoryMenubar(){
     const pagesHtml = visiblePages.map(p => {
       const action = navCategoryPageAction(p);
       const pid = navCategoryPageId(p);
-      const isActive = pid === active || (pid === 'reflect' && active === 'reflect');
+      const isActive = pid === active || (pid === 'vendors' && active === 'venue') || (pid === 'reflect' && active === 'reflect');
       return `<button type="button" class="nav-cat-page${isActive ? ' active' : ''}" onclick="${action};closeAllCategoryDropdowns();">${escapeHtml(p.label)}<span class="nav-cat-page-sub">${escapeHtml(p.subtitle || '')}</span></button>`;
     }).join('');
     return `<div class="nav-cat-item" data-cat="${cat.id}"><button type="button" class="nav-cat-btn" id="nav-cat-btn-${cat.id}" aria-expanded="false" aria-haspopup="true" onclick="toggleCategoryDropdown('${cat.id}')">${cat.icon ? `<span class="material-symbols-sharp" aria-hidden="true">${cat.icon}</span>` : ''}<span class="nav-cat-label">${escapeHtml(cat.label)}</span></button><div class="nav-cat-dropdown" id="nav-cat-drop-${cat.id}" role="menu">${pagesHtml}</div></div>`;
@@ -4805,7 +4804,7 @@ function syncNavMenuDrawerContent(){
       if (!visiblePages.length) return;
       const hasActive = visiblePages.some(p => {
         const pid = navCategoryPageId(p);
-        return pid === active || (pid === 'reflect' && active === 'reflect');
+        return pid === active || (pid === 'vendors' && active === 'venue') || (pid === 'reflect' && active === 'reflect');
       });
       const isOpen = data.setup.navDrawerOpen[cat.id] === true || (data.setup.navDrawerOpen[cat.id] == null && hasActive);
       const section = document.createElement('div');
@@ -4827,7 +4826,7 @@ function syncNavMenuDrawerContent(){
       visiblePages.forEach(p => {
         const pid = navCategoryPageId(p);
         const action = navCategoryPageAction(p);
-        const isActive = pid === active || (pid === 'reflect' && active === 'reflect');
+        const isActive = pid === active || (pid === 'vendors' && active === 'venue') || (pid === 'reflect' && active === 'reflect');
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'nav-item' + (isActive ? ' active' : '') + (isPageSoftLocked(pid) ? ' nav-item-locked' : '');
@@ -5688,8 +5687,8 @@ function showPanel(id, forceOpen = false) {
   if (id === 'history') id = 'dashboard';
   if (id === 'plan') id = 'tasks';
   if (id === 'reflect' && typeof _rflTab === 'undefined') _rflTab = 'vision';
-  if (!forceOpen && isSimpleModePageHidden(id)) id = 'dashboard';
-  if (!forceOpen && isMenuPageHidden(id)) id = 'dashboard';
+  if (!forceOpen && isSimpleModePageHidden(id) && id !== 'venue') id = 'dashboard';
+  if (!forceOpen && isMenuPageHidden(id) && id !== 'venue') id = 'dashboard';
   if (typeof uxRestorePanelDom === 'function') uxRestorePanelDom(id);
   const useUxSkeleton = typeof UX_PAGES !== 'undefined' && UX_PAGES[id] && typeof uxShowPanelSkeleton === 'function';
   if (useUxSkeleton) uxShowPanelSkeleton(id);
@@ -5712,10 +5711,11 @@ function showPanel(id, forceOpen = false) {
   if (!activePanel) return;
   activePanel.classList.add('active');
   activePanel.removeAttribute('aria-hidden');
+  const navHighlightId = (id === 'venue') ? 'vendors' : id;
   const items = document.querySelectorAll('.nav-item');
   items.forEach(item => {
     const onclick = item.getAttribute('onclick') || '';
-    let isActive = onclick.includes("'" + id + "'");
+    let isActive = onclick.includes("'" + navHighlightId + "'");
     if (id === 'reflect') {
       if (_rflTab === 'rhythms') isActive = onclick.includes("showReflectTabPage('rhythms')");
       else if (_rflTab === 'homecoming') isActive = onclick.includes("showReflectTabPage('homecoming')") || onclick.includes('showNameChangePage');
@@ -5726,6 +5726,8 @@ function showPanel(id, forceOpen = false) {
   });
   if (id !== 'dashboard' && typeof stopDashboardLiveCountdown === 'function') stopDashboardLiveCountdown();
   renderRegisteredPanel(id);
+  if (id === 'venue' && typeof syncVenueVendorsHubTabs === 'function') syncVenueVendorsHubTabs('venue');
+  else if (id === 'vendors' && typeof syncVenueVendorsHubTabs === 'function') syncVenueVendorsHubTabs(_vndTab === 'shortlist' ? 'shortlist' : 'vendors');
   if (typeof updateTopbarNotificationsBell === 'function') updateTopbarNotificationsBell();
   requestAnimationFrame(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); mountAllTabs(); normalizeCurrencyTableInputs(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot, { reset:true }); });
   setTimeout(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot); }, 80);
@@ -6883,7 +6885,7 @@ const QJ_PAGES = {
   dashboard:'Dashboard', setup:'Wedding Setup', plan:'Planning Timeline', tasks:'Tasks',
   calendar:'Smart Calendar', appointments:'Appointments', notes:'Notes',
   budget:'Budget', payments:'Payments', contracts:'Contracts, Invoices & Rentals',
-  venue:'Wedding Venue', vendors:'Vendors', catering:'Catering & Menu',
+  venue:'Venue & Vendors', vendors:'Venue & Vendors', catering:'Catering & Menu',
   guests:'Guest List', party:'Wedding Party', tables:'Table Layout',
   ceremony:'Ceremony & Reception', timeline:'Wedding Day Timeline', entertainment:'Music & Speeches',
   shotlist:'Photo & Video Shot Lists', mood:'Vision Board', essentials:'Essentials Checklist',
@@ -10748,7 +10750,7 @@ const PAGE_HELP = {
   history: {title:'Planner History',text:'See a dated record of planner changes without restoring from this page. Use the date picker to review one day at a time. The top-bar Undo and Redo buttons restore recent full snapshots step by step, while Clear History removes the saved log and snapshots for privacy and file-size control.'},
   notes: {title:'Notes',text:'Four quick-note areas (General, Family, Vendors, Marriage) plus a detailed Notes Tracker for structured entries with titles, categories, tags, status, and next steps. Pin important notes to keep them visible.'},
   plan: {title:'Planning Timeline',text:'A month-by-month master checklist organized by phase (12+ months out through the wedding week). Click <strong>Load Full Wedding Checklist</strong> for a comprehensive 8-phase, 59-task plan, and expand any task to add your own <strong>subtasks</strong>. Tasks with due dates appear in the Smart Calendar.'},
-  venue: {title:'Wedding Venue',text:'Compare venues side by side. Click the photo area on any venue card to upload a photo. Click "View Details" for the full detail form. Add additional comparison venues with "+ Add Venue to Compare." The Comparison Table shows all venues across key criteria.'},
+  venue: {title:'Venue & Vendors',text:'Use the Venue tab for ceremony and reception details and venue shortlist cards. Vendor comparisons live on the Shortlist & Compare tab.'},
   catering: {title:'Catering & Menu',text:'This page owns four budget categories — <strong>Food, Cake & Desserts, Drinks, and Rentals</strong>. It also tracks <strong>Pre-Wedding Snacks</strong> and <strong>Vendor Meals</strong> tables that roll into the Food budget. Every item auto-syncs as a read-only line in the Budget. Use <strong>Load Starter</strong> buttons on each table for pre-built lists. Costs recalculate live as you edit.'},
   honeymoon: {title:'Honeymoon & After',text:'Plan your honeymoon travel, packing, reservations, transportation, budget, and journal across <strong>tabs</strong>. Name-change and newlywed homecoming workflows now live under <strong>Marriage Rhythms</strong> so post-wedding life tasks are separated from honeymoon travel. Your honeymoon budget is tracked <strong>separately</strong> from your wedding budget. Departure/return dates appear in the Smart Calendar.'},
   emails: {title:'Vendor Questions & Email Templates',text:'Start with the <strong>Vendor Questions</strong> tab for comprehensive questions by vendor type, then use <strong>Email Templates</strong> for inquiry, follow-up, wedding party, guest, and thank-you messages. Merge fields like <strong>{{bride}}</strong> and <strong>{{date}}</strong> auto-fill from Wedding Setup.'},
@@ -15242,9 +15244,9 @@ function uedVendorShell(){
   if (panel.dataset.uedShell === 'vendors-tracker-b2') return;
   panel.dataset.uedShell = 'vendors-tracker-b2';
   panel.innerHTML = `<div class="ued-page">
-    <header class="ued-mast"><div><div class="ued-kicker"><span>08</span><i></i><span>Venue &amp; Vendors</span></div><h1 class="ued-title">Vendors</h1><p class="ued-subtitle">Edit vendor records inline, review the read-only tracker preview, or open the Vendors Hub for the full spreadsheet view.</p></div><div class="ued-actions"><button class="ued-link" onclick="openEntityCSVImport('vendors')">Import CSV</button><button class="ued-link" onclick="exportVendorCSV()">Export CSV</button><button class="ued-btn primary" onclick="addVendorRow()">+ Add vendor</button></div></header>
+    <header class="ued-mast"><div><div class="ued-kicker"><span>08</span><i></i><span>Venue &amp; Vendors</span></div><h1 class="ued-title">Venue &amp; Vendors</h1><p class="ued-subtitle">Edit vendor records inline, review the read-only tracker preview, or open the Vendors Hub for the full spreadsheet view.</p></div><div class="ued-actions"><button class="ued-link" onclick="openEntityCSVImport('vendors')">Import CSV</button><button class="ued-link" onclick="exportVendorCSV()">Export CSV</button><button class="ued-btn primary" onclick="addVendorRow()">+ Add vendor</button></div></header>
     <section class="m-stats" id="vendor-stats" aria-label="Vendor summary"></section>
-    <div class="m-tabbar vnd-tabbar"><button class="m-tab on" data-tab="tracker" onclick="vndTab('tracker')">Vendor Tracker</button><button class="m-tab" data-tab="shortlist" onclick="vndTab('shortlist')">Shortlist &amp; Compare</button></div>
+    <div class="m-tabbar vv-hub-tabbar"><button class="m-tab on" data-vv-hub="vendors" onclick="goVendorsTab('tracker')">Vendors</button><button class="m-tab" data-vv-hub="venue" onclick="goVenueTab()">Venue</button><button class="m-tab" data-vv-hub="shortlist" onclick="goVendorsTab('shortlist')">Shortlist &amp; Compare</button></div>
     <div data-vnd-tab="tracker">
       <div class="vnd-cat-tabs-wrap"><div id="vendor-cat-tabs" class="vnd-cat-tabs vnd-cat-tabs-primary" role="tablist"></div></div>
       <section class="ued-panel span12 record-editor-inline-shell vendor-inline-editor" id="vendor-inline-editor-wrap">
@@ -15269,11 +15271,21 @@ function uedVendorShell(){
 }
 
 let _vndTab = 'tracker';
+function syncVenueVendorsHubTabs(activeHub){
+  document.querySelectorAll('.vv-hub-tabbar .m-tab').forEach(b => b.classList.toggle('on', b.dataset.vvHub === activeHub));
+}
+function goVenueTab(){
+  showPanel('venue');
+}
+function goVendorsTab(tab){
+  showPanel('vendors');
+  if (tab) vndTab(tab);
+}
 function syncVendorTabChrome(){
   const panel = document.getElementById('panel-vendors');
   if (!panel) return;
   panel.querySelectorAll('[data-vnd-tab]').forEach(el => { el.style.display = (el.dataset.vndTab === _vndTab) ? '' : 'none'; });
-  panel.querySelectorAll('.vnd-tabbar .m-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === _vndTab));
+  syncVenueVendorsHubTabs(_vndTab === 'shortlist' ? 'shortlist' : 'vendors');
 }
 function vndTab(name){
   _vndTab = name;
@@ -26287,8 +26299,24 @@ function renderVenueReminders() {
 let _venTab='details';
 function venTab(name){
   _venTab=name;
-  document.querySelectorAll('#panel-venue .venue-arrange-grid [data-card]').forEach(el => { el.style.display = (el.dataset.card===name) ? '' : 'none'; });
+  document.querySelectorAll('#panel-venue .venue-arrange-grid [data-card]').forEach(el => {
+    const card = el.dataset.card;
+    el.style.display = (card === name || (name === 'details' && card === 'shortlist')) ? '' : 'none';
+  });
   document.querySelectorAll('#panel-venue .ven-tabbar .m-tab').forEach(b => b.classList.toggle('on', b.dataset.tab===name));
+}
+function ensureVenueVendorsHubTabbar(panel){
+  if (!panel) return;
+  let bar = panel.querySelector('.vv-hub-tabbar');
+  if (bar) return;
+  bar = document.createElement('div');
+  bar.className = 'm-tabbar vv-hub-tabbar';
+  bar.innerHTML = '<button class="m-tab" data-vv-hub="vendors" onclick="goVendorsTab(\'tracker\')">Vendors</button><button class="m-tab on" data-vv-hub="venue" onclick="goVenueTab()">Venue</button><button class="m-tab" data-vv-hub="shortlist" onclick="goVendorsTab(\'shortlist\')">Shortlist &amp; Compare</button>';
+  const mast = panel.querySelector(':scope > .ued-mast, :scope > .venue-mast, :scope > .venue-title-wrap');
+  const stats = panel.querySelector(':scope > .m-stats');
+  if (mast && mast.parentNode) mast.insertAdjacentElement('afterend', bar);
+  else if (stats && stats.parentNode) stats.parentNode.insertBefore(bar, stats);
+  else panel.prepend(bar);
 }
 function standardizeVenuePageShell(){
   const panel = document.getElementById('panel-venue');
@@ -26298,31 +26326,13 @@ function standardizeVenuePageShell(){
   if (mast && mast.dataset.venueB2 !== '1') {
     mast.className = 'ued-mast venue-mast';
     mast.dataset.venueB2 = '1';
-    mast.innerHTML = `<div><div class="ued-kicker"><span>07</span><i></i><span>Venue &amp; Vendors</span></div><h1 class="ued-title">Wedding Venue</h1><p class="ued-subtitle">Compare ceremony and reception spaces, keep venue details current, and send vendor comparisons to the Vendors Hub.</p></div><div class="ued-actions"><button type="button" class="ued-link" onclick="setVenueView('c');venTab('details')">Ceremony</button><button type="button" class="ued-link" onclick="setVenueView('r');venTab('details')">Reception</button><button type="button" class="ued-btn primary db-edit-btn" onclick="openDataHub('vendors','vendorCompare')">Edit in Vendors Hub</button></div>`;
+    mast.innerHTML = `<div><div class="ued-kicker"><span>07</span><i></i><span>Venue &amp; Vendors</span></div><h1 class="ued-title">Venue &amp; Vendors</h1><p class="ued-subtitle">Compare ceremony and reception spaces, keep venue details current, and use Shortlist &amp; Compare for vendor decisions.</p></div><div class="ued-actions"><button type="button" class="ued-link" onclick="setVenueView('c');venTab('details')">Ceremony</button><button type="button" class="ued-link" onclick="setVenueView('r');venTab('details')">Reception</button><button type="button" class="ued-link" onclick="goVendorsTab('shortlist')">Shortlist &amp; Compare</button></div>`;
   }
+  ensureVenueVendorsHubTabbar(panel);
 }
-function ensureVenueComparePreview(){
-  const panel = document.getElementById('panel-venue');
-  const shortlist = panel ? panel.querySelector('[data-card="shortlist"]') : null;
-  if (!shortlist) return null;
-  let card = document.getElementById('venue-vendor-compare-card');
-  if (!card) {
-    card = document.createElement('section');
-    card.className = 'ued-table-card venue-table-card venue-system-compare-card';
-    card.id = 'venue-vendor-compare-card';
-    shortlist.appendChild(card);
-  }
-  if (card.dataset.vendorCompareMode !== 'editable') {
-    card.dataset.vendorCompareMode = 'editable';
-    card.innerHTML = `<div class="ued-table-head"><div><div class="ued-table-title">${uedIcon('briefcase')} Vendor Comparisons</div><p class="gie-note">Visual venue cards stay above. Vendor comparison rows are editable here and in the Vendors Hub.</p></div><div class="ued-actions"><button type="button" class="ued-link" onclick="openDataHub('vendors','vendors')">Vendor tracker</button><button type="button" class="ued-link" onclick="logAdd('vendorCompare',{category:'',a:'',qa:'',b:'',qb:'',c:'',qc:'',decision:''});renderVenueComparePreview()">+ Add comparison</button><button type="button" class="ued-btn primary db-edit-btn" onclick="openDataHub('vendors','vendorCompare')">Open in Vendors Hub</button></div></div><div id="cwp-venue-vendorCompare" class="vendor-compare-editable"></div><div class="preview-foot"><span class="ued-soft">Vendor comparison rows are editable on this page. Use the Vendors Hub for the full spreadsheet view and bulk tools.</span></div>`;
-  }
-  document.getElementById('cwp-venue-vendorCompare')?.classList.remove('ro-preview', 'cwp-readonly-preview');
-  return document.getElementById('cwp-venue-vendorCompare');
-}
-function renderVenueComparePreview(){
-  const mount = ensureVenueComparePreview();
-  if (mount && typeof cwpRenderTable === 'function') cwpRenderTable('vendorCompare', 'cwp-venue-vendorCompare');
-}
+/* Batch E: venue vendor-compare retired — use Vendors Shortlist & Compare tab */
+function ensureVenueComparePreview(){ return null; }
+function renderVenueComparePreview(){}
 function renderVenuePage() {
   loadVenue();
   standardizeVenuePageShell();
@@ -26358,7 +26368,6 @@ function renderVenuePage() {
   if (cTitle) cTitle.textContent = ceremonyName === '—' ? 'Ceremony Venue' : ceremonyName;
   if (rTitle) rTitle.textContent = receptionName === '—' ? 'Reception Venue' : receptionName;
   renderVenueShortlist();
-  renderVenueComparePreview();
   setVenueView(currentVenueView);
   const compareToggle = document.getElementById('venue-compare-toggle');
   if (compareToggle) toggleVenueCompare(compareToggle.checked);
