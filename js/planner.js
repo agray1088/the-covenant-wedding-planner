@@ -4360,7 +4360,9 @@ function renderDataHub(){
   _dataHub.table = tabId;
   const head = document.getElementById('data-hub-head');
   if (head) {
-    head.innerHTML = `<div><div class="ued-kicker" style="margin-bottom:.35rem"><span class="material-symbols-sharp" style="font-size:1rem;vertical-align:-2px">database</span> ${escapeHtml(DATABASE_HUB_LABEL)}</div><h2>${escapeHtml(databaseHubCategoryTitle(cat.label))}</h2><p>Full tables · bulk edit · filters · CSV import. Record details open in the editor drawer.</p></div>`;
+    const tab = dataHubTableDef(_dataHub.category, tabId);
+    const tableLabel = tab ? tab.label : '';
+    head.innerHTML = `<p class="ued-soft data-hub-intro">${escapeHtml(cat.label)}${tableLabel ? ' · ' + escapeHtml(tableLabel) : ''} — full tables, bulk edit, filters, and CSV import. Record details open in the editor drawer.</p>`;
   }
   const toolbar = document.getElementById('data-hub-toolbar');
   if (toolbar) toolbar.innerHTML = renderDataHubToolbar(_dataHub.category, tabId);
@@ -4411,6 +4413,8 @@ function renderDataHub(){
   });
   if (typeof renderPageUxChrome === 'function') renderPageUxChrome('data-hub');
   if (typeof renderContextSidebar === 'function') renderContextSidebar('data-hub');
+  if (typeof injectMasthead === 'function') injectMasthead('data-hub');
+  if (typeof injectPageScripture === 'function') injectPageScripture('data-hub');
 }
 const PLANNING_VIEWS = {
   essentials: { label:'Essentials', simpleMode:true, hiddenPages:['logistics','contracts','venue','party','tables','shotlist','mood','honeymoon','packets','emails'] },
@@ -10655,6 +10659,7 @@ const PAGE_SCRIPTURES = {
   packets: { verse: 'Prepare thy work without, and make it fit for thyself in the field; and afterwards build thine house.', ref: 'Proverbs 24:27 (KJV)' },
   reflect: { verse: 'Except the Lord build the house, they labour in vain that build it.', ref: 'Psalm 127:1 (KJV)' },
   logistics: { verse: 'The plans of the diligent lead surely to abundance, but every one that is hasty cometh only to want.', ref: 'Proverbs 21:5 (KJV)' },
+  'data-hub': { verse: 'In all thy ways acknowledge him, and he shall direct thy paths.', ref: 'Proverbs 3:6 (KJV)' },
   notes: { verse: 'Write the vision, and make it plain upon tables, that he may run that readeth it.', ref: 'Habakkuk 2:2 (KJV)' },
   venue: { verse: 'Except the Lord build the house, they labour in vain that build it.', ref: 'Psalm 127:1 (KJV)' },
   plan: { verse: 'A man\'s heart deviseth his way: but the Lord directeth his steps.', ref: 'Proverbs 16:9 (KJV)' },
@@ -10760,11 +10765,24 @@ function phase3AuditPage(panelId){
   };
 }
 function phase3AuditBatch(ids){
-  const list = ids || ['dashboard','budget','guests','vendors','payments','tasks','calendar','appointments','prayer','counseling','ceremony'];
+  const list = ids || ['dashboard','budget','guests','vendors','payments','tasks','calendar','appointments','prayer','counseling','ceremony','catering','entertainment','shotlist','mood','honeymoon','logistics','data-hub'];
   return list.map(id => { showPanel(id, true); return phase3AuditPage(id); });
+}
+function phase3AuditDataHub(categories){
+  if (typeof DATA_HUB_REGISTRY === 'undefined') return [];
+  const list = categories || Object.keys(DATA_HUB_REGISTRY);
+  return list.map(catId => {
+    setDataHubContext(catId);
+    renderDataHub();
+    if (typeof injectMasthead === 'function') injectMasthead('data-hub');
+    if (typeof injectPageScripture === 'function') injectPageScripture('data-hub');
+    const base = phase3AuditPage('data-hub');
+    return Object.assign({ category: catId, table: _dataHub.table }, base);
+  });
 }
 window.phase3AuditPage = phase3AuditPage;
 window.phase3AuditBatch = phase3AuditBatch;
+window.phase3AuditDataHub = phase3AuditDataHub;
 
 const PAGE_HELP = {
   'ui-system': {title:'UI/UX System',text:'Developer reference for UI components and the UX principles the planner is designed around. Stripped from the customer download.'},
@@ -10874,7 +10892,15 @@ function injectMasthead(panelId){
     else if(typeof _rflTab!=='undefined' && _rflTab==='homecoming') help={...help,title:'Newlywed Homecoming'};
     else help={...help,title:'Vision & Foundation'};
   }
-  if(panelId==='data-hub') help={...help,title:'Database Hub'};
+  if(panelId==='data-hub'){
+    const cat = typeof DATA_HUB_REGISTRY !== 'undefined' && _dataHub && DATA_HUB_REGISTRY[_dataHub.category];
+    const tab = cat && typeof dataHubTableDef === 'function' ? dataHubTableDef(_dataHub.category, _dataHub.table) : null;
+    const tableLabel = tab && tab.label ? tab.label : '';
+    help={
+      ...help,
+      title: cat ? (tableLabel ? `${cat.label} — ${tableLabel}` : cat.label) : 'Database Hub'
+    };
+  }
   const prev=panel.querySelector(':scope > .m-mast-wrap');
   if(prev) prev.remove();
   const oldHeadings = Array.from(panel.querySelectorAll([
@@ -10912,7 +10938,7 @@ function injectMasthead(panelId){
   }}
   const idx=PAGE_ORDER.indexOf(panelId);
   const num=idx>=0?String(idx+1).padStart(2,'0'):'';
-  const eyebrow=PAGE_EYEBROW[panelId]||'The Covenant Wedding Planner';
+  const eyebrow = panelId === 'data-hub' ? DATABASE_HUB_LABEL : (PAGE_EYEBROW[panelId]||'The Covenant Wedding Planner');
   const wrap=document.createElement('div');
   wrap.className='m-mast-wrap';
   wrap.innerHTML=`<div class="m-mast"><div class="m-mast-left">`
@@ -11989,9 +12015,23 @@ function recordEditorTitle(key){
     vendorCompare:'Vendor Comparison Row', attire:'Attire Item', decor:'Decor Item', stationery:'Stationery Item'
   }[key] || 'Record');
 }
+function syncRecordEditorChrome(overlay){
+  if (!overlay) return;
+  overlay.querySelectorAll('.record-editor-actions .m-btn, .record-editor-actions-left .m-btn, .record-editor-actions-right .m-btn').forEach(btn => {
+    const isPrimary = btn.classList.contains('m-btn-primary') || /saveRecordEditor\(false\)/.test(btn.getAttribute('onclick') || '');
+    const isDelete = btn.id === 'record-editor-delete';
+    btn.classList.remove('m-btn', 'm-btn-primary');
+    btn.classList.add('ued-btn');
+    if (isPrimary) btn.classList.add('primary');
+    if (isDelete) btn.classList.add('danger');
+  });
+}
 function ensureRecordEditor(){
   let overlay = document.getElementById('record-editor-overlay');
-  if (overlay) return overlay;
+  if (overlay) {
+    syncRecordEditorChrome(overlay);
+    return overlay;
+  }
   overlay = document.createElement('div');
   overlay.id = 'record-editor-overlay';
   overlay.className = 'record-editor-overlay';
@@ -12004,8 +12044,8 @@ function ensureRecordEditor(){
       </div>
       <div class="record-editor-body" id="record-editor-body"></div>
       <div class="record-editor-actions">
-        <div class="record-editor-actions-left"><button type="button" class="m-btn" id="record-editor-delete" onclick="recordEditorDelete()">Delete</button></div>
-        <div class="record-editor-actions-right"><button type="button" class="m-btn" onclick="closeRecordEditor()">Cancel</button><button type="button" class="m-btn" onclick="saveRecordEditor(true)">Save & Add Another</button><button type="button" class="m-btn m-btn-primary" onclick="saveRecordEditor(false)">Save</button></div>
+        <div class="record-editor-actions-left"><button type="button" class="ued-btn danger" id="record-editor-delete" onclick="recordEditorDelete()">Delete</button></div>
+        <div class="record-editor-actions-right"><button type="button" class="ued-btn" onclick="closeRecordEditor()">Cancel</button><button type="button" class="ued-btn" onclick="saveRecordEditor(true)">Save & Add Another</button><button type="button" class="ued-btn primary" onclick="saveRecordEditor(false)">Save</button></div>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -22149,7 +22189,7 @@ function renderTables() {
     const presetOptions = tablePresetOptions(t.preset || '');
     const shapeOptions = ['circle','rect'].map(opt => `<option value="${opt}" ${(t.shape||'circle')===opt?'selected':''}>${opt==='circle'?'Round / Circle':'Rectangle / Square'}</option>`).join('');
     const facingOptions = ['down','up','left','right'].map(opt => `<option value="${opt}" ${(t.facing||'down')===opt?'selected':''}>Chairs ${opt}</option>`).join('');
-    return `<div class="table-card card ${vip ? 'vip-table-card' : ''}"><div class="table-card-head"><span class="table-card-head-left">${vip ? `<span class="table-card-crown" title="VIP table">${tableCrownSvg()}</span>` : ''}<span class="table-label-display">${escapeHtml(tableLabel(t.name))}</span></span>${plannerTrashButton(`removeTable(${t._i})`,'Remove table')}</div><label class="table-name-edit">Name / number <input class="table-name-input" type="text" value="${escapeHtml(t.name)}" oninput="updateTable(${t._i},'name',this.value)"></label><div class="table-seat-row"><span class="table-count ${over ? 'over' : ''}">${count} of ${cap || '?'} seated</span><label class="table-cap">Seats <input type="number" min="1" value="${cap || ''}" oninput="updateTable(${t._i},'capacity',this.value)"></label></div><div class="progress-track"><span style="width:${pct}%"></span></div><div class="table-card-controls"><label>Table Type<select onchange="updateTable(${t._i},'type',this.value)">${typeOptions}</select></label><label>Size & Shape<select onchange="updateTable(${t._i},'preset',this.value)">${presetOptions}</select></label><label>Shape Override<select onchange="updateTable(${t._i},'shape',this.value)">${shapeOptions}</select></label><label>Chair Side<select onchange="updateTable(${t._i},'facing',this.value)">${facingOptions}</select></label><label class="table-vip-toggle"><input type="checkbox" ${vip?'checked':''} onchange="updateTable(${t._i},'vip',this.checked)"> VIP Table</label></div><div class="v4-help-note">${escapeHtml(tablePresetGuide(t.preset))}</div><input class="table-placement" type="text" value="${escapeHtml(t.placement || '')}" placeholder="Placement note - e.g. near dance floor" oninput="updateTable(${t._i},'placement',this.value)"><div class="table-guests">${people.length ? people.map(chip).join('') : '<span class="table-empty">No guests assigned yet</span>'}</div></div>`;
+    return `<div class="table-card card ${vip ? 'vip-table-card' : ''}"><div class="table-card-head"><span class="table-card-head-left">${vip ? `<span class="table-card-crown" title="VIP table">${tableCrownSvg()}</span>` : ''}<span class="table-label-display">${escapeHtml(tableLabel(t.name))}</span></span>${plannerTrashButton(`removeTable(${t._i})`,'Remove table')}</div><label class="table-name-edit">Name / number <input class="table-name-input" type="text" value="${escapeHtml(t.name)}" oninput="updateTable(${t._i},'name',this.value)"></label><div class="table-seat-row"><span class="table-count ${over ? 'over' : ''}">${count} of ${cap || '?'} seated</span><label class="table-cap">Seats <input type="number" min="1" value="${cap || ''}" oninput="updateTable(${t._i},'capacity',this.value)"></label></div><div class="progress-track ued-track"><span style="width:${pct}%"></span></div><div class="table-card-controls"><label>Table Type<select onchange="updateTable(${t._i},'type',this.value)">${typeOptions}</select></label><label>Size & Shape<select onchange="updateTable(${t._i},'preset',this.value)">${presetOptions}</select></label><label>Shape Override<select onchange="updateTable(${t._i},'shape',this.value)">${shapeOptions}</select></label><label>Chair Side<select onchange="updateTable(${t._i},'facing',this.value)">${facingOptions}</select></label><label class="table-vip-toggle"><input type="checkbox" ${vip?'checked':''} onchange="updateTable(${t._i},'vip',this.checked)"> VIP Table</label></div><div class="v4-help-note">${escapeHtml(tablePresetGuide(t.preset))}</div><input class="table-placement" type="text" value="${escapeHtml(t.placement || '')}" placeholder="Placement note - e.g. near dance floor" oninput="updateTable(${t._i},'placement',this.value)"><div class="table-guests">${people.length ? people.map(chip).join('') : '<span class="table-empty">No guests assigned yet</span>'}</div></div>`;
   }).join('');
   renderTableMap();
 }
@@ -27287,7 +27327,6 @@ function uedContractsShell(){
       </div>
     </section>
     <section class="ued-table-card contracts-table-card rentals-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('table')} Rentals <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportSectionCSV('Rentals',data.rentals)">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('finances','rentals')">Edit in Finances Hub</button></div></div><div id="cwp-rentals" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Finances Hub.</span></div></section>
-    <section class="ued-panel span12 contracts-scripture-card">${uedCaption('book','Scripture')}<div class="ued-soft"><i>But let your communication be, Yea, yea; Nay, nay.</i> Matthew 5:37 (KJV)</div></section>
   </div>`;
 }
 function addContractRow(){
