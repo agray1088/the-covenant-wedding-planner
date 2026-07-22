@@ -10780,9 +10780,57 @@ function phase3AuditDataHub(categories){
     return Object.assign({ category: catId, table: _dataHub.table }, base);
   });
 }
+function spacingAuditPage(panelId){
+  const panel = document.getElementById('panel-' + panelId);
+  if (!panel) return { panelId, error: 'panel not found' };
+  const padNorm = (v) => parseFloat(v) || 0;
+  const root = getComputedStyle(document.documentElement);
+  const expectPanel = padNorm(root.getPropertyValue('--planner-panel-padding')) || 24;
+  const expectHeadX = padNorm(root.getPropertyValue('--planner-table-head-x')) || expectPanel;
+  const shells = [...panel.querySelectorAll(':scope .ued-panel, :scope .ued-table-card, :scope [class*="-card"]:not([class*="-card-head"]):not([class*="-card-icon"]):not([class*="-card-title"]):not([class*="-card-grid"]):not([class*="-card-foot"]):not([class*="-card-pager"]):not(.hub-record-card):not(.hub-record-card-badge)')].filter(el => {
+    if (el.closest('.hub-record-card-grid')) return false;
+    if (el.closest('.record-editor-shell')) return false;
+    return el.offsetParent !== null || panel.contains(el);
+  }).slice(0, 10);
+  const samples = shells.map(el => {
+    const cs = getComputedStyle(el);
+    const isTable = el.classList.contains('ued-table-card');
+    const head = el.querySelector(':scope > .ued-table-head, :scope > [class*="-card-head"], :scope > .m-head');
+    const hcs = head ? getComputedStyle(head) : null;
+    return {
+      tag: el.tagName.toLowerCase(),
+      cls: (el.className || '').split(/\s+/).slice(0, 3).join(' '),
+      isTable,
+      padTop: cs.paddingTop,
+      padLeft: cs.paddingLeft,
+      marginBottom: cs.marginBottom,
+      headMarginBottom: hcs ? hcs.marginBottom : null
+    };
+  });
+  const contentPads = samples.filter(s => !s.isTable).map(s => padNorm(s.padTop));
+  const tableShells = samples.filter(s => s.isTable);
+  const padSpread = contentPads.length ? Math.max(...contentPads) - Math.min(...contentPads) : 0;
+  const tablePadOk = tableShells.every(s => padNorm(s.padTop) === 0 && padNorm(s.padLeft) === 0);
+  const contentPadOk = !contentPads.length || padSpread <= 2;
+  return {
+    panelId,
+    expectPanelPx: expectPanel,
+    expectHeadXPx: expectHeadX,
+    samples,
+    tablePadOk,
+    contentPadOk,
+    pass: tablePadOk && contentPadOk
+  };
+}
+function spacingAuditBatch(ids){
+  const list = ids || ['dashboard','budget','guests','vendors','payments','tasks','calendar','appointments','prayer','counseling','ceremony','catering','entertainment','shotlist','mood','honeymoon','logistics','contracts','gifts','notes','venue','tables','packets','emails'];
+  return list.map(id => { showPanel(id, true); return spacingAuditPage(id); });
+}
 window.phase3AuditPage = phase3AuditPage;
 window.phase3AuditBatch = phase3AuditBatch;
 window.phase3AuditDataHub = phase3AuditDataHub;
+window.spacingAuditPage = spacingAuditPage;
+window.spacingAuditBatch = spacingAuditBatch;
 
 const PAGE_HELP = {
   'ui-system': {title:'UI/UX System',text:'Developer reference for UI components and the UX principles the planner is designed around. Stripped from the customer download.'},

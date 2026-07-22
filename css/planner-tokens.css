@@ -75,6 +75,7 @@
   --planner-card-gap: var(--space-4);
   --planner-section-gap: var(--space-5);
   --planner-panel-padding: var(--space-5);
+  --planner-table-head-x: var(--planner-panel-padding);
   --planner-grid-gap: var(--space-4);
   --planner-form-gap: var(--space-3);
   --planner-field-stack: var(--space-2);
