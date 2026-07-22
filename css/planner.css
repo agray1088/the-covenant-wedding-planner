@@ -47451,7 +47451,6 @@ body.editorial-v4.dark-mode .font-picker-menu.font-picker-menu-portal .font-pick
 #panel-calendar .smart-toolbar-row,
 #panel-calendar .smart-main-card,
 #panel-calendar .smart-bottom-grid,
-#panel-calendar .smart-scripture-footer,
 #panel-calendar .smart-layout,
 #panel-calendar #smart-calendar-main {
   width: 100% !important;
@@ -47461,10 +47460,7 @@ body.editorial-v4.dark-mode .font-picker-menu.font-picker-menu-portal .font-pick
 }
 
 #panel-calendar .smart-insight-band,
-#panel-calendar .smart-toolbar-row,
-#panel-calendar .smart-main-card,
-#panel-calendar .smart-side-card,
-#panel-calendar .smart-scripture-footer {
+#panel-calendar .smart-toolbar-row {
   border: 0 !important;
   box-shadow: none !important;
 }

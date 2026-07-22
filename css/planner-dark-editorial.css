@@ -3805,3 +3805,29 @@ body.editorial-v4 #main #panel-dashboard .ued-bar-track,
 body.editorial-v4 #main #panel-dashboard .ued-vbar-track {
   border-radius: var(--progress-track-radius, 0) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Phase 3 — Smart Calendar cards (authoritative token treatment)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body.editorial-v4 #main #panel-calendar :is(.smart-main-card, .smart-side-card, .app-side-card),
+body.editorial-v4.dark-mode #main #panel-calendar :is(.smart-main-card, .smart-side-card, .app-side-card),
+body.editorial-v4[data-theme="dark"] #main #panel-calendar :is(.smart-main-card, .smart-side-card, .app-side-card) {
+  border: 1px solid var(--card-border, var(--border-subtle, #e7e1d4)) !important;
+  border-radius: var(--card-radius, 8px) !important;
+  background: var(--card-bg, transparent) !important;
+  box-shadow: none !important;
+}
+
+body.editorial-v4.dark-mode #main #panel-calendar :is(.smart-main-card, .smart-side-card, .app-side-card),
+body.editorial-v4[data-theme="dark"] #main #panel-calendar :is(.smart-main-card, .smart-side-card, .app-side-card) {
+  background: var(--dm-surface, #1a1a1a) !important;
+  border-color: var(--dm-border, #2e2e2e) !important;
+}
+
+body.editorial-v4 #main #panel-calendar .smart-view-tabs button.active,
+body.editorial-v4 #main #panel-calendar .smart-source-pill.active {
+  background: var(--forest, #2d4a3e) !important;
+  border-color: var(--forest, #2d4a3e) !important;
+  color: #fff !important;
+}

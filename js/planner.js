@@ -10739,6 +10739,8 @@ function phase3AuditPage(panelId){
   }).length;
   const hubPrimaries = panel.querySelectorAll('.db-edit-btn.primary, .db-edit-btn.ued-btn.primary').length;
   const inlineScripture = panel.querySelectorAll('.tasks-scripture-card, [class*="scripture-card"]:not(.page-scripture-footer)').length;
+  const staticScriptureFooters = panel.querySelectorAll('[class*="-scripture-footer"]:not(.page-scripture-footer)').length;
+  const legacyButtons = panel.querySelectorAll('.smart-search-actions .btn-forest, .smart-search-actions .btn-outline, .app-search-actions .btn-forest').length;
   const pageScripture = !!panel.querySelector('.page-scripture-footer');
   const legacyProgress = panel.querySelectorAll('.ux-goal-bar, .progress-track:not(.ued-track)').length;
   return {
@@ -10749,13 +10751,15 @@ function phase3AuditPage(panelId){
     cardStyleIssues: cardIssues,
     hubPrimaryConflicts: hubPrimaries,
     inlineScripturePanels: inlineScripture,
+    staticScriptureFooters: staticScriptureFooters,
+    legacyToolbarButtons: legacyButtons,
     injectPageScripture: pageScripture,
     legacyProgressBars: legacyProgress,
-    pass: mast && !dupTitle && !cardIssues && !hubPrimaries && !inlineScripture && !legacyProgress
+    pass: mast && !dupTitle && !cardIssues && !hubPrimaries && !inlineScripture && !legacyProgress && !staticScriptureFooters && !legacyButtons
   };
 }
 function phase3AuditBatch(ids){
-  const list = ids || ['dashboard','budget','guests','vendors','payments','tasks'];
+  const list = ids || ['dashboard','budget','guests','vendors','payments','tasks','calendar','appointments'];
   return list.map(id => { showPanel(id, true); return phase3AuditPage(id); });
 }
 window.phase3AuditPage = phase3AuditPage;
@@ -19332,6 +19336,8 @@ function toggleSmartNotes(checked){ data.smartIncludeNotes = !!checked; save(); 
 function renderSmartCalendar(){
   ensureAppointmentData();
   initSmartCalendarState();
+  const calPanel = document.getElementById('panel-calendar');
+  if (calPanel) calPanel.classList.add('ued-scope');
   if (typeof renderPageUxChrome === 'function') renderPageUxChrome('calendar');
   const incNotes = document.getElementById('smart-include-notes');
   if (incNotes) incNotes.checked = !!data.smartIncludeNotes;
@@ -19693,7 +19699,7 @@ function renderSmartAppointmentsView(host){
       </div>
       <div class="app-search-actions">
         <label class="app-search-wrap"><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg></span><input id="smart-appointment-search" type="search" placeholder="Search appointments..." value="${escapeHtml(smartAppointmentFilters.q)}" oninput="setSmartAppointmentFilter('q',this.value)"></label>
-        <button class="btn btn-forest" type="button" onclick="addAppointmentRow()">+ New Appointment</button>
+        <button class="ued-btn primary" type="button" onclick="addAppointmentRow()">+ New Appointment</button>
       </div>
     </div>
     <section class="ued-panel span12 record-editor-inline-shell appointment-inline-editor" id="appointment-inline-editor-wrap">
