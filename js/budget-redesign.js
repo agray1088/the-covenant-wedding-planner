@@ -782,7 +782,11 @@
     const paid = groupRefs.reduce((s, r) => s + itemPaidAmount(r.it), 0);
     const target = catTargetOf(c);
     const n = groupRefs.length;
-    return `${esc(c.cat || 'Category')} · ${n} item${n === 1 ? '' : 's'} · ${money0(spent)} committed · ${money0(paid)} paid · target ${money0(target)}`;
+    const over = target > 0 && spent > target;
+    return {
+      html: `${esc(c.cat || 'Category')} · ${n} item${n === 1 ? '' : 's'} · ${money0(spent)} committed · ${money0(paid)} paid · target ${money0(target)}`,
+      over: over
+    };
   }
 
   function itemRowHtml(ref) {
@@ -873,10 +877,11 @@
     const restSpan = Math.max(1, fullSpan - 1);
 
     const bodyRows = groups.length
-      ? groups.map(g =>
-        `<tr class="rd-bgt-grouprow"><td colspan="${fullSpan}">${itemGroupHeader(g.c, g.refs)}</td></tr>`
-        + g.refs.map(itemRowHtml).join('')
-      ).join('') + `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">Add a line item…</td></tr>`
+      ? groups.map(g => {
+        const gh = itemGroupHeader(g.c, g.refs);
+        return `<tr class="rd-bgt-grouprow${gh.over ? ' is-over' : ''}"><td colspan="${fullSpan}">${gh.html}</td></tr>`
+          + g.refs.map(itemRowHtml).join('');
+      }).join('') + `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">Add a line item…</td></tr>`
       : `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">No line items match these filters — add a line item…</td></tr>`;
 
     const head = `<div class="rd-bgt-sect__head is-stacked">
@@ -1034,6 +1039,23 @@
         }).join('');
     }).join('');
 
+    /* Not pledged — money committed with no source behind it (group, not footnote). */
+    const figs = budgetFigures();
+    const shortfall = Math.max(0, (figs.committed || figs.planned || 0) - pledged);
+    const notPledgedRow = shortfall > 0
+      ? `<tr class="rd-bgt-grouprow is-residual"><td colspan="8">Not pledged · ${money0(shortfall)} committed with no source behind it</td></tr>
+         <tr class="rd-bgt-pledgerow is-residual">
+           <td class="rd-bgt-tick"></td>
+           <td><b>Shortfall</b></td>
+           <td class="rd-bgt-td--muted">Budget · unfunded</td>
+           <td class="rd-bgt-num">—</td>
+           <td class="rd-bgt-num"><span class="rd-bgt-nil">$0</span></td>
+           <td class="rd-bgt-num is-over">${money0(shortfall)}</td>
+           <td class="rd-bgt-td--muted">—</td>
+           <td>${pillHtml({ label: 'Not pledged', scheme: 'red' })}</td>
+         </tr>`
+      : '';
+
     return `<div class="rd-bgt-pledge">
       ${sectHead('Pledged & paid',
       `Who promised what, and what has actually landed — ${money0(pledged)} pledged, ${money0(received)} received, ${money0(outstanding)} outstanding`,
@@ -1043,7 +1065,7 @@
         ${stat('Received', money0(received), pct + '% of pledges')}
         ${stat('Outstanding', money0(outstanding), nOut + ' contributor' + (nOut === 1 ? '' : 's'), outstanding ? 'over' : '')}
         ${stat('Applied to budget', money0(received), 'Offsets committed spend')}
-        ${stat('Unallocated', money0(0), 'Everything is earmarked')}
+        ${stat('Not pledged', money0(shortfall), shortfall ? 'Committed without a source' : 'Covered', shortfall ? 'over' : '')}
       </div>
       <div class="rd-bgt-pledge__bar">
         <span class="rd-bgt-eyebrow">Pledges collected</span>
@@ -1065,7 +1087,7 @@
           <th style="width:130px">Promised by</th>
           <th style="width:140px">Status</th>
         </tr></thead>
-        <tbody>${body}
+        <tbody>${body}${notPledgedRow}
           <tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="7">Record a pledge — name, amount, and what it is toward</td></tr>
         </tbody>
       </table>

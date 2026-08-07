@@ -19460,6 +19460,49 @@ function setGuestCsvMapping(index, value){
   guestCsvImportState.mapping[index] = value;
   if (guestCsvImportState.mode === 'guests' || guestCsvImportState.mode === 'rsvp') renderGuestCSVMapping();
 }
+function renderGuestCSVConflicts(){
+  const state = guestCsvImportState;
+  const body = document.getElementById('guest-csv-body');
+  const btn = document.getElementById('guest-csv-import-btn');
+  const title = document.getElementById('guest-csv-title');
+  const sub = document.getElementById('guest-csv-sub');
+  if (!state || !body) return;
+  if (title) title.textContent = (state.mode === 'rsvp' ? 'Import RSVP' : 'Import guests') + ' · step 3 of 3';
+  if (sub) sub.textContent = 'Keep the existing record or take the file’s values. You cannot write until every conflict is decided.';
+  const list = (state.conflicts || []).map(c => {
+    const res = (state.conflictResolutions && state.conflictResolutions[c.id]) || 'keep';
+    return `<div class="rd-import__conflict-row">
+      <div><strong>${escapeHtml(c.left.name || 'Existing')}</strong><div class="rd-help">${escapeHtml(c.left.email || '—')}</div></div>
+      <div><strong>${escapeHtml(c.right.name || 'From file')}</strong><div class="rd-help">${escapeHtml(c.right.email || '—')}</div></div>
+      <div>
+        <select onchange="setGuestCsvConflictResolution('${c.id}',this.value)">
+          <option value="keep"${res==='keep'?' selected':''}>Keep existing</option>
+          <option value="file"${res==='file'?' selected':''}>Use file</option>
+          <option value="skip"${res==='skip'?' selected':''}>Skip row</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="rd-import">
+    <div class="rd-import__eyebrow"><span>Conflicts</span><span>${(state.conflicts||[]).length} ambiguous rows</span></div>
+    <div class="rd-import__conflicts">${list || '<p class="rd-help">No conflicts left.</p>'}</div>
+  </div>`;
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) {
+    back.textContent = 'Back';
+    back.onclick = () => { guestCsvImportState.step = 2; renderGuestCSVMapping(); };
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Write import';
+    btn.onclick = () => commitEntityCSVImport();
+  }
+}
+function setGuestCsvConflictResolution(id, value){
+  if (!guestCsvImportState) return;
+  if (!guestCsvImportState.conflictResolutions) guestCsvImportState.conflictResolutions = {};
+  guestCsvImportState.conflictResolutions[id] = value;
+}
 function guestCsvValue(row, field){
   const state = guestCsvImportState;
   if (!state) return '';

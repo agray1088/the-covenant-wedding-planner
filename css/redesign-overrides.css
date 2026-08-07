@@ -10304,10 +10304,54 @@ body.rd-scope #panel-tables .cwp-table tbody tr.is-group td {
   text-transform: uppercase !important;
   color: #8a7e6b !important;
 }
+body.rd-scope #panel-tables .cwp-table tbody tr.is-group--residual td {
+  background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 55%, #f9f5ef) !important;
+  color: var(--status-red-text, #9c3b34) !important;
+  box-shadow: inset 3px 0 0 0 var(--status-red-text, #a33b28);
+}
 body.rd-scope #panel-tables .cwp-table tbody tr.is-drawer-focus td { background: #fdfaf4 !important; }
 body.rd-scope #panel-tables .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td { background: #f4f7fb !important; }
 body.rd-scope #panel-tables .rd-tables-unseated { color: #a33b28 !important; }
 body.rd-scope #panel-tables .rd-tables-empty-seat { color: #b09f80; }
+body.rd-scope #panel-tables .rd-tables-diet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+body.rd-scope #panel-tables .rd-tables-diet__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 4px;
+  font: 700 10px/1 var(--font-ui);
+  letter-spacing: .04em;
+  border: 1px solid var(--status-gold-border, #e7ce80);
+  background: var(--status-gold-bg, #fff7df);
+  color: var(--status-gold-text, #8a640f);
+}
+body.rd-scope #panel-tables .rd-tables-byguest table.rd-tables-sticky-guest,
+body.rd-scope #panel-tables #cwp-tables-byguest table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+body.rd-scope #panel-tables #cwp-tables-byguest thead th:nth-child(2),
+body.rd-scope #panel-tables #cwp-tables-byguest tbody td.rd-tables-sticky {
+  position: sticky;
+  left: 34px;
+  z-index: 2;
+  background: #fff;
+  box-shadow: 1px 0 0 var(--border-subtle, #e7e1d4);
+}
+body.rd-scope #panel-tables #cwp-tables-byguest thead th:nth-child(2) {
+  background: var(--forest-deep) !important;
+  z-index: 3;
+}
+body.rd-scope #panel-tables #cwp-tables-byguest tbody tr.is-group td:first-child {
+  position: static;
+}
 body.rd-scope #panel-tables .rd-tables-detail-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -11431,6 +11475,15 @@ body.rd-scope #panel-budget .rd-bgt-grouprow td {
   text-transform: uppercase;
   color: var(--text-subtle);
 }
+body.rd-scope #panel-budget .rd-bgt-grouprow.is-over td,
+body.rd-scope #panel-budget .rd-bgt-grouprow.is-residual td {
+  background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 55%, #f9f5ef);
+  color: var(--status-red-text, #9c3b34);
+  box-shadow: inset 3px 0 0 var(--status-red-text, #a33b28);
+}
+body.rd-scope #panel-budget .rd-bgt-pledgerow.is-residual td {
+  background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 30%, #fff);
+}
 body.rd-scope #panel-budget .rd-bgt-tick { text-align: center; width: 36px; }
 body.rd-scope #panel-budget .rd-bgt-tick input[type="checkbox"] {
   width: 14px;
@@ -12469,6 +12522,7 @@ body.rd-scope #panel-payments .rd-pay-cal__item {
   padding: 8px 12px;
   border: 0;
   border-bottom: 1px solid var(--border-hairline, #f0ebe0);
+  border-left: 3px solid transparent;
   background: none;
   font: inherit;
   font-size: 12px;
@@ -12476,6 +12530,10 @@ body.rd-scope #panel-payments .rd-pay-cal__item {
   cursor: pointer;
   color: var(--text-body);
 }
+body.rd-scope #panel-payments .rd-pay-cal__item.is-red { border-left-color: var(--status-red-text, #a33b28); background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 35%, transparent); }
+body.rd-scope #panel-payments .rd-pay-cal__item.is-gold { border-left-color: var(--gold, #B89968); background: color-mix(in srgb, var(--status-gold-bg, #fff7df) 40%, transparent); }
+body.rd-scope #panel-payments .rd-pay-cal__item.is-green { border-left-color: var(--status-green-text, #2f6b45); }
+body.rd-scope #panel-payments .rd-pay-cal__item.is-gray { border-left-color: var(--border-control, #d9cfba); }
 body.rd-scope #panel-payments .rd-pay-cal__item:hover { background: var(--surface-focused, #fdfaf4); }
 body.rd-scope #panel-payments .rd-pay-cal__day { flex: 0 0 52px; color: var(--text-muted); }
 body.rd-scope #panel-payments .rd-pay-cal__name {
@@ -13087,6 +13145,20 @@ body.rd-scope #panel-contracts .rd-con-doc {
   padding: 13px 18px;
   border-right: 1px solid var(--border-hairline, #f0ebe0);
   border-bottom: 1px solid var(--border-hairline, #f0ebe0);
+  background: var(--surface-content, #fff);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+body.rd-scope #panel-contracts .rd-con-doc.is-missing {
+  background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 50%, #fff);
+  box-shadow: inset 2px 0 0 var(--status-red-text, #a33b28);
+}
+body.rd-scope #panel-contracts .rd-con-doc.is-missing .rd-con-doc__date {
+  color: var(--status-red-text, #9c3b34);
+  font-weight: 600;
 }
 body.rd-scope #panel-contracts .rd-con-doc__name {
   font-size: 13px;

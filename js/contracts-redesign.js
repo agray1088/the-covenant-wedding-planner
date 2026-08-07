@@ -594,17 +594,59 @@
 
   function documentsGridHtml() {
     const docs = allDocuments();
-    const cells = docs.slice(0, 12).map(({ d }) => {
-      const sub = d.kind + (d.pages ? ' · ' + d.pages + ' pages' : '') + (d.amount ? ' · ' + money0(d.amount) : '');
-      return `<div class="rd-con-doc">
+    const requiredKinds = [
+      { kind: 'Contract', label: 'Signed contract' },
+      { kind: 'Insurance', label: 'Insurance certificate' },
+      { kind: 'Invoice', label: 'Final invoice' },
+      { kind: 'W-9', label: 'Tax form / W-9' }
+    ];
+    const presentKinds = new Set(docs.map(({ d }) => String(d.kind || d.name || '').toLowerCase()));
+    const missing = [];
+    rows().forEach(c => {
+      const named = Array.isArray(c.missingDocs) ? c.missingDocs : [];
+      named.forEach(m => {
+        missing.push({
+          name: m.label || m.name || m,
+          meta: (conName(c) || 'Contract') + ' · Missing',
+          missing: true,
+          contractId: conId(c)
+        });
+      });
+      if (!named.length && !docList(c).length) {
+        requiredKinds.slice(0, 1).forEach(rk => {
+          missing.push({
+            name: rk.label,
+            meta: (conName(c) || 'Contract') + ' · Missing',
+            missing: true,
+            contractId: conId(c)
+          });
+        });
+      }
+    });
+    /* Global required kinds that never appear across any contract. */
+    requiredKinds.forEach(rk => {
+      const hit = [...presentKinds].some(k => k.includes(rk.kind.toLowerCase()) || k.includes(rk.label.toLowerCase()));
+      if (!hit && !missing.some(m => String(m.name).toLowerCase() === rk.label.toLowerCase())) {
+        missing.push({ name: rk.label, meta: 'Required · Missing', missing: true });
+      }
+    });
+    const cells = docs.map(({ c, d }) => {
+      const sub = (d.kind || 'Document') + (d.pages ? ' · ' + d.pages + ' pages' : '') + (d.amount ? ' · ' + money0(d.amount) : '');
+      return `<button type="button" class="rd-con-doc" onclick="rdConOpenDrawer('${esc(conId(c) || indexOfRow(c))}')">
         <div class="rd-con-doc__name">${esc(d.name)}</div>
         <div class="rd-con-doc__meta">${esc(sub)}</div>
         <div class="rd-con-doc__date">${d.date ? esc(shortDate(d.date)) : ''}</div>
-      </div>`;
-    }).join('');
+      </button>`;
+    }).join('') + missing.map(m =>
+      `<button type="button" class="rd-con-doc is-missing" onclick="${m.contractId ? `rdConOpenDrawer('${esc(m.contractId)}')` : 'rdConSetMode(\'documents\')'}">
+        <div class="rd-con-doc__name">${esc(m.name)}</div>
+        <div class="rd-con-doc__meta">${esc(m.meta)}</div>
+        <div class="rd-con-doc__date">Missing</div>
+      </button>`
+    ).join('');
     return `<div class="rd-con-docshead">
-        <div class="rd-con-eyebrow">Documents · ${docs.length}</div>
-        <div class="rd-con-muted">Every file is attached to a contract; nothing floats loose</div>
+        <div class="rd-con-eyebrow">Documents · ${docs.length}${missing.length ? ' · ' + missing.length + ' missing' : ''}</div>
+        <div class="rd-con-muted">A required document that doesn&rsquo;t exist yet still gets a card — rendered red.</div>
         <button type="button" class="rd-con-link" style="margin-left:auto" onclick="rdConUploadDoc()">Upload</button>
       </div>
       <div class="rd-con-docsgrid">${cells || '<div class="rd-con-empty">No documents attached yet.</div>'}</div>`;
