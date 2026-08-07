@@ -1,0 +1,109 @@
+/* ============================================================================
+   Covenant Wedding Planner — REDESIGN PAGE LAYOUTS
+   §07 page anatomy, then the four priority pages.
+   Requires: redesign-tokens.css, redesign-components.css, redesign-shell.css
+   ========================================================================= */
+
+/* ── §07 PAGE ANATOMY — every one of the 37 pages is this shape ──────────
+   topbar → tabs → subnav → [ rail | pagehead → stats → toolbar → bulkbar
+                              → work surface | drawer ]
+   A page with no filters drops the toolbar. A page with no records drops the
+   drawer. Nothing else is optional, and nothing may be reordered.
+   ---------------------------------------------------------------------- */
+.rd-page { display: flex; flex-direction: column; min-height: 0; }
+.rd-page__surface { display: flex; align-items: stretch; min-height: 0; }
+.rd-page__work { flex: 1 1 auto; min-width: 0; }
+/* content-sized: never pin a page height — it silently crops the last section */
+.rd-page, .rd-page__work { height: auto; }
+
+/* a section inside the work surface */
+.rd-section { border-bottom: 1px solid var(--border-subtle); }
+.rd-section__head {
+  display: flex; align-items: baseline; gap: var(--space-3);
+  padding: 13px var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-content);
+}
+/* a section header is NOT a toolbar: it never carries column controls */
+.rd-section__head .rd-chip { display: none; }
+.rd-section__body { padding: var(--space-4) var(--space-5); }
+
+/* ── PRIORITY 1 · TASKS  (Timeline & Tasks, 9a) ──────────────────────────
+   Grouped by phase. Group row shows count + completion. Collapsible.        */
+#panel-timeline .rd-table tbody tr.is-group td,
+.rd-page--tasks .rd-table tbody tr.is-group td { cursor: pointer; }
+.rd-page--tasks .rd-table td:nth-child(2) { min-width: 240px; }
+.rd-page--tasks .rd-task-done { color: var(--text-faint); text-decoration: line-through; }
+
+/* ── PRIORITY 2 · GUESTS  (Guest List, 3b) ───────────────────────────────
+   6 of 24 columns on screen; the other 18 live in the drawer.              */
+.rd-page--guests .rd-table td:nth-child(2) { min-width: 240px; }
+.rd-page--guests .rd-table { table-layout: auto; }
+
+/* ── PRIORITY 3 · DASHBOARD  (3a) ────────────────────────────────────────
+   The one page that is cards rather than a table. 12-col grid, no drawer.   */
+.rd-page--dashboard .rd-page__surface { display: block; }
+.rd-dash {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-4); padding: var(--space-5) var(--shell-gutter);
+  background: var(--surface-canvas);
+}
+.rd-dash > .rd-panel { grid-column: span 4; }
+.rd-dash > .rd-panel--wide { grid-column: span 8; }
+.rd-dash > .rd-panel--full { grid-column: span 12; }
+.rd-dash__countdown { grid-column: span 12; display: flex; gap: var(--space-5); align-items: baseline; }
+.rd-dash__count-unit { font: 600 var(--type-stat)/1 var(--font-ui); font-variant-numeric: tabular-nums; color: var(--text-heading); }
+@media (max-width: 1100px) {
+  .rd-dash > .rd-panel { grid-column: span 6; }
+  .rd-dash > .rd-panel--wide { grid-column: span 12; }
+}
+
+/* ── PRIORITY 4 · DATA HUB  (7b overview + 7c all-tables, 24 columns) ────
+   The raw view: every column, pinned checkbox + id, horizontal scroll in the
+   pane only. This is the escape hatch — it must never feel styled-down.     */
+.rd-page--datahub .rd-table-wrap { max-width: 100%; overflow-x: auto; }
+.rd-page--datahub .rd-table { min-width: 100%; width: max-content; font-size: 12.5px; }
+.rd-page--datahub .rd-table td, .rd-page--datahub .rd-table th {
+  white-space: nowrap; border-right: 1px solid var(--border-hairline); padding: 8px 10px;
+}
+.rd-page--datahub .rd-table td:first-child { text-align: center; }
+.rd-page--datahub .rd-id { font: 400 var(--type-micro)/1 var(--font-mono); color: var(--text-subtle); }
+.rd-page--datahub .rd-integrity { display: flex; border-bottom: 1px solid var(--border-subtle); }
+.rd-page--datahub .rd-integrity > * { flex: 1; padding: 14px var(--space-5); border-right: 1px solid var(--border-hairline); }
+
+/* ── FLOOR PLAN (Table Layout, 8a) — the one canvas surface ─────────────── */
+.rd-floor { position: relative; height: 470px; overflow: hidden; background: var(--surface-content); border: 1px solid var(--border-control); }
+.rd-floor__table {
+  position: absolute; width: 96px; height: 96px; border-radius: 50%;
+  border: 2px solid var(--border-control); background: var(--surface-content);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: grab; font-size: var(--type-body);
+}
+.rd-floor__table.is-partial { border-color: var(--status-gold-border); background: color-mix(in srgb, var(--status-gold-bg) 40%, var(--surface-content)); }
+.rd-floor__table.is-selected { border-color: var(--forest); background: color-mix(in srgb, var(--forest) 6%, var(--surface-content)); }
+.rd-floor__head { border-radius: 0; width: 300px; height: 44px; flex-direction: row; gap: 10px; border-color: var(--forest); }
+
+/* ── PRINT ───────────────────────────────────────────────────────────────
+   Class A: working documents. Class B: keepsakes. Both print from the page
+   itself — there are no separate print templates to drift out of sync.      */
+@media print {
+  .rd-topbar, .rd-tabs, .rd-subnav, .rd-rail, .rd-drawer,
+  .rd-toolbar, .rd-bulkbar, .rd-pagehead__actions, .rd-footer, .rd-prefs { display: none !important; }
+  .rd-body, .rd-page__surface { display: block; }
+  .rd-main, .rd-page__work { width: 100%; }
+  @page { size: letter portrait; margin: .6in; }
+  body { background: #fff; color: #000; font-size: 12pt; }
+  .rd-table thead th { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; }
+  .rd-table { page-break-inside: auto; }
+  .rd-table tr { page-break-inside: avoid; }
+  .rd-table thead { display: table-header-group; }   /* header repeats per page */
+  .rd-table tbody tr.is-group { page-break-after: avoid; }
+  .status-pill { border: 1px solid #666 !important; background: #fff !important; color: #000 !important; }
+  .rd-track { border: 1px solid #666; }
+  .rd-fill { background: #000 !important; }
+  /* Class B keepsakes: Cormorant returns, one gold hairline, open margins */
+  .rd-page--keepsake { font-family: var(--font-display); }
+  .rd-page--keepsake h1, .rd-page--keepsake h2, .rd-page--keepsake .rd-keepsake-lead { font-family: var(--font-display); font-weight: 500; }
+  .rd-page--keepsake { padding: .9in; }
+  .rd-page--keepsake .rd-rule-gold { border: 0; border-top: 1px solid #B89968; width: 64px; margin: 14px 0 18px; }
+}

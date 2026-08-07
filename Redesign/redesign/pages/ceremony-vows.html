@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ceremony & Reception · Vows & Rings — Covenant Wedding Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../redesign-tokens.css">
+<link rel="stylesheet" href="../redesign-components.css">
+<link rel="stylesheet" href="../redesign-shell.css">
+<link rel="stylesheet" href="../redesign-layouts.css">
+</head>
+<body class="rd-scope" data-page="ceremony">
+<div class="rd-shell">
+  <!-- ═══ TOP BAR — preserve ids: onclick names match planner.js ═══ -->
+  <header class="rd-topbar">
+    <div class="rd-topbar__brand">
+      <span class="rd-topbar__mark">&#10022;</span>
+      <span class="rd-topbar__name">The Covenant Wedding Planner</span>
+    </div>
+    <button type="button" class="rd-topbar__wedding" onclick="openProfileSwitcher()">
+      <span class="rd-topbar__avatar" id="profile-initials">AK</span>
+      <span id="topbar-wedding-label">Ama &amp; Kwesi · 8 November 2026</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <button type="button" class="rd-search" onclick="openCommandPalette()">
+      <svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
+      <span>Search the planner</span>
+      <span class="rd-search__kbd">&#8984;K</span>
+    </button>
+    <div class="rd-topbar__right">
+      <button type="button" class="rd-undo" id="undo-btn" onclick="undoLastChange()" title="Undo (⌘Z)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M9 7H4V2"/><path d="M4 7a9 9 0 1 1 1.6 9"/></svg> Undo</button>
+      <button type="button" class="rd-undo" id="redo-btn" onclick="redoLastChange()" title="Redo (⌘⇧Z)" disabled><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M15 7h5V2"/><path d="M20 7a9 9 0 1 0-1.6 9"/></svg> Redo</button>
+      <span class="rd-savestate" id="save-state">Saved</span>
+      <button type="button" class="rd-topbar__bell" onclick="showPanel('dashboard')" aria-label="Alerts"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+      <button type="button" class="rd-topbar__gear" onclick="openViewerPrefs()" aria-label="Viewer preferences"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+      <button type="button" class="rd-topbar__profile" onclick="openViewerPrefs()">MO</button>
+    </div>
+  </header>
+  <nav class="rd-tabs" aria-label="Sections">
+    <button type="button" class="rd-tab" onclick="showPanel('dashboard')">Overview</button>
+    <button type="button" class="rd-tab" onclick="showPanel('tasks')">Planning</button>
+    <button type="button" class="rd-tab" onclick="showPanel('guests')">People</button>
+    <button type="button" class="rd-tab" onclick="showPanel('budget')">Money</button>
+    <button type="button" class="rd-tab" onclick="showPanel('vendors')">Vendors</button>
+    <button type="button" class="rd-tab is-active" onclick="showPanel('timeline')">The Day</button>
+    <button type="button" class="rd-tab" onclick="showPanel('vision')" data-covenant="1"><span class="rd-tab__dot"></span>Covenant</button>
+    <button type="button" class="rd-tab" onclick="showPanel('data-hub')">Documents</button>
+  </nav>
+  <nav class="rd-subnav" aria-label="Pages">
+    <button type="button" class="rd-subnav__item" onclick="showPanel('timeline')">Wedding Day Timeline</button>
+    <button type="button" class="rd-subnav__item is-active" onclick="showPanel('ceremony')">Ceremony &amp; Reception</button>
+    <button type="button" class="rd-subnav__item" onclick="showPanel('logistics')">Weekend Logistics</button>
+    <button type="button" class="rd-subnav__item" onclick="showPanel('honeymoon')">Honeymoon &amp; After</button>
+  </nav>
+  <div class="rd-body">
+    <aside class="rd-rail">
+      <div>
+        <div class="rd-rail__title">Sections</div>
+        <div class="rd-rail__list">
+          <button type="button" class="rd-rail__item">Overview<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Order of Worship<span class="rd-rail__count">13</span></button>
+          <button type="button" class="rd-rail__item">Processional<span class="rd-rail__count">6</span></button>
+          <button type="button" class="rd-rail__item">Recessional<span class="rd-rail__count">4</span></button>
+          <button type="button" class="rd-rail__item">Scripture &amp; Prayer<span class="rd-rail__count">5</span></button>
+          <button type="button" class="rd-rail__item is-active">Vows &amp; Rings<span class="rd-rail__count">4</span></button>
+          <button type="button" class="rd-rail__item">Officiant &amp; Legal<span class="rd-rail__count">6</span></button>
+          <button type="button" class="rd-rail__item">Reception Details<span class="rd-rail__count">14</span></button>
+          <button type="button" class="rd-rail__item">Traditions &amp; Cultural Moments<span class="rd-rail__count">4</span></button>
+        </div>
+      </div>
+      <div>
+        <div class="rd-rail__title">Running time</div>
+        <div class="rd-rail__meters">
+          <div class="rd-rail__meter-top"><span>Ceremony</span><span class="rd-rail__count">52 min</span></div>
+          <div class="rd-rail__meter-top"><span>Reception</span><span class="rd-rail__count">4h 10m</span></div>
+          <div class="rd-rail__meter-top"><span>Unassigned</span><span class="rd-rail__count">3</span></div>
+        </div>
+      </div>
+      <p class="rd-rail__note">The rail lists the same nine sections as the strip. The rail is for jumping; the strip shows where you are.</p>
+    </aside>
+    <main class="rd-main" id="panel-ceremony" data-panel="ceremony" data-active-tab="vows">
+      <div class="rd-pagehead">
+        <div>
+          <div class="rd-pagehead__eyebrow">The Day</div>
+          <h1 class="rd-pagehead__title">Ceremony &amp; Reception</h1>
+        </div>
+        <div class="rd-pagehead__actions">
+          <button type="button" class="rd-btn" onclick="emailOfficiant()">Send to officiant</button>
+          <button type="button" class="rd-btn" onclick="window.print()">Print section</button>
+          <button type="button" class="rd-btn" onclick="exportSectionCSV('Ceremony',data.ceremonyOrder)">Export CSV</button>
+          <button type="button" class="rd-btn rd-btn--primary" onclick="addCeremonyRow()">+ Add element</button>
+        </div>
+      </div>
+      <div class="rd-stats m-stats" id="ceremony-stats"></div>
+      <div class="rd-tabstrip" role="tablist" aria-label="Sections">
+        <button type="button" role="tab" class="m-tab" data-tab="overview" aria-selected="false" onclick="cerTab('overview')">Overview</button>
+        <button type="button" role="tab" class="m-tab" data-tab="order" aria-selected="false" onclick="cerTab('order')">Order of Worship</button>
+        <button type="button" role="tab" class="m-tab" data-tab="processional" aria-selected="false" onclick="cerTab('processional')">Processional</button>
+        <button type="button" role="tab" class="m-tab" data-tab="recessional" aria-selected="false" onclick="cerTab('recessional')">Recessional</button>
+        <button type="button" role="tab" class="m-tab" data-tab="scripture" aria-selected="false" onclick="cerTab('scripture')">Scripture &amp; Prayer</button>
+        <button type="button" role="tab" class="m-tab on is-active" data-tab="vows" aria-selected="true" onclick="cerTab('vows')">Vows &amp; Rings</button>
+        <button type="button" role="tab" class="m-tab" data-tab="officiant" aria-selected="false" onclick="cerTab('officiant')">Officiant &amp; Legal</button>
+        <button type="button" role="tab" class="m-tab" data-tab="reception" aria-selected="false" onclick="cerTab('reception')">Reception Details</button>
+        <button type="button" role="tab" class="m-tab" data-tab="traditions" aria-selected="false" onclick="cerTab('traditions')">Traditions &amp; Cultural Moments</button>
+        <span class="rd-tabstrip__note">9 sections</span>
+      </div>
+      <div class="rd-toolbar">
+        <button type="button" class="rd-chip">Author: both<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="rd-toolbar__right">
+          <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · 5 of 7<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+          <button type="button" class="rd-chip" onclick="autoFitColumns(this)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>
+          <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · compact<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="rd-bulkbar" id="bulk-bar" hidden>
+        <span class="rd-bulkbar__count"><span data-bulk-count>0</span> selected</span>
+        <span class="rd-bulkbar__sep"></span>
+        <button type="button" class="rd-bulkbar__action">Assign person</button>
+        <button type="button" class="rd-bulkbar__action">Set duration</button>
+        <button type="button" class="rd-bulkbar__action">Move to reception</button>
+        <button type="button" class="rd-bulkbar__action">Print programme</button>
+        <button type="button" class="rd-bulkbar__clear">Clear selection</button>
+      </div>
+      <div class="rd-surface">
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">Vows &amp; rings</div>
+        <p class="rd-help">Final text due to Rev. Mensah by 25 October.</p>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Print the vow cards</button>
+      </div>
+        <!-- JS mount: cwpRenderTable('ceremonyVows'). Do not rename. -->
+        <div class="rd-table-wrap ued-table-wrap" id="cwp-ceremonyVows"></div>
+      </div>
+    </main>
+    <aside class="rd-drawer" id="record-drawer" hidden></aside>
+  </div>
+  </div>
+<!-- The planner's own scripts. Load order matches index.html. -->
+<script src="../autofit-columns.js"></script>
+<script src="../../js/planner.js"></script>
+<script src="../../js/planner-pill-scheme.js"></script>
+<script src="../../js/ux-kit.js"></script>
+</body>
+</html>

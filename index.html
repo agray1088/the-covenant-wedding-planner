@@ -9,11 +9,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600&family=Crimson+Text:wght@400;600&family=Work+Sans:wght@400;500;600&family=Prata&family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
 <link rel="stylesheet" href="css/planner-tokens.css">
-<link rel="stylesheet" href="css/planner-components.css">
+<link rel="stylesheet" href="css/planner-components.css?v=20260722l">
 <link rel="stylesheet" href="css/phase2-roadmap.css">
 <link rel="stylesheet" href="css/phase3-roadmap.css">
 <link rel="stylesheet" href="css/phase4-roadmap.css">
-<link rel="stylesheet" href="css/planner.css">
+<link rel="stylesheet" href="css/planner.css?v=redesign-step15a">
 <link rel="stylesheet" href="css/planner-shell.css">
 <link rel="stylesheet" href="css/phase-data-hub.css">
 <link rel="stylesheet" href="css/phase-record-cards.css">
@@ -21,9 +21,24 @@
 <link rel="stylesheet" href="css/planner-context-sidebar.css">
 <link rel="stylesheet" href="css/planner-page-gutters.css">
 <link rel="stylesheet" href="css/planner-spacing-premium.css">
-<!-- Dark mode MUST load last so monochrome overrides win the cascade -->
-<link rel="stylesheet" href="css/planner-dark-editorial.css">
+<!-- RETIRED: css/planner-dark-editorial.css — a greyscale dark theme on a private
+     --dm-* namespace. The redesign's dark mode is coloured (forest bar, gold rule,
+     status hues), so the two cannot coexist. Dark mode is now owned by
+     Redesign/redesign-tokens.css. File kept on disk for reference. -->
 
+<!-- ==========================================================================
+     REDESIGN — the single source of truth for everything visual.
+     Loads after every legacy sheet so its token values win the cascade.
+     Step 1: tokens only.
+     ========================================================================== -->
+<link rel="stylesheet" href="Redesign/redesign-tokens.css?v=redesign-step6n">
+<link rel="stylesheet" href="Redesign/redesign-components.css?v=redesign-step7c">
+<link rel="stylesheet" href="Redesign/redesign-shell.css?v=redesign-step6n">
+<link rel="stylesheet" href="Redesign/redesign-layouts.css?v=redesign-step6n">
+<!-- Implementation glue, not design: re-asserts the redesign components at a
+     specificity that beats planner.css's body.editorial-v4 #main .panel chains.
+     Values come from tokens only — never new hex. -->
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-step25a">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -50,6 +65,15 @@
   } catch (e) { /* ignore */ }
 })();
 </script>
+<script>
+(function () {
+  try {
+    if (localStorage.getItem('covenant_footer_collapsed') === '1') {
+      document.documentElement.classList.add('planner-footer-collapsed-early');
+    }
+  } catch (e) { /* ignore */ }
+})();
+</script>
 <a href="#main" class="skip-link">Skip to content</a>
 <datalist id="dietary-options"><option value="Vegetarian"><option value="Vegan"><option value="Gluten-free"><option value="Nut allergy"><option value="Dairy-free"><option value="Halal"><option value="Kosher"><option value="Shellfish allergy"><option value="None"></datalist>
 
@@ -68,7 +92,7 @@
     <div class="brand-mark" aria-hidden="true">&#10022;</div>
     <div class="brand-copy">
       <div class="brand-main">The Covenant Wedding Planner</div>
-      <div class="brand-sub">Christ-Centered Planning</div>
+      <div class="brand-sub">Christ-Centered Planning · <a href="m3-planner/index.html" style="color:inherit">M3 planner</a></div>
     </div>
   </div>
   <div class="topbar-row-primary">
@@ -808,75 +832,53 @@
     </div>
 
     <!-- ═══ GUESTS ═══ -->
-    <div id="panel-guests" class="panel guestlist-mockup">
-      <div class="m-stats" id="guest-stats"></div>
-
-      <div class="m-block" aria-label="Estimated headcount costs">
-        <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14"/><path d="M7 20V8l5-4 5 4v12"/><path d="M10 20v-6h4v6"/></svg> Estimated headcount costs</div>
-        <p class="v4-help-note">Enter your per-person and flat costs — the estimate updates from your guest list.</p>
-        <div class="m-form cols-3">
-          <div class="m-field"><label>Adult cost</label><input type="number" id="gc-adult" min="0" placeholder="0" oninput="saveGuestCosts()"></div>
-          <div class="m-field"><label>Child cost</label><input type="number" id="gc-child" min="0" placeholder="0" oninput="saveGuestCosts()"></div>
-          <div class="m-field"><label>Venue fee</label><input type="number" id="gc-venue" min="0" placeholder="0" oninput="saveGuestCosts()"></div>
-          <div class="m-field"><label>Cake budget</label><input type="number" id="gc-cake" min="0" placeholder="0" oninput="saveGuestCosts()"></div>
-          <div class="m-field"><label>Beverage package</label><input type="number" id="gc-beverage" min="0" placeholder="0" oninput="saveGuestCosts()"></div>
-        </div>
-        <div id="guest-cost-summary-full" class="cost-summary guest-cost-full-summary" style="margin-top:1rem"></div>
-      </div>
-
-      <div class="guest-summary-inline" aria-label="Guest headcount and seating summaries">
-        <div class="m-block guest-side-card">
-          <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12"/><path d="M8 8v10M16 8v10"/><path d="M5 18h14"/><path d="M9 5h6"/></svg> Headcount &amp; budget</div>
-          <div id="guest-cost-summary" class="cost-summary guest-budget-summary"></div>
-          <p class="v4-help-note">Detailed cost inputs are available in the Estimated Headcount Costs card above.</p>
-        </div>
-        <div class="m-block guest-side-card">
-          <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="4.5" r="1.6"/><circle cx="12" cy="19.5" r="1.6"/><circle cx="4.5" cy="12" r="1.6"/><circle cx="19.5" cy="12" r="1.6"/></svg> Seating count</div>
-          <p class="v4-help-note">Use table numbers to organize seating. Assigned tables will still work with the Table Layout page.</p>
-          <div id="guest-seating-summary"></div>
-          <button type="button" class="m-btn" style="margin-top:.8rem" onclick="showPanel('tables')">View table layout</button>
-        </div>
-      </div>
-
-      <!-- Guest tracker injected by uedGuestShell() -->
+    <!-- ═══ GUESTS — §07 shell · 224 rail · 360 drawer · Batch 21 · record editor tabs · redesign-step14n ═══ -->
+    <div id="panel-guests" class="panel guests-mockup guestlist-mockup ued-scope">
+      <!-- Filled by uedGuestShell() / renderGuests() (pagehead · KPIs · costs/events/workflow · toolbar · table · drawer) -->
     </div>
 
-    <!-- ═══ TASKS ═══ -->
+    <!-- ═══ TASKS — §07 anatomy; uedTaskShell() fills toolbar/bulk on first render -->
     <div id="panel-tasks" class="panel tasks-mockup ued-scope">
-      <div class="tasks-title-wrap">
-        <span class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></span>
-        <h2 class="tasks-title">Planning Timeline</h2>
-        <p class="tasks-subtitle">Every planning task by phase — from proposal to honeymoon</p>
+      <div class="rd-page">
+        <div class="rd-pagehead">
+          <div>
+            <div class="rd-pagehead__eyebrow">Planning</div>
+            <div class="rd-pagehead__title-row">
+              <h1 class="rd-pagehead__title">Timeline &amp; Tasks</h1>
+            </div>
+          </div>
+          <div class="rd-pagehead__actions">
+            <button type="button" class="rd-btn rd-btn--quiet" onclick="rdLoadTaskStarter()">Import checklist</button>
+            <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
+            <button type="button" class="rd-btn" data-rd-full-editor onclick="rdTaskFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
+            <button type="button" class="rd-btn" onclick="exportSectionCSV('Planning Timeline',data.tasks)">Export</button>
+            <button type="button" class="rd-btn rd-btn--primary" onclick="addTaskRow()">+ New task</button>
+          </div>
+        </div>
+        <div class="rd-stats m-stats" id="task-stats"></div>
+        <div id="task-phase-suggest-chips"></div>
+        <div class="rd-toolbar" id="task-toolbar"></div>
+        <div class="rd-bulkbar" id="bulk-bar" hidden></div>
+        <div class="rd-surface">
+          <div class="rd-surface__row" id="task-surface-row">
+            <div class="rd-surface__main" id="task-view-host">
+              <div class="rd-view" id="task-view-table" data-task-view="table">
+                <div class="rd-table-wrap ued-table-wrap" id="cwp-tasks"></div>
+                <span class="rd-table-foot ued-soft" id="cwp-tasks-foot"></span>
+              </div>
+              <div class="rd-view" id="task-view-board" data-task-view="board" hidden>
+                <div class="rd-task-board" id="task-board-view"></div>
+              </div>
+              <div class="rd-view" id="task-view-timeline" data-task-view="timeline" hidden>
+                <div class="rd-task-timeline" id="task-timeline-view"></div>
+              </div>
+            </div>
+            <div id="task-drawer-slot"></div>
+          </div>
+        </div>
+        <section class="rd-panel tasks-progress-card m-block" id="task-progress-card"></section>
+        <datalist id="assigned-options"></datalist>
       </div>
-
-      <div class="m-stats" id="task-stats"></div>
-
-      <div id="task-phase-suggest-chips"></div>
-
-      <div class="m-actions" style="margin-bottom:1.3rem">
-        <button class="m-btn" type="button" onclick="exportSectionCSV('Planning Timeline',data.tasks)">Export CSV</button>
-        <button class="m-btn m-btn-primary" type="button" onclick="addTaskRow()">+ New task</button>
-        <button class="m-btn" type="button" onclick="loadTaskTimelinePreset()">Load 12-Month Timeline</button>
-        <button class="m-btn" type="button" onclick="loadTaskFullChecklist()">Load Full Wedding Checklist</button>
-      </div>
-
-      <section class="ued-table-card tasks-table-card">
-        <div class="ued-table-head"><div class="ued-table-title"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.35em"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg> Task list</div></div>
-        <div class="ued-table-wrap" id="tasks-hub-preview"></div>
-        <span class="ued-soft" id="tasks-hub-preview-foot"></span>
-      </section>
-
-      <section class="tasks-progress-card m-block" id="task-progress-card"></section>
-
-      <datalist id="assigned-options">
-        <option value="Bride"></option>
-        <option value="Groom"></option>
-        <option value="Both"></option>
-        <option value="Wedding Party"></option>
-        <option value="Family"></option>
-        <option value="Planner"></option>
-      </datalist>
-
     </div>
 
     <!-- ═══ TIMELINE ═══ -->
@@ -1324,170 +1326,19 @@
 
     </div>
 
-    <!-- ═══ TABLE LAYOUT ═══ -->
+    <!-- ═══ TABLE LAYOUT — §07 shell · 224 rail · 360 drawer · mock 8a · redesign-step16a ═══ -->
     <div id="panel-tables" class="panel table-layout-mockup ued-scope">
-      <section class="table-layout-title-wrap">
-        <span class="dash-orn" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></span>
-        <h2 class="table-layout-title">Table Layout</h2>
-        <p class="table-layout-subtitle">Design your reception layout and seat your guests with ease.</p>
-      </section>
-      <div id="table-layout-stats" class="m-stats" aria-label="Table layout summary"></div>
-      <div id="seating-guardrails" aria-live="polite"></div>
-      <div id="seating-guest-pool" aria-label="Unseated guests — drag onto tables"></div>
-      <section class="table-layout-main-grid">
-        <div class="ued-panel table-layout-floor-panel">
-          <div class="table-layout-floor-head">
-            <div class="table-layout-floor-title"><span class="table-layout-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9h16M6 9v9m12-9v9M8 18h8M9 6h6l2 3H7l2-3Z"/></svg></span><div><h3>Reception Floor Plan</h3><p class="page-subtitle" style="margin:.15rem 0 0;font-size:.78rem;">Drag each table to arrange the room. Tables populate from the Guest List.</p></div></div>
-            <div class="table-layout-floor-actions"><button type="button" class="table-layout-tool-btn" id="table-edit-layout-btn" onclick="toggleTableEditMode()"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>Edit Layout</button><span class="table-layout-zoom" aria-label="Zoom controls"><button type="button" onclick="setTableZoom(-.1)" aria-label="Zoom out">−</button><span id="table-zoom-label">100%</span><button type="button" onclick="setTableZoom(.1)" aria-label="Zoom in">+</button></span><button type="button" class="table-layout-tool-btn" onclick="toggleTableMapFull()" title="Expand floor plan"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg></button></div>
-          </div>
-          <div class="table-map-viewport" id="table-map-viewport"><div id="table-map"></div></div>
-        </div>
-        <aside class="ued-panel table-assign-panel">
-          <div class="table-assign-head"><div class="table-assign-title"><span class="table-layout-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M6 7v11m12-11v11M8 18h8"/><path d="M9 4h6l2 3H7l2-3Z"/></svg></span><h3>Table Assignments</h3></div></div>
-          <div class="table-assign-legend"><span><i class="table-assign-dot vip"></i> VIP Table</span><span><i class="table-assign-dot assigned"></i> Assigned</span><span><i class="table-assign-dot partial"></i> Partially Filled</span><span><i class="table-assign-dot open"></i> Open</span></div>
-          <div id="table-assignment-list" class="table-assign-list"></div>
-          <div class="table-assign-add"><button type="button" class="add-row-btn" onclick="toggleAddTableForm()">+ Add Table</button></div>
-          <div class="table-special-actions" aria-label="Special table options">
-            <button type="button" class="add-row-btn wide" onclick="addSpecialTable('head')">+ Head Table</button>
-            <button type="button" class="add-row-btn" onclick="addSpecialTable('sweetheart-rect')">+ Sweetheart Rectangle</button>
-            <button type="button" class="add-row-btn" onclick="addSpecialTable('sweetheart-circle')">+ Sweetheart Circle</button>
-            <button type="button" class="add-row-btn wide" onclick="addSpecialTable('parents')">+ Parents Table</button>
-          </div>
-          <div id="table-add-inline" class="table-add-inline"><div class="form-grid cols-2"><div class="form-group"><label>Table name / number</label><input type="text" id="new-table-name" placeholder="e.g. Table 1 or Head Table"></div><div class="form-group"><label>Seats available</label><input type="number" id="new-table-cap" min="1" placeholder="8"></div></div><button class="btn btn-forest" style="margin-top:.6rem;" onclick="addTable()">Save Table</button></div>
-        </aside>
-      </section>
-      <section class="table-detail-section"><div class="table-detail-head"><div class="table-detail-title"><span class="table-layout-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 5v14M16 5v14M4 11h16"/></svg></span><div><h3>Table Detail Cards</h3><p class="page-subtitle" style="margin:.15rem 0 0;font-size:.78rem;">Tables assigned on the Guest List appear here with guest chips and seat counts.</p></div></div></div><div id="tables-grid" class="tables-grid"></div></section>
+      <!-- Filled by uedTablesShell() / renderTables() -->
     </div>
 
-    <!-- ═══ BRIDAL & GROOM'S PARTY ═══ -->
-    <div id="panel-party" class="panel party-mockup">
-      <div class="party-title-wrap">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="party-title">Wedding Party</h2>
-        <p class="party-subtitle">Organize your wedding party and keep everyone prepared for the big day.</p>
-      </div>
-
-      <div id="party-stats" class="m-stats" aria-label="Wedding party summary"></div>
-
-      <!-- Role tabs + status filter removed: filtering now lives in the table's per-column Excel filters + search (CWP engine). -->
-      <section class="ued-table-card party-table-card">
-        <div class="ued-table-head">
-          <div class="ued-table-title">Wedding party tracker</div>
-          <div class="ued-actions">
-            <button class="btn btn-outline btn-sm" onclick="importPartyFromGuests()">Import from Guest List</button>
-          </div>
-        </div>
-        <!-- Wedding party table now rendered by the CWP unified engine (renderParty → cwpRenderTable('party')) -->
-        <div class="ued-table-wrap" id="party-hub-preview"></div>
-        <span class="ued-soft" id="party-hub-preview-foot"></span>
-      </section>
+    <!-- ═══ WEDDING PARTY — §07 shell · 224 rail · 360 drawer · mock 10a · redesign-step15b ═══ -->
+    <div id="panel-party" class="panel party-mockup ued-scope">
+      <!-- Filled by uedPartyShell() / renderParty() -->
     </div>
 
     <!-- ═══ GIFT LOG ═══ -->
-    <div id="panel-gifts" class="panel gift-log-mockup ued-scope">
-      <section class="gift-hero">
-        <div class="section-ornament" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 96 22"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="gift-title">Gift Log</h2>
-        <p class="gift-subtitle">Track and steward every gift with gratitude.</p>
-      </section>
-
-      <div class="m-stats" id="gift-stats" aria-label="Gift log summary"></div>
-
-      <section class="gift-dashboard-grid">
-        <div class="ued-panel gift-recent-panel">
-          <div class="gift-section-head">
-            <div>
-              <p class="gift-eyebrow">Recent Gifts</p>
-              <h3>Gift Tracker</h3>
-            </div>
-            <button class="gift-view-btn" type="button" onclick="giftRecentViewAll=!giftRecentViewAll; renderGiftDashboardExtras();" id="gift-view-all-btn">View All</button>
-          </div>
-          <div class="gift-mini-table-wrap">
-            <table class="gift-mini-table" aria-label="Recent gifts summary">
-              <thead><tr><th>Giver Name</th><th>Gift Description</th><th>Value</th><th>Category</th><th>Thank-You</th></tr></thead>
-              <tbody id="gift-recent-body"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <aside class="gift-side-stack">
-          <div class="ued-panel gift-summary-panel">
-            <p class="gift-eyebrow">Gift Summary</p>
-            <div class="gift-donut-row">
-              <div id="gift-donut" class="gift-donut" aria-hidden="true"></div>
-              <div id="gift-category-legend" class="gift-category-legend"></div>
-            </div>
-            <div class="gift-total-box">
-              <span>Total Value</span>
-              <strong id="gift-total-value">$0.00</strong>
-              <svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg>
-            </div>
-          </div>
-          <div class="ued-panel gift-category-panel">
-            <p class="gift-eyebrow">Top Categories by Value</p>
-            <div id="gift-category-bars" class="gift-category-bars"></div>
-          </div>
-        </aside>
-      </section>
-
-      <section class="ued-panel gift-note-panel">
-        <div class="gift-note-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.9-1.8-4.9-1.7-6.8.3L12 7l-2-2.1c-1.9-2-4.9-2.1-6.8-.3-2 1.9-2 5.1-.1 7.1L12 20l8.9-8.3c1.9-2 1.9-5.2-.1-7.1Z"/></svg></div>
-        <div>
-          <h3>A Note of Thankfulness</h3>
-          <p>Every gift is a reflection of love and generosity. Let us steward each one with a grateful heart.</p>
-        </div>
-      </section>
-
-      <section class="ued-panel gift-toolbar-panel">
-        <div class="gift-filter-tabs" aria-label="Gift filters">
-          <button type="button" class="gift-filter active" data-gift-filter="all" onclick="setGiftLogFilter('all')">All Gifts</button>
-          <button type="button" class="gift-filter" data-gift-filter="Registry" onclick="setGiftLogFilter('Registry')">Registry</button>
-          <button type="button" class="gift-filter" data-gift-filter="Cash" onclick="setGiftLogFilter('Cash')">Cash</button>
-          <button type="button" class="gift-filter" data-gift-filter="Handmade" onclick="setGiftLogFilter('Handmade')">Handmade</button>
-          <button type="button" class="gift-filter" data-gift-filter="Gift Card" onclick="setGiftLogFilter('Gift Card')">Gift Card</button>
-          <button type="button" class="gift-filter" data-gift-filter="Pending" onclick="setGiftLogFilter('Pending')">Thank-You Pending</button>
-          <button type="button" class="gift-filter" data-gift-filter="Sent" onclick="setGiftLogFilter('Sent')">Thank-You Sent</button>
-        </div>
-        <div class="gift-toolbar-actions no-print">
-          <button type="button" class="gift-print-btn" onclick="openThankYouList()">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Print Thank-You List
-          </button>
-        </div>
-      </section>
-
-      <section class="ued-panel span12 record-editor-inline-shell gifts-inline-editor" id="gifts-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div><div class="ued-table-title">Gift editor <span class="gie-mode" data-inline-editor-mode>Adding a new gift</span></div><p class="gie-note">Edit giver, gift details, value, category, date received, thank-you status, and notes here. Use Design Hub for full spreadsheet and bulk editing.</p></div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="gifts-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('gifts',null,'gifts-inline-editor-body')" style="display:none">Start new gift</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add gift</button>
-        </div>
-      </section>
-
-      <section class="gift-table-card">
-        <div class="gift-section-head">
-          <div>
-            <p class="gift-eyebrow">All Gift Details</p>
-            <h3>Gifts Received</h3>
-          </div>
-          <div class="gift-table-actions no-print">
-            <button type="button" class="gift-print-btn" onclick="openEntityCSVImport('gifts')">Import CSV</button>
-          </div>
-          <div class="gift-table-help">Track giver, value, category, date received, and thank-you note status.</div>
-        </div>
-        <datalist id="gift-from-options"></datalist>
-        <div class="ued-table-head"><div class="ued-table-title">Gifts received <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-btn db-edit-btn" onclick="openDataHub('design','gifts')">Edit in Design Hub</button></div></div>
-        <div class="ued-table-wrap ro-preview" id="cwp-gifts"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-      </section>
-
+    <div id="panel-gifts" class="panel gift-log-mockup gifts-mockup ued-scope">
+      <!-- Filled by uedGiftsShell() / renderGifts() -->
     </div>
 
     <!-- ═══ PHOTO & VIDEO SHOT LISTS ═══ -->
@@ -1611,12 +1462,7 @@
         <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/><path d="M7 15h4"/></svg><span class="m-stat-label">Cost / deposit</span></div><div class="m-stat-val" id="venue-stat-cost">—</div><div class="m-stat-sub" id="venue-stat-cost-sub">Track your venue investment</div></div>
       </div>
 
-      <!-- Wedding Venue tab bar (Batch 5b) — full-width cards, one per tab; drag/resize controls removed -->
-      <div class="m-tabbar ven-tabbar">
-        <button class="m-tab on" data-tab="details" onclick="venTab('details')">Venue Details</button>
-        <button class="m-tab" data-tab="notes" onclick="venTab('notes')">Notes</button>
-        <button class="m-tab" data-tab="reminders" onclick="venTab('reminders')">Reminders</button>
-      </div>
+      <!-- Venue Details / Notes / Reminders now live on the shared Venue & Vendors hub bar (.vv-hub-tabbar, injected after the masthead). Old .ven-tabbar removed. -->
 
       <div class="venue-arrange-grid" id="venue-arrange-grid">
         <section class="ued-panel venue-details-panel venue-widget" data-card="details" data-size="half">
@@ -1688,43 +1534,7 @@
           <div class="venue-full-details" id="venue-full-details"></div>
         </section>
 
-        <aside class="ued-panel venue-shortlist-panel venue-widget" data-card="shortlist" data-size="half">
-          <div class="venue-widget-toolbar">
-            <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Venue Shortlist</span></div>
-            <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('shortlist')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
-          </div>
-          <div class="venue-shortlist-head">
-            <div>
-              <h3>Venue Shortlist</h3>
-              <div class="venue-rule"></div>
-              <p>Compare your ceremony and reception spaces in a quick visual overview.</p>
-            </div>
-            <label class="venue-switch-wrap">Compare Venues
-              <span class="venue-switch"><input type="checkbox" id="venue-compare-toggle" onchange="toggleVenueCompare(this.checked)"><span class="slider"></span></span>
-            </label>
-          </div>
-          <div class="venue-shortlist-grid" id="venue-shortlist-grid"></div>
-          <div class="venue-short-actions">
-            <button class="btn btn-forest" type="button" onclick="toggleVenueExtraEditor()">+ Add Venue to Compare</button>
-            <button class="btn btn-gold" type="button" onclick="addBlankCompareVenue()">Quick Add Blank Card</button>
-          </div>
-          <div class="venue-extra-editor" id="venue-extra-editor">
-            <h4>Add Comparison Venue</h4>
-            <div class="venue-extra-grid">
-              <input id="venue-extra-name" placeholder="Venue name">
-              <input id="venue-extra-type" placeholder="Ceremony, Reception, Both…">
-              <input id="venue-extra-space" placeholder="Indoor, Outdoor, Garden…">
-              <input id="venue-extra-capacity" placeholder="Capacity">
-              <input id="venue-extra-address" class="span-2" placeholder="Address / location">
-              <input id="venue-extra-cost" placeholder="Total cost, e.g. $2,800">
-              <input id="venue-extra-deposit" placeholder="Deposit paid, e.g. $800">
-              <input id="venue-extra-contact" class="span-2" placeholder="Contact / notes">
-            </div>
-            <div class="venue-short-actions"><button class="btn btn-forest" type="button" onclick="saveExtraVenue()">Add Venue</button></div>
-          </div>
-          <div class="venue-extra-list" id="venue-extra-list"></div>
-          <div class="venue-compare-table" id="venue-compare-table"></div>
-        </aside>
+        <!-- Venue Shortlist card removed — venue vs. vendor shortlisting now lives on the shared "Shortlist & Compare" tab (Vendors engine). -->
 
         <section class="ued-panel venue-notes-panel venue-widget" data-card="notes" data-size="half">
           <div class="venue-widget-toolbar">
@@ -1755,60 +1565,84 @@
     </div>
 
 
-    <!-- ═══ SMART CALENDAR ═══ -->
+    <!-- ═══ SMART CALENDAR (§07 shell · edge-fill + rail / §16 Full editor / redesign-step9e Agenda 6d) ═══ -->
     <div id="panel-calendar" class="panel smart-calendar-mockup ued-scope">
-      <div class="m-stats" id="smart-calendar-stats"></div>
-      <div class="smart-insight-band" id="smart-calendar-insights"></div>
-      <div class="smart-side-row">
-        <section class="ued-panel smart-side-panel" id="smart-selected-day"></section>
-        <section class="ued-panel smart-side-panel" id="smart-due-soon"></section>
-        <section class="ued-panel smart-side-panel" id="smart-conflicts" style="display:none"></section>
-        <section class="ued-panel smart-side-panel" id="smart-notes-card"></section>
-      </div>
-
-      <div class="smart-toolbar-row">
-        <div class="smart-filter-group">
-          <div class="smart-view-tabs" aria-label="Calendar view">
-            <button type="button" id="smart-mode-month" class="active" onclick="setSmartCalendarMode('month')">Month View</button>
-            <button type="button" id="smart-mode-week" onclick="setSmartCalendarMode('week')">Week View</button>
-            <button type="button" id="smart-mode-agenda" onclick="setSmartCalendarMode('agenda')">Agenda View</button>
-            <button type="button" class="ued-link smart-appt-link" onclick="showPanel('appointments')">Appointment Tracker →</button>
+      <div class="rd-page">
+        <div class="rd-pagehead">
+          <div>
+            <div class="rd-pagehead__eyebrow">Planning</div>
+            <div class="rd-pagehead__title-row">
+              <h1 class="rd-pagehead__title">Smart Calendar</h1>
+            </div>
           </div>
-          <select id="smart-source-filter" class="smart-filter" onchange="renderSmartCalendar()">
-            <option>All Sources</option>
-          </select>
-          <select id="smart-category-filter" class="smart-filter" onchange="renderSmartCalendar()">
-            <option>All Categories</option>
-          </select>
+          <div class="rd-pagehead__actions">
+            <button type="button" class="rd-btn" onclick="downloadBulkICS()">Subscribe (.ics)</button>
+            <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
+            <button type="button" class="rd-btn" onclick="smartCalendarFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
+            <button type="button" class="rd-btn" onclick="exportSmartCalendarCSV()">Export</button>
+            <button type="button" class="rd-btn rd-btn--primary" onclick="openCalendarDayDrawerCreate('appointment')">+ New appointment</button>
+          </div>
+        </div>
+
+        <div class="rd-stats m-stats" id="smart-calendar-stats"></div>
+
+        <div class="rd-toolbar" id="smart-calendar-toolbar">
           <div class="smart-month-nav">
-            <button type="button" onclick="shiftSmartCalendarMonth(-1)" aria-label="Previous month">‹</button>
+            <button type="button" onclick="shiftSmartCalendarMonth(-1)" aria-label="Previous period">‹</button>
             <span id="smart-month-label" role="button" tabindex="0" onclick="toggleSmartMonthPicker()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSmartMonthPicker();}">Month</span>
-            <button type="button" onclick="shiftSmartCalendarMonth(1)" aria-label="Next month">›</button>
+            <button type="button" onclick="shiftSmartCalendarMonth(1)" aria-label="Next period">›</button>
             <div class="smart-month-picker" id="smart-month-picker" hidden></div>
           </div>
-          <label class="smart-notes-toggle" title="Also show dated entries from the Notes Details Tracker"><input type="checkbox" id="smart-include-notes" onchange="toggleSmartNotes(this.checked)"> Pull from Notes</label>
+          <span class="rd-chipset" id="smart-filter-chips"></span>
+          <button type="button" class="rd-chip" onclick="smartCalendarGoToday()">Today</button>
+          <label class="smart-notes-toggle" title="Also show dated entries from the Notes Details Tracker" hidden><input type="checkbox" id="smart-include-notes" onchange="toggleSmartNotes(this.checked)"> Notes</label>
+          <input id="smart-search" type="search" hidden aria-hidden="true" tabindex="-1">
+          <div class="rd-toolbar__right">
+            <button type="button" class="rd-chip" id="smart-columns-chip" title="Calendar columns follow the 7-day week grid" onclick="void 0"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · 7<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+            <button type="button" class="rd-chip" onclick="smartCalendarAutoFit(this)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>
+            <button type="button" class="rd-chip" id="smart-row-height-chip" onclick="smartCalendarCycleDensity()" aria-label="Row height · default" title="Row height · default (click to cycle)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · default<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+            <div class="rd-viewswitch" role="group" aria-label="Calendar view">
+              <button type="button" id="smart-mode-month" class="rd-viewswitch__item is-active active" onclick="setSmartCalendarMode('month')">Month</button>
+              <button type="button" id="smart-mode-week" class="rd-viewswitch__item" onclick="setSmartCalendarMode('week')">Week</button>
+              <button type="button" id="smart-mode-agenda" class="rd-viewswitch__item" onclick="setSmartCalendarMode('agenda')">Agenda</button>
+            </div>
+          </div>
         </div>
-        <div class="smart-search-actions">
-          <label class="smart-search-wrap"><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg></span><input id="smart-search" type="search" placeholder="Search events..." oninput="renderSmartCalendar()"></label>
-          <button class="ued-btn" type="button" onclick="downloadBulkICS()">Export All .ics</button>
-          <button class="ued-btn primary" type="button" onclick="openSmartCalendarCreate()">+ Create</button>
+
+        <div class="rd-surface">
+          <div class="rd-surface__row" id="calendar-surface-row">
+            <div class="rd-surface__main smart-main-panel">
+              <div class="smart-source-strip" id="smart-source-pills" hidden></div>
+              <div class="smart-layout">
+                <div id="smart-calendar-main"></div>
+              </div>
+              <div class="smart-insight-band" id="smart-calendar-insights"></div>
+              <!-- Redesign: expandable Day insights & due soon (replaces Phase 3 wrap of hidden legacy stack) -->
+              <details class="smart-day-insights-expand" id="smart-day-insights-expand">
+                <summary class="smart-day-insights-summary">
+                  <span>Day insights &amp; due soon</span>
+                  <span class="smart-day-insights-chevron" aria-hidden="true">▾</span>
+                </summary>
+                <div class="smart-day-insights-body" id="smart-day-insights-panel"></div>
+              </details>
+              <!-- Legacy side stacks kept as mounts; redesign hides under month drawer UX -->
+              <div class="smart-side-row smart-side-row--legacy" hidden aria-hidden="true">
+                <section class="ued-panel smart-side-panel" id="smart-selected-day"></section>
+                <section class="ued-panel smart-side-panel" id="smart-due-soon"></section>
+                <section class="ued-panel smart-side-panel" id="smart-conflicts" style="display:none"></section>
+                <section class="ued-panel smart-side-panel" id="smart-notes-card"></section>
+              </div>
+              <div class="smart-bottom-grid smart-bottom-grid--legacy">
+                <section class="ued-panel smart-side-panel" id="smart-week-agenda"></section>
+                <section class="ued-panel smart-side-panel" id="smart-source-breakdown"></section>
+                <section class="ued-panel smart-side-panel" id="smart-reminders"></section>
+                <section class="ued-panel smart-side-panel" id="smart-unscheduled-tasks"></section>
+              </div>
+            </div>
+            <div id="calendar-drawer-slot"></div>
+          </div>
         </div>
       </div>
-
-      <section class="ued-panel smart-main-panel">
-        <div class="smart-source-strip" id="smart-source-pills"></div>
-        <div class="smart-layout">
-          <div id="smart-calendar-main"></div>
-        </div>
-      </section>
-
-      <div class="smart-bottom-grid">
-        <section class="ued-panel smart-side-panel" id="smart-week-agenda"></section>
-        <section class="ued-panel smart-side-panel" id="smart-source-breakdown"></section>
-        <section class="ued-panel smart-side-panel" id="smart-reminders"></section>
-        <section class="ued-panel smart-side-panel" id="smart-unscheduled-tasks"></section>
-      </div>
-
     </div>
 
     <!-- ═══ APPOINTMENT TRACKER ═══ -->
@@ -1822,60 +1656,10 @@
     </div>
 
 
-    <!-- ═══ CONTRACTS & INVOICES ═══ -->
+    <!-- CONTRACTS & INVOICES — mock 10c · redesign-step25a -->
     <div id="panel-contracts" class="panel contracts-mockup ued-scope">
-      <div class="contracts-hero">
-        <span class="dash-orn contracts-hero-orn" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></span>
-        <h2 class="contracts-title">Contracts, Invoices &amp; Rentals</h2>
-        <p class="contracts-subtitle">A log of every signed agreement, invoice, receipt, and rental detail - note where each file is saved.</p>
-      </div>
-
-      <div class="contracts-stat-grid" aria-label="Contracts and invoices summary">
-        <div class="contracts-stat-card"><div class="contracts-stat-icon doc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4"/><path d="M9 12h6M9 16h6M9 8h2"/></svg></div><div><div class="contracts-stat-kicker">Total Documents</div><div class="contracts-stat-value" id="contracts-total-docs">0</div><div class="contracts-stat-sub">Contracts, invoices, receipts</div></div></div>
-        <div class="contracts-stat-card"><div class="contracts-stat-icon signed"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m8.7 12.2 2.2 2.3 4.7-5"/></svg></div><div><div class="contracts-stat-kicker">Signed Contracts</div><div class="contracts-stat-value" id="contracts-signed-docs">0</div><div class="contracts-stat-sub" id="contracts-signed-pct">0% of total</div></div></div>
-        <div class="contracts-stat-card"><div class="contracts-stat-icon pending"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></div><div><div class="contracts-stat-kicker">Pending Signature</div><div class="contracts-stat-value" id="contracts-pending-docs">0</div><div class="contracts-stat-sub" id="contracts-pending-pct">0% of total</div></div></div>
-        <div class="contracts-stat-card"><div class="contracts-stat-icon invoice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2z"/><path d="M10 9h4M10 13h4"/></svg></div><div><div class="contracts-stat-kicker">Invoices Due</div><div class="contracts-stat-value" id="contracts-invoices-due">0</div><div class="contracts-stat-sub" id="contracts-invoices-amount">$0 due</div></div></div>
-      </div>
-
-      <div class="contracts-toolbar-card ued-table-control-card">
-        <div class="contracts-toolbar">
-          <label class="contracts-search"><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg></span><input id="contracts-search" type="search" placeholder="Search documents or vendors…" oninput="renderContracts()"></label>
-          <select id="contracts-type-filter" onchange="renderContracts()" aria-label="Filter by type"><option>All Types</option><option>Contract</option><option>Invoice</option><option>Receipt</option><option>Other</option></select>
-          <select id="contracts-status-filter" onchange="renderContracts()" aria-label="Filter by status"><option>All Status</option><option>Not Signed</option><option>Signed</option><option>Invoiced</option><option>Paid</option></select>
-          <button class="btn btn-forest contracts-add-btn" onclick="addContractRow()"><span aria-hidden="true">+</span><span class="btn-text">Add Document</span></button>
-        </div>
-      </div>
-
-      <div class="contracts-table-card">
-        <div class="contracts-table-head">
-          <div>
-            <div class="contracts-section-title">Contracts, Invoices &amp; Rentals</div>
-            <p class="contracts-section-sub">Tip: keep the actual PDF files in a folder or cloud drive, and note the location here. You can attach a small photo/scan of a page for quick reference.</p>
-          </div>
-        </div>
-        <div class="hub-preview-card"><div class="ued-table-wrap" id="contracts-hub-preview"></div></div>
-      </div>
-
-      <div class="contracts-toolbar-card ued-table-control-card" id="rentals-filter-card">
-        <div class="contracts-toolbar">
-          <label class="contracts-search"><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg></span><input id="rentals-search" type="search" placeholder="Search rentals..." oninput="renderRentals()"></label>
-          <select id="rentals-vendor-filter" onchange="renderRentals()" aria-label="Filter rentals by vendor"><option value="">All Vendors</option></select>
-          <select id="rentals-date-filter" onchange="renderRentals()" aria-label="Filter rentals by timing"><option value="">All Dates</option><option value="pickup">Has Pick-Up Date</option><option value="return">Has Return Date</option><option value="missing">Missing Dates</option></select>
-          <button class="btn btn-ghost" type="button" onclick="clearRentalFilters()">Clear Filters</button>
-        </div>
-      </div>
-
-      <div class="contracts-table-card contracts-rentals-card">
-        <div class="contracts-table-head">
-          <div>
-            <div class="contracts-section-title">Rentals</div>
-            <p class="contracts-section-sub">Track rental items, vendors, return dates, costs, and details in the same clean table style.</p>
-          </div>
-        </div>
-        <!-- Rentals table now rendered by the CWP unified engine (renderRentals -> cwpRenderTable('rentals')) -->
-        <div class="hub-preview-card"><div class="ued-table-wrap" id="rentals-hub-preview"></div></div>
-      </div>
-
+      <datalist id="vendor-name-options"></datalist>
+      <div class="m-stats" id="contracts-stats"></div>
     </div>
 
 
@@ -2516,31 +2300,17 @@
 
     </div>
 
-    <!-- ═══ MORE PLANNING (Logistics Pages) ═══ -->
-    <div id="panel-logistics" class="panel ued-scope">
-      <div class="log-tabs" id="log-tabs"></div>
-      <section class="ued-panel span12 record-editor-inline-shell logistics-inline-editor" id="logistics-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div><div class="ued-table-title">Logistics inline editor <span id="logistics-inline-table-label">Weekend Timeline</span> <span class="gie-mode" data-inline-editor-mode>Adding a new weekend item</span></div><p class="gie-note">Choose a logistics table, edit one full row here, then use the preview tables below to scan, Auto-fit, and select another row.</p></div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div class="m-tabbar logistics-inline-tabs" id="logistics-inline-table-tabs" role="tablist">
-          <button type="button" class="m-tab on" data-logistics-inline-tab="weekendTimeline" onclick="setLogisticsInlineTable('weekendTimeline',null)" role="tab" aria-selected="true">Weekend</button>
-          <button type="button" class="m-tab" data-logistics-inline-tab="travelAccommodations" onclick="setLogisticsInlineTable('travelAccommodations',null)" role="tab" aria-selected="false">Travel</button>
-          <button type="button" class="m-tab" data-logistics-inline-tab="hotelBlocks" onclick="setLogisticsInlineTable('hotelBlocks',null)" role="tab" aria-selected="false">Hotels</button>
-          <button type="button" class="m-tab" data-logistics-inline-tab="transportation" onclick="setLogisticsInlineTable('transportation',null)" role="tab" aria-selected="false">Transport</button>
-          <button type="button" class="m-tab" data-logistics-inline-tab="vipCare" onclick="setLogisticsInlineTable('vipCare',null)" role="tab" aria-selected="false">VIP Care</button>
-        </div>
+    <!-- ═══ WEEKEND LOGISTICS (§07 shell · 224 rail · 360 drawer · mock 11d · redesign-step11b) ═══ -->
+    <div id="panel-logistics" class="panel logistics-mockup ued-scope">
+      <div id="logistics-view-root"></div>
+      <!-- Hidden mounts keep legacy tab renderers / CWP ids available when present -->
+      <div id="log-tabs" hidden aria-hidden="true"></div>
+      <div id="log-content" hidden aria-hidden="true"></div>
+      <section class="ued-panel span12 record-editor-inline-shell logistics-inline-editor" id="logistics-inline-editor-wrap" hidden aria-hidden="true">
         <div id="logistics-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="setLogisticsInlineTable(_logisticsInlineKey,null)" style="display:none">Start new row</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add weekend item</button>
-        </div>
+        <span id="logistics-inline-table-label" hidden></span>
+        <div id="logistics-inline-table-tabs" hidden></div>
       </section>
-      <div id="log-content"></div>
     </div>
 
     <!-- ═══ VISION & RHYTHMS (Reflective Pages) ═══ -->
@@ -2812,69 +2582,83 @@
       </div>
     </div>
 
-<!-- Global planner footer — part of main page content -->
+<!-- Global planner footer — collapsible popup panel (redesign-step10g) -->
 <footer class="planner-footer" id="planner-footer" role="contentinfo">
-  <div id="scripture-banner" style="display:none"></div>
-  <div class="footer-main">
-    <div class="footer-brand">
-      <h2 class="footer-brand__title">The Covenant Wedding Planner</h2>
-      <p class="footer-brand__desc">A Christ-centered wedding planning system designed to help couples organize every detail with clarity, peace, and intention.</p>
-      <div class="footer-trust-pills" id="footer-trust-pills" aria-label="Privacy and storage">
-        <span class="footer-trust-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Runs locally</span>
-        <span class="footer-trust-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> <span id="footer-save-status">Saves in browser</span></span>
-        <button type="button" class="footer-trust-pill footer-trust-pill--btn" onclick="downloadSqliteBackup()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Backup anytime</button>
+  <button type="button"
+          class="footer-toggle-tab"
+          id="footer-toggle-tab"
+          aria-expanded="true"
+          aria-controls="footer-panel"
+          aria-label="Hide footer"
+          title="Hide footer">
+    <svg class="footer-toggle-tab__chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6 9l6 6 6-6"/>
+    </svg>
+    <span class="footer-toggle-tab__label">Footer</span>
+  </button>
+  <div class="footer-panel" id="footer-panel">
+    <div id="scripture-banner" style="display:none"></div>
+    <div class="footer-main">
+      <div class="footer-brand">
+        <h2 class="footer-brand__title">The Covenant Wedding Planner</h2>
+        <p class="footer-brand__desc">A Christ-centered wedding planning system designed to help couples organize every detail with clarity, peace, and intention.</p>
+        <div class="footer-trust-pills" id="footer-trust-pills" aria-label="Privacy and storage">
+          <span class="footer-trust-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Runs locally</span>
+          <span class="footer-trust-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> <span id="footer-save-status">Saves in browser</span></span>
+          <button type="button" class="footer-trust-pill footer-trust-pill--btn" onclick="downloadSqliteBackup()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Backup anytime</button>
+        </div>
+      </div>
+      <div class="footer-column">
+        <h3 class="footer-column__title">Start Here</h3>
+        <ul>
+          <li><button type="button" class="footer-link" onclick="showPanel('instructions')">Get Started</button></li>
+          <li><button type="button" class="footer-link" onclick="showPanel('guide')">Page-by-Page Guide</button></li>
+          <li><button type="button" class="footer-link" onclick="showPanel('faq')">FAQ</button></li>
+          <li><button type="button" class="footer-link" onclick="showPanel('setup')">Wedding Setup</button></li>
+          <li><button type="button" class="footer-link" onclick="openFooterBackupHelp()">Backup &amp; Restore Help</button></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h3 class="footer-column__title">Key Shortcuts</h3>
+        <ul>
+          <li><button type="button" class="footer-link" onclick="showPanel('dashboard')">Dashboard</button></li>
+          <li><button type="button" class="footer-link" onclick="showPanel('calendar')">Smart Calendar</button></li>
+          <li><button type="button" class="footer-link" onclick="showPanel('budget')">Budget</button></li>
+          <li><button type="button" class="footer-link" onclick="showPanel('guests')">Guest List</button></li>
+          <li><button type="button" class="footer-link" onclick="showPanel('payments')">Payments</button></li>
+          <li><button type="button" class="footer-link" onclick="showPanel('packets')">Share Packets</button></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h3 class="footer-column__title">Support Tools</h3>
+        <ul>
+          <li><button type="button" class="footer-link" onclick="downloadSqliteBackup()">Download Backup</button></li>
+          <li><button type="button" class="footer-link" onclick="document.getElementById('importInput').click()">Restore Backup</button></li>
+          <li><button type="button" class="footer-link" onclick="exportActivePanelCSV()">Export CSV</button></li>
+          <li><button type="button" class="footer-link" onclick="printSelectedSection()">Print Section</button></li>
+          <li><button type="button" class="footer-link" onclick="toggleReadOnlyMode()">Preview Mode</button></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h3 class="footer-column__title">Connect</h3>
+        <ul id="footer-connect-links">
+          <li><button type="button" class="footer-link" onclick="openFooterConnect('support')">Contact Support</button></li>
+          <li><a class="footer-link footer-link--external" id="footer-link-website" href="#" onclick="openFooterConnect('website'); return false;">Website</a></li>
+          <li><a class="footer-link footer-link--external" id="footer-link-instagram" href="#" onclick="openFooterConnect('instagram'); return false;">Instagram</a></li>
+          <li><a class="footer-link footer-link--external" id="footer-link-pinterest" href="#" onclick="openFooterConnect('pinterest'); return false;">Pinterest</a></li>
+          <li><a class="footer-link footer-link--external" id="footer-link-etsy" href="#" onclick="openFooterConnect('etsy'); return false;">Shop / Etsy</a></li>
+        </ul>
       </div>
     </div>
-    <div class="footer-column">
-      <h3 class="footer-column__title">Start Here</h3>
-      <ul>
-        <li><button type="button" class="footer-link" onclick="showPanel('instructions')">Get Started</button></li>
-        <li><button type="button" class="footer-link" onclick="showPanel('guide')">Page-by-Page Guide</button></li>
-        <li><button type="button" class="footer-link" onclick="showPanel('faq')">FAQ</button></li>
-        <li><button type="button" class="footer-link" onclick="showPanel('setup')">Wedding Setup</button></li>
-        <li><button type="button" class="footer-link" onclick="openFooterBackupHelp()">Backup &amp; Restore Help</button></li>
-      </ul>
+    <div class="footer-bottom">
+      <p class="footer-bottom__copy">&copy; 2026 The Covenant Wedding Planner. All rights reserved. For personal wedding planning use only.</p>
+      <nav class="footer-legal" aria-label="Legal">
+        <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('terms')">Terms of Use</button>
+        <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('privacy')">Privacy Policy</button>
+        <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('refund')">Refund Policy</button>
+        <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('license')">License</button>
+      </nav>
     </div>
-    <div class="footer-column">
-      <h3 class="footer-column__title">Key Shortcuts</h3>
-      <ul>
-        <li><button type="button" class="footer-link" onclick="showPanel('dashboard')">Dashboard</button></li>
-        <li><button type="button" class="footer-link" onclick="showPanel('calendar')">Smart Calendar</button></li>
-        <li><button type="button" class="footer-link" onclick="showPanel('budget')">Budget</button></li>
-        <li><button type="button" class="footer-link" onclick="showPanel('guests')">Guest List</button></li>
-        <li><button type="button" class="footer-link" onclick="showPanel('payments')">Payments</button></li>
-        <li><button type="button" class="footer-link" onclick="showPanel('packets')">Share Packets</button></li>
-      </ul>
-    </div>
-    <div class="footer-column">
-      <h3 class="footer-column__title">Support Tools</h3>
-      <ul>
-        <li><button type="button" class="footer-link" onclick="downloadSqliteBackup()">Download Backup</button></li>
-        <li><button type="button" class="footer-link" onclick="document.getElementById('importInput').click()">Restore Backup</button></li>
-        <li><button type="button" class="footer-link" onclick="exportActivePanelCSV()">Export CSV</button></li>
-        <li><button type="button" class="footer-link" onclick="printSelectedSection()">Print Section</button></li>
-        <li><button type="button" class="footer-link" onclick="toggleReadOnlyMode()">Preview Mode</button></li>
-      </ul>
-    </div>
-    <div class="footer-column">
-      <h3 class="footer-column__title">Connect</h3>
-      <ul id="footer-connect-links">
-        <li><button type="button" class="footer-link" onclick="openFooterConnect('support')">Contact Support</button></li>
-        <li><a class="footer-link footer-link--external" id="footer-link-website" href="#" onclick="openFooterConnect('website'); return false;">Website</a></li>
-        <li><a class="footer-link footer-link--external" id="footer-link-instagram" href="#" onclick="openFooterConnect('instagram'); return false;">Instagram</a></li>
-        <li><a class="footer-link footer-link--external" id="footer-link-pinterest" href="#" onclick="openFooterConnect('pinterest'); return false;">Pinterest</a></li>
-        <li><a class="footer-link footer-link--external" id="footer-link-etsy" href="#" onclick="openFooterConnect('etsy'); return false;">Shop / Etsy</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p class="footer-bottom__copy">&copy; 2026 The Covenant Wedding Planner. All rights reserved. For personal wedding planning use only.</p>
-    <nav class="footer-legal" aria-label="Legal">
-      <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('terms')">Terms of Use</button>
-      <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('privacy')">Privacy Policy</button>
-      <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('refund')">Refund Policy</button>
-      <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('license')">License</button>
-    </nav>
   </div>
 </footer>
 
@@ -3298,9 +3082,36 @@
 <script src="js/json-to-sqlite-migrate.js"></script>
 <script src="js/db-repository.js"></script>
 <script src="js/sqlite-backup.js"></script>
-<script src="js/ux-kit.js"></script>
+<script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js"></script>
-<script src="js/planner.js"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-step25a"></script>
+<!-- Defines pillSchemeFor(), which planner.js calls but never defines.
+     Must load BEFORE planner.js so it exists for the first render. -->
+<script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
+<script src="Redesign/autofit-columns.js?v=redesign-step6n"></script>
+<script src="js/planner.js?v=redesign-step23c"></script>
+<!-- Defines rdOpenPicker(), the column registry and rdAutoFitTable(), which the
+     page redesign modules below all rely on. Must load before them. -->
+<script src="js/rd-table-controls.js?v=redesign-step23"></script>
+<script src="js/party-redesign.js?v=redesign-step22a"></script>
+<script src="js/tables-redesign.js?v=redesign-step22a"></script>
+<script src="js/gifts-redesign.js?v=redesign-step22a"></script>
+<script src="js/budget-redesign.js?v=redesign-step24a"></script>
+<script src="js/payments-redesign.js?v=redesign-step22a"></script>
+<script src="js/contracts-redesign.js?v=redesign-step25a"></script>
+<!-- Builds the redesign chrome and relocates the planner's live top-bar
+     controls into it. Must load AFTER planner.js so the handlers exist. -->
+<script src="js/redesign-shell.js?v=redesign-step17a"></script>
+<script>
+(function () {
+  try {
+    var p = sessionStorage.getItem('covenant_m3_open_classic_panel');
+    if (p && typeof showPanel === 'function') {
+      sessionStorage.removeItem('covenant_m3_open_classic_panel');
+      showPanel(p);
+    }
+  } catch (e) { /* ignore */ }
+})();
+</script>
 </body>
 </html>

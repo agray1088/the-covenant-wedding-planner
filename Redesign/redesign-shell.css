@@ -1,0 +1,201 @@
+/* ============================================================================
+   Covenant Wedding Planner — REDESIGN SHELL
+   Top bar, tab strip, sub-nav, 224px rail, page header, footer.
+   This is the layer that DOES need markup changes — see class-map.md §Shell.
+   Requires: redesign-tokens.css
+   ========================================================================= */
+
+/* ── frame ───────────────────────────────────────────────────────────────── */
+body { background: var(--surface-canvas); color: var(--text-primary); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+a { color: var(--text-link); }
+a:hover { color: var(--forest); }
+
+.rd-shell { display: flex; flex-direction: column; min-height: 100vh; background: var(--surface-canvas); }
+
+/* ── 1. TOP BAR — 52px. 4 elements + ⌘K, not 12 gold buttons. ───────────── */
+.rd-topbar {
+  flex: 0 0 auto; height: var(--shell-topbar-h);
+  display: flex; align-items: center; gap: var(--space-4);
+  padding: 0 var(--space-5);
+  background: var(--shell-topbar-bg);
+  color: var(--text-on-dark);
+  border-bottom: 0;
+}
+.rd-topbar__brand {
+  display: flex; align-items: center; gap: 10px;
+  padding-right: 18px; border-right: 1px solid rgba(212,184,150,.25);
+}
+.rd-topbar__mark { color: var(--gold-lt); font-size: 15px; }
+.rd-topbar__name { font: 500 19px/1 var(--font-display); letter-spacing: .04em; color: var(--text-on-dark); }
+.rd-topbar__wedding { display: flex; align-items: center; gap: var(--space-2); font-size: var(--type-body); color: rgba(244,239,230,.85); }
+.rd-topbar__avatar {
+  width: 20px; height: 20px; border-radius: 3px;
+  background: rgba(212,184,150,.22); color: var(--gold-lt);
+  font: 700 10px/1 var(--font-ui);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.rd-search {
+  flex: 1 1 auto; max-width: 400px; margin: 0 auto;
+  display: flex; align-items: center; gap: var(--space-2);
+  height: 32px; padding: 0 11px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(212,184,150,.3);
+  color: rgba(244,239,230,.6); font-size: var(--type-body); cursor: pointer;
+}
+.rd-search__kbd {
+  margin-left: auto; font: 400 var(--type-micro)/1 var(--font-mono);
+  color: rgba(244,239,230,.5); border: 1px solid rgba(212,184,150,.3); padding: 1px 5px;
+}
+.rd-topbar__right { margin-left: auto; display: flex; align-items: center; gap: var(--space-4); }
+.rd-savestate { display: inline-flex; align-items: center; gap: 6px; font-size: var(--type-meta); color: rgba(244,239,230,.7); }
+.rd-savestate::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #8DC0A0; }
+.rd-topbar__gear, .rd-topbar__bell { color: rgba(244,239,230,.8); background: none; border: 0; cursor: pointer; display: inline-flex; }
+.rd-topbar__profile {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid rgba(212,184,150,.5); color: var(--gold-lt);
+  font: 600 var(--type-micro)/1 var(--font-ui);
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+/* undo / redo cluster — links to Planner History */
+.rd-undo { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border: 1px solid rgba(212,184,150,.3); font-size: var(--type-meta); color: rgba(244,239,230,.85); background: none; cursor: pointer; }
+.rd-undo[disabled] { opacity: .4; }
+
+/* ── 2. TAB STRIP — 8 tabs, 46px, stable position ───────────────────────── */
+.rd-tabs {
+  flex: 0 0 auto; height: var(--shell-tabbar-h);
+  display: flex; align-items: stretch; padding: 0 var(--space-5);
+  background: var(--surface-chrome);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: visible;                       /* never wraps to a second row */
+}
+.rd-tab {
+  display: flex; align-items: center; gap: 7px; padding: 0 var(--space-4);
+  font: 600 var(--type-meta)/1 var(--font-ui);
+  letter-spacing: var(--tracking-tab); text-transform: uppercase;
+  color: var(--text-muted); background: none; border: 0;
+  border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+}
+.rd-tab:hover { color: var(--text-body); }
+.rd-tab[aria-current="page"], .rd-tab.is-active {
+  color: var(--text-heading); border-bottom-color: var(--forest);
+}
+.rd-tab--covenant::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+
+/* ── 3. SUB-NAV — 40px, the pages inside one tab ────────────────────────── */
+.rd-subnav {
+  flex: 0 0 auto; height: var(--shell-subnav-h);
+  display: flex; align-items: center; gap: 6px; padding: 0 var(--space-5);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.rd-subnav__item {
+  display: flex; align-items: center; padding: 5px 11px;
+  font-size: var(--type-body); color: var(--text-muted);
+  background: none; border: 0; cursor: pointer; white-space: nowrap;
+}
+.rd-subnav__item[aria-current="page"], .rd-subnav__item.is-active {
+  background: var(--surface-active); color: var(--text-heading); font-weight: 600;
+}
+/* a page reached from the top bar rather than a tab (Planner History) */
+.rd-subnav--context { color: var(--text-muted); font-size: var(--type-body); gap: 10px; }
+
+/* ── 4. BODY: rail | work surface | drawer ───────────────────────────────── */
+.rd-body { flex: 1 1 auto; display: flex; align-items: stretch; min-height: 0; }
+
+.rd-rail {
+  flex: 0 0 var(--shell-rail-w); width: var(--shell-rail-w);
+  display: flex; flex-direction: column; gap: 22px;
+  padding: 18px 14px;
+  background: var(--surface-sunken);
+  border-right: 1px solid var(--border-subtle);
+}
+.rd-rail__title {
+  display: flex; align-items: center; justify-content: space-between;
+  font: 700 var(--type-section)/1.4 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-subtle);
+  padding-bottom: var(--space-2); margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.rd-rail__list { display: flex; flex-direction: column; gap: 1px; font-size: var(--type-body); color: var(--text-body); }
+.rd-rail__item {
+  display: flex; justify-content: space-between; gap: var(--space-2);
+  padding: 7px 10px; border-left: 2px solid transparent;
+  background: none; text-align: left; cursor: pointer; font: inherit; color: inherit;
+}
+.rd-rail__item:hover { background: color-mix(in srgb, var(--surface-content) 60%, transparent); }
+.rd-rail__item.is-active {
+  background: var(--surface-content); border-left-color: var(--forest);
+  font-weight: 600; color: var(--text-heading);
+}
+.rd-rail__count { color: var(--text-subtle); font-weight: 400; }
+.rd-rail__count--warn { color: var(--status-red-text); }
+.rd-rail__meters { display: flex; flex-direction: column; gap: 9px; font-size: var(--type-meta); color: var(--text-body); }
+.rd-rail__meter { display: flex; flex-direction: column; gap: var(--space-1); }
+.rd-rail__meter-top { display: flex; justify-content: space-between; }
+.rd-rail__note {
+  margin-top: auto; padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--type-meta); line-height: 1.6; color: var(--text-muted);
+}
+
+.rd-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: var(--surface-content); }
+
+/* ── 5. PAGE HEADER — 20px title, one primary action ────────────────────── */
+.rd-pagehead, .m-mast {
+  flex: 0 0 auto;
+  display: flex; align-items: flex-end; gap: var(--space-6);
+  padding: var(--space-5) var(--shell-gutter) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-content);
+}
+.rd-pagehead__eyebrow, .m-eyebrow {
+  font: 700 var(--type-section)/1.4 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-subtle);
+}
+.rd-pagehead__title, .m-title {
+  margin: 6px 0 0;
+  font: 600 var(--type-page-title)/var(--type-page-title-lh) var(--font-ui);
+  letter-spacing: -.01em; color: var(--text-heading);
+}
+.rd-pagehead__actions, .m-mast-actions { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); }
+.m-thinrule { display: none; }          /* the header's own border is the rule */
+
+/* ── 6. FOOTER ──────────────────────────────────────────────────────────── */
+.rd-footer {
+  padding: var(--space-6) var(--shell-gutter);
+  background: var(--surface-footer);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--type-meta); color: var(--text-muted);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-5);
+}
+.rd-footer__title {
+  font: 700 var(--type-section)/1.4 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-subtle);
+  margin-bottom: var(--space-2);
+}
+.rd-footer a { display: block; padding: 3px 0; color: var(--text-muted); text-decoration: none; }
+.rd-footer a:hover { color: var(--forest); }
+
+/* ── 7. GEAR MENU (viewer preferences — nothing a share packet sees) ─────── */
+.rd-prefs {
+  position: absolute; right: var(--space-5); top: calc(var(--shell-topbar-h) + 6px); z-index: 80;
+  width: 320px; background: var(--surface-content);
+  border: 1px solid var(--border-subtle); box-shadow: var(--shadow-popover);
+}
+.rd-prefs__head { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle); background: var(--surface-sunken); }
+.rd-prefs__group { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-hairline); display: flex; flex-direction: column; gap: var(--space-2); }
+.rd-prefs__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); font-size: var(--type-body); }
+.rd-prefs__seg { display: flex; border: 1px solid var(--border-control); }
+.rd-prefs__seg > * { padding: 4px 10px; font-size: var(--type-meta); color: var(--text-muted); border-left: 1px solid var(--border-control); cursor: pointer; }
+.rd-prefs__seg > *:first-child { border-left: 0; }
+.rd-prefs__seg > .is-active { background: var(--forest); color: var(--text-on-dark); font-weight: 600; }
+
+/* ── 8. RESPONSIVE ──────────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .rd-drawer { position: fixed; right: 0; top: 0; bottom: 0; z-index: 70; box-shadow: var(--shadow-modal); }
+}
+@media (max-width: 900px) {
+  :root { --shell-gutter: 16px; --planner-page-gutter: 16px; }
+  .rd-rail { display: none; }
+  .rd-tabs { overflow-x: auto; }
+}

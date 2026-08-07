@@ -6925,7 +6925,10 @@ INSTRUCTIONS PAGE — Listing-Instructions mockup match
 
 /* page-help-banner print rule merged into global @media print block */
 
-#main input[type="checkbox"] {
+/* Base custom checkboxes for paid/done/etc. EXCLUDE CWP bulk/select boxes
+   (.cwp-rowsel / .cwp-selall) — those use native appearance so the OS tick
+   remains visible (custom ::after L-ticks proved unreliable). */
+#main input[type="checkbox"]:not(.cwp-rowsel):not(.cwp-selall) {
   appearance: none;
   -webkit-appearance: none;
   width: 18px!important;
@@ -6943,12 +6946,12 @@ INSTRUCTIONS PAGE — Listing-Instructions mockup match
   margin: 0 auto;
 }
 
-#main input[type="checkbox"]:checked {
+#main input[type="checkbox"]:not(.cwp-rowsel):not(.cwp-selall):checked {
   background: var(--forest);
   border-color: var(--forest);
 }
 
-#main input[type="checkbox"]:checked::after {
+#main input[type="checkbox"]:not(.cwp-rowsel):not(.cwp-selall):checked::after {
   content: "";
   position: absolute;
   width: 5px;
@@ -6959,6 +6962,35 @@ INSTRUCTIONS PAGE — Listing-Instructions mockup match
   left: 50%;
   top: 50%;
   transform: translate(-50%,-58%) rotate(45deg);
+}
+
+/* CWP selection checkboxes: always native — selection has a tick regardless of
+   Complete/status strikethrough on the row. */
+#main input[type="checkbox"].cwp-rowsel,
+#main input[type="checkbox"].cwp-selall {
+  -webkit-appearance: checkbox !important;
+  appearance: auto !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  margin: 0 auto;
+  padding: 0 !important;
+  border: initial !important;
+  background: initial !important;
+  display: inline-block !important;
+  position: static !important;
+  cursor: pointer;
+  accent-color: var(--forest, #2D4A3E) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+#main input[type="checkbox"].cwp-rowsel::after,
+#main input[type="checkbox"].cwp-selall::after,
+#main input[type="checkbox"].cwp-rowsel:checked::after,
+#main input[type="checkbox"].cwp-selall:checked::after {
+  content: none !important;
+  display: none !important;
 }
 
 .budget-paid-check.partial input[type="checkbox"] {
@@ -13099,6 +13131,11 @@ body[data-active-panel="calendar"] #main {
   min-width: 0;
   overflow-x: clip;
   box-sizing: border-box;
+}
+/* Month surface needs zero pad so grid frame meets content edges */
+#panel-calendar.smart-calendar-mockup {
+  padding: 0 !important;
+  overflow: hidden;
 }
 
 .app-page-title-wrap,
@@ -21527,6 +21564,90 @@ body.editorial-v4 #main #plan-body .plan-sub-row .sel-col input {
   color: #7e756b;
   font-style: italic;
 }
+
+/* B.1 — openable linked rows (full editor); plain rows stay non-buttons */
+.linked-record-card .linked-record-open {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .6rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.linked-record-card .linked-record-open:hover {
+  color: var(--forest-deep, #20362D);
+}
+.linked-record-card .linked-record-open:hover span:first-child {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--gold-deep, #946f33);
+}
+.linked-record-card .linked-record-open:focus-visible {
+  outline: 2px solid var(--forest, #2D4A3E);
+  outline-offset: 2px;
+}
+.linked-record-card .linked-record-open__hint {
+  flex: 0 0 auto;
+  font-size: .72rem;
+  color: var(--gold, #B89968);
+  opacity: .85;
+}
+.linked-record-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .35rem;
+}
+.linked-record-card__head h5 { margin: 0; }
+.linked-cross-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--gold, #B89968);
+  background: transparent;
+  color: var(--gold-deep, #946f33);
+  font: 600 11px/1 var(--font-ui, system-ui, sans-serif);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.linked-cross-chip:hover {
+  background: rgba(184, 153, 104, .12);
+  color: var(--forest-deep, #20362D);
+}
+.linked-page-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--surface-sunken, #f9f5ef);
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4);
+  font: 400 13px/1.4 var(--font-ui, system-ui, sans-serif);
+  color: var(--text-primary, #23211c);
+}
+.linked-page-banner__text b { color: var(--forest-deep, #20362D); font-weight: 600; }
+.linked-page-banner__clear {
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--border-control, #d9cfba);
+  background: var(--surface-content, #fff);
+  color: var(--text-body, #3f3b34);
+  font: 500 12px/1 var(--font-ui, system-ui, sans-serif);
+  cursor: pointer;
+}
+.linked-page-banner__clear:hover { border-color: var(--forest, #2D4A3E); color: var(--forest-deep, #20362D); }
 
 .data-health-list {
   display: grid;
@@ -38597,6 +38718,10 @@ they feel intentionally redesigned, not merely normalized.
   background: #fff!important;
   padding: clamp(1rem,2vw,1.65rem)!important;
 }
+/* Calendar: no editorial pad ring — surface is edge-to-edge under toolbar */
+#panel-calendar.smart-calendar-mockup {
+  padding: 0 !important;
+}
 
 #panel-calendar .smart-page-title-wrap,
 #panel-ceremony .ceremony-title-wrap,
@@ -38765,8 +38890,8 @@ they feel intentionally redesigned, not merely normalized.
 }
 
 #panel-calendar .smart-layout {
-  padding: 1rem!important;
-  background: #fff!important;
+  padding: 0 !important;
+  background: transparent !important;
 }
 
 #panel-calendar .smart-calendar-grid,
@@ -38781,10 +38906,7 @@ they feel intentionally redesigned, not merely normalized.
 /* Month grid should read like a regular calendar — cells touch, no gaps */
 body.editorial-v4 #main #panel-calendar .smart-calendar-grid { gap: 0 !important; }
 
-/* Read-only task list preview: drop the drag-handle first column */
-#panel-tasks .ro-preview.cwp-readonly-preview table thead th:first-child,
-#panel-tasks .ro-preview.cwp-readonly-preview table tbody td:first-child,
-#panel-tasks .ro-preview.cwp-readonly-preview table tfoot td:first-child { display: none !important; }
+/* Read-only task previews omit the drag column in JS — no CSS hide needed. */
 
 /* Data tables planner-wide: remove decorative row/status icons (keep star ratings) */
 #main .panel table td [class*="-row-icon"],
@@ -38994,6 +39116,85 @@ body.editorial-v4 #main #panel-calendar .smart-calendar-grid { gap: 0 !important
 #panel-catering .cat-table-card .cwp-table colgroup col,
 #panel-catering .cat-table-card .cwp-table thead th,
 #panel-catering .cat-table-card .cwp-table tbody td {
+  box-sizing: border-box!important;
+}
+
+/* Table-card CWP previews (Tasks, Guests, etc.) — the table shares the SAME side rail
+   as the toolbar / search / title above it. No full-bleed (no negative margins pulling
+   the table to the card border), no double-inset: one rail for title, toolbar, table
+   header, rows, and footer. Table fills 100% of the padded mount so the green header
+   spans rail-to-rail. */
+body.editorial-v4 #main .panel .ued-table-card > :is(.ro-preview, .cwp-mount) .cwp-table-wrap {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   EQUAL PADDING on all four sides for read-only table cards and
+   Database Hub tables. The card (or the DB-hub mount) is the single
+   source of one uniform rail; inner header / mount / footer drop
+   their own side rails so nothing double-insets or hugs an edge.
+   ───────────────────────────────────────────────────────────── */
+body.editorial-v4 #main .panel .ued-table-card:has(> :is(.ro-preview, .cwp-mount)),
+body.editorial-v4 #main #panel-data-hub .data-hub-table-mount {
+  padding: 1.25rem !important;              /* T = R = B = L */
+}
+/* inner elements: remove their own horizontal rails (card now provides it) */
+body.editorial-v4 #main .panel .ued-table-card:has(> :is(.ro-preview, .cwp-mount)) > .ued-table-head,
+body.editorial-v4 #main .panel .ued-table-card:has(> :is(.ro-preview, .cwp-mount)) > :is(.ro-preview, .cwp-mount),
+body.editorial-v4 #main .panel .ued-table-card:has(> :is(.ro-preview, .cwp-mount)) > .preview-foot,
+body.editorial-v4 #main #panel-data-hub .data-hub-table-mount > .cwp-mount {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+/* header supplies the top edge via the card now → drop its extra top pad; footer drops stray gap */
+body.editorial-v4 #main .panel .ued-table-card:has(> :is(.ro-preview, .cwp-mount)) > .ued-table-head {
+  padding-top: 0 !important;
+}
+body.editorial-v4 #main .panel .ued-table-card:has(> :is(.ro-preview, .cwp-mount)) > .preview-foot {
+  margin: 0 !important;
+  padding-bottom: 0 !important;
+}
+body.editorial-v4 #main #panel-data-hub .data-hub-table-mount > .cwp-mount {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#main .panel .ued-table-card .cwp-table-wrap,
+body.editorial-v4 #main .panel .ued-table-card .cwp-table-wrap {
+  width: 100%!important;
+  max-width: 100%!important;
+  box-sizing: border-box!important;
+}
+
+#main .panel .ued-table-card .cwp-table,
+body.editorial-v4 #main .panel .ued-table-card .cwp-table {
+  width: 100%!important;
+  min-width: 100%!important;
+  max-width: 100%!important;
+  table-layout: fixed!important;
+}
+
+#main .panel .ued-table-card .cwp-table thead,
+#main .panel .ued-table-card .cwp-table thead tr,
+body.editorial-v4 #main .panel .ued-table-card .cwp-table thead,
+body.editorial-v4 #main .panel .ued-table-card .cwp-table thead tr {
+  width: 100%!important;
+}
+
+#main .panel .ued-table-card .cwp-table thead {
+  background: var(--er-forest, var(--cwp-head, #2d4a3e))!important;
+}
+
+#main .panel .ued-table-card .cwp-table thead th {
+  background: transparent!important;
+}
+
+#main .panel .ued-table-card .cwp-table colgroup col,
+#main .panel .ued-table-card .cwp-table thead th,
+#main .panel .ued-table-card .cwp-table tbody td {
   box-sizing: border-box!important;
 }
 
@@ -41107,16 +41308,18 @@ Honeymoon, and hidden History fallback.
   content: "Record";
 }
 
-#panel-appointments .appointments-title,
-#panel-appointments h1,
-#panel-entertainment .entertainment-title,
-#panel-entertainment .music-title,
-#panel-entertainment h1,
-#panel-honeymoon .hm-title,
-#panel-honeymoon .honeymoon-title,
-#panel-honeymoon h1,
-#panel-history .history-title,
-#panel-history h1 {
+/* Legacy editorial heroes only — do not style redesign .rd-pagehead__title
+   (20px Inter; Tasks / Calendar / Appointments share that system). */
+#panel-appointments .appointments-title:not(.rd-pagehead__title),
+#panel-appointments h1:not(.rd-pagehead__title),
+#panel-entertainment .entertainment-title:not(.rd-pagehead__title),
+#panel-entertainment .music-title:not(.rd-pagehead__title),
+#panel-entertainment h1:not(.rd-pagehead__title),
+#panel-honeymoon .hm-title:not(.rd-pagehead__title),
+#panel-honeymoon .honeymoon-title:not(.rd-pagehead__title),
+#panel-honeymoon h1:not(.rd-pagehead__title),
+#panel-history .history-title:not(.rd-pagehead__title),
+#panel-history h1:not(.rd-pagehead__title) {
   font-family: var(--font-serif,Georgia,serif)!important;
   font-size: clamp(2.35rem,4.4vw,4.6rem)!important;
   line-height: .9!important;
@@ -45220,45 +45423,44 @@ body.editorial-v4.dark-mode table thead tr.bulk-table-row th { background: #2225
   vertical-align: middle;
 }
 .cwp-table td.cwp-sel-empty { background: transparent; }
+/* Native platform checkboxes — custom appearance:none + ::after L-ticks
+   failed repeatedly (empty boxes). accent-color tints the OS glyph forest. */
 .cwp-table th.cwp-sel input[type="checkbox"],
 .cwp-table td.cwp-sel input[type="checkbox"] {
-  appearance: none !important;
-  -webkit-appearance: none !important;
+  -webkit-appearance: checkbox !important;
+  appearance: auto !important;
   width: 16px !important;
   height: 16px !important;
   min-width: 16px !important;
   min-height: 16px !important;
-  max-width: 16px !important;
-  max-height: 16px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
   margin: 0 auto !important;
   padding: 0 !important;
-  border: 1.5px solid rgba(184, 153, 104, 0.72) !important;
-  border-radius: 4px !important;
-  background: #fffdfa !important;
-  display: inline-grid !important;
-  place-items: center !important;
+  border: initial !important;
+  border-radius: 2px !important;
+  background: initial !important;
+  display: inline-block !important;
   cursor: pointer !important;
-  position: relative !important;
+  position: static !important;
   field-sizing: auto !important;
+  accent-color: var(--forest, #2D4A3E) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 .cwp-table th.cwp-sel input[type="checkbox"]:checked,
 .cwp-table td.cwp-sel input[type="checkbox"]:checked {
-  background: var(--forest, #2D4A3E) !important;
-  border-color: var(--forest, #2D4A3E) !important;
-  box-shadow: inset 0 0 0 3px #fffdfa !important;
+  background: initial !important;
+  border: initial !important;
+  box-shadow: none !important;
+  accent-color: var(--forest, #2D4A3E) !important;
 }
+.cwp-table th.cwp-sel input[type="checkbox"]::after,
+.cwp-table td.cwp-sel input[type="checkbox"]::after,
 .cwp-table th.cwp-sel input[type="checkbox"]:checked::after,
 .cwp-table td.cwp-sel input[type="checkbox"]:checked::after {
-  content: "";
-  position: absolute;
-  width: 5px;
-  height: 9px;
-  border: 2px solid #fff;
-  border-top: 0;
-  border-left: 0;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -58%) rotate(45deg);
+  content: none !important;
+  display: none !important;
 }
 #panel-tasks .cwp-table th.cwp-sel,
 #panel-tasks .cwp-table td.cwp-sel {
@@ -45502,8 +45704,8 @@ body.cov-modal-open { overflow: hidden; }
   background: var(--ivory, #F9F7F4);
   color: var(--charcoal, #2A2A2A);
   border: 1px solid var(--border, rgba(184, 153, 104, .30));
-  border-radius: 14px;
-  box-shadow: 0 18px 48px rgba(42, 42, 42, .28);
+  border-radius: var(--radius-lg, 0);
+  box-shadow: var(--shadow-modal, 0 18px 48px rgba(42, 42, 42, .28));
   padding: 1.5rem 1.5rem 1.25rem;
   font-family: var(--font-sans, Inter, "Noto Sans", Arial, sans-serif);
   transform: translateY(6px) scale(.99);
@@ -45530,6 +45732,7 @@ body.cov-modal-open { overflow: hidden; }
   overflow-wrap: break-word;
   word-break: break-word;
 }
+.cov-modal__body[hidden] { display: none; }
 
 .cov-modal__field { margin-top: 1rem; }
 .cov-modal__field[hidden] { display: none; }
@@ -45542,12 +45745,55 @@ body.cov-modal-open { overflow: hidden; }
   color: var(--charcoal, #2A2A2A);
   background: #fff;
   border: 1px solid var(--border-dk, rgba(42, 42, 42, .15));
-  border-radius: var(--radius, 8px);
+  border-radius: var(--radius-md, 0);
 }
 .cov-modal__input:focus {
   outline: none;
   border-color: var(--gold, #B89968);
   box-shadow: 0 0 0 3px var(--gold-pale, #F5EFE4);
+}
+
+/* Option list for covChoose (bulk Set status / Move phase) */
+.cov-modal__choices {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin-top: 1rem;
+  max-height: min(50vh, 320px);
+  overflow-y: auto;
+}
+.cov-modal__choices[hidden] { display: none; }
+.cov-modal__choices-empty {
+  padding: .35rem 0;
+  font-size: .9rem;
+  color: var(--muted, #6b7168);
+}
+.cov-modal__choice {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .92rem;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: .55rem .75rem;
+  color: var(--charcoal, #2A2A2A);
+  background: #fff;
+  border: 1px solid var(--border-dk, rgba(42, 42, 42, .12));
+  border-radius: var(--radius-md, 0);
+  transition: background .12s ease, border-color .12s ease;
+}
+.cov-modal__choice:hover {
+  background: var(--gold-pale, #F5EFE4);
+  border-color: var(--border, rgba(184, 153, 104, .5));
+}
+.cov-modal__choice:focus-visible {
+  outline: 2px solid var(--gold, #B89968);
+  outline-offset: 2px;
 }
 
 .cov-modal__footer {
@@ -45566,7 +45812,7 @@ body.cov-modal-open { overflow: hidden; }
   font-weight: 600;
   letter-spacing: .01em;
   padding: .55rem 1.2rem;
-  border-radius: var(--radius, 8px);
+  border-radius: var(--btn-radius, 0);
   border: 1px solid transparent;
   transition: background .15s ease, box-shadow .15s ease, color .15s ease;
 }
@@ -46676,6 +46922,36 @@ body.editorial-v4.dark-mode #main .footer-bottom {
   min-width: max-content !important;
   max-width: none !important;
   white-space: nowrap !important;
+}
+
+/* Temporary unlock while measuring a row for auto-fit — legacy CSS fixes
+   tbody td height (e.g. 42px !important) which otherwise clips content. */
+#main .panel table tr.planner-measure-row td {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+#main .panel table tr.planner-measure-row {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+/* Persisted row heights override fixed legacy row heights */
+#main .panel table.planner-rows-autofit tbody tr,
+#main .panel table.planner-rows-autofit tbody td {
+  height: auto !important;
+  min-height: 0 !important;
+}
+#main .panel .tasks-table.planner-rows-autofit tbody td,
+#main .panel .wday-table.planner-rows-autofit tbody td {
+  height: auto !important;
+}
+#main .panel table.planner-rows-autofit tbody td {
+  vertical-align: top;
 }
 
 #main table.planner-resizable-table,

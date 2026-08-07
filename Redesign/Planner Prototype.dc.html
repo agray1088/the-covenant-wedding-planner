@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #12130f; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #b89968; }
+  a:hover { color: #d4b896; }
+</style>
+</helmet>
+
+<div style="padding: 40px 48px 56px; display: flex; flex-direction: column; gap: 28px">
+
+  <div style="max-width: 940px; display: flex; flex-direction: column; gap: 14px">
+    <div style="font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: #b89968; font-weight: 600">Working prototype · both slices</div>
+    <h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 46px; font-weight: 500; color: #f4efe6; line-height: 1.05">Six pages, one store</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.7; color: #a8a49b; text-wrap: pretty">Everything here is live. Click an RSVP pill and the seat empties, the headcount falls, the dietary summary re-counts, the catering cost re-derives and the Budget food line moves with it — that last hop is the one that matters, because it crosses from the guest slice into the money slice. On the money side, mark a payment paid or nudge a contract total and the category bars, the outstanding column and the out-of-pocket figure all re-derive. Nothing is a drawing.</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px">
+      <sc-for list="{{ pages }}" as="p" hint-placeholder-count="6">
+        <div onClick="{{ p.go }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border: 1px solid {{ p.bd }}; background: {{ p.bg }}; font-size: 13px; color: {{ p.fg }}; cursor: pointer">
+          <span style="font-family: ui-monospace, monospace; font-size: 11px; color: #b89968">{{ p.slice }}</span>{{ p.name }}
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="width: 1440px; border: 1px solid #33332c; background: #fbfaf8; display: flex; flex-direction: column">
+
+    <div style="flex: 0 0 auto; height: 52px; background: #2D4A3E; display: flex; align-items: center; gap: 16px; padding: 0 20px">
+      <div style="display: flex; align-items: center; gap: 10px; padding-right: 18px; border-right: 1px solid rgba(212,184,150,.25)">
+        <span style="color: #D4B896; font-size: 15px">&#10022;</span>
+        <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; letter-spacing: .04em; color: #F4EFE6">The Covenant Wedding Planner</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(244,239,230,.85)">
+        <span style="width: 20px; height: 20px; border-radius: 3px; background: rgba(212,184,150,.22); color: #D4B896; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center">AK</span>
+        Ama &amp; Kwesi · 8 November 2026
+      </div>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 14px">
+        <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(244,239,230,.7)"><span style="width: 6px; height: 6px; border-radius: 50%; background: #8dc0a0"></span>{{ saveState }}</span>
+        <span onClick="{{ undo }}" style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border: 1px solid rgba(212,184,150,.3); font-size: 12px; color: rgba(244,239,230,.85); cursor: pointer">Undo {{ undoCount }}</span>
+        <span onClick="{{ reset }}" style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border: 1px solid rgba(212,184,150,.3); font-size: 12px; color: rgba(244,239,230,.85); cursor: pointer">Reset</span>
+      </div>
+    </div>
+
+    <div style="flex: 0 0 auto; height: 46px; background: #fdfcfa; border-bottom: 1px solid #e7e1d4; display: flex; align-items: stretch; padding: 0 20px">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="8">
+        <div onClick="{{ t.go }}" style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: {{ t.fg }}; border-bottom: 2px solid {{ t.rule }}; cursor: pointer">{{ t.name }}</div>
+      </sc-for>
+    </div>
+
+    <div style="flex: 0 0 auto; height: 40px; background: #f9f7f4; border-bottom: 1px solid #e7e1d4; display: flex; align-items: center; padding: 0 20px; gap: 6px">
+      <sc-for list="{{ subnav }}" as="s" hint-placeholder-count="4">
+        <div onClick="{{ s.go }}" style="display: flex; align-items: center; padding: 5px 11px; background: {{ s.bg }}; font-weight: {{ s.fw }}; color: {{ s.fg }}; font-size: 13px; cursor: pointer">{{ s.name }}</div>
+      </sc-for>
+    </div>
+
+    <div style="flex: 1 1 auto; display: flex; align-items: stretch">
+
+      <div style="flex: 0 0 224px; border-right: 1px solid #e7e1d4; background: #f9f5ef; padding: 18px 14px; display: flex; flex-direction: column; gap: 22px">
+        <div>
+          <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #e7e1d4; margin-bottom: 8px">{{ railTitle }}</div>
+          <div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px; color: #3f3b34">
+            <sc-for list="{{ railRows }}" as="r" hint-placeholder-count="5">
+              <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid {{ r.rule }}">{{ r.label }}<span style="color: {{ r.cfg }}">{{ r.count }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #e7e1d4; margin-bottom: 8px">Live derivations</div>
+          <div style="display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: #3f3b34">
+            <sc-for list="{{ railMeters }}" as="m" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <div style="display: flex; justify-content: space-between"><span>{{ m.label }}</span><span style="color: #8a7e6b">{{ m.value }}</span></div>
+                <div style="height: 4px; background: #e7e1d4; overflow: hidden"><div style="width: {{ m.pct }}; height: 100%; background: #2D4A3E"></div></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="margin-top: auto; border-top: 1px solid #e7e1d4; padding-top: 14px; font-size: 12px; line-height: 1.6; color: #6b645d">{{ railNote }}</div>
+      </div>
+
+      <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: #fff">
+
+        <div style="flex: 0 0 auto; padding: 20px 24px 16px; border-bottom: 1px solid #e7e1d4; display: flex; align-items: flex-end; gap: 24px">
+          <div>
+            <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">{{ eyebrow }}</div>
+            <h2 style="margin: 6px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -.01em; color: #20362D; line-height: 1.2">{{ pageTitle }}</h2>
+          </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+            <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border: 1px solid #d9cfba; font-size: 13px; font-weight: 500; color: #3f3b34">Print section</div>
+            <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border: 1px solid #d9cfba; font-size: 13px; font-weight: 500; color: #3f3b34">Export</div>
+            <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 16px; background: #2D4A3E; color: #F4EFE6; font-size: 13px; font-weight: 600">{{ primaryAction }}</div>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 auto; display: flex; border-bottom: 1px solid #e7e1d4">
+          <sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+            <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0">
+              <div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">{{ s.label }}</div>
+              <div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: {{ s.fg }}; margin-top: 5px; line-height: 1; font-variant-numeric: tabular-nums">{{ s.value }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="flex: 0 0 auto; padding: 10px 24px; border-bottom: 1px solid #e7e1d4; background: #fdfcfa; display: flex; align-items: center; gap: 8px">
+          <sc-if value="{{ hasFilters }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+                <div onClick="{{ f.go }}" style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid {{ f.bd }}; background: {{ f.bg }}; font-size: 12px; color: {{ f.fg }}; cursor: pointer">{{ f.label }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noFilters }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size: 12px; color: #b09f80">{{ noFilterNote }}</div>
+          </sc-if>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+            <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Columns</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Auto-fit columns</div>
+            <div onClick="{{ cycleRowHeight }}" style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34; cursor: pointer">Row height · {{ rowHeightLabel }}</div>
+          </div>
+        </div>
+
+        <sc-if value="{{ showBulk }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 0 0 auto; padding: 9px 24px; border-bottom: 1px solid #e7e1d4; background: #f4f1ea; display: flex; align-items: center; gap: 14px; font-size: 12px; color: #3f3b34">
+            <span style="font-weight: 600; color: #20362D">{{ selectedCount }} selected</span>
+            <span style="color: #b0a794">|</span>
+            <span onClick="{{ bulkAccept }}" style="color: #946f33; cursor: pointer">Set RSVP accepted</span>
+            <span onClick="{{ bulkDecline }}" style="color: #946f33; cursor: pointer">Set RSVP declined</span>
+            <span onClick="{{ bulkUnseat }}" style="color: #946f33; cursor: pointer">Unseat</span>
+            <span onClick="{{ clearSel }}" style="margin-left: auto; color: #6b645d; cursor: pointer">Clear selection</span>
+          </div>
+        </sc-if>
+
+        <div style="display: flex; align-items: stretch">
+          <div style="flex: 1 1 auto; min-width: 0">
+
+            <sc-if value="{{ isGuests }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr>
+                      <th style="width: 34px; background: #20362D; border-bottom: 1px solid #B89968; padding: 10px 12px"></th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Guest</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 150px">Household</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 90px">Side</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 130px">RSVP</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 110px">Seat</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 150px">Meal</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 130px">Dietary</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ guestRows }}" as="g" hint-placeholder-count="12">
+                      <tr style="background: {{ g.rowBg }}">
+                        <td onClick="{{ g.toggleSel }}" style="padding: {{ rowPad }} 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: {{ g.cbFg }}; cursor: pointer">{{ g.cb }}</td>
+                        <td onClick="{{ g.select }}" style="padding: {{ rowPad }} 12px; border-bottom: 1px solid #f0ebe0; cursor: pointer; font-weight: {{ g.nameWeight }}">{{ g.name }}</td>
+                        <td style="padding: {{ rowPad }} 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ g.household }}</td>
+                        <td style="padding: {{ rowPad }} 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ g.side }}</td>
+                        <td style="padding: {{ rowPad }} 12px; border-bottom: 1px solid #f0ebe0">
+                          <span onClick="{{ g.cycleRsvp }}" style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: {{ g.rsvpBg }}; color: {{ g.rsvpFg }}; border: 1px solid {{ g.rsvpBd }}; font-size: 12px; cursor: pointer">{{ g.rsvp }}</span>
+                        </td>
+                        <td style="padding: {{ rowPad }} 12px; border-bottom: 1px solid #f0ebe0; color: {{ g.seatFg }}; font-variant-numeric: tabular-nums">{{ g.seatLabel }}</td>
+                        <td onClick="{{ g.cycleMeal }}" style="padding: {{ rowPad }} 12px; border-bottom: 1px solid #f0ebe0; color: {{ g.mealFg }}; cursor: pointer">{{ g.meal }}</td>
+                        <td onClick="{{ g.cycleDietary }}" style="padding: {{ rowPad }} 12px; border-bottom: 1px solid #f0ebe0; color: {{ g.dietFg }}; cursor: pointer">{{ g.dietary }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <div style="padding: 11px 24px; border-bottom: 1px solid #e7e1d4; font-size: 12px; color: #6b645d">Click an RSVP pill to cycle it · click a meal or dietary cell to change it · declining a guest empties their seat and re-derives catering</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isTables }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="padding: 18px 24px; border-bottom: 1px solid #e7e1d4; background: #f9f7f4">
+                  <div style="position: relative; border: 1px solid #d9cfba; background: #fff; height: 330px; overflow: hidden">
+                    <div style="position: absolute; left: 0; right: 0; top: 0; height: 30px; background: #f4f1ea; border-bottom: 1px dashed #d9cfba; display: flex; align-items: center; justify-content: center; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Stage &amp; band · north wall</div>
+                    <sc-for list="{{ floorTables }}" as="t" hint-placeholder-count="6">
+                      <div onClick="{{ t.select }}" style="position: absolute; left: {{ t.x }}; top: {{ t.y }}; width: 104px; height: 104px; border-radius: 50%; border: 2px solid {{ t.bd }}; background: {{ t.bg }}; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer">
+                        <span style="font-size: 13px; font-weight: 600; color: #20362D">{{ t.id }}</span>
+                        <span style="font-size: 11px; color: {{ t.fg }}; font-variant-numeric: tabular-nums">{{ t.occ }}</span>
+                        <span style="font-size: 10px; color: #b0a794; margin-top: 2px">{{ t.name }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 18px; margin-top: 12px; font-size: 12px; color: #6b645d">
+                    <span>Selected · <b style="color: #23211c">{{ selectedTableLabel }}</b></span>
+                    <span style="margin-left: auto">Click a table to select it, then seat an unseated guest below</span>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 12px; padding: 13px 20px; border-bottom: 1px solid #e7e1d4">
+                  <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Unseated · accepted guests with no seat</div>
+                  <div style="font-size: 12px; color: #6b645d">{{ unseatedNote }}</div>
+                </div>
+                <div style="padding: 14px 24px; border-bottom: 1px solid #e7e1d4; display: flex; flex-wrap: wrap; gap: 8px">
+                  <sc-for list="{{ unseatedRows }}" as="u" hint-placeholder-count="4">
+                    <div onClick="{{ u.seat }}" style="display: inline-flex; align-items: center; gap: 9px; padding: 7px 12px; border: 1px solid #d9cfba; background: #fff; font-size: 13px; color: #23211c; cursor: pointer">
+                      {{ u.name }}<span style="color: #946f33; font-size: 12px">Seat at {{ selectedTableId }} →</span>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ noUnseated }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size: 13px; color: #b09f80">Everyone who has accepted has a seat.</div>
+                  </sc-if>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 12px; padding: 13px 20px; border-bottom: 1px solid #e7e1d4">
+                  <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Table detail · {{ selectedTableId }}</div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Seated here</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 150px">Meal</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 130px">Dietary</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 120px">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ tableGuests }}" as="tg" hint-placeholder-count="4">
+                      <tr>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">{{ tg.name }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ tg.meal }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ tg.dietary }}</td>
+                        <td onClick="{{ tg.unseat }}" style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33; cursor: pointer">Unseat</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isCatering }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="display: flex; align-items: baseline; gap: 12px; padding: 13px 20px; border-bottom: 1px solid #e7e1d4">
+                  <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Headcount &amp; cost</div>
+                  <div style="font-size: 12px; color: #6b645d">Every figure below is read from accepted RSVPs — nothing here can be typed</div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Cost line</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 200px">Derived from</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 110px">Qty</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 110px">Rate</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 130px">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ cateringRows }}" as="c" hint-placeholder-count="5">
+                      <tr>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; font-weight: {{ c.fw }}">{{ c.label }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">{{ c.source }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums; color: #6b645d">{{ c.qty }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums; color: #6b645d">{{ c.rate }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums; font-weight: {{ c.fw }}">{{ c.total }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <div style="display: flex; align-items: baseline; gap: 12px; padding: 13px 20px; border-bottom: 1px solid #e7e1d4">
+                  <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Dietary summary</div>
+                  <div style="font-size: 12px; color: #6b645d">Counted from the dietary field on accepted guests</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap">
+                  <sc-for list="{{ dietaryRows }}" as="d" hint-placeholder-count="4">
+                    <div style="flex: 1 1 180px; padding: 14px 20px; border-right: 1px solid #f0ebe0; border-bottom: 1px solid #e7e1d4">
+                      <div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">{{ d.label }}</div>
+                      <div style="font-size: 22px; font-weight: 600; color: {{ d.fg }}; margin-top: 5px; font-variant-numeric: tabular-nums">{{ d.count }}</div>
+                      <div style="font-size: 12px; color: #6b645d; margin-top: 4px">{{ d.note }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isBudget }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="padding: 14px 24px; border-bottom: 1px solid #e7e1d4; background: #f4f1ea; display: flex; align-items: center; gap: 20px">
+                  <span style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; flex: 0 0 auto">Budget used</span>
+                  <div style="flex: 1 1 auto; min-width: 0; height: 12px; background: #e7e1d4; overflow: hidden; display: flex">
+                    <div style="width: {{ paidPct }}; height: 100%; background: #2D4A3E"></div>
+                    <div style="width: {{ committedPct }}; height: 100%; background: #9db3a7"></div>
+                  </div>
+                  <span style="flex: 0 0 auto; font-size: 13px; color: #6b645d">{{ paidTotal }} paid · {{ outstandingTotal }} committed but unpaid</span>
+                  <span style="flex: 0 0 auto; font-size: 20px; font-weight: 600; color: #20362D; font-variant-numeric: tabular-nums">{{ usedPct }}</span>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Category</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 220px">Derived from</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 120px">Committed</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 110px">Paid</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 120px">Outstanding</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 140px">Source</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ budgetRows }}" as="b" hint-placeholder-count="8">
+                      <tr style="background: {{ b.rowBg }}">
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; font-weight: {{ b.fw }}">{{ b.label }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">{{ b.source }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums; font-weight: {{ b.fw }}">{{ b.committed }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums; font-weight: {{ b.fw }}">{{ b.paid }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums; color: {{ b.outFg }}; font-weight: {{ b.fw }}">{{ b.outstanding }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ b.kind }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <div style="display: flex; align-items: baseline; gap: 12px; padding: 13px 20px; border-bottom: 1px solid #e7e1d4">
+                  <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Pledged &amp; paid</div>
+                  <div style="font-size: 12px; color: #6b645d">Click a pledge to mark it received — received pledges reduce what the couple must find</div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Contributor</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 200px">Toward</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 120px">Pledged</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 160px">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ pledgeRows }}" as="p" hint-placeholder-count="4">
+                      <tr>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">{{ p.name }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ p.toward }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums">{{ p.amount }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">
+                          <span onClick="{{ p.toggle }}" style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: {{ p.bg }}; color: {{ p.fg }}; border: 1px solid {{ p.bd }}; font-size: 12px; cursor: pointer">{{ p.status }}</span>
+                        </td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isPayments }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Payment</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 180px">Vendor</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 130px">Due</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 120px">Amount</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 150px">Status</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 150px">Budget line</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ paymentRows }}" as="p" hint-placeholder-count="8">
+                      <tr>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">{{ p.label }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ p.vendor }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ p.due }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums">{{ p.amount }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">
+                          <span onClick="{{ p.toggle }}" style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: {{ p.bg }}; color: {{ p.fg }}; border: 1px solid {{ p.bd }}; font-size: 12px; cursor: pointer">{{ p.status }}</span>
+                        </td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">{{ p.category }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <div style="padding: 11px 24px; border-bottom: 1px solid #e7e1d4; font-size: 12px; color: #6b645d">Click a status to mark a payment paid or unpaid — the Budget paid column, the outstanding column and the used bar all re-derive from these rows</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isContracts }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Contract</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 170px">Vendor</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 190px">Total</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 110px">Paid</th>
+                      <th style="text-align: right; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 120px">Outstanding</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 150px">Budget line</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <sc-for list="{{ contractRows }}" as="c" hint-placeholder-count="5">
+                      <tr>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">{{ c.label }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">{{ c.vendor }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right">
+                          <span style="display: inline-flex; align-items: center; gap: 8px">
+                            <span onClick="{{ c.down }}" style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid #d9cfba; font-size: 13px; color: #3f3b34; cursor: pointer">–</span>
+                            <span style="min-width: 62px; text-align: right; font-variant-numeric: tabular-nums">{{ c.total }}</span>
+                            <span onClick="{{ c.up }}" style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid #d9cfba; font-size: 13px; color: #3f3b34; cursor: pointer">+</span>
+                          </span>
+                        </td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums">{{ c.paid }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: right; font-variant-numeric: tabular-nums; color: {{ c.outFg }}">{{ c.outstanding }}</td>
+                        <td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">{{ c.category }}</td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+                <div style="padding: 11px 24px; border-bottom: 1px solid #e7e1d4; font-size: 12px; color: #6b645d">Nudge a contract total by $100 and watch the committed column on the Budget move with it — a contract is where committed money comes from</div>
+              </div>
+            </sc-if>
+
+          </div>
+
+          <div style="flex: 0 0 360px; border-left: 1px solid #e7e1d4; background: #fff; display: flex; flex-direction: column">
+            <div style="padding: 16px 18px; border-bottom: 1px solid #e7e1d4; background: #f9f5ef">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">
+                <span>{{ drawerEyebrow }}</span>
+              </div>
+              <div style="font-size: 16px; font-weight: 600; letter-spacing: -.01em; color: #20362D; margin-top: 8px; line-height: 1.35">{{ drawerTitle }}</div>
+            </div>
+            <div style="flex: 1 1 auto; min-height: 0; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; font-size: 13px">
+              <sc-for list="{{ drawerFields }}" as="f" hint-placeholder-count="6">
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span style="width: 104px; flex: 0 0 auto; color: #8a7e6b">{{ f.label }}</span>
+                  <span onClick="{{ f.action }}" style="flex: 1; min-width: 0; padding: 6px 9px; border: 1px solid #e0dbd1; color: {{ f.fg }}; cursor: {{ f.cursor }}">{{ f.value }}</span>
+                </div>
+              </sc-for>
+              <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 7px; border-bottom: 1px solid #e7e1d4; margin-top: 4px">This change moves</div>
+              <div style="display: flex; flex-direction: column; gap: 7px; color: #6b645d">
+                <sc-for list="{{ drawerLinks }}" as="l" hint-placeholder-count="4">
+                  <div style="display: flex; justify-content: space-between; gap: 10px"><span>{{ l.label }}</span><span style="color: {{ l.fg }}; text-align: right">{{ l.value }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width: 940px; font-size: 13px; line-height: 1.7; color: #8f8b83">
+    <b style="color: #cfc9bd">What is real and what is not.</b> The six pages share one store, and every number in a stat strip, rail meter, cost line or budget row is computed from it — there are no typed-in totals anywhere. What is deliberately absent: adding and deleting records, the filter chips beyond the RSVP filter, printing, and the other thirty-seven pages. Those are drawn in <a href="./Planner%20Screens%20B.dc.html">Planner Screens</a>, and this prototype exists to prove the wiring underneath them rather than to replace them.
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1540,&quot;height&quot;:1200},&quot;adultRate&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:58,&quot;tsType&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;$&quot;,&quot;min&quot;:20,&quot;max&quot;:150,&quot;section&quot;:&quot;Catering rates&quot;},&quot;childRate&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:28,&quot;tsType&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;$&quot;,&quot;min&quot;:0,&quot;max&quot;:80,&quot;section&quot;:&quot;Catering rates&quot;},&quot;budgetTarget&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:30000,&quot;tsType&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;$&quot;,&quot;min&quot;:10000,&quot;max&quot;:80000,&quot;step&quot;:1000,&quot;section&quot;:&quot;Money&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { ...this.seed(), page: 'guests', rowH: 1, filter: 'all', sel: [], guestId: 'g03', tableId: 'T1', history: [] };
+  }
+
+  seed() {
+    const G = (id, first, last, household, side, rsvp, table, meal, dietary, child) =>
+      ({ id, first, last, household, side, rsvp, table, meal, dietary, child: !!child });
+    return {
+      guests: [
+        G('g01','Ama','Owusu','Owusu · bride','Bride','accepted','T1','Tilapia',''),
+        G('g02','Kwesi','Adjei','Adjei · groom','Groom','accepted','T1','Beef',''),
+        G('g03','Efua','Mensah','Mensah','Bride','accepted','T1','Vegetarian','Vegetarian'),
+        G('g04','Yaw','Darko','Darko','Groom','accepted','T1','Beef',''),
+        G('g05','Akosua','Owusu','Owusu','Bride','accepted','T1','Jollof',''),
+        G('g06','Mr & Mrs Owusu','','Owusu','Bride','accepted','T2','Tilapia',''),
+        G('g07','Nana Afua','Owusu','Owusu','Bride','accepted','','Jollof',''),
+        G('g08','Auntie Akua','Owusu','Owusu','Bride','accepted','','Tilapia','Gluten free'),
+        G('g09','Ato','Owusu','Owusu','Bride','declined','','',''),
+        G('g10','Nana Yaa','Frimpong','—','Groom','accepted','T3','Jollof',''),
+        G('g11','Daniel','Oppong','—','Groom','accepted','T3','Beef','Nut allergy'),
+        G('g12','Kojo','Mensah','Mensah','Bride','accepted','T6','Children’s plate','',1),
+        G('g13','Abena','Mensah','Mensah','Bride','accepted','T6','Children’s plate','',1),
+        G('g14','Selina','Boateng','Boateng','Bride','pending','','',''),
+        G('g15','Rev. Mensah','','—','Both','accepted','T1','Jollof',''),
+        G('g16','Kofi','Asante','Asante','Groom','accepted','T4','Beef',''),
+        G('g17','Kwabena','Osei','Osei','Groom','accepted','T4','Jollof','Dairy free'),
+        G('g18','Adjoa','Sarpong','Sarpong','Bride','accepted','T2','Vegetarian','Vegetarian'),
+        G('g19','Serwaa','Mensah','Mensah','Bride','accepted','T6','Children’s plate','',1),
+        G('g20','Michael','Tetteh','—','Groom','pending','','',''),
+        G('g21','Grace','Oppong','—','Groom','accepted','T3','Tilapia',''),
+        G('g22','Nii','Lartey','—','Groom','accepted','T5','Beef',''),
+        G('g23','Priscilla','Amankwah','—','Groom','accepted','T5','Vegetarian','Vegetarian'),
+        G('g24','Emmanuel','Boakye','—','Groom','declined','','','')
+      ],
+      tables: [
+        { id: 'T1', name: 'Head table', cap: 10, x: 470, y: 46 },
+        { id: 'T2', name: 'Owusu family', cap: 8, x: 40, y: 60 },
+        { id: 'T3', name: 'Colleagues', cap: 8, x: 190, y: 60 },
+        { id: 'T4', name: 'Groomsmen', cap: 8, x: 40, y: 190 },
+        { id: 'T5', name: 'Friends', cap: 8, x: 190, y: 190 },
+        { id: 'T6', name: 'Children', cap: 10, x: 640, y: 190 }
+      ],
+      contracts: [
+        { id: 'c1', label: 'Venue hire & service', vendor: 'Grace Hall', total: 9400, cat: 'Venue' },
+        { id: 'c2', label: 'Florals & installation', vendor: 'Bloom Studio', total: 3200, cat: 'Florals' },
+        { id: 'c3', label: 'Band · 4 hours', vendor: 'Highlife Collective', total: 1240, cat: 'Music' },
+        { id: 'c4', label: 'Bridal attire', vendor: 'Adjeley Bridal', total: 1800, cat: 'Attire' },
+        { id: 'c5', label: 'Photography · 10 hours', vendor: 'Nii Photography', total: 2400, cat: 'Photography' }
+      ],
+      payments: [
+        { id: 'p1', label: 'Venue deposit', vendor: 'Grace Hall', due: '14 Mar', amount: 6000, paid: true, cat: 'Venue' },
+        { id: 'p2', label: 'Venue instalment 2', vendor: 'Grace Hall', due: '12 Sep', amount: 1700, paid: false, cat: 'Venue' },
+        { id: 'p3', label: 'Catering deposit · half of headcount', vendor: 'Adom Catering', due: '2 Apr', amount: 1100, paid: true, cat: 'Catering' },
+        { id: 'p4', label: 'Florals deposit', vendor: 'Bloom Studio', due: '19 Apr', amount: 1200, paid: true, cat: 'Florals' },
+        { id: 'p5', label: 'Band deposit', vendor: 'Highlife Collective', due: '6 May', amount: 310, paid: true, cat: 'Music' },
+        { id: 'p6', label: 'Attire · fittings', vendor: 'Adjeley Bridal', due: '24 Jul', amount: 1450, paid: true, cat: 'Attire' },
+        { id: 'p7', label: 'Photography deposit', vendor: 'Nii Photography', due: '30 May', amount: 800, paid: false, cat: 'Photography' },
+        { id: 'p8', label: 'Rentals order', vendor: 'Accra Event Hire', due: '1 Oct', amount: 1240, paid: false, cat: 'Rentals' }
+      ],
+      pledges: [
+        { id: 'q1', name: 'Mr & Mrs Owusu', toward: 'Venue balance', amount: 2500, received: true },
+        { id: 'q2', name: 'Mr & Mrs Adjei', toward: 'Catering', amount: 1800, received: false },
+        { id: 'q3', name: 'Auntie Akua', toward: 'Unrestricted', amount: 600, received: false },
+        { id: 'q4', name: 'Church small group', toward: 'Florals', amount: 650, received: false },
+        { id: 'q5', name: 'Darko family', toward: 'Unrestricted', amount: 300, received: true }
+      ]
+    };
+  }
+
+  /* ---------- derivations ---------- */
+  adultRate() { return this.props.adultRate ?? 58; }
+  childRate() { return this.props.childRate ?? 28; }
+  settingRate() { return 6.5; }
+  target() { return this.props.budgetTarget ?? 30000; }
+
+  accepted() { return this.state.guests.filter(g => g.rsvp === 'accepted'); }
+  adults() { return this.accepted().filter(g => !g.child).length; }
+  children() { return this.accepted().filter(g => g.child).length; }
+  seated() { return this.accepted().filter(g => g.table).length; }
+  unseated() { return this.accepted().filter(g => !g.table); }
+  occ(id) { return this.state.guests.filter(g => g.table === id && g.rsvp === 'accepted').length; }
+
+  foodCost() { return this.adults() * this.adultRate() + this.children() * this.childRate(); }
+  rentalsCost() { return Math.round(this.seated() * this.settingRate()); }
+  barCost() { return 1180; }
+
+  committedFor(cat) {
+    if (cat === 'Catering') return this.foodCost() + this.barCost();
+    if (cat === 'Rentals') return this.rentalsCost();
+    return this.state.contracts.filter(c => c.cat === cat).reduce((n, c) => n + c.total, 0);
+  }
+  paidFor(cat) { return this.state.payments.filter(p => p.cat === cat && p.paid).reduce((n, p) => n + p.amount, 0); }
+
+  categories() { return ['Venue', 'Catering', 'Rentals', 'Florals', 'Music', 'Attire', 'Photography']; }
+  totalCommitted() { return this.categories().reduce((n, c) => n + this.committedFor(c), 0); }
+  totalPaid() { return this.categories().reduce((n, c) => n + this.paidFor(c), 0); }
+  received() { return this.state.pledges.filter(p => p.received).reduce((n, p) => n + p.amount, 0); }
+
+  money(n) {
+    const v = Math.round(n);
+    return (v < 0 ? '−$' : '$') + Math.abs(v).toLocaleString('en-US');
+  }
+  pct(n, d) { return d > 0 ? Math.min(100, Math.round((n / d) * 100)) + '%' : '0%'; }
+
+  /* one place decides how an outstanding figure reads, so no table can drift */
+  outstandingCell(o) {
+    return {
+      text: o < 0 ? this.money(o) + ' overpaid' : this.money(o),
+      fg: o > 0 ? '#9c3b34' : o < 0 ? '#8a640f' : '#6b645d'
+    };
+  }
+
+  /* ---------- mutations ---------- */
+  push(label) { this.setState(s => ({ history: [label, ...s.history].slice(0, 15) })); }
+
+  cycleRsvp(id) {
+    const order = ['accepted', 'pending', 'declined'];
+    this.setState(s => ({
+      guests: s.guests.map(g => {
+        if (g.id !== id) return g;
+        const next = order[(order.indexOf(g.rsvp) + 1) % 3];
+        return { ...g, rsvp: next, table: next === 'accepted' ? g.table : '' };
+      })
+    }));
+    this.push('RSVP changed');
+  }
+  cycleField(id, field, opts) {
+    this.setState(s => ({
+      guests: s.guests.map(g => g.id === id ? { ...g, [field]: opts[(opts.indexOf(g[field]) + 1) % opts.length] } : g)
+    }));
+    this.push(field + ' changed');
+  }
+  setTable(id, table) {
+    this.setState(s => ({ guests: s.guests.map(g => g.id === id ? { ...g, table } : g) }));
+    this.push(table ? 'Seated a guest' : 'Unseated a guest');
+  }
+  togglePaid(id) {
+    this.setState(s => ({ payments: s.payments.map(p => p.id === id ? { ...p, paid: !p.paid } : p) }));
+    this.push('Payment status changed');
+  }
+  togglePledge(id) {
+    this.setState(s => ({ pledges: s.pledges.map(p => p.id === id ? { ...p, received: !p.received } : p) }));
+    this.push('Pledge status changed');
+  }
+  nudge(id, by) {
+    this.setState(s => ({ contracts: s.contracts.map(c => c.id === id ? { ...c, total: Math.max(0, c.total + by) } : c) }));
+    this.push('Contract total changed');
+  }
+  toggleSel(id) {
+    this.setState(s => ({ sel: s.sel.includes(id) ? s.sel.filter(x => x !== id) : [...s.sel, id] }));
+  }
+  bulkRsvp(v) {
+    this.setState(s => ({
+      guests: s.guests.map(g => s.sel.includes(g.id) ? { ...g, rsvp: v, table: v === 'accepted' ? g.table : '' } : g),
+      sel: []
+    }));
+    this.push('Bulk RSVP change');
+  }
+
+  filterSet() {
+    const p = this.state.page;
+    if (p === 'guests' || p === 'tables') return [
+      { label: 'All', key: 'all' }, { label: 'Accepted', key: 'accepted' },
+      { label: 'Pending', key: 'pending' }, { label: 'Declined', key: 'declined' }
+    ];
+    if (p === 'payments') return [
+      { label: 'All', key: 'all' }, { label: 'Paid', key: 'paid' }, { label: 'Scheduled', key: 'scheduled' }
+    ];
+    if (p === 'budget') return [
+      { label: 'All categories', key: 'all' }, { label: 'Derived', key: 'derived' }, { label: 'From a contract', key: 'contract' }
+    ];
+    return [];
+  }
+
+  /* ---------- view model ---------- */
+  pillOf(kind) {
+    const m = {
+      accepted: ['#eef6f0', '#2f6b45', '#cfe3d5'],
+      pending: ['#fff7df', '#8a640f', '#e7ce80'],
+      declined: ['#eef1f2', '#626d74', '#dde3e4'],
+      paid: ['#eef6f0', '#2f6b45', '#cfe3d5'],
+      due: ['#fff7df', '#8a640f', '#e7ce80'],
+      flat: ['#eef1f2', '#626d74', '#dde3e4']
+    };
+    return m[kind] || m.flat;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const PAGES = [
+      { key: 'guests', name: 'Guest List', slice: 'A1', tab: 'People', sub: ['Guest List', 'Table Layout', 'Gifts'] },
+      { key: 'tables', name: 'Table Layout', slice: 'A2', tab: 'People', sub: ['Guest List', 'Table Layout', 'Gifts'] },
+      { key: 'catering', name: 'Catering & Menu', slice: 'A3', tab: 'Vendors', sub: ['Venue & Vendors', 'Catering & Menu', 'Entertainment'] },
+      { key: 'budget', name: 'Budget', slice: 'B1', tab: 'Money', sub: ['Budget', 'Payments', 'Contracts & Invoices'] },
+      { key: 'payments', name: 'Payments', slice: 'B2', tab: 'Money', sub: ['Budget', 'Payments', 'Contracts & Invoices'] },
+      { key: 'contracts', name: 'Contracts & Invoices', slice: 'B3', tab: 'Money', sub: ['Budget', 'Payments', 'Contracts & Invoices'] }
+    ];
+    const cur = PAGES.find(p => p.key === s.page) || PAGES[0];
+    const go = k => () => this.setState({ page: k, sel: [], filter: 'all' });
+    const rowPad = ['6px', '9px', '13px'][s.rowH];
+
+    const acc = this.accepted(), adults = this.adults(), kids = this.children();
+    const seated = this.seated(), unseated = this.unseated();
+    const food = this.foodCost(), rentals = this.rentalsCost();
+    const committed = this.totalCommitted(), paid = this.totalPaid(), target = this.target();
+    const dietOpts = ['', 'Vegetarian', 'Nut allergy', 'Gluten free', 'Dairy free'];
+    const mealOpts = ['Jollof', 'Tilapia', 'Beef', 'Vegetarian', 'Children’s plate'];
+
+    const gname = g => (g.last ? g.first + ' ' + g.last : g.first);
+    const filtered = s.guests.filter(g => s.filter === 'all' || g.rsvp === s.filter);
+
+    const guestRows = filtered.map(g => {
+      const p = this.pillOf(g.rsvp);
+      const isSel = s.sel.includes(g.id);
+      return {
+        name: gname(g), household: g.household, side: g.side,
+        rsvp: g.rsvp === 'accepted' ? 'Accepted' : g.rsvp === 'pending' ? 'Pending' : 'Declined',
+        rsvpBg: p[0], rsvpFg: p[1], rsvpBd: p[2],
+        seatLabel: g.table || '—', seatFg: g.table ? '#23211c' : (g.rsvp === 'accepted' ? '#a33b28' : '#cfc6b4'),
+        meal: g.meal || '—', mealFg: g.meal ? '#23211c' : '#cfc6b4',
+        dietary: g.dietary || '—', dietFg: g.dietary ? '#a33b28' : '#cfc6b4',
+        rowBg: g.id === s.guestId ? '#fdfaf4' : isSel ? '#f4f7fb' : '#fff',
+        nameWeight: g.id === s.guestId ? '600' : '400',
+        cb: isSel ? '☑' : '☐', cbFg: isSel ? '#2D4A3E' : '#cfc6b4',
+        toggleSel: () => this.toggleSel(g.id),
+        select: () => this.setState({ guestId: g.id }),
+        cycleRsvp: () => this.cycleRsvp(g.id),
+        cycleMeal: () => this.cycleField(g.id, 'meal', mealOpts),
+        cycleDietary: () => this.cycleField(g.id, 'dietary', dietOpts)
+      };
+    });
+
+    const floorTables = s.tables.map(t => {
+      const o = this.occ(t.id), full = o >= t.cap;
+      return {
+        id: t.id, name: t.name, x: t.x + 'px', y: t.y + 'px', occ: o + '/' + t.cap,
+        bd: t.id === s.tableId ? '#2D4A3E' : full ? '#d9cfba' : '#e7ce80',
+        bg: t.id === s.tableId ? '#f0f4f1' : full ? '#fff' : '#fffdf5',
+        fg: full ? '#8a7e6b' : '#8a640f',
+        select: () => this.setState({ tableId: t.id })
+      };
+    });
+    const selTable = s.tables.find(t => t.id === s.tableId) || s.tables[0];
+    const tableGuests = s.guests.filter(g => g.table === s.tableId && g.rsvp === 'accepted').map(g => ({
+      name: gname(g), meal: g.meal || '—', dietary: g.dietary || '—', unseat: () => this.setTable(g.id, '')
+    }));
+
+    const dietCounts = {};
+    acc.forEach(g => { const k = g.dietary || 'No requirement'; dietCounts[k] = (dietCounts[k] || 0) + 1; });
+    const dietaryRows = Object.keys(dietCounts).sort((a, b) => dietCounts[b] - dietCounts[a]).map(k => ({
+      label: k, count: dietCounts[k], fg: k === 'No requirement' ? '#20362D' : '#9c3b34',
+      note: k === 'No requirement' ? 'Standard buffet' : 'Kitchen sheet flags these'
+    }));
+
+    const cateringRows = [
+      { label: 'Adult covers', source: 'Accepted RSVPs, not children', qty: adults, rate: this.money(this.adultRate()), total: this.money(adults * this.adultRate()), fw: '400' },
+      { label: 'Children’s plates', source: 'Accepted RSVPs marked child', qty: kids, rate: this.money(this.childRate()), total: this.money(kids * this.childRate()), fw: '400' },
+      { label: 'Bar consumption', source: 'Flat estimate', qty: '—', rate: '—', total: this.money(this.barCost()), fw: '400' },
+      { label: 'Place settings', source: 'Seated guests only', qty: seated, rate: '$6.50', total: this.money(rentals), fw: '400' },
+      { label: 'Total', source: 'Sum of the four above', qty: acc.length, rate: '—', total: this.money(food + this.barCost() + rentals), fw: '600' }
+    ];
+
+    const budgetRows = this.categories().filter(cat => {
+      const derived = cat === 'Catering' || cat === 'Rentals';
+      return s.filter === 'all' || (s.filter === 'derived' ? derived : s.filter === 'contract' ? !derived : true);
+    }).map(cat => {
+      const c = this.committedFor(cat), p = this.paidFor(cat), o = c - p;
+      const derived = cat === 'Catering' || cat === 'Rentals';
+      const oc = this.outstandingCell(o);
+      return {
+        label: cat,
+        source: cat === 'Catering' ? 'Headcount × rate + bar' : cat === 'Rentals' ? 'Seated × $6.50' : 'Contract total',
+        committed: this.money(c), paid: this.money(p),
+        outstanding: oc.text, outFg: oc.fg,
+        kind: derived ? 'Derived' : 'Contract', fw: '400',
+        rowBg: derived ? '#fdfaf4' : '#fff'
+      };
+    }).concat([{
+      label: 'Total', source: 'Every category above', committed: this.money(committed),
+      paid: this.money(paid), outstanding: this.money(committed - paid),
+      outFg: '#9c3b34', kind: 'Derived', fw: '600', rowBg: '#f9f5ef'
+    }]);
+
+    const pledgeRows = s.pledges.map(q => {
+      const p = this.pillOf(q.received ? 'paid' : 'due');
+      return {
+        name: q.name, toward: q.toward, amount: this.money(q.amount),
+        status: q.received ? 'Received' : 'Promised', bg: p[0], fg: p[1], bd: p[2],
+        toggle: () => this.togglePledge(q.id)
+      };
+    });
+
+    const paymentRows = s.payments.filter(p =>
+      s.filter === 'all' || (s.filter === 'paid' ? p.paid : s.filter === 'scheduled' ? !p.paid : true)
+    ).map(p => {
+      const k = this.pillOf(p.paid ? 'paid' : 'due');
+      return {
+        label: p.label, vendor: p.vendor, due: p.due, amount: this.money(p.amount),
+        status: p.paid ? 'Paid' : 'Scheduled', bg: k[0], fg: k[1], bd: k[2],
+        category: p.cat, toggle: () => this.togglePaid(p.id)
+      };
+    });
+
+    const contractRows = s.contracts.map(c => {
+      const cp = this.paidFor(c.cat), o = c.total - cp;
+      const oc = this.outstandingCell(o);
+      return {
+        label: c.label, vendor: c.vendor, total: this.money(c.total), paid: this.money(cp),
+        outstanding: oc.text, outFg: oc.fg, category: c.cat,
+        up: () => this.nudge(c.id, 100), down: () => this.nudge(c.id, -100)
+      };
+    });
+
+    /* rails + stats per page */
+    const railFor = () => {
+      if (s.page === 'guests' || s.page === 'tables') return {
+        title: 'Views', note: 'Declining a guest empties their seat, drops the headcount and moves the Budget food line.',
+        rows: [
+          { label: 'Everyone', count: s.guests.length, on: s.filter === 'all' },
+          { label: 'Accepted', count: acc.length, on: s.filter === 'accepted' },
+          { label: 'Pending', count: s.guests.filter(g => g.rsvp === 'pending').length, on: s.filter === 'pending' },
+          { label: 'Declined', count: s.guests.filter(g => g.rsvp === 'declined').length, on: s.filter === 'declined' },
+          { label: 'Unseated', count: unseated.length, on: false, warn: unseated.length > 0 }
+        ],
+        meters: [
+          { label: 'Seated', value: seated + ' of ' + acc.length, pct: this.pct(seated, acc.length) },
+          { label: 'Seats filled', value: seated + ' of ' + s.tables.reduce((n, t) => n + t.cap, 0), pct: this.pct(seated, s.tables.reduce((n, t) => n + t.cap, 0)) },
+          { label: 'Budget used', value: this.pct(committed, target), pct: this.pct(committed, target) }
+        ]
+      };
+      if (s.page === 'catering') return {
+        title: 'Sections', note: 'Nothing on this page can be typed — it is all read from guest records.',
+        rows: [
+          { label: 'Headcount', count: acc.length, on: true },
+          { label: 'Adults', count: adults },
+          { label: 'Children', count: kids },
+          { label: 'Dietary flags', count: acc.filter(g => g.dietary).length, warn: true }
+        ],
+        meters: [
+          { label: 'Food cost', value: this.money(food), pct: this.pct(food, 6000) },
+          { label: 'Seated of accepted', value: seated + ' of ' + acc.length, pct: this.pct(seated, acc.length) }
+        ]
+      };
+      return {
+        title: 'Views', note: 'Committed money comes from contracts and derivations. Paid money comes only from payment rows.',
+        rows: [
+          { label: 'All categories', count: this.categories().length, on: true },
+          { label: 'Contracts', count: s.contracts.length },
+          { label: 'Payments', count: s.payments.length },
+          { label: 'Paid', count: s.payments.filter(p => p.paid).length },
+          { label: 'Outstanding', count: s.payments.filter(p => !p.paid).length, warn: true }
+        ],
+        meters: [
+          { label: 'Committed of target', value: this.money(committed), pct: this.pct(committed, target) },
+          { label: 'Paid of committed', value: this.money(paid), pct: this.pct(paid, committed) },
+          { label: 'Pledges received', value: this.money(this.received()), pct: this.pct(this.received(), s.pledges.reduce((n, q) => n + q.amount, 0)) }
+        ]
+      };
+    };
+    const rail = railFor();
+
+    const statsFor = () => {
+      if (s.page === 'guests') return [
+        { label: 'Invited', value: s.guests.length }, { label: 'Accepted', value: acc.length },
+        { label: 'Pending', value: s.guests.filter(g => g.rsvp === 'pending').length },
+        { label: 'Declined', value: s.guests.filter(g => g.rsvp === 'declined').length },
+        { label: 'Unseated', value: unseated.length, fg: unseated.length ? '#9c3b34' : '#20362D' }
+      ];
+      if (s.page === 'tables') return [
+        { label: 'Tables', value: s.tables.length },
+        { label: 'Seats', value: s.tables.reduce((n, t) => n + t.cap, 0) },
+        { label: 'Seated', value: seated },
+        { label: 'Free seats', value: s.tables.reduce((n, t) => n + t.cap, 0) - seated },
+        { label: 'Unseated', value: unseated.length, fg: unseated.length ? '#9c3b34' : '#20362D' }
+      ];
+      if (s.page === 'catering') return [
+        { label: 'Headcount', value: acc.length }, { label: 'Adults', value: adults },
+        { label: 'Children', value: kids }, { label: 'Food cost', value: this.money(food) },
+        { label: 'Dietary flags', value: acc.filter(g => g.dietary).length, fg: '#9c3b34' }
+      ];
+      if (s.page === 'payments') return [
+        { label: 'Payments', value: s.payments.length },
+        { label: 'Paid', value: this.money(paid) },
+        { label: 'Scheduled', value: this.money(s.payments.filter(p => !p.paid).reduce((n, p) => n + p.amount, 0)) },
+        { label: 'Next due', value: '12 Sep' },
+        { label: 'Vendors', value: new Set(s.payments.map(p => p.vendor)).size }
+      ];
+      if (s.page === 'contracts') return [
+        { label: 'Contracts', value: s.contracts.length },
+        { label: 'Contracted', value: this.money(s.contracts.reduce((n, c) => n + c.total, 0)) },
+        { label: 'Paid', value: this.money(paid) },
+        { label: 'Outstanding', value: this.money(committed - paid), fg: '#9c3b34' },
+        { label: 'Of target', value: this.pct(committed, target) }
+      ];
+      return [
+        { label: 'Target', value: this.money(target) },
+        { label: 'Committed', value: this.money(committed) },
+        { label: 'Paid', value: this.money(paid) },
+        { label: 'Pledges received', value: this.money(this.received()) },
+        { label: 'Couple to find', value: this.money(Math.max(0, committed - this.received())), fg: '#9c3b34' }
+      ];
+    };
+
+    const g = s.guests.find(x => x.id === s.guestId) || s.guests[0];
+    const drawerFields = s.page === 'catering' || s.page === 'budget' || s.page === 'payments' || s.page === 'contracts'
+      ? [
+        { label: 'Target', value: this.money(target), fg: '#23211c', cursor: 'default' },
+        { label: 'Committed', value: this.money(committed), fg: '#23211c', cursor: 'default' },
+        { label: 'Paid', value: this.money(paid), fg: '#23211c', cursor: 'default' },
+        { label: 'Outstanding', value: this.money(committed - paid), fg: '#9c3b34', cursor: 'default' },
+        { label: 'Derived share', value: this.money(this.committedFor('Catering') + this.committedFor('Rentals')), fg: '#946f33', cursor: 'default' },
+        { label: 'Pledges in', value: this.money(this.received()), fg: '#23211c', cursor: 'default' }
+      ]
+      : [
+        { label: 'Name', value: gname(g), fg: '#23211c', cursor: 'default' },
+        { label: 'Household', value: g.household, fg: '#23211c', cursor: 'default' },
+        { label: 'RSVP', value: g.rsvp, fg: '#946f33', cursor: 'pointer', action: () => this.cycleRsvp(g.id) },
+        { label: 'Seat', value: g.table || 'Unseated', fg: g.table ? '#23211c' : '#a33b28', cursor: 'pointer', action: () => this.setTable(g.id, g.table ? '' : s.tableId) },
+        { label: 'Meal', value: g.meal || '—', fg: '#946f33', cursor: 'pointer', action: () => this.cycleField(g.id, 'meal', mealOpts) },
+        { label: 'Dietary', value: g.dietary || 'None', fg: '#946f33', cursor: 'pointer', action: () => this.cycleField(g.id, 'dietary', dietOpts) }
+      ];
+
+    const drawerLinks = [
+      { label: 'Headcount', value: acc.length + ' accepted', fg: '#946f33' },
+      { label: 'Catering food', value: this.money(food), fg: '#946f33' },
+      { label: 'Place settings', value: this.money(rentals), fg: '#946f33' },
+      { label: 'Budget committed', value: this.money(committed), fg: '#946f33' },
+      { label: 'Couple to find', value: this.money(Math.max(0, committed - this.received())), fg: '#9c3b34' }
+    ];
+
+    const TABS = ['Overview', 'Planning', 'People', 'Money', 'Vendors', 'The Day', 'Covenant', 'Documents'];
+    const subPage = k => PAGES.find(p => p.name === k);
+
+    return {
+      pages: PAGES.map(p => ({
+        name: p.name, slice: p.slice, go: go(p.key),
+        bd: p.key === s.page ? '#b89968' : '#3a3a32',
+        bg: p.key === s.page ? '#241f16' : '#1a1b16',
+        fg: p.key === s.page ? '#f4efe6' : '#cfc9bd'
+      })),
+      tabs: TABS.map(t => ({
+        name: t, fg: t === cur.tab ? '#20362D' : '#6b645d',
+        rule: t === cur.tab ? '#2D4A3E' : 'transparent',
+        go: () => { const f = PAGES.find(p => p.tab === t); if (f) this.setState({ page: f.key, sel: [] }); }
+      })),
+      subnav: cur.sub.map(x => {
+        const hit = subPage(x);
+        const on = hit && hit.key === s.page;
+        return {
+          name: x, bg: on ? '#ece7dd' : 'transparent', fw: on ? '600' : '400',
+          fg: on ? '#20362D' : '#6b645d',
+          go: hit ? go(hit.key) : () => {}
+        };
+      }),
+      eyebrow: cur.tab, pageTitle: cur.name.replace(/&/g, '&'),
+      primaryAction: s.page === 'guests' ? 'Add guest' : s.page === 'tables' ? 'Add table' : s.page === 'catering' ? 'Add menu item' : s.page === 'payments' ? 'Record payment' : s.page === 'contracts' ? 'Add contract' : 'Add line',
+      stats: statsFor().map(x => ({ label: x.label, value: x.value, fg: x.fg || '#20362D' })),
+      filters: this.filterSet().map(f => ({
+        label: f.label, go: () => this.setState({ filter: f.key }),
+        bd: s.filter === f.key ? '#2D4A3E' : '#d9cfba',
+        bg: s.filter === f.key ? '#2D4A3E' : '#fff',
+        fg: s.filter === f.key ? '#F4EFE6' : '#3f3b34'
+      })),
+      hasFilters: this.filterSet().length > 0,
+      noFilters: this.filterSet().length === 0,
+      noFilterNote: s.page === 'catering' ? 'No filters — every row here is derived from guest records' : 'No filters — five contracts, all signed',
+      rowHeightLabel: ['compact', 'default', 'tall'][s.rowH],
+      cycleRowHeight: () => this.setState(st => ({ rowH: (st.rowH + 1) % 3 })),
+      rowPad,
+      showBulk: s.sel.length > 0, selectedCount: s.sel.length,
+      bulkAccept: () => this.bulkRsvp('accepted'),
+      bulkDecline: () => this.bulkRsvp('declined'),
+      bulkUnseat: () => { this.setState(st => ({ guests: st.guests.map(x => st.sel.includes(x.id) ? { ...x, table: '' } : x), sel: [] })); this.push('Bulk unseat'); },
+      clearSel: () => this.setState({ sel: [] }),
+      railTitle: rail.title, railNote: rail.note,
+      railRows: rail.rows.map(r => ({
+        label: r.label, count: r.count,
+        rule: r.on ? '#2D4A3E' : 'transparent',
+        cfg: r.warn && r.count > 0 ? '#a33b28' : '#8a7e6b'
+      })),
+      railMeters: rail.meters,
+      isGuests: s.page === 'guests', isTables: s.page === 'tables', isCatering: s.page === 'catering',
+      isBudget: s.page === 'budget', isPayments: s.page === 'payments', isContracts: s.page === 'contracts',
+      guestRows, floorTables, tableGuests, cateringRows, dietaryRows, budgetRows, pledgeRows, paymentRows, contractRows,
+      selectedTableId: selTable.id,
+      selectedTableLabel: selTable.id + ' · ' + selTable.name + ' · ' + this.occ(selTable.id) + ' of ' + selTable.cap,
+      unseatedRows: unseated.map(u => ({ name: gname(u), seat: () => this.setTable(u.id, s.tableId) })),
+      noUnseated: unseated.length === 0,
+      unseatedNote: unseated.length === 0 ? 'Nobody is waiting' : unseated.length + ' waiting · ' + (s.tables.reduce((n, t) => n + t.cap, 0) - seated) + ' free seats on the plan',
+      paidPct: this.pct(paid, target), committedPct: this.pct(committed - paid, target),
+      usedPct: this.pct(committed, target),
+      paidTotal: this.money(paid), outstandingTotal: this.money(committed - paid),
+      drawerEyebrow: (s.page === 'budget' || s.page === 'payments' || s.page === 'contracts' || s.page === 'catering') ? 'Live totals' : 'Guest record',
+      drawerTitle: (s.page === 'budget' || s.page === 'payments' || s.page === 'contracts' || s.page === 'catering') ? 'Where the money stands' : gname(g),
+      drawerFields, drawerLinks,
+      saveState: s.history.length ? 'Saved' : 'Saved',
+      undoCount: s.history.length,
+      undo: () => { if (s.history.length) this.setState(st => ({ history: st.history.slice(1) })); },
+      reset: () => this.setState({ ...this.seed(), sel: [], history: [] })
+    };
+  }
+}
+</script>
+</body>
+</html>

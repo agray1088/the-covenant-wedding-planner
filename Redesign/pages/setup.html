@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planning Timeline & Tasks — Covenant Wedding Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../redesign-tokens.css">
+<link rel="stylesheet" href="../redesign-components.css">
+<link rel="stylesheet" href="../redesign-shell.css">
+<link rel="stylesheet" href="../redesign-layouts.css">
+</head>
+<body class="rd-scope" data-page="setup">
+<div class="rd-shell">
+  <!-- ═══ TOP BAR — preserve ids: onclick names match planner.js ═══ -->
+  <header class="rd-topbar">
+    <div class="rd-topbar__brand">
+      <span class="rd-topbar__mark">&#10022;</span>
+      <span class="rd-topbar__name">The Covenant Wedding Planner</span>
+    </div>
+    <button type="button" class="rd-topbar__wedding" onclick="openProfileSwitcher()">
+      <span class="rd-topbar__avatar" id="profile-initials">AK</span>
+      <span id="topbar-wedding-label">Ama &amp; Kwesi · 8 November 2026</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <button type="button" class="rd-search" onclick="openCommandPalette()">
+      <svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
+      <span>Search the planner</span>
+      <span class="rd-search__kbd">&#8984;K</span>
+    </button>
+    <div class="rd-topbar__right">
+      <button type="button" class="rd-undo" id="undo-btn" onclick="undoLastChange()" title="Undo (⌘Z)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M9 7H4V2"/><path d="M4 7a9 9 0 1 1 1.6 9"/></svg> Undo</button>
+      <button type="button" class="rd-undo" id="redo-btn" onclick="redoLastChange()" title="Redo (⌘⇧Z)" disabled><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M15 7h5V2"/><path d="M20 7a9 9 0 1 0-1.6 9"/></svg> Redo</button>
+      <span class="rd-savestate" id="save-state">Saved</span>
+      <button type="button" class="rd-topbar__bell" onclick="showPanel('dashboard')" aria-label="Alerts"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+      <button type="button" class="rd-topbar__gear" onclick="openViewerPrefs()" aria-label="Viewer preferences"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+      <button type="button" class="rd-topbar__profile" onclick="openViewerPrefs()">MO</button>
+    </div>
+  </header>
+  <nav class="rd-tabs" aria-label="Sections">
+    <button type="button" class="rd-tab is-active" onclick="showPanel('dashboard')">Overview</button>
+    <button type="button" class="rd-tab" onclick="showPanel('tasks')">Planning</button>
+    <button type="button" class="rd-tab" onclick="showPanel('guests')">People</button>
+    <button type="button" class="rd-tab" onclick="showPanel('budget')">Money</button>
+    <button type="button" class="rd-tab" onclick="showPanel('vendors')">Vendors</button>
+    <button type="button" class="rd-tab" onclick="showPanel('timeline')">The Day</button>
+    <button type="button" class="rd-tab" onclick="showPanel('vision')" data-covenant="1"><span class="rd-tab__dot"></span>Covenant</button>
+    <button type="button" class="rd-tab" onclick="showPanel('data-hub')">Documents</button>
+  </nav>
+  <nav class="rd-subnav rd-subnav--context" aria-label="Context">
+    <svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M9 7H4V2"/><path d="M4 7a9 9 0 1 1 1.6 9"/></svg>
+    <span>Opened from the gear menu · this page has no tab of its own</span>
+    <button type="button" class="rd-subnav__item" style="margin-left:auto" onclick="history.back()">Back</button>
+  </nav>
+  <div class="rd-body">
+    <aside class="rd-rail">
+      <div>
+        <div class="rd-rail__title">Sections</div>
+        <div class="rd-rail__list">
+          <button type="button" class="rd-rail__item is-active">The couple<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">The day<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Money<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Guests &amp; seating<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Print &amp; sharing<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">This device<span class="rd-rail__count"></span></button>
+        </div>
+      </div>
+      <div>
+        <div class="rd-rail__title">Completeness</div>
+        <div class="rd-rail__meters">
+          <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Filled</span><span class="rd-rail__count">11 of 13</span></div><div class="rd-progress"><div class="rd-progress__fill" style="width:85%"></div></div></div>
+          <div class="rd-rail__meter-top"><span>Empty</span><span class="rd-rail__count">2</span></div>
+          <div class="rd-rail__meter-top"><span>Last changed</span><span class="rd-rail__count">2 days ago</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="rd-rail__title">Danger zone</div>
+        <div class="rd-rail__list">
+          <button type="button" class="rd-rail__item">Clear a table<span class="rd-rail__count rd-rail__count--warn"></span></button>
+          <button type="button" class="rd-rail__item">Clear the history log<span class="rd-rail__count rd-rail__count--warn"></span></button>
+          <button type="button" class="rd-rail__item">Restore a backup<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Reset planner<span class="rd-rail__count rd-rail__count--warn"></span></button>
+        </div>
+      </div>
+      <p class="rd-rail__note">Changing the wedding date re-dates every task, payment and countdown. You will be asked to confirm.</p>
+    </aside>
+    <main class="rd-main" id="panel-setup" data-panel="setup">
+      <div class="rd-pagehead">
+        <div>
+          <div class="rd-pagehead__eyebrow">Setup</div>
+          <h1 class="rd-pagehead__title">Wedding Setup</h1>
+        </div>
+        <div class="rd-pagehead__actions">
+          <button type="button" class="rd-btn" onclick="resetSetup()">Reset to defaults</button>
+          <button type="button" class="rd-btn" onclick="window.print()">Print section</button>
+          <button type="button" class="rd-btn" onclick="exportSetup()">Export settings</button>
+          <button type="button" class="rd-btn rd-btn--primary" onclick="saveSetup()">Save changes</button>
+        </div>
+      </div>
+      <div class="rd-surface">
+        <div class="rd-stats m-stats" id="setup-stats"></div>
+        <div class="setup-checklist" id="setup-checklist"></div>
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">The eleven facts</div>
+        <p class="rd-help">Every field names the pages it feeds.</p>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Save changes</button>
+      </div>
+        <div class="rd-grid-2" id="setup-fields"></div>
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">Danger zone</div>
+        <p class="rd-help">Four actions that cannot be undone from inside the planner.</p>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Download a backup first</button>
+      </div>
+        <div class="rd-grid-4" id="setup-danger-zone"></div>
+      </div>
+    </main>
+  </div>
+  </div>
+<!-- The planner's own scripts. Load order matches index.html. -->
+<script src="../autofit-columns.js"></script>
+<script src="../../js/planner.js"></script>
+<script src="../../js/planner-pill-scheme.js"></script>
+<script src="../../js/ux-kit.js"></script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+/* ============================================================================
+   Covenant Wedding Planner — REDESIGN PAGE LAYOUTS
+   §07 page anatomy, then the four priority pages.
+   Requires: redesign-tokens.css, redesign-components.css, redesign-shell.css
+   ========================================================================= */
+
+/* ── §07 PAGE ANATOMY — every one of the 37 pages is this shape ──────────
+   topbar → tabs → subnav → [ rail | pagehead → stats → toolbar → bulkbar
+                              → work surface | drawer ]
+   A page with no filters drops the toolbar. A page with no records drops the
+   drawer. Nothing else is optional, and nothing may be reordered.
+   ---------------------------------------------------------------------- */
+.rd-page { display: flex; flex-direction: column; min-height: 0; }
+.rd-page__surface { display: flex; align-items: stretch; min-height: 0; }
+.rd-page__work { flex: 1 1 auto; min-width: 0; }
+/* content-sized: never pin a page height — it silently crops the last section */
+.rd-page, .rd-page__work { height: auto; }
+
+/* a section inside the work surface */
+.rd-section { border-bottom: 1px solid var(--border-subtle); }
+.rd-section__head {
+  display: flex; align-items: baseline; gap: var(--space-3);
+  padding: 13px var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-content);
+}
+/* a section header is NOT a toolbar: it never carries column controls */
+.rd-section__head .rd-chip { display: none; }
+.rd-section__body { padding: var(--space-4) var(--space-5); }
+
+/* ── PRIORITY 1 · TASKS  (Timeline & Tasks, 9a) ──────────────────────────
+   Grouped by phase. Group row shows count + completion. Collapsible.        */
+#panel-timeline .rd-table tbody tr.is-group td,
+.rd-page--tasks .rd-table tbody tr.is-group td { cursor: pointer; }
+.rd-page--tasks .rd-table td:nth-child(2) { min-width: 240px; }
+.rd-page--tasks .rd-task-done { color: var(--text-faint); text-decoration: line-through; }
+
+/* ── PRIORITY 2 · GUESTS  (Guest List, 3b) ───────────────────────────────
+   6 of 24 columns on screen; the other 18 live in the drawer.              */
+.rd-page--guests .rd-table td:nth-child(2) { min-width: 240px; }
+.rd-page--guests .rd-table { table-layout: auto; }
+
+/* ── PRIORITY 3 · DASHBOARD  (3a) ────────────────────────────────────────
+   The one page that is cards rather than a table. 12-col grid, no drawer.   */
+.rd-page--dashboard .rd-page__surface { display: block; }
+.rd-dash {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-4); padding: var(--space-5) var(--shell-gutter);
+  background: var(--surface-canvas);
+}
+.rd-dash > .rd-panel { grid-column: span 4; }
+.rd-dash > .rd-panel--wide { grid-column: span 8; }
+.rd-dash > .rd-panel--full { grid-column: span 12; }
+.rd-dash__countdown { grid-column: span 12; display: flex; gap: var(--space-5); align-items: baseline; }
+.rd-dash__count-unit { font: 600 var(--type-stat)/1 var(--font-ui); font-variant-numeric: tabular-nums; color: var(--text-heading); }
+@media (max-width: 1100px) {
+  .rd-dash > .rd-panel { grid-column: span 6; }
+  .rd-dash > .rd-panel--wide { grid-column: span 12; }
+}
+
+/* ── PRIORITY 4 · DATA HUB  (7b overview + 7c all-tables, 24 columns) ────
+   The raw view: every column, pinned checkbox + id, horizontal scroll in the
+   pane only. This is the escape hatch — it must never feel styled-down.     */
+.rd-page--datahub .rd-table-wrap { max-width: 100%; overflow-x: auto; }
+.rd-page--datahub .rd-table { min-width: 100%; width: max-content; font-size: 12.5px; }
+.rd-page--datahub .rd-table td, .rd-page--datahub .rd-table th {
+  white-space: nowrap; border-right: 1px solid var(--border-hairline); padding: 8px 10px;
+}
+.rd-page--datahub .rd-table td:first-child { text-align: center; }
+.rd-page--datahub .rd-id { font: 400 var(--type-micro)/1 var(--font-mono); color: var(--text-subtle); }
+.rd-page--datahub .rd-integrity { display: flex; border-bottom: 1px solid var(--border-subtle); }
+.rd-page--datahub .rd-integrity > * { flex: 1; padding: 14px var(--space-5); border-right: 1px solid var(--border-hairline); }
+
+/* ── FLOOR PLAN (Table Layout, 8a) — the one canvas surface ─────────────── */
+.rd-floor { position: relative; height: 470px; overflow: hidden; background: var(--surface-content); border: 1px solid var(--border-control); }
+.rd-floor__table {
+  position: absolute; width: 96px; height: 96px; border-radius: 50%;
+  border: 2px solid var(--border-control); background: var(--surface-content);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: grab; font-size: var(--type-body);
+}
+.rd-floor__table.is-partial { border-color: var(--status-gold-border); background: color-mix(in srgb, var(--status-gold-bg) 40%, var(--surface-content)); }
+.rd-floor__table.is-selected { border-color: var(--forest); background: color-mix(in srgb, var(--forest) 6%, var(--surface-content)); }
+.rd-floor__head { border-radius: 0; width: 300px; height: 44px; flex-direction: row; gap: 10px; border-color: var(--forest); }
+
+/* ── PRINT ───────────────────────────────────────────────────────────────
+   Class A: working documents. Class B: keepsakes. Both print from the page
+   itself — there are no separate print templates to drift out of sync.      */
+@media print {
+  .rd-topbar, .rd-tabs, .rd-subnav, .rd-rail, .rd-drawer,
+  .rd-toolbar, .rd-bulkbar, .rd-pagehead__actions, .rd-footer, .rd-prefs { display: none !important; }
+  .rd-body, .rd-page__surface { display: block; }
+  .rd-main, .rd-page__work { width: 100%; }
+  @page { size: letter portrait; margin: .6in; }
+  body { background: #fff; color: #000; font-size: 12pt; }
+  .rd-table thead th { background: #fff !important; color: #000 !important; border-bottom: 1px solid #000; }
+  .rd-table { page-break-inside: auto; }
+  .rd-table tr { page-break-inside: avoid; }
+  .rd-table thead { display: table-header-group; }   /* header repeats per page */
+  .rd-table tbody tr.is-group { page-break-after: avoid; }
+  .status-pill { border: 1px solid #666 !important; background: #fff !important; color: #000 !important; }
+  .rd-track { border: 1px solid #666; }
+  .rd-fill { background: #000 !important; }
+  /* Class B keepsakes: Cormorant returns, one gold hairline, open margins */
+  .rd-page--keepsake { font-family: var(--font-display); }
+  .rd-page--keepsake h1, .rd-page--keepsake h2, .rd-page--keepsake .rd-keepsake-lead { font-family: var(--font-display); font-weight: 500; }
+  .rd-page--keepsake { padding: .9in; }
+  .rd-page--keepsake .rd-rule-gold { border: 0; border-top: 1px solid #B89968; width: 64px; margin: 14px 0 18px; }
+}
+
+
+/* ── 6. PAGE UTILITIES — used by redesign/pages/*.html ────────────────────
+   Small layout helpers the four page shells need. Kept here rather than in
+   components.css because none of them is a component: they are the glue
+   between the shell and the JS mount points.                              */
+
+/* the scrolling work area beneath the toolbar */
+.rd-surface {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: var(--space-5);
+  padding: var(--space-5) var(--shell-gutter);
+  background: var(--surface-content);
+}
+/* a table mount is flush — it supplies its own edges */
+.rd-surface > .rd-table-wrap { margin: calc(var(--space-5) * -1) calc(var(--shell-gutter) * -1) 0; }
+.rd-table-foot {
+  display: block; padding: var(--space-2) 0 0;
+  font-size: var(--type-meta); color: var(--text-subtle);
+}
+
+.rd-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+.rd-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
+@media (max-width: 1100px) { .rd-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 820px)  { .rd-grid-2, .rd-grid-3 { grid-template-columns: 1fr; } }
+
+/* progress track — clips its fill, so over-target can never overflow */
+.rd-progress { height: 4px; background: var(--border-subtle); overflow: hidden; }
+.rd-progress__fill { height: 100%; background: var(--forest); max-width: 100%; }
+.rd-progress__fill--over { background: var(--status-red-text); }
+
+/* forms inside panels */
+.rd-form { display: grid; gap: var(--space-3) var(--space-4); }
+.rd-form.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rd-form.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .rd-form.cols-2, .rd-form.cols-3 { grid-template-columns: 1fr; } }
+.rd-field { display: flex; flex-direction: column; gap: var(--space-1); }
+.rd-field > label {
+  font: 700 var(--type-section)/1.4 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-subtle);
+}
+.rd-help { margin: 0; font-size: var(--type-meta); color: var(--text-muted); line-height: 1.6; }
+.rd-costsummary { font-size: var(--type-body); color: var(--text-body); }
+
+/* secondary tab strip inside a page (Data Hub table tabs) */
+.rd-tabstrip {
+  flex: 0 0 auto; display: flex; align-items: stretch; gap: 2px;
+  padding: 0 var(--shell-gutter); background: var(--surface-raised);
+  border-bottom: 1px solid var(--border-subtle); overflow-x: auto;
+}
+.rd-tabstrip > * {
+  padding: 8px 13px; font-size: var(--type-body); color: var(--text-muted);
+  background: none; border: 0; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+}
+.rd-tabstrip > .is-active, .rd-tabstrip > [aria-selected="true"] {
+  color: var(--text-heading); font-weight: 600; border-bottom-color: var(--forest);
+}
+
+/* the Covenant tab's gold dot, and the rail's inline add */
+.rd-tab__dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+.rd-rail__add { background: none; border: 0; font-size: 14px; color: var(--text-faint); cursor: pointer; padding: 0; }
+.rd-pagehead__sub { padding: 0 var(--shell-gutter); }
+.rd-chip--ghost { border-color: transparent; }
+.rd-chip--ghost:hover { border-color: var(--border-control); }
+.rd-toolbar__right { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-width: 0; }
+.rd-bulkbar__sep { width: 1px; height: 14px; background: var(--border-control); }
+.rd-viewswitch__item { background: none; border: 0; font: inherit; }
+
+
+/* §08: the table scrolls inside its own pane — the PAGE never scrolls sideways. */
+.rd-shell, .rd-body, .rd-main { max-width: 100%; min-width: 0; }
+.rd-main > * { min-width: 0; }
+
+
+/* ── 7. PAGE-SPECIFIC SURFACES ────────────────────────────────────────────
+   Used by redesign/pages/*.html. Each is a container the planner's JS fills;
+   the styling here is the frame, not the content.                          */
+
+/* the scope class on <body> — lets the redesign coexist with the old CSS
+   during migration, so you can convert one page at a time */
+.rd-scope { margin: 0; background: var(--surface-canvas); color: var(--text-primary); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+
+.rd-grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-5); }
+@media (max-width: 1280px) { .rd-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 820px)  { .rd-grid-4 { grid-template-columns: 1fr; } }
+
+.rd-bulkbar__action {
+  appearance: none; background: none; border: 0; padding: 0;
+  font: inherit; color: var(--text-link); cursor: pointer;
+}
+.rd-bulkbar__action:hover { text-decoration: underline; }
+
+/* an inline advisory — never for status, which is a pill */
+.rd-callout {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle); background: var(--surface-raised);
+  font-size: var(--type-body); line-height: 1.65; color: var(--text-body);
+}
+.rd-callout--warn { border-color: var(--status-gold-border); background: var(--status-gold-bg); color: var(--status-gold-text); }
+
+/* ── Covenant · Class B keepsake work surface ──────────────────────────────
+   The frame does NOT change — same rail, header, toolbar and drawer. Only the
+   work surface is set to be read rather than scanned. §15: geometry is the
+   same in both themes; this is a content treatment, not a layout change.   */
+.rd-main--keepsake .rd-surface { padding-inline: clamp(24px, 5vw, 64px); }
+.rd-keepsake {
+  max-width: 74ch;
+  font-family: var(--font-display); font-size: 20px; line-height: 1.55;
+  color: var(--text-heading); text-wrap: pretty;
+}
+.rd-keepsake p { margin: 0 0 var(--space-4); }
+.rd-keepsake > * + * { margin-top: var(--space-4); }
+
+/* prayer journal — an entry with an answer is closed and reads differently */
+.rd-journal { display: flex; flex-direction: column; }
+.rd-journal > * { padding: var(--space-5) 0; border-bottom: 1px solid var(--border-hairline); }
+.rd-journal [data-answer] { border-left: 2px solid var(--gold); padding-left: var(--space-4); margin-top: var(--space-4); }
+
+/* reception floor plan — the one place circles are allowed (§04) */
+.rd-floorplan {
+  position: relative; min-height: 470px;
+  border: 1px solid var(--border-control); background: var(--surface-content);
+  overflow: hidden;
+}
+.rd-floorplan [data-table] {
+  position: absolute; width: 96px; height: 96px; border-radius: 50%;
+  border: 2px solid var(--border-control); background: var(--surface-content);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: var(--type-body); cursor: grab;
+}
+.rd-floorplan [data-table][data-free] { border-color: var(--status-gold-border); background: var(--status-gold-bg); }
+.rd-floorplan [data-head] { border-radius: 0; width: 300px; height: 44px; border-color: var(--forest); }
+
+/* vision board */
+.rd-moodgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-3); }
+.rd-moodgrid > * { aspect-ratio: 4 / 3; border: 1px solid var(--border-subtle); background: var(--surface-sunken); overflow: hidden; }
+
+/* smart calendar */
+.rd-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--border-subtle); border-left: 1px solid var(--border-subtle); }
+.rd-calendar > * { min-height: 116px; padding: var(--space-2); border-right: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); font-size: var(--type-meta); }
+.rd-calendar [data-outside] { background: var(--surface-sunken); color: var(--text-faint); }
+.rd-calendar [data-today] { background: var(--surface-focused); }
+
+/* first-year rhythm plot */
+.rd-yearplot { display: flex; flex-direction: column; gap: var(--space-1); }
+.rd-yearplot > * { display: flex; align-items: center; gap: 2px; }
+.rd-yearplot [data-label] { flex: 0 0 210px; font-size: var(--type-body); color: var(--text-body); }
+.rd-yearplot [data-cell] { flex: 1; height: 16px; background: var(--border-hairline); }
+.rd-yearplot [data-cell][data-on] { background: var(--forest); }
+
+/* help pages — prose, numbered steps, accordion */
+.rd-prose { max-width: 72ch; font-size: 15px; line-height: 1.75; color: var(--text-body); text-wrap: pretty; }
+.rd-prose > * + * { margin-top: var(--space-4); }
+
+.rd-steps { counter-reset: rd-step; display: flex; flex-direction: column; gap: var(--space-4); max-width: 72ch; }
+.rd-steps > * { counter-increment: rd-step; position: relative; padding-left: 44px; }
+.rd-steps > *::before {
+  content: counter(rd-step, decimal-leading-zero);
+  position: absolute; left: 0; top: 2px;
+  font-family: var(--font-display); font-size: 20px; color: var(--gold);
+}
+
+.rd-faq { display: flex; flex-direction: column; max-width: 80ch; border-top: 1px solid var(--border-subtle); }
+.rd-faq > * { padding: var(--space-4) 0; border-bottom: 1px solid var(--border-hairline); }
+.rd-faq summary { cursor: pointer; font-weight: 600; color: var(--text-heading); list-style: none; }
+.rd-faq summary::-webkit-details-marker { display: none; }
+.rd-faq summary::after { content: '+'; float: right; color: var(--text-faint); }
+.rd-faq [open] summary::after { content: '−'; }
+
+
+/* ── 8. §07b · SECTION TAB STRIP ──────────────────────────────────────────
+   Sits between the stat strip and the toolbar. Stats describe the page, tabs
+   choose the content, the toolbar filters what the tabs chose. Above the
+   strip, the toolbar's chips would appear to apply to every tab at once.
+
+   Only for genuine SECTIONS — different columns, different shape, sometimes a
+   different primary action. Same rows fewer of them is a filter (toolbar
+   chips); same data drawn differently is a view (the switcher); owns its own
+   records is a page (the sub-nav).                                         */
+.rd-tabstrip--inner {
+  background: var(--surface-content);
+  padding-block: 0;
+}
+.rd-tabstrip__label {
+  display: flex; align-items: center; padding-right: var(--space-3);
+  font: 700 var(--type-section)/1 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-subtle);
+  white-space: nowrap;
+}
+.rd-tabstrip__note {
+  margin-left: auto; display: flex; align-items: center; padding-left: var(--space-4);
+  font-size: var(--type-meta); color: var(--text-faint); white-space: nowrap;
+}
+/* the app's own class rides along, so cerTab()/hmTab()/etc still find these */
+.rd-tabstrip .m-tab.on, .rd-tabstrip .m-tab.is-active {
+  color: var(--text-heading); font-weight: 600; border-bottom-color: var(--forest);
+}
+.rd-tabstrip--inner .m-tab.on, .rd-tabstrip--inner .m-tab.is-active { border-bottom-color: var(--gold); }
+
+/* a labelled group of filter chips — two axes means two groups */
+.rd-toolbar__label {
+  font: 700 var(--type-section)/1 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-subtle);
+  white-space: nowrap; margin-right: var(--space-1);
+}
+.rd-toolbar__sep { width: 1px; height: 20px; background: var(--border-subtle); margin-inline: var(--space-2); }
+/* §08 chip honesty: an active chip carries a ✕ and means the table IS filtered */
+.rd-chip.is-active {
+  border-color: var(--forest); background: var(--forest); color: var(--text-on-dark); font-weight: 600;
+}
+.rd-chip.is-active > [aria-hidden] { opacity: .7; margin-left: var(--space-1); }

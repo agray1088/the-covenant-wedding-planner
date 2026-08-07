@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Covenant Planner — redesign component gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="redesign-tokens.css">
+<link rel="stylesheet" href="redesign-components.css">
+<link rel="stylesheet" href="redesign-shell.css">
+<link rel="stylesheet" href="redesign-layouts.css">
+<style>
+  body { margin: 0; }
+  .g-wrap { padding: 32px 40px 80px; max-width: 1240px; }
+  .g-h1 { font: 500 40px/1.05 var(--font-display); color: var(--text-heading); margin: 0 0 8px; }
+  .g-lede { font-size: 14px; line-height: 1.65; color: var(--text-muted); max-width: 760px; margin: 0 0 28px; }
+  .g-sec { margin-top: 40px; }
+  .g-sec > h2 { font: 700 10px/1.4 var(--font-ui); letter-spacing: .18em; text-transform: uppercase; color: var(--text-subtle); padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); margin: 0 0 18px; }
+  .g-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .g-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .g-label { font: 700 10px/1.4 var(--font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--text-subtle); width: 100%; margin-bottom: 2px; }
+  .g-toggle { position: fixed; right: 20px; top: 20px; z-index: 100; }
+</style>
+</head>
+<body>
+<button class="rd-btn rd-btn--primary g-toggle" onclick="var d=document.body.dataset.theme==='dark'?'':'dark';document.body.dataset.theme=d;document.querySelector('.g-wrap').dataset.theme=d;">Toggle dark mode</button>
+<div class="g-wrap">
+  <h1 class="g-h1">Redesign component gallery</h1>
+  <p class="g-lede">Every reusable piece, in both themes. This page loads the four redesign CSS files directly — if it looks right, the files are right. Toggle dark mode top-right; geometry must not shift, only colour.</p>
+
+  <section class="g-sec"><h2>Status pills · 5 schemes</h2>
+    <div class="g-row">
+      <span class="status-pill status-pill--green">Complete</span>
+      <span class="status-pill status-pill--gold">In progress</span>
+      <span class="status-pill status-pill--gray">Not started</span>
+      <span class="status-pill status-pill--red">Overdue</span>
+      <span class="status-pill status-pill--blue">Info</span>
+    </div>
+    <div class="g-row"><span class="g-label">Compact — for 30px rows</span>
+      <span class="status-pill status-pill--green status-pill--compact">Paid</span>
+      <span class="status-pill status-pill--gold status-pill--compact">Due</span>
+      <span class="status-pill status-pill--red status-pill--compact">Unowned</span>
+    </div>
+    <div class="g-row"><span class="g-label">Interactive — the pill IS the control</span>
+      <span class="status-pill status-pill--green status-pill--interactive"><select><option>Accepted</option><option>Pending</option><option>Declined</option></select></span>
+      <span class="status-pill status-pill--gold status-pill--interactive"><select><option>Pending</option><option>Accepted</option></select></span>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Buttons</h2>
+    <div class="g-row">
+      <button class="rd-btn rd-btn--primary">Add guest</button>
+      <button class="rd-btn">Export</button>
+      <button class="rd-btn">Print section</button>
+      <button class="rd-btn rd-btn--quiet">Send group email</button>
+      <button class="rd-btn rd-btn--danger">Delete 3 rows</button>
+      <button class="rd-btn" disabled>Disabled</button>
+      <a class="ued-link" href="#">Open the full editor →</a>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Chips</h2>
+    <div class="g-row">
+      <span class="rd-chip">Side: all<span class="rd-chip__chevron">⌄</span></span>
+      <span class="rd-chip is-active">RSVP: accepted<span class="rd-chip__clear">✕</span></span>
+      <span class="rd-chip">Columns · 6 of 24<span class="rd-chip__chevron">⌄</span></span>
+      <span class="rd-chip rd-chip--action">Auto-fit columns</span>
+      <span class="rd-chip">Row height · compact<span class="rd-chip__chevron">⌄</span></span>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Form fields</h2>
+    <div class="g-grid">
+      <div class="ued-field"><label>Guest name</label><input class="rd-input" value="Efua Mensah"></div>
+      <div class="ued-field"><label>RSVP</label><select class="rd-select"><option>Accepted</option><option>Pending</option></select></div>
+      <div class="ued-field"><label>Email</label><input class="rd-input" placeholder="name@example.com"></div>
+      <div class="ued-field"><label>Notes</label><textarea class="rd-textarea">Arriving Friday evening.</textarea></div>
+    </div>
+    <div class="g-row" style="margin-top:14px">
+      <label class="rd-check"><input type="checkbox" checked> Plus one</label>
+      <label class="rd-check"><input type="radio" name="s" checked> Bride</label>
+      <label class="rd-check"><input type="radio" name="s"> Groom</label>
+      <span class="rd-toggle is-on"></span><span style="font-size:13px;color:var(--text-muted)">Preview mode</span>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Stat strip — hairline, no cards, no icons</h2>
+    <div class="rd-stats">
+      <div class="rd-stat"><div class="rd-stat__label">Invited</div><div class="rd-stat__value">142</div></div>
+      <div class="rd-stat"><div class="rd-stat__label">Accepted</div><div class="rd-stat__value">86</div></div>
+      <div class="rd-stat"><div class="rd-stat__label">Pending</div><div class="rd-stat__value">31</div></div>
+      <div class="rd-stat"><div class="rd-stat__label">Seated</div><div class="rd-stat__value">118</div></div>
+      <div class="rd-stat"><div class="rd-stat__label">Unseated</div><div class="rd-stat__value rd-stat__value--warn">24</div></div>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Progress</h2>
+    <div style="max-width:520px;display:flex;flex-direction:column;gap:14px">
+      <div><div class="rd-rail__meter-top" style="font-size:12px;margin-bottom:4px"><span>Seated</span><span style="color:var(--text-subtle)">118 of 142</span></div><div class="rd-track"><div class="rd-fill" style="width:83%"></div></div></div>
+      <div><div class="rd-rail__meter-top" style="font-size:12px;margin-bottom:4px"><span>Budget used · paid + committed</span><span style="color:var(--text-subtle)">73%</span></div><div class="rd-track rd-track--lg"><div class="rd-fill" style="width:38%"></div><div class="rd-fill rd-fill--projected" style="width:35%"></div></div></div>
+      <div><div class="rd-rail__meter-top" style="font-size:12px;margin-bottom:4px"><span>Over target</span><span style="color:var(--status-red-text)">−$280</span></div><div class="rd-track rd-track--lg"><div class="rd-fill rd-fill--over" style="width:100%"></div></div></div>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Toolbar + bulk bar</h2>
+    <div class="rd-panel">
+      <div class="rd-toolbar">
+        <span class="rd-chip">Side: all<span class="rd-chip__chevron">⌄</span></span>
+        <span class="rd-chip is-active">RSVP: accepted<span class="rd-chip__clear">✕</span></span>
+        <span class="rd-chip">Table: all<span class="rd-chip__chevron">⌄</span></span>
+        <span class="rd-toolbar__cols">
+          <span class="rd-chip">Columns · 6 of 24<span class="rd-chip__chevron">⌄</span></span>
+          <span class="rd-chip rd-chip--action">Auto-fit columns</span>
+          <span class="rd-chip">Row height · compact<span class="rd-chip__chevron">⌄</span></span>
+        </span>
+      </div>
+      <div class="rd-bulkbar"><span class="rd-bulkbar__count">3 selected</span><span style="color:var(--text-faint)">|</span><button>Set RSVP</button><button>Assign table</button><button>Email selected</button><button class="is-danger">Delete 3 rows</button><button class="rd-bulkbar__clear">Clear selection</button></div>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Table — header, group row, states, add row</h2>
+    <div class="rd-table-wrap rd-panel">
+      <table class="rd-table">
+        <thead><tr><th class="is-check"></th><th>Guest</th><th style="width:150px">Household</th><th style="width:110px">RSVP</th><th style="width:100px">Table</th><th style="width:130px">Meal</th><th class="is-num" style="width:110px">Gift</th></tr></thead>
+        <tbody>
+          <tr class="is-group"><td colspan="7">Bride’s side · 68 guests · 44 accepted</td></tr>
+          <tr class="is-focused"><td class="is-check">☐</td><td>Efua Mensah</td><td>Mensah</td><td><span class="status-pill status-pill--green status-pill--compact">Accepted</span></td><td>T1</td><td>Vegetarian</td><td class="is-num">$220</td></tr>
+          <tr class="is-selected"><td class="is-check">☑</td><td>Akosua Owusu</td><td>Owusu</td><td><span class="status-pill status-pill--green status-pill--compact">Accepted</span></td><td>T1</td><td>Jollof</td><td class="is-num is-empty">—</td></tr>
+          <tr><td class="is-check">☐</td><td>Selina Boateng</td><td>Boateng</td><td><span class="status-pill status-pill--gold status-pill--compact">Pending</span></td><td class="is-empty">—</td><td class="is-empty">—</td><td class="is-num is-empty">—</td></tr>
+          <tr><td class="is-check">☐</td><td>Ato Owusu</td><td>Owusu</td><td><span class="status-pill status-pill--gray status-pill--compact">Declined</span></td><td class="is-empty">—</td><td class="is-empty">—</td><td class="is-num is-empty">—</td></tr>
+          <tr class="is-add"><td>+</td><td colspan="6">Add a guest — type a name</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:8px">Row 1 is focused (open in the drawer), row 2 is selected. Read-only preview adds <code>.rd-table--readonly</code>.</p>
+  </section>
+
+  <section class="g-sec"><h2>Drawer · 360px</h2>
+    <div style="display:flex;border:1px solid var(--border-subtle);background:var(--surface-content)">
+      <div style="flex:1 1 auto;padding:20px;font-size:13px;color:var(--text-muted)">Work surface — the list stays in view while one row is edited.</div>
+      <aside class="rd-drawer" style="flex:0 0 360px">
+        <div class="rd-drawer__head">
+          <div class="rd-panel__eyebrow">Guest · bride’s side</div>
+          <div class="rd-drawer__title">Efua Mensah</div>
+          <div class="rd-drawer__pills"><span class="status-pill status-pill--green">Accepted</span><span class="status-pill status-pill--blue">Maid of honour</span></div>
+          <div class="rd-drawer__tabs"><span class="is-active">Details</span><span>Seating</span><span>Gifts</span><span>History</span></div>
+        </div>
+        <div class="rd-drawer__body">
+          <div class="rd-field-row"><span class="rd-field-row__label">Household</span><span class="rd-field-row__value">Mensah</span></div>
+          <div class="rd-field-row"><span class="rd-field-row__label">Email</span><span class="rd-field-row__value">efua.mensah@example.com</span></div>
+          <div class="rd-field-row"><span class="rd-field-row__label">Table</span><span class="rd-field-row__value">T1 · seat 3</span></div>
+          <div class="rd-drawer__section">Dietary</div>
+          <div class="rd-note rd-note--warn">Vegetarian, nut allergy. No dish chosen yet — 9 vegetarians and no vegetarian main.</div>
+        </div>
+        <div class="rd-drawer__foot"><button class="rd-btn rd-btn--primary">Save</button><button class="rd-btn">Full editor</button></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Panels · notes · empty state</h2>
+    <div class="g-grid">
+      <div class="rd-panel"><div class="rd-panel__head"><span class="rd-panel__eyebrow">Dietary summary</span><span class="rd-panel__action">Print</span></div><div class="rd-panel__body" style="font-size:13px;color:var(--text-muted)">23 of 86 accepted guests carry a requirement.</div></div>
+      <div class="rd-panel"><div class="rd-panel__head"><span class="rd-panel__eyebrow">Empty</span></div><div class="rd-empty">No appointments this month. + Add one</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="rd-note">Plain note — a field’s explanatory text.</div>
+        <div class="rd-note rd-note--warn">Warning — something needs a decision.</div>
+        <div class="rd-note rd-note--danger">Danger — this cannot be undone.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>App shell</h2>
+    <div style="border:1px solid var(--border-subtle)">
+      <div class="rd-topbar">
+        <div class="rd-topbar__brand"><span class="rd-topbar__mark">✦</span><span class="rd-topbar__name">The Covenant Wedding Planner</span></div>
+        <div class="rd-topbar__wedding"><span class="rd-topbar__avatar">AK</span>Ama &amp; Kwesi · 8 November 2026</div>
+        <div class="rd-search">Search the planner<span class="rd-search__kbd">⌘K</span></div>
+        <div class="rd-topbar__right"><span class="rd-savestate">Saved</span><button class="rd-undo">Undo 12</button><span class="rd-topbar__profile">MO</span></div>
+      </div>
+      <div class="rd-tabs">
+        <button class="rd-tab">Overview</button><button class="rd-tab">Planning</button>
+        <button class="rd-tab is-active" aria-current="page">People</button><button class="rd-tab">Money</button>
+        <button class="rd-tab">Vendors</button><button class="rd-tab">The Day</button>
+        <button class="rd-tab rd-tab--covenant">Covenant</button><button class="rd-tab">Documents</button>
+      </div>
+      <div class="rd-subnav">
+        <button class="rd-subnav__item is-active" aria-current="page">Guest List</button>
+        <button class="rd-subnav__item">Wedding Party</button>
+        <button class="rd-subnav__item">Table Layout</button>
+        <button class="rd-subnav__item">Gifts</button>
+      </div>
+      <div class="rd-body">
+        <div class="rd-rail">
+          <div>
+            <div class="rd-rail__title">Views <span style="color:var(--text-faint)">+</span></div>
+            <div class="rd-rail__list">
+              <button class="rd-rail__item is-active">Everyone <span class="rd-rail__count">142</span></button>
+              <button class="rd-rail__item">Accepted <span class="rd-rail__count">86</span></button>
+              <button class="rd-rail__item">Pending <span class="rd-rail__count">31</span></button>
+              <button class="rd-rail__item">Unseated <span class="rd-rail__count rd-rail__count--warn">24</span></button>
+            </div>
+          </div>
+          <div>
+            <div class="rd-rail__title">Live derivations</div>
+            <div class="rd-rail__meters">
+              <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Seated</span><span style="color:var(--text-subtle)">83%</span></div><div class="rd-track"><div class="rd-fill" style="width:83%"></div></div></div>
+              <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Budget used</span><span style="color:var(--text-subtle)">73%</span></div><div class="rd-track"><div class="rd-fill" style="width:73%"></div></div></div>
+            </div>
+          </div>
+          <div class="rd-rail__note">Changing an RSVP here moves the seat, the headcount and the catering line.</div>
+        </div>
+        <div class="rd-main">
+          <div class="rd-pagehead">
+            <div><div class="rd-pagehead__eyebrow">People</div><h2 class="rd-pagehead__title">Guest List</h2></div>
+            <div class="rd-pagehead__actions"><button class="rd-btn rd-btn--quiet">Import</button><button class="rd-btn">Export</button><button class="rd-btn rd-btn--primary">Add guest</button></div>
+          </div>
+          <div class="rd-stats">
+            <div class="rd-stat"><div class="rd-stat__label">Invited</div><div class="rd-stat__value">142</div></div>
+            <div class="rd-stat"><div class="rd-stat__label">Accepted</div><div class="rd-stat__value">86</div></div>
+            <div class="rd-stat"><div class="rd-stat__label">Unseated</div><div class="rd-stat__value rd-stat__value--warn">24</div></div>
+          </div>
+          <div class="rd-empty">Work surface goes here.</div>
+        </div>
+      </div>
+      <div class="rd-footer">
+        <div><div class="rd-footer__title">Planning</div><a href="#">Timeline &amp; Tasks</a><a href="#">Smart Calendar</a></div>
+        <div><div class="rd-footer__title">People</div><a href="#">Guest List</a><a href="#">Table Layout</a></div>
+        <div><div class="rd-footer__title">Money</div><a href="#">Budget</a><a href="#">Payments</a></div>
+        <div><div class="rd-footer__title">Covenant</div><a href="#">Vision &amp; Foundation</a><a href="#">Prayer Journal</a></div>
+        <div><div class="rd-footer__title">Help</div><a href="#">Get Started</a><a href="#">FAQ</a></div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

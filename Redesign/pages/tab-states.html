@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab states — 57 screens</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../redesign-tokens.css">
+<link rel="stylesheet" href="../redesign-components.css">
+<style>
+  body { margin: 0; padding: 48px 40px 80px; background: var(--surface-canvas); font-family: var(--font-ui); color: var(--text-primary); }
+  .w { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
+  h1 { margin: 0; font: 500 42px/1.05 var(--font-display); color: var(--text-heading); }
+  .lede { margin: 0; font-size: 15px; line-height: 1.7; color: var(--text-muted); max-width: 74ch; }
+  .grp__h { display: flex; align-items: baseline; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 10px; }
+  .grp__t { font: 700 10px/1 var(--font-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--text-subtle); }
+  .grp__d { font-size: 12.5px; color: var(--text-muted); }
+  .grp__n { margin-left: auto; font-size: 12px; color: var(--text-faint); }
+  .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+  a.card { display: block; padding: 11px 14px; border: 1px solid var(--border-subtle); background: var(--surface-content); text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--text-heading); }
+  a.card:hover { border-color: var(--border-strong); }
+  .warn { padding: 14px 16px; border: 1px solid var(--status-gold-border); background: var(--status-gold-bg); color: var(--status-gold-text); font-size: 13px; line-height: 1.65; max-width: 80ch; }
+  code { font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="w">
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="font:700 10px/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--text-link)">Tab states · 57 screens</div>
+    <h1>Every tabbed state</h1>
+    <p class="lede">One file per tab state across the fifteen pages that split themselves. Each carries the app&rsquo;s own <code>data-tab</code> values and handler names — <code>cerTab</code>, <code>hmTab</code>, <code>entTab</code>, <code>visionTab</code>, <code>vndTab</code> — so the existing JavaScript works untouched.</p>
+    <p class="lede">Three of the fifteen turned out not to need a tab strip at all. Gifts became two labelled chip groups, Smart Calendar and Wedding Day became view switchers. Those are marked below, and the reasoning is in <a href="../../Planner%20Sub-Tabs.dc.html">Planner Sub-Tabs</a> and §07b of the spec.</p>
+    <p class="lede"><a href="index.html">← the 38 base pages</a></p>
+  </div>
+  <div class="warn"><b>Shells, not finished pages.</b> Opened standalone they render empty below the toolbar — the planner fills the mount points with JavaScript. The strip, the rail and the toolbar are the parts to review here.</div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Ceremony &amp; Reception</span><span class="grp__d">cerTab() · 9 sections · genuine tab strip</span><span class="grp__n">9</span></div>
+    <div class="list">
+      <a class="card" href="ceremony-overview.html">Overview</a>
+      <a class="card" href="ceremony-order.html">Order of Worship</a>
+      <a class="card" href="ceremony-processional.html">Processional</a>
+      <a class="card" href="ceremony-recessional.html">Recessional</a>
+      <a class="card" href="ceremony-scripture.html">Scripture &amp; Prayer</a>
+      <a class="card" href="ceremony-vows.html">Vows &amp; Rings</a>
+      <a class="card" href="ceremony-officiant.html">Officiant &amp; Legal</a>
+      <a class="card" href="ceremony-reception.html">Reception Details</a>
+      <a class="card" href="ceremony-traditions.html">Traditions</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Honeymoon &amp; After</span><span class="grp__d">hmTab() · 7 sections · genuine tab strip</span><span class="grp__n">7</span></div>
+    <div class="list">
+      <a class="card" href="honeymoon-overview.html">Overview</a>
+      <a class="card" href="honeymoon-details.html">Details</a>
+      <a class="card" href="honeymoon-transport.html">Transportation</a>
+      <a class="card" href="honeymoon-itinerary.html">Itinerary</a>
+      <a class="card" href="honeymoon-packing.html">Packing</a>
+      <a class="card" href="honeymoon-budget.html">Budget</a>
+      <a class="card" href="honeymoon-journal.html">Daily Journal</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Entertainment</span><span class="grp__d">entTab() · 5 sections · genuine tab strip</span><span class="grp__n">5</span></div>
+    <div class="list">
+      <a class="card" href="entertainment-overview.html">Overview</a>
+      <a class="card" href="entertainment-vendors.html">Vendors</a>
+      <a class="card" href="entertainment-cues.html">Reception Cues</a>
+      <a class="card" href="entertainment-speeches.html">Speeches</a>
+      <a class="card" href="entertainment-playlist.html">Playlist</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Vision Board</span><span class="grp__d">visionTab() · 5 sections · gallery categories moved to chips</span><span class="grp__n">5</span></div>
+    <div class="list">
+      <a class="card" href="vision-board-decisions.html">Vision Decisions</a>
+      <a class="card" href="vision-board-palette.html">Colour Palette</a>
+      <a class="card" href="vision-board-inspiration.html">Inspiration Cards</a>
+      <a class="card" href="vision-board-gallery.html">Inspiration Gallery</a>
+      <a class="card" href="vision-board-details.html">Details Tracker</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Venue &amp; Vendors</span><span class="grp__d">vndTab() · 2 sections · record vs decision</span><span class="grp__n">2</span></div>
+    <div class="list">
+      <a class="card" href="vendors-tracker.html">Vendor Tracker</a>
+      <a class="card" href="vendors-shortlist.html">Shortlist &amp; Compare</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Shot Lists</span><span class="grp__d">two levels — supplier, then list</span><span class="grp__n">2</span></div>
+    <div class="list">
+      <a class="card" href="shotlist-photo.html">Photo Shot List</a>
+      <a class="card" href="shotlist-video.html">Video Shot List</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Share Packets</span><span class="grp__d">two levels — packet, then chapter</span><span class="grp__n">4</span></div>
+    <div class="list">
+      <a class="card" href="packets-sections.html">Sections</a>
+      <a class="card" href="packets-recipients.html">Recipients</a>
+      <a class="card" href="packets-link.html">Link &amp; expiry</a>
+      <a class="card" href="packets-activity.html">Activity</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Weekend Logistics</span><span class="grp__d">days that do not overlap — the one period that is a section</span><span class="grp__n">4</span></div>
+    <div class="list">
+      <a class="card" href="logistics-friday.html">Friday 6 Nov</a>
+      <a class="card" href="logistics-saturday.html">Saturday 7 Nov</a>
+      <a class="card" href="logistics-sunday.html">Sunday 8 Nov · mirrored</a>
+      <a class="card" href="logistics-all.html">Whole weekend</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Database Hub</span><span class="grp__d">24 tables · the only strip allowed to scroll</span><span class="grp__n">4</span></div>
+    <div class="list">
+      <a class="card" href="data-hub-guests.html">guests</a>
+      <a class="card" href="data-hub-budget_items.html">budget_items</a>
+      <a class="card" href="data-hub-payments.html">payments</a>
+      <a class="card" href="data-hub-tables.html">tables</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Email Templates</span><span class="grp__d">3 real surfaces · audience became chips</span><span class="grp__n">3</span></div>
+    <div class="list">
+      <a class="card" href="emails-templates.html">Templates</a>
+      <a class="card" href="emails-preview.html">Preview</a>
+      <a class="card" href="emails-log.html">Sent log</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Gifts <span style="color:#946f33">· was tabs, now chips</span></span><span class="grp__d">two filter axes, so two labelled chip groups</span><span class="grp__n">7</span></div>
+    <div class="list">
+      <a class="card" href="gifts-all.html">All gifts</a>
+      <a class="card" href="gifts-registry.html">Registry</a>
+      <a class="card" href="gifts-cash.html">Cash</a>
+      <a class="card" href="gifts-handmade.html">Handmade</a>
+      <a class="card" href="gifts-gift-card.html">Gift Card</a>
+      <a class="card" href="gifts-pending.html">Thank-you pending</a>
+      <a class="card" href="gifts-sent.html">Thank-you sent</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Smart Calendar <span style="color:#946f33">· was tabs, now views</span></span><span class="grp__d">one dataset, three renderings — the view switcher</span><span class="grp__n">3</span></div>
+    <div class="list">
+      <a class="card" href="calendar-month.html">Month view</a>
+      <a class="card" href="calendar-week.html">Week view</a>
+      <a class="card" href="calendar-agenda.html">Agenda view</a>
+    </div>
+  </div>
+  <div>
+    <div class="grp__h"><span class="grp__t">Wedding Day Timeline <span style="color:#946f33">· was tabs, now views</span></span><span class="grp__d">reading view and editing view of fourteen events</span><span class="grp__n">2</span></div>
+    <div class="list">
+      <a class="card" href="timeline-vertical.html">Vertical timeline</a>
+      <a class="card" href="timeline-details.html">Day-of details</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

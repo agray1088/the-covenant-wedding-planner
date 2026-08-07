@@ -1,0 +1,272 @@
+/* ============================================================================
+   1) INLINE / POP-OUT EDITOR — field fill
+   2) STATUS PILLS — planner-wide, overwriting the planner's own pill shape,
+      colors and semantics with the spec from
+      m3-planner-mockup/components.html → "Status pills" (lines 72–124).
+
+   Spec values measured from the mockup (.m3-status-pill):
+     base        min-height 26px · padding 2px 10px · radius 4px · 11px/600
+                 letter-spacing .02em · line-height 1.2 · 1px solid border
+     --compact   min-height 24px · padding 0 8px · 11px
+     --interactive padding 0 6px 0 10px · gap 2px
+     select      11px/600 · padding 2px 4px · min-height 24px · transparent
+     schemes     green  #eef6f0 / #2f6b45 / #cfe3d5
+                 blue   #e9eef8 / #4a5691 / #cfd8ef
+                 gold   #fff7df / #8a640f / #e7ce80
+                 red    #fff0ed / #a33b28 / #ebb4aa
+                 neutral#eef1f2 / #626d74 / #dde3e4
+   Loaded after planner.css. Uses a doubled-id prefix (#main#main) where the
+   planner sets background / border-radius with !important.
+   ============================================================================ */
+
+:root {
+  /* soft cream fill for editor input boxes */
+  --editor-field-fill: #FBF7EF;
+  --editor-field-fill-focus: #FFFFFF;
+  --editor-field-border: rgba(196, 165, 118, .34);
+
+  /* spec pill palette (components.html / tokens.css light scheme) */
+  --pill-green-bg: #eef6f0; --pill-green-fg: #2f6b45; --pill-green-bd: #cfe3d5;
+  --pill-blue-bg:  #e9eef8; --pill-blue-fg:  #4a5691; --pill-blue-bd:  #cfd8ef;
+  --pill-gold-bg:  #fff7df; --pill-gold-fg:  #8a640f; --pill-gold-bd:  #e7ce80;
+  --pill-red-bg:   #fff0ed; --pill-red-fg:   #a33b28; --pill-red-bd:   #ebb4aa;
+  --pill-gray-bg:  #eef1f2; --pill-gray-fg:  #626d74; --pill-gray-bd:  #dde3e4;
+}
+/* spec dark scheme */
+body.dark-mode, body[data-theme="dark"] {
+  --pill-green-bg: rgba(76, 175, 120, .18);  --pill-green-fg: #8fd4a8; --pill-green-bd: rgba(255,255,255,.12);
+  --pill-blue-bg:  rgba(100, 130, 200, .18); --pill-blue-fg:  #a8b8e8; --pill-blue-bd:  rgba(255,255,255,.12);
+  --pill-gold-bg:  rgba(230, 180, 60, .16);  --pill-gold-fg:  #e8c878; --pill-gold-bd:  rgba(255,255,255,.14);
+  --pill-red-bg:   rgba(220, 90, 70, .18);   --pill-red-fg:   #f0a090; --pill-red-bd:   rgba(255,255,255,.12);
+  --pill-gray-bg:  rgba(180, 190, 195, .12); --pill-gray-fg:  #b8c0c4; --pill-gray-bd:  rgba(255,255,255,.10);
+}
+
+/* ==========================================================================
+   1) EDITOR FIELD BOXES — soft cream fill
+   ========================================================================== */
+.record-editor-field input,
+.record-editor-field select,
+.record-editor-field textarea {
+  background: var(--editor-field-fill);
+  border: 1px solid var(--editor-field-border);
+  transition: background .16s ease, border-color .16s ease;
+}
+.record-editor-field input:focus,
+.record-editor-field select:focus,
+.record-editor-field textarea:focus {
+  background: var(--editor-field-fill-focus);
+  border-color: var(--gold, #B89968);
+  outline: none;
+}
+.record-editor-field input[readonly],
+.record-editor-field input:disabled,
+.record-editor-field select:disabled,
+.record-editor-field textarea:disabled {
+  background: var(--ivory-dk, #F0ECE6);
+  color: var(--forest-lt, #779186);
+}
+
+/* ==========================================================================
+   2) STATUS PILLS — spec shape (applies to the planner's own .status-pill,
+      and to the selects/spans tagged by planner-table-status-pills.js)
+   ========================================================================== */
+#main#main [data-pillscheme],
+[data-pillscheme],
+#main#main .status-pill,
+.status-pill,
+#main#main .record-editor-field select[data-fieldscheme],
+.record-editor-field select[data-fieldscheme] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 26px !important;
+  padding: 2px 10px !important;
+  border-radius: 4px !important;      /* spec: corner-full is flattened to 4px */
+  border-width: 1px !important;
+  border-style: solid !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: .02em !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+}
+
+/* compact modifier */
+#main#main .status-pill--compact,
+.status-pill--compact,
+span.status-pill[data-pillscheme] {
+  min-height: 24px !important;
+  padding: 0 8px !important;
+  font-size: 11px !important;
+}
+
+/* interactive modifier (pill wrapping a select) */
+#main#main .status-pill--interactive,
+.status-pill--interactive {
+  padding: 0 6px 0 10px !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;   /* keep long values inside the table cell */
+  overflow: hidden !important;
+}
+#main#main .status-pill--interactive select,
+.status-pill--interactive select {
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 2px 4px !important;
+  min-height: 24px !important;
+  width: auto !important;
+  max-width: 100% !important;
+  text-overflow: ellipsis;
+  color: inherit !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+/* ---- legacy planner wraps, ANY page ----
+   The planner renders several legacy status wrappers (task-status-wrap,
+   task-priority-wrap, task-phase-pill, payment-status-pill, guest-decision-pill,
+   gift-pill, contract-status-pill, budget-status-pill). The script marks each
+   one .spec-pill-wrap (contains a <select>) or .spec-pill-plain, so these two
+   rules cover every page without naming each class. */
+#main#main .spec-pill-wrap[data-pillscheme],
+.spec-pill-wrap[data-pillscheme] {
+  padding: 0 6px 0 10px !important;
+  gap: 2px !important;
+  height: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+/* the wrap IS the pill — flatten the select inside it so only one pill shows */
+#main#main .spec-pill-wrap[data-pillscheme] select,
+.spec-pill-wrap[data-pillscheme] select {
+  -webkit-appearance: none; appearance: none;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: inherit !important;
+  padding: 2px 4px !important;
+  min-height: 24px !important;
+  width: auto !important;
+  max-width: 100% !important;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+/* plain (text) legacy pills use the compact spec size */
+#main#main .spec-pill-plain[data-pillscheme],
+.spec-pill-plain[data-pillscheme] {
+  min-height: 24px !important;
+  padding: 0 8px !important;
+}
+
+/* selects rendered directly as pills (table cells + editor fields) */
+#main#main select[data-pillscheme],
+select[data-pillscheme],
+#main#main .record-editor-field select[data-fieldscheme],
+.record-editor-field select[data-fieldscheme] {
+  -webkit-appearance: none; appearance: none;
+  padding: 2px 22px 2px 10px !important;   /* room for the chevron */
+  width: auto;
+  max-width: 100%;
+  cursor: pointer;
+  /* chevron — sub-properties must be !important because planner.css uses the
+     `background` shorthand with !important (which would reset repeat/size). */
+  background-repeat: no-repeat !important;
+  background-position: right 6px center !important;
+  background-size: 12px 12px !important;
+}
+
+/* ---- scheme colors (spec palette; aliases the planner emits are mapped too) ---- */
+#main#main .status-pill--green,   .status-pill--green,
+#main#main .status-pill--forest,  .status-pill--forest,
+#main#main .status-pill--success, .status-pill--success,
+#main#main select[data-pillscheme="green"],   select[data-pillscheme="green"],
+span.status-pill[data-pillscheme="green"],
+#main#main [data-pillscheme="green"],
+[data-pillscheme="green"],
+.task-status-wrap[data-pillscheme="green"],
+.task-priority-wrap[data-pillscheme="green"],
+.record-editor-field select[data-fieldscheme="green"] {
+  background-color: var(--pill-green-bg) !important; color: var(--pill-green-fg) !important; border-color: var(--pill-green-bd) !important;
+}
+#main#main .status-pill--blue, .status-pill--blue,
+#main#main .status-pill--info, .status-pill--info,
+#main#main select[data-pillscheme="blue"],    select[data-pillscheme="blue"],
+span.status-pill[data-pillscheme="blue"],
+#main#main [data-pillscheme="blue"],
+[data-pillscheme="blue"],
+.task-status-wrap[data-pillscheme="blue"],
+.task-priority-wrap[data-pillscheme="blue"],
+.record-editor-field select[data-fieldscheme="blue"] {
+  background-color: var(--pill-blue-bg) !important; color: var(--pill-blue-fg) !important; border-color: var(--pill-blue-bd) !important;
+}
+#main#main .status-pill--gold,    .status-pill--gold,
+#main#main .status-pill--amber,   .status-pill--amber,
+#main#main .status-pill--warning, .status-pill--warning,
+#main#main select[data-pillscheme="gold"],    select[data-pillscheme="gold"],
+span.status-pill[data-pillscheme="gold"],
+#main#main [data-pillscheme="gold"],
+[data-pillscheme="gold"],
+.task-status-wrap[data-pillscheme="gold"],
+.task-priority-wrap[data-pillscheme="gold"],
+.record-editor-field select[data-fieldscheme="gold"] {
+  background-color: var(--pill-gold-bg) !important; color: var(--pill-gold-fg) !important; border-color: var(--pill-gold-bd) !important;
+}
+#main#main .status-pill--red,    .status-pill--red,
+#main#main .status-pill--danger, .status-pill--danger,
+#main#main select[data-pillscheme="red"],     select[data-pillscheme="red"],
+span.status-pill[data-pillscheme="red"],
+#main#main [data-pillscheme="red"],
+[data-pillscheme="red"],
+.task-status-wrap[data-pillscheme="red"],
+.task-priority-wrap[data-pillscheme="red"],
+.record-editor-field select[data-fieldscheme="red"] {
+  background-color: var(--pill-red-bg) !important; color: var(--pill-red-fg) !important; border-color: var(--pill-red-bd) !important;
+}
+#main#main .status-pill--neutral, .status-pill--neutral,
+#main#main .status-pill--muted,   .status-pill--muted,
+#main#main .status-pill--grey,    .status-pill--grey,
+#main#main .status-pill--gray,    .status-pill--gray,
+#main#main select[data-pillscheme="neutral"], select[data-pillscheme="neutral"],
+span.status-pill[data-pillscheme="neutral"],
+#main#main [data-pillscheme="neutral"],
+[data-pillscheme="neutral"],
+.task-status-wrap[data-pillscheme="neutral"],
+.task-priority-wrap[data-pillscheme="neutral"],
+.record-editor-field select[data-fieldscheme="neutral"] {
+  background-color: var(--pill-gray-bg) !important; color: var(--pill-gray-fg) !important; border-color: var(--pill-gray-bd) !important;
+}
+
+/* chevrons, tinted per scheme (url() can't use currentColor) */
+#main#main select[data-pillscheme="green"],   select[data-pillscheme="green"],   .record-editor-field select[data-fieldscheme="green"]   { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f6b45' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important; }
+#main#main select[data-pillscheme="blue"],    select[data-pillscheme="blue"],    .record-editor-field select[data-fieldscheme="blue"]    { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5691' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important; }
+#main#main select[data-pillscheme="gold"],    select[data-pillscheme="gold"],    .record-editor-field select[data-fieldscheme="gold"]    { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a640f' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important; }
+#main#main select[data-pillscheme="red"],     select[data-pillscheme="red"],     .record-editor-field select[data-fieldscheme="red"]     { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a33b28' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important; }
+#main#main select[data-pillscheme="neutral"], select[data-pillscheme="neutral"], .record-editor-field select[data-fieldscheme="neutral"] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23626d74' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important; }
+
+/* dropdown menu items stay legible regardless of pill color */
+select[data-pillscheme] option,
+.record-editor-field select[data-fieldscheme] option { background: #fff; color: var(--forest, #2D4A3E); font-weight: 500; }
+body.dark-mode select[data-pillscheme] option,
+body[data-theme="dark"] select[data-pillscheme] option,
+body.dark-mode .record-editor-field select[data-fieldscheme] option,
+body[data-theme="dark"] .record-editor-field select[data-fieldscheme] option { background: #1e221f; color: #e2e3df; }
+
+/* editor field boxes in dark mode */
+body.dark-mode .record-editor-field input,
+body.dark-mode .record-editor-field select:not([data-fieldscheme]),
+body.dark-mode .record-editor-field textarea,
+body[data-theme="dark"] .record-editor-field input,
+body[data-theme="dark"] .record-editor-field select:not([data-fieldscheme]),
+body[data-theme="dark"] .record-editor-field textarea {
+  background: rgba(255, 255, 255, .04);
+  border-color: rgba(255, 255, 255, .14);
+}

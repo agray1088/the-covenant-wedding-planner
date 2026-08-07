@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #12130f; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #b89968; }
+  a:hover { color: #d4b896; }
+</style>
+</helmet>
+
+<section style="padding: 72px 80px 40px; display: flex; flex-direction: column; gap: 56px">
+  <div style="max-width: 900px; display: flex; flex-direction: column; gap: 14px">
+    <div style="font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: #b89968; font-weight: 600">Turn 2 · Merged direction</div>
+    <h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 46px; font-weight: 500; color: #f4efe6; line-height: 1.05">The house style</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #a8a49b; text-wrap: pretty"><a href="#1b">1b</a>'s working surface — views rail, sub-nav, filter chips, bulk bar, dense inline-editable grid, row drawer — inside <a href="#1c">1c</a>'s brand chrome: forest top bar with the wordmark, couple switcher and search; the hairline stat strip; forest table header with the gold rule; phase progress bars in the rail. This is the system the rest of the app would be built from.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 72px; align-items: flex-start">
+    <div id="2a" style="display: flex; flex-direction: column; gap: 18px; width: 1440px">
+      <div style="display: flex; align-items: flex-start; gap: 16px">
+        <span style="flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 9px; border: 1px solid #6b6a5c; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #e6e1d6; background: #2d3129">2a</span>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 17px; font-weight: 600; color: #f4efe6">Neutral Records × Editorial chrome</div>
+          <div style="font-size: 13px; line-height: 1.6; color: #8f8b83; max-width: 780px">Forest is the brand and the action colour; gold is a hairline and an accent, never a button fill. Everything below the stat strip is working software: 13px Inter, 8px spacing scale, one primary button per view.</div>
+        </div>
+      </div>
+
+      <div data-screen-label="Chosen system — Neutral Records × Editorial chrome" style="width: 1440px; border: 1px solid #33332c; background: #fbfaf8; display: flex; flex-direction: column">
+        <!-- forest topbar (from 1c) -->
+        <div style="flex: 0 0 auto; height: 52px; background: #2D4A3E; display: flex; align-items: center; gap: 16px; padding: 0 20px">
+          <div style="display: flex; align-items: center; gap: 10px; padding-right: 18px; border-right: 1px solid rgba(212,184,150,.25)">
+            <span style="color: #D4B896; font-size: 15px">&#10022;</span>
+            <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; letter-spacing: .04em; color: #F4EFE6">The Covenant Wedding Planner</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(244,239,230,.85)">
+            <span style="width: 20px; height: 20px; border-radius: 3px; background: rgba(212,184,150,.22); color: #D4B896; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center">AK</span>
+            Ama &amp; Kwesi · 8 November 2026
+            <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: rgba(244,239,230,.6); stroke-width: 2"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+          <div style="flex: 1 1 auto; max-width: 400px; margin: 0 auto; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 11px; border: 1px solid rgba(212,184,150,.3); background: rgba(255,255,255,.06)">
+            <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: rgba(244,239,230,.65); stroke-width: 1.8"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+            <span style="font-size: 13px; color: rgba(244,239,230,.6)">Search the planner</span>
+            <span style="margin-left: auto; font-family: ui-monospace, monospace; font-size: 11px; color: rgba(244,239,230,.5); border: 1px solid rgba(212,184,150,.3); padding: 1px 5px">⌘K</span>
+          </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 14px">
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(244,239,230,.7)"><span style="width: 6px; height: 6px; border-radius: 50%; background: #8dc0a0"></span>Saved</span>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: rgba(244,239,230,.8); stroke-width: 1.6"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: rgba(244,239,230,.8); stroke-width: 1.6"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"></path></svg>
+            <span style="width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(212,184,150,.5); color: #D4B896; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center">MO</span>
+          </div>
+        </div>
+
+        <!-- top-level tabs -->
+        <div style="flex: 0 0 auto; height: 46px; background: #fdfcfa; border-bottom: 1px solid #e7e1d4; display: flex; align-items: stretch; padding: 0 20px">
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Overview</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #20362D; border-bottom: 2px solid #2D4A3E">Planning</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">People</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Money</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Vendors</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">The Day</div>
+          <div style="display: flex; align-items: center; gap: 7px; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d"><span style="width: 5px; height: 5px; border-radius: 50%; background: #B89968"></span>Covenant</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Documents</div>
+        </div>
+
+        <!-- sub-nav -->
+        <div style="flex: 0 0 auto; height: 40px; background: #f9f7f4; border-bottom: 1px solid #e7e1d4; display: flex; align-items: center; padding: 0 20px; gap: 6px">
+          <div style="display: flex; align-items: center; padding: 5px 11px; background: #ece7dd; font-size: 13px; font-weight: 600; color: #20362D">Timeline &amp; Tasks</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; font-size: 13px; color: #6b645d">Smart Calendar</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; font-size: 13px; color: #6b645d">Appointments</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; font-size: 13px; color: #6b645d">Weekend Logistics</div>
+        </div>
+
+        <div style="flex: 1 1 auto; display: flex; align-items: stretch">
+          <!-- rail: views + phase bars -->
+          <div style="flex: 0 0 224px; border-right: 1px solid #e7e1d4; background: #f9f5ef; padding: 18px 14px; display: flex; flex-direction: column; gap: 22px">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #e7e1d4; margin-bottom: 8px">Views<span style="font-size: 14px; color: #b0a794">+</span></div>
+              <div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px; color: #3f3b34">
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; background: #fff; border-left: 2px solid #2D4A3E; font-weight: 600; color: #20362D">All tasks<span style="color: #8a7e6b; font-weight: 400">59</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Due this month<span style="color: #8a7e6b">7</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Overdue<span style="color: #a33b28">2</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Unassigned<span style="color: #8a7e6b">11</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Waiting on vendor<span style="color: #8a7e6b">4</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Complete<span style="color: #8a7e6b">3</span></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #e7e1d4; margin-bottom: 10px">Phases</div>
+              <div style="display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: #3f3b34">
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>12+ months</span><span style="color: #8a7e6b">3/3</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 100%; height: 100%; background: #2D4A3E"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>9–12 months</span><span style="color: #8a7e6b">1/2</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 50%; height: 100%; background: #2D4A3E"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>6–9 months</span><span style="color: #8a7e6b">0/2</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 4%; height: 100%; background: #2D4A3E"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>3–6 months</span><span style="color: #8a7e6b">0/1</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 4%; height: 100%; background: #2D4A3E"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>Wedding month</span><span style="color: #8a7e6b">0/1</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 4%; height: 100%; background: #2D4A3E"></div></div></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #e7e1d4; margin-bottom: 8px">Group by</div>
+              <div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px; color: #3f3b34">
+                <div style="padding: 7px 10px; background: #fff; border-left: 2px solid #2D4A3E; font-weight: 600; color: #20362D">Phase</div>
+                <div style="padding: 7px 10px; border-left: 2px solid transparent">Owner</div>
+                <div style="padding: 7px 10px; border-left: 2px solid transparent">Priority</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: #fff">
+            <!-- page header -->
+            <div style="flex: 0 0 auto; padding: 20px 24px 16px; border-bottom: 1px solid #e7e1d4; display: flex; align-items: flex-end; gap: 24px">
+              <div>
+                <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Planning</div>
+                <h2 style="margin: 6px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -.01em; color: #20362D; line-height: 1.2">Timeline &amp; Tasks</h2>
+              </div>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+                <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 12px; font-size: 13px; color: #6b645d">Import checklist</div>
+                <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border: 1px solid #d9cfba; font-size: 13px; font-weight: 500; color: #3f3b34">Export</div>
+                <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 16px; background: #2D4A3E; color: #F4EFE6; font-size: 13px; font-weight: 600">+ New task</div>
+              </div>
+            </div>
+
+            <!-- stat strip (from 1c) -->
+            <div style="flex: 0 0 auto; display: flex; border-bottom: 1px solid #e7e1d4">
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Open</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #20362D; margin-top: 5px; line-height: 1">56</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Complete</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #20362D; margin-top: 5px; line-height: 1">3</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Overdue</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #9c3b34; margin-top: 5px; line-height: 1">2</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Unassigned</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #20362D; margin-top: 5px; line-height: 1">11</div></div>
+              <div style="flex: 1; padding: 14px 24px"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Days to wedding</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #20362D; margin-top: 5px; line-height: 1">102</div></div>
+            </div>
+
+            <div style="flex: 0 0 auto; padding: 12px 24px; border-bottom: 1px solid #e7e1d4; display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+              <span style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; margin-right: 4px">Add phase checklist</span>
+              <div style="display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; background: #fff; font-size: 12px; color: #3f3b34">12+ months</div>              <div style="display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; background: #fff; font-size: 12px; color: #3f3b34">9–12 months</div>              <div style="display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; background: #fff; font-size: 12px; color: #3f3b34">6–9 months</div>              <div style="display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; background: #fff; font-size: 12px; color: #3f3b34">3–6 months</div>              <div style="display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; background: #fff; font-size: 12px; color: #3f3b34">1–3 months</div>              <div style="display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; background: #fff; font-size: 12px; color: #3f3b34">Wedding month</div>              <div style="display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; background: #fff; font-size: 12px; color: #3f3b34">Wedding week</div>              <div style="display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; background: #fff; font-size: 12px; color: #3f3b34">After the day</div>
+            </div>
+
+            <!-- toolbar -->
+            <div style="flex: 0 0 auto; padding: 10px 24px; border-bottom: 1px solid #e7e1d4; background: #fdfcfa; display: flex; align-items: center; gap: 8px">
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Phase: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Status: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2; stroke-linecap: round"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Owner: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="width: 1px; height: 20px; background: #ece7dd; margin: 0 4px"></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12px; color: #6b645d"><svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>Sort</div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12px; color: #6b645d"><svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 10h16M10 10v10"></path></svg>Columns</div>
+              <div style="margin-left: auto; display: flex; border: 1px solid #d9cfba">
+                <span style="padding: 5px 12px; background: #2D4A3E; color: #F4EFE6; font-size: 12px; font-weight: 600">Table</span>
+                <span style="padding: 5px 12px; font-size: 12px; color: #6b645d; border-left: 1px solid #d9cfba">Board</span>
+                <span style="padding: 5px 12px; font-size: 12px; color: #6b645d; border-left: 1px solid #d9cfba">Timeline</span>
+              </div>
+            </div>
+
+            <!-- bulk bar -->
+            <div style="flex: 0 0 auto; padding: 8px 24px; background: #f4f1ea; border-bottom: 1px solid #e7e1d4; display: flex; align-items: center; gap: 14px; font-size: 12px; color: #3f3b34">
+              <span style="font-weight: 600; color: #20362D">2 selected</span>
+              <span style="color: #d8d2c7">|</span>
+              <span>Set owner</span><span>Set due date</span><span>Set status</span><span>Move phase</span>
+              <span style="margin-left: auto; color: #a33b28">Delete</span>
+            </div>
+
+            <div style="display: flex; align-items: stretch">
+              <div style="flex: 1 1 auto; min-width: 0; overflow: hidden">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px; background: #20362D; padding: 10px 12px; border-bottom: 1px solid #B89968"></th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Task</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 110px">Owner</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 130px">Due</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 95px">Priority</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 125px">Status</th>
+                      <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 110px">Linked</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="background: #f9f5ef"><td colspan="7" style="padding: 7px 12px; border-bottom: 1px solid #e7e1d4; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">12+ months · 3 of 3 complete</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #2D4A3E">☑</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d; text-decoration: line-through">Set your budget and discuss your vision</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Both</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">12 Jan</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">High</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; font-size: 12px">Complete</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Budget</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #2D4A3E">☑</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d; text-decoration: line-through">Book your ceremony &amp; reception venue</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Both</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">2 Feb</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">High</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; font-size: 12px">Complete</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Grace Hall</td></tr>
+                    <tr style="background: #f4f7fb"><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #2D4A3E">☑</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d; text-decoration: line-through">Begin premarital counseling</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Both</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">1 Mar</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Medium</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; font-size: 12px">Complete</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Pr. Mensah</td></tr>
+                    <tr style="background: #f9f5ef"><td colspan="7" style="padding: 7px 12px; border-bottom: 1px solid #e7e1d4; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">9–12 months · 1 of 2 complete</td></tr>
+                    <tr style="background: #fdfaf4"><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #cfc6b4">☐</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; font-weight: 500">Book photographer &amp; videographer<div style="font-size: 12px; color: #8a7e6b; font-weight: 400; margin-top: 3px">1 of 3 subtasks · two studios shortlisted</div></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Bride</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #a33b28; font-weight: 500">18 Jul · overdue</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">High</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 12px">In progress</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Photography</td></tr>
+                    <tr style="background: #f4f7fb"><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #2D4A3E">☑</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d; text-decoration: line-through">Start dress &amp; attire shopping</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Bride</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">9 Aug</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Medium</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; font-size: 12px">Complete</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #cfc6b4">—</td></tr>
+                    <tr style="background: #f9f5ef"><td colspan="7" style="padding: 7px 12px; border-bottom: 1px solid #e7e1d4; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">6–9 months · 2 open</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #cfc6b4">☐</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">Order save-the-dates &amp; invitations</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Bride</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">14 Sep</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Medium</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 12px">In progress</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Ink &amp; Vine</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #cfc6b4">☐</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">Plan the honeymoon</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Groom</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">30 Sep</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Medium</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 12px">In progress</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #cfc6b4">—</td></tr>
+                    <tr style="background: #f9f5ef"><td colspan="7" style="padding: 7px 12px; border-bottom: 1px solid #e7e1d4; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">3–6 months · not started</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #cfc6b4">☐</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0">Send save-the-dates</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #b09f80; font-style: italic">Unassigned</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #a33b28; font-weight: 500">3 Jul · overdue</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">High</td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #eef1f2; color: #626d74; border: 1px solid #dde3e4; font-size: 12px">Not started</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #f0ebe0; color: #cfc6b4">—</td></tr>
+                    <tr><td style="padding: 9px 12px; text-align: center; color: #cfc6b4">+</td><td colspan="6" style="padding: 9px 12px; color: #b09f80">Add a task to this phase…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- row drawer -->
+              <div style="flex: 0 0 360px; border-left: 1px solid #e7e1d4; background: #fff; display: flex; flex-direction: column">
+                <div style="padding: 16px 18px; border-bottom: 1px solid #e7e1d4; background: #f9f5ef">
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">
+                    <span>Task · 9–12 months</span>
+                    <span style="margin-left: auto; color: #b0a794; font-size: 15px; letter-spacing: 0">✕</span>
+                  </div>
+                  <div style="font-size: 16px; font-weight: 600; letter-spacing: -.01em; color: #20362D; margin-top: 8px; line-height: 1.35">Book photographer &amp; videographer</div>
+                  <div style="display: flex; gap: 6px; margin-top: 10px">
+                    <span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 12px">In progress</span>
+                    <span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #fff0ed; color: #a33b28; border: 1px solid #ebb4aa; font-size: 12px">Overdue 11 days</span>
+                  </div>
+                </div>
+                <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 13px; font-size: 13px">
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a7e6b">Owner</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #e0dbd1; color: #23211c">Bride</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a7e6b">Due date</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #ebb4aa; background: #fff8f6; color: #a33b28">18 Jul 2026</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a7e6b">Priority</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #e0dbd1; color: #23211c">High</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a7e6b">Vendor</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #e0dbd1; color: #946f33">2 shortlisted →</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a7e6b">Budget line</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #e0dbd1; color: #946f33">Photography · $3,200 →</span></div>
+                  <div>
+                    <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 7px; border-bottom: 1px solid #e7e1d4; margin-bottom: 9px">Subtasks · 1 of 3</div>
+                    <div style="display: flex; flex-direction: column; gap: 7px">
+                      <div style="display: flex; gap: 8px; align-items: center; color: #8a7e6b"><span style="color: #2D4A3E">☑</span><span style="text-decoration: line-through">Collect three quotes</span></div>
+                      <div style="display: flex; gap: 8px; align-items: center"><span style="color: #cfc6b4">☐</span><span>Review full galleries</span></div>
+                      <div style="display: flex; gap: 8px; align-items: center"><span style="color: #cfc6b4">☐</span><span>Sign contract &amp; pay deposit</span></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 7px; border-bottom: 1px solid #e7e1d4; margin-bottom: 9px">Notes</div>
+                    <div style="border: 1px solid #e0dbd1; padding: 9px; min-height: 62px; color: #3f3b34; line-height: 1.55">Two studios shortlisted. Ask about second shooter and drone coverage for the outdoor ceremony.</div>
+                  </div>
+                </div>
+                <div style="margin-top: auto; padding: 12px 18px; border-top: 1px solid #e7e1d4; display: flex; gap: 8px">
+                  <div style="flex: 1; text-align: center; height: 32px; line-height: 32px; background: #2D4A3E; color: #F4EFE6; font-size: 13px; font-weight: 600">Save</div>
+                  <div style="flex: 1; text-align: center; height: 32px; line-height: 32px; border: 1px solid #d9cfba; font-size: 13px; font-weight: 500; color: #3f3b34">Mark complete</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="flex: 0 0 auto; border-top: 1px solid #e7e1d4; background: #fdfcfa; display: flex; align-items: stretch">
+              <div style="flex: 1.4; padding: 16px 24px; display: flex; align-items: center; gap: 16px; border-right: 1px solid #f0ebe0">
+                <div style="position: relative; width: 64px; height: 64px; flex: 0 0 auto; border-radius: 50%; background: conic-gradient(#2D4A3E 0 5%, #e7e1d4 5% 100%)">
+                  <div style="position: absolute; inset: 8px; background: #fdfcfa; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #20362D">5%</div>
+                </div>
+                <div style="min-width: 0">
+                  <div style="font-size: 13px; font-weight: 600; color: #20362D">Overall progress</div>
+                  <div style="font-size: 12px; color: #6b645d; margin-top: 3px">3 of 59 tasks complete</div>
+                  <div style="height: 4px; background: #e7e1d4; margin-top: 8px; overflow: hidden"><div style="width: 5%; height: 100%; background: #2D4A3E"></div></div>
+                </div>
+              </div>
+              <div style="flex: 1; padding: 16px 20px; display: flex; align-items: center; gap: 12px; border-right: 1px solid #f0ebe0">
+                <svg viewBox="0 0 24 24" style="flex: 0 0 auto; width: 17px; height: 17px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><rect x="3" y="4.5" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2.5v4M16 2.5v4"></path></svg>
+                <div style="min-width: 0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Next due</div><div style="font-size: 13px; font-weight: 600; color: #20362D; margin-top: 3px">14 Sep 2026</div><div style="font-size: 12px; color: #6b645d; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Order save-the-dates &amp; invitations</div></div>
+              </div>
+              <div style="flex: 1; padding: 16px 20px; display: flex; align-items: center; gap: 12px; border-right: 1px solid #f0ebe0">
+                <svg viewBox="0 0 24 24" style="flex: 0 0 auto; width: 17px; height: 17px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8Z"></path></svg>
+                <div style="min-width: 0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Top priority</div><div style="font-size: 13px; font-weight: 600; color: #20362D; margin-top: 3px">18 high-priority tasks</div><div style="font-size: 12px; color: #6b645d; margin-top: 2px">Need your attention</div></div>
+              </div>
+              <div style="flex: 1; padding: 16px 24px; display: flex; align-items: center; gap: 12px">
+                <svg viewBox="0 0 24 24" style="flex: 0 0 auto; width: 17px; height: 17px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+                <div style="min-width: 0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Stay on track</div><div style="font-size: 13px; font-weight: 600; color: #9c3b34; margin-top: 3px">2 tasks need attention</div><div style="font-size: 12px; color: #6b645d; margin-top: 2px">Review overdue tasks soon</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="2b" style="display: flex; flex-direction: column; gap: 18px; width: 1440px">
+      <div style="display: flex; align-items: flex-start; gap: 16px">
+        <span style="flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 9px; border: 1px solid #6b6a5c; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #e6e1d6; background: #2d3129">2b</span>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 17px; font-weight: 600; color: #f4efe6">Same screen, dark mode</div>
+          <div style="font-size: 13px; line-height: 1.6; color: #8f8b83; max-width: 780px">Built on your existing dark ramp (#141414 page, #1a1a1a surface, #222 raised, #2e2e2e border, #e6e6e6 text, #8a8a8a muted) — but unlike today's dark mode, which strips the brand to greyscale, this keeps a deep forest bar and a dimmed gold rule so the product still reads as Covenant at night. Status colours are desaturated to sit on dark without glowing.</div>
+        </div>
+      </div>
+      <div id="2b-frame" data-screen-label="Chosen system — dark mode" style="width: 1440px; height: 1020px; overflow: hidden; border: 1px solid #33332c; background: #141414; display: flex; flex-direction: column">
+        <div style="flex: 0 0 auto; height: 52px; background: #16241e; border-bottom: 1px solid #2e2e2e; display: flex; align-items: center; gap: 16px; padding: 0 20px">
+          <div style="display: flex; align-items: center; gap: 10px; padding-right: 18px; border-right: 1px solid rgba(212,184,150,.18)">
+            <span style="color: #b09365; font-size: 15px">&#10022;</span>
+            <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; letter-spacing: .04em; color: #e6e6e6">The Covenant Wedding Planner</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #cfcfcf">
+            <span style="width: 20px; height: 20px; border-radius: 3px; background: rgba(212,184,150,.16); color: #b09365; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center">AK</span>
+            Ama &amp; Kwesi · 8 November 2026
+            <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: #8a8a8a; stroke-width: 2"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+          <div style="flex: 1 1 auto; max-width: 400px; margin: 0 auto; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 11px; border: 1px solid #2e2e2e; background: rgba(255,255,255,.04)">
+            <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #8a8a8a; stroke-width: 1.8"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+            <span style="font-size: 13px; color: #727272">Search the planner</span>
+            <span style="margin-left: auto; font-family: ui-monospace, monospace; font-size: 11px; color: #727272; border: 1px solid #2e2e2e; padding: 1px 5px">⌘K</span>
+          </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 14px">
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #8a8a8a"><span style="width: 6px; height: 6px; border-radius: 50%; background: #6f9c80"></span>Saved</span>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: #cfcfcf; stroke-width: 1.6"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: #cfcfcf; stroke-width: 1.6"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"></path></svg>
+            <span style="width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(212,184,150,.35); color: #b09365; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center">MO</span>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 auto; height: 46px; background: #1a1a1a; border-bottom: 1px solid #2e2e2e; display: flex; align-items: stretch; padding: 0 20px">
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a8a8a">Overview</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #f0f0f0; border-bottom: 2px solid #b09365">Planning</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a8a8a">People</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a8a8a">Money</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a8a8a">Vendors</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a8a8a">The Day</div>
+          <div style="display: flex; align-items: center; gap: 7px; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a8a8a"><span style="width: 5px; height: 5px; border-radius: 50%; background: #b09365"></span>Covenant</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8a8a8a">Documents</div>
+        </div>
+
+        <div style="flex: 0 0 auto; height: 40px; background: #141414; border-bottom: 1px solid #2e2e2e; display: flex; align-items: center; padding: 0 20px; gap: 6px">
+          <div style="display: flex; align-items: center; padding: 5px 11px; background: #262626; font-size: 13px; font-weight: 600; color: #f0f0f0">Timeline &amp; Tasks</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; font-size: 13px; color: #8a8a8a">Smart Calendar</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; font-size: 13px; color: #8a8a8a">Appointments</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; font-size: 13px; color: #8a8a8a">Weekend Logistics</div>
+        </div>
+
+        <div id="2b-body" style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+          <div style="flex: 0 0 224px; border-right: 1px solid #2e2e2e; background: #1a1a1a; padding: 18px 14px; display: flex; flex-direction: column; gap: 22px">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a8a8a; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #2e2e2e; margin-bottom: 8px">Views<span style="font-size: 14px; color: #727272">+</span></div>
+              <div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px; color: #cfcfcf">
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; background: #262626; border-left: 2px solid #b09365; font-weight: 600; color: #f0f0f0">All tasks<span style="color: #8a8a8a; font-weight: 400">59</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Due this month<span style="color: #8a8a8a">7</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Overdue<span style="color: #d08a7a">2</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Unassigned<span style="color: #8a8a8a">11</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Waiting on vendor<span style="color: #8a8a8a">4</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Complete<span style="color: #8a8a8a">3</span></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a8a8a; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #2e2e2e; margin-bottom: 10px">Phases</div>
+              <div style="display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: #cfcfcf">
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>12+ months</span><span style="color: #8a8a8a">3/3</span></div><div style="height: 4px; background: #2a2a2a"><div style="width: 100%; height: 100%; background: #6f9c80"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>9–12 months</span><span style="color: #8a8a8a">1/2</span></div><div style="height: 4px; background: #2a2a2a"><div style="width: 50%; height: 100%; background: #6f9c80"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>6–9 months</span><span style="color: #8a8a8a">0/2</span></div><div style="height: 4px; background: #2a2a2a"><div style="width: 4%; height: 100%; background: #6f9c80"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>3–6 months</span><span style="color: #8a8a8a">0/1</span></div><div style="height: 4px; background: #2a2a2a"><div style="width: 4%; height: 100%; background: #6f9c80"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>Wedding month</span><span style="color: #8a8a8a">0/1</span></div><div style="height: 4px; background: #2a2a2a"><div style="width: 4%; height: 100%; background: #6f9c80"></div></div></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a8a8a; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #2e2e2e; margin-bottom: 8px">Group by</div>
+              <div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px; color: #cfcfcf">
+                <div style="padding: 7px 10px; background: #262626; border-left: 2px solid #b09365; font-weight: 600; color: #f0f0f0">Phase</div>
+                <div style="padding: 7px 10px; border-left: 2px solid transparent">Owner</div>
+                <div style="padding: 7px 10px; border-left: 2px solid transparent">Priority</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: #141414">
+            <div style="flex: 0 0 auto; padding: 20px 24px 16px; border-bottom: 1px solid #2e2e2e; display: flex; align-items: flex-end; gap: 24px">
+              <div>
+                <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a8a8a; font-weight: 700">Planning</div>
+                <h2 style="margin: 6px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -.01em; color: #f0f0f0; line-height: 1.2">Timeline &amp; Tasks</h2>
+              </div>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+                <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 12px; font-size: 13px; color: #8a8a8a">Import checklist</div>
+                <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border: 1px solid #2e2e2e; font-size: 13px; font-weight: 500; color: #cfcfcf">Export</div>
+                <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 16px; background: #2f5244; color: #f0f0f0; font-size: 13px; font-weight: 600">+ New task</div>
+              </div>
+            </div>
+
+            <div style="flex: 0 0 auto; display: flex; border-bottom: 1px solid #2e2e2e">
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #232323"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">Open</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #f0f0f0; margin-top: 5px; line-height: 1">56</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #232323"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">Complete</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #f0f0f0; margin-top: 5px; line-height: 1">3</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #232323"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">Overdue</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #d08a7a; margin-top: 5px; line-height: 1">2</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #232323"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">Unassigned</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #f0f0f0; margin-top: 5px; line-height: 1">11</div></div>
+              <div style="flex: 1; padding: 14px 24px"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">Days to wedding</div><div style="font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #f0f0f0; margin-top: 5px; line-height: 1">102</div></div>
+            </div>
+
+            <div style="flex: 0 0 auto; padding: 10px 24px; border-bottom: 1px solid #2e2e2e; background: #1a1a1a; display: flex; align-items: center; gap: 8px">
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #2e2e2e; font-size: 12px; color: #cfcfcf">Phase: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #727272; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #2e2e2e; font-size: 12px; color: #cfcfcf">Status: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #727272; stroke-width: 2.2; stroke-linecap: round"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #2e2e2e; font-size: 12px; color: #cfcfcf">Owner: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #727272; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="width: 1px; height: 20px; background: #2e2e2e; margin: 0 4px"></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12px; color: #8a8a8a"><svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>Sort</div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12px; color: #8a8a8a"><svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 10h16M10 10v10"></path></svg>Columns</div>
+              <div style="margin-left: auto; display: flex; border: 1px solid #2e2e2e">
+                <span style="padding: 5px 12px; background: #2f5244; color: #f0f0f0; font-size: 12px; font-weight: 600">Table</span>
+                <span style="padding: 5px 12px; font-size: 12px; color: #8a8a8a; border-left: 1px solid #2e2e2e">Board</span>
+                <span style="padding: 5px 12px; font-size: 12px; color: #8a8a8a; border-left: 1px solid #2e2e2e">Timeline</span>
+              </div>
+            </div>
+
+            <div style="flex: 0 0 auto; padding: 8px 24px; background: #222222; border-bottom: 1px solid #2e2e2e; display: flex; align-items: center; gap: 14px; font-size: 12px; color: #cfcfcf">
+              <span style="font-weight: 600; color: #f0f0f0">2 selected</span>
+              <span style="color: #3a3a3a">|</span>
+              <span>Set owner</span><span>Set due date</span><span>Set status</span><span>Move phase</span>
+              <span style="margin-left: auto; color: #d08a7a">Delete</span>
+            </div>
+
+            <div id="2b-grid" style="flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex">
+              <div style="flex: 1 1 auto; min-width: 0; overflow: hidden">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #e6e6e6">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px; background: #16241e; padding: 10px 12px; border-bottom: 1px solid #7a6541"></th>
+                      <th style="text-align: left; background: #16241e; color: #e6e6e6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #7a6541">Task</th>
+                      <th style="text-align: left; background: #16241e; color: #e6e6e6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #7a6541; width: 110px">Owner</th>
+                      <th style="text-align: left; background: #16241e; color: #e6e6e6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #7a6541; width: 130px">Due</th>
+                      <th style="text-align: left; background: #16241e; color: #e6e6e6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #7a6541; width: 95px">Priority</th>
+                      <th style="text-align: left; background: #16241e; color: #e6e6e6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #7a6541; width: 125px">Status</th>
+                      <th style="text-align: left; background: #16241e; color: #e6e6e6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #7a6541; width: 110px">Linked</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="background: #1a1a1a"><td colspan="7" style="padding: 7px 12px; border-bottom: 1px solid #2e2e2e; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">12+ months · 3 of 3 complete</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #232323; text-align: center; color: #6f9c80">☑</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a; text-decoration: line-through">Set your budget and discuss your vision</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">Both</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">12 Jan</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">High</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(111,156,128,.14); color: #8fb99f; border: 1px solid #35503f; font-size: 12px">Complete</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #b09365">Budget</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #232323; text-align: center; color: #6f9c80">☑</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a; text-decoration: line-through">Book your ceremony &amp; reception venue</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">Both</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">2 Feb</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">High</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(111,156,128,.14); color: #8fb99f; border: 1px solid #35503f; font-size: 12px">Complete</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #b09365">Grace Hall</td></tr>
+                    <tr style="background: #1c2229"><td style="padding: 9px 12px; border-bottom: 1px solid #232323; text-align: center; color: #6f9c80">☑</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a; text-decoration: line-through">Begin premarital counseling</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">Both</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">1 Mar</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">Medium</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(111,156,128,.14); color: #8fb99f; border: 1px solid #35503f; font-size: 12px">Complete</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #b09365">Pr. Mensah</td></tr>
+                    <tr style="background: #1a1a1a"><td colspan="7" style="padding: 7px 12px; border-bottom: 1px solid #2e2e2e; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">9–12 months · 1 of 2 complete</td></tr>
+                    <tr style="background: #1e1c19"><td style="padding: 9px 12px; border-bottom: 1px solid #232323; text-align: center; color: #4a4a4a">☐</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; font-weight: 500; color: #f0f0f0">Book photographer &amp; videographer<div style="font-size: 12px; color: #8a8a8a; font-weight: 400; margin-top: 3px">1 of 3 subtasks · two studios shortlisted</div></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">Bride</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #d08a7a; font-weight: 500">18 Jul · overdue</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">High</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(201,162,74,.12); color: #cbab6b; border: 1px solid #5a4a2b; font-size: 12px">In progress</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #b09365">Photography</td></tr>
+                    <tr style="background: #1c2229"><td style="padding: 9px 12px; border-bottom: 1px solid #232323; text-align: center; color: #6f9c80">☑</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a; text-decoration: line-through">Start dress &amp; attire shopping</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">Bride</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">9 Aug</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #8a8a8a">Medium</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(111,156,128,.14); color: #8fb99f; border: 1px solid #35503f; font-size: 12px">Complete</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #4a4a4a">—</td></tr>
+                    <tr style="background: #1a1a1a"><td colspan="7" style="padding: 7px 12px; border-bottom: 1px solid #2e2e2e; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">6–9 months · 2 open</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #232323; text-align: center; color: #4a4a4a">☐</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323">Order save-the-dates &amp; invitations</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">Bride</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">14 Sep</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">Medium</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(201,162,74,.12); color: #cbab6b; border: 1px solid #5a4a2b; font-size: 12px">In progress</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #b09365">Ink &amp; Vine</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #232323; text-align: center; color: #4a4a4a">☐</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323">Plan the honeymoon</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">Groom</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">30 Sep</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">Medium</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(201,162,74,.12); color: #cbab6b; border: 1px solid #5a4a2b; font-size: 12px">In progress</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #4a4a4a">—</td></tr>
+                    <tr style="background: #1a1a1a"><td colspan="7" style="padding: 7px 12px; border-bottom: 1px solid #2e2e2e; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a8a8a">3–6 months · not started</td></tr>
+                    <tr><td style="padding: 9px 12px; border-bottom: 1px solid #232323; text-align: center; color: #4a4a4a">☐</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323">Send save-the-dates</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #727272; font-style: italic">Unassigned</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #d08a7a; font-weight: 500">3 Jul · overdue</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #cfcfcf">High</td><td style="padding: 9px 12px; border-bottom: 1px solid #232323"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: #262626; color: #9a9a9a; border: 1px solid #333; font-size: 12px">Not started</span></td><td style="padding: 9px 12px; border-bottom: 1px solid #232323; color: #4a4a4a">—</td></tr>
+                    <tr><td style="padding: 9px 12px; text-align: center; color: #4a4a4a">+</td><td colspan="6" style="padding: 9px 12px; color: #727272">Add a task to this phase…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="flex: 0 0 360px; border-left: 1px solid #2e2e2e; background: #1a1a1a; display: flex; flex-direction: column">
+                <div style="padding: 16px 18px; border-bottom: 1px solid #2e2e2e; background: #1e1e1e">
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a8a8a; font-weight: 700">
+                    <span>Task · 9–12 months</span>
+                    <span style="margin-left: auto; color: #727272; font-size: 15px; letter-spacing: 0">✕</span>
+                  </div>
+                  <div style="font-size: 16px; font-weight: 600; letter-spacing: -.01em; color: #f0f0f0; margin-top: 8px; line-height: 1.35">Book photographer &amp; videographer</div>
+                  <div style="display: flex; gap: 6px; margin-top: 10px">
+                    <span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(201,162,74,.12); color: #cbab6b; border: 1px solid #5a4a2b; font-size: 12px">In progress</span>
+                    <span style="display: inline-block; white-space: nowrap; padding: 2px 8px; background: rgba(208,138,122,.12); color: #d08a7a; border: 1px solid #5c3a33; font-size: 12px">Overdue 11 days</span>
+                  </div>
+                </div>
+                <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 13px; font-size: 13px; color: #e6e6e6">
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a8a8a">Owner</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #2e2e2e; background: #202020">Bride</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a8a8a">Due date</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #5c3a33; background: rgba(208,138,122,.08); color: #d08a7a">18 Jul 2026</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a8a8a">Priority</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #2e2e2e; background: #202020">High</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a8a8a">Vendor</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #2e2e2e; background: #202020; color: #b09365">2 shortlisted →</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #8a8a8a">Budget line</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #2e2e2e; background: #202020; color: #b09365">Photography · $3,200 →</span></div>
+                  <div>
+                    <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a8a8a; font-weight: 700; padding-bottom: 7px; border-bottom: 1px solid #2e2e2e; margin-bottom: 9px">Subtasks · 1 of 3</div>
+                    <div style="display: flex; flex-direction: column; gap: 7px">
+                      <div style="display: flex; gap: 8px; align-items: center; color: #8a8a8a"><span style="color: #6f9c80">☑</span><span style="text-decoration: line-through">Collect three quotes</span></div>
+                      <div style="display: flex; gap: 8px; align-items: center"><span style="color: #4a4a4a">☐</span><span>Review full galleries</span></div>
+                      <div style="display: flex; gap: 8px; align-items: center"><span style="color: #4a4a4a">☐</span><span>Sign contract &amp; pay deposit</span></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a8a8a; font-weight: 700; padding-bottom: 7px; border-bottom: 1px solid #2e2e2e; margin-bottom: 9px">Notes</div>
+                    <div style="border: 1px solid #2e2e2e; background: #202020; padding: 9px; min-height: 62px; color: #cfcfcf; line-height: 1.55">Two studios shortlisted. Ask about second shooter and drone coverage for the outdoor ceremony.</div>
+                  </div>
+                </div>
+                <div style="margin-top: auto; padding: 12px 18px; border-top: 1px solid #2e2e2e; display: flex; gap: 8px">
+                  <div style="flex: 1; text-align: center; height: 32px; line-height: 32px; background: #2f5244; color: #f0f0f0; font-size: 13px; font-weight: 600">Save</div>
+                  <div style="flex: 1; text-align: center; height: 32px; line-height: 32px; border: 1px solid #2e2e2e; font-size: 13px; font-weight: 500; color: #cfcfcf">Mark complete</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding: 40px 80px 120px; display: flex; flex-direction: column; gap: 56px">
+  <div style="max-width: 900px; display: flex; flex-direction: column; gap: 14px">
+    <div style="font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: #b89968; font-weight: 600">Turn 1 · Planning stage — no planner code changed</div>
+    <h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 46px; font-weight: 500; color: #f4efe6; line-height: 1.05">Planning Timeline — visual directions</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #a8a49b; text-wrap: pretty">One screen, four treatments. <a href="#1a">1a</a> is today's page recreated from your source files as the baseline. <a href="#1b">1b</a>, <a href="#1c">1c</a> and <a href="#1d">1d</a> are the three directions — all share the same fixes you asked for (top-level tabs with sub-nav, a top bar reduced to search + account, one button system, one spacing scale) and differ in visual language and primary work surface. Reference an id in chat and I'll take it forward into the full spec.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 72px; align-items: flex-start">
+
+    <!-- ══════════ 1a — BASELINE ══════════ -->
+    <div id="1a" style="display: flex; flex-direction: column; gap: 18px; width: 1440px">
+      <div style="display: flex; align-items: flex-start; gap: 16px">
+        <span style="flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 9px; border: 1px solid #4a4a42; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #cfcac0">1a</span>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 17px; font-weight: 600; color: #f4efe6">Baseline — today's screen</div>
+          <div style="font-size: 13px; line-height: 1.6; color: #8f8b83; max-width: 780px">Recreated from <code style="font-family: ui-monospace, monospace; font-size: 12px; color: #b89968">index.html</code>, <code style="font-family: ui-monospace, monospace; font-size: 12px; color: #b89968">planner.css</code> and <code style="font-family: ui-monospace, monospace; font-size: 12px; color: #b89968">planner-shell.css</code>. Twelve controls in the top bar, eleven uppercase category menus wrapping to two rows, a 67px display title on a data page, four equal-weight outline buttons, a seven-item stat strip, and a 288px context sidebar duplicating stats already on the page. Below the fold the real page continues with phase suggestion chips and an overall-progress card — both cut off here by the 1020px frame.</div>
+        </div>
+      </div>
+
+      <div data-screen-label="Baseline — today’s screen" style="width: 1440px; height: 1020px; overflow: hidden; border: 1px solid #33332c; background: #f0ece6; display: flex; flex-direction: column; font-size: 17px">
+        <!-- topbar -->
+        <div style="flex: 0 0 auto; background: #2D4A3E; color: #F9F7F4; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.18)">
+          <div style="display: flex; align-items: center; gap: 6px">
+            <div style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(212,184,150,.35); color: #D4B896">
+              <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6"><path d="M4 7h16M4 12h16M4 17h10"></path></svg>
+            </div>
+        <div style="font-size: 12px; line-height: 1.6; color: #8f8b83; max-width: 820px; padding: 8px 11px; border-left: 2px solid #6b6a5c">Left as it is on purpose. This is the record of what the app looks like today, so its navigation is the <i>old</i> model — 11 categories, &ldquo;Calendar&rdquo;, Notes under Planning. Directions 1b&ndash;1d have been updated to the final &sect;06 model; this one has not, because a baseline that quietly adopts the new system stops being a baseline.</div>
+            <div style="display: flex; align-items: center; gap: 5px; padding: 0 8px; height: 30px; border: 1px solid rgba(212,184,150,.35); color: #D4B896; font-size: 13px">
+              <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6"><path d="M15 18l-6-6 6-6"></path></svg>Sidebar
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px">
+            <div style="font-size: 20px; color: #D4B896">&#10022;</div>
+            <div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; letter-spacing: .5px; color: #D4B896">The Covenant Wedding Planner</div>
+          </div>
+          <div style="position: relative; flex: 1 1 240px; max-width: 380px; margin-left: auto">
+            <svg viewBox="0 0 24 24" style="position: absolute; left: 10px; top: 9px; width: 16px; height: 16px; fill: none; stroke: #2D4A3E; opacity: .6; stroke-width: 1.8"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+            <div style="width: 100%; background: #fff; border-radius: 5px; padding: 8px 12px 8px 34px; font-size: 14px; color: #8b8780">Find a guest, vendor, task, or page…</div>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end">
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #B89968; color: #fff; border-radius: 5px; padding: 7px 14px; font-size: 14px; font-weight: 500">Save</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #B89968; color: #fff; border-radius: 5px; padding: 7px 14px; font-size: 14px; font-weight: 500">Alerts</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #B89968; color: #fff; border-radius: 5px; padding: 7px 14px; font-size: 14px; font-weight: 500">Profile &amp; Display</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #B89968; color: #fff; border-radius: 5px; padding: 7px 14px; font-size: 14px; font-weight: 500">Database Hub</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #B89968; color: #fff; border-radius: 5px; padding: 7px 14px; font-size: 14px; font-weight: 500">Quick Jump</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #B89968; color: #fff; border-radius: 5px; padding: 7px 14px; font-size: 14px; font-weight: 500">Dark Mode</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #B89968; color: #fff; border-radius: 5px; padding: 7px 14px; font-size: 14px; font-weight: 500">More</div>
+          </div>
+        </div>
+
+        <!-- category menubar -->
+        <div style="flex: 0 0 auto; display: flex; flex-wrap: wrap; background: #fdfcfa; border-bottom: 1px solid #e7e1d4; padding: 0 16px">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Start Here</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Start Planning</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid #b89968; background: rgba(45,74,62,.04); font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Planning</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Finances</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Venue &amp; Vendors</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">People</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Ceremony &amp; Reception</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Design &amp; Details</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">After the Day</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Marriage Rhythms</div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #2d4a3e">Planner Records</div>
+        </div>
+
+        <!-- layout -->
+        <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+          <!-- context sidebar -->
+          <div style="flex: 0 0 288px; width: 288px; background: #f9f5ef; border-right: 1px solid #e7e1d4; overflow: hidden; display: flex; flex-direction: column">
+            <div style="background: #f2ece4; border-bottom: 1px solid #e7e1d4; padding: 14px 16px">
+              <div style="font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">This page</div>
+              <div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; color: #2d4a3e; margin-top: 3px">Planning Timeline</div>
+            </div>
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 18px">
+              <div style="display: flex; gap: 0">
+                <div style="flex: 1; padding-right: 10px; border-right: 1px solid #e8e1d4"><div style="font-family: Georgia, serif; font-size: 22px; color: #2d4a3e">7</div><div style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; margin-top: 3px">Open</div></div>
+                <div style="flex: 1; padding: 0 10px; border-right: 1px solid #e8e1d4"><div style="font-family: Georgia, serif; font-size: 22px; color: #2d4a3e">3</div><div style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; margin-top: 3px">Complete</div></div>
+                <div style="flex: 1; padding-left: 10px"><div style="font-family: Georgia, serif; font-size: 22px; color: #9c3b34">2</div><div style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; margin-top: 3px">Overdue</div></div>
+              </div>
+              <div style="background: #f2ece4; border: 1px solid #e7e1d4; padding: 10px 12px; font-size: 12px; line-height: 1.55; color: #6b645d"><strong style="color: #2d4a3e">Quick access</strong> — favorites, recents, and common actions. Use the category labels above for full navigation.</div>
+              <div>
+                <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; margin-bottom: 8px">★ Favorites</div>
+                <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #2d4a3e">
+                  <div style="display: flex; justify-content: space-between">Guest List<span style="color: #b89968">★</span></div>
+                  <div style="display: flex; justify-content: space-between">Budget<span style="color: #b89968">★</span></div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; margin-bottom: 8px">Recent</div>
+                <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #2d4a3e">
+                  <div style="display: flex; justify-content: space-between">Dashboard<span style="color: #c6bfb2">☆</span></div>
+                  <div style="display: flex; justify-content: space-between">Payments<span style="color: #c6bfb2">☆</span></div>
+                  <div style="display: flex; justify-content: space-between">Vendors<span style="color: #c6bfb2">☆</span></div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; margin-bottom: 8px">Shortcuts</div>
+                <div style="display: flex; flex-direction: column; gap: 7px; font-size: 12px; color: #6b645d">
+                  <div style="display: flex; gap: 8px; align-items: center"><span style="font-family: ui-monospace, monospace; border: 1px solid #ddd5c6; background: #fff; padding: 1px 5px">[</span>Hide sidebar</div>
+                  <div style="display: flex; gap: 8px; align-items: center"><span style="font-family: ui-monospace, monospace; border: 1px solid #ddd5c6; background: #fff; padding: 1px 5px">/</span>Search</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- main -->
+          <div style="flex: 1 1 auto; min-width: 0; background: #fff; overflow: hidden; padding: 26px 96px 0">
+            <div style="text-align: center; margin: 2px 0 21px">
+              <div style="color: #b89968; display: flex; justify-content: center">
+                <svg viewBox="0 0 96 22" style="width: 96px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.3"><path d="M48 11H22"></path><path d="M48 11h26"></path><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"></path><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"></path><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"></path><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"></path><circle cx="48" cy="11" r="1.5" fill="currentColor"></circle></svg>
+              </div>
+              <h2 style="font-family: 'Cormorant Garamond', Georgia, serif; color: #20362D; font-size: 67px; line-height: .95; letter-spacing: .075em; text-transform: uppercase; font-weight: 500; margin: 3px 0 7px">Planning Timeline</h2>
+              <p style="font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 19px; color: #6b645d; margin: 0">Every planning task by phase — from proposal to honeymoon</p>
+            </div>
+
+            <div style="display: flex; justify-content: center; flex-wrap: wrap; margin-bottom: 32px">
+              <div style="padding: 0 22px; border-right: 1px solid #E8E1D4"><div style="display: flex; align-items: center; gap: 6px"><svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><rect x="6" y="4" width="12" height="17" rx="2"></rect><path d="M9 4h6v3H9z"></path></svg><span style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b">Total tasks</span></div><div style="font-family: Georgia, serif; font-size: 25px; color: #2D4A3E; margin-top: 5px; line-height: 1">10</div><div style="font-size: 10px; color: #9a9186; margin-top: 4px">All tasks</div></div>
+              <div style="padding: 0 22px; border-right: 1px solid #E8E1D4"><div style="display: flex; align-items: center; gap: 6px"><svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><circle cx="12" cy="12" r="8"></circle><path d="m8.7 12.2 2.2 2.3 4.7-5"></path></svg><span style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b">Complete</span></div><div style="font-family: Georgia, serif; font-size: 25px; color: #2D4A3E; margin-top: 5px; line-height: 1">3</div><div style="font-size: 10px; color: #9a9186; margin-top: 4px">30% of total</div></div>
+              <div style="padding: 0 22px; border-right: 1px solid #E8E1D4"><div style="display: flex; align-items: center; gap: 6px"><svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg><span style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b">In progress</span></div><div style="font-family: Georgia, serif; font-size: 25px; color: #2D4A3E; margin-top: 5px; line-height: 1">4</div><div style="font-size: 10px; color: #9a9186; margin-top: 4px">40% of total</div></div>
+              <div style="padding: 0 22px; border-right: 1px solid #E8E1D4"><div style="display: flex; align-items: center; gap: 6px"><svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><path d="M12 19V5"></path><path d="m6 11 6-6 6 6"></path></svg><span style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b">Upcoming</span></div><div style="font-family: Georgia, serif; font-size: 25px; color: #2D4A3E; margin-top: 5px; line-height: 1">5</div><div style="font-size: 10px; color: #9a9186; margin-top: 4px">Dated &amp; not done</div></div>
+              <div style="padding: 0 22px; border-right: 1px solid #E8E1D4"><div style="display: flex; align-items: center; gap: 6px"><svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6"></path><path d="M12 17h.01"></path></svg><span style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b">Overdue</span></div><div style="font-family: Georgia, serif; font-size: 25px; color: #9c3b34; margin-top: 5px; line-height: 1">2</div><div style="font-size: 10px; color: #9a9186; margin-top: 4px">20% of total</div></div>
+              <div style="padding: 0 22px; border-right: 1px solid #E8E1D4"><div style="display: flex; align-items: center; gap: 6px"><svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><rect x="3" y="4.5" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2.5v4M16 2.5v4"></path></svg><span style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b">Wedding date</span></div><div style="font-family: Georgia, serif; font-size: 25px; color: #2D4A3E; margin-top: 5px; line-height: 1">Nov 8, 2026</div><div style="font-size: 10px; color: #9a9186; margin-top: 4px"></div></div>
+              <div style="padding: 0 22px"><div style="display: flex; align-items: center; gap: 6px"><svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #B89968; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round"><rect x="3" y="4.5" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2.5v4M16 2.5v4"></path></svg><span style="font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b">Days to go</span></div><div style="font-family: Georgia, serif; font-size: 25px; color: #2D4A3E; margin-top: 5px; line-height: 1">102</div><div style="font-size: 10px; color: #9a9186; margin-top: 4px">Until the big day</div></div>
+            </div>
+
+            <div style="display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 22px">
+              <div style="display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: .04em; padding: 8px 14px; border: 1px solid #B89968; color: #946f33">Export CSV</div>
+              <div style="display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: .04em; padding: 8px 14px; border: 1px solid #B89968; background: #F4EEE3; color: #946f33">+ New task</div>
+              <div style="display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: .04em; padding: 8px 14px; border: 1px solid #B89968; color: #946f33">Load 12-Month Timeline</div>
+              <div style="display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: .04em; padding: 8px 14px; border: 1px solid #B89968; color: #946f33">Load Full Wedding Checklist</div>
+            </div>
+
+            <div style="background: #fffdf9; border: 1px solid rgba(35,33,28,.13); overflow: hidden">
+              <div style="display: flex; align-items: center; gap: 9px; padding: 13px 15px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #9c7c4a; font-weight: 800">
+                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"></path></svg>Task list
+              </div>
+              <table style="width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; color: #23211c">
+                <thead>
+                  <tr>
+                    <th style="background: #1d342b; color: #fffdf6; text-align: left; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 800; padding: 13px 12px; border-bottom: 1px solid #9c7c4a">Phase</th>
+                    <th style="background: #1d342b; color: #fffdf6; text-align: left; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 800; padding: 13px 12px; border-bottom: 1px solid #9c7c4a">Task</th>
+                    <th style="background: #1d342b; color: #fffdf6; text-align: left; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 800; padding: 13px 12px; border-bottom: 1px solid #9c7c4a">Owner</th>
+                    <th style="background: #1d342b; color: #fffdf6; text-align: left; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 800; padding: 13px 12px; border-bottom: 1px solid #9c7c4a">Due</th>
+                    <th style="background: #1d342b; color: #fffdf6; text-align: left; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 800; padding: 13px 12px; border-bottom: 1px solid #9c7c4a">Priority</th>
+                    <th style="background: #1d342b; color: #fffdf6; text-align: left; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 800; padding: 13px 12px; border-bottom: 1px solid #9c7c4a">Status</th>
+                    <th style="background: #1d342b; color: #fffdf6; text-align: left; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 800; padding: 13px 12px; border-bottom: 1px solid #9c7c4a">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">12+ months</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">Set your budget and discuss your vision</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Both</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">—</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">High</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"><span style="display: inline-block; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; padding: 2px 8px; font-size: 12px">Complete</span></td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">$10k budget set</td></tr>
+                  <tr><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">12+ months</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">Book your ceremony &amp; reception venue</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Both</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">—</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">High</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"><span style="display: inline-block; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; padding: 2px 8px; font-size: 12px">Complete</span></td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"></td></tr>
+                  <tr><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">12+ months</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">Begin premarital counseling</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Both</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">—</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Medium</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"><span style="display: inline-block; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; padding: 2px 8px; font-size: 12px">In-Progress</span></td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"></td></tr>
+                  <tr><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">9-12 months</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">Book photographer &amp; videographer</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Bride</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">—</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">High</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"><span style="display: inline-block; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; padding: 2px 8px; font-size: 12px">In-Progress</span></td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Two studios shortlisted</td></tr>
+                  <tr><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">9-12 months</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">Start dress &amp; attire shopping</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Bride</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">—</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Medium</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"><span style="display: inline-block; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; padding: 2px 8px; font-size: 12px">Complete</span></td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Dress purchased</td></tr>
+                  <tr><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">6-9 months</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">Order save-the-dates &amp; invitations</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Bride</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">—</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Medium</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"><span style="display: inline-block; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; padding: 2px 8px; font-size: 12px">In-Progress</span></td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"></td></tr>
+                  <tr><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">6-9 months</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">Plan the honeymoon</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Groom</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">—</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Medium</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"><span style="display: inline-block; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; padding: 2px 8px; font-size: 12px">In-Progress</span></td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Flights booked</td></tr>
+                  <tr><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">3-6 months</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13); white-space: nowrap">Send save-the-dates</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">Bride</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">—</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)">High</td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"><span style="display: inline-block; background: #eef1f2; color: #626d74; border: 1px solid #dde3e4; padding: 2px 8px; font-size: 12px">Not Started</span></td><td style="padding: 10px 11px; border-bottom: 1px solid rgba(35,33,28,.13)"></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ 1b — NEUTRAL RECORDS ══════════ -->
+    <div id="1b" style="display: flex; flex-direction: column; gap: 18px; width: 1440px">
+      <div style="display: flex; align-items: flex-start; gap: 16px">
+        <span style="flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 9px; border: 1px solid #4a4a42; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #cfcac0">1b</span>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 17px; font-weight: 600; color: #f4efe6">Direction A — Neutral Records</div>
+          <div style="font-size: 13px; line-height: 1.6; color: #8f8b83; max-width: 780px">Airtable / Notion posture. Warm-neutral surfaces, Inter throughout, serif reserved for the wordmark. Saved views in a rail, one primary button, dense inline-editable grid, row detail as a right drawer. The wedding character lives in the content, not the chrome — this is the most "software" of the three and scales best to a planner with many clients.</div>
+        </div>
+      </div>
+
+      <div data-screen-label="Direction A — Neutral Records" style="width: 1440px; height: 1020px; overflow: hidden; border: 1px solid #33332c; background: #fbfaf8; display: flex; flex-direction: column">
+        <!-- topbar -->
+        <div style="flex: 0 0 auto; height: 52px; background: #fff; border-bottom: 1px solid #e8e4dc; display: flex; align-items: center; gap: 16px; padding: 0 16px">
+          <div style="display: flex; align-items: center; gap: 9px; padding-right: 16px; border-right: 1px solid #eeeae2">
+            <div style="width: 24px; height: 24px; border-radius: 5px; background: #2d4a3e; color: #d4b896; display: flex; align-items: center; justify-content: center; font-size: 13px">&#10022;</div>
+            <div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 17px; color: #23211c">Covenant</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 6px; background: #f4f1ea; font-size: 13px; color: #3c3a34">
+            <span style="width: 18px; height: 18px; border-radius: 4px; background: #d9cdb4; color: #6b5a35; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center">AK</span>
+            Ama &amp; Kwesi · 8 Nov 2026
+            <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: #8b8780; stroke-width: 2"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+          <div style="flex: 1 1 auto; max-width: 420px; margin: 0 auto; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 1px solid #e5e1d8; border-radius: 7px; background: #fbfaf8">
+            <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: #9b968c; stroke-width: 1.8"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+            <span style="font-size: 13px; color: #9b968c">Search guests, vendors, tasks…</span>
+            <span style="margin-left: auto; font-family: ui-monospace, monospace; font-size: 11px; color: #a8a29a; border: 1px solid #e5e1d8; border-radius: 4px; padding: 1px 5px">⌘K</span>
+          </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 12px">
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #7d7a72"><span style="width: 6px; height: 6px; border-radius: 50%; background: #4f9a6a"></span>All changes saved</span>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: #6b675f; stroke-width: 1.7"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: #6b675f; stroke-width: 1.7"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H1a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 2.6 7a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 8 2.6h.1A2 2 0 1 1 12 1v.1A1.7 1.7 0 0 0 15 2.6"></path></svg>
+            <span style="width: 26px; height: 26px; border-radius: 50%; background: #2d4a3e; color: #f4efe6; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center">MO</span>
+          </div>
+        </div>
+
+        <!-- top-level tabs -->
+        <div style="flex: 0 0 auto; height: 44px; background: #fff; border-bottom: 1px solid #e8e4dc; display: flex; align-items: stretch; padding: 0 16px; gap: 2px">
+          <div style="display: flex; align-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; color: #6b675f">Overview</div>
+          <div style="display: flex; align-items: center; padding: 0 14px; font-size: 14px; font-weight: 600; color: #23211c; box-shadow: inset 0 -2px 0 #2d4a3e">Planning</div>
+          <div style="display: flex; align-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; color: #6b675f">People</div>
+          <div style="display: flex; align-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; color: #6b675f">Money</div>
+          <div style="display: flex; align-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; color: #6b675f">Vendors</div>
+          <div style="display: flex; align-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; color: #6b675f">The Day</div>
+          <div style="display: flex; align-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; color: #6b675f">Covenant</div>
+          <div style="display: flex; align-items: center; padding: 0 14px; font-size: 14px; font-weight: 500; color: #6b675f">Documents</div>
+        </div>
+
+        <!-- sub-nav -->
+        <div style="flex: 0 0 auto; height: 40px; background: #fbfaf8; border-bottom: 1px solid #e8e4dc; display: flex; align-items: center; padding: 0 16px; gap: 6px">
+          <div style="display: flex; align-items: center; padding: 5px 11px; border-radius: 6px; background: #ece7dd; font-size: 13px; font-weight: 500; color: #23211c">Timeline &amp; Tasks</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; border-radius: 6px; font-size: 13px; color: #6b675f">Smart Calendar</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; border-radius: 6px; font-size: 13px; color: #6b675f">Appointments</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; border-radius: 6px; font-size: 13px; color: #6b675f">Weekend Logistics</div>
+          <div style="display: flex; align-items: center; padding: 5px 11px; border-radius: 6px; font-size: 13px; color: #6b675f">Notes</div>
+        </div>
+
+        <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+          <!-- views rail -->
+          <div style="flex: 0 0 216px; border-right: 1px solid #e8e4dc; background: #fbfaf8; padding: 16px 12px; display: flex; flex-direction: column; gap: 20px">
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #918c83; font-weight: 600; margin-bottom: 8px">Views<span style="font-size: 15px; color: #b0aaa0">+</span></div>
+              <div style="display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: #3c3a34">
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 9px; border-radius: 6px; background: #ece7dd; font-weight: 600; color: #23211c">All tasks<span style="font-size: 12px; color: #7d7a72">59</span></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 9px; border-radius: 6px">Due this month<span style="font-size: 12px; color: #7d7a72">7</span></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 9px; border-radius: 6px">Overdue<span style="font-size: 12px; color: #a33b28">2</span></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 9px; border-radius: 6px">Unassigned<span style="font-size: 12px; color: #7d7a72">11</span></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 9px; border-radius: 6px">Waiting on vendor<span style="font-size: 12px; color: #7d7a72">4</span></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 9px; border-radius: 6px">Complete<span style="font-size: 12px; color: #7d7a72">3</span></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #918c83; font-weight: 600; margin-bottom: 8px">Group by</div>
+              <div style="display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: #3c3a34">
+                <div style="padding: 6px 9px; border-radius: 6px; background: #ece7dd; font-weight: 600; color: #23211c">Phase</div>
+                <div style="padding: 6px 9px; border-radius: 6px">Owner</div>
+                <div style="padding: 6px 9px; border-radius: 6px">Priority</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- work surface -->
+          <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: #fff">
+            <!-- page header -->
+            <div style="flex: 0 0 auto; padding: 18px 24px 14px; border-bottom: 1px solid #eeeae2; display: flex; align-items: flex-end; gap: 24px">
+              <div>
+                <div style="font-size: 20px; font-weight: 600; color: #23211c; letter-spacing: -.01em">Timeline &amp; Tasks</div>
+                <div style="font-size: 13px; color: #7d7a72; margin-top: 3px">59 tasks across 8 phases · 3 complete · 2 overdue</div>
+              </div>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+                <div style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid #e0dbd1; border-radius: 6px; background: #fff; font-size: 13px; font-weight: 500; color: #3c3a34">Import checklist</div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid #e0dbd1; border-radius: 6px; background: #fff; font-size: 13px; font-weight: 500; color: #3c3a34">Export</div>
+                <div style="display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 14px; border-radius: 6px; background: #2d4a3e; color: #fff; font-size: 13px; font-weight: 600">+ New task</div>
+              </div>
+            </div>
+
+            <!-- toolbar -->
+            <div style="flex: 0 0 auto; padding: 10px 24px; border-bottom: 1px solid #eeeae2; display: flex; align-items: center; gap: 8px">
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid #e0dbd1; border-radius: 999px; font-size: 12px; color: #3c3a34">Phase: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #9b968c; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid #e0dbd1; border-radius: 999px; font-size: 12px; color: #3c3a34">Status: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #9b968c; stroke-width: 2.2; stroke-linecap: round"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid #e0dbd1; border-radius: 999px; font-size: 12px; color: #3c3a34">Owner: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #9b968c; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="width: 1px; height: 20px; background: #eeeae2; margin: 0 4px"></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12px; color: #6b675f"><svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>Sort</div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12px; color: #6b675f"><svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 10h16M10 10v10"></path></svg>Columns</div>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 3px; padding: 3px; background: #f4f1ea; border-radius: 7px">
+                <span style="padding: 4px 10px; border-radius: 5px; background: #fff; font-size: 12px; font-weight: 600; color: #23211c; box-shadow: 0 1px 2px rgba(0,0,0,.06)">Table</span>
+                <span style="padding: 4px 10px; border-radius: 5px; font-size: 12px; color: #6b675f">Board</span>
+                <span style="padding: 4px 10px; border-radius: 5px; font-size: 12px; color: #6b675f">Timeline</span>
+              </div>
+            </div>
+
+            <!-- selection bar -->
+            <div style="flex: 0 0 auto; padding: 8px 24px; background: #f6f4ee; border-bottom: 1px solid #eeeae2; display: flex; align-items: center; gap: 12px; font-size: 12px; color: #3c3a34">
+              <span style="font-weight: 600">2 selected</span>
+              <span style="color: #d8d2c7">|</span>
+              <span>Set owner</span><span>Set due date</span><span>Set status</span><span>Move phase</span>
+              <span style="margin-left: auto; color: #a33b28">Delete</span>
+            </div>
+
+            <!-- grid -->
+            <div style="flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex">
+              <div style="flex: 1 1 auto; min-width: 0; overflow: hidden">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                  <thead>
+                    <tr style="background: #faf8f4">
+                      <th style="width: 34px; padding: 8px 10px; border-bottom: 1px solid #e8e4dc"></th>
+                      <th style="text-align: left; padding: 8px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #918c83">Task</th>
+                      <th style="text-align: left; padding: 8px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #918c83; width: 120px">Owner</th>
+                      <th style="text-align: left; padding: 8px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #918c83; width: 110px">Due</th>
+                      <th style="text-align: left; padding: 8px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #918c83; width: 100px">Priority</th>
+                      <th style="text-align: left; padding: 8px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #918c83; width: 130px">Status</th>
+                      <th style="text-align: left; padding: 8px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #918c83; width: 90px">Vendor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="background: #f6f4ee"><td colspan="7" style="padding: 7px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6b675f">12+ months · 3 tasks · 3 complete</td></tr>
+                    <tr><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; text-align: center; color: #b0aaa0">☑</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4">Set your budget and discuss your vision</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Both</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">12 Jan</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">High</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #eef6f0; color: #2f6b45; font-size: 12px">Complete</span></td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #b0aaa0">—</td></tr>
+                    <tr><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; text-align: center; color: #b0aaa0">☑</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4">Book your ceremony &amp; reception venue</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Both</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">2 Feb</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">High</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #eef6f0; color: #2f6b45; font-size: 12px">Complete</span></td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #4a5691">Grace Hall</td></tr>
+                    <tr style="background: #f4f7fb"><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; text-align: center; color: #4a5691">☑</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; font-weight: 500">Begin premarital counseling</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Both</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">1 Mar</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Medium</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #fff7df; color: #8a640f; font-size: 12px">In progress</span></td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #4a5691">Pr. Mensah</td></tr>
+                    <tr style="background: #f6f4ee"><td colspan="7" style="padding: 7px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6b675f">9–12 months · 2 tasks</td></tr>
+                    <tr><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; text-align: center; color: #d8d2c7">☐</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4">Book photographer &amp; videographer</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Bride</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #a33b28; font-weight: 500">18 Jul · overdue</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">High</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #fff7df; color: #8a640f; font-size: 12px">In progress</span></td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #b0aaa0">2 shortlisted</td></tr>
+                    <tr style="background: #f4f7fb"><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; text-align: center; color: #4a5691">☑</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4">Start dress &amp; attire shopping</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Bride</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">9 Aug</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Medium</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #eef6f0; color: #2f6b45; font-size: 12px">Complete</span></td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #b0aaa0">—</td></tr>
+                    <tr style="background: #f6f4ee"><td colspan="7" style="padding: 7px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6b675f">6–9 months · 2 tasks</td></tr>
+                    <tr><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; text-align: center; color: #d8d2c7">☐</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4">Order save-the-dates &amp; invitations</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Bride</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">14 Sep</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Medium</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #fff7df; color: #8a640f; font-size: 12px">In progress</span></td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #4a5691">Ink &amp; Vine</td></tr>
+                    <tr><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; text-align: center; color: #d8d2c7">☐</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4">Plan the honeymoon</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Groom</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">30 Sep</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">Medium</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #fff7df; color: #8a640f; font-size: 12px">In progress</span></td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #b0aaa0">—</td></tr>
+                    <tr style="background: #f6f4ee"><td colspan="7" style="padding: 7px 10px; border-bottom: 1px solid #e8e4dc; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6b675f">3–6 months · 1 task</td></tr>
+                    <tr><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; text-align: center; color: #d8d2c7">☐</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4">Send save-the-dates</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #b0aaa0">Unassigned</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #a33b28; font-weight: 500">3 Jul · overdue</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #6b675f">High</td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: #eef1f2; color: #626d74; font-size: 12px">Not started</span></td><td style="padding: 9px 10px; border-bottom: 1px solid #f0ece4; color: #b0aaa0">—</td></tr>
+                    <tr><td style="padding: 9px 10px; text-align: center; color: #b0aaa0">+</td><td colspan="6" style="padding: 9px 10px; color: #a8a29a">New task…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- row drawer -->
+              <div style="flex: 0 0 372px; border-left: 1px solid #e8e4dc; background: #fff; display: flex; flex-direction: column">
+                <div style="padding: 16px 18px; border-bottom: 1px solid #eeeae2">
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #918c83; font-weight: 600">
+                    <span>Task · 9–12 months</span>
+                    <span style="margin-left: auto; color: #b0aaa0; font-size: 15px">✕</span>
+                  </div>
+                  <div style="font-size: 17px; font-weight: 600; color: #23211c; margin-top: 8px; line-height: 1.35">Book photographer &amp; videographer</div>
+                  <div style="display: flex; gap: 6px; margin-top: 10px">
+                    <span style="display: inline-block; white-space: nowrap; padding: 3px 9px; border-radius: 999px; background: #fff7df; color: #8a640f; font-size: 12px">In progress</span>
+                    <span style="display: inline-block; white-space: nowrap; padding: 3px 9px; border-radius: 999px; background: #fff0ed; color: #a33b28; font-size: 12px">Overdue 11 days</span>
+                  </div>
+                </div>
+                <div style="padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; font-size: 13px">
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #918c83">Owner</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #e5e1d8; border-radius: 6px; color: #23211c">Bride</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #918c83">Due date</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #ebb4aa; background: #fff8f6; border-radius: 6px; color: #a33b28">18 Jul 2026</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #918c83">Priority</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #e5e1d8; border-radius: 6px; color: #23211c">High</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #918c83">Linked vendor</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #e5e1d8; border-radius: 6px; color: #4a5691">2 shortlisted →</span></div>
+                  <div style="display: flex; align-items: center; gap: 12px"><span style="width: 92px; color: #918c83">Budget line</span><span style="flex: 1; padding: 6px 9px; border: 1px solid #e5e1d8; border-radius: 6px; color: #4a5691">Photography · $3,200 →</span></div>
+                  <div>
+                    <div style="color: #918c83; margin-bottom: 7px">Subtasks · 1 of 3</div>
+                    <div style="display: flex; flex-direction: column; gap: 6px">
+                      <div style="display: flex; gap: 8px; align-items: center; color: #918c83"><span>☑</span><span style="text-decoration: line-through">Collect three quotes</span></div>
+                      <div style="display: flex; gap: 8px; align-items: center"><span style="color: #d8d2c7">☐</span><span>Review full galleries</span></div>
+                      <div style="display: flex; gap: 8px; align-items: center"><span style="color: #d8d2c7">☐</span><span>Sign contract &amp; pay deposit</span></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="color: #918c83; margin-bottom: 7px">Notes</div>
+                    <div style="border: 1px solid #e5e1d8; border-radius: 6px; padding: 9px; min-height: 64px; color: #3c3a34; line-height: 1.55">Two studios shortlisted. Ask about second shooter and drone coverage for the outdoor ceremony.</div>
+                  </div>
+                </div>
+                <div style="margin-top: auto; padding: 12px 18px; border-top: 1px solid #eeeae2; display: flex; gap: 8px">
+                  <div style="flex: 1; text-align: center; height: 32px; line-height: 32px; border-radius: 6px; background: #2d4a3e; color: #fff; font-size: 13px; font-weight: 600">Save</div>
+                  <div style="flex: 1; text-align: center; height: 32px; line-height: 32px; border-radius: 6px; border: 1px solid #e0dbd1; font-size: 13px; font-weight: 500; color: #3c3a34">Mark complete</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ 1c — EDITORIAL PROFESSIONAL ══════════ -->
+    <div id="1c" style="display: flex; flex-direction: column; gap: 18px; width: 1440px">
+      <div style="display: flex; align-items: flex-start; gap: 16px">
+        <span style="flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 9px; border: 1px solid #4a4a42; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #cfcac0">1c</span>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 17px; font-weight: 600; color: #f4efe6">Direction B — Editorial Professional</div>
+          <div style="font-size: 13px; line-height: 1.6; color: #8f8b83; max-width: 780px">Keeps your cream + gold + Cormorant identity, fixes the craft: page title down from 67px to 30px, one 8px spacing scale, a single button hierarchy (one filled primary, outline secondary, quiet tertiary), gold demoted to hairlines and accents, forest promoted to the action colour. Same information architecture as <a href="#1b">1b</a> — it looks like the product you sell, but behaves like software.</div>
+        </div>
+      </div>
+
+      <div data-screen-label="Direction B — Editorial Professional" style="width: 1440px; height: 1020px; overflow: hidden; border: 1px solid #33332c; background: #f9f7f4; display: flex; flex-direction: column">
+        <div style="flex: 0 0 auto; height: 52px; background: #2D4A3E; display: flex; align-items: center; gap: 16px; padding: 0 20px">
+          <div style="display: flex; align-items: center; gap: 10px; padding-right: 18px; border-right: 1px solid rgba(212,184,150,.25)">
+            <span style="color: #D4B896; font-size: 15px">&#10022;</span>
+            <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; letter-spacing: .04em; color: #F4EFE6">The Covenant Wedding Planner</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(244,239,230,.85)">
+            <span style="width: 20px; height: 20px; border-radius: 3px; background: rgba(212,184,150,.22); color: #D4B896; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center">AK</span>
+            Ama &amp; Kwesi · 8 November 2026
+            <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: rgba(244,239,230,.6); stroke-width: 2"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+          <div style="flex: 1 1 auto; max-width: 400px; margin: 0 auto; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 11px; border: 1px solid rgba(212,184,150,.3); background: rgba(255,255,255,.06)">
+            <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: rgba(244,239,230,.65); stroke-width: 1.8"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+            <span style="font-size: 13px; color: rgba(244,239,230,.6)">Search the planner</span>
+            <span style="margin-left: auto; font-family: ui-monospace, monospace; font-size: 11px; color: rgba(244,239,230,.5); border: 1px solid rgba(212,184,150,.3); padding: 1px 5px">⌘K</span>
+          </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 14px">
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(244,239,230,.7)"><span style="width: 6px; height: 6px; border-radius: 50%; background: #8dc0a0"></span>Saved</span>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: rgba(244,239,230,.8); stroke-width: 1.6"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: rgba(244,239,230,.8); stroke-width: 1.6"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"></path></svg>
+            <span style="width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(212,184,150,.5); color: #D4B896; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center">MO</span>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 auto; height: 46px; background: #fdfcfa; border-bottom: 1px solid #e7e1d4; display: flex; align-items: stretch; padding: 0 20px; gap: 0">
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Overview</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #20362D; border-bottom: 2px solid #2D4A3E">Planning</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">People</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Money</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Vendors</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">The Day</div>
+          <div style="display: flex; align-items: center; gap: 7px; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d"><span style="width: 5px; height: 5px; border-radius: 50%; background: #B89968"></span>Covenant</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Documents</div>
+        </div>
+
+        <div style="flex: 0 0 auto; height: 40px; background: #f9f7f4; border-bottom: 1px solid #e7e1d4; display: flex; align-items: center; padding: 0 20px; gap: 18px">
+          <div style="font-size: 13px; font-weight: 600; color: #20362D; box-shadow: inset 0 -2px 0 #B89968; padding-bottom: 2px">Timeline &amp; Tasks</div>
+          <div style="font-size: 13px; color: #6b645d">Smart Calendar</div>
+          <div style="font-size: 13px; color: #6b645d">Appointments</div>
+          <div style="font-size: 13px; color: #6b645d">Weekend Logistics</div>
+          <div style="font-size: 13px; color: #6b645d">Notes</div>
+        </div>
+
+        <div style="flex: 1 1 auto; display: flex; min-height: 0; overflow: hidden">
+          <div style="flex: 0 0 224px; border-right: 1px solid #e7e1d4; background: #f9f5ef; padding: 20px 16px; display: flex; flex-direction: column; gap: 24px">
+            <div>
+              <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #e7e1d4; margin-bottom: 10px">Saved views</div>
+              <div style="display: flex; flex-direction: column; gap: 1px; font-size: 13px; color: #3f3b34">
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; background: #fff; border-left: 2px solid #2D4A3E; font-weight: 600; color: #20362D">All tasks<span style="color: #8a7e6b; font-weight: 400">59</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Due this month<span style="color: #8a7e6b">7</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Overdue<span style="color: #a33b28">2</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Unassigned<span style="color: #8a7e6b">11</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Waiting on vendor<span style="color: #8a7e6b">4</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 10px; border-left: 2px solid transparent">Complete<span style="color: #8a7e6b">3</span></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid #e7e1d4; margin-bottom: 10px">Phases</div>
+              <div style="display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: #3f3b34">
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>12+ months</span><span style="color: #8a7e6b">3/3</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 100%; height: 100%; background: #2D4A3E"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>9–12 months</span><span style="color: #8a7e6b">1/2</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 50%; height: 100%; background: #2D4A3E"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>6–9 months</span><span style="color: #8a7e6b">0/2</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 4%; height: 100%; background: #2D4A3E"></div></div></div>
+                <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; justify-content: space-between"><span>3–6 months</span><span style="color: #8a7e6b">0/1</span></div><div style="height: 4px; background: #e7e1d4"><div style="width: 4%; height: 100%; background: #2D4A3E"></div></div></div>
+              </div>
+            </div>
+            <div style="margin-top: auto; border-top: 1px solid #e7e1d4; padding-top: 14px; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 14px; line-height: 1.5; color: #6b645d">“And whatsoever ye do, do it heartily, as to the Lord.”<div style="font-family: Inter, sans-serif; font-style: normal; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; margin-top: 7px">Colossians 3:23</div></div>
+          </div>
+
+          <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: #fff">
+            <div style="flex: 0 0 auto; padding: 24px 32px 16px; border-bottom: 1px solid #e7e1d4; display: flex; align-items: flex-end; gap: 24px">
+              <div>
+                <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Planning</div>
+                <h2 style="margin: 6px 0 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 30px; font-weight: 500; letter-spacing: .01em; color: #20362D; line-height: 1.1">Timeline &amp; Tasks</h2>
+                <div style="font-size: 13px; color: #6b645d; margin-top: 6px">59 tasks · 8 phases · 3 complete · <span style="color: #a33b28">2 overdue</span></div>
+              </div>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+                <div style="display: inline-flex; align-items: center; height: 34px; padding: 0 12px; font-size: 13px; color: #6b645d">Import checklist</div>
+                <div style="display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border: 1px solid #d9cfba; font-size: 13px; font-weight: 500; color: #3f3b34">Export</div>
+                <div style="display: inline-flex; align-items: center; height: 34px; padding: 0 16px; background: #2D4A3E; color: #F4EFE6; font-size: 13px; font-weight: 600">+ New task</div>
+              </div>
+            </div>
+
+            <div style="flex: 0 0 auto; display: flex; border-bottom: 1px solid #e7e1d4">
+              <div style="flex: 1; padding: 14px 32px; border-right: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Open</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #20362D; margin-top: 4px; line-height: 1">56</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Complete</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #20362D; margin-top: 4px; line-height: 1">3</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Overdue</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #9c3b34; margin-top: 4px; line-height: 1">2</div></div>
+              <div style="flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Unassigned</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #20362D; margin-top: 4px; line-height: 1">11</div></div>
+              <div style="flex: 1.4; padding: 14px 32px 14px 24px"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Days to wedding</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #20362D; margin-top: 4px; line-height: 1">102</div></div>
+            </div>
+
+            <div style="flex: 0 0 auto; padding: 12px 32px; border-bottom: 1px solid #e7e1d4; display: flex; align-items: center; gap: 8px; background: #fdfcfa">
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Phase: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Status: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2; stroke-linecap: round"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Owner: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; font-size: 12px; color: #6b645d">Sort</div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; font-size: 12px; color: #6b645d">Columns</div>
+              <div style="margin-left: auto; display: flex; border: 1px solid #d9cfba">
+                <span style="padding: 5px 12px; background: #2D4A3E; color: #F4EFE6; font-size: 12px; font-weight: 600">Table</span>
+                <span style="padding: 5px 12px; font-size: 12px; color: #6b645d; border-left: 1px solid #d9cfba">Board</span>
+                <span style="padding: 5px 12px; font-size: 12px; color: #6b645d; border-left: 1px solid #d9cfba">Timeline</span>
+              </div>
+            </div>
+
+            <div style="flex: 1 1 auto; min-height: 0; overflow: hidden">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #23211c">
+                <thead>
+                  <tr>
+                    <th style="width: 40px; background: #20362D; padding: 10px 12px; border-bottom: 1px solid #B89968"></th>
+                    <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968">Task</th>
+                    <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 120px">Owner</th>
+                    <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 130px">Due</th>
+                    <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 100px">Priority</th>
+                    <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 140px">Status</th>
+                    <th style="text-align: left; background: #20362D; color: #F4EFE6; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 10px 12px; border-bottom: 1px solid #B89968; width: 150px">Linked</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background: #f9f5ef"><td colspan="7" style="padding: 8px 12px; border-bottom: 1px solid #e7e1d4; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">12+ months · complete</td></tr>
+                  <tr><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #2D4A3E">☑</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d; text-decoration: line-through">Set your budget and discuss your vision</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Both</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">12 Jan 2026</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">High</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 3px 9px; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; font-size: 12px">Complete</span></td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Budget</td></tr>
+                  <tr><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #2D4A3E">☑</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d; text-decoration: line-through">Book your ceremony &amp; reception venue</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Both</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">2 Feb 2026</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">High</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 3px 9px; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; font-size: 12px">Complete</span></td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Grace Hall</td></tr>
+                  <tr style="background: #f9f5ef"><td colspan="7" style="padding: 8px 12px; border-bottom: 1px solid #e7e1d4; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">9–12 months · 1 of 2 complete</td></tr>
+                  <tr><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #cfc6b4">☐</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; font-weight: 500">Book photographer &amp; videographer<div style="font-size: 12px; color: #8a7e6b; font-weight: 400; margin-top: 3px">1 of 3 subtasks · two studios shortlisted</div></td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Bride</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #a33b28; font-weight: 500">18 Jul · overdue</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">High</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 3px 9px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 12px">In progress</span></td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Photography</td></tr>
+                  <tr><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #2D4A3E">☑</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d; text-decoration: line-through">Start dress &amp; attire shopping</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Bride</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">9 Aug 2026</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Medium</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 3px 9px; background: #eef6f0; color: #2f6b45; border: 1px solid #cfe3d5; font-size: 12px">Complete</span></td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #cfc6b4">—</td></tr>
+                  <tr style="background: #f9f5ef"><td colspan="7" style="padding: 8px 12px; border-bottom: 1px solid #e7e1d4; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">6–9 months · in progress</td></tr>
+                  <tr><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #cfc6b4">☐</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0">Order save-the-dates &amp; invitations</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Bride</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">14 Sep 2026</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Medium</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 3px 9px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 12px">In progress</span></td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #946f33">Ink &amp; Vine</td></tr>
+                  <tr><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #cfc6b4">☐</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0">Plan the honeymoon</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Groom</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">30 Sep 2026</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">Medium</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 3px 9px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 12px">In progress</span></td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #cfc6b4">—</td></tr>
+                  <tr style="background: #f9f5ef"><td colspan="7" style="padding: 8px 12px; border-bottom: 1px solid #e7e1d4; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">3–6 months · not started</td></tr>
+                  <tr><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; text-align: center; color: #cfc6b4">☐</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0">Send save-the-dates</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #b09f80; font-style: italic">Unassigned</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #a33b28; font-weight: 500">3 Jul · overdue</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #6b645d">High</td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0"><span style="display: inline-block; white-space: nowrap; padding: 3px 9px; background: #eef1f2; color: #626d74; border: 1px solid #dde3e4; font-size: 12px">Not started</span></td><td style="padding: 11px 12px; border-bottom: 1px solid #f0ebe0; color: #cfc6b4">—</td></tr>
+                  <tr><td style="padding: 11px 12px; text-align: center; color: #cfc6b4">+</td><td colspan="6" style="padding: 11px 12px; color: #b09f80">Add a task to this phase…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ 1d — PIPELINE BOARD ══════════ -->
+    <div id="1d" style="display: flex; flex-direction: column; gap: 18px; width: 1440px">
+      <div style="display: flex; align-items: flex-start; gap: 16px">
+        <span style="flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 26px; padding: 0 9px; border: 1px solid #4a4a42; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: #cfcac0">1d</span>
+        <div style="display: flex; flex-direction: column; gap: 5px">
+          <div style="font-size: 17px; font-weight: 600; color: #f4efe6">Direction C — Pipeline</div>
+          <div style="font-size: 13px; line-height: 1.6; color: #8f8b83; max-width: 780px">Salesforce / HubSpot posture: the planning phases read as pipeline stages, so progress and bottlenecks are visible without opening a table. Same chrome and tabs as <a href="#1c">1c</a>, but the default work surface is a stage board with a KPI header; Table and Timeline are the other two views of the same records. Strongest for a planner running several weddings; heavier for a couple.</div>
+        </div>
+      </div>
+
+      <div data-screen-label="Direction C — Pipeline" style="width: 1440px; height: 1020px; overflow: hidden; border: 1px solid #33332c; background: #f9f7f4; display: flex; flex-direction: column">
+        <div style="flex: 0 0 auto; height: 52px; background: #2D4A3E; display: flex; align-items: center; gap: 16px; padding: 0 20px">
+          <div style="display: flex; align-items: center; gap: 10px; padding-right: 18px; border-right: 1px solid rgba(212,184,150,.25)">
+            <span style="color: #D4B896; font-size: 15px">&#10022;</span>
+            <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 19px; letter-spacing: .04em; color: #F4EFE6">The Covenant Wedding Planner</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(244,239,230,.85)">
+            <span style="width: 20px; height: 20px; border-radius: 3px; background: rgba(212,184,150,.22); color: #D4B896; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center">AK</span>
+            Ama &amp; Kwesi · 8 November 2026
+            <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: rgba(244,239,230,.6); stroke-width: 2"><path d="m6 9 6 6 6-6"></path></svg>
+          </div>
+          <div style="flex: 1 1 auto; max-width: 400px; margin: 0 auto; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 11px; border: 1px solid rgba(212,184,150,.3); background: rgba(255,255,255,.06)">
+            <svg viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: rgba(244,239,230,.65); stroke-width: 1.8"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg>
+            <span style="font-size: 13px; color: rgba(244,239,230,.6)">Search the planner</span>
+            <span style="margin-left: auto; font-family: ui-monospace, monospace; font-size: 11px; color: rgba(244,239,230,.5); border: 1px solid rgba(212,184,150,.3); padding: 1px 5px">⌘K</span>
+          </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 14px">
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(244,239,230,.7)"><span style="width: 6px; height: 6px; border-radius: 50%; background: #8dc0a0"></span>Saved</span>
+            <span style="width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(212,184,150,.5); color: #D4B896; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center">MO</span>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 auto; height: 46px; background: #fdfcfa; border-bottom: 1px solid #e7e1d4; display: flex; align-items: stretch; padding: 0 20px">
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Overview</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #20362D; border-bottom: 2px solid #2D4A3E">Planning</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">People</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Money</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Vendors</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">The Day</div>
+          <div style="display: flex; align-items: center; gap: 7px; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d"><span style="width: 5px; height: 5px; border-radius: 50%; background: #B89968"></span>Covenant</div>
+          <div style="display: flex; align-items: center; padding: 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6b645d">Documents</div>
+        </div>
+
+        <div style="flex: 0 0 auto; padding: 18px 28px 14px; background: #fff; border-bottom: 1px solid #e7e1d4; display: flex; align-items: center; gap: 28px">
+          <div>
+            <div style="font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700">Planning</div>
+            <h2 style="margin: 6px 0 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 30px; font-weight: 500; color: #20362D; line-height: 1.1">Timeline &amp; Tasks</h2>
+          </div>
+          <div style="display: flex; gap: 0; margin-left: 8px">
+            <div style="padding: 0 22px; border-left: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Days out</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #20362D; line-height: 1; margin-top: 4px">102</div></div>
+            <div style="padding: 0 22px; border-left: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">On track</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #20362D; line-height: 1; margin-top: 4px">44</div></div>
+            <div style="padding: 0 22px; border-left: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">At risk</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #8a640f; line-height: 1; margin-top: 4px">9</div></div>
+            <div style="padding: 0 22px; border-left: 1px solid #f0ebe0"><div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b">Overdue</div><div style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; color: #9c3b34; line-height: 1; margin-top: 4px">2</div></div>
+          </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+            <div style="display: flex; border: 1px solid #d9cfba">
+              <span style="padding: 6px 13px; font-size: 12px; color: #6b645d">Table</span>
+              <span style="padding: 6px 13px; background: #2D4A3E; color: #F4EFE6; font-size: 12px; font-weight: 600; border-left: 1px solid #d9cfba; border-right: 1px solid #d9cfba">Board</span>
+              <span style="padding: 6px 13px; font-size: 12px; color: #6b645d">Timeline</span>
+            </div>
+            <div style="display: inline-flex; align-items: center; height: 32px; padding: 0 16px; background: #2D4A3E; color: #F4EFE6; font-size: 13px; font-weight: 600">+ New task</div>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 auto; padding: 10px 28px; background: #fdfcfa; border-bottom: 1px solid #e7e1d4; display: flex; align-items: center; gap: 8px">
+          <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Owner: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+          <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Priority: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2"><path d="m6 9 6 6 6-6"></path></svg></div>
+          <div style="display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 1px solid #d9cfba; font-size: 12px; color: #3f3b34">Vendor status: all<svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: #a89c85; stroke-width: 2.2; stroke-linecap: round"><path d="m6 9 6 6 6-6"></path></svg></div>
+          <div style="margin-left: auto; font-size: 12px; color: #6b645d">Saved view: <span style="color: #20362D; font-weight: 600">Planner working set</span></div>
+        </div>
+
+        <div style="flex: 1 1 auto; min-height: 0; overflow: hidden; padding: 20px 28px; display: flex; gap: 16px; align-items: stretch">
+
+          <div style="flex: 1; min-width: 0; background: #fff; border: 1px solid #e7e1d4; display: flex; flex-direction: column">
+            <div style="padding: 12px 14px; border-bottom: 1px solid #e7e1d4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between"><span style="font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #20362D">12+ months</span><span style="font-size: 12px; color: #8a7e6b">3/3</span></div>
+              <div style="height: 3px; background: #e7e1d4; margin-top: 9px"><div style="width: 100%; height: 100%; background: #2D4A3E"></div></div>
+            </div>
+            <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #fbf9f5; flex: 1 1 auto">
+              <div style="background: #fff; border: 1px solid #e7e1d4; border-left: 2px solid #2f6b45; padding: 11px"><div style="font-size: 13px; color: #6b645d; text-decoration: line-through; line-height: 1.4">Set your budget and discuss your vision</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span>Both</span><span>·</span><span>12 Jan</span></div></div>
+              <div style="background: #fff; border: 1px solid #e7e1d4; border-left: 2px solid #2f6b45; padding: 11px"><div style="font-size: 13px; color: #6b645d; text-decoration: line-through; line-height: 1.4">Book ceremony &amp; reception venue</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span>Both</span><span>·</span><span>Grace Hall</span></div></div>
+              <div style="background: #fff; border: 1px solid #e7e1d4; border-left: 2px solid #2f6b45; padding: 11px"><div style="font-size: 13px; color: #6b645d; text-decoration: line-through; line-height: 1.4">Begin premarital counseling</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span>Both</span><span>·</span><span>Pr. Mensah</span></div></div>
+            </div>
+          </div>
+
+          <div style="flex: 1; min-width: 0; background: #fff; border: 1px solid #e7e1d4; display: flex; flex-direction: column">
+            <div style="padding: 12px 14px; border-bottom: 1px solid #e7e1d4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between"><span style="font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #20362D">9–12 months</span><span style="font-size: 12px; color: #8a7e6b">1/2</span></div>
+              <div style="height: 3px; background: #e7e1d4; margin-top: 9px"><div style="width: 50%; height: 100%; background: #2D4A3E"></div></div>
+            </div>
+            <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #fbf9f5; flex: 1 1 auto">
+              <div style="background: #fff; border: 1px solid #ebb4aa; border-left: 2px solid #a33b28; padding: 11px; box-shadow: 0 1px 3px rgba(42,42,42,.06)">
+                <div style="font-size: 13px; color: #23211c; font-weight: 500; line-height: 1.4">Book photographer &amp; videographer</div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span>Bride</span><span>·</span><span style="color: #a33b28; font-weight: 600">18 Jul · overdue</span></div>
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 9px"><span style="padding: 2px 7px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 11px">In progress</span><span style="padding: 2px 7px; background: #f4eee3; color: #946f33; font-size: 11px">1/3</span></div>
+              </div>
+              <div style="background: #fff; border: 1px solid #e7e1d4; border-left: 2px solid #2f6b45; padding: 11px"><div style="font-size: 13px; color: #6b645d; text-decoration: line-through; line-height: 1.4">Start dress &amp; attire shopping</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span>Bride</span><span>·</span><span>9 Aug</span></div></div>
+            </div>
+          </div>
+
+          <div style="flex: 1; min-width: 0; background: #fff; border: 1px solid #e7e1d4; display: flex; flex-direction: column">
+            <div style="padding: 12px 14px; border-bottom: 1px solid #e7e1d4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between"><span style="font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #20362D">6–9 months</span><span style="font-size: 12px; color: #8a7e6b">0/2</span></div>
+              <div style="height: 3px; background: #e7e1d4; margin-top: 9px"><div style="width: 6%; height: 100%; background: #2D4A3E"></div></div>
+            </div>
+            <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #fbf9f5; flex: 1 1 auto">
+              <div style="background: #fff; border: 1px solid #e7e1d4; border-left: 2px solid #8a640f; padding: 11px"><div style="font-size: 13px; color: #23211c; line-height: 1.4">Order save-the-dates &amp; invitations</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span>Bride</span><span>·</span><span>14 Sep</span></div><div style="margin-top: 9px"><span style="padding: 2px 7px; background: #fff7df; color: #8a640f; border: 1px solid #e7ce80; font-size: 11px">Waiting on Ink &amp; Vine</span></div></div>
+              <div style="background: #fff; border: 1px solid #e7e1d4; border-left: 2px solid #8a640f; padding: 11px"><div style="font-size: 13px; color: #23211c; line-height: 1.4">Plan the honeymoon</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span>Groom</span><span>·</span><span>30 Sep</span></div></div>
+            </div>
+          </div>
+
+          <div style="flex: 1; min-width: 0; background: #fff; border: 1px solid #e7e1d4; display: flex; flex-direction: column">
+            <div style="padding: 12px 14px; border-bottom: 1px solid #e7e1d4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between"><span style="font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #20362D">3–6 months</span><span style="font-size: 12px; color: #8a7e6b">0/1</span></div>
+              <div style="height: 3px; background: #e7e1d4; margin-top: 9px"><div style="width: 6%; height: 100%; background: #2D4A3E"></div></div>
+            </div>
+            <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #fbf9f5; flex: 1 1 auto">
+              <div style="background: #fff; border: 1px solid #ebb4aa; border-left: 2px solid #a33b28; padding: 11px"><div style="font-size: 13px; color: #23211c; line-height: 1.4">Send save-the-dates</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span style="font-style: italic; color: #b09f80">Unassigned</span><span>·</span><span style="color: #a33b28; font-weight: 600">3 Jul · overdue</span></div><div style="margin-top: 9px"><span style="padding: 2px 7px; background: #fff0ed; color: #a33b28; border: 1px solid #ebb4aa; font-size: 11px">Needs owner</span></div></div>
+              <div style="border: 1px dashed #ddd5c6; padding: 11px; font-size: 12px; color: #b09f80">+ Add task to this phase</div>
+            </div>
+          </div>
+
+          <div style="flex: 1; min-width: 0; background: #fff; border: 1px solid #e7e1d4; display: flex; flex-direction: column">
+            <div style="padding: 12px 14px; border-bottom: 1px solid #e7e1d4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between"><span style="font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #20362D">Wedding month</span><span style="font-size: 12px; color: #8a7e6b">0/1</span></div>
+              <div style="height: 3px; background: #e7e1d4; margin-top: 9px"><div style="width: 6%; height: 100%; background: #2D4A3E"></div></div>
+            </div>
+            <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #fbf9f5; flex: 1 1 auto">
+              <div style="background: #fff; border: 1px solid #e7e1d4; border-left: 2px solid #626d74; padding: 11px"><div style="font-size: 13px; color: #23211c; line-height: 1.4">Apply for your marriage license</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: #8a7e6b"><span>Both</span><span>·</span><span>High</span></div></div>
+              <div style="border: 1px dashed #ddd5c6; padding: 11px; font-size: 12px; color: #b09f80">+ Add task to this phase</div>
+            </div>
+          </div>
+
+          <div style="flex: 0 0 168px; background: #20362D; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #D4B896; font-weight: 700">Wedding week</div>
+            <div style="border: 1px solid rgba(212,184,150,.3); padding: 10px"><div style="font-size: 12px; color: #F4EFE6; line-height: 1.4">Rehearsal &amp; rehearsal dinner</div><div style="font-size: 11px; color: rgba(244,239,230,.6); margin-top: 7px">Both · Medium</div></div>
+            <div style="border: 1px dashed rgba(212,184,150,.3); padding: 10px; font-size: 11px; color: rgba(244,239,230,.55)">+ Add task</div>
+            <div style="margin-top: auto; font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 13px; line-height: 1.5; color: rgba(244,239,230,.75)">“To every thing there is a season.”</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<template id="__bundler_thumbnail" data-bg-color="#12130f">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#12130f"></rect>
+    <rect x="360" y="240" width="480" height="320" fill="#2D4A3E"></rect>
+    <rect x="360" y="240" width="480" height="46" fill="#20362D"></rect>
+    <rect x="392" y="330" width="416" height="14" fill="#B89968"></rect>
+    <rect x="392" y="368" width="300" height="10" fill="#6d7f76"></rect>
+    <rect x="392" y="400" width="360" height="10" fill="#6d7f76"></rect>
+    <rect x="392" y="432" width="330" height="10" fill="#6d7f76"></rect>
+    <rect x="392" y="464" width="380" height="10" fill="#6d7f76"></rect>
+    <circle cx="600" cy="263" r="9" fill="#D4B896"></circle>
+  </svg>
+</template>
+</x-dc>
+</body>
+</html>

@@ -1722,6 +1722,15 @@
   }
 
   function renderPageUxChrome(panelId){
+    /* Redesign page shells own their anatomy (§07). Legacy ux chrome would
+       insert progress bars and related links between stats and the toolbar.
+       Still clear any stuck skeleton/loading so a prior showPanel frame or
+       failed reveal cannot leave opacity 0.35 + white inset overlay. */
+    const panelEl = document.getElementById('panel-' + panelId);
+    if (panelEl && (panelEl.querySelector('.rd-pagehead') || (panelId === 'tasks' && panelEl.dataset.uedShell))) {
+      uxRestorePanelDom(panelId);
+      return;
+    }
     const cfg = UX_PAGES[panelId];
     if (!cfg) return;
     uxRestorePanelDom(panelId);

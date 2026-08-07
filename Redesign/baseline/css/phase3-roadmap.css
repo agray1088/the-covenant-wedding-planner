@@ -1,0 +1,405 @@
+/* Phase 3 — Notion calm: progressive disclosure, chrome reduction, spacing, hover controls */
+
+/* ── 3c Whitespace & calm (token-driven) ── */
+:root {
+  --p3-section-gap: var(--space-5, 1.5rem);
+  --p3-panel-gap: var(--space-4, 1rem);
+  --p3-border-quiet: 1px solid var(--border-subtle, #e7e1d4);
+}
+
+#main .panel.active .m-block,
+#main .panel.active .ued-panel,
+#main .panel.active .ceremony-card,
+#main .panel.active .smart-main-card {
+  margin-bottom: var(--p3-section-gap);
+}
+
+#main .panel.active .m-block,
+#main .panel.active .guest-table-card,
+#main .panel.active .vendors-table-card,
+#main .panel.active .tasks-table-card {
+  border-color: var(--border-subtle, #e7e1d4);
+  box-shadow: none;
+}
+
+#main .panel.active .m-head {
+  border-bottom: var(--p3-border-quiet);
+  padding-bottom: var(--space-2, 0.5rem);
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+#main .panel.active .m-btn-primary,
+#main .panel.active .btn-gold.cwp-btn-primary,
+#main .panel.active .cwp-btn-primary {
+  background: var(--gold, #c4a576);
+  border-color: var(--gold, #c4a576);
+}
+
+#main .panel.active .m-btn:not(.m-btn-primary):not(.btn-gold),
+#main .panel.active .cwp-btn-ghost {
+  color: var(--text-muted, #5c5c58);
+  border-color: var(--border-subtle, #e7e1d4);
+}
+
+/* ── 3e Masthead wayfinding ── */
+.m-wayfind {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #5c5c58);
+  margin-bottom: 0.35rem;
+}
+.m-crumb-cat { opacity: 0.85; }
+.m-crumb-sep { opacity: 0.45; font-weight: 400; }
+.m-crumb-page {
+  color: var(--forest, #2f4a3e);
+  font-weight: 600;
+}
+.m-mast-wrap .m-eyebrow { display: none; }
+
+/* ── 3b Page guide (masthead ?) ── */
+.m-page-guide {
+  position: relative;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+.m-mast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 0.75rem);
+}
+.m-page-guide-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: var(--p3-border-quiet);
+  background: rgba(255, 252, 247, 0.9);
+  color: var(--text-muted, #5c5c58);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.m-page-guide-btn:hover,
+.m-page-guide-btn[aria-expanded="true"] {
+  border-color: var(--gold, #c4a576);
+  color: var(--forest, #2f4a3e);
+  background: rgba(196, 165, 118, 0.12);
+}
+.m-page-guide-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  width: min(360px, calc(100vw - 2rem));
+  border-radius: var(--radius-md, 10px);
+  border: var(--p3-border-quiet);
+  background: var(--surface-content, #fff);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 0.85rem;
+}
+.m-page-guide-pop[hidden] { display: none !important; }
+.m-page-guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.88rem;
+}
+.m-page-guide-dismiss {
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #5c5c58);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.m-page-guide-body {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-primary, #2a2a28);
+}
+
+/* ── 3b Chrome trim (top 5 panels) ── */
+.p3-trim-intro .v4-help-note.p3-trimmed,
+.p3-trim-intro .m-banner.p3-trimmed,
+.p3-trim-intro .smart-page-subtitle.p3-trimmed,
+.p3-trim-intro .smart-insight-band.p3-trimmed,
+.p3-trim-intro .tasks-subtitle.p3-trimmed,
+.p3-trim-intro .ceremony-subtitle.p3-trimmed {
+  display: none;
+}
+
+/* ── 3a Show more collapsibles ── */
+.p3-show-more {
+  border: var(--p3-border-quiet);
+  border-radius: var(--radius-md, 10px);
+  margin-bottom: var(--p3-panel-gap);
+  overflow: hidden;
+  background: var(--surface-raised, #fdfcfa);
+}
+.p3-show-more > summary,
+.p3-show-more > .p3-show-more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--forest, #2f4a3e);
+  list-style: none;
+  user-select: none;
+}
+.p3-show-more > summary::-webkit-details-marker { display: none; }
+.p3-show-more > .p3-show-more-body,
+.p3-show-more:not([open]) > .p3-show-more-inner {
+  display: none;
+}
+.p3-show-more[open] > .p3-show-more-body,
+.p3-show-more.open > .p3-show-more-inner {
+  display: block;
+  padding: 0 0.75rem 0.75rem;
+  border-top: var(--p3-border-quiet);
+}
+.p3-show-more-chevron {
+  font-size: 0.7rem;
+  opacity: 0.55;
+  transition: transform 0.15s ease;
+}
+.p3-show-more[open] .p3-show-more-chevron,
+.p3-show-more.open .p3-show-more-chevron {
+  transform: rotate(180deg);
+}
+
+/* ── 3a Primary action overflow ── */
+.p3-actions-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: var(--p3-panel-gap);
+}
+.p3-actions-wrap .p3-overflow-menu {
+  position: relative;
+}
+.p3-overflow-btn {
+  border: var(--p3-border-quiet);
+  border-radius: 8px;
+  background: transparent;
+  padding: 0.38rem 0.65rem;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text-muted, #5c5c58);
+}
+.p3-overflow-drop {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  min-width: 160px;
+  border: var(--p3-border-quiet);
+  border-radius: 8px;
+  background: var(--surface-content, #fff);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 0.35rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.p3-overflow-drop.open { display: flex; }
+.p3-overflow-drop .m-btn,
+.p3-overflow-drop button {
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+/* ── 3d CWP hover row controls ── */
+.cwp-table tbody tr { position: relative; }
+.cwp-row-hover-actions {
+  width: 0;
+  max-width: 0;
+  padding: 0 !important;
+  border: none !important;
+  overflow: visible;
+  vertical-align: middle;
+}
+.cwp-row-hover-actions-inner {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  background: linear-gradient(90deg, transparent, var(--surface-content, #fff) 24%);
+  padding-left: 1.25rem;
+  border-radius: 6px;
+}
+.cwp-table tbody tr:hover .cwp-row-hover-actions-inner,
+.cwp-table tbody tr:focus-within .cwp-row-hover-actions-inner {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cwp-row-act {
+  border: var(--p3-border-quiet);
+  border-radius: 6px;
+  background: var(--surface-content, #fff);
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: var(--text-muted, #5c5c58);
+  padding: 0;
+  line-height: 1;
+}
+.cwp-row-act:hover {
+  border-color: var(--gold, #c4a576);
+  color: var(--forest, #2f4a3e);
+}
+.cwp-row-act.danger:hover {
+  border-color: #c45c5c;
+  color: #a33;
+}
+.cwp-drag-handle {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.cwp-table tbody tr:hover .cwp-drag-handle,
+.cwp-table tbody tr:focus-within .cwp-drag-handle,
+tr.ceremony-dragging .cwp-drag-handle {
+  opacity: 1;
+}
+
+/* ── 3f Drawer nav (collapsible categories) ── */
+.nav-drawer-tools {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+.nav-drawer-tools button {
+  border: var(--p3-border-quiet);
+  border-radius: 6px;
+  background: transparent;
+  font-size: 0.68rem;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  color: var(--text-muted, #5c5c58);
+}
+.nav-drawer-section {
+  border-bottom: var(--p3-border-quiet);
+}
+.nav-drawer-cat {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.nav-drawer-cat:hover { background: rgba(196, 165, 118, 0.1); }
+.nav-drawer-cat-icon {
+  font-size: 1.1rem;
+  opacity: 0.7;
+  flex: 0 0 auto;
+}
+.nav-drawer-cat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+.nav-drawer-cat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--forest, #2f4a3e);
+}
+.nav-drawer-cat-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted, #5c5c58);
+}
+.nav-drawer-cat-chevron {
+  font-size: 0.65rem;
+  opacity: 0.5;
+  transition: transform 0.15s ease;
+}
+.nav-drawer-cat[aria-expanded="true"] .nav-drawer-cat-chevron {
+  transform: rotate(180deg);
+}
+.nav-drawer-pages {
+  padding: 0 0.5rem 0.45rem;
+}
+.nav-drawer-pages[hidden] { display: none; }
+#nav-menu-drawer .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.08rem;
+  padding: 0.48rem 0.55rem 0.48rem 2rem;
+  border-radius: 8px;
+  width: 100%;
+  text-align: left;
+}
+#nav-menu-drawer .nav-item-label {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+#nav-menu-drawer .nav-item-sub {
+  font-size: 0.68rem;
+  opacity: 0.65;
+  line-height: 1.25;
+}
+#nav-menu-drawer .nav-item.active,
+#nav-menu-drawer .nav-item[aria-current="page"] {
+  background: rgba(196, 165, 118, 0.18);
+  border-left: 3px solid var(--gold, #c4a576);
+}
+#nav-menu-drawer .nav-item.nav-item-locked {
+  opacity: 0.55;
+}
+#nav-menu-drawer .nav-item.nav-item-locked::after {
+  content: ' · unlocks with setup';
+  font-size: 0.62rem;
+  opacity: 0.8;
+}
+
+/* ── 3g-topbar calm (structure preserved) ── */
+#topbar {
+  border-bottom: var(--p3-border-quiet);
+  box-shadow: none;
+}
+#topbar .btn-gold {
+  box-shadow: none;
+}
+
+body.editorial-v4.dark-mode .m-page-guide-pop,
+body.editorial-v4.dark-mode .p3-overflow-drop,
+body.editorial-v4.dark-mode .p3-show-more {
+  background: #1a1a1a;
+  border-color: #2e2e2e;
+  color: #e6e6e6;
+}
+body.editorial-v4.dark-mode .cwp-row-hover-actions-inner {
+  background: linear-gradient(90deg, transparent, #1a1a1a 24%);
+}
+body.editorial-v4.dark-mode .m-crumb-page { color: #e6e6e6; }

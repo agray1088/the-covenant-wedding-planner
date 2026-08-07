@@ -1,0 +1,231 @@
+/* ============================================================================
+   Covenant Wedding Planner — REDESIGN TOKENS
+   Drop-in replacement for css/planner-tokens.css
+   ----------------------------------------------------------------------------
+   Property names are IDENTICAL to the existing planner-tokens.css wherever the
+   planner already defines one. That is deliberate: swapping this file changes
+   ~60% of the visual language with ZERO markup edits. New properties are
+   grouped under "NEW IN REDESIGN" and are additive — nothing reads them until
+   redesign-components.css is also loaded.
+
+   Load order:  planner.css  →  redesign-tokens.css  →  redesign-components.css
+                →  redesign-shell.css  →  redesign-layouts.css
+   ========================================================================= */
+
+:root {
+  /* ---- brand primitives (planner already uses these names) --------------- */
+  --forest:        #2D4A3E;
+  --forest-deep:   #20362D;
+  --forest-lt:     #4A6B5C;
+  --gold:          #B89968;
+  --gold-lt:       #D4B896;
+  --gold-pale:     #F5EFE4;
+  --gold-soft:     #EFE6D4;
+  --ivory:         #F9F7F4;
+  --ivory-dk:      #F0ECE6;
+  --charcoal:      #23211C;
+
+  /* ---- surfaces ---------------------------------------------------------- */
+  --surface-canvas:  #F9F7F4;   /* app background behind the frame */
+  --surface-content: #FFFFFF;   /* the work surface: tables, forms */
+  --surface-raised:  #FDFCFA;   /* toolbars, page-header strip */
+  --surface-sunken:  #F9F5EF;   /* the 224px rail, group rows */
+  --surface-active:  #F4F1EA;   /* bulk bar, selected rail section */
+  --surface-chrome:  #FDFCFA;   /* tab strip */
+  --surface-footer:  #F3EFE8;
+  --surface-selected:#F4F7FB;   /* checkbox-selected table row */
+  --surface-focused: #FDFAF4;   /* row currently open in the drawer */
+
+  /* ---- text -------------------------------------------------------------- */
+  --text-primary:  #23211C;
+  --text-body:     #3F3B34;
+  --text-muted:    #6B645D;
+  --text-subtle:   #8A7E6B;   /* eyebrows, rail labels, secondary numerals */
+  --text-faint:    #B0A794;   /* placeholder-ish, de-emphasised meta */
+  --text-empty:    #CFC6B4;   /* em-dash cells, inline add-row glyph */
+  --text-link:     #946F33;   /* cross-page references */
+  --text-on-dark:  #F4EFE6;
+  --text-heading:  #20362D;   /* page titles, stat values, drawer titles.
+                                 NEVER --forest-deep: that is a SURFACE token and
+                                 inverts to near-black in dark mode. */
+
+  /* ---- borders ----------------------------------------------------------- */
+  --border-subtle:  #E7E1D4;   /* structural: section + panel edges */
+  --border-hairline:#F0EBE0;   /* table row separators */
+  --border-control: #D9CFBA;   /* chips, buttons, inputs at rest */
+  --border-field:   #E0DBD1;   /* drawer field boxes */
+  --border-strong:  #B0A794;
+
+  /* ---- status: 5 schemes, bg / text / border ----------------------------- */
+  --status-green-bg:  #EEF6F0;  --status-green-text:  #2F6B45;  --status-green-border:  #CFE3D5;
+  --status-gold-bg:   #FFF7DF;  --status-gold-text:   #8A640F;  --status-gold-border:   #E7CE80;
+  --status-gray-bg:   #EEF1F2;  --status-gray-text:   #626D74;  --status-gray-border:   #DDE3E4;
+  --status-red-bg:    #FBEEEC;  --status-red-text:    #9C3B34;  --status-red-border:    #ECCFC9;
+  --status-blue-bg:   #E9EEF8;  --status-blue-text:   #4A5691;  --status-blue-border:   #CFD8EF;
+  --status-badge-bg:  var(--surface-active);
+  --status-badge-text:var(--text-muted);
+  --status-badge-border: transparent;
+
+  /* ---- typography -------------------------------------------------------- */
+  --font-ui:     Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-mono:   ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --type-page-title:  20px;   --type-page-title-lh:  1.2;
+  --type-section:     10px;   /* eyebrow: uppercase, .16em, 700 */
+  --type-stat:        24px;
+  --type-body:        13px;   --type-body-lh: 1.6;
+  --type-table:       13px;
+  --type-meta:        12px;
+  --type-micro:       11px;
+  --tracking-eyebrow: .16em;
+  --tracking-header:  .12em;  /* table header cells */
+  --tracking-tab:     .1em;
+
+  /* ---- spacing (names kept from the existing file) ----------------------- */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px;
+  --space-4: 16px; --space-5: 20px; --space-6: 24px;
+  --space-7: 32px; --space-8: 48px;
+
+  /* ---- geometry ---------------------------------------------------------- */
+  --shell-topbar-h:   52px;
+  --shell-tabbar-h:   46px;
+  --shell-subnav-h:   40px;
+  --shell-rail-w:     224px;
+  --shell-drawer-w:   360px;
+  --shell-gutter:     24px;   /* was clamp(2.5rem, 8vw, 8.5rem) */
+  --planner-page-gutter: 24px;
+
+  --component-table-row-height: 36px;
+  --component-input-height:     32px;
+  --component-button-height:    32px;
+  --component-chip-height:      28px;
+  --component-icon-button-size: 28px;
+  --component-card-padding:     var(--space-5);
+  --component-section-gap:      0px;   /* sections butt against hairlines */
+
+  --row-h-compact: 30px;
+  --row-h-default: 36px;
+  --row-h-tall:    44px;
+
+  /* ---- radius: the system is square ------------------------------------- */
+  --radius-sm: 0;  --radius-md: 0;  --radius-lg: 0;
+  --btn-radius: 0; --status-chip-radius: 0;
+  --radius-round: 50%;   /* avatars and floor-plan tables only */
+
+  /* ---- buttons ----------------------------------------------------------- */
+  --btn-pad-y: 0;         --btn-pad-x: 16px;
+  --btn-font-size: 13px;  --btn-font-weight: 600;
+  --btn-toolbar-pad-y: 0; --btn-toolbar-pad-x: 11px;
+  --btn-toolbar-font-size: 12px;
+
+  /* ---- progress ---------------------------------------------------------- */
+  --progress-track-height: 4px;      /* rail meters; 12px for page-level bars */
+  --progress-track-height-lg: 12px;
+  --progress-track-radius: 0;
+  --progress-track-bg: var(--border-subtle);
+  --progress-fill-bg:  var(--forest);
+  --progress-fill-projected: repeating-linear-gradient(135deg, #CFC6B4 0 5px, #E2DBCC 5px 10px);
+  --progress-fill-over: var(--status-red-text);
+  --progress-label-color: var(--text-muted);
+  --progress-value-color: var(--forest);
+
+  /* ---- elevation: near-flat by design ----------------------------------- */
+  --shadow-none:   none;
+  --shadow-drawer: none;                              /* a border, not a shadow */
+  --shadow-popover:0 8px 24px rgba(20,26,22,.14);
+  --shadow-modal:  0 18px 48px rgba(20,26,22,.28);
+
+  --modal-width-sm: 420px; --modal-width-md: 680px; --modal-width-lg: 1140px;
+  --app-sidebar-width: 0;
+
+  /* ---- motion ------------------------------------------------------------ */
+  --ease: cubic-bezier(.2,.6,.2,1);
+  --dur-fast: 90ms; --dur: 140ms;
+}
+
+/* ============================================================================
+   DARK MODE
+   Selector list matches every dark hook the planner already ships.
+   Geometry NEVER changes between themes — colour only.
+   ========================================================================= */
+body.dark-mode,
+body.dark,
+body[data-theme="dark"],
+body.editorial-v4[data-theme="dark"],
+[data-theme="dark"],
+.dark-mode {
+  --forest:        #2F5645;
+  --forest-deep:   #16241E;
+  --forest-lt:     #6E9C84;
+  --gold:          #B08D55;
+  --gold-lt:       #C9A96E;
+  --gold-pale:     #E4D8BF;
+  --gold-soft:     #2A2418;
+  --ivory:         #1A1A1A;
+  --ivory-dk:      #222222;
+  --charcoal:      #E6E6E6;
+
+  --surface-canvas:  #141414;
+  --surface-content: #1A1A1A;
+  --surface-raised:  #1E1E1E;
+  --surface-sunken:  #1C1C1C;
+  --surface-active:  #222222;
+  --surface-chrome:  #1E1E1E;
+  --surface-footer:  #181818;
+  --surface-selected:#1B2028;
+  --surface-focused: #24211B;
+
+  --text-primary:  #E6E6E6;
+  --text-body:     #D2D2D2;
+  --text-muted:    #9A9A9A;
+  --text-subtle:   #8A8A8A;
+  --text-faint:    #6E6E6E;
+  --text-empty:    #5A5A5A;
+  --text-link:     #C9A96E;
+  --text-on-dark:  #E6E6E6;
+  --text-heading:  #EDE8DE;
+
+  --border-subtle:  #2E2E2E;
+  --border-hairline:#262626;
+  --border-control: #3A3A3A;
+  --border-field:   #333333;
+  --border-strong:  #4A4A4A;
+
+  /* translucent fills: the light pastels glow at these luminances */
+  --status-green-bg: rgba(111,156,128,.14); --status-green-text: #8FB99F; --status-green-border: #35503F;
+  --status-gold-bg:  rgba(201,162,74,.12);  --status-gold-text:  #CBAB6B; --status-gold-border:  #5A4A2B;
+  --status-gray-bg:  rgba(160,170,175,.12); --status-gray-text:  #A6B0B5; --status-gray-border:  #3C4448;
+  --status-red-bg:   rgba(190,90,80,.14);   --status-red-text:   #D98A80; --status-red-border:   #5C3A36;
+  --status-blue-bg:  rgba(120,140,200,.14); --status-blue-text:  #9AA8DC; --status-blue-border:  #3A4260;
+
+  --progress-track-bg: #2E2E2E;
+  --progress-fill-bg:  #2F5645;
+  --progress-fill-projected: repeating-linear-gradient(135deg, #3A3A3A 0 5px, #2A2A2A 5px 10px);
+  --progress-value-color: #8FB99F;
+
+  --shadow-popover: 0 8px 24px rgba(0,0,0,.5);
+  --shadow-modal:   0 18px 48px rgba(0,0,0,.62);
+
+  /* surfaces that are forest in light and must NOT flatten to grey at night */
+  --shell-topbar-bg:     #16241E;
+  --table-header-bg:     #1D2F27;
+  --table-header-rule:   #6B5738;
+}
+
+:root {
+  --shell-topbar-bg:   var(--forest);
+  --table-header-bg:   var(--forest-deep);
+  --table-header-rule: var(--gold);
+}
+
+/* Print is light, always. Paper has no dark mode. */
+@media print {
+  body.dark-mode, body.dark, body[data-theme="dark"], body.editorial-v4[data-theme="dark"], [data-theme="dark"], .dark-mode {
+    --surface-canvas:#FFF; --surface-content:#FFF; --surface-raised:#FFF;
+    --surface-sunken:#FFF; --surface-active:#FFF; --surface-chrome:#FFF;
+    --text-primary:#000; --text-body:#000; --text-muted:#333; --text-subtle:#555;
+    --border-subtle:#000; --border-hairline:#999; --border-control:#666;
+    --table-header-bg:#FFF; --table-header-rule:#000; --shell-topbar-bg:#FFF;
+  }
+}

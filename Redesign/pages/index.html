@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redesign page shells — all 38</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../redesign-tokens.css">
+<link rel="stylesheet" href="../redesign-components.css">
+<style>
+  body { margin: 0; padding: 48px 40px 80px; background: var(--surface-canvas); font-family: var(--font-ui); color: var(--text-primary); }
+  .w { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+  h1 { margin: 0; font: 500 42px/1.05 var(--font-display); color: var(--text-heading); }
+  .lede { margin: 0; font-size: 15px; line-height: 1.7; color: var(--text-muted); max-width: 70ch; }
+  .warn { padding: 14px 16px; border: 1px solid var(--status-gold-border); background: var(--status-gold-bg); color: var(--status-gold-text); font-size: 13px; line-height: 1.65; max-width: 80ch; }
+  .grp { display: flex; flex-direction: column; gap: 10px; }
+  .grp__h { font: 700 10px/1 var(--font-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--text-subtle); padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; }
+  .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; }
+  a.card { display: block; padding: 13px 15px; border: 1px solid var(--border-subtle); background: var(--surface-content); text-decoration: none; }
+  a.card:hover { border-color: var(--border-strong); }
+  .t { font-size: 14px; font-weight: 600; color: var(--text-heading); }
+  .d { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.55; }
+  code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="w">
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="font:700 10px/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--text-link)">Implementation · 38 pages</div>
+    <h1>Redesign page shells</h1>
+    <p class="lede">Every page of the planner, rebuilt on the redesign CSS and structured so the planner&rsquo;s own JavaScript still finds what it expects. Each file preserves its panel id, every JS mount-point id, and every <code>onclick</code> handler name from <code>index.html</code>.</p>
+  </div>
+  <div class="warn"><b>These are shells, not finished pages.</b> The planner renders its tables and stats into mount points with JavaScript, so opened standalone they look empty below the toolbar — that is correct. The <code>&lt;script&gt;</code> tags point at <code>../../js/planner.js</code> and resolve once this folder sits inside the planner root.</div>
+  <div class="grp">
+    <div class="grp__h"><span>Overview</span><span>2</span></div>
+    <div class="list">
+      <a class="card" href="dashboard.html"><div class="t">Dashboard</div><div class="d">Read-only roll-up — the one page with no table and no drawer</div></a>
+      <a class="card" href="notes.html"><div class="t">Notes</div><div class="d">Free text pinned to any record</div></a>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="grp__h"><span>Planning</span><span>4</span></div>
+    <div class="list">
+      <a class="card" href="tasks.html"><div class="t">Timeline &amp; Tasks</div><div class="d">The template every other table page follows</div></a>
+      <a class="card" href="calendar.html"><div class="t">Smart Calendar</div><div class="d">Other pages&rsquo; records, on a grid</div></a>
+      <a class="card" href="appointments.html"><div class="t">Appointments</div><div class="d">Fittings, tastings, sessions</div></a>
+      <a class="card" href="logistics.html"><div class="t">Weekend Logistics</div><div class="d">Three days of movements</div></a>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="grp__h"><span>People</span><span>6</span></div>
+    <div class="list">
+      <a class="card" href="guests.html"><div class="t">Guest List</div><div class="d">The 24-field record — six columns, the rest in the drawer</div></a>
+      <a class="card" href="households.html"><div class="t">Households</div><div class="d"><b>New.</b> A derived view over guest records</div></a>
+      <a class="card" href="contacts.html"><div class="t">Contacts</div><div class="d"><b>New.</b> Vendors and guests through one lens</div></a>
+      <a class="card" href="party.html"><div class="t">Wedding Party</div><div class="d">Role, side, attire, duties</div></a>
+      <a class="card" href="tables.html"><div class="t">Table Layout</div><div class="d">Floor plan, assignments, detail cards</div></a>
+      <a class="card" href="gifts.html"><div class="t">Gifts</div><div class="d">Gift, giver, thank-you</div></a>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="grp__h"><span>Money</span><span>3</span></div>
+    <div class="list">
+      <a class="card" href="budget.html"><div class="t">Budget</div><div class="d">Derived rows separated from contract-backed rows</div></a>
+      <a class="card" href="payments.html"><div class="t">Payments</div><div class="d">Schedule and status</div></a>
+      <a class="card" href="contracts.html"><div class="t">Contracts &amp; Invoices</div><div class="d">Contracts with instalment children</div></a>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="grp__h"><span>Vendors</span><span>4</span></div>
+    <div class="list">
+      <a class="card" href="vendors.html"><div class="t">Venue &amp; Vendors</div><div class="d">Shortlist, booked, comparison</div></a>
+      <a class="card" href="catering.html"><div class="t">Catering &amp; Menu</div><div class="d">Nine sections, every headcount derived</div></a>
+      <a class="card" href="entertainment.html"><div class="t">Entertainment</div><div class="d">Performers, set list, do-not-play</div></a>
+      <a class="card" href="shotlist.html"><div class="t">Shot Lists</div><div class="d">Four lists, named people</div></a>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="grp__h"><span>The Day</span><span>3</span></div>
+    <div class="list">
+      <a class="card" href="timeline.html"><div class="t">Wedding Day Timeline</div><div class="d">The single day</div></a>
+      <a class="card" href="ceremony.html"><div class="t">Ceremony &amp; Reception</div><div class="d">Order of service and order of the evening</div></a>
+      <a class="card" href="honeymoon.html"><div class="t">Honeymoon &amp; After</div><div class="d">Bookings, itinerary, packing, trip budget</div></a>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="grp__h"><span>Covenant</span><span>5</span></div>
+    <div class="list">
+      <a class="card" href="vision.html"><div class="t">Vision &amp; Foundation</div><div class="d">Class B keepsake — values, scriptures, promises</div></a>
+      <a class="card" href="prayer.html"><div class="t">Prayer Journal</div><div class="d">Class B keepsake — entries and answers</div></a>
+      <a class="card" href="counseling.html"><div class="t">Premarital Counseling</div><div class="d">Sessions with homework children</div></a>
+      <a class="card" href="firstmonth.html"><div class="t">First-Month Rhythms</div><div class="d">Nine rhythms, starting the day after</div></a>
+      <a class="card" href="homecoming.html"><div class="t">Newlywed Homecoming</div><div class="d">Settling in, name change, first month</div></a>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="grp__h"><span>Documents</span><span>6</span></div>
+    <div class="list">
+      <a class="card" href="mood.html"><div class="t">Vision Board</div><div class="d">Imagery, favourites, vendor briefs</div></a>
+      <a class="card" href="essentials.html"><div class="t">Essentials Checklist</div><div class="d">What to buy, and who carries it</div></a>
+      <a class="card" href="packets.html"><div class="t">Share Packets</div><div class="d">Read-only links</div></a>
+      <a class="card" href="emails.html"><div class="t">Email Templates</div><div class="d">Merge fields resolved against real records</div></a>
+      <a class="card" href="print-centre.html"><div class="t">Print Centre</div><div class="d"><b>New.</b> Every printable, sorted by print class</div></a>
+      <a class="card" href="data-hub.html"><div class="t">Database Hub</div><div class="d">Every column, raw</div></a>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="grp__h"><span>No tab · reached from the top bar or help</span><span>5</span></div>
+    <div class="list">
+      <a class="card" href="history.html"><div class="t">Planner History</div><div class="d">Nothing lit in the tab strip — a log is somewhere you are <i>sent</i></div></a>
+      <a class="card" href="setup.html"><div class="t">Wedding Setup</div><div class="d">The eleven facts every other page reads</div></a>
+      <a class="card" href="instructions.html"><div class="t">Get Started</div><div class="d">Five steps, in the order that saves re-typing</div></a>
+      <a class="card" href="guide.html"><div class="t">Page-by-Page Guide</div><div class="d">What each page owns</div></a>
+      <a class="card" href="faq.html"><div class="t">FAQ</div><div class="d">Thirty-one questions</div></a>
+    </div>
+  </div>
+  <p class="lede"><b>To use these:</b> copy the <code>redesign/</code> folder into the planner root so the relative paths to <code>js/</code> and <code>css/</code> resolve. See <code>../README.md</code> §4 for what is preserved and what changed.</p>
+</div>
+</body>
+</html>

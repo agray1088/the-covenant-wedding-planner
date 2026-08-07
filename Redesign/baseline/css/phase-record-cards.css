@@ -1,0 +1,109 @@
+/* Record cards on minimal pages — mirrors record editor fields */
+.hub-record-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* Record cards — defer surfaces/borders to unified card tokens (Batch A step 5) */
+.hub-record-card {
+  background: var(--card-bg, transparent);
+  border: 1px solid var(--card-border, var(--line, #d9cdb8));
+  border-radius: var(--card-radius, 8px);
+  padding: 0.85rem 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  text-align: left;
+  box-shadow: none;
+}
+.hub-record-card:hover {
+  border-color: var(--gold, #c4a576);
+  box-shadow: none;
+}
+.hub-record-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+.hub-record-card-title {
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--forest, #2d4a35);
+  margin: 0;
+  line-height: 1.25;
+}
+.hub-record-card-badge {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  background: rgba(45, 74, 53, 0.08);
+  color: var(--forest, #2d4a35);
+}
+.hub-record-card-badge.warn {
+  background: rgba(180, 120, 40, 0.12);
+  color: #8a5a18;
+}
+.hub-record-card-badge.ok {
+  background: rgba(45, 120, 70, 0.12);
+  color: #2d6a45;
+}
+.hub-record-card-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.65rem;
+  font-size: 0.74rem;
+}
+.hub-record-card-field {
+  min-width: 0;
+}
+.hub-record-card-field.full {
+  grid-column: 1 / -1;
+}
+.hub-record-card-field kbd {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted, #6b7280);
+  font-style: normal;
+  margin-bottom: 0.1rem;
+}
+.hub-record-card-field span {
+  color: var(--charcoal, #2a2520);
+  word-break: break-word;
+}
+.hub-record-card-actions {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line, #e5ddd0);
+}
+.hub-record-card-actions .ued-link {
+  font-size: 0.72rem;
+}
+.hub-record-card-empty {
+  grid-column: 1 / -1;
+  padding: 1.25rem;
+  text-align: center;
+  color: var(--muted, #6b7280);
+  font-size: 0.82rem;
+}
+.hub-record-card-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+  font-size: 0.74rem;
+  color: var(--muted, #6b7280);
+}

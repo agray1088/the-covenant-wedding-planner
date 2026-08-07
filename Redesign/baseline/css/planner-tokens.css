@@ -1,0 +1,99 @@
+/* Covenant Wedding Planner — semantic surface tokens (light mode) */
+:root {
+  --surface-canvas: #f9f7f4;
+  --surface-content: #ffffff;
+  --surface-raised: #fdfcfa;
+  --surface-footer: #f3efe8;
+  --surface-chrome: #fdfcfa;
+  --text-primary: #2a2a28;
+  --text-muted: #5c5c58;
+  --border-subtle: #e7e1d4;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --component-card-padding: var(--space-5);
+  --component-section-gap: var(--space-6);
+  --component-input-height: 40px;
+  --component-button-height: 40px;
+  --component-table-row-height: 42px;
+  --component-icon-button-size: 36px;
+  --btn-radius: 8px;
+  --btn-pad-y: 0.55rem;
+  --btn-pad-x: 1rem;
+  --btn-font-size: 0.82rem;
+  --btn-toolbar-pad-y: 0.45rem;
+  --btn-toolbar-pad-x: 0.85rem;
+  --btn-toolbar-font-size: 0.78rem;
+
+  /* Status pill / chip semantics (light) */
+  --status-green-bg: #eef6f0;
+  --status-green-text: #2f6b45;
+  --status-green-border: #cfe3d5;
+  --status-gold-bg: #fff7df;
+  --status-gold-text: #8a640f;
+  --status-gold-border: #e7ce80;
+  --status-gray-bg: #eef1f2;
+  --status-gray-text: #626d74;
+  --status-gray-border: #dde3e4;
+  --status-red-bg: #fff0ed;
+  --status-red-text: #a33b28;
+  --status-red-border: #ebb4aa;
+  --status-blue-bg: #e9eef8;
+  --status-blue-text: #4a5691;
+  --status-blue-border: #cfd8ef;
+  --status-badge-bg: var(--gold-pale, #efe8dd);
+  --status-badge-text: #5c5c58;
+  --status-badge-border: transparent;
+  --status-chip-radius: 0;
+
+  /* Progress track semantics (light) */
+  --progress-track-height: 9px;
+  --progress-track-radius: 0;
+  --progress-track-bg: var(--border-subtle, #e7e1d4);
+  --progress-fill-bg: var(--forest, #2d4a3e);
+  --progress-label-color: var(--text-muted, #5c5c58);
+  --progress-value-color: var(--forest, #2d4a3e);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --modal-width-sm: 420px;
+  --modal-width-md: 680px;
+  --modal-width-lg: 920px;
+  --app-sidebar-width: 0;
+
+  /* Equal left/right page gutters — breathing room around cards/sections.
+     clamp scales the outer padding with the viewport: a touch more on
+     tablet (min) and desktop (max) while staying responsive. */
+  --planner-page-gutter: clamp(2.5rem, 8vw, 8.5rem);
+
+  /* Premium spacing aliases — comfortable editorial rhythm (light + dark) */
+  --planner-card-gap: var(--space-4);
+  --planner-section-gap: var(--space-5);
+  --planner-panel-padding: var(--space-5);
+  --planner-table-head-x: var(--planner-panel-padding);
+  --planner-grid-gap: var(--space-4);
+  --planner-form-gap: var(--space-3);
+  --planner-field-stack: var(--space-2);
+  --planner-table-cell-y: 0.55rem;
+  --planner-table-cell-x: 0.65rem;
+  --planner-stat-pad-x: var(--space-5);
+  --planner-modal-pad: var(--space-5);
+  --planner-sidebar-pad: var(--space-3);
+  --hub-sidebar-pad: var(--space-3);
+  --hub-main-pad: var(--space-5);
+}
+
+@media (max-width: 720px) {
+  :root {
+    --planner-page-gutter: clamp(1.25rem, 4vw, 2rem);
+    --planner-panel-padding: var(--space-4);
+    --planner-section-gap: var(--space-4);
+    --hub-main-pad: var(--space-4);
+    --btn-pad-x: 0.85rem;
+  }
+}

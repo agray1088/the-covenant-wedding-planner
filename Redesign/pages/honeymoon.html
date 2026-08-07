@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planning Timeline & Tasks — Covenant Wedding Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../redesign-tokens.css">
+<link rel="stylesheet" href="../redesign-components.css">
+<link rel="stylesheet" href="../redesign-shell.css">
+<link rel="stylesheet" href="../redesign-layouts.css">
+</head>
+<body class="rd-scope" data-page="honeymoon">
+<div class="rd-shell">
+  <!-- ═══ TOP BAR — preserve ids: onclick names match planner.js ═══ -->
+  <header class="rd-topbar">
+    <div class="rd-topbar__brand">
+      <span class="rd-topbar__mark">&#10022;</span>
+      <span class="rd-topbar__name">The Covenant Wedding Planner</span>
+    </div>
+    <button type="button" class="rd-topbar__wedding" onclick="openProfileSwitcher()">
+      <span class="rd-topbar__avatar" id="profile-initials">AK</span>
+      <span id="topbar-wedding-label">Ama &amp; Kwesi · 8 November 2026</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <button type="button" class="rd-search" onclick="openCommandPalette()">
+      <svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg>
+      <span>Search the planner</span>
+      <span class="rd-search__kbd">&#8984;K</span>
+    </button>
+    <div class="rd-topbar__right">
+      <button type="button" class="rd-undo" id="undo-btn" onclick="undoLastChange()" title="Undo (⌘Z)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M9 7H4V2"/><path d="M4 7a9 9 0 1 1 1.6 9"/></svg> Undo</button>
+      <button type="button" class="rd-undo" id="redo-btn" onclick="redoLastChange()" title="Redo (⌘⇧Z)" disabled><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M15 7h5V2"/><path d="M20 7a9 9 0 1 0-1.6 9"/></svg> Redo</button>
+      <span class="rd-savestate" id="save-state">Saved</span>
+      <button type="button" class="rd-topbar__bell" onclick="showPanel('dashboard')" aria-label="Alerts"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+      <button type="button" class="rd-topbar__gear" onclick="openViewerPrefs()" aria-label="Viewer preferences"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+      <button type="button" class="rd-topbar__profile" onclick="openViewerPrefs()">MO</button>
+    </div>
+  </header>
+  <nav class="rd-tabs" aria-label="Sections">
+    <button type="button" class="rd-tab" onclick="showPanel('dashboard')">Overview</button>
+    <button type="button" class="rd-tab" onclick="showPanel('tasks')">Planning</button>
+    <button type="button" class="rd-tab" onclick="showPanel('guests')">People</button>
+    <button type="button" class="rd-tab" onclick="showPanel('budget')">Money</button>
+    <button type="button" class="rd-tab" onclick="showPanel('vendors')">Vendors</button>
+    <button type="button" class="rd-tab is-active" onclick="showPanel('timeline')">The Day</button>
+    <button type="button" class="rd-tab" onclick="showPanel('vision')" data-covenant="1"><span class="rd-tab__dot"></span>Covenant</button>
+    <button type="button" class="rd-tab" onclick="showPanel('data-hub')">Documents</button>
+  </nav>
+  <nav class="rd-subnav" aria-label="Pages">
+    <button type="button" class="rd-subnav__item" onclick="showPanel('timeline')">Wedding Day Timeline</button>
+    <button type="button" class="rd-subnav__item" onclick="showPanel('ceremony')">Ceremony &amp; Reception</button>
+    <button type="button" class="rd-subnav__item" onclick="showPanel('logistics')">Weekend Logistics</button>
+    <button type="button" class="rd-subnav__item is-active" onclick="showPanel('honeymoon')">Honeymoon &amp; After</button>
+  </nav>
+  <div class="rd-body">
+    <aside class="rd-rail">
+      <div>
+        <div class="rd-rail__title">Sections</div>
+        <div class="rd-rail__list">
+          <button type="button" class="rd-rail__item is-active">Details &amp; bookings<span class="rd-rail__count">6</span></button>
+          <button type="button" class="rd-rail__item">Itinerary<span class="rd-rail__count">10</span></button>
+          <button type="button" class="rd-rail__item">Packing<span class="rd-rail__count">38</span></button>
+          <button type="button" class="rd-rail__item">Trip budget<span class="rd-rail__count">9</span></button>
+          <button type="button" class="rd-rail__item">Daily journal<span class="rd-rail__count">0</span></button>
+          <button type="button" class="rd-rail__item">After the day<span class="rd-rail__count">9</span></button>
+        </div>
+      </div>
+      <div>
+        <div class="rd-rail__title">Readiness</div>
+        <div class="rd-rail__meters">
+          <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Booked</span><span class="rd-rail__count">4 of 6</span></div><div class="rd-progress"><div class="rd-progress__fill" style="width:67%"></div></div></div>
+          <div class="rd-rail__meter-top"><span>Packed</span><span class="rd-rail__count">12 of 38</span></div>
+          <div class="rd-rail__meter-top"><span>Committed</span><span class="rd-rail__count">$4,180</span></div>
+          <div class="rd-rail__meter-top"><span>Target</span><span class="rd-rail__count">$5,400</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="rd-rail__title">Group by</div>
+        <div class="rd-rail__list">
+          <button type="button" class="rd-rail__item is-active">Type<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Day<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Status<span class="rd-rail__count"></span></button>
+        </div>
+      </div>
+      <p class="rd-rail__note">The trip budget is separate from the $30,000 wedding budget and does not feed it.</p>
+    </aside>
+    <main class="rd-main" id="panel-honeymoon" data-panel="honeymoon">
+      <div class="rd-pagehead">
+        <div>
+          <div class="rd-pagehead__eyebrow">The Day</div>
+          <h1 class="rd-pagehead__title">Honeymoon &amp; After</h1>
+        </div>
+        <div class="rd-pagehead__actions">
+          <button type="button" class="rd-btn" onclick="window.print()">Print itinerary</button>
+          <button type="button" class="rd-btn" onclick="window.print()">Print section</button>
+          <button type="button" class="rd-btn" onclick="exportSectionCSV('Honeymoon',data.honeyItinerary)">Export CSV</button>
+          <button type="button" class="rd-btn rd-btn--primary" onclick="addHoneymoonRow()">+ Add booking</button>
+        </div>
+      </div>
+      <div class="rd-stats m-stats" id="honeymoon-stats"></div>
+      <div class="rd-toolbar">
+        <button type="button" class="rd-chip">Type: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button type="button" class="rd-chip">Status: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button type="button" class="rd-chip">Day: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button type="button" class="rd-chip rd-chip--ghost"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Sort by date</button>
+        <div class="rd-toolbar__right">
+          <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · 8 of 10<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+          <button type="button" class="rd-chip" onclick="autoFitColumns(this)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>
+          <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · compact<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+          <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item is-active">Bookings</button><button type="button" class="rd-viewswitch__item">Itinerary</button><button type="button" class="rd-viewswitch__item">Packing</button></div>
+        </div>
+      </div>
+      <div class="rd-bulkbar" id="bulk-bar" hidden>
+        <span class="rd-bulkbar__count"><span data-bulk-count>0</span> selected</span>
+        <span class="rd-bulkbar__sep"></span>
+        <button type="button" class="rd-bulkbar__action">Set status</button>
+        <button type="button" class="rd-bulkbar__action">Set day</button>
+        <button type="button" class="rd-bulkbar__action">Mark packed</button>
+        <button type="button" class="rd-bulkbar__action">Export selection</button>
+        <button type="button" class="rd-bulkbar__clear">Clear selection</button>
+      </div>
+      <div class="rd-surface">
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">Details &amp; bookings</div>
+        <p class="rd-help">Four confirmed; insurance and one excursion still open.</p>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Add a booking</button>
+      </div>
+        <!-- JS mount: cwpRenderTable('honeyDetails'). Do not rename. -->
+        <div class="rd-table-wrap ued-table-wrap" id="cwp-honeyDetails"></div>
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">Transport</div>
+        <p class="rd-help">Flights and transfers.</p>
+      </div>
+        <!-- JS mount: cwpRenderTable('honeyTransport'). Do not rename. -->
+        <div class="rd-table-wrap ued-table-wrap" id="cwp-honeyTransport"></div>
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">Itinerary</div>
+        <p class="rd-help">Three days with nothing planned — shown, not chased.</p>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Add an entry</button>
+      </div>
+        <!-- JS mount: cwpRenderTable('honeyItinerary'). Do not rename. -->
+        <div class="rd-table-wrap ued-table-wrap" id="cwp-honeyItinerary"></div>
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">Packing</div>
+        <p class="rd-help">Documents first, because three of them gate the trip.</p>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Load a starter list</button>
+      </div>
+        <!-- JS mount: cwpRenderTable('packing'). Do not rename. -->
+        <div class="rd-table-wrap ued-table-wrap" id="cwp-packing"></div>
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">Trip budget</div>
+        <p class="rd-help">Entirely separate from the wedding budget.</p>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Print the budget</button>
+      </div>
+        <!-- JS mount: cwpRenderTable('hmBudgetItems'). Do not rename. -->
+        <div class="rd-table-wrap ued-table-wrap" id="cwp-hmBudgetItems"></div>
+        <div class="rd-panel m-block" id="honeymoon-inline-editor-wrap"></div>
+      <div class="rd-section__head">
+        <div class="rd-pagehead__eyebrow">Daily journal</div>
+        <p class="rd-help">Written on the trip, not before.</p>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Start an entry</button>
+      </div>
+        <div class="rd-empty" id="honeymoon-journal">Nine empty days, one per night. The planner will not prompt for these and does not count them as outstanding.</div>
+      </div>
+    </main>
+    <aside class="rd-drawer" id="record-drawer" hidden></aside>
+  </div>
+  </div>
+<!-- The planner's own scripts. Load order matches index.html. -->
+<script src="../autofit-columns.js"></script>
+<script src="../../js/planner.js"></script>
+<script src="../../js/planner-pill-scheme.js"></script>
+<script src="../../js/ux-kit.js"></script>
+</body>
+</html>
