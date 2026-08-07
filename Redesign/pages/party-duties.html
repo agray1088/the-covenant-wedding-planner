@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Planning Timeline & Tasks — Covenant Wedding Planner</title>
+<title>Wedding Party · Duties — Covenant Wedding Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../redesign-shell.css">
 <link rel="stylesheet" href="../redesign-layouts.css">
 </head>
-<body class="rd-scope" data-page="tables">
+<body class="rd-scope" data-page="party">
 <div class="rd-shell">
   <!-- ═══ TOP BAR — preserve ids: onclick names match planner.js ═══ -->
   <header class="rd-topbar">
@@ -53,94 +53,72 @@
     <button type="button" class="rd-subnav__item" onclick="showPanel('guests')">Guest List</button>
     <button type="button" class="rd-subnav__item" onclick="showPanel('households')">Households</button>
     <button type="button" class="rd-subnav__item" onclick="showPanel('contacts')">Contacts</button>
-    <button type="button" class="rd-subnav__item" onclick="showPanel('party')">Wedding Party</button>
-    <button type="button" class="rd-subnav__item is-active" onclick="showPanel('tables')">Table Layout</button>
+    <button type="button" class="rd-subnav__item is-active" onclick="showPanel('party')">Wedding Party</button>
+    <button type="button" class="rd-subnav__item" onclick="showPanel('tables')">Table Layout</button>
     <button type="button" class="rd-subnav__item" onclick="showPanel('gifts')">Gifts</button>
   </nav>
   <div class="rd-body">
     <aside class="rd-rail">
       <div>
-        <div class="rd-rail__title">Views<button type="button" class="rd-rail__add" onclick="saveTableView()">+</button></div>
+        <div class="rd-rail__title">Views<button type="button" class="rd-rail__add" onclick="savePartyView()">+</button></div>
         <div class="rd-rail__list">
-          <button type="button" class="rd-rail__item is-active">All tables<span class="rd-rail__count">15</span></button>
-          <button type="button" class="rd-rail__item">Full<span class="rd-rail__count">12</span></button>
-          <button type="button" class="rd-rail__item">Has free seats<span class="rd-rail__count">3</span></button>
-          <button type="button" class="rd-rail__item">Unseated guests<span class="rd-rail__count rd-rail__count--warn">24</span></button>
+          <button type="button" class="rd-rail__item is-active">Everyone<span class="rd-rail__count">10</span></button>
+          <button type="button" class="rd-rail__item">Bride&rsquo;s side<span class="rd-rail__count">5</span></button>
+          <button type="button" class="rd-rail__item">Groom&rsquo;s side<span class="rd-rail__count">5</span></button>
+          <button type="button" class="rd-rail__item">Attire outstanding<span class="rd-rail__count rd-rail__count--warn">4</span></button>
+          <button type="button" class="rd-rail__item">Speaking<span class="rd-rail__count">3</span></button>
         </div>
       </div>
       <div>
-        <div class="rd-rail__title">Seating</div>
+        <div class="rd-rail__title">Attire</div>
         <div class="rd-rail__meters">
-          <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Seated</span><span class="rd-rail__count">118 of 142</span></div><div class="rd-progress"><div class="rd-progress__fill" style="width:83%"></div></div></div>
-          <div class="rd-rail__meter-top"><span>Free seats</span><span class="rd-rail__count">2</span></div>
-          <div class="rd-rail__meter-top"><span>Tables</span><span class="rd-rail__count">15</span></div>
-          <div class="rd-rail__meter-top"><span>Capacity</span><span class="rd-rail__count">120</span></div>
+          <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Fitted &amp; paid</span><span class="rd-rail__count">6 of 10</span></div><div class="rd-progress"><div class="rd-progress__fill" style="width:60%"></div></div></div>
+          <div class="rd-rail__meter-top"><span>Deposit only</span><span class="rd-rail__count">2</span></div>
+          <div class="rd-rail__meter-top"><span>Not measured</span><span class="rd-rail__count">2</span></div>
+          <div class="rd-rail__meter-top"><span>Group deadline</span><span class="rd-rail__count">12 Sep</span></div>
         </div>
       </div>
       <div>
         <div class="rd-rail__title">Group by</div>
         <div class="rd-rail__list">
-          <button type="button" class="rd-rail__item is-active">Table<span class="rd-rail__count"></span></button>
-          <button type="button" class="rd-rail__item">Side<span class="rd-rail__count"></span></button>
-          <button type="button" class="rd-rail__item">Group<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item is-active">Side<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Role<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">Attire status<span class="rd-rail__count"></span></button>
         </div>
       </div>
-      <p class="rd-rail__note">Seats are guest records. An RSVP change on the Guest List moves the seat here automatically.</p>
+      <p class="rd-rail__note">Duties carries an <b>"Unassigned" column</b> — red, last. Failure is a group, not a filter.</p>
     </aside>
-    <main class="rd-main" id="panel-tables" data-panel="tables">
+    <main class="rd-main" id="panel-party-duties" data-panel="party" data-view="duties">
       <div class="rd-pagehead">
         <div>
           <div class="rd-pagehead__eyebrow">People</div>
-          <h1 class="rd-pagehead__title">Table Layout</h1>
+          <h1 class="rd-pagehead__title">Wedding Party</h1>
         </div>
         <div class="rd-pagehead__actions">
-          <button type="button" class="rd-btn" onclick="autoSeatGuests()">Auto-seat remaining</button>
+          <button type="button" class="rd-btn" onclick="emailWeddingParty()">Send group email</button>
           <button type="button" class="rd-btn" onclick="window.print()">Print section</button>
-          <button type="button" class="rd-btn" onclick="exportSectionCSV('Tables',data.tables)">Export CSV</button>
-          <button type="button" class="rd-btn rd-btn--primary" onclick="addTableRow()">+ Add table</button>
+          <button type="button" class="rd-btn" onclick="exportSectionCSV('Wedding Party',data.party)">Export CSV</button>
+          <button type="button" class="rd-btn rd-btn--primary" onclick="addPartyRow()">+ Add member</button>
         </div>
       </div>
-      <div class="rd-stats m-stats" id="table-layout-stats"></div>
+      <div class="rd-stats m-stats" id="party-duties-stats"></div>
       <div class="rd-toolbar">
-        <button type="button" class="rd-chip">Table: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-        <button type="button" class="rd-chip">Side: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-        <button type="button" class="rd-chip">RSVP: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-        <button type="button" class="rd-chip rd-chip--ghost"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Sort by table</button>
-        <div class="rd-toolbar__right">
-          <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · 8 of 10<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-          <button type="button" class="rd-chip" onclick="autoFitColumns(this)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>
-          <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · compact<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-          <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item is-active">Floor plan</button><button type="button" class="rd-viewswitch__item">List</button><button type="button" class="rd-viewswitch__item">By guest</button></div>
+        <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item">Table</button><button type="button" class="rd-viewswitch__item">Cards</button><button type="button" class="rd-viewswitch__item is-active">Duties</button></div>
         </div>
       </div>
       <div class="rd-bulkbar" id="bulk-bar" hidden>
         <span class="rd-bulkbar__count"><span data-bulk-count>0</span> selected</span>
         <span class="rd-bulkbar__sep"></span>
-        <button type="button" class="rd-bulkbar__action">Move to a table</button>
-        <button type="button" class="rd-bulkbar__action">Seat together</button>
-        <button type="button" class="rd-bulkbar__action">Unseat</button>
-        <button type="button" class="rd-bulkbar__action">Print place cards</button>
+        <button type="button" class="rd-bulkbar__action">Set attire status</button>
+        <button type="button" class="rd-bulkbar__action">Assign duty</button>
+        <button type="button" class="rd-bulkbar__action">Email selected</button>
+        <button type="button" class="rd-bulkbar__action">Print measurements</button>
         <button type="button" class="rd-bulkbar__clear">Clear selection</button>
       </div>
       <div class="rd-surface">
-      <div class="rd-section__head">
-        <div class="rd-pagehead__eyebrow">Reception floor plan</div>
-        <p class="rd-help">Drag a table to move it; drag a guest onto a seat to assign.</p>
-        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Reset to venue plan</button>
-      </div>
-        <div class="rd-floorplan" id="table-floor-plan"></div>
-      <div class="rd-section__head">
-        <div class="rd-pagehead__eyebrow">Table assignments</div>
-        <p class="rd-help">Every row is a guest record.</p>
-        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Auto-seat the remaining 24</button>
-      </div>
-        <div class="rd-table-wrap" id="table-assignment-list"></div>
-      <div class="rd-section__head">
-        <div class="rd-pagehead__eyebrow">Table detail cards</div>
-        <p class="rd-help">Edit a name, capacity and who sits there without leaving the plan.</p>
-        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Print all cards</button>
-      </div>
-        <div class="rd-grid-3 tables-grid" id="tables-grid"></div>
+        <!-- View mount per CURSOR-IMPLEMENTATION-GUIDE §8. Fill from the same records as the base view. -->
+        <div class="rd-kanban" id="party-duties-mount"></div>
+        <span class="rd-table-foot ued-soft" id="party-duties-foot"></span>
       </div>
     </main>
     <aside class="rd-drawer" id="record-drawer" hidden></aside>

@@ -314,6 +314,29 @@
     const host = document.getElementById('budget-stats');
     if (!host) return;
     const f = budgetFigures();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      const committedPct = f.overall ? f.committedPct : 0;
+      RdDepth.renderStats(host, [
+        { label: 'Total budget', value: money0(f.overall), filter: 'Show all categories' },
+        { label: 'Committed', value: money0(f.committed), filter: 'Filter · Committed', target: f.overall ? { pct: committedPct, tick: 100 } : undefined },
+        { label: 'Paid', value: money0(f.paid), filter: 'Filter · Paid', spark: f.overall ? [20, 28, 35, 42, 48, 55, 62, Math.min(100, f.paid && f.committed ? Math.round(f.paid / f.committed * 100) : 70)] : undefined },
+        { label: 'Outstanding', value: money0(f.outstanding), filter: 'Filter · Outstanding' },
+        {
+          label: 'Remaining',
+          value: money0(f.remaining),
+          filter: 'Open reconciliation',
+          attention: f.remaining < 0 ? 'Over your budget target' : undefined
+        },
+        { label: 'Committed %', value: f.overall ? f.committedPct + '%' : '—', filter: 'By category' },
+        {
+          label: 'True total',
+          value: money0(f.trueTotal),
+          filter: 'True Total',
+          attention: f.overall && f.trueTotal > f.overall ? 'True total exceeds budget' : undefined
+        }
+      ]);
+      return;
+    }
     const cell = (label, val, tone) =>
       `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${esc(label)}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [
@@ -801,7 +824,32 @@
     const host = document.getElementById('bgt-sect-itemized');
     if (!host) return;
     const f = budgetFigures();
-    const refs = itemRefs().filter(itemMatchesFilters);
+    const allRefs = itemRefs();
+    const refs = allRefs.filter(itemMatchesFilters);
+    const bf = window._budgetItemFilters || {};
+    const filterOn = ['category', 'vendor', 'status'].some(k => bf[k] && bf[k] !== 'all');
+    if (typeof RdStates !== 'undefined' && RdStates.maybeEmpty &&
+        (allRefs.length === 0 || (filterOn && refs.length === 0))) {
+      const activeCat = cats()[typeof activeBudgetCategoryIndex !== 'undefined' ? activeBudgetCategoryIndex : 0];
+      const scope = window._budgetItemScope === 'selected' ? 'selected' : 'all';
+      const head = `<div class="rd-bgt-sect__head is-stacked">
+      <div class="rd-bgt-sect__headmain">
+        <div class="rd-bgt-eyebrow">Itemized · ${scope === 'selected' ? esc(activeCat ? activeCat.cat : 'category') : 'all categories'}</div>
+        <div class="rd-bgt-sect__title">${esc((typeof RdStates.copyFor === 'function' ? RdStates.copyFor('budget').heading : 'No budget lines yet'))}</div>
+      </div></div>`;
+      host.innerHTML = head + '<div id="cwp-budget-items" data-rd-state-slot="1"></div>';
+      RdStates.maybeEmpty(host.querySelector('#cwp-budget-items'), {
+        pageId: 'budget',
+        total: allRefs.length,
+        filtered: refs.length,
+        filterOn: filterOn,
+        onClear: function () {
+          window._budgetItemFilters = { category: 'all', vendor: 'all', status: 'all' };
+          renderBudgetItemizedSection();
+        }
+      });
+      return;
+    }
     const activeCat = cats()[typeof activeBudgetCategoryIndex !== 'undefined' ? activeBudgetCategoryIndex : 0];
     const scope = window._budgetItemScope === 'selected' ? 'selected' : 'all';
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';

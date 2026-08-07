@@ -5,13 +5,13 @@
   const TABLES_DRAWER_TABS = ['Table', 'Seats', 'Notes', 'History'];
   const RD_TABLES_COL_KEYS = ['guest', 'table', 'seat', 'side', 'group', 'rsvp', 'meal'];
   const RD_TABLES_COLUMNS = [
-    { key: 'guest', label: 'Guest', width: '190px' },
-    { key: 'table', label: 'Table', width: '110px' },
-    { key: 'seat', label: 'Seat', width: '80px' },
-    { key: 'side', label: 'Side', width: '120px' },
-    { key: 'group', label: 'Group', width: '170px' },
-    { key: 'rsvp', label: 'RSVP', width: '120px' },
-    { key: 'meal', label: 'Meal', width: '150px' }
+    { key: 'guest', label: 'Guest', width: '190px', type: 'person' },
+    { key: 'table', label: 'Table', width: '110px', type: 'link' },
+    { key: 'seat', label: 'Seat', width: '80px', type: 'text' },
+    { key: 'side', label: 'Side', width: '120px', type: 'select' },
+    { key: 'group', label: 'Group', width: '170px', type: 'select' },
+    { key: 'rsvp', label: 'RSVP', width: '120px', type: 'select' },
+    { key: 'meal', label: 'Meal', width: '150px', type: 'select' }
   ];
 
   /* The table engine builds the header, group rows and select gutter from
@@ -539,6 +539,27 @@
     const host = document.getElementById('tables-stats');
     if (!host) return;
     const s = tablesStatsData();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, [
+        { label: 'Tables', value: s.tables, filter: 'Show all tables' },
+        { label: 'Seats', value: s.seats, filter: 'Show seating' },
+        { label: 'Assigned', value: s.assigned, filter: 'Filter · Assigned' },
+        { label: 'Free seats', value: s.free, filter: 'Filter · Free seats' },
+        {
+          label: 'Short by',
+          value: s.shortBy,
+          filter: 'Not seated',
+          attention: s.shortBy > 0 ? 'Accepted guests with no table' : undefined,
+          onFilter: () => {
+            window._tablesUiFilters = window._tablesUiFilters || {};
+            window._tablesUiFilters.table = 'unseated';
+            if (typeof renderTables === 'function') renderTables();
+            else if (typeof window.__tablesRenderRd === 'function') window.__tablesRenderRd();
+          }
+        }
+      ]);
+      return;
+    }
     const cell = (label, val, tone) =>
       `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [
@@ -947,7 +968,7 @@
     d.hideToolbar = true;
     d.pageSize = 0;
     /* Re-read on every render so the chooser takes effect immediately. */
-    d.columns = tablesVisibleColumns().map(c => ({ key: c.key, label: c.label, width: c.width }));
+    d.columns = tablesVisibleColumns().map(c => ({ key: c.key, label: c.label, width: c.width, type: c.type || undefined }));
     d._rdActive = true;
   }
 
@@ -955,12 +976,31 @@
     if (typeof cwpRenderTable !== 'function') return;
     rdEnsureTablesAssignmentLayout(mountId);
     refreshTableAssignmentRows();
+    const wrap = document.getElementById(mountId);
+    const all = (data.tableAssignmentRows || []);
+    const total = all.length;
+    const shown = all.filter(tablesMatchesFilters).length;
+    const ui = window._tablesUiFilters || {};
+    const filterOn = ['side', 'group', 'table', 'rsvp'].some(k => ui[k] && ui[k] !== 'all');
+    if (typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'tables',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            window._tablesUiFilters = { side: 'all', group: 'all', table: 'all', rsvp: 'all' };
+            if (typeof renderTablesRd === 'function') renderTablesRd();
+            else renderTablesAssignmentTable(mountId || currentTablesMountId());
+          }
+        })) {
+      return;
+    }
     cwpRenderTable('tableAssignments', mountId);
     bindTablesAssignmentRows();
     rdApplyTablesDrawerRowFocus();
     rdApplyTablesRowHeight();
     appendTablesAssignmentAddRow(mountId);
-    const wrap = document.getElementById(mountId);
     if (wrap && wrap.dataset.rdBulkBound !== '1') {
       wrap.dataset.rdBulkBound = '1';
       wrap.addEventListener('change', ev => {

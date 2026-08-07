@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Redesign page shells — all 38</title>
+<title>Redesign page shells — base + view states</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../redesign-tokens.css">
 <link rel="stylesheet" href="../redesign-components.css">
@@ -26,7 +26,7 @@
 <body>
 <div class="w">
   <div style="display:flex;flex-direction:column;gap:14px">
-    <div style="font:700 10px/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--text-link)">Implementation · 38 pages</div>
+    <div style="font:700 10px/1 var(--font-ui);letter-spacing:.18em;text-transform:uppercase;color:var(--text-link)">Implementation · shells + view states</div>
     <h1>Redesign page shells</h1>
     <p class="lede">Every page of the planner, rebuilt on the redesign CSS and structured so the planner&rsquo;s own JavaScript still finds what it expects. Each file preserves its panel id, every JS mount-point id, and every <code>onclick</code> handler name from <code>index.html</code>.</p>
   </div>
@@ -115,6 +115,26 @@
     </div>
   </div>
   <p class="lede"><b>To use these:</b> copy the <code>redesign/</code> folder into the planner root so the relative paths to <code>js/</code> and <code>css/</code> resolve. See <code>../README.md</code> §4 for what is preserved and what changed.</p>
+
+  <div class="grp">
+    <div class="grp__h"><span>People &amp; Money · view states (guide §7)</span><span>14</span></div>
+    <div class="list">
+      <a class="card" href="households-labels.html"><div class="t">Households · Labels</div><div class="d">Skips households with no address</div></a>
+      <a class="card" href="households-cards.html"><div class="t">Households · Cards</div><div class="d">Same records as Table</div></a>
+      <a class="card" href="contacts-dayof.html"><div class="t">Contacts · Day-of sheet</div><div class="d">Working document by role</div></a>
+      <a class="card" href="contacts-cards.html"><div class="t">Contacts · Cards</div><div class="d">Same drawer as Table</div></a>
+      <a class="card" href="party-cards.html"><div class="t">Wedding Party · Cards</div><div class="d">Member cards</div></a>
+      <a class="card" href="party-duties.html"><div class="t">Wedding Party · Duties</div><div class="d">Kanban · Unassigned last, red</div></a>
+      <a class="card" href="tables-list.html"><div class="t">Table Layout · List</div><div class="d">Not seated group last, red</div></a>
+      <a class="card" href="tables-byguest.html"><div class="t">Table Layout · By guest</div><div class="d">Caterer export · dietary marks</div></a>
+      <a class="card" href="gifts-notes.html"><div class="t">Gifts · Notes</div><div class="d">Sorts by days owed</div></a>
+      <a class="card" href="budget-bycategory.html"><div class="t">Budget · By category</div><div class="d">Derived category totals</div></a>
+      <a class="card" href="budget-pledged.html"><div class="t">Budget · Pledged &amp; paid</div><div class="d">Not pledged group</div></a>
+      <a class="card" href="payments-calendar.html"><div class="t">Payments · Calendar</div><div class="d">Colour = status, never size</div></a>
+      <a class="card" href="contracts-documents.html"><div class="t">Contracts · Documents</div><div class="d">Missing docs still get cards</div></a>
+      <a class="card" href="contracts-schedule.html"><div class="t">Contracts · Schedule</div><div class="d">Instalments as child records</div></a>
+    </div>
+  </div>
 </div>
 </body>
 </html>

@@ -5771,8 +5771,13 @@ function showPanel(id, forceOpen = false) {
   if (id === 'history') id = 'dashboard';
   if (id === 'plan') id = 'tasks';
   if (id === 'reflect' && typeof _rflTab === 'undefined') _rflTab = 'vision';
-  if (!forceOpen && isSimpleModePageHidden(id) && id !== 'venue') id = 'dashboard';
-  if (!forceOpen && isMenuPageHidden(id) && id !== 'venue') id = 'dashboard';
+  /* Redesign chrome (§06) lists the full IA — Weekend Logistics, Wedding Party,
+     Table Layout, Contracts, etc. Essentials / Focus presets still hide those
+     from the legacy sidebar, but must not bounce an explicit redesign tab or
+     sub-nav click to the Dashboard. */
+  const redesignNav = document.body.classList.contains('rd-scope');
+  if (!forceOpen && !redesignNav && isSimpleModePageHidden(id) && id !== 'venue') id = 'dashboard';
+  if (!forceOpen && !redesignNav && isMenuPageHidden(id) && id !== 'venue') id = 'dashboard';
   if (typeof uxRestorePanelDom === 'function') uxRestorePanelDom(id);
   /* Redesign shells (.rd-pagehead) already paint immediately; the Phase-E
      skeleton is a full-panel white sheet (opacity .35 content). Skip it so a
@@ -8219,8 +8224,8 @@ function openCommandPalette(){
   if (!overlay){
     overlay = document.createElement('div');
     overlay.id = 'cmd-palette-overlay';
-    overlay.className = 'cmd-palette-overlay';
-    overlay.innerHTML = `<div class="cmd-palette" role="dialog" aria-modal="true" aria-label="Search planner"><div class="cmd-palette-head"><span class="gs-icon" aria-hidden="true">⌘K</span><input id="cmd-palette-input" type="search" placeholder="Search pages, guests, vendors, tasks…" autocomplete="off" aria-label="Command palette search"></div><div id="cmd-palette-results" class="cmd-palette-results" role="listbox"></div><div class="cmd-palette-foot"><span>↑↓ navigate</span><span>↵ open</span><span>esc close</span></div></div>`;
+    overlay.className = 'cmd-palette-overlay rd-cmd-overlay';
+    overlay.innerHTML = `<div class="cmd-palette rd-cmd" role="dialog" aria-modal="true" aria-label="Command palette"><div class="cmd-palette-head rd-cmd__head"><span class="gs-icon rd-cmd__kbd" aria-hidden="true">⌘K</span><input id="cmd-palette-input" type="search" placeholder="Search actions, pages, and records…" autocomplete="off" aria-label="Command palette search"></div><div id="cmd-palette-results" class="cmd-palette-results rd-cmd__results" role="listbox"></div><div class="cmd-palette-foot rd-cmd__foot"><span>↑↓ navigate</span><span>↵ open</span><span>⌘↵ drawer</span><span>esc close</span></div></div>`;
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e=>{ if (e.target === overlay) closeCommandPalette(); });
     const inp = overlay.querySelector('#cmd-palette-input');
@@ -8242,7 +8247,13 @@ function commandPaletteKey(e){
   if (e.key === 'Escape'){ closeCommandPalette(); return; }
   if (e.key === 'ArrowDown'){ e.preventDefault(); _cmdPaletteIndex = Math.min(items.length-1, _cmdPaletteIndex+1); }
   else if (e.key === 'ArrowUp'){ e.preventDefault(); _cmdPaletteIndex = Math.max(0, _cmdPaletteIndex-1); }
-  else if (e.key === 'Enter'){ if (_cmdPaletteIndex >= 0 && _cmdPaletteResults[_cmdPaletteIndex]){ e.preventDefault(); executeCommandPaletteResult(_cmdPaletteIndex); } return; }
+  else if (e.key === 'Enter'){
+    if (_cmdPaletteIndex >= 0 && _cmdPaletteResults[_cmdPaletteIndex]){
+      e.preventDefault();
+      executeCommandPaletteResult(_cmdPaletteIndex, { drawer: !!(e.metaKey || e.ctrlKey) });
+    }
+    return;
+  }
   else return;
   items.forEach((it,i)=>it.classList.toggle('active', i===_cmdPaletteIndex));
   if (items[_cmdPaletteIndex]) items[_cmdPaletteIndex].scrollIntoView({ block:'nearest' });
@@ -8255,55 +8266,134 @@ function commandPaletteScore(q, title, sub){
   if (s.includes(q)) return 40;
   return 0;
 }
+function cmdPaletteNeedsYouHits(){
+  const hits = [];
+  try {
+    const overdue = safeArray(data.tasks).filter(t => typeof taskIsOverdue === 'function' && taskIsOverdue(t)).length;
+    if (overdue) hits.push({ group:'Needs you', type:'Action', title: overdue + ' overdue task' + (overdue===1?'':'s'), sub:'Open Timeline & Tasks', panel:'tasks', score:95, action:true });
+    const pending = safeArray(data.guests).filter(g => /pending/i.test(String(g.rsvp||'')) && (typeof guestIsInvited === 'function' ? guestIsInvited(g) : !!g.invited)).length;
+    if (pending) hits.push({ group:'Needs you', type:'Action', title: pending + ' RSVP still pending', sub:'Open Guest List', panel:'guests', score:94, action:true });
+    const unpaid = safeArray(data.payments).filter(p => !/paid|complete|settled/i.test(String(p.status||''))).length;
+    if (unpaid) hits.push({ group:'Needs you', type:'Action', title: unpaid + ' payment' + (unpaid===1?'':'s') + ' open', sub:'Open Payments', panel:'payments', score:93, action:true });
+  } catch (e) { /* soft */ }
+  return hits;
+}
+function cmdPaletteActionHits(q){
+  const actions = [
+    { title:'Add a guest', sub:'People · Guest List', panel:'guests', run:()=>{ showPanel('guests', true); if (typeof covInlineNew==='function') covInlineNew('guests','record-drawer-body'); } },
+    { title:'Add a task', sub:'Planning · Timeline & Tasks', panel:'tasks', run:()=>{ showPanel('tasks', true); if (typeof covInlineNew==='function') covInlineNew('tasks','record-drawer-body'); } },
+    { title:'Add a payment', sub:'Money · Payments', panel:'payments', run:()=>{ showPanel('payments', true); } },
+    { title:'Open Wedding Setup', sub:'Form · date and names', panel:'setup' },
+    { title:'Download backup', sub:'Save a .sqlite copy', run:()=>{ if (typeof downloadSqliteBackup==='function') downloadSqliteBackup(); else if (typeof startHereBackup==='function') startHereBackup(); } },
+    { title:'Import guests CSV', sub:'People · Guest List', panel:'guests', run:()=>{ showPanel('guests', true); if (typeof openImportModal==='function') openImportModal(); } },
+    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } }
+  ];
+  return actions.map(a => {
+    const sc = q ? commandPaletteScore(q, a.title, a.sub) : 88;
+    if (q && !sc) return null;
+    return Object.assign({ group:'Actions', type:'Action', score: sc || 88, action:true }, a);
+  }).filter(Boolean);
+}
 function runCommandPalette(qRaw){
   const box = document.getElementById('cmd-palette-results'); if (!box) return;
   const q = String(qRaw||'').trim().toLowerCase();
   _cmdPaletteIndex = -1;
   const hits = [];
+
+  /* Furniture · ⌘K: Actions rank above records; empty shows favourites + Needs you. */
   if (!q){
+    hits.push.apply(hits, cmdPaletteNeedsYouHits());
+    hits.push.apply(hits, cmdPaletteActionHits('').slice(0, 4));
     const ob = ensureOnboardData();
-    (ob.favoritePages||[]).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ type:'Favorite', title:QJ_PAGES[id], sub:'Favorite page', panel:id, score:90 }));
-    (ob.recentPages||[]).slice(0,6).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ type:'Recent', title:QJ_PAGES[id], sub:'Recently viewed', panel:id, score:70 }));
-  }
-  Object.entries(QJ_PAGES).forEach(([id,label])=>{
-    const sc = q ? commandPaletteScore(q, label, id) : 0;
-    if (!q || sc) hits.push({ type:'Page', title:label, sub:'Go to section', panel:id, score:sc || 30 });
-  });
-  if (typeof DATA_HUB_REGISTRY !== 'undefined') {
-    Object.entries(DATA_HUB_REGISTRY).forEach(([catId, cat]) => {
-      const catTitle = databaseHubCategoryTitle(cat.label);
-      const catSc = q ? commandPaletteScore(q, catTitle, catId) : 35;
-      if (!q || catSc) hits.push({ type:'Database Hub', title:catTitle, sub:'Open hub category', hubCategory:catId, score:catSc });
-      cat.tables.forEach(tab => {
-        const tabId = dataHubTabId(tab);
-        const title = DATABASE_HUB_LABEL + ' — ' + cat.label + ' — ' + tab.label;
-        const sc = q ? commandPaletteScore(q, title, tab.label) : 0;
-        if (!q || sc) hits.push({ type:'Database Hub', title, sub:'Manage table in hub', hubCategory:catId, hubTable:tabId, score:sc || 40 });
+    const fav = (ob.favoritePages||[]).filter(p=>QJ_PAGES[p]).slice(0,4);
+    fav.forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Favourite', panel:id, score:90 }));
+    if (!fav.length) {
+      ['guests','tasks','budget','calendar'].filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Most used', panel:id, score:85 }));
+    }
+    (ob.recentPages||[]).slice(0,4).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Recent', type:'Recent', title:QJ_PAGES[id], sub:'Recently viewed', panel:id, score:70 }));
+  } else {
+    hits.push.apply(hits, cmdPaletteActionHits(q));
+    Object.entries(QJ_PAGES).forEach(([id,label])=>{
+      const sc = commandPaletteScore(q, label, id);
+      if (sc) hits.push({ group:'Pages', type:'Page', title:label, sub:'Go to section', panel:id, score:sc });
+    });
+    if (typeof DATA_HUB_REGISTRY !== 'undefined') {
+      Object.entries(DATA_HUB_REGISTRY).forEach(([catId, cat]) => {
+        const catTitle = databaseHubCategoryTitle(cat.label);
+        const catSc = commandPaletteScore(q, catTitle, catId);
+        if (catSc) hits.push({ group:'Pages', type:'Database Hub', title:catTitle, sub:'Open hub category', hubCategory:catId, score:catSc });
+        cat.tables.forEach(tab => {
+          const tabId = dataHubTabId(tab);
+          const title = DATABASE_HUB_LABEL + ' — ' + cat.label + ' — ' + tab.label;
+          const sc = commandPaletteScore(q, title, tab.label);
+          if (sc) hits.push({ group:'Pages', type:'Database Hub', title, sub:'Manage table in hub', hubCategory:catId, hubTable:tabId, score:sc });
+        });
+      });
+    }
+    GS_SOURCES.forEach(source=>{
+      const arr = data[source.key]; if (!Array.isArray(arr)) return;
+      arr.forEach((row, idx)=>{
+        const title = gsRowTitle(row, source);
+        const sub = gsRowSub(row) || source.type;
+        const hay = (title+' '+sub).toLowerCase();
+        if (!hay.includes(q)) return;
+        hits.push({
+          group:'Records',
+          type:source.type,
+          title,
+          sub,
+          panel:source.panel,
+          entity: source.key,
+          index: idx,
+          id: row && row._id,
+          score: commandPaletteScore(q, title, sub) || 50,
+          record: true
+        });
       });
     });
   }
-  GS_SOURCES.forEach(source=>{
-    const arr = data[source.key]; if (!Array.isArray(arr)) return;
-    arr.forEach(row=>{
-      const title = gsRowTitle(row, source);
-      const sub = gsRowSub(row) || source.type;
-      const hay = (title+' '+sub).toLowerCase();
-      if (!q || hay.includes(q)) hits.push({ type:source.type, title, sub, panel:source.panel, score: commandPaletteScore(q, title, sub) || (hay.includes(q)?50:0) });
-    });
+
+  hits.sort((a,b)=>{
+    const order = { 'Needs you':0, Actions:1, Pages:2, Records:3, Recent:4 };
+    const ga = order[a.group] != null ? order[a.group] : 5;
+    const gb = order[b.group] != null ? order[b.group] : 5;
+    if (ga !== gb) return ga - gb;
+    return (b.score||0)-(a.score||0);
   });
-  hits.sort((a,b)=>(b.score||0)-(a.score||0));
   const seen = new Set();
-  _cmdPaletteResults = hits.filter(h=>{ const k=h.type+'|'+h.title; if(seen.has(k)) return false; seen.add(k); return true; }).slice(0,18);
+  _cmdPaletteResults = hits.filter(h=>{ const k=(h.group||'')+'|'+h.type+'|'+h.title; if(seen.has(k)) return false; seen.add(k); return true; }).slice(0,24);
   if (!_cmdPaletteResults.length){
-    box.innerHTML = `<div class="cmd-palette-empty">${q?'No matches':'Type to search pages and records'}</div>`;
+    box.innerHTML = `<div class="cmd-palette-empty rd-cmd__empty">${q?'No matches':'Nothing to show yet'}</div>`;
     return;
   }
-  box.innerHTML = _cmdPaletteResults.map((h,i)=>`<button type="button" class="cmd-palette-item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span></button>`).join('');
+  let lastGroup = '';
+  box.innerHTML = _cmdPaletteResults.map((h,i)=>{
+    let groupHtml = '';
+    if (h.group && h.group !== lastGroup) {
+      lastGroup = h.group;
+      groupHtml = `<div class="rd-cmd__group" role="presentation">${escapeHtml(h.group)}</div>`;
+    }
+    const count = h.count != null ? `<span class="rd-cmd__count">${escapeHtml(String(h.count))}</span>` : '';
+    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}</button>`;
+  }).join('');
 }
-function executeCommandPaletteResult(i){
+function executeCommandPaletteResult(i, opts){
   const h = _cmdPaletteResults[i]; if (!h) return;
+  opts = opts || {};
   closeCommandPalette();
+  if (typeof h.run === 'function') { h.run(h); return; }
   if (h.hubCategory) { openDataHub(h.hubCategory, h.hubTable); return; }
+  if (opts.drawer && h.record && h.entity != null && (h.index != null || h.id) && typeof rdOpenDrawer === 'function') {
+    let idx = h.index;
+    if (h.id != null && typeof findRecordById === 'function') {
+      const arr = data[h.entity] || [];
+      const found = arr.findIndex(r => String(r._id) === String(h.id));
+      if (found >= 0) idx = found;
+    }
+    if (h.panel && typeof showPanel === 'function') showPanel(h.panel, true);
+    rdOpenDrawer(h.entity, idx);
+    return;
+  }
   if (h.panel === 'nameChange'){ showNameChangePage(); return; }
   if (h.panel) showPanel(h.panel, true);
 }
@@ -15369,8 +15459,11 @@ function rdDrawerFieldRow(label, controlHtml, extraClass=''){
 }
 function rdDrawerInputRow(label, key, type='text', extraClass=''){
   const v = recordEditorState?.draft?.[key] ?? '';
+  const empty = !String(v ?? '').trim() && type !== 'number' && type !== 'date' && type !== 'time';
+  const emptyCls = empty ? ' is-empty' : '';
+  const ph = empty ? ' placeholder="Add…"' : '';
   return rdDrawerFieldRow(label,
-    `<input class="rd-field-row__value" type="${type}" value="${escapeHtml(v)}" oninput="recordEditorSet('${key}',this.value)">`,
+    `<input class="rd-field-row__value${emptyCls}" type="${type}" value="${escapeHtml(v)}"${ph} oninput="recordEditorSet('${key}',this.value);this.classList.toggle('is-empty',!String(this.value||'').trim())">`,
     extraClass);
 }
 function rdDrawerSelectRow(label, key, values, emptyLabel=''){
@@ -15385,8 +15478,9 @@ function rdDrawerDatalistRow(label, key, values, multi=false){
   const listId = recordEditorDatalistId(key);
   window.recordPickerReg = window.recordPickerReg || {};
   window.recordPickerReg[listId] = { values: recordUniqueOptionValues(values), multi };
+  const empty = !String(v ?? '').trim();
   return rdDrawerFieldRow(label,
-    `<input class="rd-field-row__value" type="text" autocomplete="off" value="${escapeHtml(v)}" onfocus="openRecordPicker(this,'${listId}')" oninput="recordEditorSet('${key}',this.value);openRecordPicker(this,'${listId}')">`);
+    `<input class="rd-field-row__value${empty ? ' is-empty' : ''}" type="text" autocomplete="off" value="${escapeHtml(v)}" placeholder="${empty ? 'Add…' : ''}" onfocus="openRecordPicker(this,'${listId}')" oninput="recordEditorSet('${key}',this.value);openRecordPicker(this,'${listId}');this.classList.toggle('is-empty',!String(this.value||'').trim())">`);
 }
 function rdDrawerLinkSelect(label, key, rows, labelField, emptyLabel='Not linked'){
   const v = String(recordEditorState?.draft?.[key] ?? '');
@@ -15409,8 +15503,9 @@ function rdDrawerLinkSelect(label, key, rows, labelField, emptyLabel='Not linked
 }
 function rdDrawerTextareaRow(label, key){
   const v = recordEditorState?.draft?.[key] ?? '';
+  const empty = !String(v ?? '').trim();
   return rdDrawerFieldRow(label,
-    `<textarea class="rd-field-row__value rd-field-row__value--textarea" oninput="recordEditorSet('${key}',this.value)">${escapeHtml(v)}</textarea>`);
+    `<textarea class="rd-field-row__value rd-field-row__value--textarea${empty ? ' is-empty' : ''}" placeholder="${empty ? 'Add…' : ''}" oninput="recordEditorSet('${key}',this.value);this.classList.toggle('is-empty',!String(this.value||'').trim())">${escapeHtml(v)}</textarea>`);
 }
 function rdDrawerCheckRow(label, key, refresh){
   const v = !!recordEditorState?.draft?.[key];
@@ -20159,29 +20254,47 @@ function renderTasks() {
     renderTaskBoardView();
   }
   if (document.body.getAttribute('data-active-panel') === 'tasks' && typeof cwpRenderTable === 'function' && document.getElementById('cwp-tasks') && taskView === 'table') {
-    rdEnsureTasksTableLayout(true);
-    cwpRenderTable('tasks');
-    /* §16: a row now opens the 360px drawer rather than the inline editor
-       below the table. Same mount mechanism, different container — the
-       drawer IS an inline mount, so nothing about the save path changes. */
-    if (typeof bindRoPreviewInline === 'function') {
-      bindRoPreviewInline('tasks', 'cwp-tasks',
-        document.getElementById('record-drawer-body') ? 'record-drawer-body' : 'task-inline-editor-body');
-    }
-    rdApplyTaskDrawerRowFocus();
-    rdApplyRowHeight();
-    renderTaskTableFoot();
-    /* CWP owns the checkboxes, so the bar follows their change events rather
-       than tracking a selection of its own. */
     const wrap = document.getElementById('cwp-tasks');
-    if (wrap && wrap.dataset.rdBulkBound !== '1') {
-      wrap.dataset.rdBulkBound = '1';
-      wrap.addEventListener('change', ev => {
-        if (ev.target && ev.target.type === 'checkbox') setTimeout(renderTaskBulkBar, 0);
-      });
-      wrap.addEventListener('click', ev => {
-        if (ev.target && ev.target.type === 'checkbox') setTimeout(renderTaskBulkBar, 0);
-      });
+    const total = (data.tasks || []).length;
+    const shown = typeof taskFilteredRows === 'function' ? taskFilteredRows().length : total;
+    const filterOn = !!(Object.keys(taskColFilter || {}).length || String(document.getElementById('task-search')?.value || '').trim());
+    const statePainted = typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'tasks',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            if (typeof clearTaskFilters === 'function') clearTaskFilters();
+            else renderTasks();
+          }
+        });
+    if (!statePainted) {
+      rdEnsureTasksTableLayout(true);
+      cwpRenderTable('tasks');
+      /* §16: a row now opens the 360px drawer rather than the inline editor
+         below the table. Same mount mechanism, different container — the
+         drawer IS an inline mount, so nothing about the save path changes. */
+      if (typeof bindRoPreviewInline === 'function') {
+        bindRoPreviewInline('tasks', 'cwp-tasks',
+          document.getElementById('record-drawer-body') ? 'record-drawer-body' : 'task-inline-editor-body');
+      }
+      rdApplyTaskDrawerRowFocus();
+      rdApplyRowHeight();
+      renderTaskTableFoot();
+      /* CWP owns the checkboxes, so the bar follows their change events rather
+         than tracking a selection of its own. */
+      if (wrap && wrap.dataset.rdBulkBound !== '1') {
+        wrap.dataset.rdBulkBound = '1';
+        wrap.addEventListener('change', ev => {
+          if (ev.target && ev.target.type === 'checkbox') setTimeout(renderTaskBulkBar, 0);
+        });
+        wrap.addEventListener('click', ev => {
+          if (ev.target && ev.target.type === 'checkbox') setTimeout(renderTaskBulkBar, 0);
+        });
+      }
+    } else if (typeof renderTaskTableFoot === 'function') {
+      renderTaskTableFoot();
     }
   }
   renderTaskToolbar();
@@ -21823,6 +21936,23 @@ function renderTaskStats() {
   const wedding = (data.setup && data.setup.date) ? data.setup.date : '';
   let daysToGo = '—', weddingLabel = 'Not set';
   if (wedding) { const w=new Date(wedding+'T00:00:00'); if(!isNaN(w)){ const diff=Math.ceil((w-today)/86400000); daysToGo = diff>0? diff : (diff===0?'Today':'—'); weddingLabel = w.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); } }
+  if (typeof RdDepth !== 'undefined' && RdDepth.renderStats && el.classList.contains('rd-stats')) {
+    RdDepth.renderStats(el, [
+      { label: 'Total tasks', value: total, filter: 'Show all' },
+      { label: 'Complete', value: done, filter: 'Filter · Complete', delta: total ? pct + '% of total' : undefined, deltaTone: 'flat' },
+      { label: 'In progress', value: inprog, filter: 'Filter · In Progress' },
+      { label: 'Upcoming', value: upcoming, filter: 'Dated & open' },
+      {
+        label: 'Overdue',
+        value: overdue,
+        filter: 'Filter · Overdue',
+        attention: overdue ? 'Past due — needs attention' : undefined
+      },
+      { label: 'Wedding date', value: weddingLabel, filter: 'Open Wedding Setup', onFilter: () => { if (typeof showPanel === 'function') showPanel('setup', true); } },
+      { label: 'Days to go', value: daysToGo, filter: 'Countdown' }
+    ]);
+    return;
+  }
   const ic={clipboard:'<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/>',check:'<circle cx="12" cy="12" r="8"/><path d="m8.7 12.2 2.2 2.3 4.7-5"/>',clock:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',alert:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><path d="M12 17h.01"/>',up:'<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',cal:'<rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/>'};
   const ms=(icon,label,val,sub)=>`<div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true">${ic[icon]||''}</svg><span class="m-stat-label">${label}</span></div><div class="m-stat-val">${val}</div><div class="m-stat-sub">${sub}</div></div>`;
   el.innerHTML =
@@ -40082,13 +40212,47 @@ function renderGuestPreviewTable(){
     if (typeof renderGuestTableOptions === 'function') renderGuestTableOptions();
     if (typeof renderGuestDecisionFilterOptions === 'function') renderGuestDecisionFilterOptions();
     if (typeof renderGuestEventFilterOptions === 'function') renderGuestEventFilterOptions();
+    const wrap = document.getElementById('cwp-guests');
+    const guests = safeArray(data.guests);
+    const total = guests.length;
+    const shown = guests.filter(g => typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true).length;
+    const ui = window._guestUiFilters || {};
+    const filterOn = !!(
+      (ui.side && ui.side !== 'all') ||
+      (ui.rsvp && ui.rsvp !== 'all') ||
+      (ui.table && ui.table !== 'all') ||
+      (ui.dietary && ui.dietary !== 'all') ||
+      (ui.event && ui.event !== 'all') ||
+      String(ui.q || '').trim() ||
+      (ui.workflow && ui.workflow !== 'all') ||
+      (ui.address && ui.address !== 'all') ||
+      (ui.invitation && ui.invitation !== 'all') ||
+      (ui.seated && ui.seated !== 'all') ||
+      window._guestFilterPreset === 'non-responders'
+    );
+    if (typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'guests',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            window._guestUiFilters = { side:'all', rsvp:'all', table:'all', dietary:'all', event:'all', q:'' };
+            window._guestFilterPreset = '';
+            if (typeof persistGuestFilterView === 'function') persistGuestFilterView('all');
+            if (typeof renderGuests === 'function') renderGuests();
+            else renderGuestPreviewTable();
+          }
+        })) {
+      if (typeof renderGuestTableFoot === 'function') renderGuestTableFoot();
+      return;
+    }
     rdEnsureGuestsTableLayout(true);
     cwpRenderTable('guests');
     bindGuestPreviewInline();
     rdApplyGuestDrawerRowFocus();
     rdApplyGuestRowHeight();
     renderGuestTableFoot();
-    const wrap = document.getElementById('cwp-guests');
     if (wrap && wrap.dataset.rdBulkBound !== '1') {
       wrap.dataset.rdBulkBound = '1';
       wrap.addEventListener('change', ev => {
@@ -41526,17 +41690,41 @@ function renderGuestStats() {
   const host = document.getElementById('guest-stats');
   if (!host) return;
   const s = guestStatsData();
-  const cell = (label, val, tone) =>
-    `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
-  host.innerHTML = [
-    cell('Guests', s.total),
-    cell('Invited', s.invited),
-    cell('Accepted', s.accepted),
-    cell('Declined', s.declined),
-    cell('Pending', s.pending, s.pending ? 'warn' : ''),
-    cell('Meals TBD', s.mealsTbd, s.mealsTbd ? 'warn' : ''),
-    cell('Headcount cost', s.headcountLabel)
-  ].join('');
+  if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+    const items = [
+      { label: 'Guests', value: s.total, filter: 'Show all', onFilter: () => { if (typeof setGuestRsvpFilter === 'function') setGuestRsvpFilter('all'); else if (typeof renderGuests === 'function') renderGuests(); } },
+      { label: 'Invited', value: s.invited, filter: 'Filter · Invited' },
+      { label: 'Accepted', value: s.accepted, filter: 'Filter · Accepted', onFilter: () => { if (typeof setGuestRsvpFilter === 'function') setGuestRsvpFilter('Accepted'); } },
+      { label: 'Declined', value: s.declined, filter: 'Filter · Declined', onFilter: () => { if (typeof setGuestRsvpFilter === 'function') setGuestRsvpFilter('Declined'); } },
+      {
+        label: 'Pending',
+        value: s.pending,
+        filter: 'Filter · Pending',
+        attention: s.pending ? 'Still waiting on a reply' : undefined,
+        onFilter: () => { if (typeof setGuestRsvpFilter === 'function') setGuestRsvpFilter('Pending'); }
+      },
+      {
+        label: 'Meals TBD',
+        value: s.mealsTbd,
+        filter: 'Filter · Meals TBD',
+        attention: !s.pending && s.mealsTbd ? 'Accepted guests with no meal' : undefined
+      },
+      { label: 'Headcount cost', value: s.headcountLabel, filter: 'Open Budget', onFilter: () => { if (typeof showPanel === 'function') showPanel('budget', true); } }
+    ];
+    RdDepth.renderStats(host, items);
+  } else {
+    const cell = (label, val, tone) =>
+      `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
+    host.innerHTML = [
+      cell('Guests', s.total),
+      cell('Invited', s.invited),
+      cell('Accepted', s.accepted),
+      cell('Declined', s.declined),
+      cell('Pending', s.pending, s.pending ? 'warn' : ''),
+      cell('Meals TBD', s.mealsTbd, s.mealsTbd ? 'warn' : ''),
+      cell('Headcount cost', s.headcountLabel)
+    ].join('');
+  }
   if (typeof renderGuestCostSummary === 'function') renderGuestCostSummary();
   if (typeof renderGuestSeatingSummary === 'function') renderGuestSeatingSummary();
 }
@@ -42476,6 +42664,9 @@ function enhanceAllTables(root){
       hideRecordIdColumn(t);
     } catch(e){}
   });
+  if (typeof RdDepth !== 'undefined' && RdDepth.scheduleDecorate) {
+    try { RdDepth.scheduleDecorate(root && root.querySelectorAll ? root : document.getElementById('main')); } catch (e) {}
+  }
 }
 
 /* Hide the record-ID column (e.g. GST-0001) from the user view.
@@ -42814,16 +43005,16 @@ function mountAllTabs(root){
       subRow:(r)=>{ const i=data.guests.indexOf(r); return (i>-1 && typeof expandedGuestCompanions!=='undefined' && expandedGuestCompanions.has(i) && typeof renderGuestCompanionSub==='function') ? renderGuestCompanionSub(i) : ''; },
       /* headers only — the body reuses the proven guest row markup via rowRender */
       columns:[
-        {key:'name',    label:'Guest Name',      width:'190px'},
-        {key:'household',label:'Household',       width:'160px'},
+        {key:'name',    label:'Guest Name',      width:'190px', type:'person'},
+        {key:'household',label:'Household',       width:'160px', type:'text'},
         {key:'family',  label:'Family',          width:'86px', type:'checkbox'},
-        {key:'group',   label:'Group',           width:'150px'},
-        {key:'side',    label:'Side',            width:'110px'},
-        {key:'role',    label:'Role',            width:'140px'},
-        {key:'rsvp',    label:'RSVP',            width:'118px'},
-        {key:'meal',    label:'Meal',            width:'130px'},
-        {key:'dietary', label:'Dietary Notes',   width:'190px'},
-        {key:'phone',   label:'Phone',           width:'142px'},
+        {key:'group',   label:'Group',           width:'150px', type:'select'},
+        {key:'side',    label:'Side',            width:'110px', type:'select'},
+        {key:'role',    label:'Role',            width:'140px', type:'select'},
+        {key:'rsvp',    label:'RSVP',            width:'118px', type:'select'},
+        {key:'meal',    label:'Meal',            width:'130px', type:'select'},
+        {key:'dietary', label:'Dietary Notes',   width:'190px', type:'text'},
+        {key:'phone',   label:'Phone',           width:'142px', type:'link'},
         {key:'email',   label:'Email',           width:'210px'},
         {key:'address1',label:'Address 1',       width:'170px'},
         {key:'address2',label:'Address 2',       width:'150px'},
@@ -44549,6 +44740,9 @@ function mountAllTabs(root){
     if (tableEl && typeof scheduleStretchPlannerTable === 'function') scheduleStretchPlannerTable(tableEl);
     if (tableEl && typeof ensureTableWidthStretchObserver === 'function') ensureTableWidthStretchObserver(tableEl);
     if (typeof uedApplyTableHeaderColor === 'function') uedApplyTableHeaderColor(mount);
+    if (typeof RdDepth !== 'undefined' && RdDepth.decorateTable && tableEl) {
+      try { RdDepth.decorateTable(tableEl, { force: true, summary: true, addColumn: false }); } catch (e) {}
+    }
   }
 
   function updateBulkBar(key){

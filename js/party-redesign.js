@@ -6,12 +6,12 @@
   const PARTY_ATTIRE_STATUSES = ['Fitted & paid', 'Deposit only', 'Not measured'];
   const RD_PARTY_COLUMN_KEYS = ['name', 'role', 'side', 'attireStatus', 'duties', 'fitting'];
   const RD_PARTY_COLUMNS = [
-    { key: 'name', label: 'Member', width: '190px', required: true },
-    { key: 'role', label: 'Role', width: '150px' },
-    { key: 'side', label: 'Side', width: '110px' },
-    { key: 'attireStatus', label: 'Attire', width: '150px' },
-    { key: 'duties', label: 'Duties', width: '130px' },
-    { key: 'fitting', label: 'Fitting', width: '120px' }
+    { key: 'name', label: 'Member', width: '190px', required: true, type: 'person' },
+    { key: 'role', label: 'Role', width: '150px', type: 'select' },
+    { key: 'side', label: 'Side', width: '110px', type: 'select' },
+    { key: 'attireStatus', label: 'Attire', width: '150px', type: 'select' },
+    { key: 'duties', label: 'Duties', width: '130px', type: 'text' },
+    { key: 'fitting', label: 'Fitting', width: '120px', type: 'date' }
   ];
 
   /* The table engine builds the header, group rows and select gutter from
@@ -278,6 +278,21 @@
     const host = document.getElementById('party-stats');
     if (!host) return;
     const s = partyStatsData();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, [
+        { label: 'Members', value: s.total, filter: 'Show all', onFilter: () => { window._partyUiFilters = { side: 'all', attire: 'all', role: 'all' }; renderParty(); } },
+        { label: "Bride's side", value: s.bride, filter: "Filter · Bride's side", onFilter: () => { window._partyUiFilters.side = 'Bride'; renderParty(); } },
+        { label: "Groom's side", value: s.groom, filter: "Filter · Groom's side", onFilter: () => { window._partyUiFilters.side = 'Groom'; renderParty(); } },
+        { label: 'Attire ready', value: s.attireReady, filter: 'Filter · Fitted & paid', onFilter: () => { window._partyUiFilters.attire = 'Fitted & paid'; renderParty(); } },
+        {
+          label: 'Speaking',
+          value: s.speaking,
+          filter: 'Show speakers',
+          attention: s.total && s.attireReady < s.total ? (s.total - s.attireReady) + ' still need fittings' : undefined
+        }
+      ]);
+      return;
+    }
     const cell = (label, val, tone) =>
       `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [
@@ -311,6 +326,7 @@
       partyFilterChip('Side', 'side') +
       partyFilterChip('Attire', 'attire') +
       partyFilterChip('Role', 'role') +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenFilterBuilder(this)">Filter builder</button>` +
       `<button type="button" class="rd-chip rd-chip--ghost" onclick="openPartySort(this)"><svg ${svg}><path d="M4 6h16M7 12h10M10 18h4"/></svg>${escapeHtml(partySortLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip${colAllShown ? ' rd-chip--ghost' : ''}" onclick="rdPartyOpenColumns(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>${escapeHtml(colLabel)}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip" onclick="rdPartyAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>` +
@@ -343,6 +359,23 @@
     window._partyUiFilters[field] = 'all';
     renderParty();
   }
+  function rdPartyOpenFilterBuilder() {
+    if (typeof RdFurniture === 'undefined' || !RdFurniture.openFilterBuilder) return;
+    const roles = Array.from(new Set(partyRows().map(r => r.role).filter(Boolean))).sort();
+    RdFurniture.openFilterBuilder({
+      fields: [
+        { key: 'side', label: 'Side', options: ['Bride', 'Groom'] },
+        { key: 'attire', label: 'Attire', options: PARTY_ATTIRE_STATUSES.slice() },
+        { key: 'role', label: 'Role', options: roles }
+      ],
+      state: Object.assign({}, window._partyUiFilters),
+      onApply: function (next) {
+        window._partyUiFilters = Object.assign({ side: 'all', attire: 'all', role: 'all' }, next);
+        renderParty();
+      }
+    });
+  }
+  window.rdPartyOpenFilterBuilder = rdPartyOpenFilterBuilder;
 
   function renderPartyBulkBar() {
     const bar = document.getElementById('party-bulk-bar');
@@ -455,7 +488,7 @@
       if (d._rdActive) { Object.assign(d, d._rdBackup); d._rdActive = false; }
       return;
     }
-    d.columns = partyVisibleColumns().map(c => ({ key: c.key, label: c.label, width: c.width }));
+    d.columns = partyVisibleColumns().map(c => ({ key: c.key, label: c.label, width: c.width, type: c.type || undefined }));
     d.extraFilter = r => partyMatchesFilters(r);
     d.sortRows = (a, b) => partySortRows(a, b);
     d.rowGroup = r => partyRowGroupMeta(r);
@@ -484,13 +517,35 @@
 
   function renderPartyPreviewTable() {
     if (typeof cwpRenderTable !== 'function' || !document.getElementById('cwp-party') || rdGetPartyView() !== 'table') return;
+    const wrap = document.getElementById('cwp-party');
+    const total = partyRows().length;
+    const shown = partyRows().filter(partyMatchesFilters).length;
+    const filterOn = !!(window._partyUiFilters && (
+      window._partyUiFilters.side !== 'all' ||
+      window._partyUiFilters.attire !== 'all' ||
+      window._partyUiFilters.role !== 'all'
+    ));
+    if (typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'party',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            window._partyUiFilters = { side: 'all', attire: 'all', role: 'all' };
+            if (typeof renderPartyRd === 'function') renderPartyRd();
+            else renderPartyPreviewTable();
+          }
+        })) {
+      renderPartyTableFoot();
+      return;
+    }
     rdEnsurePartyTableLayout(true);
     cwpRenderTable('party');
     bindPartyPreviewInline();
     rdApplyPartyDrawerRowFocus();
     rdApplyPartyRowHeight();
     renderPartyTableFoot();
-    const wrap = document.getElementById('cwp-party');
     if (wrap && wrap.dataset.rdBulkBound !== '1') {
       wrap.dataset.rdBulkBound = '1';
       wrap.addEventListener('change', ev => {

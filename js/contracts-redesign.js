@@ -456,6 +456,21 @@
     const host = document.getElementById('contracts-stats');
     if (!host) return;
     const f = contractFigures();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, [
+        { label: 'Contracts', value: String(f.count), filter: 'Show all' },
+        { label: 'Contracted value', value: money0(f.contracted), filter: 'Show contracts' },
+        { label: 'Paid', value: money0(f.paid), filter: 'Filter · Paid' },
+        {
+          label: 'Outstanding',
+          value: money0(f.outstanding),
+          filter: 'Filter · Outstanding',
+          attention: f.outstanding > 0 ? 'Balance still owed on signed contracts' : undefined
+        },
+        { label: 'Documents', value: String(f.docs), filter: 'Documents view' }
+      ]);
+      return;
+    }
     const cell = (label, val) =>
       `<div class="m-stat"><div class="m-stat-label">${esc(label)}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [
@@ -626,8 +641,28 @@
     const host = document.getElementById('contracts-body');
     if (!host) return;
     const f = contractFigures();
+    const all = rows().filter(railMatch);
     const list = sortRows(visibleRows());
     const mode = window._conMode || 'table';
+    const cf = window._conFilters || {};
+    const filterOn = ['vendor', 'status', 'due'].some(k => cf[k] && cf[k] !== 'all');
+    if (mode === 'table' && typeof RdStates !== 'undefined' && RdStates.maybeEmpty &&
+        (all.length === 0 || (filterOn && list.length === 0))) {
+      host.innerHTML = toolbarHtml()
+        + '<div class="rd-bulkbar rd-con-bulkbar" id="contracts-bulk-bar" hidden></div>'
+        + '<div id="cwp-contracts" data-rd-state-slot="1"></div>';
+      RdStates.maybeEmpty(host.querySelector('#cwp-contracts'), {
+        pageId: 'contracts',
+        total: all.length,
+        filtered: list.length,
+        filterOn: filterOn,
+        onClear: function () {
+          window._conFilters = { vendor: 'all', status: 'all', due: 'all' };
+          renderContractsTable();
+        }
+      });
+      return;
+    }
     const dataSpan = visibleCols().length;
     const fullSpan = dataSpan + 1;
 
