@@ -787,6 +787,19 @@
   }
   function openVendorCompare() { rdSetVendorsView('compare'); }
 
+  /* Prefer 4c drawer / record editor over the removed inline editor. */
+  const _addVendorRow = window.addVendorRow;
+  window.addVendorRow = function () {
+    if (document.body.getAttribute('data-active-panel') === 'vendors'
+      && document.getElementById('vendors-4c-table')) {
+      if (typeof openRecordEditor === 'function') {
+        openRecordEditor('vendors');
+        return;
+      }
+    }
+    if (typeof _addVendorRow === 'function') return _addVendorRow.apply(this, arguments);
+  };
+
   /* Keep legacy tab helpers from breaking callers — map to views */
   function vndTabBridge(name) {
     if (name === 'shortlist') rdSetVendorsView('compare');
