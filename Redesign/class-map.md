@@ -124,3 +124,30 @@ text, and `#2D4A3E` for BOTH the top bar and primary buttons. A find-and-replace
 alone makes every page title invisible and flattens the bar. That is why the token file
 carries `--table-header-bg`, `--table-header-rule` and `--shell-topbar-bg` as separate
 properties. Use them; never hard-code forest for a surface.
+
+---
+
+## Depth pass + work surfaces (CURSOR-IMPLEMENTATION-GUIDE §2 / §7.1)
+
+Added after the Phase 1–3 map. Opt-in markup; existing tables keep working without these classes.
+
+| Class | Role |
+|---|---|
+| `.rd-th__type` | Type glyph in a column header (`A # $ ◉ ☺ ☑ ↗ ❐ ƒ ▤`) |
+| `th[data-col-type]` / `td[data-col-type]` | Drives alignment and derived styling |
+| `.rd-avatar` `.rd-cell-person` `.rd-cell-chip` `.rd-cell-attach` `.rd-cell-mark` | Typed cell renderings |
+| `.rd-table-summary` / `__row` / `__cell` | Sticky foot rollups per column |
+| `.rd-table-wrap--depth` `.rd-table--freeze-first` | Depth table chrome + frozen first column |
+| `.rd-row-actions` | Hover/focus row actions (drawer vs full editor) |
+| `.rd-th--add` `.rd-td--add` | ＋ column that creates fields in-grid |
+| `.rd-drawer__identity` `.rd-drawer__nav` `.rd-drawer__quick` `.rd-drawer__provenance` | Drawer depth header / foot |
+| `.rd-related` `.rd-comments` `.rd-activity` | Drawer related lists, comments, activity |
+| `.rd-empty-add` | Pale “Add…” for empty fields |
+| `.rd-stat__delta` `.rd-stat__spark` `.rd-stat__target` `.rd-stat__filter` `.rd-stat.is-attention` | Stat strip depth |
+| `.rd-cardgrid` `.rd-grouplist` `.rd-kanban` `.rd-calendar` `.rd-gantt` | Work-surface shapes |
+| `.rd-printsheet` `.rd-labelsheet` `.rd-reading` `.rd-blockeditor` `.rd-splitdetail` | Work-surface shapes |
+| `.rd-hatch` | Travel / load-in / setup hatch language |
+
+JS helper: `js/rd-depth.js` → `window.RdDepth`.
+
+View shells (§7.2–§7.3): `households-{labels,cards}`, `contacts-{dayof,cards}`, `party-{cards,duties}`, `tables-{list,byguest}`, `gifts-notes`, `budget-{bycategory,pledged}`, `payments-calendar`, `contracts-{documents,schedule}`.

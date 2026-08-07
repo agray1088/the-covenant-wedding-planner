@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Planning Timeline & Tasks — Covenant Wedding Planner</title>
+<title>Budget · Pledged &amp; paid — Covenant Wedding Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -83,9 +83,9 @@
           <button type="button" class="rd-rail__item">Status<span class="rd-rail__count"></span></button>
         </div>
       </div>
-      <p class="rd-rail__note">Catering and Rentals are <b>derived</b> — they are computed from the guest list and cannot be typed here.</p>
+      <p class="rd-rail__note">Needs a <b>"Not pledged" group</b> showing the shortfall — money committed with no source. A group, not a footnote.</p>
     </aside>
-    <main class="rd-main" id="panel-budget" data-panel="budget">
+    <main class="rd-main" id="panel-budget-pledged" data-panel="budget" data-view="pledged">
       <div class="rd-pagehead">
         <div>
           <div class="rd-pagehead__eyebrow">Money</div>
@@ -98,7 +98,7 @@
           <button type="button" class="rd-btn rd-btn--primary" onclick="addBudgetRow()">+ Add line</button>
         </div>
       </div>
-      <div class="rd-stats m-stats" id="budget-stats"></div>
+      <div class="rd-stats m-stats" id="budget-pledged-stats"></div>
       <div class="rd-toolbar">
         <button type="button" class="rd-chip">Category: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
         <button type="button" class="rd-chip">Status: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
@@ -108,7 +108,7 @@
           <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · 8 of 12<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
           <button type="button" class="rd-chip" onclick="autoFitColumns(this)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>
           <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · compact<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-          <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item is-active">Itemized</button><button type="button" class="rd-viewswitch__item">By category</button><button type="button" class="rd-viewswitch__item">Pledged &amp; paid</button></div>
+          <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item">Itemized</button><button type="button" class="rd-viewswitch__item">By category</button><button type="button" class="rd-viewswitch__item is-active">Pledged &amp; paid</button></div>
         </div>
       </div>
       <div class="rd-bulkbar" id="bulk-bar" hidden>
@@ -122,17 +122,9 @@
         <button type="button" class="rd-bulkbar__clear">Clear selection</button>
       </div>
       <div class="rd-surface">
-        <!-- JS mount: cwpRenderTable('budget'). Do not rename. -->
-        <div class="rd-table-wrap ued-table-wrap" id="budget-hub-preview"></div>
-        <span class="rd-table-foot ued-soft" id="budget-hub-preview-foot"></span>
-        <div class="rd-panel m-block" id="budget-reconciliation-wrap"></div>
-      <div class="rd-section__head">
-        <div class="rd-pagehead__eyebrow">Pledged &amp; paid</div>
-        <p class="rd-help">Promised money is never counted in &ldquo;budget used&rdquo; until it lands.</p>
-        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto">Record a pledge</button>
-      </div>
-        <!-- JS mount: pledge rows. Do not rename. -->
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-pledges"></div>
+        <!-- View mount per CURSOR-IMPLEMENTATION-GUIDE §8. Fill from the same records as the base view. -->
+        <div class="rd-grouplist" id="budget-pledged-mount"></div>
+        <span class="rd-table-foot ued-soft" id="budget-pledged-foot"></span>
       </div>
     </main>
     <aside class="rd-drawer" id="record-drawer" hidden></aside>

@@ -231,6 +231,139 @@
       </div>
     </div>
   </section>
+
+  <section class="g-sec"><h2>Depth · tables (batch 38)</h2>
+    <p class="g-lede" style="margin-bottom:14px">Type glyphs, alignment by type, person avatars, link chips, derived ƒ columns, hover row actions, summary bar, freeze-first + add column.</p>
+    <div class="rd-table-wrap rd-table-wrap--depth">
+      <table class="rd-table rd-table--freeze-first">
+        <thead>
+          <tr>
+            <th class="is-check" data-col-type="checkbox"><span class="rd-th__type" aria-hidden="true">☑</span></th>
+            <th data-col-type="person"><span class="rd-th__type" aria-hidden="true">☺</span>Guest</th>
+            <th data-col-type="select"><span class="rd-th__type" aria-hidden="true">◉</span>Reply</th>
+            <th data-col-type="currency"><span class="rd-th__type" aria-hidden="true">$</span>Cover</th>
+            <th data-col-type="formula" class="is-derived"><span class="rd-th__type rd-th__type--formula" aria-hidden="true">ƒ</span>Seated</th>
+            <th data-col-type="attachment"><span class="rd-th__type" aria-hidden="true">❐</span>Files</th>
+            <th></th>
+            <th class="rd-th--add" title="Add field">＋</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="is-check">☑</td>
+            <td><span class="rd-cell-person"><span class="rd-avatar" aria-hidden="true">EM</span><span class="rd-cell-person__name">Efua Mensah</span></span></td>
+            <td><span class="status-pill status-pill--green status-pill--compact">Accepted</span></td>
+            <td class="is-num">$85</td>
+            <td class="is-derived"><span class="rd-cell-chip">T3 seat 1<span class="rd-cell-chip__arrow" aria-hidden="true">↗</span></span></td>
+            <td class="rd-cell-attach">2</td>
+            <td><span class="rd-row-actions"><button type="button" class="rd-row-actions__btn">Open<span class="rd-row-actions__kbd">↵</span></button><button type="button" class="rd-row-actions__btn">Full editor<span class="rd-row-actions__kbd">⇧↵</span></button></span></td>
+            <td class="rd-td--add">＋</td>
+          </tr>
+          <tr>
+            <td class="is-check">☐</td>
+            <td><span class="rd-cell-person"><span class="rd-avatar" aria-hidden="true">KA</span><span class="rd-cell-person__name">Kwame Asante</span></span></td>
+            <td><span class="status-pill status-pill--gold status-pill--compact">Pending</span></td>
+            <td class="is-num">$85</td>
+            <td class="is-derived is-empty">—</td>
+            <td class="rd-cell-attach">0</td>
+            <td><span class="rd-row-actions"><button type="button" class="rd-row-actions__btn">Open<span class="rd-row-actions__kbd">↵</span></button><button type="button" class="rd-row-actions__btn">Full editor<span class="rd-row-actions__kbd">⇧↵</span></button></span></td>
+            <td class="rd-td--add">＋</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="rd-table-summary rd-table-summary--freeze" role="row">
+        <div class="rd-table-summary__row">
+          <div class="rd-table-summary__cell">2</div>
+          <div class="rd-table-summary__cell">2 guests</div>
+          <div class="rd-table-summary__cell is-warn">1 blank</div>
+          <div class="rd-table-summary__cell is-num">$170</div>
+          <div class="rd-table-summary__cell is-danger">1 unseated</div>
+          <div class="rd-table-summary__cell is-num">2</div>
+          <div class="rd-table-summary__cell"></div>
+          <div class="rd-table-summary__cell"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Depth · stat strips (batch 40)</h2>
+    <div class="rd-stats">
+      <button type="button" class="rd-stat">
+        <div class="rd-stat__label">Guests</div>
+        <div class="rd-stat__value-row"><div class="rd-stat__value">142</div><div class="rd-stat__delta">↑4 since Monday</div></div>
+        <div class="rd-stat__filter">Show all</div>
+      </button>
+      <button type="button" class="rd-stat">
+        <div class="rd-stat__label">Accepted</div>
+        <div class="rd-stat__value-row"><div class="rd-stat__value">118</div></div>
+        <div class="rd-stat__spark" aria-hidden="true"><i style="height:40%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:62%"></i><i style="height:70%"></i><i style="height:68%"></i><i style="height:80%"></i><i style="height:88%"></i></div>
+        <div class="rd-stat__filter">Filter · Accepted</div>
+      </button>
+      <button type="button" class="rd-stat">
+        <div class="rd-stat__label">Budget used</div>
+        <div class="rd-stat__value-row"><div class="rd-stat__value">77%</div></div>
+        <div class="rd-stat__target" aria-hidden="true"><div class="rd-stat__target-fill" style="width:77%"></div><div class="rd-stat__target-tick" style="left:85%"></div></div>
+        <div class="rd-stat__filter">Open Budget</div>
+      </button>
+      <button type="button" class="rd-stat is-attention">
+        <div class="rd-stat__label">No reply</div>
+        <div class="rd-stat__value-row"><div class="rd-stat__value rd-stat__value--warn">12</div></div>
+        <div class="rd-stat__note">Past the reply-by date</div>
+        <div class="rd-stat__filter">Filter · No reply</div>
+      </button>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Depth · drawer header</h2>
+    <div style="width:360px;border:1px solid var(--border-subtle);background:var(--surface-content)">
+      <div class="rd-drawer__head">
+        <div class="rd-drawer__actions-row">
+          <div class="rd-drawer__nav">
+            <button type="button" class="rd-drawer__nav-btn" aria-label="Previous">↑</button>
+            <button type="button" class="rd-drawer__nav-btn" aria-label="Next">↓</button>
+            <span class="rd-drawer__position">47 of 142</span>
+          </div>
+          <button type="button" class="rd-btn rd-btn--quiet" aria-label="Close">✕</button>
+        </div>
+        <div class="rd-drawer__crumb">Guest List / Guest</div>
+        <div class="rd-drawer__identity">
+          <span class="rd-avatar rd-avatar--lg" aria-hidden="true">EM</span>
+          <div class="rd-drawer__identity-text">
+            <div class="rd-drawer__title" style="margin-top:0">Efua Mensah</div>
+            <div class="rd-drawer__eyebrow">Maid of honour</div>
+          </div>
+        </div>
+        <div class="rd-drawer__pills">
+          <span class="status-pill status-pill--green status-pill--compact">Accepted</span>
+          <span class="status-pill status-pill--gray status-pill--compact">Vegetarian</span>
+        </div>
+        <div class="rd-drawer__quick">
+          <button type="button" class="rd-btn">Call</button>
+          <button type="button" class="rd-btn">Email</button>
+          <button type="button" class="rd-btn">WhatsApp</button>
+        </div>
+      </div>
+      <div class="rd-drawer__body">
+        <div class="rd-field-row"><span class="rd-field-row__label">Side</span><span class="rd-field-row__value">Bride</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Notes</span><button type="button" class="rd-empty-add rd-field-row__value is-empty">Add…</button></div>
+        <div class="rd-drawer__provenance">Created 12 Mar 2026 by MO · Last modified 2 Aug 2026 by AK</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="g-sec"><h2>Work-surface shapes</h2>
+    <div class="g-row"><span class="g-label">.rd-cardgrid · .rd-grouplist · .rd-kanban · .rd-calendar · .rd-gantt · .rd-printsheet · .rd-labelsheet · .rd-reading · .rd-blockeditor · .rd-splitdetail</span></div>
+    <div class="rd-cardgrid" style="margin-bottom:18px">
+      <div class="rd-cardgrid__card"><div class="rd-cardgrid__title">Mensah household</div><div class="rd-cardgrid__meta">4 guests · Accra</div></div>
+      <div class="rd-cardgrid__card is-selected"><div class="rd-cardgrid__title">Asante household</div><div class="rd-cardgrid__meta">2 guests · Kumasi</div></div>
+      <div class="rd-cardgrid__card"><div class="rd-cardgrid__title">Boateng household</div><div class="rd-cardgrid__meta">3 guests · London</div></div>
+    </div>
+    <div class="rd-kanban" style="margin-bottom:18px">
+      <div class="rd-kanban__col"><div class="rd-kanban__col-head">Processional</div><div class="rd-kanban__card">Best man</div></div>
+      <div class="rd-kanban__col"><div class="rd-kanban__col-head">Reception</div><div class="rd-kanban__card">Toast</div></div>
+      <div class="rd-kanban__col is-danger"><div class="rd-kanban__col-head">Unassigned</div><div class="rd-kanban__card">Usher · door</div></div>
+    </div>
+  </section>
 </div>
 </body>
 </html>

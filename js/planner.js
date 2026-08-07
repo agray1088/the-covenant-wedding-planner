@@ -41526,17 +41526,40 @@ function renderGuestStats() {
   const host = document.getElementById('guest-stats');
   if (!host) return;
   const s = guestStatsData();
-  const cell = (label, val, tone) =>
-    `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
-  host.innerHTML = [
-    cell('Guests', s.total),
-    cell('Invited', s.invited),
-    cell('Accepted', s.accepted),
-    cell('Declined', s.declined),
-    cell('Pending', s.pending, s.pending ? 'warn' : ''),
-    cell('Meals TBD', s.mealsTbd, s.mealsTbd ? 'warn' : ''),
-    cell('Headcount cost', s.headcountLabel)
-  ].join('');
+  if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+    const items = [
+      { label: 'Guests', value: s.total, filter: 'Show all' },
+      { label: 'Invited', value: s.invited, filter: 'Filter · Invited' },
+      { label: 'Accepted', value: s.accepted, filter: 'Filter · Accepted' },
+      { label: 'Declined', value: s.declined, filter: 'Filter · Declined' },
+      {
+        label: 'Pending',
+        value: s.pending,
+        filter: 'Filter · Pending',
+        attention: s.pending ? 'Still waiting on a reply' : undefined
+      },
+      {
+        label: 'Meals TBD',
+        value: s.mealsTbd,
+        filter: 'Filter · Meals TBD',
+        attention: !s.pending && s.mealsTbd ? 'Accepted guests with no meal' : undefined
+      },
+      { label: 'Headcount cost', value: s.headcountLabel, filter: 'Open Budget' }
+    ];
+    RdDepth.renderStats(host, items);
+  } else {
+    const cell = (label, val, tone) =>
+      `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
+    host.innerHTML = [
+      cell('Guests', s.total),
+      cell('Invited', s.invited),
+      cell('Accepted', s.accepted),
+      cell('Declined', s.declined),
+      cell('Pending', s.pending, s.pending ? 'warn' : ''),
+      cell('Meals TBD', s.mealsTbd, s.mealsTbd ? 'warn' : ''),
+      cell('Headcount cost', s.headcountLabel)
+    ].join('');
+  }
   if (typeof renderGuestCostSummary === 'function') renderGuestCostSummary();
   if (typeof renderGuestSeatingSummary === 'function') renderGuestSeatingSummary();
 }

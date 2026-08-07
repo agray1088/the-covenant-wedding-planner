@@ -32,9 +32,9 @@
      Step 1: tokens only.
      ========================================================================== -->
 <link rel="stylesheet" href="Redesign/redesign-tokens.css?v=redesign-step6n">
-<link rel="stylesheet" href="Redesign/redesign-components.css?v=redesign-step7c">
+<link rel="stylesheet" href="Redesign/redesign-components.css?v=redesign-depth1">
 <link rel="stylesheet" href="Redesign/redesign-shell.css?v=redesign-step6n">
-<link rel="stylesheet" href="Redesign/redesign-layouts.css?v=redesign-step6n">
+<link rel="stylesheet" href="Redesign/redesign-layouts.css?v=redesign-depth1">
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
@@ -3089,10 +3089,11 @@
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
 <script src="Redesign/autofit-columns.js?v=redesign-step6n"></script>
-<script src="js/planner.js?v=redesign-step23c"></script>
+<script src="js/planner.js?v=redesign-depth1"></script>
 <!-- Defines rdOpenPicker(), the column registry and rdAutoFitTable(), which the
      page redesign modules below all rely on. Must load before them. -->
 <script src="js/rd-table-controls.js?v=redesign-step23"></script>
+<script src="js/rd-depth.js?v=redesign-depth1"></script>
 <script src="js/party-redesign.js?v=redesign-step22a"></script>
 <script src="js/tables-redesign.js?v=redesign-step22a"></script>
 <script src="js/gifts-redesign.js?v=redesign-step22a"></script>
