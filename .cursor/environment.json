@@ -1,0 +1,13 @@
+{
+  "name": "Covenant Wedding Planner",
+  "install": "npm install && npx playwright install --with-deps chromium",
+  "terminals": [
+    {
+      "name": "web",
+      "command": "python3 -m http.server 8000"
+    }
+  ],
+  "ports": [
+    8000
+  ]
+}
