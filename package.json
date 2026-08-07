@@ -1,0 +1,15 @@
+{
+  "name": "covenant-wedding-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Covenant Wedding Planner — a static, offline-capable client-side planning app. Dev tooling for serving the app and running consistency/visual checks.",
+  "scripts": {
+    "serve": "python3 -m http.server 8000",
+    "check": "for f in tools/check-duplicate-functions.js tools/check-main-panels.js tools/check-panel-display-css.js tools/check-panel-nesting.js tools/check-panel-nesting2.js; do echo \"=== $f ===\"; node \"$f\" || exit 1; done",
+    "verify:catering": "node tools/verify-catering-layout.mjs",
+    "verify:panel-bleed": "node tools/verify-panel-bleed.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.55.0"
+  }
+}
