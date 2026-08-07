@@ -596,7 +596,7 @@
       viewsHtml + monthsHtml + jumpHtml + '</div>';
   }
 
-  /* Venue & Vendors rail — shells vendors.html / tracker / shortlist */
+  /* Venue & Vendors rail — All.dc 4c / Views 30f */
   function buildVendorsContext() {
     var money = function (v) {
       return '$' + Math.round(parseFloat(v) || 0).toLocaleString();
@@ -605,16 +605,12 @@
     if (typeof getSavedView === 'function') activeView = getSavedView('vendors', 'all');
     else if (typeof window._vndRailView === 'string' && window._vndRailView) activeView = window._vndRailView;
     window._vndRailView = activeView;
-    if (typeof getSavedView === 'function') {
-      window._vndRailGroupBy = getSavedView('vendorsGroupBy', window._vndRailGroupBy || 'category');
-    }
-    var activeGroup = (typeof window._vndRailGroupBy === 'string' && window._vndRailGroupBy) || 'category';
 
     var counts = typeof window.vendorRailCounts === 'function' ? window.vendorRailCounts() : {
-      all: 0, booked: 0, shortlisted: 0, noquote: 0, paidfull: 0
+      all: 0, booked: 0, shortlist: 0, nocontract: 0, balance: 0
     };
     var figures = typeof window.vendorFigures === 'function' ? window.vendorFigures() : {
-      contracted: 0, paid: 0, outstanding: 0, unquotedMeter: 0
+      bookedValue: 0, paid: 0
     };
 
     function viewItem(id, label, count, warn) {
@@ -629,44 +625,31 @@
       '<div class="rd-rail__list" role="list">' +
       viewItem('all', 'All vendors', counts.all) +
       viewItem('booked', 'Booked', counts.booked) +
-      viewItem('shortlisted', 'Shortlisted', counts.shortlisted) +
-      viewItem('noquote', 'No quote', counts.noquote, true) +
-      viewItem('paidfull', 'Paid in full', counts.paidfull) +
+      viewItem('shortlist', 'Shortlist', counts.shortlist) +
+      viewItem('nocontract', 'No contract on file', counts.nocontract, true) +
+      viewItem('balance', 'Balance outstanding', counts.balance) +
       '</div></div>';
 
-    var contracted = figures.contracted || figures.bookedValue || 0;
+    var bookedValue = figures.bookedValue || 0;
     var paid = figures.paid || 0;
-    var outstanding = figures.outstanding != null ? figures.outstanding : Math.max(0, contracted - paid);
-    var pct = contracted > 0 ? Math.max(0, Math.min(100, Math.round((paid / contracted) * 100))) : 0;
+    var outstanding = Math.max(0, bookedValue - paid);
+    var pct = bookedValue > 0 ? Math.max(0, Math.min(100, Math.round((paid / bookedValue) * 100))) : 0;
     var metersHtml =
       '<div class="rd-rail__section">' +
       '<div class="rd-rail__title">Booked</div>' +
       '<div class="rd-rail__meters">' +
       '<div class="rd-rail__meter">' +
-      '<div class="rd-rail__meter-top"><span>Contracted</span><span class="rd-rail__count">' + money(contracted) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Booked value</span><span class="rd-rail__count">' + money(bookedValue) + '</span></div>' +
       '<div class="rd-track"><div class="rd-fill" style="width:' + pct + '%"></div></div></div>' +
-      '<div class="rd-rail__meter-top"><span>Paid</span><span class="rd-rail__count">' + money(paid) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Paid to date</span><span class="rd-rail__count">' + money(paid) + '</span></div>' +
       '<div class="rd-rail__meter-top"><span>Outstanding</span><span class="rd-rail__count">' + money(outstanding) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Unquoted</span><span class="rd-rail__count">' + money(figures.unquotedMeter || 0) + '</span></div>' +
-      '</div></div>';
-
-    function groupItem(id, label) {
-      return '<button type="button" class="rd-rail__item' + (activeGroup === id ? ' is-active' : '') + '"' +
-        ' onclick="applyVendorsRailGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
-    }
-    var groupHtml =
-      '<div class="rd-rail__section">' +
-      '<div class="rd-rail__title">Group by</div>' +
-      '<div class="rd-rail__list" role="list">' +
-      groupItem('category', 'Category') +
-      groupItem('status', 'Status') +
-      groupItem('nextpay', 'Next payment') +
+      '<div class="rd-rail__meter-top"><span>No contract</span><span class="rd-rail__count">' + (counts.nocontract || 0) + '</span></div>' +
       '</div></div>';
 
     var noteHtml =
-      '<p class="rd-rail__note">A vendor booked here creates the Budget line and the Contract. The quote is typed once.</p>';
+      '<p class="rd-rail__note">Quote, deposit, balance and rating are columns; pros and cons live in the drawer. Booked value counts booked vendors only.</p>';
 
-    return '<div class="rd-rail__stack" data-page-rail="vendors">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+    return '<div class="rd-rail__stack" data-page-rail="vendors">' + viewsHtml + metersHtml + noteHtml + '</div>';
   }
 
   /* Screen 10c Rail · 224px — Views + Committed meters + Group by. */
