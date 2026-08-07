@@ -364,6 +364,20 @@
       <div class="rd-kanban__col is-danger"><div class="rd-kanban__col-head">Unassigned</div><div class="rd-kanban__card">Usher · door</div></div>
     </div>
   </section>
+  <section class="g-sec"><h2>State library · table empty</h2>
+    <div class="g-row"><span class="g-label">.rd-state · empty / filter / loading / error · RdStates</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div id="g-state-empty" class="rd-state rd-state--empty rd-state--table" data-rd-page="guests"></div>
+      <div id="g-state-filter" class="rd-state rd-state--filter rd-state--table"></div>
+    </div>
+  </section>
 </div>
+<script src="../js/rd-states.js"></script>
+<script>
+  if (window.RdStates) {
+    RdStates.renderEmpty(document.getElementById('g-state-empty'), 'guests');
+    RdStates.renderFilterEmpty(document.getElementById('g-state-filter'));
+  }
+</script>
 </body>
 </html>

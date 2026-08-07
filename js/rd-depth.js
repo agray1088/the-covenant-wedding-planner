@@ -424,6 +424,187 @@
     );
   }
 
+  function initials(name) {
+    return String(name || '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(function (w) {
+        return w.charAt(0).toUpperCase();
+      })
+      .join('') || '?';
+  }
+
+  function digitsOnly(phone) {
+    return String(phone || '').replace(/\D+/g, '');
+  }
+
+  /** Mark empty drawer inputs with pale “Add…” — never a blank box. */
+  function decorateEmptyFields(root) {
+    if (!root) return;
+    root.querySelectorAll('input.rd-field-row__value, textarea.rd-field-row__value').forEach(function (el) {
+      if (el.readOnly || el.disabled) return;
+      if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'hidden' || el.type === 'date' || el.type === 'number' || el.type === 'time') return;
+      var empty = !String(el.value || '').trim();
+      el.classList.toggle('is-empty', empty);
+      if (empty) {
+        if (!el.getAttribute('placeholder') || el.getAttribute('placeholder') === 'Add…') {
+          el.setAttribute('placeholder', 'Add…');
+        }
+      }
+    });
+    root.querySelectorAll('select.rd-field-row__value').forEach(function (el) {
+      if (el.disabled) return;
+      var empty = !String(el.value || '').trim();
+      el.classList.toggle('is-empty', empty);
+    });
+    root.querySelectorAll('.rd-field-row__value:not(input):not(textarea):not(select):not(button):not(label)').forEach(function (el) {
+      var txt = (el.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!txt || txt === '—' || txt === '-') {
+        el.classList.add('is-empty');
+        if (!el.querySelector('.rd-empty-add') && !el.closest('.rd-field-row__value--readonly')) {
+          el.textContent = '';
+          el.insertAdjacentHTML('beforeend', emptyAdd('Add…'));
+        }
+      }
+    });
+  }
+
+  function relatedBlock(opts) {
+    opts = opts || {};
+    var rows = opts.rows || [];
+    var head =
+      '<div class="rd-related__head">' +
+      esc(opts.title || 'Related') +
+      (opts.pageLabel
+        ? '<a href="#" data-rd-related-page="' + esc(opts.page || '') + '">' + esc(opts.pageLabel) + '</a>'
+        : '') +
+      (opts.addLabel
+        ? '<button type="button" class="rd-related__add" data-rd-related-add="' +
+          esc(opts.addKey || '') +
+          '">' +
+          esc(opts.addLabel) +
+          '</button>'
+        : '') +
+      '</div>';
+    var body;
+    if (!rows.length) {
+      body = '<div class="rd-empty">' + esc(opts.empty || 'Nothing linked yet.') + '</div>';
+    } else {
+      body =
+        '<table class="rd-table"><tbody>' +
+        rows
+          .map(function (r) {
+            return (
+              '<tr><td>' +
+              esc(r.left || '') +
+              '</td><td class="is-num">' +
+              esc(r.right || '') +
+              '</td></tr>'
+            );
+          })
+          .join('') +
+        '</tbody></table>';
+    }
+    return '<div class="rd-related" data-rd-related="' + esc(opts.id || '') + '">' + head + body + '</div>';
+  }
+
+  function commentsBlock(items) {
+    items = items || [];
+    var list = items
+      .map(function (c) {
+        return (
+          '<div class="rd-comment' +
+          (c.resolved ? ' rd-comment--resolved' : '') +
+          '">' +
+          '<div class="rd-comment__meta"><span class="rd-comment__author">' +
+          esc(c.author || 'Someone') +
+          '</span><span>' +
+          esc(c.when || '') +
+          '</span>' +
+          (c.resolved
+            ? ''
+            : '<button type="button" class="rd-comment__resolve" data-rd-comment-resolve>Resolve</button>') +
+          '</div>' +
+          '<div class="rd-comment__body">' +
+          esc(c.text || '') +
+          '</div></div>'
+        );
+      })
+      .join('');
+    return (
+      '<div class="rd-comments" data-rd-comments>' +
+      '<div class="rd-related__head">Comments</div>' +
+      (list || '<div class="rd-empty">No comments yet. A comment is a conversation — not a note.</div>') +
+      '<div class="rd-comment rd-comment--compose"><textarea class="rd-field-row__value rd-field-row__value--textarea" rows="2" placeholder="Write a comment… Use @name to mention." data-rd-comment-input></textarea></div>' +
+      '</div>'
+    );
+  }
+
+  function activityBlock(entries) {
+    entries = entries || [];
+    if (!entries.length) {
+      return (
+        '<div class="rd-activity" data-rd-activity><div class="rd-related__head">Activity</div>' +
+        '<div class="rd-empty">No activity yet.</div></div>'
+      );
+    }
+    var html = entries
+      .map(function (e) {
+        var cls = 'rd-activity__row' + (e.consequence ? ' is-consequence' : '');
+        var effect = e.effect ? ' <span class="rd-activity__effect">' + esc(e.effect) + '</span>' : '';
+        return (
+          '<div class="' +
+          cls +
+          '">' +
+          esc(e.text || '') +
+          effect +
+          (e.when ? ' · ' + esc(e.when) : '') +
+          '</div>'
+        );
+      })
+      .join('');
+    return (
+      '<div class="rd-activity" data-rd-activity><div class="rd-related__head">Activity</div>' + html + '</div>'
+    );
+  }
+
+  function provenanceLine(opts) {
+    opts = opts || {};
+    var created = opts.created || '—';
+    var createdBy = opts.createdBy || '—';
+    var modified = opts.modified || created;
+    var modifiedBy = opts.modifiedBy || createdBy;
+    return (
+      '<div class="rd-drawer__provenance" data-rd-provenance>Created ' +
+      esc(created) +
+      ' by ' +
+      esc(createdBy) +
+      ' · Last modified ' +
+      esc(modified) +
+      ' by ' +
+      esc(modifiedBy) +
+      '</div>'
+    );
+  }
+
+  function quickActionsHtml(draft) {
+    draft = draft || {};
+    var phone = String(draft.phone || '').trim();
+    var email = String(draft.email || '').trim();
+    var dig = digitsOnly(phone);
+    var call = phone
+      ? '<a class="rd-btn" href="tel:' + esc(dig || phone) + '">Call</a>'
+      : '<button type="button" class="rd-btn" disabled title="No phone on file">Call</button>';
+    var mail = email
+      ? '<a class="rd-btn" href="mailto:' + esc(email) + '">Email</a>'
+      : '<button type="button" class="rd-btn" disabled title="No email on file">Email</button>';
+    var wa = dig
+      ? '<a class="rd-btn" href="https://wa.me/' + esc(dig) + '" target="_blank" rel="noopener">WhatsApp</a>'
+      : '<button type="button" class="rd-btn" disabled title="No phone on file">WhatsApp</button>';
+    return '<div class="rd-drawer__quick" data-drawer-quick>' + call + mail + wa + '</div>';
+  }
+
   /* Auto-run after panel paints when redesign chrome is live. */
   function scheduleDecorate(root) {
     if (!document.body.classList.contains('rd-scope')) return;
@@ -446,6 +627,13 @@
     matrixMark: matrixMark,
     rowActions: rowActions,
     renderStats: renderStats,
-    emptyAdd: emptyAdd
+    emptyAdd: emptyAdd,
+    initials: initials,
+    decorateEmptyFields: decorateEmptyFields,
+    relatedBlock: relatedBlock,
+    commentsBlock: commentsBlock,
+    activityBlock: activityBlock,
+    provenanceLine: provenanceLine,
+    quickActionsHtml: quickActionsHtml
   };
 })(typeof window !== 'undefined' ? window : globalThis);

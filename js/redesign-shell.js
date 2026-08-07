@@ -273,14 +273,56 @@
     }
   }
 
+  function ensureDrawerDepthChrome(d) {
+    if (!d) return;
+    var head = d.querySelector('.rd-drawer__head');
+    if (!head) return;
+    var actionsRow = head.querySelector('.rd-drawer__actions-row');
+    if (actionsRow && !actionsRow.querySelector('[data-drawer-nav]')) {
+      var nav = el(
+        '<div class="rd-drawer__nav" data-drawer-nav hidden>' +
+          '<button type="button" class="rd-drawer__nav-btn" data-drawer-prev aria-label="Previous record" title="⌥↑">&#8593;</button>' +
+          '<button type="button" class="rd-drawer__nav-btn" data-drawer-next aria-label="Next record" title="⌥↓">&#8595;</button>' +
+          '<span class="rd-drawer__position" data-drawer-position></span>' +
+        '</div>'
+      );
+      actionsRow.insertBefore(nav, actionsRow.firstChild);
+    }
+    if (!head.querySelector('[data-drawer-crumb]')) {
+      var crumb = el('<div class="rd-drawer__crumb" data-drawer-crumb hidden></div>');
+      var afterActions = actionsRow ? actionsRow.nextSibling : head.firstChild;
+      head.insertBefore(crumb, afterActions);
+    }
+    if (!head.querySelector('[data-drawer-identity]')) {
+      var title = head.querySelector('[data-inline-editor-mode]');
+      var identity = el(
+        '<div class="rd-drawer__identity" data-drawer-identity>' +
+          '<span class="rd-avatar rd-avatar--lg" data-drawer-avatar aria-hidden="true">?</span>' +
+          '<div class="rd-drawer__identity-text"></div>' +
+        '</div>'
+      );
+      var idText = identity.querySelector('.rd-drawer__identity-text');
+      if (title) idText.appendChild(title);
+      else idText.appendChild(el('<div class="rd-drawer__title" data-inline-editor-mode>No record selected</div>'));
+      var pills = head.querySelector('.rd-drawer__pills');
+      head.insertBefore(identity, pills || head.querySelector('[data-drawer-tabs]') || null);
+    }
+    if (!head.querySelector('[data-drawer-quick]')) {
+      var quick = el('<div class="rd-drawer__quick" data-drawer-quick hidden></div>');
+      var tabsEl = head.querySelector('[data-drawer-tabs]');
+      head.insertBefore(quick, tabsEl || head.querySelector('[data-drawer-toolbar]') || null);
+    }
+  }
+
   function ensureDrawer() {
     var d = document.getElementById(DRAWER_ID);
     if (d) {
       /* Migrate older heads → top row = close only; Save/Add + Mark complete under tabs. */
       if (d.querySelector('.rd-drawer__head') && !d.querySelector('.rd-drawer__toolbar')) {
         migrateDrawerHead(d);
-        bindDrawerChrome(d);
       }
+      ensureDrawerDepthChrome(d);
+      bindDrawerChrome(d);
       syncDrawerSlot();
       return d;
     }
@@ -293,17 +335,29 @@
         /* Head: close-only top row, then eyebrow / title / pills / tabs,
            then full-width Save/Add + Mark complete under the tab strip. */
         '<div class="rd-drawer__head">' +
-          /* [X] only on the top row so Task · phase is never crowded. */
+          /* Nav + close on the top row (Depth · drawer). */
           '<div class="rd-drawer__actions-row">' +
+            '<div class="rd-drawer__nav" data-drawer-nav hidden>' +
+              '<button type="button" class="rd-drawer__nav-btn" data-drawer-prev aria-label="Previous record" title="⌥↑">&#8593;</button>' +
+              '<button type="button" class="rd-drawer__nav-btn" data-drawer-next aria-label="Next record" title="⌥↓">&#8595;</button>' +
+              '<span class="rd-drawer__position" data-drawer-position></span>' +
+            '</div>' +
             '<button type="button" class="rd-drawer__close" data-drawer-close aria-label="Close">&#10005;</button>' +
           '</div>' +
+          '<div class="rd-drawer__crumb" data-drawer-crumb hidden></div>' +
           '<div class="rd-drawer__eyebrowrow" data-drawer-eyebrow>' +
             '<span class="rd-drawer__eyebrow"></span>' +
           '</div>' +
-          '<div class="rd-drawer__title" data-inline-editor-mode>No record selected</div>' +
+          '<div class="rd-drawer__identity" data-drawer-identity>' +
+            '<span class="rd-avatar rd-avatar--lg" data-drawer-avatar aria-hidden="true">?</span>' +
+            '<div class="rd-drawer__identity-text">' +
+              '<div class="rd-drawer__title" data-inline-editor-mode>No record selected</div>' +
+            '</div>' +
+          '</div>' +
           '<div class="rd-drawer__pills">' +
             '<span class="rd-drawer__pos" data-inline-editor-position></span>' +
           '</div>' +
+          '<div class="rd-drawer__quick" data-drawer-quick hidden></div>' +
           '<div class="rd-drawer__tabs" data-drawer-tabs hidden></div>' +
           /* Same data-inline-editor-save / data-drawer-action hooks as before. */
           '<div class="rd-drawer__toolbar" data-drawer-toolbar>' +
@@ -396,6 +450,18 @@
     head.appendChild(toolbar);
   }
 
+  function drawerStep(delta) {
+    var st = window.recordEditorState;
+    if (!st || st.isNew || st.inlineMount !== DRAWER_BODY) return;
+    if (typeof recordEditorRows !== 'function') return;
+    var rows = recordEditorRows(st.key) || [];
+    var idx = Number(st.index);
+    if (!isFinite(idx)) return;
+    var next = idx + delta;
+    if (next < 0 || next >= rows.length) return;
+    openDrawer(st.key, next);
+  }
+
   function bindDrawerChrome(d) {
     var closeBtn = d.querySelector('[data-drawer-close]');
     var saveBtn = d.querySelector('[data-inline-editor-save]');
@@ -434,6 +500,30 @@
         if (st.key !== 'tasks' || typeof recordEditorSet !== 'function') return;
         recordEditorSet('status', 'Complete');
         if (typeof saveInlineRecordEditor === 'function') saveInlineRecordEditor(false);
+      });
+    }
+
+    var prevBtn = d.querySelector('[data-drawer-prev]');
+    var nextBtn = d.querySelector('[data-drawer-next]');
+    if (prevBtn && !prevBtn._rdBound) {
+      prevBtn._rdBound = true;
+      prevBtn.addEventListener('click', function () { drawerStep(-1); });
+    }
+    if (nextBtn && !nextBtn._rdBound) {
+      nextBtn._rdBound = true;
+      nextBtn.addEventListener('click', function () { drawerStep(1); });
+    }
+    if (!document._rdDrawerNavKeys) {
+      document._rdDrawerNavKeys = true;
+      document.addEventListener('keydown', function (ev) {
+        if (!ev.altKey) return;
+        if (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown') return;
+        var drawer = document.getElementById(DRAWER_ID);
+        if (!drawer || drawer.hasAttribute('hidden')) return;
+        var st = window.recordEditorState;
+        if (!st || st.inlineMount !== DRAWER_BODY) return;
+        ev.preventDefault();
+        drawerStep(ev.key === 'ArrowUp' ? -1 : 1);
       });
     }
 
@@ -518,6 +608,233 @@
     }).join('');
     return '<section class="record-editor-section" data-drawer-synth="History" data-drawer-group="history"><h4>History</h4>' +
            html + '</section>';
+  }
+
+  var DRAWER_PAGE_CRUMB = {
+    guests: 'Guest List / Guest',
+    party: 'Wedding Party / Member',
+    gifts: 'Gifts / Gift',
+    tables: 'Table Layout / Table',
+    tasks: 'Timeline & Tasks / Task',
+    appointments: 'Appointments / Appointment',
+    weekendTimeline: 'Weekend Logistics / Movement',
+    hotelBlocks: 'Weekend Logistics / Hotel block',
+    travelAccommodations: 'Weekend Logistics / Travel',
+    transportation: 'Weekend Logistics / Route',
+    vipCare: 'Weekend Logistics / VIP care'
+  };
+
+  function formatDrawerDate(iso) {
+    if (!iso) return '—';
+    try {
+      if (typeof humanDate === 'function') {
+        return humanDate(String(iso).slice(0, 10), { day: 'numeric', month: 'short', year: 'numeric' }) || String(iso).slice(0, 10);
+      }
+    } catch (e) { /* fall through */ }
+    return String(iso).slice(0, 10);
+  }
+
+  function drawerActorInitials() {
+    try {
+      var el = document.getElementById('rd-profile-initials');
+      var t = el && el.textContent ? el.textContent.trim() : '';
+      if (t && t !== '--') return t;
+    } catch (e) { /* soft */ }
+    return 'You';
+  }
+
+  function applyDrawerDepthHead(d, st, draft) {
+    ensureDrawerDepthChrome(d);
+    var nav = d.querySelector('[data-drawer-nav]');
+    var posEl = d.querySelector('[data-drawer-position]');
+    var crumb = d.querySelector('[data-drawer-crumb]');
+    var avatar = d.querySelector('[data-drawer-avatar]');
+    var quick = d.querySelector('[data-drawer-quick]');
+    var browRow = d.querySelector('[data-drawer-eyebrow]');
+
+    if (crumb && st) {
+      crumb.textContent = DRAWER_PAGE_CRUMB[st.key] || ((typeof recordEditorTitle === 'function' ? recordEditorTitle(st.key) : st.key) + ' / Record');
+      crumb.hidden = false;
+    } else if (crumb) {
+      crumb.hidden = true;
+    }
+
+    if (avatar) {
+      var name =
+        (draft && (draft.name || draft.task || draft.title || draft.desc || draft.from || draft.event || draft.hotel || draft.guest)) ||
+        (st && st.isNew ? 'New' : '?');
+      avatar.textContent = (typeof RdDepth !== 'undefined' && RdDepth.initials)
+        ? RdDepth.initials(name)
+        : String(name).charAt(0).toUpperCase();
+    }
+
+    if (nav && posEl && st && !st.isNew && typeof recordEditorRows === 'function') {
+      var rows = recordEditorRows(st.key) || [];
+      var idx = Number(st.index);
+      if (rows.length && isFinite(idx) && idx >= 0) {
+        posEl.textContent = (idx + 1) + ' of ' + rows.length;
+        nav.hidden = false;
+        var prev = nav.querySelector('[data-drawer-prev]');
+        var next = nav.querySelector('[data-drawer-next]');
+        if (prev) prev.disabled = idx <= 0;
+        if (next) next.disabled = idx >= rows.length - 1;
+      } else {
+        nav.hidden = true;
+      }
+    } else if (nav) {
+      nav.hidden = true;
+    }
+
+    /* Contact quick actions for person-bearing records. */
+    var showQuick = st && (st.key === 'guests' || st.key === 'party' || st.key === 'gifts' || st.key === 'vendors' || st.key === 'contacts');
+    if (quick) {
+      if (showQuick && typeof RdDepth !== 'undefined' && RdDepth.quickActionsHtml) {
+        quick.outerHTML = RdDepth.quickActionsHtml(draft);
+        quick = d.querySelector('[data-drawer-quick]');
+        if (quick) quick.hidden = false;
+      } else {
+        quick.hidden = true;
+        quick.innerHTML = '';
+      }
+    }
+
+    /* Eyebrow text still set by decorate(); keep row for sub-context under crumb when no identity role. */
+    if (browRow && crumb && !crumb.hidden) {
+      /* Prefer crumb + identity; leave eyebrow as secondary context when it has content. */
+    }
+  }
+
+  function guestRelatedBlocksHtml(draft) {
+    if (typeof RdDepth === 'undefined' || !RdDepth.relatedBlock) return '';
+    var name = String(draft && draft.name || '').trim().toLowerCase();
+    var gifts = [];
+    try {
+      (typeof safeArray === 'function' ? safeArray(window.data && window.data.gifts) : (window.data && window.data.gifts) || [])
+        .forEach(function (g) {
+          if (name && String(g.from || '').trim().toLowerCase() === name) {
+            gifts.push({ left: g.desc || 'Gift', right: g.thankyou ? 'Note sent' : 'Note due' });
+          }
+        });
+    } catch (e) { /* soft */ }
+    var appts = [];
+    try {
+      (typeof safeArray === 'function' ? safeArray(window.data && window.data.appointments) : (window.data && window.data.appointments) || [])
+        .forEach(function (a) {
+          var who = String(a.contact || a.title || '').toLowerCase();
+          if (name && who.indexOf(name.split(/\s+/)[0]) !== -1) {
+            appts.push({ left: a.title || 'Appointment', right: a.date || '' });
+          }
+        });
+    } catch (e2) { /* soft */ }
+    return (
+      RdDepth.relatedBlock({
+        id: 'gifts',
+        title: 'Gifts · ' + gifts.length,
+        page: 'gifts',
+        pageLabel: 'Open Gifts',
+        addLabel: 'Add gift',
+        addKey: 'gifts',
+        rows: gifts.slice(0, 5),
+        empty: 'No gifts from this guest yet.'
+      }) +
+      RdDepth.relatedBlock({
+        id: 'appointments',
+        title: 'Appointments · ' + appts.length,
+        page: 'appointments',
+        pageLabel: 'Open Appointments',
+        addLabel: 'Add…',
+        addKey: 'appointments',
+        rows: appts.slice(0, 5),
+        empty: 'No appointments touch this guest.'
+      })
+    );
+  }
+
+  function activityEntriesFromHistory(st) {
+    if (!st || !st.draft || typeof recordHistoryFor !== 'function') return [];
+    var entries = recordHistoryFor(st.key, st.draft._id) || [];
+    return entries.slice(0, 12).map(function (e) {
+      var changes = e.changes || [];
+      var text = e.action || 'Updated';
+      var consequence = false;
+      var effect = '';
+      changes.forEach(function (c) {
+        var lab = String(c.label || c.field || '').toLowerCase();
+        text = (c.label || c.field || 'Field') + ' → ' + (c.to || '—');
+        if (/rsvp|reply|accepted|declined/.test(lab) || /yes|accept/i.test(String(c.to || ''))) {
+          consequence = true;
+          if (/yes|accept/i.test(String(c.to || ''))) effect = '+1 cover';
+          if (/no|declin|regret/i.test(String(c.to || ''))) effect = '−1 cover';
+        }
+        if (/table|seat/.test(lab)) {
+          consequence = true;
+          effect = effect || 'seating changed';
+        }
+        if (/status|complete|paid/.test(lab)) consequence = true;
+      });
+      return {
+        text: text,
+        when: (e.date || '') + (e.time ? ' · ' + e.time : ''),
+        consequence: consequence,
+        effect: effect
+      };
+    });
+  }
+
+  function applyDrawerDepthBody(d, st, draft, body) {
+    if (!body || !st) return;
+    if (typeof RdDepth !== 'undefined' && RdDepth.decorateEmptyFields) {
+      RdDepth.decorateEmptyFields(body);
+    }
+
+    /* Related + comments + activity + provenance once per body paint (not inside History tab only). */
+    if (!body.querySelector('[data-rd-depth-extras]')) {
+      var extras = document.createElement('div');
+      extras.setAttribute('data-rd-depth-extras', '1');
+      extras.className = 'rd-drawer-depth-extras';
+      var parts = '';
+      if (st.key === 'guests') parts += guestRelatedBlocksHtml(draft);
+      if (typeof RdDepth !== 'undefined') {
+        if (RdDepth.commentsBlock) {
+          parts += RdDepth.commentsBlock(draft && draft.comments);
+        }
+        if (RdDepth.activityBlock) {
+          parts += RdDepth.activityBlock(activityEntriesFromHistory(st));
+        }
+        if (RdDepth.provenanceLine) {
+          var hist = (typeof recordHistoryFor === 'function' && draft && draft._id)
+            ? (recordHistoryFor(st.key, draft._id) || []) : [];
+          var created = hist.length ? hist[hist.length - 1] : null;
+          var modified = hist.length ? hist[0] : created;
+          parts += RdDepth.provenanceLine({
+            created: created ? formatDrawerDate(created.date) : formatDrawerDate(draft && draft.createdAt),
+            createdBy: (created && created.by) || drawerActorInitials(),
+            modified: modified ? formatDrawerDate(modified.date) : formatDrawerDate((window.data && window.data.updatedAt) || ''),
+            modifiedBy: (modified && modified.by) || drawerActorInitials()
+          });
+        }
+      }
+      extras.innerHTML = parts;
+      body.appendChild(extras);
+
+      extras.querySelectorAll('[data-rd-related-page]').forEach(function (a) {
+        a.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          var page = a.getAttribute('data-rd-related-page');
+          if (page && typeof showPanel === 'function') showPanel(page, true);
+        });
+      });
+      extras.querySelectorAll('[data-rd-related-add]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-rd-related-add');
+          if (!key) return;
+          if (typeof showPanel === 'function') {
+            var page = key === 'gifts' ? 'gifts' : key === 'appointments' ? 'appointments' : key;
+            showPanel(page, true);
+          }
+        });
+      });
+    }
   }
 
   /* ─────────────────────────────────────────────────────────────────────
@@ -785,6 +1102,10 @@
         var tCap = parseInt(draft.capacity || draft.cap, 10) || 0;
         eyebrow.textContent = 'Table · ' + (tCap || '?') + ' seats';
       }
+
+      /* Depth · drawer: avatar, crumb, nav position, quick actions */
+      applyDrawerDepthHead(d, st, draft);
+
       /* Mock 21d: sub-line under name (role) · plus-one as head pill */
       var subEl = d.querySelector('[data-drawer-sub]');
       var guestSubTxt = '';
@@ -792,8 +1113,10 @@
       if (st && st.key === 'guests') {
         if (!subEl) {
           subEl = el('<div class="rd-drawer__sub" data-drawer-sub></div>');
+          var idText = d.querySelector('.rd-drawer__identity-text') || d.querySelector('[data-inline-editor-mode]')?.parentNode;
           var titleNode = d.querySelector('[data-inline-editor-mode]');
-          if (titleNode && titleNode.parentNode) titleNode.parentNode.insertBefore(subEl, titleNode.nextSibling);
+          if (idText && titleNode && titleNode.parentNode === idText) idText.appendChild(subEl);
+          else if (titleNode && titleNode.parentNode) titleNode.parentNode.insertBefore(subEl, titleNode.nextSibling);
         }
         if (typeof guestNameSubline === 'function') guestSubTxt = guestNameSubline(draft) || '';
         if (!guestSubTxt && draft.role) guestSubTxt = String(draft.role);
@@ -939,6 +1262,8 @@
         }
         body.insertAdjacentHTML('beforeend', synth);
       }
+
+      applyDrawerDepthBody(d, st, draft, body);
 
       /* ── the tab strip ───────────────────────────────────────────────── */
       var sections = [].slice.call(body.children).filter(function (n) {

@@ -15374,8 +15374,11 @@ function rdDrawerFieldRow(label, controlHtml, extraClass=''){
 }
 function rdDrawerInputRow(label, key, type='text', extraClass=''){
   const v = recordEditorState?.draft?.[key] ?? '';
+  const empty = !String(v ?? '').trim() && type !== 'number' && type !== 'date' && type !== 'time';
+  const emptyCls = empty ? ' is-empty' : '';
+  const ph = empty ? ' placeholder="Add…"' : '';
   return rdDrawerFieldRow(label,
-    `<input class="rd-field-row__value" type="${type}" value="${escapeHtml(v)}" oninput="recordEditorSet('${key}',this.value)">`,
+    `<input class="rd-field-row__value${emptyCls}" type="${type}" value="${escapeHtml(v)}"${ph} oninput="recordEditorSet('${key}',this.value);this.classList.toggle('is-empty',!String(this.value||'').trim())">`,
     extraClass);
 }
 function rdDrawerSelectRow(label, key, values, emptyLabel=''){
@@ -15390,8 +15393,9 @@ function rdDrawerDatalistRow(label, key, values, multi=false){
   const listId = recordEditorDatalistId(key);
   window.recordPickerReg = window.recordPickerReg || {};
   window.recordPickerReg[listId] = { values: recordUniqueOptionValues(values), multi };
+  const empty = !String(v ?? '').trim();
   return rdDrawerFieldRow(label,
-    `<input class="rd-field-row__value" type="text" autocomplete="off" value="${escapeHtml(v)}" onfocus="openRecordPicker(this,'${listId}')" oninput="recordEditorSet('${key}',this.value);openRecordPicker(this,'${listId}')">`);
+    `<input class="rd-field-row__value${empty ? ' is-empty' : ''}" type="text" autocomplete="off" value="${escapeHtml(v)}" placeholder="${empty ? 'Add…' : ''}" onfocus="openRecordPicker(this,'${listId}')" oninput="recordEditorSet('${key}',this.value);openRecordPicker(this,'${listId}');this.classList.toggle('is-empty',!String(this.value||'').trim())">`);
 }
 function rdDrawerLinkSelect(label, key, rows, labelField, emptyLabel='Not linked'){
   const v = String(recordEditorState?.draft?.[key] ?? '');
@@ -15414,8 +15418,9 @@ function rdDrawerLinkSelect(label, key, rows, labelField, emptyLabel='Not linked
 }
 function rdDrawerTextareaRow(label, key){
   const v = recordEditorState?.draft?.[key] ?? '';
+  const empty = !String(v ?? '').trim();
   return rdDrawerFieldRow(label,
-    `<textarea class="rd-field-row__value rd-field-row__value--textarea" oninput="recordEditorSet('${key}',this.value)">${escapeHtml(v)}</textarea>`);
+    `<textarea class="rd-field-row__value rd-field-row__value--textarea${empty ? ' is-empty' : ''}" placeholder="${empty ? 'Add…' : ''}" oninput="recordEditorSet('${key}',this.value);this.classList.toggle('is-empty',!String(this.value||'').trim())">${escapeHtml(v)}</textarea>`);
 }
 function rdDrawerCheckRow(label, key, refresh){
   const v = !!recordEditorState?.draft?.[key];
@@ -21828,6 +21833,23 @@ function renderTaskStats() {
   const wedding = (data.setup && data.setup.date) ? data.setup.date : '';
   let daysToGo = '—', weddingLabel = 'Not set';
   if (wedding) { const w=new Date(wedding+'T00:00:00'); if(!isNaN(w)){ const diff=Math.ceil((w-today)/86400000); daysToGo = diff>0? diff : (diff===0?'Today':'—'); weddingLabel = w.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); } }
+  if (typeof RdDepth !== 'undefined' && RdDepth.renderStats && el.classList.contains('rd-stats')) {
+    RdDepth.renderStats(el, [
+      { label: 'Total tasks', value: total, filter: 'Show all' },
+      { label: 'Complete', value: done, filter: 'Filter · Complete', delta: total ? pct + '% of total' : undefined, deltaTone: 'flat' },
+      { label: 'In progress', value: inprog, filter: 'Filter · In Progress' },
+      { label: 'Upcoming', value: upcoming, filter: 'Dated & open' },
+      {
+        label: 'Overdue',
+        value: overdue,
+        filter: 'Filter · Overdue',
+        attention: overdue ? 'Past due — needs attention' : undefined
+      },
+      { label: 'Wedding date', value: weddingLabel, filter: 'Open Wedding Setup', onFilter: () => { if (typeof showPanel === 'function') showPanel('setup', true); } },
+      { label: 'Days to go', value: daysToGo, filter: 'Countdown' }
+    ]);
+    return;
+  }
   const ic={clipboard:'<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/>',check:'<circle cx="12" cy="12" r="8"/><path d="m8.7 12.2 2.2 2.3 4.7-5"/>',clock:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',alert:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><path d="M12 17h.01"/>',up:'<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',cal:'<rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/>'};
   const ms=(icon,label,val,sub)=>`<div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true">${ic[icon]||''}</svg><span class="m-stat-label">${label}</span></div><div class="m-stat-val">${val}</div><div class="m-stat-sub">${sub}</div></div>`;
   el.innerHTML =

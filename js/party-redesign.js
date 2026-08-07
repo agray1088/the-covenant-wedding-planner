@@ -499,13 +499,48 @@
 
   function renderPartyPreviewTable() {
     if (typeof cwpRenderTable !== 'function' || !document.getElementById('cwp-party') || rdGetPartyView() !== 'table') return;
+    const wrap = document.getElementById('cwp-party');
+    const total = partyRows().length;
+    const shown = partyRows().filter(partyMatchesFilters).length;
+    const filterOn = !!(window._partyUiFilters && (
+      window._partyUiFilters.side !== 'all' ||
+      window._partyUiFilters.attire !== 'all' ||
+      window._partyUiFilters.role !== 'all'
+    ));
+    if (typeof RdStates !== 'undefined' && RdStates.maybeEmpty && wrap &&
+        (total === 0 || (filterOn && shown === 0))) {
+      let overlay = wrap.querySelector('[data-rd-state-slot]');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.setAttribute('data-rd-state-slot', '1');
+        wrap.appendChild(overlay);
+      }
+      RdStates.maybeEmpty(overlay, {
+        pageId: 'party',
+        total: total,
+        filtered: shown,
+        filterOn: filterOn,
+        onClear: function () {
+          window._partyUiFilters = { side: 'all', attire: 'all', role: 'all' };
+          if (typeof renderPartyRd === 'function') renderPartyRd();
+          else renderPartyPreviewTable();
+        }
+      });
+      wrap.classList.add('has-rd-state');
+      renderPartyTableFoot();
+      return;
+    }
+    if (wrap) {
+      wrap.classList.remove('has-rd-state');
+      const old = wrap.querySelector('[data-rd-state-slot]');
+      if (old) old.remove();
+    }
     rdEnsurePartyTableLayout(true);
     cwpRenderTable('party');
     bindPartyPreviewInline();
     rdApplyPartyDrawerRowFocus();
     rdApplyPartyRowHeight();
     renderPartyTableFoot();
-    const wrap = document.getElementById('cwp-party');
     if (wrap && wrap.dataset.rdBulkBound !== '1') {
       wrap.dataset.rdBulkBound = '1';
       wrap.addEventListener('change', ev => {
