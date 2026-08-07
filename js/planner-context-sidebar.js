@@ -596,6 +596,79 @@
       viewsHtml + monthsHtml + jumpHtml + '</div>';
   }
 
+  /* Venue & Vendors rail — shells vendors.html / tracker / shortlist */
+  function buildVendorsContext() {
+    var money = function (v) {
+      return '$' + Math.round(parseFloat(v) || 0).toLocaleString();
+    };
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('vendors', 'all');
+    else if (typeof window._vndRailView === 'string' && window._vndRailView) activeView = window._vndRailView;
+    window._vndRailView = activeView;
+    if (typeof getSavedView === 'function') {
+      window._vndRailGroupBy = getSavedView('vendorsGroupBy', window._vndRailGroupBy || 'category');
+    }
+    var activeGroup = (typeof window._vndRailGroupBy === 'string' && window._vndRailGroupBy) || 'category';
+
+    var counts = typeof window.vendorRailCounts === 'function' ? window.vendorRailCounts() : {
+      all: 0, booked: 0, shortlisted: 0, noquote: 0, paidfull: 0
+    };
+    var figures = typeof window.vendorFigures === 'function' ? window.vendorFigures() : {
+      contracted: 0, paid: 0, outstanding: 0, unquotedMeter: 0
+    };
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyVendorsRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" onclick="typeof saveVendorView===\'function\'&&saveVendorView()" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All vendors', counts.all) +
+      viewItem('booked', 'Booked', counts.booked) +
+      viewItem('shortlisted', 'Shortlisted', counts.shortlisted) +
+      viewItem('noquote', 'No quote', counts.noquote, true) +
+      viewItem('paidfull', 'Paid in full', counts.paidfull) +
+      '</div></div>';
+
+    var contracted = figures.contracted || figures.bookedValue || 0;
+    var paid = figures.paid || 0;
+    var outstanding = figures.outstanding != null ? figures.outstanding : Math.max(0, contracted - paid);
+    var pct = contracted > 0 ? Math.max(0, Math.min(100, Math.round((paid / contracted) * 100))) : 0;
+    var metersHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Booked</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter">' +
+      '<div class="rd-rail__meter-top"><span>Contracted</span><span class="rd-rail__count">' + money(contracted) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + pct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Paid</span><span class="rd-rail__count">' + money(paid) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Outstanding</span><span class="rd-rail__count">' + money(outstanding) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Unquoted</span><span class="rd-rail__count">' + money(figures.unquotedMeter || 0) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (activeGroup === id ? ' is-active' : '') + '"' +
+        ' onclick="applyVendorsRailGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('category', 'Category') +
+      groupItem('status', 'Status') +
+      groupItem('nextpay', 'Next payment') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">A vendor booked here creates the Budget line and the Contract. The quote is typed once.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="vendors">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
   /* Screen 10c Rail · 224px — Views + Committed meters + Group by. */
   function buildContractsContext() {
     var d = plannerData() || {};
@@ -1463,6 +1536,53 @@
     if (typeof renderContextSidebar === 'function') renderContextSidebar('tasks');
   }
 
+  /* Wedding Day Timeline rail — Whole day / blocks / Needs an owner */
+  function buildTimelineContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('timeline', 'all');
+    else if (typeof window._wdayRailView === 'string' && window._wdayRailView) activeView = window._wdayRailView;
+    window._wdayRailView = activeView;
+
+    var counts = typeof window.timelineRailCounts === 'function' ? window.timelineRailCounts() : {
+      all: 0, morning: 0, ceremony: 0, evening: 0, unowned: 0
+    };
+    var figures = typeof window.timelineFigures === 'function' ? window.timelineFigures() : {
+      first: '—', last: '—', unowned: 0, count: 0
+    };
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyTimelineRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'Whole day', counts.all) +
+      viewItem('morning', 'Morning', counts.morning) +
+      viewItem('ceremony', 'Ceremony', counts.ceremony) +
+      viewItem('evening', 'Evening', counts.evening) +
+      viewItem('unowned', 'Needs an owner', counts.unowned, true) +
+      '</div></div>';
+
+    var metersHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">The day</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Events</span><span class="rd-rail__count">' + (figures.count || counts.all || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>First</span><span class="rd-rail__count">' + esc(figures.first || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last</span><span class="rd-rail__count">' + esc(figures.last || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Unowned</span><span class="rd-rail__count">' + (figures.unowned || counts.unowned || 0) + '</span></div>' +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Two renderings of one set of events — reading and editing. That is a view switcher.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="timeline">' + viewsHtml + metersHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -1472,6 +1592,8 @@
     budget: buildBudgetContext,
     payments: buildPaymentsContext,
     contracts: buildContractsContext,
+    vendors: buildVendorsContext,
+    timeline: buildTimelineContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,

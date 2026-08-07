@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-furniture3">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-vendors1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -784,51 +784,9 @@
     </div>
 
     <!-- ═══ VENDORS ═══ -->
+    <!-- ═══ VENDORS — redesign shell · Tracker | Shortlist · Table/Cards · Batch 30 ═══ -->
     <div id="panel-vendors" class="panel vendors-mockup ued-scope">
-      <div class="m-stats" id="vendor-stats" aria-label="Vendor summary"></div>
-
-      <div class="m-tabbar vnd-tabbar">
-        <button class="m-tab on" data-tab="tracker" onclick="vndTab('tracker')">Vendor Tracker</button>
-        <button class="m-tab" data-tab="shortlist" onclick="vndTab('shortlist')">Shortlist &amp; Compare</button>
-      </div>
-
-      <div data-vnd-tab="tracker">
-      <div class="log-questions" role="region" aria-label="Curated Questions to Ask Every Vendor">
-        <h4>Curated Questions to Ask Every Vendor</h4>
-        <ol>
-        <li>What is included in the quoted price, and what is extra?</li>
-        <li>How many weddings have you served at our venue / in our style?</li>
-        <li>Do you have a backup plan for illness, weather, or emergencies?</li>
-        <li>What is your deposit, payment schedule, and refund policy?</li>
-        <li>Do you carry liability insurance? May I see proof?</li>
-        <li>What time will you arrive and depart? Setup and breakdown?</li>
-        <li>Do you provide a vendor meal? Is that an extra cost?</li>
-        <li>Who is the on-site lead the day-of? What if they cancel?</li>
-        <li>Can we see a full event from start to finish (not just highlights)?</li>
-        <li>Are you comfortable with a Christian ceremony / Scripture / hymns?</li>
-      </ol></div>
-
-      <!-- Vendor tracker + day-of timeline injected by uedVendorShell() -->
-      </div>
-
-      <div data-vnd-tab="shortlist" style="display:none">
-        <div class="m-block vendors-compare-card">
-          <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h7v7H4z"/><path d="M13 7h7v7h-7z"/><path d="M4 16h7v7H4z"/><path d="M13 16h7v7h-7z"/></svg> Vendor Comparisons
-            <span class="m-actions" style="margin-left:auto;display:inline-flex">
-              <button class="m-btn" type="button" onclick="exportSectionCSV('Vendor Comparisons', data.vendorCompare)">Export CSV</button>
-            </span>
-          </div>
-          <p class="v4-help-note">Compare up to 3 vendors side by side for each category.</p>
-          <div class="vcmp-style-bar" role="tablist" aria-label="Comparison view style">
-            <button type="button" class="vcmp-style-btn on" data-style="matrix" onclick="setVendorCompareStyle('matrix')">Matrix</button>
-            <button type="button" class="vcmp-style-btn" data-style="cards" onclick="setVendorCompareStyle('cards')">Cards</button>
-            <button type="button" class="vcmp-style-btn" data-style="h2h" onclick="setVendorCompareStyle('h2h')">Head-to-head</button>
-          </div>
-          <div class="vcmp-caption" aria-live="polite"></div>
-          <div class="log-actions"><button class="btn btn-forest" type="button" onclick="logAdd('vendorCompare',{category:'',a:'',qa:'',b:'',qb:'',c:'',qc:'',decision:''})">+ Add Comparison</button></div>
-          <!-- vendor compare preview injected by uedVendorShell -->
-        </div>
-      </div>
+      <!-- Filled by uedVendorShell() / renderVendors() (pagehead · KPIs · tabstrip · toolbar · table/cards/compare) -->
     </div>
 
     <!-- ═══ GUESTS ═══ -->
@@ -881,80 +839,9 @@
       </div>
     </div>
 
-    <!-- ═══ TIMELINE ═══ -->
+    <!-- ═══ TIMELINE — redesign shell · Vertical | Details · Needs an owner residual ═══ -->
     <div id="panel-timeline" class="panel wday-mockup ued-scope">
-      <div class="wday-title-wrap">
-        <div class="wday-title-copy">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="wday-title">Wedding Day Timeline</h2>
-        <p class="wday-subtitle">Your day, thoughtfully planned. Every moment with purpose.</p>
-        </div>
-        <div class="wday-header-actions no-print">
-          <button class="m-btn" type="button" onclick="openWdayTimelinePrint()">Print section</button>
-          <button class="m-btn m-btn-primary" type="button" onclick="openDataHub('planning','wdayTimeline')">Planning Hub</button>
-        </div>
-      </div>
-
-      <div class="m-stats" id="wday-stats"></div>
-
-      <!-- Two views of the same day-of timeline data (Batch: WD Timeline page).
-           Tab 1 = vertical timeline (same component as the Dashboard).
-           Tab 2 = editable details: summary cards on top, then the Day-Of table. -->
-      <div class="m-tabbar wday-tabbar">
-        <button class="m-tab" data-tab="vertical" onclick="wdayTab('vertical')">Vertical Timeline</button>
-        <button class="m-tab" data-tab="details" onclick="wdayTab('details')">Day-Of Details</button>
-      </div>
-
-      <!-- TAB 1: Vertical timeline -->
-      <div data-tl-tab="vertical">
-        <div class="m-block">
-          <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><circle cx="12" cy="7" r="2"/><circle cx="12" cy="17" r="2"/></svg> Vertical timeline</div>
-          <div id="wday-vertical" class="wday-vertical"></div>
-          <p class="v4-help-note" style="margin-top:.8rem">All times are subject to change. Final timeline will be shared with vendors. Edit events on the <b>Day-Of Details</b> tab.</p>
-        </div>
-      </div>
-
-      <!-- TAB 2: Day-Of details — summary cards above the editable table -->
-      <div data-tl-tab="details">
-        <div class="m-grid-3">
-          <div class="m-block">
-            <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2 7.5 14 3 9.6l6.2-.9L12 3Z"/></svg> Key moments</div>
-            <div id="wday-key-moments" class="wday-key-list"></div>
-            <button class="m-btn" style="margin-top:.8rem" type="button" onclick="scrollToWeddingDayTable()">View full timeline ›</button>
-          </div>
-          <div class="m-block">
-            <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3v15H5V6h3l1-2Z"/><path d="M9 10h6M9 14h6"/></svg> Coordinator notes</div>
-            <textarea id="wday-coordinator-note" class="wday-note-box" oninput="saveTimelineMeta('coordinatorNote', this.value)" style="width:100%;min-height:120px;border:1px solid var(--v4-hair2);background:transparent;padding:.6rem;font-size:13px;color:var(--v4-forest)"></textarea>
-          </div>
-          <div class="m-block">
-            <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.7 19.7 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.7 19.7 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.4 2.8a2 2 0 0 1-.6 1.8l-1.3 1.3a16 16 0 0 0 6.8 6.8l1.3-1.3a2 2 0 0 1 1.8-.6l2.8.4a2 2 0 0 1 1.7 2Z"/></svg> Contact reminders</div>
-            <div id="wday-contact-list" class="wday-contact-list"></div>
-            <button class="m-btn" style="margin-top:.8rem" type="button" onclick="showPanel('vendors')">View full contact list ›</button>
-          </div>
-        </div>
-
-        <div class="m-toolbar ued-table-control-card" id="timeline-filter-card">
-          <select class="sel" id="timeline-responsible-filter" onchange="renderTimeline()" aria-label="Filter wedding day timeline by responsible person"><option value="">All Responsible</option></select>
-          <select class="sel" id="timeline-location-filter" onchange="renderTimeline()" aria-label="Filter wedding day timeline by location"><option value="">All Locations</option></select>
-          <label class="srch grow"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;stroke:var(--v4-muted2);fill:none;stroke-width:1.8"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="timeline-search" type="search" placeholder="Search day-of timeline..." oninput="renderTimeline()" style="border:none;background:transparent;outline:none;font-size:.8rem;color:var(--v4-forest);flex:1"></label>
-          <button class="m-btn" type="button" onclick="clearTimelineFilters()">Clear Filters</button>
-        </div>
-
-        <section class="ued-table-card" id="wday-full-timeline">
-          <div class="ued-table-head">
-            <div class="ued-table-title"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.35em"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg> Day-of timeline</div>
-            <div class="ued-actions">
-              <button class="m-btn m-btn-primary" type="button" onclick="addTimelineRow()">+ Add event</button>
-              <button class="m-btn" type="button" onclick="loadWdayTimelinePreset()">Load starter</button>
-              <button class="m-btn" type="button" onclick="openWdayTimelinePrint()">Print section</button>
-              <button class="m-btn" type="button" onclick="openDataHub('planning','wdayTimeline')">Edit in Planning Hub</button>
-            </div>
-          </div>
-          <!-- Day-of Timeline now rendered by the CWP unified engine (renderTimeline -> cwpRenderTable('wdayTimeline')); manual rows editable + vendor-arrival rows synced read-only -->
-          <div id="cwp-wdayTimeline" class="cwp-mount ro-preview"></div>
-          <div class="preview-foot"><span class="ued-soft" id="wday-hub-preview-foot"></span></div>
-        </section>
-      </div>
+      <!-- Filled by renderTimeline() / timeline-redesign.js -->
     </div>
 
     <!-- CEREMONY -->
@@ -3084,7 +2971,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-step25a"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-vendors1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -3102,6 +2989,8 @@
 <script src="js/budget-redesign.js?v=redesign-furniture3"></script>
 <script src="js/payments-redesign.js?v=redesign-furniture3"></script>
 <script src="js/contracts-redesign.js?v=redesign-furniture3"></script>
+<script src="js/vendors-redesign.js?v=redesign-vendors1"></script>
+<script src="js/timeline-redesign.js?v=redesign-vendors1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
 <script src="js/redesign-shell.js?v=redesign-furniture3"></script>
