@@ -89,7 +89,8 @@
                  (t.dot ? '<span class="rd-tab__dot"></span>' : '') + t.label + '</button>');
       b.addEventListener('click', function () {
         var first = t.pages.filter(function (p) { return panelOf(p[0]); })[0];
-        if (first && typeof showPanel === 'function') showPanel(first[0]);
+        /* forceOpen: Essentials View must not rewrite redesign nav to Dashboard */
+        if (first && typeof showPanel === 'function') showPanel(first[0], true);
       });
       tabs.appendChild(b);
     });
@@ -189,7 +190,8 @@
                  (p[0] === active ? ' is-active' : '') + '">' + p[1] + '</button>');
       if (p[0] === active) b.setAttribute('aria-current', 'page');
       b.addEventListener('click', function () {
-        if (typeof showPanel === 'function') showPanel(p[0]);
+        /* forceOpen: Essentials View must not rewrite redesign nav to Dashboard */
+        if (typeof showPanel === 'function') showPanel(p[0], true);
       });
       subnav.appendChild(b);
     });

@@ -5771,8 +5771,13 @@ function showPanel(id, forceOpen = false) {
   if (id === 'history') id = 'dashboard';
   if (id === 'plan') id = 'tasks';
   if (id === 'reflect' && typeof _rflTab === 'undefined') _rflTab = 'vision';
-  if (!forceOpen && isSimpleModePageHidden(id) && id !== 'venue') id = 'dashboard';
-  if (!forceOpen && isMenuPageHidden(id) && id !== 'venue') id = 'dashboard';
+  /* Redesign chrome (§06) lists the full IA — Weekend Logistics, Wedding Party,
+     Table Layout, Contracts, etc. Essentials / Focus presets still hide those
+     from the legacy sidebar, but must not bounce an explicit redesign tab or
+     sub-nav click to the Dashboard. */
+  const redesignNav = document.body.classList.contains('rd-scope');
+  if (!forceOpen && !redesignNav && isSimpleModePageHidden(id) && id !== 'venue') id = 'dashboard';
+  if (!forceOpen && !redesignNav && isMenuPageHidden(id) && id !== 'venue') id = 'dashboard';
   if (typeof uxRestorePanelDom === 'function') uxRestorePanelDom(id);
   /* Redesign shells (.rd-pagehead) already paint immediately; the Phase-E
      skeleton is a full-panel white sheet (opacity .35 content). Skip it so a
