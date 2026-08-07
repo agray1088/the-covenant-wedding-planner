@@ -1,0 +1,324 @@
+# Implementing the Covenant redesign — a guide for Cursor
+
+You have already built **Planning, People and Money** from an earlier handoff. Since then four
+documents changed or appeared. This file explains what each one is, what to take from it, and —
+most importantly — **what changed under the three categories you have already finished**.
+
+Read §1 and §7 first. §7 is the delta list for work you have already done.
+
+---
+
+## 1 · The five documents, and what each is for
+
+| Document | What it holds | What you take from it |
+|---|---|---|
+| **`Covenant Design Spec.dc.html`** | The system. Tokens, type, spacing, component drawings, and §01–§23 of rules. | Every measurable value: hex codes, pixel sizes, the type scale, component anatomy. **This is the only place with real numbers.** |
+| **`redesign/covenant-design-spec.md`** | The same rules in prose, deliberately with **no** hex codes or pixel values. | The reasoning. Read it when you need to know *why* a thing is shaped that way, or when a case comes up the drawings don't cover. |
+| **`Planner Screens All.dc.html`** | 51 screens — the base state of every page. One screen per page, the page's first view. | The page you are building, its shell, stat strip, toolbar and default work surface. |
+| **`Planner Screens Drawers.dc.html`** | 28 drawer types, every tab of each drawn. | The record drawer for whatever record type the page owns. |
+| **`Planner Screens Views.dc.html`** | 73 screens — every alternate view of every page, plus system furniture, states, density rules, breakpoints and roles. | The 2nd and 3rd view of each page, and all the cross-cutting behaviour. |
+| **`Planner Vendor Portal.dc.html`** | 7 screens — the vendor-facing product. | Only when you build vendor access. It is a separate product, not a mode of this app. |
+
+Plus the implementation package you already have:
+
+- `redesign/redesign-tokens.css`, `-components.css`, `-shell.css`, `-layouts.css` — the CSS
+- `redesign/pages/` — **147 HTML page shells**, one per page *and per view state*
+- `redesign/class-map.md` — every class name, including the 11 work-surface shapes
+- `spec-update-notes.md` — change log; read the "traps worth not repeating" sections
+
+### How to read a screen document
+
+Every screen has three parts stacked vertically:
+
+1. **A badge and a title** — e.g. `10a · Wedding Party · Cards view`. The badge is the page's id in the spec's page inventory.
+2. **A "Build notes" panel** — dark box listing Purpose, where it lives, what the columns/cards show, and the binding rules. **Read this before the picture.** It contains the constraints the drawing can't show.
+3. **The screen itself** at 1440px.
+
+Groups are collapsed — click a group header to expand it.
+
+**Chrome compaction:** only the first screen in each batch draws the full shell (top bar, tab
+strip, sub-nav, rail). The rest show a green strip reading *"Same shell as above"* and start at
+the page header. That is a file-size measure, not a design difference — every screen has the
+same shell.
+
+---
+
+## 2 · What "a page" is made of
+
+Every one of the 37 pages follows the same anatomy (spec §07). Build in this order:
+
+```
+┌─ Top bar ────────────────────────────────────────────┐  fixed, all pages
+├─ Tab strip ──────────────────────────────────────────┤  8 tabs
+├─ Sub-nav ────────────────────────────────────────────┤  pages within the tab
+├─────────┬────────────────────────────────────────────┤
+│  Rail   │  Page header + actions                     │
+│  224px  ├────────────────────────────────────────────┤
+│         │  Stat strip                                │
+│  saved  ├────────────────────────────────────────────┤
+│  views  │  Toolbar: filters · view switcher          │
+│  +      ├────────────────────────────────────────────┤
+│  meters │  Bulk bar (hidden until selection)         │
+│         ├────────────────────────────────────────────┤
+│         │  Work surface ← the only part that varies  │
+└─────────┴────────────────────────────────────────────┘
+                                    Drawer, 360px, overlays from the right
+```
+
+**The work surface is the only part that changes between views of a page.** Everything above it
+stays put. That is why switching views must never reload the page.
+
+### The 11 work-surface shapes
+
+Every view is one of these. Class names in `redesign/class-map.md`.
+
+| Class | Shape |
+|---|---|
+| `.rd-table-wrap` | Grid with sticky header — **exists in the CSS already** |
+| `.rd-cardgrid` | Card grid, 3–4 columns |
+| `.rd-grouplist` | Collapsible group headers with rows |
+| `.rd-kanban` | Draggable columns |
+| `.rd-calendar` | Month grid |
+| `.rd-gantt` | Time axis with positioned bars |
+| `.rd-printsheet` | Centred paper on a desk background |
+| `.rd-labelsheet` | Fixed grid at label-stock dimensions |
+| `.rd-reading` | Single prose column, max 720px |
+| `.rd-blockeditor` | Prose with block-insert affordances |
+| `.rd-splitdetail` | Scrolling left pane + fixed 340px right panel |
+
+**Only `.rd-table-wrap` is written.** The other ten need building. Drawings for each are in
+`Planner Screens Views.dc.html`.
+
+---
+
+## 3 · Where every screen lives in the planner
+
+### `Planner Screens All.dc.html` — the base state of each page
+
+| Tab | Pages with a base screen |
+|---|---|
+| Overview | Dashboard · Get Started · Page-by-Page Guide · FAQ · Wedding Setup · Essentials Checklist · Notes · Viewer preferences |
+| Planning | Timeline & Tasks · Appointments · Smart Calendar · Database Hub |
+| People | Guest List · Households · Contacts · Wedding Party · Table Layout · Gifts |
+| Money | Budget · Payments · Contracts & Invoices |
+| Vendors | Venue & Vendors · Catering & Menu · Entertainment · Shot Lists |
+| The Day | Wedding Day Timeline · Ceremony & Reception · Weekend Logistics · Newlywed Homecoming · Planner History |
+| Covenant | Vision & Foundation · Prayer Journal · Premarital Counseling · First-Month Rhythms |
+| Documents | Share Packets · Email Templates · Print Centre · Vision Board |
+
+### `Planner Screens Views.dc.html` — organised in batches, newest first
+
+| Batch | Contents | Applies to |
+|---|---|---|
+| **43** | Role views — planner, couple, vendor | Whole app |
+| **41–42** | Responsive: 1024px, mobile, day-of mode | Whole app |
+| **38–40** | Depth: tables, drawers, stat strips | Whole app |
+| **37** | State library — empty, loading, error, first run + per-page copy | Whole app |
+| **34–36** | Furniture: ⌘K, filter builder, saved views, bulk edit, import, shortcuts, notifications, share, small states, templates/trash/merge | Whole app |
+| **33** | Notes, Share Packets, Email Templates, Print Centre, Guide, Essentials — 12 views | Documents, Overview |
+| **32** | Vision, Prayer, Counseling, Rhythms — 8 views | Covenant |
+| **31** | Wedding Day Timeline, Ceremony, Logistics, Homecoming, History — 10 views | The Day |
+| **30** | Budget, Payments, Contracts, Vendors, Catering, Entertainment, Shot Lists — 14 views | **Money**, Vendors |
+| **29** | Wedding Party, Table Layout, Gifts — 6 views | **People** |
+| **28** | Households, Contacts — 4 views | **People** |
+
+Batches 28–33 are per-page work. **Batches 34–43 are cross-cutting and affect every page you
+have already built.**
+
+---
+
+## 4 · What to implement, in what order
+
+### Phase 1 — finish the cross-cutting rules (affects work already done)
+1. **Depth pass (38–40)** — tables, drawers, stat strips. See §7 below.
+2. **State library (37)** — 4 archetypes × 4 states, plus the 30-page copy deck.
+3. **Furniture (34–36)** — ⌘K, filter builder, saved views, bulk edit, import, shortcuts, notifications, share, small states.
+
+### Phase 2 — the remaining view states
+4. **Vendors, The Day, Covenant, Documents** base pages + their views (batches 30–33).
+5. The **10 unwritten work-surface classes**, as each view needs them.
+
+### Phase 3 — reach and roles
+6. **Responsive (41–42)** — two breakpoints, plus day-of mode.
+7. **Roles (43)** and, separately, the **Vendor Portal**.
+
+---
+
+## 5 · Binding rules you cannot see in a picture
+
+These are from spec §18–§23. They decide behaviour, not appearance.
+
+**Views**
+- A view is a **layout, never a second copy of the data**. Every view of a page reads the same records. If two views of one page could disagree about a number, one is wrong.
+- **Failure states get a group, not a filter.** "Not seated", "Unassigned", "No vendor attached", "No window assigned" render as the **last group, in red** — never as a filter the user must think to apply.
+- **Toolbars shed controls that don't apply.** Column, auto-fit and row-height controls appear **only** on table and matrix surfaces. Filter chips appear everywhere.
+- Print views **suppress derived times**; screen views show them. Toggle lives in the toolbar.
+
+**Matrix marks** — `●` confirmed · `○` suspected/partial · `—` confirmed absent · `✓` suitable.
+A blank cell is never rendered. `○` is never collapsed into `—`.
+
+**Derived data**
+- A derived column carries **ƒ**, a muted header, and **cannot be edited in the grid**.
+- Instalments are child records of a contract. Category totals are derived from lines. Session completion is derived from homework. None of these can be typed.
+
+**Empty states**
+- Empty-because-nothing-exists and empty-because-a-filter-is-on are **different screens**.
+- No empty state says "nothing here" and stops — each states the page's dependency.
+
+**Never**
+- Covenant records never enter a share packet, export, or vendor view.
+- No stat shows a figure that exists nowhere else.
+- No page-specific keyboard shortcuts.
+
+---
+
+## 6 · Traps that already cost rework
+
+From `spec-update-notes.md` — worth knowing before you hit them:
+
+1. **Bare boolean HTML attributes get dropped** by some template compilers. Write `open="open"`, not `open`.
+2. **`{{field}}` in *content*** is consumed as a template hole. To display merge-field syntax as text, break it with markup.
+3. **`list-style: none` on a `<summary>` removes the disclosure triangle** — replace it deliberately or the affordance vanishes.
+4. **Style helpers silently diverge.** A hand-written copy of a shared component style missed `text-overflow: ellipsis` and `white-space: nowrap`; labels clipped mid-word. Use one source for a component style.
+5. **Affordance copy must be generated from state**, not patched after the fact.
+
+---
+
+## 7 · ⚠ What changed under Planning, People and Money
+
+**This is the section you asked for.** Everything below affects pages you have already built.
+
+### 7.1 · Applies to all three categories (batches 38–40, the depth pass)
+
+These are the largest changes. Every table, drawer and stat strip you built needs them.
+
+**Tables — `Depth · table` in Views**
+- [ ] Every column header gains a **type glyph** (`A` text, `#` number, `$` currency, `◉` select, `☺` person, `☑` checkbox, `↗` link, `❐` attachment, `ƒ` formula, `▤` date)
+- [ ] **Alignment follows type** — text left; numbers and currency right, in tabular figures
+- [ ] A person renders as an **avatar**, not a name string; a checkbox as a **mark**; a linked record as a **chip with an arrow**; an attachment as a **count**
+- [ ] **Derived columns carry ƒ**, a muted header, and are not editable in the grid
+- [ ] **Summary bar at the table foot** — one rollup per column, in that column's alignment, blanks and failures counted in colour
+- [ ] **Row actions on hover only**, with keyboard equivalents shown. Open-in-drawer and open-full-editor are **separate actions**
+- [ ] **First column freezes**, and the summary bar freezes with it
+- [ ] **`＋` column at the right end** creates fields — in the grid, not a settings page
+
+**Drawers — `Depth · drawer` in Views**
+- [ ] Header gains: initials avatar, status chips, **three quick actions** (call/email/WhatsApp), breadcrumb, and **prev/next with record position** ("47 of 142"). `⌥↑↓` moves between records without closing
+- [ ] **Empty fields render "Add…" in pale text**, never a blank box
+- [ ] **Related lists** — inline mini-tables for children the record owns or touches, each with an add action and a link to the owning page
+- [ ] **Comments** — threaded, `@mention`, explicit Resolve. *A comment is not a note.* A note is a pinned fact with a kind; a comment is a conversation. Both exist
+- [ ] **Activity log states derived consequences** — "Reply changed to Accepted · **+1 cover**" — dotted gold where a change had a downstream effect
+- [ ] **Provenance line at the foot** — created and last-modified, by whom
+
+**Stat strips — `Depth · stat strips` in Views**
+- [ ] **Delta = change since a named moment** ("↑6 since Monday"), never a bare percentage
+- [ ] **Sparklines only where a figure genuinely trends** (12 weeks, last bar in forest)
+- [ ] **Target = a tick on a two-tone bar**, so over-target reads as *over*, not as full
+- [ ] **At most one attention cell per strip**, and it must state why
+- [ ] **Every stat names the view it filters to** — a number you can't click through to is decoration
+
+### 7.2 · People — new view screens
+
+| Page | Had | Now also needs |
+|---|---|---|
+| Guest List | Table, Households, Seating | *(complete — no change)* |
+| **Households** | Table | **Labels** (batch 28) · **Cards** (28) |
+| **Contacts** | Table | **Day-of sheet** (28) · **Cards** (28) |
+| **Wedding Party** | Table | **Cards** (29) · **Duties** (29) |
+| **Table Layout** | Plan | **List** (29) · **By guest** (29) |
+| **Gifts** | Table | **Registry** (29) · **Notes** (29) |
+
+Shells exist: `redesign/pages/households-labels.html`, `-cards.html`, `contacts-dayof.html`,
+`contacts-cards.html`, `party-cards.html`, `party-duties.html`, `tables-list.html`,
+`tables-byguest.html`, `gifts-registry.html`, `gifts-notes.html`
+
+**Watch for:**
+- `Table Layout · By guest` is the **caterer's export** — the only view where seat, meal and restriction sit on one line. Sticky first column, dietary columns as marks not text.
+- `Table Layout · List` must carry a **"Not seated" group** — accepted guests with no table, red, last.
+- `Wedding Party · Duties` must carry an **"Unassigned" column** — red, last.
+- `Gifts · Notes` sorts by **days owed**, not by giver.
+- `Households · Labels` **skips** households with no address rather than printing blank ones.
+
+### 7.3 · Money — new view screens
+
+| Page | Had | Now also needs |
+|---|---|---|
+| **Budget** | Itemized | **By category** (batch 30) · **Pledged & paid** (30) |
+| **Payments** | Table | **Calendar** (30) |
+| **Contracts & Invoices** | Table | **Documents** (30) · **Schedule** (30) |
+
+Shells: `budget-bycategory.html`, `budget-pledged.html`, `payments-calendar.html`,
+`contracts-documents.html`, `contracts-schedule.html`
+
+**Watch for:**
+- **Category totals are derived** from their lines. Over-target renders red **at the group row**, not just on the offending line.
+- `Budget · Pledged & paid` needs a **"Not pledged" group** showing the shortfall — money committed with no source behind it. It is a group, not a footnote.
+- Money **not tied to a line** renders amber "Unassigned" rather than silently inflating a category.
+- `Payments · Calendar` — colour encodes **status, never size**. Dragging a payment *proposes* a date and flags the contract that sets it; it never rewrites a contracted date.
+- `Contracts · Documents` — a **required document that doesn't exist yet still gets a card**, rendered red "Missing". Absence is a state.
+- `Contracts · Schedule` — instalments are **child records**, so the timeline is drawn, never typed.
+
+### 7.4 · Planning — no new view screens, but check these
+
+Guest List, Timeline & Tasks, Appointments and Smart Calendar were already complete. But:
+
+- [ ] The **depth pass (§7.1)** applies to all of them
+- [ ] `Appointments` — travel time renders **hatched**, and the same hatch language now means "not the thing itself" everywhere (load-in on Entertainment, setup on the vendor schedule). Keep them consistent
+- [ ] `Database Hub` — see the drawer document for `Hub table · 7b` and `Hub row · 7c`
+
+### 7.5 · Also new since your handoff, and cross-cutting
+
+- [ ] **State library (37)** — every page needs its 4 states. Copy deck for all 30 pages is in Views
+- [ ] **Furniture (34–36)** — 10 overlays that belong to no page: ⌘K, filter builder, saved views, bulk edit, import, shortcuts, notifications, share, small states, templates/trash/merge
+- [ ] **All 28 drawer types** now have every tab drawn in `Planner Screens Drawers.dc.html` — previously only the first tab existed. Check the record types on your finished pages: Household `14b`, Contact `14c`, Wedding party member `10a`, Table `8a`, Gift `10b`, Appointment `14a`
+- [ ] **Responsive (41–42)** — 1240px and 720px
+- [ ] **Roles (43)**
+
+---
+
+## 8 · The page shells in `redesign/pages/`
+
+147 files. Naming: `{page}.html` for a base view, `{page}-{view}.html` for a view state —
+`households-labels.html`, `budget-bycategory.html`, `tables-byguest.html`.
+
+Each shell is complete: same top bar, tab strip, sub-nav and rail as its base page, with four
+things varying —
+
+1. **Rail views and meters** for that view
+2. **Page-head actions**
+3. **Toolbar** — correct switcher pill active, and table-only controls already omitted on non-table surfaces
+4. **One empty work-surface div** for you to fill
+
+**The rail note on each shell states that view's binding rule.** It is the shortest place the
+constraint could be put where it would actually be read.
+
+Mount ids: `#{page}-{view}-mount` for the surface, `-foot` for the row count, `-stats` for the
+stat strip. The panel is `#panel-{page}-{view}` with `data-panel` and `data-view`.
+
+---
+
+## 9 · Quick reference — which document answers which question
+
+| Question | Look in |
+|---|---|
+| What hex is this? What size? | `Covenant Design Spec.dc.html` |
+| Why is it shaped this way? | `redesign/covenant-design-spec.md` |
+| What does this page look like by default? | `Planner Screens All.dc.html` |
+| What are its other views? | `Planner Screens Views.dc.html`, batches 28–33 |
+| What does the drawer look like, every tab? | `Planner Screens Drawers.dc.html` |
+| How dense should the table be? | Views, batch 38 |
+| What happens when it's empty / loading / broken? | Views, batch 37 |
+| How does ⌘K / filtering / bulk edit work? | Views, batches 34–36 |
+| What happens on a tablet or phone? | Views, batches 41–42 |
+| Who can see what? | Views batch 43, then `Planner Vendor Portal.dc.html` |
+| What class name do I use? | `redesign/class-map.md` |
+| What went wrong last time? | `spec-update-notes.md` |
+
+---
+
+## 10 · Known gaps — not your bugs
+
+- **10 of the 11 work-surface classes are not written.** Only `.rd-table-wrap` exists.
+- **No shells for furniture, states or responsive** — they are overlays, per-archetype states and breakpoint behaviours, not pages. Reserved class names are at the foot of `class-map.md`.
+- **`Planner Screens All.dc.html` is 2.2MB** and slow to open. Give it time.
+- **`Planner Screens Views.dc.html` is 1.3MB** — over a minute to first paint, and it cannot be exported to PNG or PDF.
