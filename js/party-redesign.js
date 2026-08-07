@@ -327,6 +327,7 @@
       partyFilterChip('Attire', 'attire') +
       partyFilterChip('Role', 'role') +
       `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenFilterBuilder(this)">Filter builder</button>` +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenViewsManager()">Views</button>` +
       `<button type="button" class="rd-chip rd-chip--ghost" onclick="openPartySort(this)"><svg ${svg}><path d="M4 6h16M7 12h10M10 18h4"/></svg>${escapeHtml(partySortLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip${colAllShown ? ' rd-chip--ghost' : ''}" onclick="rdPartyOpenColumns(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>${escapeHtml(colLabel)}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip" onclick="rdPartyAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>` +
@@ -362,20 +363,60 @@
   function rdPartyOpenFilterBuilder() {
     if (typeof RdFurniture === 'undefined' || !RdFurniture.openFilterBuilder) return;
     const roles = Array.from(new Set(partyRows().map(r => r.role).filter(Boolean))).sort();
+    const total = partyRows().length;
     RdFurniture.openFilterBuilder({
+      pageLabel: 'Wedding Party',
+      panelId: 'party',
+      totalRows: total,
       fields: [
         { key: 'side', label: 'Side', options: ['Bride', 'Groom'] },
         { key: 'attire', label: 'Attire', options: PARTY_ATTIRE_STATUSES.slice() },
         { key: 'role', label: 'Role', options: roles }
       ],
       state: Object.assign({}, window._partyUiFilters),
+      estimateMatch: function (state) {
+        const flat = {};
+        (state.conditions || []).forEach(c => { if (c.field && c.value) flat[c.field] = c.value; });
+        return partyRows().filter(row => {
+          if (flat.side && flat.side !== 'all' && partyMemberSide(row) !== flat.side && row.side !== flat.side) return false;
+          if (flat.attire && flat.attire !== 'all' && partyAttireStatus(row) !== flat.attire) return false;
+          if (flat.role && flat.role !== 'all' && row.role !== flat.role) return false;
+          return true;
+        }).length;
+      },
       onApply: function (next) {
         window._partyUiFilters = Object.assign({ side: 'all', attire: 'all', role: 'all' }, next);
+        renderParty();
+      },
+      onSaveView: function (name, flat) {
+        window._partyUiFilters = Object.assign({ side: 'all', attire: 'all', role: 'all' }, flat);
+        if (typeof setSavedView === 'function') setSavedView('party', name);
         renderParty();
       }
     });
   }
   window.rdPartyOpenFilterBuilder = rdPartyOpenFilterBuilder;
+
+  function rdPartyOpenViewsManager() {
+    if (typeof RdFurniture === 'undefined' || !RdFurniture.openSavedViewsManager) return;
+    RdFurniture.openSavedViewsManager({
+      pageLabel: 'Wedding Party',
+      panelId: 'party',
+      totalRows: partyRows().length,
+      fields: [
+        { key: 'side', label: 'Side', options: ['Bride', 'Groom'] },
+        { key: 'attire', label: 'Attire', options: PARTY_ATTIRE_STATUSES.slice() },
+        { key: 'role', label: 'Role', options: Array.from(new Set(partyRows().map(r => r.role).filter(Boolean))).sort() }
+      ],
+      onNewFromFilter: rdPartyOpenFilterBuilder,
+      onApply: function (next) {
+        window._partyUiFilters = Object.assign({ side: 'all', attire: 'all', role: 'all' }, next || {});
+        renderParty();
+      },
+      onSelect: function () { renderParty(); }
+    });
+  }
+  window.rdPartyOpenViewsManager = rdPartyOpenViewsManager;
 
   function renderPartyBulkBar() {
     const bar = document.getElementById('party-bulk-bar');
@@ -388,10 +429,40 @@
       <span class="rd-bulkbar__sep"></span>
       <button type="button" class="rd-bulkbar__action" onclick="partyBulkSetAttire()">Set attire status</button>
       <button type="button" class="rd-bulkbar__action" onclick="partyBulkAssignDuty()">Assign duty</button>
+      <button type="button" class="rd-bulkbar__action" onclick="rdPartyOpenBulkEdit()">Bulk edit…</button>
       <button type="button" class="rd-bulkbar__action" onclick="partyBulkEmail()">Email selected</button>
       <button type="button" class="rd-bulkbar__action" onclick="printCurrentPage()">Print measurement sheet</button>
       <button type="button" class="rd-bulkbar__clear" onclick="partyBulkClear()">Clear selection</button>`;
   }
+
+  function rdPartyOpenBulkEdit() {
+    if (typeof RdFurniture === 'undefined' || !RdFurniture.openBulkEdit) return;
+    const ids = typeof cwpSelectedIds === 'function' ? cwpSelectedIds('party') : [];
+    const rows = partyRows().filter(r => ids.includes(String(r._id)));
+    RdFurniture.openBulkEdit({
+      count: rows.length || ids.length,
+      names: rows.map(r => r.name).filter(Boolean),
+      conflictCount: 0,
+      fields: [
+        { key: 'attireStatus', label: 'Attire status', options: PARTY_ATTIRE_STATUSES.slice() },
+        { key: 'side', label: 'Side', options: ['Bride', 'Groom'] }
+      ],
+      onApply: function (values) {
+        rows.forEach(r => {
+          Object.keys(values || {}).forEach(k => { r[k] = values[k]; });
+        });
+        if (typeof save === 'function') save();
+        renderParty();
+        if (typeof RdFurniture.showUndoToast === 'function') {
+          RdFurniture.showUndoToast({
+            title: 'Updated ' + rows.length + ' members',
+            detail: 'Attire and side changes applied to the selection.'
+          });
+        }
+      }
+    });
+  }
+  window.rdPartyOpenBulkEdit = rdPartyOpenBulkEdit;
 
   function partyBulkClear() {
     if (window.CWP && CWP.state && CWP.state.party && CWP.state.party.sel) CWP.state.party.sel.clear();

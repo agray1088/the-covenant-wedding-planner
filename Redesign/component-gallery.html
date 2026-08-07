@@ -371,12 +371,46 @@
       <div id="g-state-filter" class="rd-state rd-state--filter rd-state--table"></div>
     </div>
   </section>
+
+  <section class="g-sec"><h2>Furniture · overlays</h2>
+    <div class="g-row"><span class="g-label">Filter builder · Views · Shortcuts · Bulk edit · Share · Undo toast</span></div>
+    <div class="g-row">
+      <button type="button" class="rd-btn rd-btn--primary" id="g-fb">Filter builder</button>
+      <button type="button" class="rd-btn" id="g-views">Saved views</button>
+      <button type="button" class="rd-btn" id="g-kbd">Shortcuts (?)</button>
+      <button type="button" class="rd-btn" id="g-bulk">Bulk edit</button>
+      <button type="button" class="rd-btn" id="g-share">Share</button>
+      <button type="button" class="rd-btn" id="g-undo">Undo toast</button>
+    </div>
+  </section>
 </div>
 <script src="../js/rd-states.js"></script>
+<script src="../js/rd-furniture.js"></script>
 <script>
   if (window.RdStates) {
     RdStates.renderEmpty(document.getElementById('g-state-empty'), 'guests');
     RdStates.renderFilterEmpty(document.getElementById('g-state-filter'));
+  }
+  if (window.RdFurniture) {
+    var fields = [
+      { key: 'rsvp', label: 'Reply status', options: ['No reply', 'Accepted', 'Declined'] },
+      { key: 'side', label: 'Side', options: ['Bride', 'Groom'] },
+      { key: 'chased', label: 'Chased', options: ['Never', 'Once', 'Twice'] }
+    ];
+    document.getElementById('g-fb').onclick = function () {
+      RdFurniture.openFilterBuilder({ pageLabel: 'Guest List', totalRows: 142, fields: fields, estimateMatch: function () { return 7; } });
+    };
+    document.getElementById('g-views').onclick = function () {
+      RdFurniture.openSavedViewsManager({ pageLabel: 'Guest List', panelId: 'guests', fields: fields, totalRows: 142 });
+    };
+    document.getElementById('g-kbd').onclick = function () { RdFurniture.openShortcutSheet(); };
+    document.getElementById('g-bulk').onclick = function () {
+      RdFurniture.openBulkEdit({ count: 23, names: ['Mensah household', 'Asante household', 'Boateng household'], conflictCount: 3, fields: [{ key: 'meal', label: 'Meal choice', options: ['Beef', 'Chicken', 'Fish'] }] });
+    };
+    document.getElementById('g-share').onclick = function () { RdFurniture.openShareDialog({ pageLabel: 'Guest List', panelId: 'guests' }); };
+    document.getElementById('g-undo').onclick = function () {
+      RdFurniture.showUndoToast({ title: '23 guests updated', detail: 'Meal choice set to Beef · seating unchanged' });
+    };
   }
 </script>
 </body>

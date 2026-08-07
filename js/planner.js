@@ -5518,7 +5518,8 @@ document.addEventListener('keydown', function(e){
   if(e.altKey && e.key.toLowerCase()==='b'){ e.preventDefault(); showPanel('budget'); }
   if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey && !plannerShortcutTypingContext()) {
     e.preventDefault();
-    scrollToPlannerKeyboardShortcuts(true);
+    if (document.body.classList.contains('rd-scope') && typeof openShortcutSheet === 'function') openShortcutSheet();
+    else scrollToPlannerKeyboardShortcuts(true);
   }
 });
 
@@ -8308,7 +8309,16 @@ function runCommandPalette(qRaw){
     const fav = (ob.favoritePages||[]).filter(p=>QJ_PAGES[p]).slice(0,4);
     fav.forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Favourite', panel:id, score:90 }));
     if (!fav.length) {
-      ['guests','tasks','budget','calendar'].filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Most used', panel:id, score:85 }));
+      ['guests','budget','timeline','appointments'].filter(p=>QJ_PAGES[p]).forEach(id=>{
+        let count = '';
+        try {
+          if (id === 'guests') count = safeArray(data.guests).length + ' guests';
+          if (id === 'budget') count = safeArray(data.budget).length + ' categories';
+          if (id === 'appointments') count = safeArray(data.appointments).length + ' booked';
+          if (id === 'timeline') count = safeArray(data.timeline).length + ' events';
+        } catch (e) { count = ''; }
+        hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub: count || 'Most used', panel:id, score:85, count: count || undefined });
+      });
     }
     (ob.recentPages||[]).slice(0,4).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Recent', type:'Recent', title:QJ_PAGES[id], sub:'Recently viewed', panel:id, score:70 }));
   } else {
@@ -8367,14 +8377,26 @@ function runCommandPalette(qRaw){
     return;
   }
   let lastGroup = '';
+  const GROUP_HINTS = {
+    'Needs you': 'derived from live records',
+    Actions: 'run without leaving this page',
+    Pages: 'jump without searching',
+    Records: 'matching across pages',
+    Recent: 'last four things you opened'
+  };
   box.innerHTML = _cmdPaletteResults.map((h,i)=>{
     let groupHtml = '';
     if (h.group && h.group !== lastGroup) {
       lastGroup = h.group;
-      groupHtml = `<div class="rd-cmd__group" role="presentation">${escapeHtml(h.group)}</div>`;
+      const hint = GROUP_HINTS[h.group] || '';
+      groupHtml = `<div class="rd-cmd__group" role="presentation" data-hint="${escapeHtml(hint)}">${escapeHtml(h.group)}</div>`;
     }
+    const trail = h.trail || (h.panel && h.record ? (typeof QJ_PAGES !== 'undefined' && QJ_PAGES[h.panel] ? QJ_PAGES[h.panel] : '') : '');
+    const trailHtml = trail ? `<span class="rd-cmd__trail">${escapeHtml(trail)}</span>` : '';
+    const kbd = (i === 0 || h.action) && i === Math.max(0, _cmdPaletteResults.findIndex(x => x.group === h.group))
+      ? '<span class="rd-cmd__kbd-chip">↵</span>' : '';
     const count = h.count != null ? `<span class="rd-cmd__count">${escapeHtml(String(h.count))}</span>` : '';
-    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}</button>`;
+    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}${trailHtml}${kbd}</button>`;
   }).join('');
 }
 function executeCommandPaletteResult(i, opts){
