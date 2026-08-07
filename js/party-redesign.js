@@ -6,12 +6,12 @@
   const PARTY_ATTIRE_STATUSES = ['Fitted & paid', 'Deposit only', 'Not measured'];
   const RD_PARTY_COLUMN_KEYS = ['name', 'role', 'side', 'attireStatus', 'duties', 'fitting'];
   const RD_PARTY_COLUMNS = [
-    { key: 'name', label: 'Member', width: '190px', required: true },
-    { key: 'role', label: 'Role', width: '150px' },
-    { key: 'side', label: 'Side', width: '110px' },
-    { key: 'attireStatus', label: 'Attire', width: '150px' },
-    { key: 'duties', label: 'Duties', width: '130px' },
-    { key: 'fitting', label: 'Fitting', width: '120px' }
+    { key: 'name', label: 'Member', width: '190px', required: true, type: 'person' },
+    { key: 'role', label: 'Role', width: '150px', type: 'select' },
+    { key: 'side', label: 'Side', width: '110px', type: 'select' },
+    { key: 'attireStatus', label: 'Attire', width: '150px', type: 'select' },
+    { key: 'duties', label: 'Duties', width: '130px', type: 'text' },
+    { key: 'fitting', label: 'Fitting', width: '120px', type: 'date' }
   ];
 
   /* The table engine builds the header, group rows and select gutter from
@@ -278,6 +278,21 @@
     const host = document.getElementById('party-stats');
     if (!host) return;
     const s = partyStatsData();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, [
+        { label: 'Members', value: s.total, filter: 'Show all', onFilter: () => { window._partyUiFilters = { side: 'all', attire: 'all', role: 'all' }; renderParty(); } },
+        { label: "Bride's side", value: s.bride, filter: "Filter · Bride's side", onFilter: () => { window._partyUiFilters.side = 'Bride'; renderParty(); } },
+        { label: "Groom's side", value: s.groom, filter: "Filter · Groom's side", onFilter: () => { window._partyUiFilters.side = 'Groom'; renderParty(); } },
+        { label: 'Attire ready', value: s.attireReady, filter: 'Filter · Fitted & paid', onFilter: () => { window._partyUiFilters.attire = 'Fitted & paid'; renderParty(); } },
+        {
+          label: 'Speaking',
+          value: s.speaking,
+          filter: 'Show speakers',
+          attention: s.total && s.attireReady < s.total ? (s.total - s.attireReady) + ' still need fittings' : undefined
+        }
+      ]);
+      return;
+    }
     const cell = (label, val, tone) =>
       `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [
@@ -455,7 +470,7 @@
       if (d._rdActive) { Object.assign(d, d._rdBackup); d._rdActive = false; }
       return;
     }
-    d.columns = partyVisibleColumns().map(c => ({ key: c.key, label: c.label, width: c.width }));
+    d.columns = partyVisibleColumns().map(c => ({ key: c.key, label: c.label, width: c.width, type: c.type || undefined }));
     d.extraFilter = r => partyMatchesFilters(r);
     d.sortRows = (a, b) => partySortRows(a, b);
     d.rowGroup = r => partyRowGroupMeta(r);

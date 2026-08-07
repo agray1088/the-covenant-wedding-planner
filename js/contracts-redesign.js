@@ -456,6 +456,21 @@
     const host = document.getElementById('contracts-stats');
     if (!host) return;
     const f = contractFigures();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, [
+        { label: 'Contracts', value: String(f.count), filter: 'Show all' },
+        { label: 'Contracted value', value: money0(f.contracted), filter: 'Show contracts' },
+        { label: 'Paid', value: money0(f.paid), filter: 'Filter · Paid' },
+        {
+          label: 'Outstanding',
+          value: money0(f.outstanding),
+          filter: 'Filter · Outstanding',
+          attention: f.outstanding > 0 ? 'Balance still owed on signed contracts' : undefined
+        },
+        { label: 'Documents', value: String(f.docs), filter: 'Documents view' }
+      ]);
+      return;
+    }
     const cell = (label, val) =>
       `<div class="m-stat"><div class="m-stat-label">${esc(label)}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [

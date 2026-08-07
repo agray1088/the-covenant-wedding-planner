@@ -314,6 +314,29 @@
     const host = document.getElementById('budget-stats');
     if (!host) return;
     const f = budgetFigures();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      const committedPct = f.overall ? f.committedPct : 0;
+      RdDepth.renderStats(host, [
+        { label: 'Total budget', value: money0(f.overall), filter: 'Show all categories' },
+        { label: 'Committed', value: money0(f.committed), filter: 'Filter · Committed', target: f.overall ? { pct: committedPct, tick: 100 } : undefined },
+        { label: 'Paid', value: money0(f.paid), filter: 'Filter · Paid', spark: f.overall ? [20, 28, 35, 42, 48, 55, 62, Math.min(100, f.paid && f.committed ? Math.round(f.paid / f.committed * 100) : 70)] : undefined },
+        { label: 'Outstanding', value: money0(f.outstanding), filter: 'Filter · Outstanding' },
+        {
+          label: 'Remaining',
+          value: money0(f.remaining),
+          filter: 'Open reconciliation',
+          attention: f.remaining < 0 ? 'Over your budget target' : undefined
+        },
+        { label: 'Committed %', value: f.overall ? f.committedPct + '%' : '—', filter: 'By category' },
+        {
+          label: 'True total',
+          value: money0(f.trueTotal),
+          filter: 'True Total',
+          attention: f.overall && f.trueTotal > f.overall ? 'True total exceeds budget' : undefined
+        }
+      ]);
+      return;
+    }
     const cell = (label, val, tone) =>
       `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${esc(label)}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [

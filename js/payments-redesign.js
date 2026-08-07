@@ -426,6 +426,21 @@
     const host = document.getElementById('payment-stats');
     if (!host) return;
     const f = paymentFigures();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, [
+        { label: 'Committed', value: money0(f.committed), filter: 'Show all payments' },
+        { label: 'Paid', value: money0(f.paid), filter: 'Filter · Paid' },
+        { label: 'Outstanding', value: money0(f.outstanding), filter: 'Filter · Outstanding' },
+        {
+          label: 'Due in 30 days',
+          value: money0(f.due30),
+          filter: 'Due this month',
+          attention: f.due30 > 0 ? 'Payments due within 30 days' : undefined
+        },
+        { label: 'Gratuity planned', value: money0(f.gratuity), filter: 'Show gratuity' }
+      ]);
+      return;
+    }
     const cell = (label, val, tone) =>
       `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${esc(label)}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [

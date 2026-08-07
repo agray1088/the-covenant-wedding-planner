@@ -297,6 +297,26 @@
     const host = document.getElementById('gift-stats');
     if (!host) return;
     const s = giftsStatsData();
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, [
+        { label: 'Gifts logged', value: s.total, filter: 'Show all' },
+        { label: 'Cash received', value: moneyFmt(s.cashTotal), filter: 'Filter · Cash' },
+        { label: 'Registry claimed', value: s.registry + ' of ' + s.registryListed, filter: 'Filter · Registry' },
+        { label: 'Notes sent', value: s.sent, filter: 'Filter · Sent' },
+        {
+          label: 'Notes due',
+          value: s.due,
+          filter: 'Filter · Pending notes',
+          attention: s.due ? 'Thank-you notes still owed' : undefined,
+          onFilter: () => {
+            window._giftsUiFilters = window._giftsUiFilters || {};
+            window._giftsUiFilters.thankyou = 'Pending';
+            if (typeof renderGifts === 'function') renderGifts();
+          }
+        }
+      ]);
+      return;
+    }
     const cell = (label, val, tone) =>
       `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
     host.innerHTML = [

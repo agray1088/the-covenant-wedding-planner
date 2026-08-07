@@ -41533,15 +41533,16 @@ function renderGuestStats() {
   const s = guestStatsData();
   if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
     const items = [
-      { label: 'Guests', value: s.total, filter: 'Show all' },
+      { label: 'Guests', value: s.total, filter: 'Show all', onFilter: () => { if (typeof setGuestRsvpFilter === 'function') setGuestRsvpFilter('all'); else if (typeof renderGuests === 'function') renderGuests(); } },
       { label: 'Invited', value: s.invited, filter: 'Filter · Invited' },
-      { label: 'Accepted', value: s.accepted, filter: 'Filter · Accepted' },
-      { label: 'Declined', value: s.declined, filter: 'Filter · Declined' },
+      { label: 'Accepted', value: s.accepted, filter: 'Filter · Accepted', onFilter: () => { if (typeof setGuestRsvpFilter === 'function') setGuestRsvpFilter('Accepted'); } },
+      { label: 'Declined', value: s.declined, filter: 'Filter · Declined', onFilter: () => { if (typeof setGuestRsvpFilter === 'function') setGuestRsvpFilter('Declined'); } },
       {
         label: 'Pending',
         value: s.pending,
         filter: 'Filter · Pending',
-        attention: s.pending ? 'Still waiting on a reply' : undefined
+        attention: s.pending ? 'Still waiting on a reply' : undefined,
+        onFilter: () => { if (typeof setGuestRsvpFilter === 'function') setGuestRsvpFilter('Pending'); }
       },
       {
         label: 'Meals TBD',
@@ -41549,7 +41550,7 @@ function renderGuestStats() {
         filter: 'Filter · Meals TBD',
         attention: !s.pending && s.mealsTbd ? 'Accepted guests with no meal' : undefined
       },
-      { label: 'Headcount cost', value: s.headcountLabel, filter: 'Open Budget' }
+      { label: 'Headcount cost', value: s.headcountLabel, filter: 'Open Budget', onFilter: () => { if (typeof showPanel === 'function') showPanel('budget', true); } }
     ];
     RdDepth.renderStats(host, items);
   } else {
@@ -42504,6 +42505,9 @@ function enhanceAllTables(root){
       hideRecordIdColumn(t);
     } catch(e){}
   });
+  if (typeof RdDepth !== 'undefined' && RdDepth.scheduleDecorate) {
+    try { RdDepth.scheduleDecorate(root && root.querySelectorAll ? root : document.getElementById('main')); } catch (e) {}
+  }
 }
 
 /* Hide the record-ID column (e.g. GST-0001) from the user view.
@@ -42842,16 +42846,16 @@ function mountAllTabs(root){
       subRow:(r)=>{ const i=data.guests.indexOf(r); return (i>-1 && typeof expandedGuestCompanions!=='undefined' && expandedGuestCompanions.has(i) && typeof renderGuestCompanionSub==='function') ? renderGuestCompanionSub(i) : ''; },
       /* headers only — the body reuses the proven guest row markup via rowRender */
       columns:[
-        {key:'name',    label:'Guest Name',      width:'190px'},
-        {key:'household',label:'Household',       width:'160px'},
+        {key:'name',    label:'Guest Name',      width:'190px', type:'person'},
+        {key:'household',label:'Household',       width:'160px', type:'text'},
         {key:'family',  label:'Family',          width:'86px', type:'checkbox'},
-        {key:'group',   label:'Group',           width:'150px'},
-        {key:'side',    label:'Side',            width:'110px'},
-        {key:'role',    label:'Role',            width:'140px'},
-        {key:'rsvp',    label:'RSVP',            width:'118px'},
-        {key:'meal',    label:'Meal',            width:'130px'},
-        {key:'dietary', label:'Dietary Notes',   width:'190px'},
-        {key:'phone',   label:'Phone',           width:'142px'},
+        {key:'group',   label:'Group',           width:'150px', type:'select'},
+        {key:'side',    label:'Side',            width:'110px', type:'select'},
+        {key:'role',    label:'Role',            width:'140px', type:'select'},
+        {key:'rsvp',    label:'RSVP',            width:'118px', type:'select'},
+        {key:'meal',    label:'Meal',            width:'130px', type:'select'},
+        {key:'dietary', label:'Dietary Notes',   width:'190px', type:'text'},
+        {key:'phone',   label:'Phone',           width:'142px', type:'link'},
         {key:'email',   label:'Email',           width:'210px'},
         {key:'address1',label:'Address 1',       width:'170px'},
         {key:'address2',label:'Address 2',       width:'150px'},
@@ -44577,6 +44581,9 @@ function mountAllTabs(root){
     if (tableEl && typeof scheduleStretchPlannerTable === 'function') scheduleStretchPlannerTable(tableEl);
     if (tableEl && typeof ensureTableWidthStretchObserver === 'function') ensureTableWidthStretchObserver(tableEl);
     if (typeof uedApplyTableHeaderColor === 'function') uedApplyTableHeaderColor(mount);
+    if (typeof RdDepth !== 'undefined' && RdDepth.decorateTable && tableEl) {
+      try { RdDepth.decorateTable(tableEl, { force: true, summary: true, addColumn: false }); } catch (e) {}
+    }
   }
 
   function updateBulkBar(key){
