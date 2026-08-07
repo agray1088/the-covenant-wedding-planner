@@ -9,3 +9,6 @@
 
 # Developer documentation / planning notes (not shipped to customers)
 pages/README*
+
+# Node tooling installed by the Cloud Agent dev environment (see .cursor/environment.json)
+node_modules/
