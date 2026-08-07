@@ -709,7 +709,30 @@
   function renderPaymentsTable() {
     const host = document.getElementById('pay-sect-table');
     if (!host) return;
+    const total = railRows().length;
     const list = sortRows(tableRows());
+    const pf = window._payFilters || {};
+    const filterOn = ['status', 'vendor', 'category'].some(k => pf[k] && pf[k] !== 'all');
+    if (typeof RdStates !== 'undefined' && RdStates.maybeEmpty &&
+        (total === 0 || (filterOn && list.length === 0))) {
+      const head = `<div class="rd-pay-sect__head is-stacked">
+      <div class="rd-pay-sect__headmain">
+        <div class="rd-pay-eyebrow">Payments · ${window._payRailView === 'all' ? 'all' : esc(railViewLabel(window._payRailView))}</div>
+      </div></div>`;
+      host.innerHTML = head + (typeof renderPaymentsToolbar === 'function' ? renderPaymentsToolbar() : '')
+        + '<div id="cwp-payments" data-rd-state-slot="1"></div>';
+      RdStates.maybeEmpty(host.querySelector('#cwp-payments'), {
+        pageId: 'payments',
+        total: total,
+        filtered: list.length,
+        filterOn: filterOn,
+        onClear: function () {
+          window._payFilters = { status: 'all', vendor: 'all', category: 'all' };
+          renderPaymentsTable();
+        }
+      });
+      return;
+    }
     const open = list.filter(p => !isSettled(p));
     const settled = list.filter(isSettled);
 

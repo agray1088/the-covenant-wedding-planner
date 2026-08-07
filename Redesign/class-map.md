@@ -150,11 +150,16 @@ Added after the Phase 1–3 map. Opt-in markup; existing tables keep working wit
 
 JS helper: `js/rd-depth.js` → `window.RdDepth`.
 State library: `js/rd-states.js` → `window.RdStates` (empty / filter-empty / loading / error + per-page copy).
+`RdStates.applyOverlay(wrap, opts)` paints the overlay on CWP wraps (Guests, Party, Gifts, Tables, Tasks).
 
 | Class | Role |
 |---|---|
 | `.rd-state` `.rd-state--empty` `.rd-state--filter` `.rd-state--loading` `.rd-state--error` | Page state surfaces |
 | `.rd-state--table` `.rd-state--reference` `.rd-state--form` `.rd-state--canvas` | Archetype variants |
 | `.rd-state__heading` `.rd-state__body` `.rd-state__actions` | State copy + CTAs |
+| `.rd-cmd` `.rd-cmd__group` `.rd-cmd__foot` | Command palette furniture (batch 34) |
+| `.rd-filter-builder` / `__row` / `__foot` | Filter builder overlay |
+
+JS: `js/rd-furniture.js` → `window.RdFurniture` (filter builder + saved-view helpers).
 
 View shells (§7.2–§7.3): `households-{labels,cards}`, `contacts-{dayof,cards}`, `party-{cards,duties}`, `tables-{list,byguest}`, `gifts-notes`, `budget-{bycategory,pledged}`, `payments-calendar`, `contracts-{documents,schedule}`.

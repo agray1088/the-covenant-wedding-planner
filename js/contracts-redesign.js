@@ -641,8 +641,28 @@
     const host = document.getElementById('contracts-body');
     if (!host) return;
     const f = contractFigures();
+    const all = rows().filter(railMatch);
     const list = sortRows(visibleRows());
     const mode = window._conMode || 'table';
+    const cf = window._conFilters || {};
+    const filterOn = ['vendor', 'status', 'due'].some(k => cf[k] && cf[k] !== 'all');
+    if (mode === 'table' && typeof RdStates !== 'undefined' && RdStates.maybeEmpty &&
+        (all.length === 0 || (filterOn && list.length === 0))) {
+      host.innerHTML = toolbarHtml()
+        + '<div class="rd-bulkbar rd-con-bulkbar" id="contracts-bulk-bar" hidden></div>'
+        + '<div id="cwp-contracts" data-rd-state-slot="1"></div>';
+      RdStates.maybeEmpty(host.querySelector('#cwp-contracts'), {
+        pageId: 'contracts',
+        total: all.length,
+        filtered: list.length,
+        filterOn: filterOn,
+        onClear: function () {
+          window._conFilters = { vendor: 'all', status: 'all', due: 'all' };
+          renderContractsTable();
+        }
+      });
+      return;
+    }
     const dataSpan = visibleCols().length;
     const fullSpan = dataSpan + 1;
 

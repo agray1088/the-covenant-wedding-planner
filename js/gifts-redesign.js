@@ -556,13 +556,32 @@
   function renderGiftsPreviewTable() {
     if (typeof cwpRenderTable !== 'function' || !document.getElementById('cwp-gifts') || rdGetGiftsView() !== 'table') return;
     if (typeof normalizedGiftRows === 'function') normalizedGiftRows();
+    const wrap = document.getElementById('cwp-gifts');
+    const total = giftRows().length;
+    const shown = giftRows().filter(giftMatchesFilters).length;
+    const ui = window._giftsUiFilters || {};
+    const filterOn = ['type', 'thankyou', 'received'].some(k => ui[k] && ui[k] !== 'all');
+    if (typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'gifts',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            window._giftsUiFilters = { type: 'all', thankyou: 'all', received: 'all' };
+            if (typeof renderGiftsRd === 'function') renderGiftsRd();
+            else renderGiftsPreviewTable();
+          }
+        })) {
+      renderGiftsTableFoot();
+      return;
+    }
     rdEnsureGiftsTableLayout(true);
     cwpRenderTable('gifts');
     bindGiftsPreviewInline();
     rdApplyGiftsDrawerRowFocus();
     rdApplyGiftsRowHeight();
     renderGiftsTableFoot();
-    const wrap = document.getElementById('cwp-gifts');
     if (wrap && wrap.dataset.rdBulkBound !== '1') {
       wrap.dataset.rdBulkBound = '1';
       wrap.addEventListener('change', ev => {

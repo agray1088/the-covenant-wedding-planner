@@ -369,6 +369,34 @@
     return false;
   }
 
+  /**
+   * Party-shaped overlay on a CWP wrap: returns true when the table should
+   * not render. Clears a previous overlay when data is present.
+   */
+  function applyOverlay(wrap, opts) {
+    if (!wrap) return false;
+    opts = opts || {};
+    var total = opts.total != null ? opts.total : 0;
+    var filtered = opts.filtered != null ? opts.filtered : total;
+    var filterOn = !!opts.filterOn;
+    var need = total === 0 || (filterOn && filtered === 0);
+    if (!need) {
+      wrap.classList.remove('has-rd-state');
+      var old = wrap.querySelector(':scope > [data-rd-state-slot]');
+      if (old) old.remove();
+      return false;
+    }
+    var overlay = wrap.querySelector(':scope > [data-rd-state-slot]');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.setAttribute('data-rd-state-slot', '1');
+      wrap.appendChild(overlay);
+    }
+    maybeEmpty(overlay, opts);
+    wrap.classList.add('has-rd-state');
+    return true;
+  }
+
   global.RdStates = {
     EMPTY_COPY: EMPTY_COPY,
     copyFor: copyFor,
@@ -377,6 +405,7 @@
     renderFilterEmpty: renderFilterEmpty,
     renderLoading: renderLoading,
     renderError: renderError,
-    maybeEmpty: maybeEmpty
+    maybeEmpty: maybeEmpty,
+    applyOverlay: applyOverlay
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -326,6 +326,7 @@
       partyFilterChip('Side', 'side') +
       partyFilterChip('Attire', 'attire') +
       partyFilterChip('Role', 'role') +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenFilterBuilder(this)">Filter builder</button>` +
       `<button type="button" class="rd-chip rd-chip--ghost" onclick="openPartySort(this)"><svg ${svg}><path d="M4 6h16M7 12h10M10 18h4"/></svg>${escapeHtml(partySortLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip${colAllShown ? ' rd-chip--ghost' : ''}" onclick="rdPartyOpenColumns(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>${escapeHtml(colLabel)}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip" onclick="rdPartyAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>` +
@@ -358,6 +359,23 @@
     window._partyUiFilters[field] = 'all';
     renderParty();
   }
+  function rdPartyOpenFilterBuilder() {
+    if (typeof RdFurniture === 'undefined' || !RdFurniture.openFilterBuilder) return;
+    const roles = Array.from(new Set(partyRows().map(r => r.role).filter(Boolean))).sort();
+    RdFurniture.openFilterBuilder({
+      fields: [
+        { key: 'side', label: 'Side', options: ['Bride', 'Groom'] },
+        { key: 'attire', label: 'Attire', options: PARTY_ATTIRE_STATUSES.slice() },
+        { key: 'role', label: 'Role', options: roles }
+      ],
+      state: Object.assign({}, window._partyUiFilters),
+      onApply: function (next) {
+        window._partyUiFilters = Object.assign({ side: 'all', attire: 'all', role: 'all' }, next);
+        renderParty();
+      }
+    });
+  }
+  window.rdPartyOpenFilterBuilder = rdPartyOpenFilterBuilder;
 
   function renderPartyBulkBar() {
     const bar = document.getElementById('party-bulk-bar');
@@ -507,33 +525,20 @@
       window._partyUiFilters.attire !== 'all' ||
       window._partyUiFilters.role !== 'all'
     ));
-    if (typeof RdStates !== 'undefined' && RdStates.maybeEmpty && wrap &&
-        (total === 0 || (filterOn && shown === 0))) {
-      let overlay = wrap.querySelector('[data-rd-state-slot]');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.setAttribute('data-rd-state-slot', '1');
-        wrap.appendChild(overlay);
-      }
-      RdStates.maybeEmpty(overlay, {
-        pageId: 'party',
-        total: total,
-        filtered: shown,
-        filterOn: filterOn,
-        onClear: function () {
-          window._partyUiFilters = { side: 'all', attire: 'all', role: 'all' };
-          if (typeof renderPartyRd === 'function') renderPartyRd();
-          else renderPartyPreviewTable();
-        }
-      });
-      wrap.classList.add('has-rd-state');
+    if (typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'party',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            window._partyUiFilters = { side: 'all', attire: 'all', role: 'all' };
+            if (typeof renderPartyRd === 'function') renderPartyRd();
+            else renderPartyPreviewTable();
+          }
+        })) {
       renderPartyTableFoot();
       return;
-    }
-    if (wrap) {
-      wrap.classList.remove('has-rd-state');
-      const old = wrap.querySelector('[data-rd-state-slot]');
-      if (old) old.remove();
     }
     rdEnsurePartyTableLayout(true);
     cwpRenderTable('party');

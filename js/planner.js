@@ -8224,8 +8224,8 @@ function openCommandPalette(){
   if (!overlay){
     overlay = document.createElement('div');
     overlay.id = 'cmd-palette-overlay';
-    overlay.className = 'cmd-palette-overlay';
-    overlay.innerHTML = `<div class="cmd-palette" role="dialog" aria-modal="true" aria-label="Search planner"><div class="cmd-palette-head"><span class="gs-icon" aria-hidden="true">⌘K</span><input id="cmd-palette-input" type="search" placeholder="Search pages, guests, vendors, tasks…" autocomplete="off" aria-label="Command palette search"></div><div id="cmd-palette-results" class="cmd-palette-results" role="listbox"></div><div class="cmd-palette-foot"><span>↑↓ navigate</span><span>↵ open</span><span>esc close</span></div></div>`;
+    overlay.className = 'cmd-palette-overlay rd-cmd-overlay';
+    overlay.innerHTML = `<div class="cmd-palette rd-cmd" role="dialog" aria-modal="true" aria-label="Command palette"><div class="cmd-palette-head rd-cmd__head"><span class="gs-icon rd-cmd__kbd" aria-hidden="true">⌘K</span><input id="cmd-palette-input" type="search" placeholder="Search actions, pages, and records…" autocomplete="off" aria-label="Command palette search"></div><div id="cmd-palette-results" class="cmd-palette-results rd-cmd__results" role="listbox"></div><div class="cmd-palette-foot rd-cmd__foot"><span>↑↓ navigate</span><span>↵ open</span><span>⌘↵ drawer</span><span>esc close</span></div></div>`;
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e=>{ if (e.target === overlay) closeCommandPalette(); });
     const inp = overlay.querySelector('#cmd-palette-input');
@@ -8247,7 +8247,13 @@ function commandPaletteKey(e){
   if (e.key === 'Escape'){ closeCommandPalette(); return; }
   if (e.key === 'ArrowDown'){ e.preventDefault(); _cmdPaletteIndex = Math.min(items.length-1, _cmdPaletteIndex+1); }
   else if (e.key === 'ArrowUp'){ e.preventDefault(); _cmdPaletteIndex = Math.max(0, _cmdPaletteIndex-1); }
-  else if (e.key === 'Enter'){ if (_cmdPaletteIndex >= 0 && _cmdPaletteResults[_cmdPaletteIndex]){ e.preventDefault(); executeCommandPaletteResult(_cmdPaletteIndex); } return; }
+  else if (e.key === 'Enter'){
+    if (_cmdPaletteIndex >= 0 && _cmdPaletteResults[_cmdPaletteIndex]){
+      e.preventDefault();
+      executeCommandPaletteResult(_cmdPaletteIndex, { drawer: !!(e.metaKey || e.ctrlKey) });
+    }
+    return;
+  }
   else return;
   items.forEach((it,i)=>it.classList.toggle('active', i===_cmdPaletteIndex));
   if (items[_cmdPaletteIndex]) items[_cmdPaletteIndex].scrollIntoView({ block:'nearest' });
@@ -8260,55 +8266,134 @@ function commandPaletteScore(q, title, sub){
   if (s.includes(q)) return 40;
   return 0;
 }
+function cmdPaletteNeedsYouHits(){
+  const hits = [];
+  try {
+    const overdue = safeArray(data.tasks).filter(t => typeof taskIsOverdue === 'function' && taskIsOverdue(t)).length;
+    if (overdue) hits.push({ group:'Needs you', type:'Action', title: overdue + ' overdue task' + (overdue===1?'':'s'), sub:'Open Timeline & Tasks', panel:'tasks', score:95, action:true });
+    const pending = safeArray(data.guests).filter(g => /pending/i.test(String(g.rsvp||'')) && (typeof guestIsInvited === 'function' ? guestIsInvited(g) : !!g.invited)).length;
+    if (pending) hits.push({ group:'Needs you', type:'Action', title: pending + ' RSVP still pending', sub:'Open Guest List', panel:'guests', score:94, action:true });
+    const unpaid = safeArray(data.payments).filter(p => !/paid|complete|settled/i.test(String(p.status||''))).length;
+    if (unpaid) hits.push({ group:'Needs you', type:'Action', title: unpaid + ' payment' + (unpaid===1?'':'s') + ' open', sub:'Open Payments', panel:'payments', score:93, action:true });
+  } catch (e) { /* soft */ }
+  return hits;
+}
+function cmdPaletteActionHits(q){
+  const actions = [
+    { title:'Add a guest', sub:'People · Guest List', panel:'guests', run:()=>{ showPanel('guests', true); if (typeof covInlineNew==='function') covInlineNew('guests','record-drawer-body'); } },
+    { title:'Add a task', sub:'Planning · Timeline & Tasks', panel:'tasks', run:()=>{ showPanel('tasks', true); if (typeof covInlineNew==='function') covInlineNew('tasks','record-drawer-body'); } },
+    { title:'Add a payment', sub:'Money · Payments', panel:'payments', run:()=>{ showPanel('payments', true); } },
+    { title:'Open Wedding Setup', sub:'Form · date and names', panel:'setup' },
+    { title:'Download backup', sub:'Save a .sqlite copy', run:()=>{ if (typeof downloadSqliteBackup==='function') downloadSqliteBackup(); else if (typeof startHereBackup==='function') startHereBackup(); } },
+    { title:'Import guests CSV', sub:'People · Guest List', panel:'guests', run:()=>{ showPanel('guests', true); if (typeof openImportModal==='function') openImportModal(); } },
+    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } }
+  ];
+  return actions.map(a => {
+    const sc = q ? commandPaletteScore(q, a.title, a.sub) : 88;
+    if (q && !sc) return null;
+    return Object.assign({ group:'Actions', type:'Action', score: sc || 88, action:true }, a);
+  }).filter(Boolean);
+}
 function runCommandPalette(qRaw){
   const box = document.getElementById('cmd-palette-results'); if (!box) return;
   const q = String(qRaw||'').trim().toLowerCase();
   _cmdPaletteIndex = -1;
   const hits = [];
+
+  /* Furniture · ⌘K: Actions rank above records; empty shows favourites + Needs you. */
   if (!q){
+    hits.push.apply(hits, cmdPaletteNeedsYouHits());
+    hits.push.apply(hits, cmdPaletteActionHits('').slice(0, 4));
     const ob = ensureOnboardData();
-    (ob.favoritePages||[]).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ type:'Favorite', title:QJ_PAGES[id], sub:'Favorite page', panel:id, score:90 }));
-    (ob.recentPages||[]).slice(0,6).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ type:'Recent', title:QJ_PAGES[id], sub:'Recently viewed', panel:id, score:70 }));
-  }
-  Object.entries(QJ_PAGES).forEach(([id,label])=>{
-    const sc = q ? commandPaletteScore(q, label, id) : 0;
-    if (!q || sc) hits.push({ type:'Page', title:label, sub:'Go to section', panel:id, score:sc || 30 });
-  });
-  if (typeof DATA_HUB_REGISTRY !== 'undefined') {
-    Object.entries(DATA_HUB_REGISTRY).forEach(([catId, cat]) => {
-      const catTitle = databaseHubCategoryTitle(cat.label);
-      const catSc = q ? commandPaletteScore(q, catTitle, catId) : 35;
-      if (!q || catSc) hits.push({ type:'Database Hub', title:catTitle, sub:'Open hub category', hubCategory:catId, score:catSc });
-      cat.tables.forEach(tab => {
-        const tabId = dataHubTabId(tab);
-        const title = DATABASE_HUB_LABEL + ' — ' + cat.label + ' — ' + tab.label;
-        const sc = q ? commandPaletteScore(q, title, tab.label) : 0;
-        if (!q || sc) hits.push({ type:'Database Hub', title, sub:'Manage table in hub', hubCategory:catId, hubTable:tabId, score:sc || 40 });
+    const fav = (ob.favoritePages||[]).filter(p=>QJ_PAGES[p]).slice(0,4);
+    fav.forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Favourite', panel:id, score:90 }));
+    if (!fav.length) {
+      ['guests','tasks','budget','calendar'].filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Most used', panel:id, score:85 }));
+    }
+    (ob.recentPages||[]).slice(0,4).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Recent', type:'Recent', title:QJ_PAGES[id], sub:'Recently viewed', panel:id, score:70 }));
+  } else {
+    hits.push.apply(hits, cmdPaletteActionHits(q));
+    Object.entries(QJ_PAGES).forEach(([id,label])=>{
+      const sc = commandPaletteScore(q, label, id);
+      if (sc) hits.push({ group:'Pages', type:'Page', title:label, sub:'Go to section', panel:id, score:sc });
+    });
+    if (typeof DATA_HUB_REGISTRY !== 'undefined') {
+      Object.entries(DATA_HUB_REGISTRY).forEach(([catId, cat]) => {
+        const catTitle = databaseHubCategoryTitle(cat.label);
+        const catSc = commandPaletteScore(q, catTitle, catId);
+        if (catSc) hits.push({ group:'Pages', type:'Database Hub', title:catTitle, sub:'Open hub category', hubCategory:catId, score:catSc });
+        cat.tables.forEach(tab => {
+          const tabId = dataHubTabId(tab);
+          const title = DATABASE_HUB_LABEL + ' — ' + cat.label + ' — ' + tab.label;
+          const sc = commandPaletteScore(q, title, tab.label);
+          if (sc) hits.push({ group:'Pages', type:'Database Hub', title, sub:'Manage table in hub', hubCategory:catId, hubTable:tabId, score:sc });
+        });
+      });
+    }
+    GS_SOURCES.forEach(source=>{
+      const arr = data[source.key]; if (!Array.isArray(arr)) return;
+      arr.forEach((row, idx)=>{
+        const title = gsRowTitle(row, source);
+        const sub = gsRowSub(row) || source.type;
+        const hay = (title+' '+sub).toLowerCase();
+        if (!hay.includes(q)) return;
+        hits.push({
+          group:'Records',
+          type:source.type,
+          title,
+          sub,
+          panel:source.panel,
+          entity: source.key,
+          index: idx,
+          id: row && row._id,
+          score: commandPaletteScore(q, title, sub) || 50,
+          record: true
+        });
       });
     });
   }
-  GS_SOURCES.forEach(source=>{
-    const arr = data[source.key]; if (!Array.isArray(arr)) return;
-    arr.forEach(row=>{
-      const title = gsRowTitle(row, source);
-      const sub = gsRowSub(row) || source.type;
-      const hay = (title+' '+sub).toLowerCase();
-      if (!q || hay.includes(q)) hits.push({ type:source.type, title, sub, panel:source.panel, score: commandPaletteScore(q, title, sub) || (hay.includes(q)?50:0) });
-    });
+
+  hits.sort((a,b)=>{
+    const order = { 'Needs you':0, Actions:1, Pages:2, Records:3, Recent:4 };
+    const ga = order[a.group] != null ? order[a.group] : 5;
+    const gb = order[b.group] != null ? order[b.group] : 5;
+    if (ga !== gb) return ga - gb;
+    return (b.score||0)-(a.score||0);
   });
-  hits.sort((a,b)=>(b.score||0)-(a.score||0));
   const seen = new Set();
-  _cmdPaletteResults = hits.filter(h=>{ const k=h.type+'|'+h.title; if(seen.has(k)) return false; seen.add(k); return true; }).slice(0,18);
+  _cmdPaletteResults = hits.filter(h=>{ const k=(h.group||'')+'|'+h.type+'|'+h.title; if(seen.has(k)) return false; seen.add(k); return true; }).slice(0,24);
   if (!_cmdPaletteResults.length){
-    box.innerHTML = `<div class="cmd-palette-empty">${q?'No matches':'Type to search pages and records'}</div>`;
+    box.innerHTML = `<div class="cmd-palette-empty rd-cmd__empty">${q?'No matches':'Nothing to show yet'}</div>`;
     return;
   }
-  box.innerHTML = _cmdPaletteResults.map((h,i)=>`<button type="button" class="cmd-palette-item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span></button>`).join('');
+  let lastGroup = '';
+  box.innerHTML = _cmdPaletteResults.map((h,i)=>{
+    let groupHtml = '';
+    if (h.group && h.group !== lastGroup) {
+      lastGroup = h.group;
+      groupHtml = `<div class="rd-cmd__group" role="presentation">${escapeHtml(h.group)}</div>`;
+    }
+    const count = h.count != null ? `<span class="rd-cmd__count">${escapeHtml(String(h.count))}</span>` : '';
+    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}</button>`;
+  }).join('');
 }
-function executeCommandPaletteResult(i){
+function executeCommandPaletteResult(i, opts){
   const h = _cmdPaletteResults[i]; if (!h) return;
+  opts = opts || {};
   closeCommandPalette();
+  if (typeof h.run === 'function') { h.run(h); return; }
   if (h.hubCategory) { openDataHub(h.hubCategory, h.hubTable); return; }
+  if (opts.drawer && h.record && h.entity != null && (h.index != null || h.id) && typeof rdOpenDrawer === 'function') {
+    let idx = h.index;
+    if (h.id != null && typeof findRecordById === 'function') {
+      const arr = data[h.entity] || [];
+      const found = arr.findIndex(r => String(r._id) === String(h.id));
+      if (found >= 0) idx = found;
+    }
+    if (h.panel && typeof showPanel === 'function') showPanel(h.panel, true);
+    rdOpenDrawer(h.entity, idx);
+    return;
+  }
   if (h.panel === 'nameChange'){ showNameChangePage(); return; }
   if (h.panel) showPanel(h.panel, true);
 }
@@ -20169,29 +20254,47 @@ function renderTasks() {
     renderTaskBoardView();
   }
   if (document.body.getAttribute('data-active-panel') === 'tasks' && typeof cwpRenderTable === 'function' && document.getElementById('cwp-tasks') && taskView === 'table') {
-    rdEnsureTasksTableLayout(true);
-    cwpRenderTable('tasks');
-    /* §16: a row now opens the 360px drawer rather than the inline editor
-       below the table. Same mount mechanism, different container — the
-       drawer IS an inline mount, so nothing about the save path changes. */
-    if (typeof bindRoPreviewInline === 'function') {
-      bindRoPreviewInline('tasks', 'cwp-tasks',
-        document.getElementById('record-drawer-body') ? 'record-drawer-body' : 'task-inline-editor-body');
-    }
-    rdApplyTaskDrawerRowFocus();
-    rdApplyRowHeight();
-    renderTaskTableFoot();
-    /* CWP owns the checkboxes, so the bar follows their change events rather
-       than tracking a selection of its own. */
     const wrap = document.getElementById('cwp-tasks');
-    if (wrap && wrap.dataset.rdBulkBound !== '1') {
-      wrap.dataset.rdBulkBound = '1';
-      wrap.addEventListener('change', ev => {
-        if (ev.target && ev.target.type === 'checkbox') setTimeout(renderTaskBulkBar, 0);
-      });
-      wrap.addEventListener('click', ev => {
-        if (ev.target && ev.target.type === 'checkbox') setTimeout(renderTaskBulkBar, 0);
-      });
+    const total = (data.tasks || []).length;
+    const shown = typeof taskFilteredRows === 'function' ? taskFilteredRows().length : total;
+    const filterOn = !!(Object.keys(taskColFilter || {}).length || String(document.getElementById('task-search')?.value || '').trim());
+    const statePainted = typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'tasks',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            if (typeof clearTaskFilters === 'function') clearTaskFilters();
+            else renderTasks();
+          }
+        });
+    if (!statePainted) {
+      rdEnsureTasksTableLayout(true);
+      cwpRenderTable('tasks');
+      /* §16: a row now opens the 360px drawer rather than the inline editor
+         below the table. Same mount mechanism, different container — the
+         drawer IS an inline mount, so nothing about the save path changes. */
+      if (typeof bindRoPreviewInline === 'function') {
+        bindRoPreviewInline('tasks', 'cwp-tasks',
+          document.getElementById('record-drawer-body') ? 'record-drawer-body' : 'task-inline-editor-body');
+      }
+      rdApplyTaskDrawerRowFocus();
+      rdApplyRowHeight();
+      renderTaskTableFoot();
+      /* CWP owns the checkboxes, so the bar follows their change events rather
+         than tracking a selection of its own. */
+      if (wrap && wrap.dataset.rdBulkBound !== '1') {
+        wrap.dataset.rdBulkBound = '1';
+        wrap.addEventListener('change', ev => {
+          if (ev.target && ev.target.type === 'checkbox') setTimeout(renderTaskBulkBar, 0);
+        });
+        wrap.addEventListener('click', ev => {
+          if (ev.target && ev.target.type === 'checkbox') setTimeout(renderTaskBulkBar, 0);
+        });
+      }
+    } else if (typeof renderTaskTableFoot === 'function') {
+      renderTaskTableFoot();
     }
   }
   renderTaskToolbar();
@@ -40109,13 +40212,47 @@ function renderGuestPreviewTable(){
     if (typeof renderGuestTableOptions === 'function') renderGuestTableOptions();
     if (typeof renderGuestDecisionFilterOptions === 'function') renderGuestDecisionFilterOptions();
     if (typeof renderGuestEventFilterOptions === 'function') renderGuestEventFilterOptions();
+    const wrap = document.getElementById('cwp-guests');
+    const guests = safeArray(data.guests);
+    const total = guests.length;
+    const shown = guests.filter(g => typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true).length;
+    const ui = window._guestUiFilters || {};
+    const filterOn = !!(
+      (ui.side && ui.side !== 'all') ||
+      (ui.rsvp && ui.rsvp !== 'all') ||
+      (ui.table && ui.table !== 'all') ||
+      (ui.dietary && ui.dietary !== 'all') ||
+      (ui.event && ui.event !== 'all') ||
+      String(ui.q || '').trim() ||
+      (ui.workflow && ui.workflow !== 'all') ||
+      (ui.address && ui.address !== 'all') ||
+      (ui.invitation && ui.invitation !== 'all') ||
+      (ui.seated && ui.seated !== 'all') ||
+      window._guestFilterPreset === 'non-responders'
+    );
+    if (typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'guests',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            window._guestUiFilters = { side:'all', rsvp:'all', table:'all', dietary:'all', event:'all', q:'' };
+            window._guestFilterPreset = '';
+            if (typeof persistGuestFilterView === 'function') persistGuestFilterView('all');
+            if (typeof renderGuests === 'function') renderGuests();
+            else renderGuestPreviewTable();
+          }
+        })) {
+      if (typeof renderGuestTableFoot === 'function') renderGuestTableFoot();
+      return;
+    }
     rdEnsureGuestsTableLayout(true);
     cwpRenderTable('guests');
     bindGuestPreviewInline();
     rdApplyGuestDrawerRowFocus();
     rdApplyGuestRowHeight();
     renderGuestTableFoot();
-    const wrap = document.getElementById('cwp-guests');
     if (wrap && wrap.dataset.rdBulkBound !== '1') {
       wrap.dataset.rdBulkBound = '1';
       wrap.addEventListener('change', ev => {

@@ -976,12 +976,31 @@
     if (typeof cwpRenderTable !== 'function') return;
     rdEnsureTablesAssignmentLayout(mountId);
     refreshTableAssignmentRows();
+    const wrap = document.getElementById(mountId);
+    const all = (data.tableAssignmentRows || []);
+    const total = all.length;
+    const shown = all.filter(tablesMatchesFilters).length;
+    const ui = window._tablesUiFilters || {};
+    const filterOn = ['side', 'group', 'table', 'rsvp'].some(k => ui[k] && ui[k] !== 'all');
+    if (typeof RdStates !== 'undefined' && RdStates.applyOverlay && wrap &&
+        RdStates.applyOverlay(wrap, {
+          pageId: 'tables',
+          total: total,
+          filtered: shown,
+          filterOn: filterOn,
+          onClear: function () {
+            window._tablesUiFilters = { side: 'all', group: 'all', table: 'all', rsvp: 'all' };
+            if (typeof renderTablesRd === 'function') renderTablesRd();
+            else renderTablesAssignmentTable(mountId || currentTablesMountId());
+          }
+        })) {
+      return;
+    }
     cwpRenderTable('tableAssignments', mountId);
     bindTablesAssignmentRows();
     rdApplyTablesDrawerRowFocus();
     rdApplyTablesRowHeight();
     appendTablesAssignmentAddRow(mountId);
-    const wrap = document.getElementById(mountId);
     if (wrap && wrap.dataset.rdBulkBound !== '1') {
       wrap.dataset.rdBulkBound = '1';
       wrap.addEventListener('change', ev => {
