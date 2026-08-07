@@ -6421,52 +6421,85 @@ function buildSmartCalendarNotificationItems(){
   });
   return items;
 }
-function buildPlannerNotificationSections(){
+function buildPlannerNotificationModel(){
   const guidance = typeof plannerGuidanceState === 'function' ? plannerGuidanceState() : { alerts: [], attentionCount: 0 };
-  const kindLabel = { rsvp:'RSVP', budget:'Budget', vendor:'Vendors', legal:'Legal', backup:'Backup', general:'General' };
-  const attention = safeArray(guidance.alerts).map((a, i) => ({
+  const kindLabel = { rsvp:'RSVP', budget:'Budget', vendor:'Vendors', legal:'Legal', backup:'Backup', general:'General', covenant:'Covenant' };
+  const needsYou = safeArray(guidance.alerts).map((a, i) => ({
     id: 'attention-' + i,
     title: (a.kind && kindLabel[a.kind] ? kindLabel[a.kind] + ': ' : '') + (a.title || 'Needs attention'),
     note: a.note || '',
     urgent: a.priority === 1,
+    chip: a.chip || (a.priority === 1 ? 'Blocker' : (a.kind === 'covenant' ? 'Covenant' : '')),
+    chipTone: a.kind === 'covenant' ? 'gold' : (a.priority === 1 ? 'red' : ''),
     action: a.action || `showPanel('${a.page || 'dashboard'}')`
   }));
   const backup = getBackupReminderState();
-  const backupItems = backup.due ? [{
-    id: 'backup-reminder',
-    title: backup.title,
-    note: backup.message,
-    urgent: true,
-    action: backup.action,
-    laterAction: backup.laterAction
-  }] : [];
+  if (backup.due) {
+    needsYou.unshift({
+      id: 'backup-reminder',
+      title: backup.title,
+      note: backup.message,
+      urgent: true,
+      chip: 'Backup',
+      chipTone: 'red',
+      action: backup.action,
+      laterAction: backup.laterAction
+    });
+  }
   const smart = buildSmartCalendarNotificationItems();
-  const sections = [
-    { id: 'attention', label: 'Needs attention', items: attention },
-    { id: 'backup', label: 'Backup reminder', items: backupItems },
-    { id: 'smart', label: 'Smart alerts', items: smart }
-  ];
-  const totalCount = sections.reduce((sum, s) => sum + s.items.length, 0);
-  return { sections, totalCount };
+  const activity = smart.map((item, i) => ({
+    id: item.id || ('activity-' + i),
+    title: item.title,
+    note: item.note || '',
+    when: item.when || item.chip || 'recently',
+    action: item.action || ''
+  }));
+  return {
+    needsYou,
+    activity,
+    activityMeta: activity.length ? 'recently' : '—',
+    quiet: 'No alert is raised for a guest replying, a payment coming due more than 14 days out, or a vendor opening a packet. Those are visible on their own pages and would train you to ignore this panel.',
+    needsCount: needsYou.length
+  };
+}
+function buildPlannerNotificationSections(){
+  const model = buildPlannerNotificationModel();
+  return {
+    sections: [
+      { id: 'needs', label: 'Needs you', items: model.needsYou },
+      { id: 'activity', label: 'Changed since you last looked', items: model.activity }
+    ],
+    totalCount: model.needsCount,
+    model
+  };
 }
 function renderTopbarNotificationsDrop(){
   const drop = document.getElementById('topbar-notifications-drop');
   if (!drop) return;
-  const { sections } = buildPlannerNotificationSections();
-  const activeSections = sections.filter(section => section.items.length);
-  const html = activeSections.length ? activeSections.map(section => {
-    const items = section.items.map(item => {
-      const later = item.laterAction
-        ? `<button type="button" class="tb-notif-later" onclick="event.stopPropagation();${item.laterAction};closeTopbarNotifications();">Later</button>`
-        : '';
-      return `<button type="button" class="tb-notif-item${item.urgent ? ' urgent' : ''}" role="menuitem" onclick="${item.action};closeTopbarNotifications();">
-        <span class="tb-notif-item-icon" aria-hidden="true">${item.urgent ? '!' : 'i'}</span>
-        <span class="tb-notif-item-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.note || '')}</span></span>
-        ${later}
-      </button>`;
-    }).join('');
-    return `<div class="tb-notif-section"><div class="tb-notif-section-head">${escapeHtml(section.label)}</div>${items}</div>`;
-  }).join('') : '<div class="tb-notif-empty">No alerts right now.</div>';
+  const { model } = buildPlannerNotificationSections();
+  if (typeof RdFurniture !== 'undefined' && RdFurniture.notificationsHtml) {
+    drop.innerHTML = `<div class="topbar-notifications-drop-scroll">${RdFurniture.notificationsHtml(model)}</div>`;
+    drop.querySelectorAll('[data-notif-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-notif-action') || '';
+        closeTopbarNotifications();
+        if (!action) return;
+        try { Function(action)(); } catch (e) { /* ignore bad action strings */ }
+      });
+    });
+    const mark = drop.querySelector('[data-notif-read]');
+    if (mark) mark.onclick = () => { closeTopbarNotifications(); if (typeof showToast === 'function') showToast('Activity marked as read'); };
+    const settings = drop.querySelector('[data-notif-settings]');
+    if (settings) settings.onclick = () => {
+      closeTopbarNotifications();
+      const gear = document.getElementById('rd-gear-btn');
+      if (gear) gear.click();
+    };
+    return;
+  }
+  const html = model.needsYou.length
+    ? model.needsYou.map(item => `<button type="button" class="tb-notif-item${item.urgent ? ' urgent' : ''}" role="menuitem" onclick="${item.action};closeTopbarNotifications();"><span class="tb-notif-item-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.note || '')}</span></span></button>`).join('')
+    : '<div class="tb-notif-empty">Nothing needs you right now.</div>';
   drop.innerHTML = `<div class="topbar-notifications-drop-scroll">${html}</div>`;
 }
 function updateTopbarNotificationsBell(){
@@ -6479,7 +6512,7 @@ function updateTopbarNotificationsBell(){
     badge.classList.toggle('is-empty', totalCount <= 0);
   }
   if (btn) {
-    btn.setAttribute('aria-label', totalCount ? `${totalCount} alert${totalCount === 1 ? '' : 's'}` : 'No alerts');
+    btn.setAttribute('aria-label', totalCount ? `${totalCount} need${totalCount === 1 ? 's' : ''} you` : 'No alerts');
     btn.classList.toggle('has-alerts', totalCount > 0);
   }
   const drop = document.getElementById('topbar-notifications-drop');
@@ -8287,7 +8320,9 @@ function cmdPaletteActionHits(q){
     { title:'Open Wedding Setup', sub:'Form · date and names', panel:'setup' },
     { title:'Download backup', sub:'Save a .sqlite copy', run:()=>{ if (typeof downloadSqliteBackup==='function') downloadSqliteBackup(); else if (typeof startHereBackup==='function') startHereBackup(); } },
     { title:'Import guests CSV', sub:'People · Guest List', panel:'guests', run:()=>{ showPanel('guests', true); if (typeof openImportModal==='function') openImportModal(); } },
-    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } }
+    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } },
+    { title:'Open trash', sub:'Restore deleted records · 30 days', run:()=>{ if (typeof RdFurniture!=='undefined' && RdFurniture.openTrash) RdFurniture.openTrash({ items: Array.isArray(data.trash)?data.trash:[] }); } },
+    { title:'Review duplicate guests', sub:'People · merge review', run:()=>{ if (typeof openGuestDuplicateReview==='function') openGuestDuplicateReview(); } },
   ];
   return actions.map(a => {
     const sc = q ? commandPaletteScore(q, a.title, a.sub) : 88;
@@ -19141,6 +19176,52 @@ function parseGuestCSV(text){
   if (row.some(v => String(v).trim())) rows.push(row);
   return rows.filter(r => r.some(v => String(v).trim()));
 }
+function openGuestDuplicateReview(){
+  if (typeof RdFurniture === 'undefined' || !RdFurniture.openMergeReview) {
+    showToast('Merge review is not available yet.', 'warn');
+    return;
+  }
+  const guests = safeArray(data.guests);
+  let left = null, right = null;
+  for (let i = 0; i < guests.length; i++) {
+    const a = guests[i];
+    const aEmail = normalizeGuestImportKey(a.email);
+    const aName = normalizeGuestImportKey(a.name);
+    for (let j = i + 1; j < guests.length; j++) {
+      const b = guests[j];
+      const sameEmail = aEmail && aEmail === normalizeGuestImportKey(b.email);
+      const sameName = aName && aName === normalizeGuestImportKey(b.name);
+      if (sameEmail || sameName) { left = a; right = b; break; }
+    }
+    if (left) break;
+  }
+  if (!left || !right) {
+    showToast('No obvious duplicates found on the guest list.');
+    return;
+  }
+  showPanel('guests', true);
+  RdFurniture.openMergeReview({
+    left: { name: left.name, email: left.email, household: left.household, rsvp: left.rsvp, table: left.table },
+    right: { name: right.name, email: right.email, household: right.household, rsvp: right.rsvp, table: right.table },
+    onMerge: function () {
+      /* Keep left; fold right email into notes/history and remove right. */
+      if (right.email && left.email && right.email !== left.email) {
+        left.altEmail = right.email;
+        left.notes = (left.notes ? left.notes + '\n' : '') + 'Merged alternate email: ' + right.email;
+      }
+      Object.keys(right).forEach(k => {
+        if (k === '_id') return;
+        if ((left[k] == null || left[k] === '') && right[k] != null && right[k] !== '') left[k] = right[k];
+      });
+      const idx = guests.indexOf(right);
+      if (idx >= 0) guests.splice(idx, 1);
+      save();
+      if (typeof renderGuests === 'function') renderGuests();
+    }
+  });
+}
+window.openGuestDuplicateReview = openGuestDuplicateReview;
+
 function ensureGuestCsvModal(){
   let overlay = document.getElementById('guest-csv-overlay');
   if (overlay) return overlay;
@@ -19149,16 +19230,17 @@ function ensureGuestCsvModal(){
   overlay.className = 'tb-overlay';
   overlay.onclick = (event) => { if (event.target === overlay) closeGuestCSVImport(); };
   overlay.innerHTML = `
-    <div class="tb-modal" role="dialog" aria-modal="true" aria-labelledby="guest-csv-title" style="max-width:860px">
+    <div class="tb-modal rd-import-modal" role="dialog" aria-modal="true" aria-labelledby="guest-csv-title" style="max-width:660px">
       <div class="tb-head">
-        <h3 id="guest-csv-title">Import Guest CSV</h3>
+        <h3 id="guest-csv-title">Import guests · step 1 of 3</h3>
         <button type="button" class="tb-close" onclick="closeGuestCSVImport()" aria-label="Close">x</button>
       </div>
       <p class="tb-sub" id="guest-csv-sub">Import guests from Excel, Google Sheets, or RSVP responses exported as CSV.</p>
       <input id="guest-csv-file" type="file" accept=".csv,text/csv" style="display:none" onchange="handleGuestCSVFile(event)">
       <div id="guest-csv-body"></div>
-      <div class="tb-actions">
-        <button type="button" class="btn btn-outline btn-sm" onclick="closeGuestCSVImport()">Cancel</button>
+      <div class="tb-actions" id="guest-csv-actions">
+        <button type="button" class="btn btn-outline btn-sm" id="guest-csv-back-btn" onclick="closeGuestCSVImport()">Cancel</button>
+        <button type="button" class="btn btn-outline btn-sm" id="guest-csv-template-btn" onclick="downloadGuestCSVTemplate((guestCsvImportState&&guestCsvImportState.mode)||'guests')">Download a template instead</button>
         <button type="button" class="btn btn-forest btn-sm" id="guest-csv-import-btn" onclick="commitEntityCSVImport()" disabled>Import</button>
       </div>
     </div>`;
@@ -19167,25 +19249,31 @@ function ensureGuestCsvModal(){
 }
 function openGuestCSVImport(mode='guests'){
   const overlay = ensureGuestCsvModal();
-  guestCsvImportState = {mode, headers:[], rows:[], mapping:{}};
+  guestCsvImportState = {mode, headers:[], rows:[], mapping:{}, step:1, fileName:'', conflicts:[], conflictResolutions:{}};
   const title = document.getElementById('guest-csv-title');
   const sub = document.getElementById('guest-csv-sub');
   const body = document.getElementById('guest-csv-body');
   const btn = document.getElementById('guest-csv-import-btn');
-  if (title) title.textContent = mode === 'rsvp' ? 'Import RSVP Responses' : 'Import Guest List CSV';
+  if (title) title.textContent = mode === 'rsvp' ? 'Import RSVP · step 1 of 3' : 'Import guests · step 1 of 3';
   if (sub) sub.textContent = mode === 'rsvp'
-    ? 'Use this for Google Forms or RSVP spreadsheet exports. The planner matches guests by email or name, then updates RSVP, meal, dietary, plus-one, children, and notes.'
-    : 'Use this for large guest lists exported from Excel or Google Sheets. You will preview the columns before anything is added.';
+    ? 'Use this for Google Forms or RSVP spreadsheet exports. Map columns next — nothing is written until you confirm.'
+    : 'Map the file’s columns to planner fields. Nothing is written until step 3.';
   if (body) body.innerHTML = `
     <div class="v4-help-note">
-      <strong>CSV import is additive.</strong> Existing guests are matched by email or name. New rows are added; matched rows are updated with non-empty values.
+      <strong>CSV import is additive.</strong> Existing guests are matched by email or name. Import never deletes guests that are missing from the file.
     </div>
     <div class="m-actions" style="margin:.8rem 0 1rem">
       <button type="button" class="m-btn m-btn-primary" onclick="document.getElementById('guest-csv-file').click()">Choose CSV File</button>
       <button type="button" class="m-btn" onclick="downloadGuestCSVTemplate('${mode}')">Download Template</button>
     </div>
     <div class="empty-dashboard-note">No file selected yet.</div>`;
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Import';
+    btn.onclick = () => commitEntityCSVImport();
+  }
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) { back.textContent = 'Cancel'; back.onclick = () => closeGuestCSVImport(); }
   overlay.style.display = 'flex';
 }
 function closeGuestCSVImport(){
@@ -19207,40 +19295,170 @@ function handleGuestCSVFile(event){
     const rows = parsed.slice(1).filter(r => r.some(v => String(v || '').trim()));
     guestCsvImportState.headers = headers;
     guestCsvImportState.rows = rows;
+    guestCsvImportState.fileName = file.name || 'import.csv';
+    guestCsvImportState.step = 2;
     guestCsvImportState.mapping = {};
+    guestCsvImportState.conflicts = [];
+    guestCsvImportState.conflictResolutions = {};
     headers.forEach((h,i) => {
       const guessFn = guestCsvImportState.mode === 'vendors' ? guessVendorCsvField : (guestCsvImportState.mode === 'gifts' ? guessGiftCsvField : guessGuestCsvField);
-      guestCsvImportState.mapping[i] = guessFn(h, guestCsvImportState.mode);
+      let mapped = guessFn(h, guestCsvImportState.mode);
+      /* Seating is owned by Table Layout — never take it from a file (Views · import). */
+      if (mapped === 'table') mapped = 'skip';
+      guestCsvImportState.mapping[i] = mapped;
     });
     renderGuestCSVMapping();
   };
   reader.readAsText(file);
   event.target.value = '';
 }
+function guestCsvImportPreflight(){
+  const state = guestCsvImportState;
+  if (!state) return { create:0, match:0, conflict:0, skip:0, untouched:0, conflicts:[], matchHow:'' };
+  let create = 0, match = 0, conflict = 0, skip = 0;
+  let matchEmail = 0, matchName = 0;
+  const conflicts = [];
+  const matchedIds = new Set();
+  state.rows.forEach((row, rowIndex) => {
+    const incoming = buildGuestImportObject(row);
+    if (!incoming.name && !incoming.email) { skip++; return; }
+    const email = normalizeGuestImportKey(incoming.email);
+    const name = normalizeGuestImportKey(incoming.name);
+    let byEmail = -1, byName = -1;
+    if (email) byEmail = data.guests.findIndex(g => normalizeGuestImportKey(g.email) === email);
+    if (name) byName = data.guests.findIndex(g => normalizeGuestImportKey(g.name) === name);
+    if (byEmail >= 0) {
+      match++; matchEmail++;
+      matchedIds.add(String(data.guests[byEmail]._id || byEmail));
+      return;
+    }
+    if (byName >= 0) {
+      const existing = data.guests[byName];
+      const existingEmail = normalizeGuestImportKey(existing.email);
+      if (email && existingEmail && email !== existingEmail) {
+        conflict++;
+        conflicts.push({
+          id: 'c-' + rowIndex,
+          rowIndex,
+          left: { name: existing.name, email: existing.email, household: existing.household, rsvp: existing.rsvp, table: existing.table },
+          right: { name: incoming.name, email: incoming.email, household: incoming.household, rsvp: incoming.rsvp, table: incoming.table },
+          incoming
+        });
+        matchedIds.add(String(existing._id || byName));
+        return;
+      }
+      match++; matchName++;
+      matchedIds.add(String(existing._id || byName));
+      return;
+    }
+    create++;
+  });
+  const untouched = Math.max(0, safeArray(data.guests).length - matchedIds.size);
+  return {
+    create, match, conflict, skip, untouched, conflicts,
+    matchHow: matchEmail && !matchName ? 'by email' : (matchName && !matchEmail ? 'by name' : (match ? 'by email or name' : ''))
+  };
+}
+function guestCsvMappingChip(header, field){
+  const h = normalizeGuestImportKey(header);
+  if (/table|seat|seating/.test(h) || field === 'table') {
+    return { label: 'ignored · seating is set in the planner', tone: 'gray', locked: true };
+  }
+  if (field === 'skip') {
+    return { label: 'not imported · no field for it', tone: 'gray', locked: false };
+  }
+  if (field === 'side' && /(b\/g|bride|groom)/.test(h)) {
+    return { label: 'matched · values will be mapped', tone: 'amber', locked: false };
+  }
+  if (field === 'plusone' || /^(y\/n|yesno|plus)/.test(h)) {
+    return { label: field === 'plusone' ? 'matched · Y/N → yes/no' : 'matched', tone: field === 'plusone' ? 'amber' : 'green', locked: false };
+  }
+  if (field === 'rsvp') return { label: 'matched · values will be mapped', tone: 'amber', locked: false };
+  return { label: 'matched', tone: 'green', locked: false };
+}
 function renderGuestCSVMapping(){
   const state = guestCsvImportState;
   const body = document.getElementById('guest-csv-body');
   const btn = document.getElementById('guest-csv-import-btn');
+  const title = document.getElementById('guest-csv-title');
+  const sub = document.getElementById('guest-csv-sub');
   if (!state || !body) return;
-  const opts = (state.mode === 'guests' || state.mode === 'rsvp') ? guestCsvFieldOptions(state.mode) : entityCsvFieldOptions(state.mode);
-  const previewRows = state.rows.slice(0,5);
-  const mapSelects = state.headers.map((h,i) => `
-    <label class="m-field">
-      <span>${escapeHtml(h || 'Column '+(i+1))}</span>
-      <select onchange="setGuestCsvMapping(${i},this.value)">
-        ${opts.map(([k,label]) => `<option value="${k}"${state.mapping[i]===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}
-      </select>
-    </label>`).join('');
-  const table = `<div style="overflow:auto;margin-top:1rem"><table class="budget-table" style="min-width:760px"><thead><tr>${state.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${state.headers.map((_,i)=>`<td>${escapeHtml(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  body.innerHTML = `
-    <div class="v4-help-note"><strong>${state.rows.length} rows found.</strong> Map each CSV column to a planner field. Leave unused columns as Skip.</div>
-    <div class="m-form cols-3">${mapSelects}</div>
-    ${table}`;
-  if (btn) btn.disabled = false;
+  if (state.mode !== 'guests' && state.mode !== 'rsvp') {
+    const opts = entityCsvFieldOptions(state.mode);
+    const previewRows = state.rows.slice(0, 5);
+    const mapSelects = state.headers.map((h, i) => `
+      <label class="m-field">
+        <span>${escapeHtml(h || 'Column '+(i+1))}</span>
+        <select onchange="setGuestCsvMapping(${i},this.value)">
+          ${opts.map(([k,label]) => `<option value="${k}"${state.mapping[i]===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}
+        </select>
+      </label>`).join('');
+    const table = `<div style="overflow:auto;margin-top:1rem"><table class="budget-table" style="min-width:760px"><thead><tr>${state.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${state.headers.map((_,i)=>`<td>${escapeHtml(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    body.innerHTML = `<div class="v4-help-note"><strong>${state.rows.length} rows found.</strong> Map each CSV column to a planner field. Leave unused columns as Skip.</div><div class="m-form cols-3">${mapSelects}</div>${table}`;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Import';
+      btn.onclick = () => commitEntityCSVImport();
+    }
+    return;
+  }
+  if (state.step === 3) {
+    renderGuestCSVConflicts();
+    return;
+  }
+  const opts = guestCsvFieldOptions(state.mode);
+  const pre = guestCsvImportPreflight();
+  state.conflicts = pre.conflicts;
+  if (title) title.textContent = (state.mode === 'rsvp' ? 'Import RSVP' : 'Import guests') + ' · step 2 of 3';
+  if (sub) sub.textContent = 'Map the file’s columns to planner fields. Nothing is written until step 3.';
+  const rowsHtml = state.headers.map((h, i) => {
+    const field = state.mapping[i] || 'skip';
+    const chip = guestCsvMappingChip(h, field);
+    const lockedTable = chip.locked && /table|seat|seating/.test(normalizeGuestImportKey(h));
+    if (lockedTable) state.mapping[i] = 'skip';
+    const dst = lockedTable
+      ? `<span class="rd-import__dst is-muted">—</span>`
+      : `<span class="rd-import__dst"><select onchange="setGuestCsvMapping(${i},this.value)">${opts.map(([k,label]) => `<option value="${k}"${(state.mapping[i]||'skip')===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}</select></span>`;
+    return `<div class="rd-import__row">
+      <div class="rd-import__src">${escapeHtml(h || 'Column '+(i+1))}</div>
+      <div class="rd-import__arrow">→</div>
+      ${dst}
+      <span class="rd-import__chip${chip.tone==='amber'?' is-amber':chip.tone==='gray'?' is-gray':''}">${escapeHtml(chip.label)}</span>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="rd-import">
+    <div class="rd-import__eyebrow"><span>Mapping ${state.headers.length} columns</span><span>${escapeHtml(state.fileName || 'file.csv')} · ${state.rows.length} rows detected</span></div>
+    <div class="rd-import__map">${rowsHtml}</div>
+    <div class="rd-import__preflight">
+      <div class="rd-import__preflight-title">Before anything is written</div>
+      <div class="rd-import__count"><span>New guests to create</span><strong>${pre.create}</strong></div>
+      <div class="rd-import__count"><span>Matched to existing guests</span><strong>${pre.match}${pre.matchHow ? ' · ' + pre.matchHow : ''}</strong></div>
+      <div class="rd-import__count is-amber"><span>Conflicts to review</span><strong>${pre.conflict}${pre.conflict ? ' · same name, different email' : ''}</strong></div>
+      <div class="rd-import__count is-red"><span>Rows that will be skipped</span><strong>${pre.skip}</strong></div>
+      <div class="rd-import__count"><span>Existing guests not in this file</span><strong>${pre.untouched} · nothing will be deleted</strong></div>
+    </div>
+  </div>`;
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) {
+    back.textContent = 'Back';
+    back.onclick = () => openGuestCSVImport(state.mode);
+  }
+  if (btn) {
+    btn.disabled = false;
+    if (pre.conflict > 0) {
+      btn.textContent = `Review ${pre.conflict} conflict${pre.conflict === 1 ? '' : 's'}`;
+      btn.onclick = () => { guestCsvImportState.step = 3; renderGuestCSVConflicts(); };
+    } else {
+      btn.textContent = `Import ${pre.create + pre.match} row${(pre.create + pre.match) === 1 ? '' : 's'}`;
+      btn.onclick = () => commitEntityCSVImport();
+    }
+  }
 }
 function setGuestCsvMapping(index, value){
   if (!guestCsvImportState) return;
+  if (value === 'table') value = 'skip';
   guestCsvImportState.mapping[index] = value;
+  if (guestCsvImportState.mode === 'guests' || guestCsvImportState.mode === 'rsvp') renderGuestCSVMapping();
 }
 function guestCsvValue(row, field){
   const state = guestCsvImportState;
@@ -19293,19 +19511,50 @@ function commitGuestCSVImport(){
     showToast('Map at least a Guest Name or Email column before importing.', 'warn');
     return;
   }
+  const pre = guestCsvImportPreflight();
+  if (pre.conflict > 0 && state.step !== 3) {
+    state.conflicts = pre.conflicts;
+    state.step = 3;
+    renderGuestCSVConflicts();
+    showToast('Review conflicts before writing.', 'warn');
+    return;
+  }
+  const conflictByRow = {};
+  (state.conflicts || pre.conflicts || []).forEach(c => { conflictByRow[c.rowIndex] = c; });
   let added = 0, updated = 0, skipped = 0;
-  state.rows.forEach(row => {
+  state.rows.forEach((row, rowIndex) => {
     const incoming = buildGuestImportObject(row);
+    delete incoming.table; /* seating owned by Table Layout */
     if (!incoming.name && !incoming.email) { skipped++; return; }
+    const conflict = conflictByRow[rowIndex];
+    if (conflict) {
+      const res = (state.conflictResolutions && state.conflictResolutions[conflict.id]) || 'keep';
+      if (res === 'skip') { skipped++; return; }
+      const idx = findGuestForImport({ name: conflict.left.name, email: conflict.left.email });
+      if (idx < 0) { skipped++; return; }
+      if (res === 'file') {
+        const target = data.guests[idx];
+        Object.entries(incoming).forEach(([key,val]) => {
+          if (key === 'table') return;
+          if (val !== '' && val != null) target[key] = val;
+        });
+        updated++;
+      } else {
+        skipped++; /* keep existing — counted as reviewed, not mutated */
+      }
+      return;
+    }
     const idx = findGuestForImport(incoming);
     if (idx >= 0) {
       const target = data.guests[idx];
       Object.entries(incoming).forEach(([key,val]) => {
+        if (key === 'table') return;
         if (val !== '' && val != null) target[key] = val;
       });
       updated++;
     } else {
       const next = Object.assign(guestCsvDefaultRow(), incoming);
+      delete next.table;
       if (state.mode === 'rsvp' && !next.notes) next.notes = 'Imported from RSVP CSV';
       data.guests.push(next);
       added++;

@@ -9867,7 +9867,8 @@ body.rd-scope #panel-party .rd-party-speaking__desc {
   color: #6b645d;
   margin-top: 6px;
 }
-body.rd-scope #panel-party .rd-party-cards {
+body.rd-scope #panel-party .rd-party-cards,
+body.rd-scope #panel-party #party-cards-view.rd-cardgrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 12px;
@@ -9895,11 +9896,9 @@ body.rd-scope #panel-party .rd-party-card__fit {
   color: #6b645d;
   margin-top: 6px;
 }
-body.rd-scope #panel-party .rd-party-duties {
+body.rd-scope #panel-party .rd-party-duties,
+body.rd-scope #panel-party #party-duties-view.rd-kanban {
   padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 body.rd-scope #panel-party .rd-party-duty-block {
   border: 1px solid var(--rd-border, #e7e1d4);

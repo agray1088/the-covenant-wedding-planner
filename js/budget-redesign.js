@@ -1516,14 +1516,34 @@
     const ci = typeof activeBudgetCategoryIndex !== 'undefined' ? activeBudgetCategoryIndex : 0;
     const c = cats()[ci];
     if (!c) { if (typeof addBudgetCategory === 'function') addBudgetCategory(); return; }
-    if (!Array.isArray(c.items)) c.items = [];
-    const item = { name: '', budgeted: 0, actual: 0, status: 'Pending', paid: false, due: '', notes: '' };
-    if (typeof ensureNestedRowId === 'function') ensureNestedRowId(item, 'budgetItems');
-    c.items.push(item);
-    persist();
-    window._budgetDrawerRef = { id: String(item._id) };
-    window._budgetDrawerTab = 0;
-    rerender();
+    const finish = (shape) => {
+      if (!Array.isArray(c.items)) c.items = [];
+      const item = { name: '', budgeted: 0, actual: 0, status: 'Pending', paid: false, due: '', notes: '', template: shape || 'blank' };
+      if (shape === 'instalments') {
+        item.name = '';
+        item.schedule = [{ label: 'Deposit', amount: '' }, { label: 'Balance', amount: '' }];
+      } else if (shape === 'single') {
+        item.schedule = [{ label: 'Due on delivery', amount: '' }];
+      } else if (shape === 'percover') {
+        item.qty = '';
+        item.unitPrice = '';
+        item.perCover = true;
+      }
+      if (typeof ensureNestedRowId === 'function') ensureNestedRowId(item, 'budgetItems');
+      c.items.push(item);
+      persist();
+      window._budgetDrawerRef = { id: String(item._id) };
+      window._budgetDrawerTab = 0;
+      rerender();
+    };
+    if (typeof RdFurniture !== 'undefined' && RdFurniture.openTemplatePicker) {
+      RdFurniture.openTemplatePicker({
+        title: 'New from template · budget line',
+        onPick: function (id) { finish(id); }
+      });
+      return;
+    }
+    finish('blank');
   }
 
   function rdBudgetOpenItemDrawer(id) {

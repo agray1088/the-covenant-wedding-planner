@@ -235,10 +235,10 @@
           <section class="rd-party-speaking" id="party-speaking-section" aria-label="Speaking order"></section>
         </div>
         <div class="rd-view" id="party-view-cards" data-party-view="cards" hidden>
-          <div class="rd-party-cards" id="party-cards-view"></div>
+          <div class="rd-cardgrid" id="party-cards-view"></div>
         </div>
         <div class="rd-view" id="party-view-duties" data-party-view="duties" hidden>
-          <div class="rd-party-duties" id="party-duties-view"></div>
+          <div class="rd-kanban" id="party-duties-view"></div>
         </div>
       </div>
       <div id="party-drawer-slot"></div>
@@ -741,36 +741,77 @@
   function renderPartyCardsView() {
     const host = document.getElementById('party-cards-view');
     if (!host) return;
+    host.classList.add('rd-cardgrid');
     const rows = partyRows().filter(partyMatchesFilters);
     host.innerHTML = rows.length ? rows.map(r => {
       const side = partySideGroupTitle(partyMemberSide(r)).replace("'s side", '');
-      return `<article class="rd-party-card" data-id="${escapeHtml(r._id || '')}" onclick="partyOpenDrawerById('${escapeHtml(r._id || '')}')">
-        <div class="rd-party-card__head">
-          <strong>${escapeHtml(r.name || '')}</strong>
-          ${partyAttirePillHtml(partyAttireStatus(r))}
-        </div>
-        <div class="rd-party-card__meta">${escapeHtml(r.role || '')} · ${escapeHtml(side)}</div>
-        <div class="rd-party-card__duties">${escapeHtml(partyDutiesLabel(r))}</div>
-        <div class="rd-party-card__fit">Fitting ${escapeHtml(partyFittingLabel(r))}</div>
+      return `<article class="rd-cardgrid__card" data-id="${escapeHtml(r._id || '')}" onclick="partyOpenDrawerById('${escapeHtml(r._id || '')}')">
+        <div class="rd-cardgrid__title">${escapeHtml(r.name || '')}</div>
+        <div class="rd-cardgrid__meta">${escapeHtml(r.role || '')} · ${escapeHtml(side)}</div>
+        <div class="rd-cardgrid__meta">${escapeHtml(partyDutiesLabel(r))}</div>
+        <div class="rd-cardgrid__meta">Fitting ${escapeHtml(partyFittingLabel(r))} · ${escapeHtml(partyAttireStatus(r))}</div>
       </article>`;
-    }).join('') : '<p class="rd-help">No members match this view.</p>';
+    }).join('') : '<p class="rd-help" style="grid-column:1/-1">No members match this view.</p>';
+  }
+
+  function partyDutyColumnKey(duty) {
+    const raw = String(duty || '').split('·')[0].trim();
+    if (!raw) return 'Unassigned';
+    if (/speech|toast|reading/i.test(raw)) return 'Speaking';
+    if (/processional|recessional|bouquet|ring/i.test(raw)) return 'Ceremony';
+    if (/usher|guest book|transport|door/i.test(raw)) return 'Reception';
+    return raw;
   }
 
   function renderPartyDutiesView() {
     const host = document.getElementById('party-duties-view');
     if (!host) return;
+    host.classList.add('rd-kanban');
     const rows = partyRows().filter(partyMatchesFilters);
-    const blocks = rows.map(r => {
+    const cols = Object.create(null);
+    const order = [];
+    const pushCol = (key) => {
+      if (!cols[key]) { cols[key] = []; order.push(key); }
+    };
+    rows.forEach(r => {
       const duties = Array.isArray(r.duties) ? r.duties : (r.dutyLabels ? [r.dutyLabels] : []);
-      const list = duties.length
-        ? duties.map(d => `<li>${escapeHtml(String(d))}</li>`).join('')
-        : '<li class="rd-help">No duties yet</li>';
-      return `<div class="rd-party-duty-block">
-        <div class="rd-party-duty-block__head"><strong>${escapeHtml(r.name || '')}</strong><span>${escapeHtml(r.role || '')}</span></div>
-        <ul class="rd-party-duty-block__list">${list}</ul>
+      if (!duties.length) {
+        pushCol('Unassigned');
+        cols.Unassigned.push({ name: r.name, role: r.role, duty: 'No duty yet', id: r._id });
+        return;
+      }
+      duties.forEach(d => {
+        const key = partyDutyColumnKey(d);
+        if (key === 'Unassigned') return;
+        pushCol(key);
+        cols[key].push({ name: r.name, role: r.role, duty: String(d), id: r._id });
+      });
+    });
+    /* Failure is a group, not a filter — Unassigned is always last and red. */
+    const knownOrphans = ['Usher · door', 'Guest book · late arrivals'].filter(label => {
+      return !rows.some(r => {
+        const duties = Array.isArray(r.duties) ? r.duties : [];
+        return duties.some(d => String(d).toLowerCase().includes(String(label).split('·')[0].trim().toLowerCase()) && /usher|guest book/i.test(d));
+      });
+    });
+    pushCol('Unassigned');
+    knownOrphans.forEach(label => {
+      if (!cols.Unassigned.some(c => c.duty === label)) {
+        cols.Unassigned.push({ name: label, role: 'Needs owner', duty: label, id: '', orphan: true });
+      }
+    });
+    const colOrder = order.filter(k => k !== 'Unassigned').concat(['Unassigned']);
+    host.innerHTML = colOrder.map(key => {
+      const cards = cols[key] || [];
+      const danger = key === 'Unassigned' ? ' is-danger' : '';
+      return `<div class="rd-kanban__col${danger}">
+        <div class="rd-kanban__col-head">${escapeHtml(key)}<span class="rd-rail__count" style="margin-left:auto">${cards.length}</span></div>
+        ${cards.map(c => c.orphan
+          ? `<div class="rd-kanban__card"><strong>${escapeHtml(c.duty)}</strong><div class="rd-cardgrid__meta">Needs owner</div></div>`
+          : `<div class="rd-kanban__card" onclick="partyOpenDrawerById('${escapeHtml(c.id || '')}')"><strong>${escapeHtml(c.name || '')}</strong><div class="rd-cardgrid__meta">${escapeHtml(c.role || '')} · ${escapeHtml(c.duty)}</div></div>`
+        ).join('')}
       </div>`;
-    }).join('');
-    host.innerHTML = blocks || '<p class="rd-help">No members match this view.</p>';
+    }).join('') || '<p class="rd-help">No members match this view.</p>';
   }
 
   function partyOpenDrawerById(id) {

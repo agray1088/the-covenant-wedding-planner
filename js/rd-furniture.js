@@ -21,7 +21,10 @@
       'rd-kbd-overlay',
       'rd-bulk-edit-overlay',
       'rd-share-overlay',
-      'rd-unsaved-view-overlay'
+      'rd-unsaved-view-overlay',
+      'rd-template-overlay',
+      'rd-trash-overlay',
+      'rd-merge-overlay'
     ].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.remove();
@@ -677,6 +680,218 @@
     if (typeof global.setSavedView === 'function') global.setSavedView(panelId, viewId);
   }
 
+  /* ── Templates / Trash / Merge (Views · S10 · 480px) ─────────────────── */
+  function openTemplatePicker(opts) {
+    opts = opts || {};
+    var title = opts.title || 'New from template · budget line';
+    var templates = opts.templates || [
+      { id: 'instalments', title: 'Vendor with instalments', sub: 'Deposit + balance schedule', used: 12 },
+      { id: 'single', title: 'Single payment on delivery', sub: 'One due date, one amount', used: 8 },
+      { id: 'percover', title: 'Per-cover cost', sub: 'Amount × guest count', used: 3 },
+      { id: 'blank', title: 'Blank line', sub: 'Start empty' }
+    ];
+    var overlay = overlayShell(
+      'rd-template-overlay',
+      'rd-template-overlay',
+      '<div class="rd-template-picker" role="dialog" aria-modal="true" aria-label="Templates">' +
+        '<div class="rd-template-picker__head"><div class="rd-template-picker__title">' +
+        esc(title) +
+        '</div><div class="rd-template-picker__sub">Shapes, not values — empty amounts only.</div></div>' +
+        '<div class="rd-template-picker__list">' +
+        templates
+          .map(function (t) {
+            return (
+              '<button type="button" class="rd-template-picker__row" data-tpl="' +
+              esc(t.id) +
+              '"><span class="rd-template-picker__main"><strong>' +
+              esc(t.title) +
+              '</strong><span>' +
+              esc(t.sub || '') +
+              '</span></span>' +
+              (t.used != null ? '<span class="rd-template-picker__used">Used ' + t.used + '×</span>' : '') +
+              '</button>'
+            );
+          })
+          .join('') +
+        '</div>' +
+        '<div class="rd-template-picker__foot">Templates set structure only. They never invent figures.</div></div>'
+    );
+    overlay.querySelectorAll('[data-tpl]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-tpl');
+        overlay.remove();
+        if (typeof opts.onPick === 'function') opts.onPick(id, templates.find(function (t) { return t.id === id; }));
+      });
+    });
+    return overlay;
+  }
+
+  function openTrash(opts) {
+    opts = opts || {};
+    var items = opts.items || [];
+    var overlay = overlayShell(
+      'rd-trash-overlay',
+      'rd-trash-overlay',
+      '<div class="rd-trash" role="dialog" aria-modal="true" aria-label="Trash">' +
+        '<div class="rd-trash__head"><div class="rd-trash__title">Trash · 30 days</div>' +
+        '<div class="rd-trash__sub">Restore children with their parent. Missing parent → restore into the parent’s trash, never orphan.</div></div>' +
+        '<div class="rd-trash__list">' +
+        (items.length
+          ? items
+              .map(function (it) {
+                var chip =
+                  it.expired
+                    ? '<span class="rd-trash__chip is-expired">Expired</span>'
+                    : '<span class="rd-trash__chip">' + esc(it.daysLeft != null ? it.daysLeft + ' days left' : '') + '</span>';
+                return (
+                  '<button type="button" class="rd-trash__row" data-trash-id="' +
+                  esc(it.id || '') +
+                  '"><span class="rd-trash__main"><strong>' +
+                  esc(it.title || 'Item') +
+                  '</strong><span>' +
+                  esc(it.meta || '') +
+                  '</span></span>' +
+                  chip +
+                  '</button>'
+                );
+              })
+              .join('')
+          : '<div class="rd-trash__empty">Trash is empty. Deleted records stay here for 30 days.</div>') +
+        '</div>' +
+        '<div class="rd-trash__foot"><button type="button" class="rd-btn rd-btn--primary" data-trash-close>Close</button></div></div>'
+    );
+    overlay.querySelector('[data-trash-close]').onclick = function () { overlay.remove(); };
+    overlay.querySelectorAll('[data-trash-id]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.getAttribute('data-trash-id');
+        if (typeof opts.onRestore === 'function') opts.onRestore(id);
+        if (typeof showToast === 'function') showToast('Restored from trash');
+        overlay.remove();
+      });
+    });
+    return overlay;
+  }
+
+  function openMergeReview(opts) {
+    opts = opts || {};
+    var left = opts.left || {};
+    var right = opts.right || {};
+    var fields = opts.fields || ['Name', 'Email', 'Household', 'Reply', 'Seat'];
+    var map = opts.map || {
+      Name: [left.name, right.name],
+      Email: [left.email, right.email],
+      Household: [left.household, right.household],
+      Reply: [left.rsvp, right.rsvp],
+      Seat: [left.table, right.table]
+    };
+    var rows = fields
+      .map(function (f) {
+        var pair = map[f] || ['—', '—'];
+        var l = pair[0] == null || pair[0] === '' ? '—' : pair[0];
+        var r = pair[1] == null || pair[1] === '' ? '—' : pair[1];
+        return (
+          '<div class="rd-merge__row"><span class="rd-merge__lab">' +
+          esc(f) +
+          '</span><span class="rd-merge__val' +
+          (l === '—' ? ' is-empty' : '') +
+          '">' +
+          esc(l) +
+          '</span><span class="rd-merge__val' +
+          (r === '—' ? ' is-empty' : '') +
+          '">' +
+          esc(r) +
+          '</span></div>'
+        );
+      })
+      .join('');
+    var overlay = overlayShell(
+      'rd-merge-overlay',
+      'rd-merge-overlay',
+      '<div class="rd-merge" role="dialog" aria-modal="true" aria-label="Duplicate review">' +
+        '<div class="rd-merge__head"><div class="rd-merge__title">Possible duplicate · review</div>' +
+        '<div class="rd-merge__sub">Keep the left record and its seat. Right-side email becomes an alternate. Discarded values go to history.</div></div>' +
+        '<div class="rd-merge__grid"><div class="rd-merge__row is-head"><span></span><span>Keep</span><span>Other</span></div>' +
+        rows +
+        '</div>' +
+        '<div class="rd-merge__foot">' +
+        '<button type="button" class="rd-btn rd-btn--quiet" data-merge-cancel>Cancel</button>' +
+        '<span class="rd-filter-builder__spacer"></span>' +
+        '<button type="button" class="rd-btn rd-btn--primary" data-merge-keep>Keep left · merge</button>' +
+        '</div></div>'
+    );
+    overlay.querySelector('[data-merge-cancel]').onclick = function () { overlay.remove(); };
+    overlay.querySelector('[data-merge-keep]').onclick = function () {
+      overlay.remove();
+      if (typeof opts.onMerge === 'function') opts.onMerge({ keep: 'left', left: left, right: right });
+      if (typeof showToast === 'function') showToast('Merged — discarded values kept in history');
+    };
+    return overlay;
+  }
+
+  /* ── Notifications panel HTML (Views · S7) — used by topbar drop ───── */
+  function notificationsHtml(model) {
+    model = model || { needsYou: [], activity: [], quiet: '' };
+    function row(item, selected) {
+      var chip = item.chip
+        ? '<span class="rd-notif__chip' +
+          (item.chipTone === 'gold' ? ' is-gold' : item.chipTone === 'red' || item.urgent ? ' is-red' : '') +
+          '">' +
+          esc(item.chip) +
+          '</span>'
+        : item.when
+          ? '<span class="rd-notif__when">' + esc(item.when) + '</span>'
+          : '';
+      return (
+        '<button type="button" class="rd-notif__row' +
+        (selected ? ' is-selected' : '') +
+        '" data-notif-action="' +
+        esc(item.action || '') +
+        '"><span class="rd-notif__copy"><strong>' +
+        esc(item.title || '') +
+        '</strong><span>' +
+        esc(item.note || '') +
+        '</span></span>' +
+        chip +
+        '</button>'
+      );
+    }
+    var needs = model.needsYou || [];
+    var act = model.activity || [];
+    return (
+      '<div class="rd-notif">' +
+      '<div class="rd-notif__head"><div class="rd-notif__title">Notifications</div>' +
+      '<div class="rd-notif__sub">Two kinds: what needs you, and what other people did.</div></div>' +
+      '<div class="rd-notif__eyebrow"><span>Needs you</span><span>' +
+      needs.length +
+      ' · derived from the records, not a message queue</span></div>' +
+      '<div class="rd-notif__list">' +
+      (needs.length
+        ? needs.map(function (it, i) { return row(it, i === 0); }).join('')
+        : '<div class="rd-notif__empty">Nothing needs you right now.</div>') +
+      '</div>' +
+      '<div class="rd-notif__eyebrow"><span>Changed since you last looked</span><span>' +
+      esc(model.activityMeta || 'recently') +
+      '</span></div>' +
+      '<div class="rd-notif__list">' +
+      (act.length
+        ? act.map(function (it) { return row(it, false); }).join('')
+        : '<div class="rd-notif__empty">No activity yet.</div>') +
+      '</div>' +
+      '<div class="rd-notif__eyebrow"><span>Quiet</span><span>things the planner is deliberately not telling you</span></div>' +
+      '<div class="rd-notif__quiet">' +
+      esc(
+        model.quiet ||
+          'No alert is raised for a guest replying, a payment coming due more than 14 days out, or a vendor opening a packet. Those are visible on their own pages and would train you to ignore this panel.'
+      ) +
+      '</div>' +
+      '<div class="rd-notif__foot">' +
+      '<button type="button" class="rd-btn rd-btn--quiet" data-notif-read>Mark activity as read</button>' +
+      '<span class="rd-filter-builder__spacer"></span>' +
+      '<button type="button" class="rd-btn" data-notif-settings>Notification settings</button>' +
+      '</div></div>'
+    );
+  }
+
   global.RdFurniture = {
     openFilterBuilder: openFilterBuilder,
     closeFilterBuilder: closeFilterBuilder,
@@ -685,6 +900,10 @@
     openBulkEdit: openBulkEdit,
     openShareDialog: openShareDialog,
     showUndoToast: showUndoToast,
+    openTemplatePicker: openTemplatePicker,
+    openTrash: openTrash,
+    openMergeReview: openMergeReview,
+    notificationsHtml: notificationsHtml,
     listSavedViews: listSavedViews,
     saveCurrentView: saveCurrentView,
     closeAll: closeAll

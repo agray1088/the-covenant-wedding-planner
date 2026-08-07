@@ -152,6 +152,32 @@
       if (typeof toggleProfileDrawer === 'function') toggleProfileDrawer();
     });
 
+    /* Furniture · Trash · Views S10 — from the avatar/prefs menu */
+    if (prefs && !prefs.querySelector('[data-rd-trash]')) {
+      var trashBtn = el('<button type="button" class="rd-prefs__trash" data-rd-trash>Trash · 30 days</button>');
+      trashBtn.addEventListener('click', function () {
+        prefs.setAttribute('hidden', '');
+        var g = document.getElementById('rd-gear-btn');
+        if (g) g.setAttribute('aria-expanded', 'false');
+        if (typeof RdFurniture !== 'undefined' && RdFurniture.openTrash) {
+          var items = [];
+          try {
+            var trash = (typeof data !== 'undefined' && data && Array.isArray(data.trash)) ? data.trash : [];
+            items = trash.map(function (t, i) {
+              return {
+                id: String(t._id || i),
+                title: t.title || t.name || t.label || 'Deleted record',
+                meta: (t.type || t.entity || 'Record') + (t.deletedAt ? ' · ' + t.deletedAt : ''),
+                daysLeft: t.daysLeft != null ? t.daysLeft : 30
+              };
+            });
+          } catch (e) { items = []; }
+          RdFurniture.openTrash({ items: items });
+        }
+      });
+      prefs.insertBefore(trashBtn, prefs.firstChild);
+    }
+
     /* ─── retire the legacy chrome ────────────────────────────────────── */
     legacyBar.setAttribute('hidden', '');
     legacyBar.setAttribute('aria-hidden', 'true');
