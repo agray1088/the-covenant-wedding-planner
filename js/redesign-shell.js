@@ -265,6 +265,7 @@
     var prayerSlot = document.getElementById('prayer-drawer-slot');
     var counselingSlot = document.getElementById('counseling-drawer-slot');
     var moodSlot = document.getElementById('mood-drawer-slot');
+    var essentialsSlot = document.getElementById('essentials-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -294,6 +295,7 @@
     else if (panel === 'prayer') slot = prayerSlot;
     else if (panel === 'counseling') slot = counselingSlot;
     else if (panel === 'mood') slot = moodSlot;
+    else if (panel === 'essentials') slot = essentialsSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -314,6 +316,7 @@
     if (prayerSlot && d.parentElement === prayerSlot) prayerSlot.classList.remove('is-open');
     if (counselingSlot && d.parentElement === counselingSlot) counselingSlot.classList.remove('is-open');
     if (moodSlot && d.parentElement === moodSlot) moodSlot.classList.remove('is-open');
+    if (essentialsSlot && d.parentElement === essentialsSlot) essentialsSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -339,6 +342,7 @@
       if (prayerSlot) prayerSlot.classList.remove('is-open');
       if (counselingSlot) counselingSlot.classList.remove('is-open');
       if (moodSlot) moodSlot.classList.remove('is-open');
+      if (essentialsSlot) essentialsSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
@@ -370,6 +374,9 @@
     }
     if (moodSlot && moodSlot.querySelector('.rd-mood-drawer') && !(d.parentElement === moodSlot && open)) {
       moodSlot.classList.add('is-open');
+    }
+    if (essentialsSlot && essentialsSlot.querySelector('.rd-ess-drawer') && !(d.parentElement === essentialsSlot && open)) {
+      essentialsSlot.classList.add('is-open');
     }
   }
 
@@ -747,6 +754,7 @@
     moodItems: 'Vision Board / Pin',
     moodPhotos: 'Vision Board / Pin',
     palettes: 'Vision Board / Palette',
+    essentials: 'Essentials Checklist / Item',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',

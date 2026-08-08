@@ -2135,6 +2135,80 @@
     return '<div class="rd-rail__stack" data-page-rail="mood">' + viewsHtml + categoriesHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #17a / Dark.dc #17a rail — Kits + Packed meters + Group by. */
+  function buildEssentialsContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('essentials', 'all');
+    else if (typeof window._essRailView === 'string' && window._essRailView) activeView = window._essRailView;
+    window._essRailView = activeView;
+
+    var counts = typeof window.essRailCounts === 'function' ? window.essRailCounts() : { all: 0 };
+    var figures = typeof window.essFigures === 'function' ? window.essFigures() : {
+      packed: 0, items: 0, bought: 0, notBought: 0, unassigned: 0
+    };
+    var groupBy = window._essGroupBy || 'kit';
+
+    var kits = [
+      ['all', 'Everything'],
+      ['Bride essentials', 'Bride essentials'],
+      ['Groom essentials', 'Groom essentials'],
+      ['Emergency kit', 'Emergency kit'],
+      ['Ceremony documents', 'Ceremony documents'],
+      ['Reception bag', 'Reception bag'],
+      ['Beauty & medicine', 'Beauty & medicine'],
+      ['Exit / send-off', 'Exit / send-off'],
+      ['Tech kit', 'Tech kit']
+    ];
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEssentialsRailView(\'' + id.replace(/'/g, "\\'") + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+
+    var kitsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Kits<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      kits.map(function (k) {
+        return viewItem(k[0], k[1], k[0] === 'all' ? (counts.all || 0) : (counts[k[0]] || 0));
+      }).join('') +
+      '</div></div>';
+
+    var packedHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Packed</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>In the bag</span><span class="rd-rail__count">' +
+      (figures.packed || 0) + ' of ' + (figures.items || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Bought, not packed</span><span class="rd-rail__count">' +
+      (figures.bought || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Not bought</span><span class="rd-rail__count">' +
+      (figures.notBought || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Unassigned</span><span class="rd-rail__count' +
+      ((figures.unassigned || 0) > 0 ? ' rd-rail__count--warn' : '') + '">' +
+      (figures.unassigned || 0) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEssentialsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('kit', 'Kit') +
+      groupItem('person', 'Person') +
+      groupItem('where', 'Where it lives') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Presets load a starter list you then edit. Nothing here syncs — this is the one table the planner does not derive from anything else.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="essentials">' + kitsHtml + packedHtml + groupHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -2152,6 +2226,7 @@
     prayer: buildPrayerContext,
     counseling: buildCounselingContext,
     mood: buildMoodContext,
+    essentials: buildEssentialsContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,

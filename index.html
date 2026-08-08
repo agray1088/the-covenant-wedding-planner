@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-8b1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-17a1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1105,89 +1105,12 @@
     </div>
 
 
-    <!-- ESSENTIALS CHECKLIST -->
-    <div id="panel-essentials" class="panel essentials-mockup ued-scope" data-essentials-v2="true">
-      <section class="ess-hero">
-        <div aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 96 22"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="ess-title">Wedding Day Essentials</h2>
-        <p class="ess-subtitle">A calm packing checklist — assign, locate, and check off every must-have for ceremony and reception.</p>
-      </section>
-
-      <div class="ess-progress-overview" id="essentials-progress-overview" aria-label="Packing progress overview" hidden></div>
-
-      <div class="m-stats ess-stats-row" id="essentials-stats" aria-label="Packing summary"></div>
-
-      <nav class="ess-quick-links" aria-label="Related planner pages">
-        <button type="button" class="ess-quick-link" onclick="showPanel('guests')"><span class="ess-quick-label">Guest List</span><span class="ess-quick-note">Who is bringing what</span></button>
-        <button type="button" class="ess-quick-link" onclick="showPanel('timeline')"><span class="ess-quick-label">Day-of Timeline</span><span class="ess-quick-note">Ceremony &amp; reception flow</span></button>
-        <button type="button" class="ess-quick-link" onclick="showPanel('instructions')"><span class="ess-quick-label">Get Started</span><span class="ess-quick-note">Backup &amp; setup tips</span></button>
-        <button type="button" class="ess-quick-link" onclick="startHereBackup()"><span class="ess-quick-label">Download Backup</span><span class="ess-quick-note">Protect your checklist</span></button>
-      </nav>
-
-      <section class="ued-panel essentials-action-card ess-toolbar-card">
-        <div class="essentials-card-head">
-          <div>
-            <h3>Build your checklist</h3>
-            <p>Load a starter list or add items one at a time. Every row stays fully editable.</p>
-          </div>
-        </div>
-        <div class="ess-toolbar-actions">
-          <button class="btn btn-forest" onclick="loadEssentialsPreset()"><svg class="line-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span class="btn-text">Load Essentials Checklist</span></button>
-          <button class="btn btn-outline" onclick="loadGroomPackingPreset()"><span class="btn-text">Load Groom Packing</span></button>
-          <button class="btn btn-forest" onclick="addEssentialRow()"><span class="btn-text">+ Add Checklist Item</span></button>
-        </div>
-        <div id="essentials-kit-chips"></div>
-      </section>
-
-      <div id="essentials-category-progress" class="ess-category-progress" aria-label="Progress by category" hidden></div>
-
-      <section class="ued-panel span12 record-editor-inline-shell essentials-inline-editor" id="essentials-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div><div class="ued-table-title">Checklist item editor <span class="gie-mode" data-inline-editor-mode>Adding a new checklist item</span></div><p class="gie-note">Edit category, item, packed status, assignment, location, and notes here. Use Design Hub for full spreadsheet and bulk editing.</p></div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="essentials-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('essentials',null,'essentials-inline-editor-body')" style="display:none">Start new item</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add item</button>
-        </div>
-      </section>
-
-      <section class="ued-table-card essentials-table-card ess-table-shell">
-        <div class="essentials-card-head ess-table-head">
-          <div>
-            <h3>Your packing list</h3>
-            <p>Check items off as you pack. Use column filters or search to focus on one category or person.</p>
-          </div>
-        </div>
-        <div class="ued-table-head"><div class="ued-table-title">Packing checklist <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-btn db-edit-btn" onclick="openDataHub('design','essentials')">Edit in Design Hub</button></div></div>
-        <div class="ued-table-wrap ro-preview" id="cwp-essentials"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-        <datalist id="essentials-cat-options">
-          <option value="Tech"></option>
-          <option value="Tech Kit"></option>
-          <option value="Quick Fixes"></option>
-          <option value="Emergency Kit"></option>
-          <option value="Personal & Health"></option>
-          <option value="Medicine Kit"></option>
-          <option value="Snack Kit"></option>
-          <option value="Beauty Kit"></option>
-          <option value="Marriage Essentials"></option>
-          <option value="Ceremony Documents"></option>
-          <option value="Bride Essentials"></option>
-          <option value="Groom Essentials"></option>
-          <option value="Reception Bag"></option>
-          <option value="Decor & Signage"></option>
-          <option value="Exit / Send-Off"></option>
-          <option value="Misc"></option>
-        </datalist>
-        <datalist id="essentials-item-filter-options"></datalist>
-      </section>
+    <!-- ═══ ESSENTIALS CHECKLIST — All.dc #17a · Views By person/Print · Drawers item · essentials-redesign.js ═══ -->
+    <div id="panel-essentials" class="panel essentials-mockup ued-scope">
+      <!-- Filled by uedEssentialsShell() / renderEssentialsPage() (Checklist|By person|Print · drawer) -->
     </div>
-    <!-- ═══ VISION BOARD — All.dc #8b · Dark rail · Drawers pin · mood-redesign.js ═══ -->
+
+<!-- ═══ VISION BOARD — All.dc #8b · Dark rail · Drawers pin · mood-redesign.js ═══ -->
     <div id="panel-mood" class="panel mood-mockup ued-scope">
       <!-- Filled by uedMoodShell() / renderMoodPage() (Board|Palette|List · drawer) -->
     </div>
@@ -1981,7 +1904,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-8b1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-17a1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -2009,10 +1932,11 @@
 <script src="js/honeymoon-redesign.js?v=redesign-17b1"></script>
 <script src="js/prayer-redesign.js?v=redesign-13b1"></script>
 <script src="js/counseling-redesign.js?v=redesign-13c1"></script>
-<script src="js/mood-redesign.js?v=redesign-8b1"></script>
+<script src="js/mood-redesign.js?v=redesign-17a1"></script>
+<script src="js/essentials-redesign.js?v=redesign-17a1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-8b1"></script>
+<script src="js/redesign-shell.js?v=redesign-17a1"></script>
 <script>
 (function () {
   try {
