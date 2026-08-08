@@ -15713,6 +15713,7 @@ body.rd-scope #panel-ceremony .rd-cer-script__warn {
 }
 
 body.rd-scope #panel-ceremony .rd-cer-drawer .rd-drawer__head {
+  position: relative;
   padding: 16px 18px 0;
   border-bottom: 1px solid #e7e1d4;
 }
