@@ -1807,6 +1807,76 @@
     return '<div class="rd-rail__stack" data-page-rail="timeline">' + viewsHtml + blocksHtml + checksHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #11a rail — Views + Running time + Group by. */
+  function buildCeremonyContext() {
+    var activeView = 'both';
+    if (typeof getSavedView === 'function') activeView = getSavedView('ceremony', 'both');
+    else if (typeof window._cerRailView === 'string' && window._cerRailView) activeView = window._cerRailView;
+    window._cerRailView = activeView;
+
+    var counts = typeof window.ceremonyRailCounts === 'function' ? window.ceremonyRailCounts() : {
+      both: 0, ceremony: 0, reception: 0, needs: 0, scripture: 0
+    };
+    var figures = typeof window.ceremonyFigures === 'function' ? window.ceremonyFigures() : {
+      ceremonyMins: 0, receptionMins: 0, cocktailMins: 60, turnoverMins: 45
+    };
+    var groupBy = window._cerGroupBy || 'service';
+
+    function fmtRailMins(n) {
+      if (n == null) return '—';
+      n = Math.max(0, Math.round(Number(n) || 0));
+      if (n < 60) return n + ' min';
+      var h = Math.floor(n / 60);
+      var r = n % 60;
+      return r ? (h + 'h ' + r + 'm') : (h + 'h');
+    }
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCeremonyRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('both', 'Both services', counts.both || 0) +
+      viewItem('ceremony', 'Ceremony only', counts.ceremony || 0) +
+      viewItem('reception', 'Reception only', counts.reception || 0) +
+      viewItem('needs', 'Needs a person', counts.needs || 0, true) +
+      viewItem('scripture', 'Scripture & vows', counts.scripture || 0) +
+      '</div></div>';
+
+    var metersHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Running time</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Ceremony</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.ceremonyMins)) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Cocktail hour</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.cocktailMins)) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Reception</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.receptionMins)) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Room turnover</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.turnoverMins)) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCeremonyGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('service', 'Service') +
+      groupItem('person', 'Person') +
+      groupItem('type', 'Element type') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Elements with a time appear on the Wedding Day Timeline. Editing a duration here moves the timeline block.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="ceremony">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -1819,6 +1889,7 @@
     vendors: buildVendorsContext,
     venue: buildVenueContext,
     timeline: buildTimelineContext,
+    ceremony: buildCeremonyContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,

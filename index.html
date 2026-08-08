@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-6b1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-11a1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -845,167 +845,11 @@
       <!-- Filled by uedTimelineShell() / renderTimelinePage() (Table|Ribbon|By vendor · drawer) -->
     </div>
 
-    <!-- CEREMONY -->
+    <!-- ═══ CEREMONY & RECEPTION — All.dc #11a · Views 31c/31d · Drawers 25 · ceremony-redesign.js ═══ -->
     <div id="panel-ceremony" class="panel ceremony-service-mockup ued-scope">
-      <div class="ceremony-title-wrap">
-        <div>
-          <h2 class="ceremony-title">Ceremony &amp; Reception</h2>
-          <p class="ceremony-subtitle">Plan the order of worship, vows, Scripture, prayers, legal details, and reception moments that should not get lost in the larger timeline.</p>
-        </div>
-        <div class="cer-header-actions no-print">
-          <button type="button" class="m-btn" onclick="openDataHub('ceremony','ceremonyOrder')">Ceremony Hub</button>
-          <button type="button" class="m-btn m-btn-primary" onclick="openCeremonyProgram()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Print Program
-          </button>
-        </div>
-      </div>
-
-      <div class="m-stats" id="ceremony-stats"></div>
-
-      <!-- Ceremony tab bar (Batch 5b) — one section per tab -->
-      <div class="m-tabbar cer-tabbar">
-        <button class="m-tab" data-tab="overview" onclick="cerTab('overview')">Overview</button>
-        <button class="m-tab" data-tab="order" onclick="cerTab('order')">Order of Worship</button>
-        <button class="m-tab" data-tab="processional" onclick="cerTab('processional')">Processional</button>
-        <button class="m-tab" data-tab="recessional" onclick="cerTab('recessional')">Recessional</button>
-        <button class="m-tab" data-tab="scripture" onclick="cerTab('scripture')">Scripture &amp; Prayer</button>
-        <button class="m-tab" data-tab="vows" onclick="cerTab('vows')">Vows &amp; Rings</button>
-        <button class="m-tab" data-tab="officiant" onclick="cerTab('officiant')">Officiant &amp; Legal</button>
-        <button class="m-tab" data-tab="reception" onclick="cerTab('reception')">Reception Details</button>
-        <button class="m-tab" data-tab="traditions" onclick="cerTab('traditions')">Traditions &amp; Cultural Moments</button>
-      </div>
-
-      <section class="ued-panel span12 ceremony-overview-panel" data-cer-tab="overview">
-        <div class="ued-table-head">
-          <div class="ued-table-title">Ceremony Overview</div>
-        </div>
-        <div class="ceremony-form-grid">
-          <label><span>Ceremony Location</span><select id="cer-location" onchange="saveCeremony()"><option value="">Grace Fellowship Church</option><option>Grace Fellowship Church</option><option>Grace Community Church</option><option>Ceremony Chapel</option><option>Garden Ceremony Site</option></select></label>
-          <label><span>Start Time</span><input type="time" id="cer-start" oninput="saveCeremony()"></label>
-          <label><span>Officiant</span><select id="cer-officiant" onchange="saveCeremony()"><option value="">Pastor Daniel Hayes</option><option>Pastor Daniel Hayes</option><option>Lead Officiant</option><option>Family Pastor</option></select></label>
-          <label><span>Service Style</span><select id="cer-style" onchange="saveCeremony()"><option value="">Traditional</option><option>Traditional</option><option>Christ-Centered</option><option>Worshipful</option><option>Intimate</option></select></label>
-          <label><span>Estimated Length</span><select id="cer-duration" onchange="saveCeremony()"><option value="">45-50 minutes</option><option>30-35 minutes</option><option>35-45 minutes</option><option>45-50 minutes</option><option>60 minutes</option></select></label>
-          <label><span>Marriage License Signing Location</span><select id="cer-license" onchange="saveCeremony()"><option value="">Church Office - After Ceremony</option><option>Church Office - After Ceremony</option><option>Bridal Suite</option><option>Reception Office</option><option>Pastor's Office</option></select></label>
-        </div>
-      </section>
-
-      <div class="ceremony-flow-grid" id="ceremony-flow-preview">
-        <section class="ued-table-card span12 ceremony-order-panel" data-cer-tab="order">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Order of Ceremony / Order of Worship</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyOrderRow()">Add Step <span>+</span></button></div>
-          </div>
-          <!-- Order of Worship table now rendered by the CWP unified engine (renderCeremonyOrder -> cwpRenderTable('ceremonyOrder')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyOrder" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyOrder')">Edit in Ceremony Hub</button></div>
-          </div>
-        </section>
-        <div class="ceremony-side-orders">
-        <section class="ued-table-card span12 ceremony-processional-panel" data-cer-tab="processional">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Processional Order</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addProcessionalRow()">Add <span>+</span></button></div>
-          </div>
-          <!-- Processional table now rendered by the CWP unified engine (renderProcessional -> cwpRenderTable('ceremonyProcessional')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyProcessional" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyProcessional')">Edit in Ceremony Hub</button></div>
-          </div>
-        </section>
-        <section class="ued-table-card span12 ceremony-recessional-panel" data-cer-tab="recessional">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Recessional Order</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addRecessionalRow()">Add <span>+</span></button></div>
-          </div>
-          <!-- Recessional table now rendered by the CWP unified engine (renderRecessional -> cwpRenderTable('ceremonyRecessional')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyRecessional" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyRecessional')">Edit in Ceremony Hub</button></div>
-          </div>
-        </section>
-        </div>
-      </div>
-
-      <section class="ued-table-card span12 ceremony-scripture-panel" data-cer-tab="scripture">
-        <div class="ued-table-head">
-          <div class="ued-table-title">Scripture, Prayer &amp; Worship</div>
-          <div class="ued-actions"><label class="scripture-translation-field">Translation <select id="scripture-translation-select" onchange="setScriptureTranslation(this.value)"></select></label><button class="ceremony-edit-btn" onclick="addScriptureRow()">Add <span>+</span></button></div>
-        </div>
-        <!-- Scripture & Prayer table now rendered by the CWP unified engine (renderScriptures -> cwpRenderTable('scriptures')) -->
-        <div class="ceremony-cwp-shell">
-          <div id="cwp-scriptures" class="cwp-mount"></div>
-          <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','scriptures')">Edit in Ceremony Hub</button></div>
-        </div>
-        <div class="ceremony-prayer-grid" style="display:none;">
-          <label><span>Opening Prayer</span><textarea id="cer-openingPrayer" rows="2" oninput="saveCeremony()"></textarea></label>
-          <label><span>Worship / Special Music</span><textarea id="cer-worship" rows="2" placeholder="Song, hymn, musician, or cue" oninput="saveCeremony()"></textarea></label>
-          <label><span>Family Blessing / Prayer Notes</span><textarea id="cer-blessing" rows="2" oninput="saveCeremony()"></textarea></label>
-        </div>
-      </section>
-
-      <div class="ceremony-two-col ceremony-focus-grid">
-        <section class="ued-table-card span12 ceremony-vows-panel" data-cer-tab="vows">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Vows, Rings &amp; Covenant Moment</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyVowRow()">Add Detail <span>+</span></button></div>
-          </div>
-          <!-- Vows / rings table rendered by the CWP unified engine (renderCeremonyVows -> cwpRenderTable('ceremonyVows')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyVows" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyVows')">Edit in Ceremony Hub</button></div>
-          </div>
-        </section>
-        <section class="ued-table-card span12 ceremony-officiant-panel" data-cer-tab="officiant">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Officiant, Rehearsal &amp; Legal Notes</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="loadCeremonyChecklistPreset()"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button></div>
-          </div>
-          <div class="ceremony-form-grid one-col compact" style="display:none;">
-            <label><span>Rehearsal Time</span><input type="text" id="cer-rehearsal" placeholder="Date, time, who must attend" oninput="saveCeremony()"></label>
-            <label><span>Witnesses</span><input type="text" id="cer-witnesses" placeholder="Marriage license witnesses" oninput="saveCeremony()"></label>
-          </div>
-          <!-- Officiant & Legal checklist now rendered by the CWP unified engine (renderCeremonyChecklist -> cwpRenderTable('ceremonyChecklist')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyChecklist" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyChecklist')">Edit in Ceremony Hub</button></div>
-          </div>
-          <label class="ceremony-notes-box"><span>Notes</span><textarea id="cer-notes" rows="2" placeholder="License will be signed in the church office with witnesses." oninput="saveCeremony()"></textarea></label>
-        </section>
-      </div>
-
-      <section class="ued-table-card span12 ceremony-reception-panel" data-cer-tab="reception">
-        <div class="ued-table-head">
-          <div>
-            <div class="ued-table-title">Reception Details</div>
-            <p>Capture meaningful reception moments that support the ceremony and family flow without duplicating music, speeches, catering, or timeline tables.</p>
-          </div>
-          <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyReceptionRow()">Add Detail <span>+</span></button></div>
-        </div>
-        <!-- Reception Details table now rendered by the CWP unified engine (renderCeremonyReceptionDetails -> cwpRenderTable('ceremonyReceptionDetails')) -->
-        <div class="ceremony-cwp-shell">
-          <div id="cwp-ceremonyReceptionDetails" class="cwp-mount"></div>
-          <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyReceptionDetails')">Edit in Ceremony Hub</button></div>
-        </div>
-      </section>
-
-      <section class="ued-table-card span12 ceremony-traditions-panel" data-cer-tab="traditions">
-        <div class="ued-table-head">
-          <div>
-            <div class="ued-table-title">Traditions &amp; Cultural Moments</div>
-            <p>Plan family, cultural, and Christ-centered moments with clear meaning, people involved, items needed, wording, and stage directions.</p>
-          </div>
-          <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyTraditionRow()">Add Moment <span>+</span></button></div>
-        </div>
-        <!-- Traditions & Cultural Moments table now rendered by the CWP unified engine (renderCeremonyTraditions -> cwpRenderTable('ceremonyTraditions')) -->
-        <div class="ceremony-cwp-shell">
-          <div id="cwp-ceremonyTraditions" class="cwp-mount"></div>
-          <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyTraditions')">Edit in Ceremony Hub</button></div>
-        </div>
-      </section>
-
+      <!-- Filled by uedCeremonyShell() / renderCeremonyPage() (Order|Programme|Script · drawer) -->
     </div>
+
     <!-- ═══ PRAYER ═══ -->
     <div id="panel-prayer" class="panel prayer-mockup ued-scope">
       <div class="m-stats" id="prayer-stats" aria-label="Prayer summary"></div>
@@ -2540,7 +2384,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-6b1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-11a1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -2564,9 +2408,10 @@
 <script src="js/entertainment-redesign.js?v=redesign-10d1"></script>
 <script src="js/shotlist-redesign.js?v=redesign-11b1"></script>
 <script src="js/timeline-redesign.js?v=redesign-6b1"></script>
+<script src="js/ceremony-redesign.js?v=redesign-11a1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-6b1"></script>
+<script src="js/redesign-shell.js?v=redesign-11a1"></script>
 <script>
 (function () {
   try {
