@@ -68,6 +68,8 @@ body.editorial-v4 .record-editor-overlay * {
 #main#main #panel-prayer h1.rd-pagehead__title,
 #main#main #panel-counseling .rd-pagehead__title,
 #main#main #panel-counseling h1.rd-pagehead__title,
+#main#main #panel-mood .rd-pagehead__title,
+#main#main #panel-mood h1.rd-pagehead__title,
 #main#main #panel-history .rd-pagehead__title,
 #main#main #panel-history h1.rd-pagehead__title {
   font-family: var(--font-ui) !important;
@@ -16936,4 +16938,363 @@ body.rd-scope #panel-counseling .rd-cou-drawer .rd-drawer__foot {
   body.rd-scope #panel-counseling .rd-surface__row { position: relative; }
   body.rd-scope #panel-counseling .rd-cou-cal__grid { grid-template-columns: repeat(7, minmax(40px, 1fr)); overflow-x: auto; }
   body.rd-scope #panel-counseling .rd-cou-cardgrid { grid-template-columns: 1fr; }
+}
+
+/* ── Vision Board (All.dc #8b) ───────────────────────────────────────────── */
+body.rd-scope #panel-mood.ued-scope,
+body.rd-scope #panel-mood.mood-mockup { min-height: 0; }
+body.rd-scope #panel-mood .rd-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+body.rd-scope #panel-mood .rd-surface {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+body.rd-scope #panel-mood .rd-surface__row {
+  display: flex;
+  align-items: stretch;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+body.rd-scope #panel-mood .rd-surface__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  padding: 4px 4px 28px;
+}
+body.rd-scope #panel-mood .rd-view[hidden] { display: none !important; }
+body.rd-scope #panel-mood #mood-drawer-slot { display: none; }
+body.rd-scope #panel-mood #mood-drawer-slot.is-open {
+  display: flex;
+  flex: 0 0 360px;
+  width: 360px;
+  max-width: 360px;
+  min-height: 0;
+  border-left: 1px solid #e7e1d4;
+  background: #fdfcfa;
+}
+body.rd-scope #panel-mood #mood-drawer-slot.is-open > .rd-drawer,
+body.rd-scope #panel-mood #mood-drawer-slot.is-open > .rd-mood-drawer,
+body.rd-scope #panel-mood #mood-drawer-slot.is-open > #record-drawer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+body.rd-scope #panel-mood #record-drawer[hidden] { display: none !important; }
+
+body.rd-scope #panel-mood .rd-section__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 8px 14px;
+}
+body.rd-scope #panel-mood .rd-section__head .rd-help { margin: 0; color: #8a7e6b; }
+
+body.rd-scope #panel-mood .rd-mood-palette__swatches {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 8px 20px;
+}
+body.rd-scope #panel-mood .rd-mood-palette__swatches.is-large {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+body.rd-scope #panel-mood .rd-mood-swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+body.rd-scope #panel-mood .rd-mood-swatch__chip {
+  display: block;
+  height: 72px;
+  border: 1px solid #e7e1d4;
+  border-radius: 2px;
+}
+body.rd-scope #panel-mood .rd-mood-swatch.is-large .rd-mood-swatch__chip { height: 110px; }
+body.rd-scope #panel-mood .rd-mood-swatch strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: #23211c;
+}
+body.rd-scope #panel-mood .rd-mood-swatch__hex {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-mood .rd-mood-swatch__note {
+  font-size: 12px;
+  color: #6b645d;
+  line-height: 1.35;
+}
+
+body.rd-scope #panel-mood .rd-mood-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 0 8px;
+}
+body.rd-scope #panel-mood .rd-mood-pin {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  cursor: pointer;
+}
+body.rd-scope #panel-mood .rd-mood-pin__well {
+  aspect-ratio: 4 / 3;
+  border: 1px dashed #cfc6b4;
+  background: #f7f3ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #8a7e6b;
+  font-size: 12px;
+}
+body.rd-scope #panel-mood .rd-mood-pin__well.has-image {
+  border-style: solid;
+  border-color: #e7e1d4;
+  background: #efe9dc;
+}
+body.rd-scope #panel-mood .rd-mood-pin__well img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+body.rd-scope #panel-mood .rd-mood-pin__cat {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #8a7e6b;
+  margin-top: 4px;
+}
+body.rd-scope #panel-mood .rd-mood-pin h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #23211c;
+  line-height: 1.3;
+}
+body.rd-scope #panel-mood .rd-mood-pin p {
+  margin: 0;
+  font-size: 12px;
+  color: #6b645d;
+  line-height: 1.4;
+  min-height: 2.6em;
+}
+body.rd-scope #panel-mood .rd-mood-pin__link {
+  font-size: 12px;
+  color: #946f33;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+body.rd-scope #panel-mood .rd-mood-pin__link.is-none {
+  color: #8a7e6b;
+  text-decoration: none;
+  font-style: italic;
+}
+body.rd-scope #panel-mood .rd-mood-pin.is-uncat .rd-mood-pin__cat { color: #a33b28; }
+
+body.rd-scope #panel-mood .rd-mood-empty {
+  grid-column: 1 / -1;
+  padding: 36px 16px;
+  text-align: center;
+  color: #8a7e6b;
+  border: 1px dashed #cfc6b4;
+  background: #fdfaf4;
+}
+body.rd-scope #panel-mood .rd-mood-addbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 8px 0;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #8a7e6b;
+  font-size: 13px;
+  cursor: pointer;
+}
+body.rd-scope #panel-mood .rd-mood-addbtn span { color: #cfc6b4; }
+
+body.rd-scope #panel-mood .rd-mood-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #23211c;
+}
+body.rd-scope #panel-mood .rd-mood-table thead th {
+  text-align: left;
+  background: #20362D;
+  color: #F4EFE6;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-bottom: 1px solid #B89968;
+}
+body.rd-scope #panel-mood .rd-mood-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #efe9dc;
+  vertical-align: middle;
+}
+body.rd-scope #panel-mood .rd-mood-row { cursor: pointer; }
+body.rd-scope #panel-mood .rd-mood-row:hover td { background: #fdfaf4; }
+body.rd-scope #panel-mood .rd-mood-name { font-weight: 500; }
+body.rd-scope #panel-mood .rd-mood-empty-cell {
+  color: #8a7e6b;
+  font-style: italic;
+  text-align: center;
+  padding: 28px 12px !important;
+}
+
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__head {
+  padding: 16px 18px 0;
+  border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__eyebrow {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__title {
+  margin: 6px 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #23211c;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  color: #8a7e6b;
+  cursor: pointer;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 12px;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__tab {
+  flex: 1 1 auto;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 8px 4px;
+  font-size: 12px;
+  color: #8a7e6b;
+  cursor: pointer;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__tab.is-active {
+  color: #23211c;
+  border-bottom-color: #B89968;
+  font-weight: 600;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__body {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__field {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__field span { width: 110px; flex: 0 0 auto; color: #8a7e6b; }
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__field strong { color: #23211c; font-weight: 600; }
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__link { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: #946f33; }
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__note { font-size: 12px; color: #6b645d; line-height: 1.45; margin: 0; }
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__section-title {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #8a7e6b;
+  margin-top: 6px;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__guest {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid #efe9dc;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__guest span { color: #8a7e6b; font-size: 12px; }
+body.rd-scope #panel-mood .rd-mood-drawer__well {
+  aspect-ratio: 16 / 10;
+  border: 1px dashed #cfc6b4;
+  background: #f7f3ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #8a7e6b;
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+body.rd-scope #panel-mood .rd-mood-drawer__well.has-image {
+  border-style: solid;
+  border-color: #e7e1d4;
+}
+body.rd-scope #panel-mood .rd-mood-drawer__well img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__hist {
+  font-size: 12px;
+  color: #6b645d;
+  padding: 8px 0;
+  border-bottom: 1px solid #efe9dc;
+}
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__hist strong { color: #23211c; }
+body.rd-scope #panel-mood .rd-mood-drawer .rd-drawer__foot {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid #e7e1d4;
+}
+
+@media (max-width: 960px) {
+  body.rd-scope #panel-mood #mood-drawer-slot.is-open {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    box-shadow: -8px 0 24px rgba(32, 54, 45, .08);
+  }
+  body.rd-scope #panel-mood .rd-surface__row { position: relative; }
+  body.rd-scope #panel-mood .rd-mood-palette__swatches { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.rd-scope #panel-mood .rd-mood-grid { grid-template-columns: 1fr 1fr; }
 }

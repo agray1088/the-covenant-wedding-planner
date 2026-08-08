@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-13c1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-8b1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1187,113 +1187,9 @@
         <datalist id="essentials-item-filter-options"></datalist>
       </section>
     </div>
-    <!-- VISION BOARD -->
+    <!-- ═══ VISION BOARD — All.dc #8b · Dark rail · Drawers pin · mood-redesign.js ═══ -->
     <div id="panel-mood" class="panel mood-mockup ued-scope">
-      <div class="mood-title-wrap">
-        <div class="mood-leaf-wrap" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 120 26"><path d="M6 13h108" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><path d="M52 13c-10-8-18-7-24-2 10 3 17 2 24 2Zm16 0c10-8 18-7 24-2-10 3-17 2-24 2Z" fill="currentColor" opacity=".85"/><path d="M60 13c-7-7-7-12-2-18 4 9 4 14 2 18Zm0 0c7-7 7-12 2-18-4 9-4 14-2 18Z" fill="currentColor" opacity=".65"/></svg></div>
-        <h2 class="mood-title">Vision Board</h2>
-        <p class="mood-subtitle">Your color palette and visual inspiration in one beautiful place</p>
-      </div>
-
-      <div class="m-stats" aria-label="Vision board overview">
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 5.7a5.1 5.1 0 0 0-7.2 0L12 7.3l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.1a5.1 5.1 0 0 0 0-7.2Z"/></svg><span class="m-stat-label">Inspiration saved</span></div><div id="mood-stat-inspiration" class="m-stat-val">0</div><div class="m-stat-sub">Ideas &amp; images</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 1.3-3.5 1.8 1.8 0 0 1 1.2-3.2H18a3 3 0 0 0 3-3C21 6.7 17 3 12 3Z"/><path d="M7.5 10h.01M10 7.5h.01M14 7.5h.01M16.5 10h.01"/></svg><span class="m-stat-label">Color stories</span></div><div id="mood-stat-palettes" class="m-stat-val">0</div><div class="m-stat-sub">Curated palettes</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M14.5 15.5A4.6 4.6 0 0 1 20.5 20"/></svg><span class="m-stat-label">Vendor matches</span></div><div id="mood-stat-vendors" class="m-stat-val">0</div><div class="m-stat-sub">Style-aligned picks</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v17l-5-3-5 3z"/></svg><span class="m-stat-label">Finalized looks</span></div><div id="mood-stat-finalized" class="m-stat-val">0</div><div class="m-stat-sub">Ready to bring to life</div></div>
-      </div>
-
-      <div class="m-tabbar vision-tabbar">
-        <button class="m-tab" data-tab="decisions" onclick="visionTab('decisions')">Vision Decisions / Visual Statement</button>
-        <button class="m-tab" data-tab="palette" onclick="visionTab('palette')">Color Palette</button>
-        <button class="m-tab" data-tab="inspiration" onclick="visionTab('inspiration')">Inspiration Cards</button>
-        <button class="m-tab" data-tab="gallery" onclick="visionTab('gallery')">Inspiration Gallery</button>
-        <button class="m-tab" data-tab="details" onclick="visionTab('details')">Vision Board Details Tracker</button>
-      </div>
-
-      <section class="ued-panel mood-statement-card mood-card" data-vision-tab="decisions">
-        <div class="mood-card-head">
-          <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h7M8 11h8M8 15h5"/></svg></span>
-          <div><h3>Visual Statement</h3><p>Gather the visual inspiration that shapes your celebration.</p></div>
-        </div>
-        <textarea id="mood-statement" rows="2" placeholder="Describe the look and feel of your wedding…" oninput="saveMoodStatement()"></textarea>
-      </section>
-
-      <section class="mood-board-grid" aria-label="Vision board inspiration cards">
-        <article class="ued-panel mood-card mood-palette-feature" data-vision-tab="palette">
-          <div class="mood-card-head">
-            <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 1.3-3.5 1.8 1.8 0 0 1 1.2-3.2H18a3 3 0 0 0 3-3C21 6.7 17 3 12 3Z"/><path d="M7.5 10h.01M10 7.5h.01M14 7.5h.01M16.5 10h.01"/></svg></span>
-            <div><h3>Color Palette</h3><p>Pick a ready-made palette or build your own.</p></div>
-          </div>
-          <div id="preset-palettes" class="preset-palettes mood-palette-cards"></div>
-          <div class="mood-divider"><span>Build Your Own</span></div>
-          <div class="palette-builder mood-palette-builder">
-            <input type="text" id="mb-name" placeholder="Palette name (optional)">
-            <input type="color" id="mb-c1" value="#F9F7F4" title="Color 1">
-            <input type="color" id="mb-c2" value="#2D4A3E" title="Color 2">
-            <input type="color" id="mb-c3" value="#B89968" title="Color 3">
-            <input type="color" id="mb-c4" value="#D4B896" title="Color 4">
-            <input type="color" id="mb-c5" value="#A95D4E" title="Color 5">
-            <button class="btn btn-forest btn-sm" onclick="addCustomPalette()">+ Save Palette</button>
-          </div>
-          <div id="saved-palettes" class="saved-palettes mood-palette-cards"></div>
-        </article>
-
-        <!-- Inspiration Gallery tabs (Batch 7) — one category per tab -->
-        <div class="m-tabbar mood-tabbar" data-vision-tab="inspiration" style="grid-column:1 / -1">
-          <button class="m-tab" data-tab="floral" onclick="moodTab('floral')">Floral</button>
-          <button class="m-tab" data-tab="bridal" onclick="moodTab('bridal')">Bridal</button>
-          <button class="m-tab" data-tab="decor" onclick="moodTab('decor')">Decor</button>
-          <button class="m-tab" data-tab="stationery" onclick="moodTab('stationery')">Stationery</button>
-          <button class="m-tab" data-tab="favorites" onclick="moodTab('favorites')">Favorite Details</button>
-        </div>
-        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="floral" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22c-2.5-3.8-4-6.8-4-9.2C8 8 12 3 12 3s4 5 4 9.8c0 2.4-1.5 5.4-4 9.2Z"/><path d="M12 12c-3.6-2-6.2-2.4-8-1.2 1 3.5 4.2 4.9 8 1.2Z"/><path d="M12 12c3.6-2 6.2-2.4 8-1.2-1 3.5-4.2 4.9-8 1.2Z"/></svg></span><div><h3>Floral Inspiration</h3><p>Romantic blooms with natural greenery.</p></div></div><div id="mood-board-floral" class="mood-preview-grid"></div></article>
-        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="bridal" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l3 5h-6l3-5Z"/><path d="M9 8 5 21h14L15 8"/><path d="M9 13h6"/></svg></span><div><h3>Bridal Style</h3><p>Classic silhouettes, accessories, and attire details.</p></div></div><div id="mood-board-bridal" class="mood-preview-grid"></div></article>
-        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="decor" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V8l6-4 6 4v12"/><path d="M9 20v-6h6v6"/></svg></span><div><h3>Ceremony &amp; Reception Decor</h3><p>Natural greenery, soft candlelight, and thoughtful touches.</p></div></div><div id="mood-board-decor" class="mood-preview-grid"></div></article>
-        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="stationery" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg></span><div><h3>Stationery</h3><p>Botanical details with classic typography.</p></div></div><div id="mood-board-stationery" class="mood-preview-grid"></div></article>
-        <article class="ued-panel mood-card mood-favorites-card" data-vision-tab="inspiration" data-mood-tab="favorites" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 5.7a5.1 5.1 0 0 0-7.2 0L12 7.3l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.1a5.1 5.1 0 0 0 0-7.2Z"/></svg></span><div><h3>Favorite Details</h3><p>The small moments and design touches you want to remember.</p></div></div><div id="mood-favorites-list" class="mood-favorites-list"></div><div class="mood-add-favorite"><input id="mood-favorite-input" type="text" placeholder="Add a new favorite detail"><button class="btn btn-outline btn-sm" onclick="addMoodFavorite()">Add</button></div></article>
-      </section>
-
-      <section class="ued-panel mood-card mood-gallery-card" data-vision-tab="gallery">
-        <div class="mood-card-head">
-          <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 15 4-4 4 4 2-2 6 6"/><circle cx="15.5" cy="9.5" r="1.5"/></svg></span>
-          <div><h3>Inspiration Gallery</h3><p>Upload images for each part of your design. Photos are shrunk to fit and saved with your planner.</p></div>
-        </div>
-        <div id="mood-gallery"></div>
-      </section>
-
-      <section class="ued-panel span12 record-editor-inline-shell mood-inline-editor" id="mood-inline-editor-wrap" data-vision-tab="details">
-        <div class="inline-editor-head">
-          <div>
-            <div class="ued-table-title">Vision detail editor <span class="gie-mode" data-inline-editor-mode>Adding a new vision detail</span></div>
-            <p class="gie-note">Track the full inspiration item, color story, vendor match, finalized status, and notes in one place.</p>
-          </div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="mood-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('moodItems',null,'mood-inline-editor-body')" style="display:none">Start new detail</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add vision detail</button>
-        </div>
-      </section>
-
-      <section class="mood-table-card ued-table-card mood-tracker-table-card" data-vision-tab="details">
-        <div class="ued-table-head mood-table-head">
-          <div>
-            <div class="ued-table-title">Vision Board Details Tracker <span class="ro-badge-inline">Read only</span></div>
-            <p>Use this full-width table to connect each inspiration idea to a color story, vendor match, and finalized look.</p>
-          </div>
-          <div class="ued-actions">
-            <button class="ued-link" onclick="exportSectionCSV('Vision Board Details',data.moodItems)">Export CSV</button>
-            <button class="ued-btn db-edit-btn" onclick="openDataHub('design','moodItems')">Edit in Design Hub</button>
-          </div>
-        </div>
-        <div id="cwp-moodItems" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-      </section>
-
+      <!-- Filled by uedMoodShell() / renderMoodPage() (Board|Palette|List · drawer) -->
     </div>
 
     <!-- ═══ HONEYMOON & AFTER — All.dc #17b · Dark rail · Drawers 25 · honeymoon-redesign.js ═══ -->
@@ -2085,7 +1981,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-13c1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-8b1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -2113,9 +2009,10 @@
 <script src="js/honeymoon-redesign.js?v=redesign-17b1"></script>
 <script src="js/prayer-redesign.js?v=redesign-13b1"></script>
 <script src="js/counseling-redesign.js?v=redesign-13c1"></script>
+<script src="js/mood-redesign.js?v=redesign-8b1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-13c1"></script>
+<script src="js/redesign-shell.js?v=redesign-8b1"></script>
 <script>
 (function () {
   try {

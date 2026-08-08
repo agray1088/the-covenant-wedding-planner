@@ -2076,6 +2076,65 @@
     return '<div class="rd-rail__stack" data-page-rail="counseling">' + viewsHtml + progressHtml + groupHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #8b / Dark.dc #8b rail — Views + Categories + Ecclesiastes note. */
+  function buildMoodContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('mood', 'all');
+    else if (typeof window._moodRailView === 'string' && window._moodRailView) activeView = window._moodRailView;
+    window._moodRailView = activeView;
+
+    var counts = typeof window.moodRailCounts === 'function' ? window.moodRailCounts() : {
+      all: 0, vendor: 0, budget: 0, uncategorised: 0, shared: 0
+    };
+    var figures = typeof window.moodFigures === 'function' ? window.moodFigures() : { byCat: {} };
+    var byCat = figures.byCat || {};
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyMoodRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All pins', counts.all || 0) +
+      viewItem('vendor', 'Linked to a vendor', counts.vendor || 0) +
+      viewItem('budget', 'Linked to budget', counts.budget || 0) +
+      viewItem('uncategorised', 'Not categorised', counts.uncategorised || 0, true) +
+      viewItem('shared', 'Shared with vendors', counts.shared || 0) +
+      '</div></div>';
+
+    var catOrder = ['Ceremony', 'Reception', 'Florals', 'Attire', 'Stationery', 'Uncategorised'];
+    Object.keys(byCat).forEach(function (k) {
+      if (catOrder.indexOf(k) < 0) catOrder.push(k);
+    });
+    var meters = '';
+    catOrder.forEach(function (cat) {
+      var n = byCat[cat] || 0;
+      if (!n && cat !== 'Uncategorised') return;
+      if (!n && cat === 'Uncategorised' && !(counts.uncategorised > 0)) return;
+      meters +=
+        '<div class="rd-rail__meter-top"><span>' + esc(cat) + '</span>' +
+        '<span class="rd-rail__count' + (cat === 'Uncategorised' && n > 0 ? ' rd-rail__count--warn' : '') + '">' +
+        n + '</span></div>';
+    });
+    if (!meters) {
+      meters = '<div class="rd-rail__meter-top"><span>No pins yet</span><span class="rd-rail__count">0</span></div>';
+    }
+
+    var categoriesHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Categories</div>' +
+      '<div class="rd-rail__meters">' + meters + '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">&ldquo;He hath made every thing beautiful in his time.&rdquo; Ecclesiastes 3:11</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="mood">' + viewsHtml + categoriesHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -2092,6 +2151,7 @@
     honeymoon: buildHoneymoonContext,
     prayer: buildPrayerContext,
     counseling: buildCounselingContext,
+    mood: buildMoodContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,

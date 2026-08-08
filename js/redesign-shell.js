@@ -264,6 +264,7 @@
     var honeymoonSlot = document.getElementById('honeymoon-drawer-slot');
     var prayerSlot = document.getElementById('prayer-drawer-slot');
     var counselingSlot = document.getElementById('counseling-drawer-slot');
+    var moodSlot = document.getElementById('mood-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -292,6 +293,7 @@
     else if (panel === 'honeymoon') slot = honeymoonSlot;
     else if (panel === 'prayer') slot = prayerSlot;
     else if (panel === 'counseling') slot = counselingSlot;
+    else if (panel === 'mood') slot = moodSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -311,6 +313,7 @@
     if (honeymoonSlot && d.parentElement === honeymoonSlot) honeymoonSlot.classList.remove('is-open');
     if (prayerSlot && d.parentElement === prayerSlot) prayerSlot.classList.remove('is-open');
     if (counselingSlot && d.parentElement === counselingSlot) counselingSlot.classList.remove('is-open');
+    if (moodSlot && d.parentElement === moodSlot) moodSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -335,6 +338,7 @@
       if (honeymoonSlot) honeymoonSlot.classList.remove('is-open');
       if (prayerSlot) prayerSlot.classList.remove('is-open');
       if (counselingSlot) counselingSlot.classList.remove('is-open');
+      if (moodSlot) moodSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
@@ -363,6 +367,9 @@
     }
     if (counselingSlot && counselingSlot.querySelector('.rd-cou-drawer') && !(d.parentElement === counselingSlot && open)) {
       counselingSlot.classList.add('is-open');
+    }
+    if (moodSlot && moodSlot.querySelector('.rd-mood-drawer') && !(d.parentElement === moodSlot && open)) {
+      moodSlot.classList.add('is-open');
     }
   }
 
@@ -737,6 +744,9 @@
     hmJournal: 'Honeymoon & After / Journal',
     prayer: 'Prayer Journal / Entry',
     counseling: 'Premarital Counseling / Session',
+    moodItems: 'Vision Board / Pin',
+    moodPhotos: 'Vision Board / Pin',
+    palettes: 'Vision Board / Palette',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',

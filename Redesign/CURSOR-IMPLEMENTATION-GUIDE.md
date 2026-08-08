@@ -393,7 +393,8 @@ Ceremony & Reception = All `#11a` + Views `#31c` / `#31d` + Drawers Element → 
 Honeymoon & After = All `#17b` + Dark rail + Drawers Booking → `js/honeymoon-redesign.js`.
 Prayer Journal = All `#13b` + Views `#32c` / `#32d` + Drawers Entry → `js/prayer-redesign.js`.
 Premarital Counseling = All `#13c` + Views `#32e` / `#32f` + Drawers Session → `js/counseling-redesign.js`.
-**Next on continue:** Vision Board (`mood` / All **8b**).
+Vision Board = All `#8b` + Dark rail + Drawers Vision pin → `js/mood-redesign.js`.
+**Next on continue:** Essentials Checklist (`essentials` / All **17a**).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -531,8 +532,8 @@ or when the user asks — inventory may list more than the current `TABS` strip.
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| ▶ | **Vision Board** | `mood` | **8b** |
-| 11 | Essentials Checklist | `essentials` | **17a** |
+| ✓ | Vision Board | `mood` | All **8b** · Dark rail · `js/mood-redesign.js` |
+| ▶ | **Essentials Checklist** | `essentials` | **17a** |
 | 12 | Share Packets | `packets` | **12b** · Views 33 · Drawers 27 |
 | 13 | Email Templates | `emails` | **12c** · Views 33 |
 | 14 | Database Hub | `data-hub` | **7b** / **7c** |
