@@ -272,7 +272,7 @@ Guest List, Timeline & Tasks, Appointments and Smart Calendar were already compl
 
 - [ ] The **depth pass (§7.1)** applies to all of them
 - [ ] `Appointments` — travel time renders **hatched**, and the same hatch language now means "not the thing itself" everywhere (load-in on Entertainment, setup on the vendor schedule). Keep them consistent
-- [ ] `Database Hub` — see the drawer document for `Hub table · 7b` and `Hub row · 7c`
+- [x] `Database Hub` — see the drawer document for `Hub table · 7b` and `Hub row · 7c`
 
 ### 7.5 · Also new since your handoff, and cross-cutting
 
@@ -397,7 +397,8 @@ Vision Board = All `#8b` + Dark rail + Drawers Vision pin → `js/mood-redesign.
 Essentials Checklist = All `#17a` + Views By person / Print + Drawers Item → `js/essentials-redesign.js`.
 Share Packets = All `#12b` + Views Cards / Activity + Drawers Packet → `js/packets-redesign.js`.
 Email Templates = All `#12c` + Views Preview / Sent log + Drawers Template → `js/emails-redesign.js`.
-**Next on continue:** Database Hub (`data-hub` / All **7b** / **7c**).
+Database Hub = All `#7b` / `#7c` + Dark rails + Drawers Hub table / Hub row → `js/data-hub-redesign.js`.
+**Next on continue:** cross-cutting Responsive **41–42**, Roles **43**, then Vendor Portal (Documents category complete in live `TABS`).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -539,7 +540,7 @@ or when the user asks — inventory may list more than the current `TABS` strip.
 | ✓ | Essentials Checklist | `essentials` | All **17a** · Views By person/Print · `js/essentials-redesign.js` |
 | ✓ | Share Packets | `packets` | All **12b** · Views Cards/Activity · `js/packets-redesign.js` |
 | ✓ | Email Templates | `emails` | All **12c** · Views Preview/Sent log · `js/emails-redesign.js` |
-| ▶ | **Database Hub** | `data-hub` | **7b** / **7c** |
+| ✓ | Database Hub | `data-hub` | All **7b** / **7c** · Dark rails · `js/data-hub-redesign.js` |
 
 Then cross-cutting: Responsive **41–42**, Roles **43**, Vendor Portal last.
 

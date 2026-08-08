@@ -1676,23 +1676,75 @@
   }
 
   function buildDataHubContext() {
-    var cat = typeof _dataHub !== 'undefined' && _dataHub.category ? _dataHub.category : 'people';
-    var tabId = typeof _dataHub !== 'undefined' && _dataHub.table ? _dataHub.table : '';
-    var reg = typeof DATA_HUB_REGISTRY !== 'undefined' ? DATA_HUB_REGISTRY : {};
-    var catsHtml = Object.keys(reg).map(function (id) {
-      var c = reg[id];
-      return '<button type="button" class="pcs-chip' + (id === cat ? ' is-active' : '') + '" onclick="openDataHub(\'' + id + '\')">' + esc(c.label) + '</button>';
-    }).join('');
-    var tables = reg[cat] && reg[cat].tables ? reg[cat].tables : [];
-    var tabsHtml = tables.map(function (t) {
-      var k = t.key;
-      return '<button type="button" class="pcs-chip' + (k === tabId ? ' is-active' : '') + '" onclick="setDataHubContext(\'' + cat + '\',\'' + k + '\');renderDataHub();if(typeof renderContextSidebar===\'function\')renderContextSidebar(\'data-hub\');">' + esc(t.label) + '</button>';
-    }).join('');
+    var mode = window._dhMode || 'overview';
+    var counts = typeof window.dhRailCounts === 'function' ? window.dhRailCounts() : {
+      all: 24, with: 0, empty: 0, attention: 0, edited: 0, records: 0, dbMb: '—', tables: []
+    };
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('data-hub', 'all');
+    else if (typeof window._dhRailView === 'string' && window._dhRailView) activeView = window._dhRailView;
+    window._dhRailView = activeView;
 
-    return pcsHead('Database Hub', 'This page') +
-      '<div class="pcs-block"><div class="pcs-block__title">Category</div><div class="pcs-chip-row">' + catsHtml + '</div></div>' +
-      (tabsHtml ? '<div class="pcs-block"><div class="pcs-block__title">Table</div><div class="pcs-chip-row">' + tabsHtml + '</div></div>' : '') +
-      '<div class="pcs-block"><div class="pcs-actions"><button type="button" class="ued-btn" onclick="autoFitDataHubTables()">Auto-fit columns</button></div></div>';
+    if (mode === 'table') {
+      var activeId = window._dhTableId || 'guests';
+      var tables = counts.tables || [];
+      var shown = tables.slice().sort(function (a, b) { return b.count - a.count; });
+      var listHtml = shown.slice(0, 16).map(function (t) {
+        return '<button type="button" class="rd-rail__item' + (t.id === activeId ? ' is-active' : '') + '"' +
+          ' onclick="rdDhSelectRailTable(\'' + String(t.id).replace(/'/g, "\\'") + '\')">' +
+          esc(t.id) + ' · ' + t.count + '<span class="rd-rail__count"></span></button>';
+      }).join('');
+      if (shown.length > 16) {
+        listHtml += '<button type="button" class="rd-rail__item" onclick="rdDhBackOverview()">+ ' +
+          (shown.length - 16) + ' more<span class="rd-rail__count"></span></button>';
+      }
+      var cur = shown.find(function (t) { return t.id === activeId; }) || shown[0] || { count: 0, cols: 0, sizeKb: 0, status: { warn: false } };
+      var orphans = (cur.id === 'guests' && cur.status && cur.status.warn) ? String(cur.status.label).replace(/\D/g, '') || '0' : '0';
+      return '<div class="rd-rail__stack" data-page-rail="data-hub">' +
+        '<div class="rd-rail__section">' +
+        '<div class="rd-rail__title">Tables · ' + (counts.all || 24) + '</div>' +
+        '<div class="rd-rail__list" role="list">' +
+        '<button type="button" class="rd-rail__item" onclick="rdDhBackOverview()">← Overview<span class="rd-rail__count"></span></button>' +
+        listHtml +
+        '</div></div>' +
+        '<div class="rd-rail__section">' +
+        '<div class="rd-rail__title">' + esc(activeId) + '</div>' +
+        '<div class="rd-rail__meters">' +
+        '<div class="rd-rail__meter-top"><span>Rows</span><span class="rd-rail__count">' + (cur.count || 0) + '</span></div>' +
+        '<div class="rd-rail__meter-top"><span>Columns</span><span class="rd-rail__count">' + (cur.cols || 0) + '</span></div>' +
+        '<div class="rd-rail__meter-top"><span>Size</span><span class="rd-rail__count">' + (cur.sizeKb || 0) + ' KB</span></div>' +
+        '<div class="rd-rail__meter-top"><span>Orphaned links</span><span class="rd-rail__count' +
+        (Number(orphans) > 0 ? ' rd-rail__count--warn' : '') + '">' + orphans + '</span></div>' +
+        '</div></div>' +
+        '<p class="rd-rail__note">This view writes to the same records the owning page writes to. There is no separate copy — an edit here is an edit there.</p>' +
+        '</div>';
+    }
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="rdDhSetRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+    return '<div class="rd-rail__stack" data-page-rail="data-hub">' +
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All tables', counts.all || 0) +
+      viewItem('with', 'With records', counts.with || 0) +
+      viewItem('empty', 'Empty', counts.empty || 0) +
+      viewItem('attention', 'Needs attention', counts.attention || 0, true) +
+      viewItem('edited', 'Edited this week', counts.edited || 0) +
+      '</div></div>' +
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Storage</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Records</span><span class="rd-rail__count">' + (counts.records || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Database file</span><span class="rd-rail__count">' + esc(String(counts.dbMb || '—')) + ' MB</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Images</span><span class="rd-rail__count">—</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Browser limit</span><span class="rd-rail__count">~50 MB</span></div>' +
+      '</div></div>' +
+      '<p class="rd-rail__note">Everything is stored on this device. A downloaded <b>.sqlite</b> file is the only copy that survives clearing your browser.</p>' +
+      '</div>';
   }
 
   function buildGenericContext(panelId) {

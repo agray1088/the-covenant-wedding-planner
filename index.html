@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-12c1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-7b1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1358,22 +1358,8 @@
       </section>
     </div>
 
-    <!-- ═══ LIVE DATABASE HUB (34th panel — table unification) ═══ -->
-    <div id="panel-data-hub" class="panel data-hub-panel ued-scope">
-      <div class="data-hub-layout">
-        <aside class="data-hub-sidebar" id="data-hub-sidebar" aria-label="Database hub categories"></aside>
-        <div class="data-hub-main">
-          <header class="data-hub-head" id="data-hub-head"></header>
-          <div class="data-hub-toolbar" id="data-hub-toolbar"></div>
-          <div class="data-hub-filters" id="data-hub-filters" hidden></div>
-          <div class="data-hub-table-tabs" id="data-hub-table-tabs" role="tablist"></div>
-          <div class="data-hub-table-mount" id="data-hub-table-mount">
-            <div id="cwp-data-hub-active" class="cwp-mount"></div>
-            <div id="data-hub-budget-wrap" class="data-hub-budget-wrap" hidden></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- ═══ DATABASE HUB — §07 shell · 224 rail · 360 drawer · mock 7b/7c · redesign-7b1 ═══ -->
+    <div id="panel-data-hub" class="panel data-hub-mockup ued-scope"></div>
 
 <!-- Global planner footer — collapsible popup panel (redesign-step10g) -->
 <footer class="planner-footer" id="planner-footer" role="contentinfo">
@@ -1877,7 +1863,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-12c1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-7b1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -1909,9 +1895,10 @@
 <script src="js/essentials-redesign.js?v=redesign-12c1"></script>
 <script src="js/packets-redesign.js?v=redesign-12c1"></script>
 <script src="js/emails-redesign.js?v=redesign-12c1"></script>
+<script src="js/data-hub-redesign.js?v=redesign-7b1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-12c1"></script>
+<script src="js/redesign-shell.js?v=redesign-7b1"></script>
 <script>
 (function () {
   try {
