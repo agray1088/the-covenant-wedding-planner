@@ -523,6 +523,67 @@
     return cats;
   }
 
+  /* Category schema fields (VENDOR_CATEGORY_SCHEMAS) — same compare rows as legacy shortlist. */
+  function compareSchemaFields(cat) {
+    const schema = typeof vendorCategorySchemaFromLabel === 'function'
+      ? vendorCategorySchemaFromLabel(cat)
+      : null;
+    if (!schema || !Array.isArray(schema.fields)) return [];
+    return schema.fields.filter(f => f && f.compare !== false);
+  }
+
+  function compareAttrRaw(v, field) {
+    if (!v || !field) return '';
+    if (typeof vendorAttrGet === 'function') return vendorAttrGet(v, field.id);
+    const attrs = v.attrs && typeof v.attrs === 'object' && !Array.isArray(v.attrs) ? v.attrs : {};
+    return attrs[field.id] == null ? '' : attrs[field.id];
+  }
+
+  function compareAttrDisplay(field, value) {
+    const raw = value == null ? '' : String(value).trim();
+    const low = raw.toLowerCase();
+    if (low === 'partial' || low === 'o' || low === '○' || low === 'half') return '○';
+    if (low === 'extra' || low === 'extra cost' || low === '●'
+      || low === 'available at extra cost' || low === 'addon' || low === 'add-on') return '●';
+    if (typeof vendorAttrDisplay === 'function') return vendorAttrDisplay(field, value);
+    if (value == null || value === '') return '—';
+    return String(value);
+  }
+
+  /* Mirror legacy vcmpAttrBestKey for a column of vendor records. */
+  function compareAttrBestId(cols, field) {
+    if (!field || !field.best || !cols.length) return null;
+    const entries = cols.map(v => ({ id: vid(v), value: compareAttrRaw(v, field), v }))
+      .filter(e => e.v);
+    if (!entries.length) return null;
+    if (field.best === 'bool') {
+      const yes = entries.filter(e =>
+        (typeof vendorAttrIsTruthy === 'function')
+          ? vendorAttrIsTruthy(e.value)
+          : (e.value === true || e.value === 'true' || e.value === 1 || e.value === '1' || e.value === 'yes')
+      );
+      return yes.length === 1 ? yes[0].id : null;
+    }
+    const nums = entries.map(e => {
+      const n = (typeof vendorAttrNum === 'function')
+        ? vendorAttrNum(e.value)
+        : (isNaN(parseFloat(e.value)) ? null : parseFloat(e.value));
+      return { id: e.id, n };
+    }).filter(e => e.n != null);
+    if (!nums.length) return null;
+    if (field.best === 'min') {
+      const min = Math.min.apply(null, nums.map(e => e.n));
+      const winners = nums.filter(e => e.n === min);
+      return winners.length === 1 ? winners[0].id : null;
+    }
+    if (field.best === 'max') {
+      const max = Math.max.apply(null, nums.map(e => e.n));
+      const winners = nums.filter(e => e.n === max);
+      return winners.length === 1 ? winners[0].id : null;
+    }
+    return null;
+  }
+
   function renderVendorsCompareView() {
     const host = document.getElementById('vendors-compare-view');
     if (!host) return;
@@ -543,20 +604,33 @@
       return;
     }
 
+    const schemaFields = compareSchemaFields(cat);
+    const schemaRows = schemaFields.map(f => ({
+      key: 'attr:' + f.id,
+      label: f.label,
+      field: f,
+      kind: 'schema',
+      render: v => compareAttrDisplay(f, compareAttrRaw(v, f))
+    }));
+
+    /* Quote first, then category qualities, then shared decision fields; Status last (30f). */
     const attrs = [
-      { key: 'status', label: 'Status', render: v => statusLabel(v) },
-      { key: 'quote', label: 'Quote', render: v => moneyOrDash(v.quote) },
-      { key: 'deposit', label: 'Deposit', render: v => moneyOrDash(v.deposit) },
-      { key: 'balance', label: 'Balance', render: v => moneyOrDash(balanceOf(v)) },
-      { key: 'rating', label: 'Rating', render: v => ratingOf(v) ? (ratingOf(v) + ' / 5') : '—' },
-      { key: 'contract', label: 'Contract', render: v => contractLabel(v) },
-      { key: 'contact', label: 'Contact', render: v => v.contact || '—' },
-      { key: 'pros', label: 'Pros', render: v => v.pros || '—' },
-      { key: 'cons', label: 'Cons', render: v => v.cons || '—' }
+      { key: 'quote', label: 'Quote', kind: 'quote', render: v => moneyOrDash(v.quote) },
+      { key: 'deposit', label: 'Deposit', kind: 'money', render: v => moneyOrDash(v.deposit) },
+      { key: 'balance', label: 'Balance', kind: 'money', render: v => moneyOrDash(balanceOf(v)) },
+      ...schemaRows,
+      { key: 'rating', label: 'Rating', kind: 'text', render: v => ratingOf(v) ? (ratingOf(v) + ' / 5') : '—' },
+      { key: 'contract', label: 'Contract', kind: 'text', render: v => contractLabel(v) },
+      { key: 'contact', label: 'Contact', kind: 'text', render: v => v.contact || '—' },
+      { key: 'pros', label: 'Pros', kind: 'text', render: v => v.pros || '—' },
+      { key: 'cons', label: 'Cons', kind: 'text', render: v => v.cons || '—' },
+      { key: 'status', label: 'Status', kind: 'status', render: v => statusLabel(v) }
     ];
 
     const quotes = cols.map(v => parseFloat(v.quote) || 0).filter(n => n > 0);
-    const best = quotes.length ? Math.min.apply(null, quotes) : null;
+    const bestQuote = quotes.length ? Math.min.apply(null, quotes) : null;
+    const schemaBest = {};
+    schemaFields.forEach(f => { schemaBest[f.id] = compareAttrBestId(cols, f); });
 
     const catOpts = Object.keys(cats).sort().map(c =>
       `<button type="button" class="rd-chip${c === cat ? ' is-active' : ''}" onclick="rdVndSetCompareCat('${esc(c)}')">${esc(c)}</button>`
@@ -568,24 +642,33 @@
     }).join('');
 
     let body = attrs.map(a => {
-      return `<tr><th scope="row">${esc(a.label)}</th>` + cols.map(v => {
+      const rowCls = a.kind === 'schema' ? ' class="rd-vnd-cmp-schema"' : '';
+      return `<tr${rowCls}><th scope="row">${esc(a.label)}</th>` + cols.map(v => {
         const passed = statusLabel(v) === 'Passed';
-        let val = a.render(v);
+        const id = vid(v);
         let cls = passed ? 'is-passed' : '';
-        if (a.key === 'quote' && best != null && (parseFloat(v.quote) || 0) === best && !passed) cls += ' is-best';
-        if (a.key === 'status') return `<td class="${cls}">${statusPillHtml(v)}</td>`;
-        return `<td class="${cls}">${esc(String(val))}</td>`;
+        if (a.kind === 'quote' && bestQuote != null && (parseFloat(v.quote) || 0) === bestQuote && !passed) cls += ' is-best';
+        if (a.kind === 'schema' && a.field && schemaBest[a.field.id] === id && !passed) cls += ' is-best';
+        if (a.kind === 'status') return `<td class="${cls.trim()}">${statusPillHtml(v)}</td>`;
+        const val = a.render(v);
+        /* Marks (✓ ○ ● —) and money stay literal; escape everything else. */
+        const mark = val === '✓' || val === '○' || val === '●' || val === '—';
+        return `<td class="${cls.trim()}">${mark ? val : esc(String(val == null || val === '' ? '—' : val))}</td>`;
       }).join('') + '</tr>';
     }).join('');
+
+    const schemaNote = schemaFields.length
+      ? ` · ${schemaFields.length} ${esc(cat)} qualities from the category schema`
+      : '';
 
     host.innerHTML = `
       <div class="rd-section__head">
         <div class="rd-pagehead__eyebrow">${esc(cat)} shortlist</div>
-        <p class="rd-help">Four quotes side by side · passed vendors stay greyed so the decision survives.</p>
+        <p class="rd-help">Four quotes side by side · ✓ included · ○ partial · ● extra cost · — not offered${schemaNote}.</p>
       </div>
       <div class="rd-vnd-cmp-cats">${catOpts}</div>
       <div class="rd-table-wrap"><table class="rd-vnd-cmp-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>
-      <p class="rd-help">Marks in a full attribute matrix use ✓ included · ○ partial · ● extra cost · — not offered. Quote is the vendor&rsquo;s budget-line value.</p>`;
+      <p class="rd-help">Category rows come from each vendor&rsquo;s attrs for this category (Coverage hrs, Capacity, Trial, etc.). Better values are shaded. Quote is the vendor&rsquo;s budget-line value. Edit qualities in the drawer or Full editor.</p>`;
   }
 
   /* ── Contacts view (30g) ─────────────────────────────────────────────── */
@@ -638,6 +721,51 @@
     return vendorRows().find(v => vid(v) === String(id)) || null;
   }
 
+  function drawerSchemaFieldsHtml(v, id) {
+    const fields = compareSchemaFields(v && v.cat);
+    if (!fields.length) return '';
+    const schema = typeof vendorCategorySchemaFromLabel === 'function'
+      ? vendorCategorySchemaFromLabel(v.cat)
+      : null;
+    const title = schema ? schema.label : (v.cat || 'Category');
+    const rows = fields.map(f => {
+      const raw = compareAttrRaw(v, f);
+      const fid = esc(f.id);
+      if (f.type === 'bool') {
+        const checked = (typeof vendorAttrIsTruthy === 'function')
+          ? vendorAttrIsTruthy(raw)
+          : (raw === true || raw === 'true' || raw === 1 || raw === 'yes');
+        return `<label class="rd-drawer__attr rd-drawer__attr--bool">
+          <span>${esc(f.label)}</span>
+          <select onchange="rdVndSetAttr('${esc(id)}','${fid}',this.value)" aria-label="${esc(f.label)}">
+            <option value=""${raw === '' || raw == null ? ' selected' : ''}>—</option>
+            <option value="true"${checked ? ' selected' : ''}>✓ included</option>
+            <option value="partial"${String(raw).toLowerCase() === 'partial' ? ' selected' : ''}>○ partial</option>
+            <option value="extra"${String(raw).toLowerCase() === 'extra' ? ' selected' : ''}>● extra cost</option>
+            <option value="false"${raw === false || raw === 'false' || raw === 'no' ? ' selected' : ''}>— not offered</option>
+          </select>
+        </label>`;
+      }
+      if (f.type === 'select') {
+        const opts = ['<option value="">—</option>'].concat((f.options || []).map(o =>
+          `<option value="${esc(o)}"${String(raw) === o ? ' selected' : ''}>${esc(o)}</option>`
+        ));
+        return `<label class="rd-drawer__attr"><span>${esc(f.label)}</span>
+          <select onchange="rdVndSetAttr('${esc(id)}','${fid}',this.value)">${opts.join('')}</select></label>`;
+      }
+      const inputType = (f.type === 'number' || f.type === 'money') ? 'number' : 'text';
+      const shown = raw === 0 || raw ? String(raw) : '';
+      return `<label class="rd-drawer__attr"><span>${esc(f.label)}</span>
+        <input type="${inputType}" min="0" value="${esc(shown)}"
+          onchange="rdVndSetAttr('${esc(id)}','${fid}',this.value)"
+          oninput="rdVndSetAttrQuiet('${esc(id)}','${fid}',this.value)"></label>`;
+    }).join('');
+    return `<div class="rd-drawer__section rd-drawer__section--attrs">
+      <div class="rd-drawer__section-title">Category details — ${esc(title)}</div>
+      <div class="rd-drawer__attrs">${rows}</div>
+    </div>`;
+  }
+
   function renderVendorsDrawer() {
     const slot = document.getElementById('vendors-drawer-slot');
     if (!slot) return;
@@ -668,6 +796,7 @@
         <div class="rd-drawer__field"><span>Balance</span><strong class="${balanceOf(v) > 0 ? 'is-owing' : ''}">${moneyOrDash(balanceOf(v))}</strong></div>
         <div class="rd-drawer__field"><span>Rating</span><strong>${ratingSquares(ratingOf(v))}</strong></div>
         <div class="rd-drawer__field"><span>Contract</span><strong>${esc(contractLabel(v))}</strong></div>
+        ${drawerSchemaFieldsHtml(v, id)}
         <div class="rd-drawer__section"><div class="rd-drawer__section-title">Pros</div><p>${esc(v.pros || 'Add what works about this vendor.')}</p></div>
         <div class="rd-drawer__section"><div class="rd-drawer__section-title">Cons</div><p>${esc(v.cons || 'Add what gives you pause.')}</p></div>
         <div class="rd-drawer__section"><div class="rd-drawer__section-title">Notes</div><p>${esc(v.notes || '—')}</p></div>
@@ -778,6 +907,20 @@
     if (typeof save === 'function') save();
     renderVendorsRd();
   }
+  function rdVndSetAttrQuiet(id, fieldId, value) {
+    const v = findVendorById(id);
+    if (!v || !fieldId) return;
+    if (typeof vendorAttrSet === 'function') vendorAttrSet(v, fieldId, value);
+    else {
+      if (!v.attrs || typeof v.attrs !== 'object' || Array.isArray(v.attrs)) v.attrs = {};
+      v.attrs[fieldId] = value;
+    }
+  }
+  function rdVndSetAttr(id, fieldId, value) {
+    rdVndSetAttrQuiet(id, fieldId, value);
+    if (typeof save === 'function') save();
+    if (window._vndMode === 'compare') renderVendorsCompareView();
+  }
   function rdVndFullEditor() {
     if (typeof openDataHub === 'function') openDataHub('vendors', 'vendors');
     else if (typeof addVendorRow === 'function') addVendorRow();
@@ -854,6 +997,8 @@
   window.rdVndOpenDrawer = rdVndOpenDrawer;
   window.rdVndCloseDrawer = rdVndCloseDrawer;
   window.rdVndBookVendor = rdVndBookVendor;
+  window.rdVndSetAttr = rdVndSetAttr;
+  window.rdVndSetAttrQuiet = rdVndSetAttrQuiet;
   window.rdVndFullEditor = rdVndFullEditor;
   window.rdVndVendorPacket = rdVndVendorPacket;
   window.saveVendorView = function () {
