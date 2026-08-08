@@ -882,6 +882,7 @@
   window.rdVenCloseDrawer = rdVenCloseDrawer;
   window.rdVenOpenDetails = rdVenOpenDetails;
   window.rdVenAddVenue = rdVenAddVenue;
+  window.rdVenEditNote = rdVenEditNote;
   window.rdVenFullEditor = rdVenFullEditor;
   window.rdVenCycleTypeFilter = rdVenCycleTypeFilter;
   window.rdVenFocusCeremony = rdVenFocusCeremony;
