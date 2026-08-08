@@ -19715,3 +19715,500 @@ body.rd-scope #panel-notes .rd-notes-drawer .rd-drawer__foot {
     grid-column: 2;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Responsive · Views #41a (≤1240) · #42a (≤720) · #42b Day-of
+   Shell-level structural swaps. Page drawers inherit overlay/fullscreen.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Hide legacy Phase-C chrome under redesign */
+body.rd-scope #ux-mobile-bottom-nav,
+body.rd-scope #ux-tablet-rail,
+body.rd-scope #ux-mobile-fab { display: none !important; }
+
+/* Tab strip: never wrap; scroll + right fade below 1240 */
+@media (max-width: 1240px) {
+  body.rd-scope .rd-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 28px), transparent 100%);
+  }
+  body.rd-scope .rd-tab {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+
+  /* Stats: hide 5th cell (JS also demotes into toolbar chip) */
+  body.rd-scope .panel.active .rd-stats > .m-stat:nth-child(n+5),
+  body.rd-scope .panel.active .rd-stats > .rd-stat:nth-child(n+5),
+  body.rd-scope .panel.active .m-stats > .m-stat:nth-child(n+5) {
+    display: none !important;
+  }
+
+  /* Rail → 48px icon strip (not collapse-to-0) */
+  body.rd-scope.rd-bp-tablet #planner-context-sidebar.rd-rail--icons,
+  body.rd-scope.rd-bp-narrow:not(.rd-bp-mobile) #planner-context-sidebar.rd-rail--icons {
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    flex: 0 0 48px !important;
+    overflow: visible !important;
+    position: relative;
+    z-index: 40;
+  }
+  body.rd-scope.rd-bp-tablet #planner-context-sidebar.rd-rail--icons .planner-context-sidebar__scroll,
+  body.rd-scope.rd-bp-narrow:not(.rd-bp-mobile) #planner-context-sidebar.rd-rail--icons .planner-context-sidebar__scroll {
+    display: none !important;
+  }
+  body.rd-scope .rd-rail-icon-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    width: 48px;
+  }
+  body.rd-scope:not(.rd-bp-tablet):not(.rd-bp-narrow) .rd-rail-icon-strip,
+  body.rd-scope.rd-bp-mobile .rd-rail-icon-strip { display: none !important; }
+  body.rd-scope .rd-rail-icon-strip__btn {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    background: transparent;
+    color: #b0a794;
+    font-size: 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  body.rd-scope .rd-rail-icon-strip__btn.is-active {
+    background: #2D4A3E;
+    color: #F4EFE6;
+  }
+
+  /* Temporary rail overlay — does not push the table */
+  body.rd-scope #planner-context-sidebar.rd-rail--icons.is-rail-overlay {
+    width: 224px !important;
+    min-width: 224px !important;
+    max-width: 224px !important;
+    flex: 0 0 224px !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 60;
+    box-shadow: 8px 0 28px rgba(20, 21, 15, .18);
+    background: #f9f5ef !important;
+  }
+  body.rd-scope #planner-context-sidebar.rd-rail--icons.is-rail-overlay .planner-context-sidebar__scroll {
+    display: flex !important;
+  }
+  body.rd-scope #planner-context-sidebar.rd-rail--icons.is-rail-overlay .rd-rail-icon-strip {
+    display: none !important;
+  }
+  body.rd-scope .rd-rail-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 21, 15, .28);
+    z-index: 55;
+  }
+  body.rd-scope .rd-rail-scrim[hidden] { display: none !important; }
+
+  /* Drawer overlays work surface below 1240 — table keeps its columns */
+  body.rd-scope .rd-surface__row { position: relative; }
+  body.rd-scope [id$="-drawer-slot"].is-open {
+    position: absolute !important;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 8;
+    flex: 0 0 360px !important;
+    width: 360px !important;
+    max-width: min(360px, 100%) !important;
+    box-shadow: -12px 0 32px rgba(20, 21, 15, .16);
+    background: #fff;
+  }
+  body.rd-scope #record-drawer:not([hidden]) {
+    box-shadow: -12px 0 32px rgba(20, 21, 15, .16);
+  }
+}
+
+/* Mobile ≤720 */
+@media (max-width: 720px) {
+  body.rd-scope {
+    --shell-gutter: 14px;
+    padding-bottom: 64px;
+  }
+  body.rd-scope #planner-context-sidebar {
+    display: none !important;
+  }
+  body.rd-scope .rd-tabs,
+  body.rd-scope .rd-subnav {
+    display: none !important;
+  }
+  body.rd-scope .rd-topbar__name { display: none; }
+  body.rd-scope .rd-pagehead__actions .rd-btn:not(.rd-btn--primary) {
+    display: none;
+  }
+
+  /* Drawer → full screen */
+  body.rd-scope [id$="-drawer-slot"].is-open {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+    z-index: 80 !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+  body.rd-scope [id$="-drawer-slot"].is-open > .rd-drawer,
+  body.rd-scope [id$="-drawer-slot"].is-open > #record-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+  }
+  body.rd-scope .rd-drawer__field {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 4px !important;
+  }
+  body.rd-scope .rd-drawer__field span {
+    width: auto !important;
+    font-size: 10px !important;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  body.rd-scope .rd-drawer__field strong,
+  body.rd-scope .rd-drawer__field input,
+  body.rd-scope .rd-drawer__field select,
+  body.rd-scope .rd-drawer__field textarea {
+    min-height: 44px;
+    font-size: 13.5px;
+  }
+  body.rd-scope .rd-drawer__tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  /* Tables → stacked cards via data-label (legacy helper still useful) */
+  body.rd-scope .cwp-table thead { display: none; }
+  body.rd-scope .cwp-table,
+  body.rd-scope .cwp-table tbody,
+  body.rd-scope .rd-notes-table,
+  body.rd-scope .rd-notes-table tbody {
+    display: block;
+    width: 100%;
+  }
+  body.rd-scope .cwp-table tbody tr,
+  body.rd-scope .rd-notes-table tbody tr.rd-notes-row {
+    display: block;
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0ebe0;
+  }
+  body.rd-scope .cwp-table tbody td,
+  body.rd-scope .rd-notes-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 0 !important;
+    border: 0 !important;
+  }
+  body.rd-scope .cwp-table tbody td::before {
+    content: attr(data-label);
+    color: #8a7e6b;
+    font-size: 11px;
+    flex: 0 0 38%;
+  }
+  body.rd-scope .rd-notes-table thead { display: none; }
+  body.rd-scope .rd-notes-group { display: block; padding: 8px 14px; background: #f9f5ef; }
+  body.rd-scope .rd-notes-addrow { display: block; padding: 12px 14px; }
+
+  /* Mobile tab bar + FAB */
+  body.rd-scope .rd-mobile-tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 56px;
+    background: #fdfcfa;
+    border-top: 1px solid #e7e1d4;
+    display: flex;
+    align-items: center;
+    z-index: 70;
+  }
+  body.rd-scope .rd-mobile-tabbar[hidden] { display: none !important; }
+  body.rd-scope .rd-mobile-tabbar__item {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    font-size: 10.5px;
+    color: #b0a794;
+    font-weight: 400;
+    padding: 8px 4px;
+    cursor: pointer;
+  }
+  body.rd-scope .rd-mobile-tabbar__item.is-active {
+    color: #2D4A3E;
+    font-weight: 600;
+  }
+  body.rd-scope .rd-mobile-fab {
+    position: fixed;
+    right: 14px;
+    bottom: 36px;
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: #2D4A3E;
+    color: #F4EFE6;
+    font-size: 22px;
+    z-index: 72;
+    box-shadow: 0 6px 18px rgba(20, 21, 15, .28);
+    cursor: pointer;
+  }
+  body.rd-scope .rd-mobile-fab[hidden] { display: none !important; }
+
+  /* Rail → bottom sheet */
+  body.rd-scope .rd-mobile-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 85;
+  }
+  body.rd-scope .rd-mobile-sheet[hidden] { display: none !important; }
+  body.rd-scope .rd-mobile-sheet__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 21, 15, .5);
+  }
+  body.rd-scope .rd-mobile-sheet__panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 78vh;
+    background: #fff;
+    border-top: 2px solid #B89968;
+    overflow: auto;
+  }
+  body.rd-scope .rd-mobile-sheet__handle {
+    width: 32px;
+    height: 3px;
+    background: #d9cfba;
+    margin: 12px auto 10px;
+  }
+  body.rd-scope .rd-mobile-sheet__title,
+  body.rd-scope .rd-mobile-sheet__kicker {
+    padding: 0 16px 8px;
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #8a7e6b;
+    font-weight: 700;
+  }
+  body.rd-scope .rd-mobile-sheet__row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    text-align: left;
+    padding: 13px 16px;
+    border: 0;
+    border-bottom: 1px solid #f0ebe0;
+    background: #fff;
+    cursor: pointer;
+    color: #23211c;
+  }
+  body.rd-scope .rd-mobile-sheet__row.is-active { background: #f4f1ea; }
+  body.rd-scope .rd-mobile-sheet__row strong {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  body.rd-scope .rd-mobile-sheet__row em {
+    display: block;
+    font-style: normal;
+    font-size: 11px;
+    color: #8a7e6b;
+    margin-top: 2px;
+  }
+
+  /* Canvas pages read-only */
+  body.rd-scope .rd-canvas-readonly-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    background: #fff8e8;
+    border-bottom: 1px solid #e7ce80;
+    color: #8a640f;
+    font-size: 13px;
+  }
+  body.rd-scope .rd-canvas-readonly-banner strong { font-weight: 600; }
+  body.rd-scope #panel-tables.rd-canvas-readonly [draggable],
+  body.rd-scope #panel-mood.rd-canvas-readonly [draggable] {
+    pointer-events: none;
+  }
+}
+
+/* Day-of mode — forced dark, not theme toggle */
+body.rd-scope .rd-dayof-offer {
+  border: 1px solid rgba(244, 239, 230, .35);
+  background: rgba(244, 239, 230, .12);
+  color: #F4EFE6;
+  font-size: 11px;
+  letter-spacing: .04em;
+  padding: 5px 10px;
+  margin-right: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+body.rd-scope .rd-dayof-offer[hidden] { display: none !important; }
+body.rd-scope .rd-dayof-offer span { opacity: .7; }
+
+body.rd-scope.rd-dayof #layout,
+body.rd-scope.rd-dayof .rd-topbar,
+body.rd-scope.rd-dayof .rd-tabs,
+body.rd-scope.rd-dayof .rd-subnav,
+body.rd-scope.rd-dayof .rd-mobile-tabbar,
+body.rd-scope.rd-dayof .rd-mobile-fab,
+body.rd-scope.rd-dayof #rd-dayof-offer {
+  display: none !important;
+}
+body.rd-scope .rd-dayof {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #14150f;
+  color: #f4efe6;
+  overflow: auto;
+}
+body.rd-scope .rd-dayof[hidden] { display: none !important; }
+body.rd-scope .rd-dayof__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #3a3a32;
+}
+body.rd-scope .rd-dayof__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e7ce80;
+}
+body.rd-scope .rd-dayof__mode {
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #b89968;
+  font-weight: 700;
+}
+body.rd-scope .rd-dayof__status {
+  margin-left: auto;
+  font-size: 11px;
+  color: #8f8b83;
+}
+body.rd-scope .rd-dayof__exit {
+  border: 1px solid #3a3a32;
+  background: transparent;
+  color: #f4efe6;
+  font-size: 11px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+body.rd-scope .rd-dayof__now {
+  padding: 18px 16px;
+  border-bottom: 1px solid #3a3a32;
+}
+body.rd-scope .rd-dayof__kicker {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8f8b83;
+  font-weight: 700;
+}
+body.rd-scope .rd-dayof__title {
+  font-size: 26px;
+  font-weight: 600;
+  color: #f4efe6;
+  margin-top: 7px;
+  line-height: 1.15;
+}
+body.rd-scope .rd-dayof__meta {
+  font-size: 14px;
+  color: #b89968;
+  margin-top: 6px;
+}
+body.rd-scope .rd-dayof__done {
+  margin-top: 14px;
+  border: 1px solid #3a3a32;
+  background: #1a1b16;
+  color: #f4efe6;
+  padding: 11px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+body.rd-scope .rd-dayof__next {
+  padding: 16px;
+  border-bottom: 1px solid #3a3a32;
+}
+body.rd-scope .rd-dayof__next-row {
+  display: flex;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #23241c;
+}
+body.rd-scope .rd-dayof__time {
+  flex: 0 0 52px;
+  font-size: 15px;
+  color: #b89968;
+  font-variant-numeric: tabular-nums;
+}
+body.rd-scope .rd-dayof__next-title {
+  font-size: 15px;
+  color: #f4efe6;
+}
+body.rd-scope .rd-dayof__next-meta {
+  font-size: 12px;
+  color: #8f8b83;
+  margin-top: 2px;
+}
+body.rd-scope .rd-dayof__calls {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+body.rd-scope .rd-dayof__call {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid #3a3a32;
+  background: #1a1b16;
+  text-decoration: none;
+  color: inherit;
+}
+body.rd-scope .rd-dayof__call-name { font-size: 14px; color: #f4efe6; }
+body.rd-scope .rd-dayof__call-role { font-size: 11.5px; color: #8f8b83; }
+body.rd-scope .rd-dayof__call span {
+  margin-left: auto;
+  padding: 9px 16px;
+  background: #2D4A3E;
+  color: #f4efe6;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+body.rd-scope .rd-dayof__empty {
+  font-size: 13px;
+  color: #8f8b83;
+  margin: 8px 0 0;
+}

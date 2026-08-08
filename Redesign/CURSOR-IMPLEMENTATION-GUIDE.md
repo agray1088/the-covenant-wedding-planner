@@ -279,7 +279,7 @@ Guest List, Timeline & Tasks, Appointments and Smart Calendar were already compl
 - [ ] **State library (37)** — every page needs its 4 states. Copy deck for all 30 pages is in Views
 - [ ] **Furniture (34–36)** — 10 overlays that belong to no page: ⌘K, filter builder, saved views, bulk edit, import, shortcuts, notifications, share, small states, templates/trash/merge
 - [ ] **All 28 drawer types** now have every tab drawn in `Planner Screens Drawers.dc.html` — previously only the first tab existed. Check the record types on your finished pages: Household `14b`, Contact `14c`, Wedding party member `10a`, Table `8a`, Gift `10b`, Appointment `14a`
-- [ ] **Responsive (41–42)** — 1240px and 720px
+- [x] **Responsive (41–42)** — 1240px and 720px + Day-of → `js/responsive-redesign.js`
 - [ ] **Roles (43)**
 
 ---
@@ -401,7 +401,8 @@ Database Hub = All `#7b` / `#7c` + Dark rails + Drawers Hub table / Hub row → 
 Dashboard = All `#3a` + Dark rail (jump links + Foundation) → `js/dashboard-redesign.js`.
 Notes = All `#12a` + Views `#33a` Cards / `#33b` Timeline + Drawers Note → `js/notes-redesign.js`.
 (**33c** is Share Packets, not Notes.)
-**Next on continue:** cross-cutting Responsive **41–42**, Roles **43**, Vendor Portal.
+Responsive = Views `#41a` (≤1240) / `#42a` (≤720) / `#42b` Day-of → `js/responsive-redesign.js`.
+**Next on continue:** Roles **43**, then Vendor Portal.
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -552,7 +553,13 @@ or when the user asks — inventory may list more than the current `TABS` strip.
 | ✓ | Dashboard | `dashboard` | All **3a** · Dark rail · no Views/Drawers · `js/dashboard-redesign.js` |
 | ✓ | Notes | `notes` | All **12a** · Views **33a** Cards / **33b** Timeline · Drawers Note · `js/notes-redesign.js` |
 
-Then cross-cutting: Responsive **41–42**, Roles **43**, Vendor Portal last.
+**Cross-cutting**
+
+| # | Item | Scope | Notes |
+|---|---|---|---|
+| ✓ | Responsive | whole app | Views **41a** / **42a** / **42b** · `js/responsive-redesign.js` |
+| ▶ | **Roles** | whole app | Views **43** |
+| | Vendor Portal | separate product | `Planner Vendor Portal.dc.html` |
 
 For each page: **§11.1a find mocks → §11.2 inventory → §11.3–11.4 build → §11.5 gap pass →
 commit / push / PR update.**
