@@ -390,7 +390,8 @@ Entertainment = All `#10d` + Views `#30j` / `#30k` + Drawers Song → `js/entert
 Shot Lists = All `#11b` + Views `#30l` / `#30m` + Drawers Shot → `js/shotlist-redesign.js`.
 Wedding Day Timeline = All `#6b` + Views `#31a` / `#31b` + Drawers Event → `js/timeline-redesign.js`.
 Ceremony & Reception = All `#11a` + Views `#31c` / `#31d` + Drawers Element → `js/ceremony-redesign.js`.
-**Next on continue:** Honeymoon & After (`honeymoon` / All **17b`).
+Honeymoon & After = All `#17b` + Dark rail + Drawers Booking → `js/honeymoon-redesign.js`.
+**Next on continue:** Prayer Journal (`prayer` / All **13b`).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -512,13 +513,13 @@ before moving to the next category. Do not jump ahead inside Vendors.
 |---|---|---|---|
 | ✓ | Wedding Day Timeline | `timeline` | All **6b** · Views `#31a`/`#31b` · `js/timeline-redesign.js` |
 | ✓ | Ceremony & Reception | `ceremony` | All **11a** · Views `#31c`/`#31d` · `js/ceremony-redesign.js` |
-| ▶ | **Honeymoon & After** | `honeymoon` | **17b** · Views as drawn |
+| ✓ | Honeymoon & After | `honeymoon` | All **17b** · Dark rail · `js/honeymoon-redesign.js` |
 
 **Covenant** (live nav order):
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| 8 | Prayer Journal | `prayer` | **13b** · Views 32 · Drawers 26 |
+| ▶ | **Prayer Journal** | `prayer` | **13b** · Views 32 · Drawers 26 |
 | 9 | Premarital Counseling | `counseling` | **13c** · Views 32 · Drawers 26 |
 
 (Also redesign **13a** Vision & Foundation / **13d** First-Month Rhythms when they appear in nav

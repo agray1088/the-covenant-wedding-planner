@@ -1877,6 +1877,75 @@
     return '<div class="rd-rail__stack" data-page-rail="ceremony">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #17b / Dark.dc #17b rail — Sections + Readiness + After the day. */
+  function buildHoneymoonContext() {
+    var active = 'bookings';
+    if (typeof getSavedView === 'function') active = getSavedView('honeymoon', 'bookings');
+    else if (typeof window._hmSection === 'string' && window._hmSection) active = window._hmSection;
+    window._hmSection = active;
+
+    var counts = typeof window.honeymoonRailCounts === 'function' ? window.honeymoonRailCounts() : {
+      bookings: 0, itinerary: 0, packing: 0, budget: 0, journal: 0, after: 0, thankYou: 0
+    };
+    var figures = typeof window.honeymoonFigures === 'function' ? window.honeymoonFigures() : {
+      bookingsComplete: 0, bookingsTotal: 0, packed: 0, packingTotal: 0,
+      itineraryPlanned: 0, itineraryTotal: 0, budgetCommitted: 0, afterDone: 0, afterTotal: 0, thankYouDue: 0
+    };
+
+    function money0(n) {
+      n = Math.round(Number(n) || 0);
+      return '$' + n.toLocaleString();
+    }
+
+    function sectionItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (active === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHoneymoonSection(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+
+    var sectionsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Sections<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      sectionItem('bookings', 'Details & bookings', counts.bookings || 0) +
+      sectionItem('itinerary', 'Itinerary', counts.itinerary || 0) +
+      sectionItem('packing', 'Packing', counts.packing || 0) +
+      sectionItem('budget', 'Budget', counts.budget || 0) +
+      sectionItem('journal', 'Daily journal', counts.journal || 0) +
+      '</div></div>';
+
+    var readinessHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Readiness</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Bookings complete</span><span class="rd-rail__count">' +
+      (figures.bookingsComplete || 0) + ' of ' + (figures.bookingsTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Packed</span><span class="rd-rail__count">' +
+      (figures.packed || 0) + ' of ' + (figures.packingTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Itinerary days</span><span class="rd-rail__count">' +
+      (figures.itineraryPlanned || 0) + ' of ' + (figures.itineraryTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Budget committed</span><span class="rd-rail__count">' +
+      esc(money0(figures.budgetCommitted || 0)) + '</span></div>' +
+      '</div></div>';
+
+    var afterHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">After the day</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item' + (active === 'after' ? ' is-active' : '') + '" onclick="applyHoneymoonSection(\'after\')">Thank-you notes' +
+      '<span class="rd-rail__count' + ((figures.thankYouDue || 0) > 0 ? ' rd-rail__count--warn' : '') + '">' +
+      (figures.thankYouDue || 0) + ' due</span></button>' +
+      '<button type="button" class="rd-rail__item' + (active === 'after' ? ' is-active' : '') + '" onclick="applyHoneymoonSection(\'after\')">Post-wedding tasks' +
+      '<span class="rd-rail__count">' + (figures.afterDone || 0) + ' of ' + (figures.afterTotal || 0) + '</span></button>' +
+      '<button type="button" class="rd-rail__item" onclick="typeof showReflectTabPage===\'function\'?showReflectTabPage(\'homecoming\'):(typeof showPanel===\'function\'&&showPanel(\'reflect\'))">Newlywed Homecoming</button>' +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">The honeymoon budget is its own target — it is not part of the wedding budget and never appears on the Budget page.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="honeymoon">' + sectionsHtml + readinessHtml + afterHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -1890,6 +1959,7 @@
     venue: buildVenueContext,
     timeline: buildTimelineContext,
     ceremony: buildCeremonyContext,
+    honeymoon: buildHoneymoonContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,

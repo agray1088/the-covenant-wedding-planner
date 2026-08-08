@@ -261,6 +261,7 @@
     var shotlistSlot = document.getElementById('shotlist-drawer-slot');
     var timelineSlot = document.getElementById('timeline-drawer-slot');
     var ceremonySlot = document.getElementById('ceremony-drawer-slot');
+    var honeymoonSlot = document.getElementById('honeymoon-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -286,6 +287,7 @@
     else if (panel === 'shotlist') slot = shotlistSlot;
     else if (panel === 'timeline') slot = timelineSlot;
     else if (panel === 'ceremony') slot = ceremonySlot;
+    else if (panel === 'honeymoon') slot = honeymoonSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -302,6 +304,7 @@
     if (shotlistSlot && d.parentElement === shotlistSlot) shotlistSlot.classList.remove('is-open');
     if (timelineSlot && d.parentElement === timelineSlot) timelineSlot.classList.remove('is-open');
     if (ceremonySlot && d.parentElement === ceremonySlot) ceremonySlot.classList.remove('is-open');
+    if (honeymoonSlot && d.parentElement === honeymoonSlot) honeymoonSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -323,6 +326,7 @@
       if (shotlistSlot) shotlistSlot.classList.remove('is-open');
       if (timelineSlot) timelineSlot.classList.remove('is-open');
       if (ceremonySlot) ceremonySlot.classList.remove('is-open');
+      if (honeymoonSlot) honeymoonSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
@@ -342,6 +346,9 @@
     }
     if (ceremonySlot && ceremonySlot.querySelector('.rd-cer-drawer') && !(d.parentElement === ceremonySlot && open)) {
       ceremonySlot.classList.add('is-open');
+    }
+    if (honeymoonSlot && honeymoonSlot.querySelector('.rd-hm-drawer') && !(d.parentElement === honeymoonSlot && open)) {
+      honeymoonSlot.classList.add('is-open');
     }
   }
 
@@ -708,6 +715,12 @@
     scriptures: 'Ceremony & Reception / Element',
     ceremonyVows: 'Ceremony & Reception / Element',
     speeches: 'Ceremony & Reception / Element',
+    honeyDetails: 'Honeymoon & After / Booking',
+    honeyTransport: 'Honeymoon & After / Booking',
+    honeyItinerary: 'Honeymoon & After / Itinerary',
+    packing: 'Honeymoon & After / Packing',
+    hmBudgetItems: 'Honeymoon & After / Budget line',
+    hmJournal: 'Honeymoon & After / Journal',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',
