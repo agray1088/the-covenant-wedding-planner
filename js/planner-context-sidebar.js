@@ -2209,6 +2209,70 @@
     return '<div class="rd-rail__stack" data-page-rail="essentials">' + kitsHtml + packedHtml + groupHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #12b / Dark.dc #12b rail — Views + Activity meters + Group by. */
+  function buildPacketsContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('packets', 'all');
+    else if (typeof window._pktRailView === 'string' && window._pktRailView) activeView = window._pktRailView;
+    window._pktRailView = activeView;
+
+    var counts = typeof window.pktRailCounts === 'function' ? window.pktRailCounts() : {
+      all: 0, live: 0, expired: 0, draft: 0, week: 0
+    };
+    var figures = typeof window.pktFigures === 'function' ? window.pktFigures() : {
+      opened: 0, packets: 0, totalOpens: 0, lastOpen: '—', never: 0
+    };
+    var groupBy = window._pktGroupBy || 'recipient';
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPacketsRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All packets', counts.all || 0) +
+      viewItem('live', 'Live', counts.live || 0) +
+      viewItem('expired', 'Expired', counts.expired || 0) +
+      viewItem('draft', 'Draft', counts.draft || 0) +
+      viewItem('week', 'Opened this week', counts.week || 0) +
+      '</div></div>';
+
+    var activityHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Activity</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Opened at least once</span><span class="rd-rail__count">' +
+      (figures.opened || 0) + ' of ' + (figures.packets || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Total opens</span><span class="rd-rail__count">' +
+      (figures.totalOpens || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last open</span><span class="rd-rail__count">' +
+      esc(figures.lastOpen || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Default expiry</span><span class="rd-rail__count">30 days</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPacketsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('recipient', 'Recipient type') +
+      groupItem('status', 'Status') +
+      groupItem('created', 'Created') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Packets are snapshots by default. A live packet updates as you edit; both states are shown on the row.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="packets">' + viewsHtml + activityHtml + groupHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -2227,6 +2291,7 @@
     counseling: buildCounselingContext,
     mood: buildMoodContext,
     essentials: buildEssentialsContext,
+    packets: buildPacketsContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,

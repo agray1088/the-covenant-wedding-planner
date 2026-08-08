@@ -24,7 +24,7 @@ function blankData() {
     menu: [], beverages: [], kidsMenu: [], placeSettings: [], cateringRentals: [], cateringMeta: {}, venue: {}, vtimeline: [], essentials: [], plan: [],
     entertainment: [], mustPlay: [], doNotPlay: [], receptionPlaylist: [], palettes: [], moodPhotos: [], moodFavorites: [], moodItems: [],
     honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
-    vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
+    packets: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
     vision: {}, homecoming: [], firstmonth: {}, marriageLicense: {},
     vendorCompare: [], reception: {}, attire: [], decor: [], stationery: [], events: [], locations: [], contacts: [],
     weekendTimeline: [], travelAccommodations: [], hotelBlocks: [], transportation: [], vipCare: [],
@@ -29533,6 +29533,15 @@ const SAMPLE_DATA = {
     { vendor: "Bloom & Light Photography", time: "14:00", location: "Bride's getting-ready suite", contact: "(555) 010-3333", notes: "Detail & getting-ready shots" },
     { vendor: "Magnolia Catering Co.", time: "16:00", location: "The Magnolia Barn", contact: "(555) 010-2222", notes: "Kitchen setup" },
     { vendor: "DJ Marcus Reed", time: "17:30", location: "The Magnolia Barn", contact: "(555) 010-5555", notes: "Sound check before reception" }
+  ],
+  packets: [
+    { name: "Grace Hall day-of packet", recipient: "Grace Hall events", recipientType: "Vendors", contains: "Timeline · floor plan · contacts", sections: ["Wedding Day Timeline","Table Layout · plan only","Contacts · vendors","Ceremony & Reception"], mode: "Live", opens: 14, expires: "2026-12-08", status: "Live", created: "2026-07-12", link: "covenant.link/g/4kq9", lastOpen: "2 hours ago from Accra", contact: "events@gracehall.gh", activity: [{when:"2 hours ago",where:"Accra",browser:"Chrome"},{when:"Yesterday",where:"Accra",browser:"Chrome"},{when:"26 Jul",where:"Accra",browser:"Safari"}], openedThisWeek: true },
+    { name: "Catering brief", recipient: "Adom Catering", recipientType: "Vendors", contains: "Menu · headcount · dietary", sections: ["Catering & Menu","Headcount","Dietary notes"], mode: "Live", opens: 9, expires: "2026-12-08", status: "Live", created: "2026-07-18", link: "covenant.link/g/cat9", lastOpen: "yesterday", openedThisWeek: true },
+    { name: "Photography brief", recipient: "Nii Photography", recipientType: "Vendors", contains: "Shot lists · timeline", sections: ["Shot Lists","Wedding Day Timeline"], mode: "Snapshot", opens: 6, expires: "2026-08-04", status: "Expiring", created: "2026-06-01", link: "covenant.link/g/pho6" },
+    { name: "Wedding party brief", recipient: "10 members", recipientType: "Family & party", contains: "Duties · attire · weekend", sections: ["Wedding Party","Weekend Logistics"], mode: "Live", opens: 7, expires: "2026-11-09", status: "Live", created: "2026-07-20", link: "covenant.link/g/pty7", openedThisWeek: true },
+    { name: "Parents’ overview", recipient: "Both sets of parents", recipientType: "Family & party", contains: "Timeline · order of service", sections: ["Wedding Day Timeline","Ceremony & Reception"], mode: "Snapshot", opens: 2, expires: "2026-08-03", status: "Expiring", created: "2026-06-15", link: "covenant.link/g/par2" },
+    { name: "Officiant packet", recipient: "Rev. Mensah", recipientType: "Family & party", contains: "Order of service · vows", sections: ["Ceremony & Reception","Vows"], mode: "Live", opens: 0, expires: "2026-11-09", status: "Never opened", created: "2026-07-22", link: "covenant.link/g/off0" },
+    { name: "Venue shortlist comparison", recipient: "Mr & Mrs Owusu", recipientType: "Closed", contains: "Venue comparison only", sections: ["Venue Comparison"], mode: "Snapshot", opens: 0, expires: "2026-03-14", status: "Expired", created: "2026-02-01", link: "covenant.link/g/ven0" }
   ],
   essentials: [
     { cat: "Marriage Essentials", item: "Marriage license", packed: true, notes: "In white folder" },

@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-17a1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-12b1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1139,18 +1139,12 @@
       <div id="rfl-content"></div>
     </div>
 
-    <!-- ═══ SHARE PACKETS ═══ -->
-    <div id="panel-packets" class="panel">
-      <div class="pkt-header">
-        <h2>Share Packets</h2>
-        <p>Print-ready packets auto-filled from your planner data. Create vendor, wedding party, coordinator, and wedding-weekend handoffs, then print or copy.</p>
-      </div>
-      <div class="pkt-section-tabs" id="pkt-section-tabs"></div>
-      <div class="pkt-sub-tabs" id="pkt-sub-tabs"></div>
-      <div id="pkt-content"></div>
+        <!-- ═══ SHARE PACKETS — All.dc #12b · Views Cards/Activity · Drawers packet · packets-redesign.js ═══ -->
+    <div id="panel-packets" class="panel packets-mockup ued-scope">
+      <!-- Filled by uedPacketsShell() / renderPacketsPage() (Table|Cards|Activity · drawer) -->
     </div>
 
-    <!-- ═══ EMAIL TEMPLATES ═══ -->
+<!-- ═══ EMAIL TEMPLATES ═══ -->
     <div id="panel-emails" class="panel">
       <div class="et-header">
         <div>
@@ -1904,7 +1898,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-17a1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-12b1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -1932,11 +1926,12 @@
 <script src="js/honeymoon-redesign.js?v=redesign-17b1"></script>
 <script src="js/prayer-redesign.js?v=redesign-13b1"></script>
 <script src="js/counseling-redesign.js?v=redesign-13c1"></script>
-<script src="js/mood-redesign.js?v=redesign-17a1"></script>
-<script src="js/essentials-redesign.js?v=redesign-17a1"></script>
+<script src="js/mood-redesign.js?v=redesign-12b1"></script>
+<script src="js/essentials-redesign.js?v=redesign-12b1"></script>
+<script src="js/packets-redesign.js?v=redesign-12b1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-17a1"></script>
+<script src="js/redesign-shell.js?v=redesign-12b1"></script>
 <script>
 (function () {
   try {

@@ -266,6 +266,7 @@
     var counselingSlot = document.getElementById('counseling-drawer-slot');
     var moodSlot = document.getElementById('mood-drawer-slot');
     var essentialsSlot = document.getElementById('essentials-drawer-slot');
+    var packetsSlot = document.getElementById('packets-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -296,6 +297,7 @@
     else if (panel === 'counseling') slot = counselingSlot;
     else if (panel === 'mood') slot = moodSlot;
     else if (panel === 'essentials') slot = essentialsSlot;
+    else if (panel === 'packets') slot = packetsSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -317,6 +319,7 @@
     if (counselingSlot && d.parentElement === counselingSlot) counselingSlot.classList.remove('is-open');
     if (moodSlot && d.parentElement === moodSlot) moodSlot.classList.remove('is-open');
     if (essentialsSlot && d.parentElement === essentialsSlot) essentialsSlot.classList.remove('is-open');
+    if (packetsSlot && d.parentElement === packetsSlot) packetsSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -343,6 +346,7 @@
       if (counselingSlot) counselingSlot.classList.remove('is-open');
       if (moodSlot) moodSlot.classList.remove('is-open');
       if (essentialsSlot) essentialsSlot.classList.remove('is-open');
+      if (packetsSlot) packetsSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
@@ -377,6 +381,9 @@
     }
     if (essentialsSlot && essentialsSlot.querySelector('.rd-ess-drawer') && !(d.parentElement === essentialsSlot && open)) {
       essentialsSlot.classList.add('is-open');
+    }
+    if (packetsSlot && packetsSlot.querySelector('.rd-pkt-drawer') && !(d.parentElement === packetsSlot && open)) {
+      packetsSlot.classList.add('is-open');
     }
   }
 
@@ -755,6 +762,7 @@
     moodPhotos: 'Vision Board / Pin',
     palettes: 'Vision Board / Palette',
     essentials: 'Essentials Checklist / Item',
+    packets: 'Share Packets / Packet',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',
