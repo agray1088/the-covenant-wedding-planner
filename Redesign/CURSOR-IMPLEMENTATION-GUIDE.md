@@ -396,7 +396,8 @@ Premarital Counseling = All `#13c` + Views `#32e` / `#32f` + Drawers Session →
 Vision Board = All `#8b` + Dark rail + Drawers Vision pin → `js/mood-redesign.js`.
 Essentials Checklist = All `#17a` + Views By person / Print + Drawers Item → `js/essentials-redesign.js`.
 Share Packets = All `#12b` + Views Cards / Activity + Drawers Packet → `js/packets-redesign.js`.
-**Next on continue:** Email Templates (`emails` / All **12c**).
+Email Templates = All `#12c` + Views Preview / Sent log + Drawers Template → `js/emails-redesign.js`.
+**Next on continue:** Database Hub (`data-hub` / All **7b** / **7c**).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -537,8 +538,8 @@ or when the user asks — inventory may list more than the current `TABS` strip.
 | ✓ | Vision Board | `mood` | All **8b** · Dark rail · `js/mood-redesign.js` |
 | ✓ | Essentials Checklist | `essentials` | All **17a** · Views By person/Print · `js/essentials-redesign.js` |
 | ✓ | Share Packets | `packets` | All **12b** · Views Cards/Activity · `js/packets-redesign.js` |
-| ▶ | **Email Templates** | `emails` | **12c** · Views 33 |
-| 14 | Database Hub | `data-hub` | **7b** / **7c** |
+| ✓ | Email Templates | `emails` | All **12c** · Views Preview/Sent log · `js/emails-redesign.js` |
+| ▶ | **Database Hub** | `data-hub` | **7b** / **7c** |
 
 Then cross-cutting: Responsive **41–42**, Roles **43**, Vendor Portal last.
 

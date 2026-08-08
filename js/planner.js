@@ -24,7 +24,7 @@ function blankData() {
     menu: [], beverages: [], kidsMenu: [], placeSettings: [], cateringRentals: [], cateringMeta: {}, venue: {}, vtimeline: [], essentials: [], plan: [],
     entertainment: [], mustPlay: [], doNotPlay: [], receptionPlaylist: [], palettes: [], moodPhotos: [], moodFavorites: [], moodItems: [],
     honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
-    packets: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
+    packets: [], emailTemplates: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
     vision: {}, homecoming: [], firstmonth: {}, marriageLicense: {},
     vendorCompare: [], reception: {}, attire: [], decor: [], stationery: [], events: [], locations: [], contacts: [],
     weekendTimeline: [], travelAccommodations: [], hotelBlocks: [], transportation: [], vipCare: [],

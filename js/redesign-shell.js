@@ -267,6 +267,7 @@
     var moodSlot = document.getElementById('mood-drawer-slot');
     var essentialsSlot = document.getElementById('essentials-drawer-slot');
     var packetsSlot = document.getElementById('packets-drawer-slot');
+    var emailsSlot = document.getElementById('emails-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -298,6 +299,7 @@
     else if (panel === 'mood') slot = moodSlot;
     else if (panel === 'essentials') slot = essentialsSlot;
     else if (panel === 'packets') slot = packetsSlot;
+    else if (panel === 'emails') slot = emailsSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -320,6 +322,7 @@
     if (moodSlot && d.parentElement === moodSlot) moodSlot.classList.remove('is-open');
     if (essentialsSlot && d.parentElement === essentialsSlot) essentialsSlot.classList.remove('is-open');
     if (packetsSlot && d.parentElement === packetsSlot) packetsSlot.classList.remove('is-open');
+    if (emailsSlot && d.parentElement === emailsSlot) emailsSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -347,6 +350,7 @@
       if (moodSlot) moodSlot.classList.remove('is-open');
       if (essentialsSlot) essentialsSlot.classList.remove('is-open');
       if (packetsSlot) packetsSlot.classList.remove('is-open');
+      if (emailsSlot) emailsSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
@@ -384,6 +388,9 @@
     }
     if (packetsSlot && packetsSlot.querySelector('.rd-pkt-drawer') && !(d.parentElement === packetsSlot && open)) {
       packetsSlot.classList.add('is-open');
+    }
+    if (emailsSlot && emailsSlot.querySelector('.rd-et-drawer') && !(d.parentElement === emailsSlot && open)) {
+      emailsSlot.classList.add('is-open');
     }
   }
 
@@ -763,6 +770,7 @@
     palettes: 'Vision Board / Palette',
     essentials: 'Essentials Checklist / Item',
     packets: 'Share Packets / Packet',
+    emailTemplates: 'Email Templates / Template',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',

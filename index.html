@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-12b1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-12c1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1144,33 +1144,12 @@
       <!-- Filled by uedPacketsShell() / renderPacketsPage() (Table|Cards|Activity · drawer) -->
     </div>
 
-<!-- ═══ EMAIL TEMPLATES ═══ -->
-    <div id="panel-emails" class="panel">
-      <div class="et-header">
-        <div>
-          <h2>Vendor Questions &amp; Email Templates</h2>
-          <p>Start with vendor questions, then use ready-to-send templates with merge fields from your Wedding Setup.</p>
-        </div>
-      </div>
-      <div class="et-stats" id="et-stats"></div>
-      <!-- Two-column workspace: category rail (left) + template cards (right), per Editorial v4 -->
-      <div class="et-layout">
-        <aside class="et-sidebar">
-          <!-- Category filter rail; buttons are injected by renderEmailTemplates() -->
-          <div class="et-sidebar-head">Categories</div>
-          <div class="et-cat-tabs" id="et-cat-tabs"></div>
-          <!-- Available Merge Fields card: shows every {{token}} and its live value -->
-          <div class="et-merge-card">
-            <h3>Available Merge Fields</h3>
-            <p>These fill automatically from Wedding Setup &amp; your planner data.</p>
-            <div class="et-merge-grid" id="et-merge-fields"></div>
-          </div>
-        </aside>
-        <div id="et-list"></div>
-      </div>
+    <!-- ═══ EMAIL TEMPLATES — All.dc #12c · Views Preview/Sent log · Drawers template · emails-redesign.js ═══ -->
+    <div id="panel-emails" class="panel emails-mockup ued-scope">
+      <!-- Filled by uedEmailsShell() / renderEmailsPage() (Table|Preview|Sent log · drawer) -->
     </div>
 
-    <!-- ═══ FAQ ═══ -->
+<!-- ═══ FAQ ═══ -->
     <div id="panel-faq" class="panel faq-mockup ued-scope">
       <div class="faq-title-wrap">
         <div class="faq-leaf-wrap" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 120 26"><path d="M6 13h108" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><path d="M52 13c-10-8-18-7-24-2 10 3 17 2 24 2Zm16 0c10-8 18-7 24-2-10 3-17 2-24 2Z" fill="currentColor" opacity=".85"/><path d="M60 13c-7-7-7-12-2-18 4 9 4 14 2 18Zm0 0c7-7 7-12 2-18-4 9-4 14-2 18Z" fill="currentColor" opacity=".65"/></svg></div>
@@ -1898,7 +1877,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-12b1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-12c1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -1926,12 +1905,13 @@
 <script src="js/honeymoon-redesign.js?v=redesign-17b1"></script>
 <script src="js/prayer-redesign.js?v=redesign-13b1"></script>
 <script src="js/counseling-redesign.js?v=redesign-13c1"></script>
-<script src="js/mood-redesign.js?v=redesign-12b1"></script>
-<script src="js/essentials-redesign.js?v=redesign-12b1"></script>
-<script src="js/packets-redesign.js?v=redesign-12b1"></script>
+<script src="js/mood-redesign.js?v=redesign-12c1"></script>
+<script src="js/essentials-redesign.js?v=redesign-12c1"></script>
+<script src="js/packets-redesign.js?v=redesign-12c1"></script>
+<script src="js/emails-redesign.js?v=redesign-12c1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-12b1"></script>
+<script src="js/redesign-shell.js?v=redesign-12c1"></script>
 <script>
 (function () {
   try {

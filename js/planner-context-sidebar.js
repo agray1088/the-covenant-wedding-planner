@@ -2273,6 +2273,71 @@
     return '<div class="rd-rail__stack" data-page-rail="packets">' + viewsHtml + activityHtml + groupHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #12c / Dark.dc #12c rail — Views + Use meters + Group by. */
+  function buildEmailsContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('emails', 'all');
+    else if (typeof window._etRailView === 'string' && window._etRailView) activeView = window._etRailView;
+    window._etRailView = activeView;
+
+    var counts = typeof window.etRailCounts === 'function' ? window.etRailCounts() : {
+      all: 0, Guests: 0, Vendors: 0, 'Wedding party': 0, blanks: 0
+    };
+    var figures = typeof window.etFigures === 'function' ? window.etFigures() : {
+      sentTotal: 0, mostTitle: '—', mostSent: 0, never: 0, lastSent: '—'
+    };
+    var groupBy = window._etGroupBy || 'audience';
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEmailsRailView(\'' + id.replace(/'/g, "\\'") + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (id === 'blanks' && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All templates', counts.all || 0) +
+      viewItem('Guests', 'Guests', counts.Guests || 0) +
+      viewItem('Vendors', 'Vendors', counts.Vendors || 0) +
+      viewItem('Wedding party', 'Wedding party', counts['Wedding party'] || 0) +
+      viewItem('blanks', 'With blank fields', counts.blanks || 0) +
+      '</div></div>';
+
+    var useHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Use</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Sent from a template</span><span class="rd-rail__count">' +
+      (figures.sentTotal || 0) + ' emails</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Most used</span><span class="rd-rail__count">' +
+      esc((figures.mostTitle || '—') + (figures.mostSent ? (' · ' + figures.mostSent) : '')) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Never used</span><span class="rd-rail__count">' +
+      (figures.never || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last sent</span><span class="rd-rail__count">' +
+      esc(figures.lastSent || '—') + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEmailsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('audience', 'Audience') +
+      groupItem('last', 'Last used') +
+      groupItem('author', 'Author') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Merge fields read live records. A template with an unresolved field cannot be sent until it is fixed.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="emails">' + viewsHtml + useHtml + groupHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -2292,6 +2357,7 @@
     mood: buildMoodContext,
     essentials: buildEssentialsContext,
     packets: buildPacketsContext,
+    emails: buildEmailsContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,
