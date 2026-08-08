@@ -399,34 +399,53 @@
   }
 
   function buildDashboardContext() {
-    var d = plannerData() || {};
-    var days = '—';
-    if (d.setup && d.setup.date && typeof todayISO === 'function' && typeof dateDiffDays === 'function') {
-      days = String(Math.max(0, dateDiffDays(todayISO(), d.setup.date)));
-    } else if (d.setup && d.setup.date) {
-      var weddingDate = new Date(d.setup.date);
-      var t = new Date();
-      days = String(Math.max(0, Math.ceil((weddingDate - t) / 86400000)));
-    }
-    var tasks = typeof safeArray === 'function' ? safeArray(d.tasks) : [];
-    var done = tasks.filter(function (t) { return t.status === 'Complete'; }).length;
-    var guests = typeof safeArray === 'function' ? safeArray(d.guests) : [];
-    var yes = guests.filter(function (g) { return /yes|accepted/i.test(g.rsvp || ''); }).length;
-    var spent = typeof budgetTotalActual === 'function' ? budgetTotalActual() : 0;
-    var total = parseFloat(d.setup && d.setup.budget) || 0;
-    var pct = total > 0 ? Math.round((spent / total) * 100) + '%' : '—';
+    /* All.dc #3a / Dark.dc — jump links (not saved views) + Foundation meters + scripture */
+    var activeJump = window._dashJump || 'dash-next-step';
+    var jumps = typeof window.dashboardRailJumps === 'function'
+      ? window.dashboardRailJumps()
+      : [
+        ['dash-next-step', 'Next best step'],
+        ['dash-needs', 'Needs attention'],
+        ['dash-budget-health', 'Budget health'],
+        ['dash-guest-response', 'Guest response'],
+        ['dash-day-preview', 'Wedding day preview']
+      ];
+    var meters = typeof window.dashboardFoundationMeters === 'function'
+      ? window.dashboardFoundationMeters()
+      : { visionPct: 0, counselingDone: 0, counselingTotal: 8, setupDone: 0, setupTotal: 7 };
 
-    return pcsHead('Dashboard', 'This page') +
-      pcsStats([
-        { val: String(days), lbl: 'Days left' },
-        { val: pct, lbl: 'Budget used' },
-        { val: String(yes), lbl: 'Guests yes' },
-        { val: done + '/' + tasks.length, lbl: 'Tasks done' }
-      ]) +
-      '<div class="pcs-block"><div class="pcs-block__title">Quick links</div><div class="pcs-actions">' +
-      '<button type="button" class="ued-btn" onclick="showPanel(\'setup\')">Wedding Setup</button>' +
-      '<button type="button" class="ued-btn" onclick="showPanel(\'tasks\')">Timeline</button>' +
-      '<button type="button" class="ued-btn" onclick="showPanel(\'calendar\')">Calendar</button></div></div>';
+    var jumpHtml = jumps.map(function (j) {
+      var id = j[0];
+      var label = j[1];
+      return '<button type="button" class="rd-rail__item' + (activeJump === id ? ' is-active' : '') + '"' +
+        ' onclick="rdDashJumpTo(\'' + id + '\')">' + esc(label) + '</button>';
+    }).join('');
+
+    var verseEl = document.getElementById('banner-verse');
+    var refEl = document.getElementById('banner-ref');
+    var verse = (verseEl && verseEl.value && verseEl.value.trim())
+      ? verseEl.value.trim()
+      : 'And a threefold cord is not quickly broken.';
+    var ref = (refEl && refEl.value && refEl.value.trim())
+      ? refEl.value.trim()
+      : 'Ecclesiastes 4:12';
+
+    return '<div class="rd-rail__stack" data-page-rail="dashboard">' +
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">On this page</div>' +
+      '<div class="rd-rail__list" role="list">' + jumpHtml + '</div></div>' +
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Foundation</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Vision &amp; foundation</span><span class="rd-rail__count">' +
+      (meters.visionPct || 0) + '%</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Counseling</span><span class="rd-rail__count">' +
+      (meters.counselingDone || 0) + '/' + (meters.counselingTotal || 8) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Setup complete</span><span class="rd-rail__count">' +
+      (meters.setupDone || 0) + '/' + (meters.setupTotal || 7) + '</span></div>' +
+      '</div></div>' +
+      '<p class="rd-rail__note">“' + esc(verse) + '”<br><b>' + esc(ref) + '</b></p>' +
+      '</div>';
   }
 
   /* Budget rail — mock 4a: saved views, in-page jump list, and a "where it

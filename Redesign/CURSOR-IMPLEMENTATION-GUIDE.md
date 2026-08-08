@@ -398,7 +398,8 @@ Essentials Checklist = All `#17a` + Views By person / Print + Drawers Item → `
 Share Packets = All `#12b` + Views Cards / Activity + Drawers Packet → `js/packets-redesign.js`.
 Email Templates = All `#12c` + Views Preview / Sent log + Drawers Template → `js/emails-redesign.js`.
 Database Hub = All `#7b` / `#7c` + Dark rails + Drawers Hub table / Hub row → `js/data-hub-redesign.js`.
-**Next on continue:** Overview **Dashboard** (All **3a** · Dark rail · `js/dashboard-redesign.js`), then **Notes** (Views **33a** / **33b** / **33c**). After Overview: cross-cutting Responsive **41–42**, Roles **43**, Vendor Portal.
+Dashboard = All `#3a` + Dark rail (jump links + Foundation) → `js/dashboard-redesign.js`.
+**Next on continue:** Overview **Notes** (Views **33a** / **33b** / **33c**). After Overview: cross-cutting Responsive **41–42**, Roles **43**, Vendor Portal.
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -542,12 +543,12 @@ or when the user asks — inventory may list more than the current `TABS` strip.
 | ✓ | Email Templates | `emails` | All **12c** · Views Preview/Sent log · `js/emails-redesign.js` |
 | ✓ | Database Hub | `data-hub` | All **7b** / **7c** · Dark rails · `js/data-hub-redesign.js` |
 
-**Overview** (current category — live `TABS` order):
+**Overview** (live `TABS` order):
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| — | Dashboard | `dashboard` | All **3a** · Dark **3a** rail · no Views/Drawers · `js/dashboard-redesign.js` |
-| — | Notes | `notes` | Views **33a** / **33b** / **33c** · Drawers note |
+| ✓ | Dashboard | `dashboard` | All **3a** · Dark rail · no Views/Drawers · `js/dashboard-redesign.js` |
+| ▶ | **Notes** | `notes` | Views **33a** / **33b** / **33c** · Drawers note |
 
 Then cross-cutting: Responsive **41–42**, Roles **43**, Vendor Portal last.
 
