@@ -10,6 +10,10 @@ Read §1 and §7 first. §7 is the delta list for work you have already done.
 process distilled from Venue & Vendors (4c) and the People/Money redesign — do not wait for the
 user to re-state it.
 
+**When the user says “continue” (or equivalent), run §11.0 immediately** — pick the next page in
+§11.7, find every mock for it, implement to **exact** mock fidelity, gap-pass, commit/push/PR.
+No re-brief required.
+
 ---
 
 ## 1 · The five documents, and what each is for
@@ -331,26 +335,57 @@ stat strip. The panel is `#panel-{page}-{view}` with `data-panel` and `data-view
 
 ## 11 · Page implementation playbook (standing process)
 
-Use this for **every** unfinished page (Ceremony, Catering, Entertainment, Shot Lists, Covenant,
-Documents, and any depth/responsive follow-ups). The user should not have to re-explain fidelity.
+Use this for **every** unfinished page. The user should not have to re-explain fidelity, mock
+lookup, or queue order.
 
-### 11.1 · Sources of truth (priority order)
+### 11.0 · “Continue” trigger
 
-1. **`Planner Screens All.dc.html`** — page id badge (e.g. `4c`, `7a`). Base state: rail, pagehead,
-   stats, toolbar, default work surface, and the drawer as drawn *on that screen*.
-2. **`Planner Screens Views.dc.html`** — every alternate view for that page id (Compare, Contacts,
-   Cards, Calendar, …). Build notes before the picture.
-3. **`Planner Screens Drawers.dc.html`** — every tab of the record type this page owns.
-4. **Guest `5a` / §16** — Full editor pop-out chrome is shared; only Guest has a dedicated drawing.
-   Other pages reuse `openRecordEditor(entity, idx)`.
-5. **`redesign/pages/{page}*.html` shells** — structure hints and rail notes. **Do not treat older
-   Sub-Tabs / shell tab models as authoritative** when All.dc + Views show a view switcher
-   (lesson from 4c: Tracker/Shortlist tabs were superseded by Table | Compare | Contacts).
-6. **`spec-update-notes.md` traps** + **`class-map.md`** class names.
-7. **Live legacy behaviour in `js/planner.js`** — keep data model and field schemas (e.g.
-   `VENDOR_CATEGORY_SCHEMAS`); restyle into the redesign surface, don't invent a parallel model.
+When the user says **continue**, **keep going**, **next page**, or similar:
 
-Match the mocks. Do not approximate.
+1. Take the **next unfinished page** from §11.7 (skip anything already fidelity-complete on the branch).
+2. Resolve its **page id** and find **all** mocks (§11.1a).
+3. Complete the mandatory inventory (§11.2) — no coding until that is done.
+4. Implement so the live UI **matches the mockups exactly** (§11.1 fidelity rule).
+5. Run the gap pass (§11.5), then commit, push, and update the PR.
+
+Do not ask which page unless the queue is ambiguous or blocked. Do not wait for mock file paths —
+look them up.
+
+### 11.1 · Fidelity rule (non-negotiable)
+
+**What you implement must match the mockups exactly** from the files in §11.1a — rail, stats,
+pagehead, toolbar, view switcher, work surface, drawer, marks, copy, and view-specific chrome.
+
+- Match the drawings. **Do not approximate**, restyle “in the spirit of”, or invent alternate UX.
+- If All.dc / Views / Drawers disagree with older shells or Sub-Tabs, **All.dc + Views + Drawers win**.
+- If something is undrawn (e.g. no vendor-only Full editor screen), reuse the shared pattern
+  (`openRecordEditor` / §16) and say so in the PR — do not invent a third chrome.
+- Keep legacy `data.*` models and schemas; restyle into the redesign surface.
+
+### 11.1a · How to find every mock for a page
+
+Lookup by **page id**, not by guessing filenames.
+
+| Step | Where | What to do |
+|---|---|---|
+| A | Guide §3 + `planner-screens-all-catalog.md` | Map page name → badge id (`7a`, `10d`, `11b`, …) |
+| B | `Planner Screens All.dc.html` | Open `id="{badge}"`. Read **Build notes**, then the full 1440px screen |
+| C | `Planner Screens Views.dc.html` | Use §3 batch map (30 Vendors/Money, 31 The Day, 32 Covenant, 33 Documents). Collect every screen whose title/badge is that page (or “{id} · … view”) |
+| D | `Planner Screens Drawers.dc.html` | Tab-group batch (Vendors 24, The Day 25, Covenant 26, Documents 27). Every tab of the record type |
+| E | `redesign/pages/{page}*.html` | Shell/rail hints only — secondary |
+| F | Views batches **34–43** | Depth, states, furniture, responsive, roles — apply when relevant; don’t skip forever |
+
+Worked example (already done): Venue & Vendors = All `#4c` + Views `#30f` / `#30g` + 4c drawer panel.
+
+### 11.1b · Sources of truth (priority order)
+
+1. **`Planner Screens All.dc.html`** — base state for the page id.
+2. **`Planner Screens Views.dc.html`** — every alternate view; build notes before the picture.
+3. **`Planner Screens Drawers.dc.html`** — every drawer tab for the record type.
+4. **Guest `5a` / §16** — shared Full editor chrome when no page-specific drawing exists.
+5. **`redesign/pages/` shells** — secondary; superseded when All/Views disagree.
+6. **`spec-update-notes.md`** + **`class-map.md`**.
+7. **Legacy `js/planner.js` (and page modules)** — data/schemas only; UI follows mocks.
 
 ### 11.2 · Read before you write (mandatory inventory)
 
@@ -410,10 +445,10 @@ slot and must set `.is-open` on it.
 
 ### 11.5 · Fidelity gap pass (before you call the page done)
 
-Re-diff live UI against the inventory:
+Re-diff live UI against the **exact** mock inventory from §11.1a:
 
-- [ ] Rail views + meters (and per-view meter swaps, e.g. Coverage on Compare)
-- [ ] Pagehead actions **per view** (Print comparison vs Print contact sheet, etc.)
+- [ ] Rail views + meters (and per-view meter swaps)
+- [ ] Pagehead actions **per view**
 - [ ] Stats per view
 - [ ] Every view's work surface (not just the default table)
 - [ ] Drawer fields exactly as drawn (links with →, overdue chips, pros/cons, domain CTAs)
@@ -442,14 +477,29 @@ People/Money pages (`party-`, `gifts-`, `budget-`, `payments-`, `contracts-`, `t
 follow the same shell + slot + renderer shape — reuse their CSS dock blocks when starting a new
 panel.
 
-### 11.7 · Remaining page queue (default order)
+### 11.7 · Remaining page queue (default order for “continue”)
 
-Unless the user names a page, continue in guide order after current work:
+Unless the user names a page, **continue** in this order. Ids from `planner-screens-all-catalog.md`:
 
-1. Depth pass leftovers on finished pages (§7.1) only when blocking fidelity
-2. **Vendors tab remainder:** Catering & Menu → Entertainment → Shot Lists
-3. **The Day / Ceremony** views still open
-4. **Covenant** then **Documents**
-5. Responsive 41–42, Roles 43, Vendor Portal last
+| # | Page | All.dc id | Views batch | Drawers batch |
+|---|---|---|---|---|
+| 1 | Catering & Menu | **7a** | 30 | 24 (Vendors tab group) |
+| 2 | Entertainment | **10d** | 30 | 24 |
+| 3 | Shot Lists | **11b** | 30 | 24 |
+| 4 | Ceremony & Reception | **11a** | 31 | 25 |
+| 5 | Weekend Logistics (if open) | **11d** | 31 | 25 |
+| 6 | Vision & Foundation | **13a** | 32 | 26 |
+| 7 | Prayer Journal | **13b** | 32 | 26 |
+| 8 | Premarital Counseling | **13c** | 32 | 26 |
+| 9 | First-Month Rhythms | **13d** | 32 | 26 |
+| 10 | Share Packets | **12b** | 33 | 27 |
+| 11 | Email Templates | **12c** | 33 | 27 |
+| 12 | Print Centre | **12d** | 33 | 27 |
+| 13 | Vision Board | **8b** | (see Views) | 24/27 as drawn |
+| 14 | Responsive / Roles | — | **41–43** | — |
 
-For each: inventory (§11.2) → build (§11.3–11.4) → gap pass (§11.5) → commit/push/PR update.
+Wedding Day Timeline was started on this branch; finish any open Timeline/Ceremony view gaps when
+they block The Day work. Cross-cutting depth (38–40) only when it blocks page fidelity.
+
+For each page: **§11.1a find mocks → §11.2 inventory → §11.3–11.4 build → §11.5 gap pass →
+commit / push / PR update.**
