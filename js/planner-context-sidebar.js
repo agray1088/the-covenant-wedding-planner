@@ -1497,6 +1497,68 @@
     return '<div class="rd-rail__stack" data-page-rail="venue">' + viewsHtml + metersHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #10d rail — Views + Coverage + Group by. */
+  function buildEntertainmentContext() {
+    var activeView = 'full';
+    if (typeof getSavedView === 'function') activeView = getSavedView('entertainment', 'full');
+    else if (typeof window._entRailView === 'string' && window._entRailView) activeView = window._entRailView;
+    window._entRailView = activeView;
+
+    var counts = typeof window.entertainmentRailCounts === 'function' ? window.entertainmentRailCounts() : {
+      full: 0, must: 0, dnp: 0, unplaced: 0, ceremony: 0
+    };
+    var figures = typeof window.entertainmentFigures === 'function' ? window.entertainmentFigures() : {
+      momentsFilled: 0, momentsTarget: 13, spend: 0
+    };
+    var groupBy = window._entGroupBy || 'moment';
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEntertainmentRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('full', 'Full set list', counts.full) +
+      viewItem('must', 'Must play', counts.must) +
+      viewItem('dnp', 'Do not play', counts.dnp) +
+      viewItem('unplaced', 'Unplaced', counts.unplaced, true) +
+      viewItem('ceremony', 'Ceremony music', counts.ceremony) +
+      '</div></div>';
+
+    var coverageHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Coverage</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Moments filled</span><span class="rd-rail__count">' +
+      (figures.momentsFilled || 0) + ' of ' + (figures.momentsTarget || 13) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Music spend</span><span class="rd-rail__count">$' +
+      Math.round(figures.spend || 0).toLocaleString() + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Guest requests</span><span class="rd-rail__count">—</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEntertainmentGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('moment', 'Moment') +
+      groupItem('performer', 'Performer') +
+      groupItem('source', 'Source') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Performers are vendor records. Their fees appear on the Budget under Music.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="entertainment">' + viewsHtml + coverageHtml + groupHtml + noteHtml + '</div>';
+  }
+
   /* All.dc #7a rail — Views + Dietary needs (live from Guest List). */
   function buildCateringContext() {
     var activeView = 'full';
@@ -1677,6 +1739,7 @@
     logistics: buildLogisticsContext,
     calendar: buildCalendarContext,
     catering: buildCateringContext,
+    entertainment: buildEntertainmentContext,
     'data-hub': buildDataHubContext
   };
 

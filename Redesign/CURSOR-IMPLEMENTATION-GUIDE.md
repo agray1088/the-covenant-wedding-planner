@@ -386,7 +386,8 @@ match to whatever is drawn. Note undrawn gaps in the PR — do not skip the page
 Worked examples: Venue & Vendors = All `#4c` + Views `#30f` / `#30g` + 4c drawer panel.
 Venue Comparison (`venue`) = thin inventory → `js/venue-redesign.js`.
 Catering & Menu = All `#7a` + Views `#30h` / `#30i` + Drawers batch 24 → `js/catering-redesign.js`.
-**Next on continue:** Entertainment (`entertainment` / All **10d`).
+Entertainment = All `#10d` + Views `#30j` / `#30k` + Drawers Song → `js/entertainment-redesign.js`.
+**Next on continue:** Shot Lists (`shotlist` / All **11b`).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -493,14 +494,14 @@ panel.
 **Order = live `TABS` in `js/redesign-shell.js`:** finish each category’s sub-pages left-to-right
 before moving to the next category. Do not jump ahead inside Vendors.
 
-**Vendors** (current category — through Catering & Menu done):
+**Vendors** (current category — through Entertainment done):
 
 | # | Sub-page (nav label) | Panel key | All.dc / notes |
 |---|---|---|---|
 | ✓ | Venue Comparison | `venue` | Thin inventory; `js/venue-redesign.js` |
-| ✓ | Catering & Menu | `catering` | All **7a** · Views `#30h`/`#30i` · Drawers 24 · `js/catering-redesign.js` |
-| ▶ | **Entertainment** | `entertainment` | All **10d** · Views 30 · Drawers 24 |
-| 4 | Shot Lists | `shotlist` | All **11b** · Views 30 · Drawers 24 |
+| ✓ | Catering & Menu | `catering` | All **7a** · Views `#30h`/`#30i` · `js/catering-redesign.js` |
+| ✓ | Entertainment | `entertainment` | All **10d** · Views `#30j`/`#30k` · `js/entertainment-redesign.js` |
+| ▶ | **Shot Lists** | `shotlist` | All **11b** · Views 30 · Drawers 24 |
 
 **The Day** (after Vendors sub-pages):
 

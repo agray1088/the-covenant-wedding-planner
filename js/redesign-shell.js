@@ -257,6 +257,7 @@
     var vendorsSlot = document.getElementById('vendors-drawer-slot');
     var venueSlot = document.getElementById('venue-drawer-slot');
     var cateringSlot = document.getElementById('catering-drawer-slot');
+    var entertainmentSlot = document.getElementById('entertainment-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -278,6 +279,7 @@
     else if (panel === 'tables') slot = tablesSlot;
     else if (panel === 'vendors') slot = vendorsSlot;
     else if (panel === 'catering') slot = cateringSlot;
+    else if (panel === 'entertainment') slot = entertainmentSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -290,6 +292,7 @@
     if (tablesSlot && d.parentElement === tablesSlot) tablesSlot.classList.remove('is-open');
     if (vendorsSlot && d.parentElement === vendorsSlot) vendorsSlot.classList.remove('is-open');
     if (cateringSlot && d.parentElement === cateringSlot) cateringSlot.classList.remove('is-open');
+    if (entertainmentSlot && d.parentElement === entertainmentSlot) entertainmentSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -307,6 +310,7 @@
       if (tablesSlot) tablesSlot.classList.remove('is-open');
       if (vendorsSlot) vendorsSlot.classList.remove('is-open');
       if (cateringSlot) cateringSlot.classList.remove('is-open');
+      if (entertainmentSlot) entertainmentSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
@@ -314,6 +318,9 @@
     }
     if (cateringSlot && cateringSlot.querySelector('.rd-cat-drawer') && !(d.parentElement === cateringSlot && open)) {
       cateringSlot.classList.add('is-open');
+    }
+    if (entertainmentSlot && entertainmentSlot.querySelector('.rd-ent-drawer') && !(d.parentElement === entertainmentSlot && open)) {
+      entertainmentSlot.classList.add('is-open');
     }
   }
 
@@ -665,6 +672,11 @@
     venue: 'Venue Comparison / Venue',
     catering: 'Catering & Menu / Menu item',
     menu: 'Catering & Menu / Menu item',
+    entertainment: 'Entertainment / Song',
+    recSongs: 'Entertainment / Song',
+    receptionPlaylist: 'Entertainment / Song',
+    doNotPlay: 'Entertainment / Song',
+    mustPlay: 'Entertainment / Song',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',
