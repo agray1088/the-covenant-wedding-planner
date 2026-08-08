@@ -6,6 +6,10 @@ most importantly — **what changed under the three categories you have already 
 
 Read §1 and §7 first. §7 is the delta list for work you have already done.
 
+**For every remaining page, follow §11 · Page implementation playbook.** It is the standing
+process distilled from Venue & Vendors (4c) and the People/Money redesign — do not wait for the
+user to re-state it.
+
 ---
 
 ## 1 · The five documents, and what each is for
@@ -322,3 +326,130 @@ stat strip. The panel is `#panel-{page}-{view}` with `data-panel` and `data-view
 - **No shells for furniture, states or responsive** — they are overlays, per-archetype states and breakpoint behaviours, not pages. Reserved class names are at the foot of `class-map.md`.
 - **`Planner Screens All.dc.html` is 2.2MB** and slow to open. Give it time.
 - **`Planner Screens Views.dc.html` is 1.3MB** — over a minute to first paint, and it cannot be exported to PNG or PDF.
+
+---
+
+## 11 · Page implementation playbook (standing process)
+
+Use this for **every** unfinished page (Ceremony, Catering, Entertainment, Shot Lists, Covenant,
+Documents, and any depth/responsive follow-ups). The user should not have to re-explain fidelity.
+
+### 11.1 · Sources of truth (priority order)
+
+1. **`Planner Screens All.dc.html`** — page id badge (e.g. `4c`, `7a`). Base state: rail, pagehead,
+   stats, toolbar, default work surface, and the drawer as drawn *on that screen*.
+2. **`Planner Screens Views.dc.html`** — every alternate view for that page id (Compare, Contacts,
+   Cards, Calendar, …). Build notes before the picture.
+3. **`Planner Screens Drawers.dc.html`** — every tab of the record type this page owns.
+4. **Guest `5a` / §16** — Full editor pop-out chrome is shared; only Guest has a dedicated drawing.
+   Other pages reuse `openRecordEditor(entity, idx)`.
+5. **`redesign/pages/{page}*.html` shells** — structure hints and rail notes. **Do not treat older
+   Sub-Tabs / shell tab models as authoritative** when All.dc + Views show a view switcher
+   (lesson from 4c: Tracker/Shortlist tabs were superseded by Table | Compare | Contacts).
+6. **`spec-update-notes.md` traps** + **`class-map.md`** class names.
+7. **Live legacy behaviour in `js/planner.js`** — keep data model and field schemas (e.g.
+   `VENDOR_CATEGORY_SCHEMAS`); restyle into the redesign surface, don't invent a parallel model.
+
+Match the mocks. Do not approximate.
+
+### 11.2 · Read before you write (mandatory inventory)
+
+For the page id you are building, extract and keep a checklist from:
+
+| Surface | What to capture |
+|---|---|
+| All.dc build notes | Purpose, rail views/meters, columns, stats, primary action, connections |
+| All.dc picture | Pagehead button order, toolbar chips, view switcher, groups, empty/add row, drawer fields |
+| Each Views screen | Purpose, marks/rules, alternate stats/rail, work-surface shape, pagehead deltas |
+| Drawers.dc | Every tab label + fields; footer actions (Save / Full editor / domain CTA) |
+| Legacy code | Entity key, `data.*` arrays, status helpers, schemas/attrs, linked records |
+
+If you only skimmed All.dc chrome and skipped drawer / Full editor / view build notes, **stop and
+finish the inventory** before coding. A partial read is how 4c missed Budget line →, Coverage
+rail, and §16 Full editor.
+
+### 11.3 · Build order (same anatomy every page)
+
+1. **Shell** — `#panel-{page}` → `.rd-page` with pagehead, `#…-stats`, toolbar, bulk bar,
+   `.rd-surface > .rd-surface__row` containing `.rd-surface__main` + `#{page}-drawer-slot`.
+2. **Rail** — `js/planner-context-sidebar.js` `build{Page}Context()`: Views list + meters + note
+   from the mock. View switching must not reload the page.
+3. **Stat strip** — labels/values/attention from All.dc; alternate strips per view when Views
+   draw them (use `RdDepth.renderStats` when available).
+4. **Toolbar** — filters, sort, columns, density, **view switcher on the right**.
+5. **Default work surface** — table/cards/plan/etc. from All.dc (columns, groups, rating marks,
+   contract chips, add row).
+6. **Alternate views** — one render path per Views screen; only the work surface + relevant
+   chrome change.
+7. **Drawer** — 360px docked **right of the table**, not under it. See §11.4.
+8. **Full editor** — pagehead + drawer + row action → `openRecordEditor(entity, idx)` (§16).
+   Open-in-drawer and open-full-editor are **separate** actions (hover row actions with kbd hints).
+9. **Wire-up** — `SYSTEM_PANEL_RENDERERS`, cache-bust `?v=` on touched CSS/JS in `index.html`,
+   rail counts helpers on `window`, commit / push / update PR.
+
+Prefer a focused `{page}-redesign.js` (pattern: `vendors-redesign.js`, `party-redesign.js`) over
+growing `planner.js` further.
+
+### 11.4 · Drawer docking (do not skip)
+
+Other redesigned pages already do this; copy the pattern or the drawer stacks under the table:
+
+```css
+#panel-{page} .rd-surface { flex column; flex 1; min-height 0; overflow hidden; }
+#panel-{page} .rd-surface__row { display flex; align-items stretch; flex 1; min-height 0; }
+#panel-{page} .rd-surface__main { flex 1; min-width 0; overflow hidden; }
+#panel-{page} #{page}-drawer-slot { display: none; }
+#panel-{page} #{page}-drawer-slot.is-open {
+  display: flex; flex: 0 0 360px; width/min/max 360px; border-left; background;
+}
+```
+
+Also register the slot in `redesign-shell.js` `syncDrawerSlot()` and `DRAWER_PAGE_CRUMB` when using
+the shared `#record-drawer`. Custom decision drawers (like Vendors 4c) still live in the same
+slot and must set `.is-open` on it.
+
+### 11.5 · Fidelity gap pass (before you call the page done)
+
+Re-diff live UI against the inventory:
+
+- [ ] Rail views + meters (and per-view meter swaps, e.g. Coverage on Compare)
+- [ ] Pagehead actions **per view** (Print comparison vs Print contact sheet, etc.)
+- [ ] Stats per view
+- [ ] Every view's work surface (not just the default table)
+- [ ] Drawer fields exactly as drawn (links with →, overdue chips, pros/cons, domain CTAs)
+- [ ] Full editor opens §16 pop-out for the correct index
+- [ ] Row actions: Open (drawer) ≠ Full editor
+- [ ] Legacy schemas/attrs/linked data still drive the matrix/forms
+- [ ] Drawer docks right (flex row), desktop + narrow overlay behaviour
+- [ ] Hard-refresh cache bust on changed assets
+
+Call out deferred items honestly in the PR (whole-app depth 38–40, responsive 41–42, roles 43,
+missing dedicated Full-editor drawings, etc.). Do not pretend a skim equals a gap pass.
+
+### 11.6 · Reference implementation
+
+**Venue & Vendors (`4c`)** is the template for this playbook:
+
+| Piece | Where |
+|---|---|
+| Page module | `js/vendors-redesign.js` |
+| Rail | `js/planner-context-sidebar.js` → `buildVendorsContext` |
+| Drawer slot + crumb | `js/redesign-shell.js` |
+| Layout / drawer dock CSS | `css/redesign-overrides.css` (`#panel-vendors` surface row) |
+| Mocks | All.dc `#4c`, Views `#30f` `#30g` |
+
+People/Money pages (`party-`, `gifts-`, `budget-`, `payments-`, `contracts-`, `tables-redesign.js`)
+follow the same shell + slot + renderer shape — reuse their CSS dock blocks when starting a new
+panel.
+
+### 11.7 · Remaining page queue (default order)
+
+Unless the user names a page, continue in guide order after current work:
+
+1. Depth pass leftovers on finished pages (§7.1) only when blocking fidelity
+2. **Vendors tab remainder:** Catering & Menu → Entertainment → Shot Lists
+3. **The Day / Ceremony** views still open
+4. **Covenant** then **Documents**
+5. Responsive 41–42, Roles 43, Vendor Portal last
+
+For each: inventory (§11.2) → build (§11.3–11.4) → gap pass (§11.5) → commit/push/PR update.
