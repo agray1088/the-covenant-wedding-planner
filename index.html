@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-10d1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-11b1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1228,110 +1228,9 @@
       <!-- Filled by uedGiftsShell() / renderGifts() -->
     </div>
 
-    <!-- ═══ PHOTO & VIDEO SHOT LISTS ═══ -->
+    <!-- ═══ SHOT LISTS — All.dc #11b · Views 30l/30m · Drawers 24 · shotlist-redesign.js ═══ -->
     <div id="panel-shotlist" class="panel shotlist-mockup ued-scope">
-      <div class="shotlist-title-wrap">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="shotlist-title">Photo &amp; Video Shot Lists</h2>
-        <p class="shotlist-subtitle">Plan must-have photo moments and wedding-film coverage for your photographer and videographer.</p>
-      </div>
-
-      <div class="shotlist-tabs-shell">
-        <div class="m-tabs shotlist-page-tabs" role="tablist" aria-label="Shot list type">
-          <button class="m-tab active" type="button" data-shot-tab="photo" onclick="shotlistTab('photo')">Photo Shot List</button>
-          <button class="m-tab" type="button" data-shot-tab="video" onclick="shotlistTab('video')">Video Shot List</button>
-        </div>
-      </div>
-
-      <section class="ued-panel span12 record-editor-inline-shell shotlist-inline-editor" id="shotlist-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div><div class="ued-table-title">Shot list inline editor <span id="shotlist-inline-table-label">Photo Shot List</span> <span class="gie-mode" data-inline-editor-mode>Adding a new photo shot</span></div><p class="gie-note">Choose Photo or Video, edit one full row here, then use the preview tables below to scan, filter, Auto-fit, and select another row.</p></div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div class="m-tabbar shotlist-inline-tabs" id="shotlist-inline-table-tabs" role="tablist">
-          <button type="button" class="m-tab on" data-shot-inline-tab="shotlist" onclick="setShotInlineTable('shotlist',null)" role="tab" aria-selected="true">Photo</button>
-          <button type="button" class="m-tab" data-shot-inline-tab="videoShots" onclick="setShotInlineTable('videoShots',null)" role="tab" aria-selected="false">Video</button>
-        </div>
-        <div id="shotlist-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="setShotInlineTable(_shotInlineKey,null)" style="display:none">Start new row</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add photo shot</button>
-        </div>
-      </section>
-
-      <div id="shotlist-photo-panel" class="shotlist-tab-panel">
-      <div class="m-banner">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17V7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M12 10v6"/><path d="m9 13 3 3 3-3"/></svg>
-        <span class="m-banner-t"><b>Photo starter list</b> — loads 45+ editable shots, then add your own rows, priorities, and notes below.</span>
-        <button class="m-btn m-btn-primary" onclick="loadShotPreset()">Load photo shot list</button>
-      </div>
-
-      <div id="shotlist-stat-grid" class="m-stats" aria-live="polite"></div>
-      <div id="shotlist-overview-grid" class="shotlist-overview-grid" aria-live="polite"></div>
-
-      <!-- Filter card removed: filtering now lives in the table's per-column Excel filters + search (CWP engine). -->
-      <datalist id="shot-people-options"></datalist>
-
-      <section class="ued-table-card shotlist-table-card">
-        <!-- Photo shot list table now rendered by the CWP unified engine (renderShotlist → cwpRenderTable('shotlist')) -->
-        <div class="ued-table-head">
-          <div class="ued-table-title">Photo shot list</div>
-          <div class="ued-actions shotlist-table-actions no-print">
-            <button type="button" class="ued-btn" onclick="setShotInlineTable('shotlist',null)">+ Add photo shot</button>
-            <button type="button" class="ued-btn" onclick="openDataHub('design','shotlist')">Edit in Design Hub</button>
-          </div>
-        </div>
-        <div id="cwp-shotlist" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-        <datalist id="shot-section-options">
-          <option value="Getting Ready"></option>
-          <option value="Detail"></option>
-          <option value="First Look"></option>
-          <option value="Couple"></option>
-          <option value="Family"></option>
-          <option value="Wedding Party"></option>
-          <option value="Ceremony"></option>
-          <option value="Cocktail"></option>
-          <option value="Reception"></option>
-          <option value="Send-Off"></option>
-        </datalist>
-        <datalist id="shot-timing-options">
-          <option value="Getting Ready"></option>
-          <option value="Pre-Ceremony"></option>
-          <option value="First Look"></option>
-          <option value="Ceremony"></option>
-          <option value="Family Portraits"></option>
-          <option value="Cocktail Hour"></option>
-          <option value="Reception"></option>
-          <option value="Golden Hour"></option>
-          <option value="Send-Off"></option>
-        </datalist>
-      </section>
-      </div>
-
-      <div id="shotlist-video-panel" class="shotlist-tab-panel" hidden>
-        <div class="m-banner">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 11 5-3v8l-5-3z"/><rect x="3" y="6" width="13" height="12" rx="2"/></svg>
-          <span class="m-banner-t"><b>Video starter list</b> — loads essential wedding-film moments for your videographer (B-roll, vows, speeches, dances, and send-off).</span>
-          <button class="m-btn m-btn-primary" onclick="loadVideoShotPreset()">Load video shot list</button>
-        </div>
-        <div id="video-shotlist-stat-grid" class="m-stats" aria-live="polite"></div>
-        <div id="video-shotlist-overview-grid" class="shotlist-overview-grid" aria-live="polite"></div>
-        <section class="ued-table-card shotlist-table-card">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Video shot list</div>
-            <div class="ued-actions shotlist-table-actions no-print">
-              <button type="button" class="ued-btn" onclick="setShotInlineTable('videoShots',null)">+ Add video shot</button>
-              <button type="button" class="ued-btn" onclick="openDataHub('design','videoShots')">Edit in Design Hub</button>
-            </div>
-          </div>
-          <div id="cwp-videoShots" class="ro-preview"></div>
-          <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-        </section>
-      </div>
+      <!-- Filled by uedShotlistShell() / renderShotlistPage() (Table|Cards|By window · drawer) -->
     </div>
 
     <!-- ═══ WEDDING VENUE ═══ -->
@@ -2640,7 +2539,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-10d1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-11b1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -2662,10 +2561,11 @@
 <script src="js/venue-redesign.js?v=redesign-venue1"></script>
 <script src="js/catering-redesign.js?v=redesign-7a1"></script>
 <script src="js/entertainment-redesign.js?v=redesign-10d1"></script>
+<script src="js/shotlist-redesign.js?v=redesign-11b1"></script>
 <script src="js/timeline-redesign.js?v=redesign-vendors1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-10d1"></script>
+<script src="js/redesign-shell.js?v=redesign-11b1"></script>
 <script>
 (function () {
   try {

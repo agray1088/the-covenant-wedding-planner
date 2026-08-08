@@ -387,7 +387,8 @@ Worked examples: Venue & Vendors = All `#4c` + Views `#30f` / `#30g` + 4c drawer
 Venue Comparison (`venue`) = thin inventory → `js/venue-redesign.js`.
 Catering & Menu = All `#7a` + Views `#30h` / `#30i` + Drawers batch 24 → `js/catering-redesign.js`.
 Entertainment = All `#10d` + Views `#30j` / `#30k` + Drawers Song → `js/entertainment-redesign.js`.
-**Next on continue:** Shot Lists (`shotlist` / All **11b`).
+Shot Lists = All `#11b` + Views `#30l` / `#30m` + Drawers Shot → `js/shotlist-redesign.js`.
+**Next on continue:** Wedding Day Timeline (`timeline` / All **6b`).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -494,20 +495,20 @@ panel.
 **Order = live `TABS` in `js/redesign-shell.js`:** finish each category’s sub-pages left-to-right
 before moving to the next category. Do not jump ahead inside Vendors.
 
-**Vendors** (current category — through Entertainment done):
+**Vendors** (complete):
 
 | # | Sub-page (nav label) | Panel key | All.dc / notes |
 |---|---|---|---|
 | ✓ | Venue Comparison | `venue` | Thin inventory; `js/venue-redesign.js` |
 | ✓ | Catering & Menu | `catering` | All **7a** · Views `#30h`/`#30i` · `js/catering-redesign.js` |
 | ✓ | Entertainment | `entertainment` | All **10d** · Views `#30j`/`#30k` · `js/entertainment-redesign.js` |
-| ▶ | **Shot Lists** | `shotlist` | All **11b** · Views 30 · Drawers 24 |
+| ✓ | Shot Lists | `shotlist` | All **11b** · Views `#30l`/`#30m` · `js/shotlist-redesign.js` |
 
-**The Day** (after Vendors sub-pages):
+**The Day** (current category):
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| 5 | Wedding Day Timeline | `timeline` | **6b** (+ Views 31; finish open Vertical/Details gaps) |
+| ▶ | **Wedding Day Timeline** | `timeline` | **6b** (+ Views 31; finish open Vertical/Details gaps) |
 | 6 | Ceremony & Reception | `ceremony` | **11a** · Views 31 · Drawers 25 |
 | 7 | Honeymoon & After | `honeymoon` | **17b** · Views as drawn |
 

@@ -1559,6 +1559,76 @@
     return '<div class="rd-rail__stack" data-page-rail="entertainment">' + viewsHtml + coverageHtml + groupHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #11b rail — Views + By window meters + Group by. */
+  function buildShotlistContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('shotlist', 'all');
+    else if (typeof window._shotRailView === 'string' && window._shotRailView) activeView = window._shotRailView;
+    window._shotRailView = activeView;
+
+    var counts = typeof window.shotlistRailCounts === 'function' ? window.shotlistRailCounts() : {
+      all: 0, must: 0, groups: 0, risk: 0, video: 0
+    };
+    var figures = typeof window.shotlistFigures === 'function' ? window.shotlistFigures() : {
+      byWin: { getting: 0, ceremony: 0, golden: 0, reception: 0 }
+    };
+    var byWin = figures.byWin || {};
+    var groupBy = window._shotGroupBy || 'list';
+    var total = counts.all || 1;
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyShotlistRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All shots', counts.all) +
+      viewItem('must', 'Must have', counts.must) +
+      viewItem('groups', 'Group shots', counts.groups) +
+      viewItem('risk', 'At risk', counts.risk, true) +
+      viewItem('video', 'Video only', counts.video) +
+      '</div></div>';
+
+    function meter(label, n) {
+      var pct = Math.min(100, Math.round((n / total) * 100));
+      return '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>' + esc(label) + '</span><span class="rd-rail__count">' +
+        n + ' shot' + (n === 1 ? '' : 's') + '</span></div>' +
+        '<div class="rd-progress"><div class="rd-progress__fill" style="width:' + pct + '%"></div></div></div>';
+    }
+
+    var metersHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">By window</div>' +
+      '<div class="rd-rail__meters">' +
+      meter('Getting ready', byWin.getting || 0) +
+      '<div class="rd-rail__meter-top"><span>Ceremony</span><span class="rd-rail__count">' + (byWin.ceremony || 0) + ' shots</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Golden hour</span><span class="rd-rail__count">' + (byWin.golden || 0) + ' shots</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Reception</span><span class="rd-rail__count">' + (byWin.reception || 0) + ' shots</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyShotlistGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('list', 'List') +
+      groupItem('window', 'Window') +
+      groupItem('supplier', 'Supplier') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Group shots pull their people from guest records, so a declined RSVP shows here before the day.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="shotlist">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
   /* All.dc #7a rail — Views + Dietary needs (live from Guest List). */
   function buildCateringContext() {
     var activeView = 'full';
@@ -1740,6 +1810,7 @@
     calendar: buildCalendarContext,
     catering: buildCateringContext,
     entertainment: buildEntertainmentContext,
+    shotlist: buildShotlistContext,
     'data-hub': buildDataHubContext
   };
 
