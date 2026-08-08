@@ -268,6 +268,7 @@
     var essentialsSlot = document.getElementById('essentials-drawer-slot');
     var packetsSlot = document.getElementById('packets-drawer-slot');
     var emailsSlot = document.getElementById('emails-drawer-slot');
+    var notesSlot = document.getElementById('notes-drawer-slot');
     var dataHubSlot = document.getElementById('data-hub-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
@@ -301,6 +302,7 @@
     else if (panel === 'essentials') slot = essentialsSlot;
     else if (panel === 'packets') slot = packetsSlot;
     else if (panel === 'emails') slot = emailsSlot;
+    else if (panel === 'notes') slot = notesSlot;
     else if (panel === 'data-hub') slot = dataHubSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
@@ -325,6 +327,7 @@
     if (essentialsSlot && d.parentElement === essentialsSlot) essentialsSlot.classList.remove('is-open');
     if (packetsSlot && d.parentElement === packetsSlot) packetsSlot.classList.remove('is-open');
     if (emailsSlot && d.parentElement === emailsSlot) emailsSlot.classList.remove('is-open');
+    if (notesSlot && d.parentElement === notesSlot) notesSlot.classList.remove('is-open');
     if (dataHubSlot && d.parentElement === dataHubSlot) dataHubSlot.classList.remove('is-open');
 
     if (slot) {
@@ -354,6 +357,7 @@
       if (essentialsSlot) essentialsSlot.classList.remove('is-open');
       if (packetsSlot) packetsSlot.classList.remove('is-open');
       if (emailsSlot) emailsSlot.classList.remove('is-open');
+      if (notesSlot) notesSlot.classList.remove('is-open');
       if (dataHubSlot) dataHubSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
@@ -395,6 +399,9 @@
     }
     if (emailsSlot && emailsSlot.querySelector('.rd-et-drawer') && !(d.parentElement === emailsSlot && open)) {
       emailsSlot.classList.add('is-open');
+    }
+    if (notesSlot && notesSlot.querySelector('.rd-notes-drawer') && !(d.parentElement === notesSlot && open)) {
+      notesSlot.classList.add('is-open');
     }
     if (dataHubSlot && dataHubSlot.querySelector('.rd-dh-drawer') && !(d.parentElement === dataHubSlot && open)) {
       dataHubSlot.classList.add('is-open');
@@ -778,6 +785,7 @@
     essentials: 'Essentials Checklist / Item',
     packets: 'Share Packets / Packet',
     emailTemplates: 'Email Templates / Template',
+    notesDetails: 'Notes / Note',
     'data-hub': 'Database Hub / Hub table',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',

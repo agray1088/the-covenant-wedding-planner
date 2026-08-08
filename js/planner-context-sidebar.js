@@ -2345,6 +2345,65 @@
   }
 
   /* All.dc #12c / Dark.dc #12c rail — Views + Use meters + Group by. */
+  function buildNotesContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('notes', 'all');
+    else if (typeof window._notesRailView === 'string' && window._notesRailView) activeView = window._notesRailView;
+    window._notesRailView = activeView;
+
+    var counts = typeof window.notesRailCounts === 'function' ? window.notesRailCounts() : {
+      all: 0, unpinned: 0, flagged: 0, mine: 0, shared: 0, bySubject: {}
+    };
+    var bySubject = counts.bySubject || {};
+    var groupBy = window._notesGroupBy || 'pinnedTo';
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyNotesRailView(\'' + id.replace(/'/g, "\\'") + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (id === 'flagged' && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All notes', counts.all || 0) +
+      viewItem('unpinned', 'Unpinned', counts.unpinned || 0) +
+      viewItem('flagged', 'Flagged', counts.flagged || 0) +
+      viewItem('mine', 'Mine', counts.mine || 0) +
+      viewItem('shared', 'Shared', counts.shared || 0) +
+      '</div></div>';
+
+    var subjectHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">By subject</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Vendors</span><span class="rd-rail__count">' + (bySubject.Vendors || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Guests</span><span class="rd-rail__count">' + (bySubject.Guests || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Money</span><span class="rd-rail__count">' + (bySubject.Money || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>The day</span><span class="rd-rail__count">' + (bySubject['The day'] || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Loose</span><span class="rd-rail__count">' + (bySubject.Loose || 0) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyNotesGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('pinnedTo', 'Pinned to') +
+      groupItem('author', 'Author') +
+      groupItem('date', 'Date') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">A note is never in a share packet. Pin it to a record so it shows up where the work is.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="notes">' + viewsHtml + subjectHtml + groupHtml + noteHtml + '</div>';
+  }
+
   function buildEmailsContext() {
     var activeView = 'all';
     if (typeof getSavedView === 'function') activeView = getSavedView('emails', 'all');
@@ -2415,6 +2474,7 @@
     gifts: buildGiftsContext,
     tables: buildTablesContext,
     dashboard: buildDashboardContext,
+    notes: buildNotesContext,
     budget: buildBudgetContext,
     payments: buildPaymentsContext,
     contracts: buildContractsContext,

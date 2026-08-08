@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-3a1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-12a1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -858,112 +858,8 @@
     </div>
 
     <!-- ═══ NOTES ═══ -->
-    <div id="panel-notes" class="panel notes-mockup ued-scope">
-      <svg class="notes-symbols" aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute; width:0; height:0; overflow:hidden;">
-        <symbol id="notes-icon-clipboard" viewBox="0 0 24 24"><path d="M9 4h6l1 2h3v15H5V6h3l1-2Z"/><path d="M9 6h6"/><path d="M8 11h8M8 15h8M8 19h5"/></symbol>
-        <symbol id="notes-icon-pin" viewBox="0 0 24 24"><path d="M14 3l7 7-4 1-4 4 1 4-2 2-4-7-5-4 2-2 4 1 4-4 1-4Z"/><path d="M9 15l-5 5"/></symbol>
-        <symbol id="notes-icon-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 3h9v10H3z"/><path d="M3 9h18"/></symbol>
-        <symbol id="notes-icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></symbol>
-        <symbol id="notes-icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></symbol>
-        <symbol id="notes-icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></symbol>
-        <symbol id="notes-icon-church" viewBox="0 0 24 24"><path d="M12 3v5"/><path d="M9.5 5.5h5"/><path d="M4 11l8-6 8 6v10H4z"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/></symbol>
-        <symbol id="notes-icon-glasses" viewBox="0 0 24 24"><circle cx="7" cy="14" r="3"/><circle cx="17" cy="14" r="3"/><path d="M10 14h4M4 11l1.8 1M20 11l-1.8 1"/></symbol>
-        <symbol id="notes-icon-heart" viewBox="0 0 24 24"><path d="M20 8.5c0 5-8 10-8 10s-8-5-8-10A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8 2.5Z"/></symbol>
-        <symbol id="notes-icon-book" viewBox="0 0 24 24"><path d="M4 5c2-1 4-1 8 1v15c-4-2-6-2-8-1z"/><path d="M20 5c-2-1-4-1-8 1v15c4-2 6-2 8-1z"/></symbol>
-        <symbol id="notes-icon-calendar" viewBox="0 0 24 24"><path d="M5 5h14v16H5z"/><path d="M8 3v4M16 3v4M5 10h14"/></symbol>
-        <symbol id="notes-icon-plane" viewBox="0 0 24 24"><path d="M3 11l18-7-7 18-3-8-8-3Z"/><path d="M21 4l-10 10"/></symbol>
-        <symbol id="notes-icon-tag" viewBox="0 0 24 24"><path d="M4 12V5h7l9 9-7 7z"/><circle cx="8" cy="8" r="1.2"/></symbol>
-        <symbol id="notes-icon-pencil" viewBox="0 0 24 24"><path d="M4 20l4-1 11-11a2 2 0 0 0-3-3L5 16z"/><path d="M14 6l4 4"/></symbol>
-        <symbol id="notes-icon-image" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="2"/><path d="M20 16l-5-5-4 4-2-2-5 5"/></symbol>
-        <symbol id="notes-icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></symbol>
-        <symbol id="notes-icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
-        <symbol id="notes-icon-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></symbol>
-        <symbol id="notes-icon-dollar" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M16 7.5c-.8-1.1-2.1-1.8-4-1.8-2.2 0-3.5 1-3.5 2.6 0 4.2 7 2.1 7 6.5 0 1.8-1.6 3.2-4 3.2-2 0-3.5-.7-4.5-2"/></symbol>
-        <symbol id="notes-icon-pray" viewBox="0 0 24 24"><path d="M10 3c1.5 3 1.8 6.5.6 10L8 21"/><path d="M14 3c-1.5 3-1.8 6.5-.6 10L16 21"/><path d="M10.8 13h2.4"/></symbol>
-        <symbol id="notes-icon-check" viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></symbol>
-      </svg>
-
-      <section class="notes-title-wrap">
-        <span class="notes-orn" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></span>
-        <h2 class="notes-title">Notes</h2>
-        <p class="notes-subtitle">Your free-form planning space — capture every idea, reminder, and detail in one beautiful place.</p>
-      </section>
-
-      <div id="notes-stat-grid" class="m-stats" aria-label="Notes summary"></div>
-
-      <section class="ued-panel notes-side-panel notes-quick-card notes-quick-wide" aria-label="Quick Note">
-        <div class="notes-side-title"><span class="notes-small-icon"><svg><use href="#notes-icon-pencil"></use></svg></span><h3>Quick Note</h3></div>
-        <div class="notes-quick-wide-layout">
-          <textarea id="notes-quick-text" class="notes-quick-text" placeholder="Jot something down..."></textarea>
-          <div class="notes-quick-actions">
-            <button type="button" class="notes-quick-tool" title="Add a tag" onclick="insertQuickNoteText('#tag ')"><svg><use href="#notes-icon-tag"></use></svg></button>
-            <button type="button" class="notes-quick-tool" title="Add an image reminder" onclick="insertQuickNoteText('[image idea] ')"><svg><use href="#notes-icon-image"></use></svg></button>
-            <button type="button" class="btn btn-forest btn-sm" onclick="addQuickNote()">Add Note</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="notes-toolbar" aria-label="Notes filters">
-        <div class="notes-search-wrap"><span aria-hidden="true"><svg><use href="#notes-icon-search"></use></svg></span><input id="notes-search" type="search" placeholder="Search notes..." oninput="renderNotesPage()"></div>
-        <select id="notes-category-filter" class="notes-filter" onchange="renderNotesPage()"><option value="">All Categories</option></select>
-        <select id="notes-tag-filter" class="notes-filter" onchange="renderNotesPage()"><option value="">All Tags</option></select>
-        <select id="notes-sort-filter" class="notes-filter notes-sort" onchange="renderNotesPage()"><option value="recent">Recent</option><option value="pinned">Pinned First</option><option value="title">Title A–Z</option><option value="category">Category</option></select>
-        <button type="button" class="btn btn-forest notes-add-top" onclick="addNotesDetailRow()">+ Add Note</button>
-      </section>
-
-      <section class="ued-panel span12 record-editor-inline-shell notes-inline-editor" id="notes-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div>
-            <div class="ued-table-title">Notes tracker editor <span class="gie-mode" data-inline-editor-mode>Adding a new note</span></div>
-            <p class="gie-note">Record the full title, category, tags, details, next step, pin, and status in one place.</p>
-          </div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="notes-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('notesDetails',null,'notes-inline-editor-body')" style="display:none">Start new note</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add note</button>
-        </div>
-      </section>
-
-      <section class="notes-layout">
-        <div class="notes-main">
-          <div id="notes-card-grid" class="notes-card-grid" aria-live="polite"></div>
-        </div>
-        <aside class="notes-sidebar">
-          <div class="ued-panel notes-side-panel" id="notes-pinned-card"></div>
-        </aside>
-      </section>
-
-      <section class="notes-longform-section" aria-label="Free-form notes">
-        <div class="notes-section-head"><span class="notes-small-icon"><svg><use href="#notes-icon-clipboard"></use></svg></span><div><h3>Free-Form Planning Notes</h3><p>Keep the original long-form planning spaces for deeper thoughts and reminders.</p></div></div>
-        <div class="notes-legacy-grid">
-          <div class="ued-panel notes-legacy-panel"><label>General Notes</label><textarea id="note-general" rows="5" placeholder="Any planning notes…" oninput="saveNotes()"></textarea></div>
-          <div class="ued-panel notes-legacy-panel"><label>Family & Hospitality Notes</label><textarea id="note-family" rows="5" placeholder="Family dynamics, special needs, hospitality ideas…" oninput="saveNotes()"></textarea></div>
-          <div class="ued-panel notes-legacy-panel"><label>Vendor Instincts</label><textarea id="note-vendors" rows="5" placeholder="First impressions from vendor meetings…" oninput="saveNotes()"></textarea></div>
-          <div class="ued-panel notes-legacy-panel"><label>Marriage Preparation Reflections</label><textarea id="note-marriage" rows="5" placeholder="Thoughts on the covenant you are entering…" oninput="saveNotes()"></textarea></div>
-        </div>
-      </section>
-
-      <section class="ued-table-card notes-tracker-table-card">
-        <div class="ued-table-head notes-table-head">
-          <div>
-            <div class="ued-table-title">Notes tracker <span class="ro-badge-inline">Read only</span></div>
-            <p>Use this full-width table to organize every note, tag, category, reminder, and follow-up.</p>
-          </div>
-          <div class="ued-actions">
-            <button class="ued-link" onclick="exportSectionCSV('Notes Tracker',data.notesDetails)">Export CSV</button>
-            <button class="ued-btn db-edit-btn" onclick="openDataHub('planning','notesDetails')">Edit in Planning Hub</button>
-          </div>
-        </div>
-        <div id="cwp-notesDetails" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Planning Hub.</span></div>
-      </section>
-
-    </div>
+    <!-- ═══ NOTES — §07 shell · 224 rail · 360 drawer · mock 12a / Views 33a·33b · redesign-12a1 ═══ -->
+    <div id="panel-notes" class="panel notes-mockup notes-rd ued-scope"></div>
 
     <!-- ═══ TABLE LAYOUT — §07 shell · 224 rail · 360 drawer · mock 8a · redesign-step16a ═══ -->
     <div id="panel-tables" class="panel table-layout-mockup ued-scope">
@@ -1860,7 +1756,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-3a1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-12a1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -1894,9 +1790,10 @@
 <script src="js/emails-redesign.js?v=redesign-12c1"></script>
 <script src="js/data-hub-redesign.js?v=redesign-7b1"></script>
 <script src="js/dashboard-redesign.js?v=redesign-3a1"></script>
+<script src="js/notes-redesign.js?v=redesign-12a1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-3a1"></script>
+<script src="js/redesign-shell.js?v=redesign-12a1"></script>
 <script>
 (function () {
   try {
