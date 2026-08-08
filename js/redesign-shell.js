@@ -254,6 +254,7 @@
     var partySlot = document.getElementById('party-drawer-slot');
     var giftsSlot = document.getElementById('gifts-drawer-slot');
     var tablesSlot = document.getElementById('tables-drawer-slot');
+    var vendorsSlot = document.getElementById('vendors-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -273,6 +274,7 @@
     else if (panel === 'party') slot = partySlot;
     else if (panel === 'gifts') slot = giftsSlot;
     else if (panel === 'tables') slot = tablesSlot;
+    else if (panel === 'vendors') slot = vendorsSlot;
 
     if (taskSlot && d.parentElement === taskSlot) taskSlot.classList.remove('is-open');
     if (apptSlot && d.parentElement === apptSlot) apptSlot.classList.remove('is-open');
@@ -281,6 +283,7 @@
     if (partySlot && d.parentElement === partySlot) partySlot.classList.remove('is-open');
     if (giftsSlot && d.parentElement === giftsSlot) giftsSlot.classList.remove('is-open');
     if (tablesSlot && d.parentElement === tablesSlot) tablesSlot.classList.remove('is-open');
+    if (vendorsSlot && d.parentElement === vendorsSlot) vendorsSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -296,6 +299,7 @@
       if (partySlot) partySlot.classList.remove('is-open');
       if (giftsSlot) giftsSlot.classList.remove('is-open');
       if (tablesSlot) tablesSlot.classList.remove('is-open');
+      if (vendorsSlot) vendorsSlot.classList.remove('is-open');
     }
   }
 
@@ -643,6 +647,7 @@
     tables: 'Table Layout / Table',
     tasks: 'Timeline & Tasks / Task',
     appointments: 'Appointments / Appointment',
+    vendors: 'Venue & Vendors / Vendor',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',
@@ -1776,7 +1781,7 @@
         var _cwpOpenEditor = window.cwpOpenEditor;
         window.cwpOpenEditor = function (entity, id) {
           var logKeys = { weekendTimeline:1, hotelBlocks:1, travelAccommodations:1, transportation:1, vipCare:1 };
-          if ((entity === 'tasks' || entity === 'appointments' || entity === 'guests' || logKeys[entity]) && document.getElementById(DRAWER_BODY)) {
+          if ((entity === 'tasks' || entity === 'appointments' || entity === 'guests' || entity === 'vendors' || logKeys[entity]) && document.getElementById(DRAWER_BODY)) {
             var rows = (typeof recordEditorRows === 'function')
               ? recordEditorRows(entity)
               : ((window.data && window.data[entity]) || []);
@@ -1784,7 +1789,14 @@
             for (var n = 0; n < rows.length; n++) {
               if (rows[n] && String(rows[n]._id) === String(id)) { i = n; break; }
             }
-            if (i > -1) { openDrawer(entity, i); return; }
+            if (i > -1) {
+              if (entity === 'vendors' && typeof rdVndOpenDrawer === 'function') {
+                rdVndOpenDrawer(String(id));
+                return;
+              }
+              openDrawer(entity, i);
+              return;
+            }
           }
           return _cwpOpenEditor(entity, id);
         };

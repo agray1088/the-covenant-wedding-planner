@@ -186,10 +186,24 @@
 
   function pageheadActionsHtml() {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';
+    const mode = window._vndMode || 'table';
+    const fullEd = `<button type="button" class="rd-btn" data-rd-full-editor onclick="rdVndFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>`;
+    if (mode === 'compare') {
+      return `<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg}><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print comparison</button>
+        ${fullEd}
+        <button type="button" class="rd-btn" onclick="typeof exportVendorCSV==='function'?exportVendorCSV():exportSectionCSV('Vendors',data.vendors)">Export</button>
+        <button type="button" class="rd-btn rd-btn--primary" onclick="addVendorRow()">Add vendor</button>`;
+    }
+    if (mode === 'contacts') {
+      return `<button type="button" class="rd-btn" onclick="rdVndPrintContactSheet()"><svg ${svg}><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print contact sheet</button>
+        ${fullEd}
+        <button type="button" class="rd-btn" onclick="rdVndExportVCards()">Export vCards</button>
+        <button type="button" class="rd-btn rd-btn--primary" onclick="addVendorRow()">Add vendor</button>`;
+    }
     return `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdVndVendorPacket()">Vendor packet</button>
       <button type="button" class="rd-btn" onclick="typeof exportVendorCSV==='function'?exportVendorCSV():exportSectionCSV('Vendors',data.vendors)">Export</button>
       <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg}><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
-      <button type="button" class="rd-btn" data-rd-full-editor onclick="rdVndFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
+      ${fullEd}
       <button type="button" class="rd-btn rd-btn--primary" onclick="addVendorRow()">+ New vendor</button>`;
   }
 
@@ -200,6 +214,7 @@
     if (panel.dataset.uedShell === 'vendors-rd4c') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
+      /* Keep pagehead in sync when Table / Compare / Contacts changes. */
       return;
     }
     panel.dataset.uedShell = 'vendors-rd4c';
@@ -261,11 +276,12 @@
     if (mode === 'contacts') {
       const day = vendorRows().filter(isDayOf).length;
       const noPhone = vendorRows().filter(v => !String(v.phone || '').trim()).length;
+      const confirmed = vendorRows().filter(v => vendorTimeConfirmed(v) || vendorArrival(v)).length;
       if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
         RdDepth.renderStats(host, [
           { label: 'Vendors', value: String(f.count), filter: 'Show all' },
           { label: 'On the day', value: String(day), filter: 'Day-of' },
-          { label: 'Confirmed times', value: '—', filter: 'Contacts' },
+          { label: 'Confirmed times', value: confirmed + ' of ' + f.count, filter: 'Contacts' },
           {
             label: 'No number',
             value: String(noPhone),
@@ -450,13 +466,18 @@
     const bal = balanceOf(v);
     const sub = vendorSubline(v);
     const cols = visibleCols();
+    const idx = vendorRows().indexOf(v);
+    const actions = `<span class="rd-row-actions" onclick="event.stopPropagation()">
+        <button type="button" class="rd-row-actions__btn" onclick="rdVndOpenDrawer('${esc(id)}')">Open<span class="rd-row-actions__kbd">↵</span></button>
+        <button type="button" class="rd-row-actions__btn" onclick="rdVndFullEditor(${idx >= 0 ? idx : 'null'})">Full editor<span class="rd-row-actions__kbd">⇧↵</span></button>
+      </span>`;
     return `<tr class="rd-vnd-row${sel ? ' is-selected' : ''}" data-id="${esc(id)}" onclick="rdVndOpenDrawer('${esc(id)}')">` +
       cols.map(c => {
         if (c.key === 'tick') {
           return `<td class="rd-vnd-tick" onclick="event.stopPropagation()"><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdVndToggleSel('${esc(id)}',this.checked)" aria-label="Select vendor"></td>`;
         }
         if (c.key === 'name') {
-          return `<td class="rd-vnd-name"><div class="rd-vnd-name__primary">${esc(v.name || 'Untitled vendor')}</div>${sub ? `<div class="rd-vnd-name__sub">${esc(sub)}</div>` : ''}</td>`;
+          return `<td class="rd-vnd-name"><div class="rd-vnd-name__primary">${esc(v.name || 'Untitled vendor')}</div>${sub ? `<div class="rd-vnd-name__sub">${esc(sub)}</div>` : ''}${actions}</td>`;
         }
         if (c.key === 'cat') return `<td class="rd-vnd-muted">${esc(v.cat || '—')}</td>`;
         if (c.key === 'quote') return `<td class="rd-vnd-num">${moneyOrDash(v.quote)}</td>`;
@@ -523,13 +544,44 @@
     return cats;
   }
 
+  /* Decision extras drawn in Views 30f that sit beyond VENDOR_CATEGORY_SCHEMAS. */
+  const COMPARE_DECISION_EXTRAS = {
+    photo: [
+      { id: 'drone', label: 'Drone', type: 'bool', compare: true, best: 'bool' },
+      { id: 'gallerySeen', label: 'Seen their full gallery', type: 'bool', compare: true, best: 'bool' },
+      { id: 'referenceCalled', label: 'Reference called', type: 'bool', compare: true, best: 'bool' },
+      { id: 'travelCharged', label: 'Travel charged', type: 'bool', compare: true, best: 'bool' }
+    ],
+    video: [
+      { id: 'drone', label: 'Drone', type: 'bool', compare: true, best: 'bool' },
+      { id: 'gallerySeen', label: 'Seen their full gallery', type: 'bool', compare: true, best: 'bool' },
+      { id: 'referenceCalled', label: 'Reference called', type: 'bool', compare: true, best: 'bool' },
+      { id: 'travelCharged', label: 'Travel charged', type: 'bool', compare: true, best: 'bool' }
+    ]
+  };
+  const COMPARE_LABEL_ALIASES = {
+    hours: 'Hours covered',
+    deliveryTimeline: 'Delivery',
+    engagement: 'Engagement shoot',
+    album: 'Album included'
+  };
+
   /* Category schema fields (VENDOR_CATEGORY_SCHEMAS) — same compare rows as legacy shortlist. */
   function compareSchemaFields(cat) {
     const schema = typeof vendorCategorySchemaFromLabel === 'function'
       ? vendorCategorySchemaFromLabel(cat)
       : null;
-    if (!schema || !Array.isArray(schema.fields)) return [];
-    return schema.fields.filter(f => f && f.compare !== false);
+    const base = (schema && Array.isArray(schema.fields))
+      ? schema.fields.filter(f => f && f.compare !== false).map(f => {
+        const label = COMPARE_LABEL_ALIASES[f.id] || f.label;
+        return Object.assign({}, f, { label: label });
+      })
+      : [];
+    const key = schema && schema.key;
+    const extras = (key && COMPARE_DECISION_EXTRAS[key]) || [];
+    const seen = new Set(base.map(f => f.id));
+    extras.forEach(f => { if (!seen.has(f.id)) base.push(f); });
+    return base;
   }
 
   function compareAttrRaw(v, field) {
@@ -657,44 +709,79 @@
       }).join('') + '</tr>';
     }).join('');
 
-    const schemaNote = schemaFields.length
-      ? ` · ${schemaFields.length} ${esc(cat)} qualities from the category schema`
-      : '';
+    const totalInCat = (cats[cat] || []).length;
+    const shown = cols.length;
 
     host.innerHTML = `
       <div class="rd-section__head">
         <div class="rd-pagehead__eyebrow">${esc(cat)} shortlist</div>
-        <p class="rd-help">Four quotes side by side · ✓ included · ○ partial · ● extra cost · — not offered${schemaNote}.</p>
+        <p class="rd-help">Four quotes side by side · ✓ included · ○ partial · ● extra cost · — not offered</p>
+        <div class="rd-vnd-cmp-meta">${shown} of ${Math.max(shown, totalInCat)} quotes shown
+          <button type="button" class="rd-link-quiet" onclick="rdVndAddCompareColumn()">Add a column</button>
+        </div>
       </div>
       <div class="rd-vnd-cmp-cats">${catOpts}</div>
       <div class="rd-table-wrap"><table class="rd-vnd-cmp-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>
-      <p class="rd-help">Category rows come from each vendor&rsquo;s attrs for this category (Coverage hrs, Capacity, Trial, etc.). Better values are shaded. Quote is the vendor&rsquo;s budget-line value. Edit qualities in the drawer or Full editor.</p>`;
+      <p class="rd-help">Rows are category qualities plus decision checks (drone, references, travel). Better values are shaded. Quote is the vendor&rsquo;s budget-line value. Edit qualities in the drawer or Full editor.</p>`;
   }
 
   /* ── Contacts view (30g) ─────────────────────────────────────────────── */
 
+  function vendorArrival(v) {
+    return String((v && (v.arrive || v.arrival || v.arriveTime || v.onSiteFrom)) || (v && v.attrs && (v.attrs.arrive || v.attrs.onSiteFrom)) || '').trim();
+  }
+  function vendorServiceCue(v) {
+    return String((v && (v.service || v.serviceTime || v.cue)) || (v && v.attrs && (v.attrs.service || v.attrs.cue)) || '').trim();
+  }
+  function vendorTimeConfirmed(v) {
+    if (!v) return false;
+    if (v.timeConfirmed === true || v.confirmed === true) return true;
+    const st = String(v.dayOfStatus || v.contactStatus || '').toLowerCase();
+    return st === 'confirmed' || st === 'complete';
+  }
+
   function renderVendorsContactsView() {
     const host = document.getElementById('vendors-contacts-view');
     if (!host) return;
-    const list = vendorRows().filter(matchesFilters);
+    const list = vendorRows().filter(matchesFilters).slice().sort((a, b) =>
+      vendorArrival(a).localeCompare(vendorArrival(b)) || String(a.name || '').localeCompare(String(b.name || ''))
+    );
     const day = list.filter(v => isDayOf(v) && String(v.phone || '').trim());
     const pre = list.filter(v => !isDayOf(v) && String(v.phone || '').trim());
     const none = list.filter(v => !String(v.phone || '').trim());
 
     function card(v) {
       const id = vid(v);
-      return `<article class="rd-vnd-contact${ !String(v.phone || '').trim() ? ' is-danger' : ''}" onclick="rdVndOpenDrawer('${esc(id)}')">
-        <div class="rd-vnd-contact__name">${esc(v.name || 'Untitled')}</div>
-        <div class="rd-vnd-contact__meta">${esc(v.contact || '—')} · ${esc(v.cat || 'Vendor')}</div>
-        <div class="rd-vnd-contact__phone">${esc(v.phone || 'No number on file')}</div>
-        <div class="rd-vnd-contact__meta">${esc(v.email || '')}${hasContract(v) ? '' : ' · Unsigned paper'}</div>
+      const arrive = vendorArrival(v);
+      const cue = vendorServiceCue(v);
+      const phone = String(v.phone || '').trim();
+      const signed = hasContract(v);
+      const confirmed = vendorTimeConfirmed(v);
+      let chip = '';
+      if (!phone) chip = '<span class="status-pill" data-pillscheme="red">No contact</span>';
+      else if (!signed && isDayOf(v)) chip = '<span class="status-pill" data-pillscheme="gold">Unsigned</span>';
+      else if (confirmed) chip = '<span class="status-pill" data-pillscheme="green">Confirmed</span>';
+      else if (/hold|complete/i.test(statusLabel(v))) chip = statusPillHtml(v);
+      else chip = '<span class="status-pill" data-pillscheme="gold">Unconfirmed</span>';
+      const roleBits = [v.cat || 'Vendor'];
+      if (isDayOf(v) && arrive) roleBits.push('on site from ' + arrive);
+      else if (!isDayOf(v) && (v.notes || cue)) roleBits.push(String(v.notes || cue).split(/[.\n]/)[0].trim());
+      return `<article class="rd-vnd-contact${!phone ? ' is-danger' : ''}" onclick="rdVndOpenDrawer('${esc(id)}')">
+        <div class="rd-vnd-contact__name">${esc(v.name || 'Untitled')}${v.contact ? ' · ' + esc(v.contact) : ''}</div>
+        <div class="rd-vnd-contact__meta">${esc(roleBits.filter(Boolean).join(' · '))}</div>
+        <div class="rd-vnd-contact__phone">${esc(phone || 'No number on file')}</div>
+        <div class="rd-vnd-contact__foot">
+          <span class="rd-vnd-contact__cue">${esc(cue || (arrive ? ('Call ' + arrive) : '—'))}</span>
+          ${chip}
+        </div>
       </article>`;
     }
 
-    function section(title, rows, danger) {
+    function section(title, note, rows, danger) {
       if (!rows.length) return '';
       return `<div class="rd-grouplist__group${danger ? ' is-danger' : ''}">
         <div class="rd-grouplist__head">${esc(title)} · ${rows.length}${danger ? '' : ' vendors'}</div>
+        ${note ? `<p class="rd-help rd-vnd-contact-note">${esc(note)}</p>` : ''}
         <div class="rd-vnd-contactgrid">${rows.map(card).join('')}</div>
       </div>`;
     }
@@ -710,9 +797,9 @@
     }
     host.classList.remove('has-rd-state');
     host.innerHTML =
-      section('Day-of critical', day, false) +
-      section('Pre-day only', pre, false) +
-      section('No number on file', none, true);
+      section('Day-of critical', 'these numbers print on the day-of sheet', day, false) +
+      section('Pre-day only', 'no day-of presence, so not on the sheet', pre, false) +
+      section('No number on file', 'cannot be reached on the day', none, true);
   }
 
   /* ── drawer (4c) ─────────────────────────────────────────────────────── */
@@ -766,19 +853,74 @@
     </div>`;
   }
 
+  function budgetLineForVendor(v) {
+    if (!v) return null;
+    const budget = (typeof safeArray === 'function' ? safeArray(data.budget) : (data.budget || []));
+    if (v.budgetCategoryId) {
+      const byId = budget.find(b => String(b._id) === String(v.budgetCategoryId));
+      if (byId) return byId;
+    }
+    const cat = String(v.cat || v.budgetCat || '').trim().toLowerCase();
+    if (!cat) return null;
+    return budget.find(b => {
+      const n = String(b.cat || '').toLowerCase();
+      return n === cat || n.includes(cat) || cat.includes(n.split('&')[0].trim());
+    }) || null;
+  }
+  function linkedTaskForVendor(v) {
+    if (!v) return null;
+    const tasks = (typeof safeArray === 'function' ? safeArray(data.tasks) : (data.tasks || []));
+    const name = String(v.name || '').trim().toLowerCase();
+    const id = v._id;
+    return tasks.find(t =>
+      (id && String(t.vendorId) === String(id)) ||
+      (name && String(t.vendor || '').trim().toLowerCase() === name) ||
+      (name && String(t.task || '').toLowerCase().includes(name.split(' ')[0]))
+    ) || null;
+  }
+  function depositLabel(v) {
+    const dep = parseFloat(v && v.deposit) || 0;
+    const quote = parseFloat(v && v.quote) || 0;
+    if (!dep) return '—';
+    if (quote > 0) {
+      const pct = Math.round((dep / quote) * 100);
+      return money0(dep) + ' on signing · ' + pct + '%';
+    }
+    return money0(dep) + ' on signing';
+  }
+
   function renderVendorsDrawer() {
     const slot = document.getElementById('vendors-drawer-slot');
     if (!slot) return;
+    /* If the shared §16 drawer is parked here and open, don't paint over it. */
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot.contains(shared) && !shared.hasAttribute('hidden')) {
+      slot.classList.add('is-open');
+      return;
+    }
     const id = window._vndDrawerId;
     const v = id ? findVendorById(id) : null;
     if (!v) {
-      slot.innerHTML = '';
-      slot.classList.remove('is-open');
+      if (!(shared && slot.contains(shared) && !shared.hasAttribute('hidden'))) {
+        slot.innerHTML = '';
+        slot.classList.remove('is-open');
+      }
       return;
     }
     slot.classList.add('is-open');
     const st = statusLabel(v);
     const overdue = /shortlist/i.test(st) && !isBooked(v);
+    const budget = budgetLineForVendor(v);
+    const task = linkedTaskForVendor(v);
+    const taskOverdue = task && task.date && !/complete|done/i.test(String(task.status || ''))
+      && (new Date(task.date).getTime() < Date.now());
+    const idx = vendorRows().indexOf(v);
+    const budgetClick = budget
+      ? `onclick="event.stopPropagation();typeof showPanel==='function'&&showPanel('budget')"`
+      : '';
+    const taskClick = task
+      ? `onclick="event.stopPropagation();typeof showPanel==='function'&&showPanel('tasks')"`
+      : '';
     slot.innerHTML = `<aside class="rd-drawer rd-vnd-drawer" aria-label="Vendor record">
       <div class="rd-drawer__head">
         <div class="rd-drawer__eyebrow">Vendor · ${esc(String(v.cat || 'vendor').toLowerCase())}</div>
@@ -792,18 +934,20 @@
       <div class="rd-drawer__body">
         <div class="rd-drawer__field"><span>Contact</span><strong>${esc(v.contact || '—')}</strong></div>
         <div class="rd-drawer__field"><span>Quote</span><strong>${moneyOrDash(v.quote)}</strong></div>
-        <div class="rd-drawer__field"><span>Deposit</span><strong>${moneyOrDash(v.deposit)}</strong></div>
-        <div class="rd-drawer__field"><span>Balance</span><strong class="${balanceOf(v) > 0 ? 'is-owing' : ''}">${moneyOrDash(balanceOf(v))}</strong></div>
+        <div class="rd-drawer__field"><span>Deposit</span><strong>${esc(depositLabel(v))}</strong></div>
+        <div class="rd-drawer__field"><span>Budget line</span><strong class="rd-drawer__link"${budgetClick}>${esc(budget ? (budget.cat + ' →') : 'Add…')}</strong></div>
+        <div class="rd-drawer__field"><span>Linked task</span><strong class="rd-drawer__link${taskOverdue ? ' is-overdue' : ''}"${taskClick}>${esc(task ? ((taskOverdue ? 'Overdue · ' : '') + (task.task || 'Task') + ' →') : 'Add…')}</strong></div>
         <div class="rd-drawer__field"><span>Rating</span><strong>${ratingSquares(ratingOf(v))}</strong></div>
         <div class="rd-drawer__field"><span>Contract</span><strong>${esc(contractLabel(v))}</strong></div>
-        ${drawerSchemaFieldsHtml(v, id)}
         <div class="rd-drawer__section"><div class="rd-drawer__section-title">Pros</div><p>${esc(v.pros || 'Add what works about this vendor.')}</p></div>
         <div class="rd-drawer__section"><div class="rd-drawer__section-title">Cons</div><p>${esc(v.cons || 'Add what gives you pause.')}</p></div>
+        ${drawerSchemaFieldsHtml(v, id)}
         <div class="rd-drawer__section"><div class="rd-drawer__section-title">Notes</div><p>${esc(v.notes || '—')}</p></div>
       </div>
       <div class="rd-drawer__foot">
         <button type="button" class="rd-btn rd-btn--primary" onclick="rdVndBookVendor('${esc(id)}')">Book vendor</button>
         <button type="button" class="rd-btn" onclick="rdSetVendorsView('compare')">Compare</button>
+        <button type="button" class="rd-btn" onclick="rdVndFullEditor(${idx >= 0 ? idx : 'null'})">Full editor</button>
       </div>
     </aside>`;
   }
@@ -821,6 +965,7 @@
   function rdSetVendorsView(mode) {
     window._vndMode = (mode === 'compare' || mode === 'contacts') ? mode : 'table';
     renderVendorsRd();
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('vendors');
   }
 
   function applyVendorsRailView(view) {
@@ -892,14 +1037,34 @@
   function rdVndBulkRequestQuote() { applyVendorsRailView('nocontract'); }
   function rdVndTogglePassed() { window._vndShowPassed = !window._vndShowPassed; renderVendorsRd(); }
   function rdVndSetCompareCat(cat) { window._vndCompareCat = cat; renderVendorsRd(); }
+  function vendorIndexById(id) {
+    const rows = vendorRows();
+    const byId = rows.findIndex(v => vid(v) === String(id) || String(v && v._id) === String(id));
+    if (byId >= 0) return byId;
+    if (/^idx:/.test(String(id || ''))) {
+      const n = parseInt(String(id).slice(4), 10);
+      return Number.isFinite(n) ? n : -1;
+    }
+    return -1;
+  }
   function rdVndOpenDrawer(id) {
     window._vndDrawerId = id;
-    if (typeof rdOpenDrawer === 'function') {
-      try { rdOpenDrawer('vendors', id); } catch (e) { /* fall through */ }
+    /* Prefer the 4c decision drawer (Budget line / Linked task / Pros·Cons).
+       Shared record-drawer remains available via Full editor. */
+    const shared = document.getElementById('record-drawer');
+    if (shared && !shared.hasAttribute('hidden') && typeof rdCloseDrawer === 'function') {
+      try { rdCloseDrawer(); } catch (e) { /* soft */ }
     }
     renderVendorsDrawer();
   }
-  function rdVndCloseDrawer() { window._vndDrawerId = null; renderVendorsDrawer(); }
+  function rdVndCloseDrawer() {
+    window._vndDrawerId = null;
+    const shared = document.getElementById('record-drawer');
+    if (shared && typeof rdCloseDrawer === 'function' && !shared.hasAttribute('hidden')) {
+      try { rdCloseDrawer(); } catch (e) { /* soft */ }
+    }
+    renderVendorsDrawer();
+  }
   function rdVndBookVendor(id) {
     const v = findVendorById(id);
     if (!v) return;
@@ -921,14 +1086,94 @@
     if (typeof save === 'function') save();
     if (window._vndMode === 'compare') renderVendorsCompareView();
   }
-  function rdVndFullEditor() {
+  function rdVndFullEditor(index) {
+    let idx = (typeof index === 'number' && index >= 0) ? index : -1;
+    if (idx < 0 && window._vndDrawerId) idx = vendorIndexById(window._vndDrawerId);
+    if (idx < 0 && window._vndSel && window._vndSel.size) {
+      const first = window._vndSel.values().next().value;
+      idx = vendorIndexById(first);
+    }
+    if (typeof openRecordEditor === 'function') {
+      if (idx >= 0) openRecordEditor('vendors', idx);
+      else openRecordEditor('vendors');
+      return;
+    }
     if (typeof openDataHub === 'function') openDataHub('vendors', 'vendors');
     else if (typeof addVendorRow === 'function') addVendorRow();
+  }
+  function rdVndAddCompareColumn() {
+    const cat = window._vndCompareCat;
+    if (!cat) { addVendorRow(); return; }
+    if (typeof openRecordEditor === 'function') {
+      openRecordEditor('vendors', null, { cat: cat, status: 'Shortlisted', attrs: {} });
+      return;
+    }
+    addVendorRow();
+  }
+  function rdVndPrintContactSheet() {
+    rdSetVendorsView('contacts');
+    if (typeof printCurrentPage === 'function') printCurrentPage();
+  }
+  function rdVndExportVCards() {
+    const list = vendorRows().filter(v => String(v.phone || v.email || '').trim());
+    if (!list.length) {
+      if (typeof showToast === 'function') showToast('No vendor phone or email to export');
+      return;
+    }
+    const cards = list.map(v => {
+      const lines = [
+        'BEGIN:VCARD', 'VERSION:3.0',
+        'FN:' + String(v.name || 'Vendor').replace(/\n/g, ' '),
+        'ORG:' + String(v.cat || 'Wedding vendor').replace(/\n/g, ' ')
+      ];
+      if (v.contact) lines.push('N:;' + String(v.contact).replace(/\n/g, ' ') + ';;;');
+      if (v.phone) lines.push('TEL;TYPE=CELL:' + String(v.phone).replace(/\n/g, ' '));
+      if (v.email) lines.push('EMAIL:' + String(v.email).replace(/\n/g, ' '));
+      lines.push('END:VCARD');
+      return lines.join('\r\n');
+    }).join('\r\n');
+    const blob = new Blob([cards], { type: 'text/vcard' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'vendor-contacts.vcf';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   function rdVndVendorPacket() {
     if (typeof showPanel === 'function') showPanel('packets');
   }
   function openVendorCompare() { rdSetVendorsView('compare'); }
+
+  /* Coverage meters for Compare rail (Views 30f). */
+  function vendorCoverageMeters() {
+    const order = ['Venue', 'Catering', 'Photography', 'Florals', 'Music', 'Officiant', 'Cake'];
+    const byKey = {};
+    vendorRows().forEach(v => {
+      const schema = typeof vendorCategorySchemaFromLabel === 'function'
+        ? vendorCategorySchemaFromLabel(v.cat) : null;
+      const label = schema ? schema.label : (String(v.cat || '').trim() || 'Other');
+      const short = label.split(/[&/]/)[0].trim();
+      const key = short || label;
+      if (!byKey[key]) byKey[key] = { label: key, rows: [] };
+      byKey[key].rows.push(v);
+    });
+    const keys = Object.keys(byKey).sort((a, b) => {
+      const ia = order.findIndex(o => a.toLowerCase().includes(o.toLowerCase()));
+      const ib = order.findIndex(o => b.toLowerCase().includes(o.toLowerCase()));
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+    });
+    return keys.map(k => {
+      const rows = byKey[k].rows;
+      const booked = rows.some(isBooked);
+      const short = rows.filter(v => isShortlisted(v) && !isBooked(v));
+      let status = 'Not started';
+      if (booked) status = 'Booked';
+      else if (short.length >= 2) status = 'Deciding';
+      else if (rows.some(v => /deposit/i.test(String(v.status || '')))) status = 'Deposit sent';
+      else if (short.length) status = 'Shortlisted';
+      return { label: byKey[k].label, status: status };
+    });
+  }
 
   /* Prefer 4c drawer / record editor over the removed inline editor. */
   const _addVendorRow = window.addVendorRow;
@@ -1000,7 +1245,11 @@
   window.rdVndSetAttr = rdVndSetAttr;
   window.rdVndSetAttrQuiet = rdVndSetAttrQuiet;
   window.rdVndFullEditor = rdVndFullEditor;
+  window.rdVndAddCompareColumn = rdVndAddCompareColumn;
+  window.rdVndPrintContactSheet = rdVndPrintContactSheet;
+  window.rdVndExportVCards = rdVndExportVCards;
   window.rdVndVendorPacket = rdVndVendorPacket;
+  window.vendorCoverageMeters = vendorCoverageMeters;
   window.saveVendorView = function () {
     if (typeof RdFurniture !== 'undefined' && RdFurniture.saveView) RdFurniture.saveView('vendors');
   };
