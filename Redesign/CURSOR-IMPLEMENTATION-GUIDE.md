@@ -392,7 +392,8 @@ Wedding Day Timeline = All `#6b` + Views `#31a` / `#31b` + Drawers Event → `js
 Ceremony & Reception = All `#11a` + Views `#31c` / `#31d` + Drawers Element → `js/ceremony-redesign.js`.
 Honeymoon & After = All `#17b` + Dark rail + Drawers Booking → `js/honeymoon-redesign.js`.
 Prayer Journal = All `#13b` + Views `#32c` / `#32d` + Drawers Entry → `js/prayer-redesign.js`.
-**Next on continue:** Premarital Counseling (`counseling` / All **13c`).
+Premarital Counseling = All `#13c` + Views `#32e` / `#32f` + Drawers Session → `js/counseling-redesign.js`.
+**Next on continue:** Vision Board (`mood` / All **8b**).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -521,7 +522,7 @@ before moving to the next category. Do not jump ahead inside Vendors.
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
 | ✓ | Prayer Journal | `prayer` | All **13b** · Views `#32c`/`#32d` · `js/prayer-redesign.js` |
-| ▶ | **Premarital Counseling** | `counseling` | **13c** · Views 32 · Drawers 26 |
+| ✓ | Premarital Counseling | `counseling` | All **13c** · Views `#32e`/`#32f` · `js/counseling-redesign.js` |
 
 (Also redesign **13a** Vision & Foundation / **13d** First-Month Rhythms when they appear in nav
 or when the user asks — inventory may list more than the current `TABS` strip.)
@@ -530,7 +531,7 @@ or when the user asks — inventory may list more than the current `TABS` strip.
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| 10 | Vision Board | `mood` | **8b** |
+| ▶ | **Vision Board** | `mood` | **8b** |
 | 11 | Essentials Checklist | `essentials` | **17a** |
 | 12 | Share Packets | `packets` | **12b** · Views 33 · Drawers 27 |
 | 13 | Email Templates | `emails` | **12c** · Views 33 |

@@ -2011,6 +2011,71 @@
     return '<div class="rd-rail__stack" data-page-rail="prayer">' + viewsHtml + rhythmHtml + groupHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #13c / Dark.dc #13c rail — Views + Progress + Group by. */
+  function buildCounselingContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('counseling', 'all');
+    else if (typeof window._couRailView === 'string' && window._couRailView) activeView = window._couRailView;
+    window._couRailView = activeView;
+
+    var counts = typeof window.counselingRailCounts === 'function' ? window.counselingRailCounts() : {
+      all: 0, complete: 0, scheduled: 0, notbooked: 0, homework: 0
+    };
+    var figures = typeof window.counselingFigures === 'function' ? window.counselingFigures() : {
+      complete: 0, sessions: 0, hwDone: 0, hwTotal: 0, nextLabel: '—', finishes: '—'
+    };
+    var groupBy = window._couGroupBy || 'status';
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCounselingRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All sessions', counts.all || 0) +
+      viewItem('complete', 'Completed', counts.complete || 0) +
+      viewItem('scheduled', 'Scheduled', counts.scheduled || 0) +
+      viewItem('notbooked', 'Not booked', counts.notbooked || 0) +
+      viewItem('homework', 'Homework due', counts.homework || 0, true) +
+      '</div></div>';
+
+    var progressHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Progress</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Sessions done</span><span class="rd-rail__count">' +
+      (figures.complete || 0) + ' of ' + (figures.sessions || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Homework done</span><span class="rd-rail__count">' +
+      (figures.hwDone || 0) + ' of ' + (figures.hwTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Next session</span><span class="rd-rail__count">' +
+      esc(figures.nextLabel || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Finishes</span><span class="rd-rail__count">' +
+      esc(figures.finishes || '—') + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCounselingGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('status', 'Status') +
+      groupItem('topic', 'Topic') +
+      groupItem('month', 'Month') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Sessions appear on the Smart Calendar. Homework rows are child records — the session bar is derived from them.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="counseling">' + viewsHtml + progressHtml + groupHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -2026,6 +2091,7 @@
     ceremony: buildCeremonyContext,
     honeymoon: buildHoneymoonContext,
     prayer: buildPrayerContext,
+    counseling: buildCounselingContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,
