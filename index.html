@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-4c4">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-venue1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1335,120 +1335,9 @@
     </div>
 
     <!-- ═══ WEDDING VENUE ═══ -->
+    <!-- ═══ VENUE COMPARISON — §07 shell · thin All.dc inventory · venue-redesign.js ═══ -->
     <div id="panel-venue" class="panel venue-mockup ued-scope">
-      <div class="venue-title-wrap">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="venue-title">Wedding Venue</h2>
-        <p class="venue-subtitle">Find the perfect place to celebrate your covenant.</p>
-      </div>
-
-      <div class="m-stats">
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg><span class="m-stat-label">Ceremony venue</span></div><div class="m-stat-val" id="venue-stat-ceremony">—</div><div class="m-stat-sub" id="venue-stat-ceremony-sub">Add ceremony venue details</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg><span class="m-stat-label">Reception venue</span></div><div class="m-stat-val" id="venue-stat-reception">—</div><div class="m-stat-sub" id="venue-stat-reception-sub">Add reception venue details</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><span class="m-stat-label">Guest capacity</span></div><div class="m-stat-val" id="venue-stat-capacity">—</div><div class="m-stat-sub" id="venue-stat-capacity-sub">Comfortable seating overview</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/><path d="M7 15h4"/></svg><span class="m-stat-label">Cost / deposit</span></div><div class="m-stat-val" id="venue-stat-cost">—</div><div class="m-stat-sub" id="venue-stat-cost-sub">Track your venue investment</div></div>
-      </div>
-
-      <!-- Venue Details / Notes / Reminders now live on the shared Venue & Vendors hub bar (.vv-hub-tabbar, injected after the masthead). Old .ven-tabbar removed. -->
-
-      <div class="venue-arrange-grid" id="venue-arrange-grid">
-        <section class="ued-panel venue-details-panel venue-widget" data-card="details" data-size="half">
-          <div class="venue-widget-toolbar">
-            <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Selected Details</span></div>
-            <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('details')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
-          </div>
-          <div class="venue-section-head">
-            <div>
-              <h3>Selected Venue Details</h3>
-              <div class="venue-rule"></div>
-              <p>Keep all your original venue details, but organize them in a more polished editorial layout.</p>
-            </div>
-            <div class="venue-view-toggle">
-              <button class="venue-view-btn active" type="button" id="venue-view-c" onclick="setVenueView('c')"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg> Ceremony</button>
-              <button class="venue-view-btn" type="button" id="venue-view-r" onclick="setVenueView('r')"><svg viewBox="0 0 24 24"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg> Reception</button>
-            </div>
-          </div>
-
-          <div class="venue-detail-panel active" id="venue-detail-c">
-            <div class="venue-detail-top">
-              <div class="venue-detail-title"><strong id="venue-detail-c-name">Ceremony Venue</strong><span class="venue-pill">Ceremony</span></div>
-            </div>
-            <div class="venue-detail-grid">
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-name"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg> Venue Name</label><input type="text" id="ven-c-name" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-contact"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg> Contact Name</label><input type="text" id="ven-c-contact" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-address"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.33-6-10a6 6 0 1 1 12 0c0 4.67-6 10-6 10Z"/><circle cx="12" cy="11" r="2.5"/></svg> Address</label><input type="text" id="ven-c-address" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-phone"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72l.35 2.57a2 2 0 0 1-.57 1.72l-1.27 1.27a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 1.72-.57l2.57.35A2 2 0 0 1 22 16.92z"/></svg> Phone / Email</label><input type="text" id="ven-c-phone" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-capacity"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Capacity</label><input type="text" id="ven-c-capacity" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-space"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg> Venue Type</label><input type="text" id="ven-c-space" placeholder="Indoor, Outdoor, Garden, Chapel…" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-hours"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Rental Hours</label><input type="text" id="ven-c-hours" placeholder="e.g. 3pm–6pm" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-cost"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.7-1.4-2.3-2.2-5-2.2-3 0-4.7 1.2-4.7 3 0 4.6 9.4 2 9.4 7 0 1.9-1.7 3.4-4.8 3.4-2.6 0-4.4-1-5.2-2.7"/></svg> Total Cost</label><input type="text" id="ven-c-cost" placeholder="$2,500" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-deposit"><svg viewBox="0 0 24 24"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/><path d="M7 15h4"/></svg> Deposit Paid</label><input type="text" id="ven-c-deposit" placeholder="$500" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-setup"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg> Setup Time</label><input type="text" id="ven-c-setup" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-parking"><svg viewBox="0 0 24 24"><path d="M7 19V5h6a4 4 0 1 1 0 8H7"/></svg> Parking Info</label><input type="text" id="ven-c-parking" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-best"><svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.1-8.23C1.2 10.06 2.1 6.7 5.1 5.2c1.93-.97 4.23-.57 5.9.9 1.67-1.47 3.97-1.87 5.9-.9 3 1.5 3.9 4.86 2.2 7.57C18.7 16.65 12 21 12 21z"/></svg> Best For</label><input type="text" id="ven-c-best" placeholder="Traditional ceremonies, intimate gatherings, outdoor portraits…" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-amenities"><svg viewBox="0 0 24 24"><path d="m12 3 2.2 5 5.3.5-4 3.5 1.2 5.2L12 14.5 7.3 17.2 8.5 12l-4-3.5 5.3-.5Z"/></svg> Amenities</label><textarea id="ven-c-amenities" rows="2" placeholder="Bridal room, sound system, parking, coordinator…" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-food"><svg viewBox="0 0 24 24"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg> Food &amp; Drink Rules</label><textarea id="ven-c-food" rows="2" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-cancel"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/><path d="M4.93 4.93 19.07 19.07"/></svg> Cancellation Policy</label><textarea id="ven-c-cancel" rows="2" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-other"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Other Important Info</label><textarea id="ven-c-other" rows="2" oninput="saveVenue()"></textarea></div>
-            </div>
-            <div class="venue-detail-actions"><button type="button" class="venue-full-link" onclick="toggleVenueFullDetails()"><span class="venue-full-toggle-text">View Full Details</span> <span aria-hidden="true">→</span></button></div>
-          </div>
-
-          <div class="venue-detail-panel" id="venue-detail-r">
-            <div class="venue-detail-top">
-              <div class="venue-detail-title"><strong id="venue-detail-r-name">Reception Venue</strong><span class="venue-pill">Reception</span></div>
-            </div>
-            <div class="venue-detail-grid">
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-name"><svg viewBox="0 0 24 24"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg> Venue Name</label><input type="text" id="ven-r-name" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-contact"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg> Contact Name</label><input type="text" id="ven-r-contact" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-address"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.33-6-10a6 6 0 1 1 12 0c0 4.67-6 10-6 10Z"/><circle cx="12" cy="11" r="2.5"/></svg> Address</label><input type="text" id="ven-r-address" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-phone"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72l.35 2.57a2 2 0 0 1-.57 1.72l-1.27 1.27a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 1.72-.57l2.57.35A2 2 0 0 1 22 16.92z"/></svg> Phone / Email</label><input type="text" id="ven-r-phone" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-capacity"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Capacity</label><input type="text" id="ven-r-capacity" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-space"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg> Venue Type</label><input type="text" id="ven-r-space" placeholder="Indoor, Outdoor, Garden, Ballroom…" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-hours"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Rental Hours</label><input type="text" id="ven-r-hours" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-cost"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.7-1.4-2.3-2.2-5-2.2-3 0-4.7 1.2-4.7 3 0 4.6 9.4 2 9.4 7 0 1.9-1.7 3.4-4.8 3.4-2.6 0-4.4-1-5.2-2.7"/></svg> Total Cost</label><input type="text" id="ven-r-cost" placeholder="$3,000" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-deposit"><svg viewBox="0 0 24 24"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/><path d="M7 15h4"/></svg> Deposit Paid</label><input type="text" id="ven-r-deposit" placeholder="$1,000" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-setup"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg> Setup Time</label><input type="text" id="ven-r-setup" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-parking"><svg viewBox="0 0 24 24"><path d="M7 19V5h6a4 4 0 1 1 0 8H7"/></svg> Parking Info</label><input type="text" id="ven-r-parking" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-best"><svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.1-8.23C1.2 10.06 2.1 6.7 5.1 5.2c1.93-.97 4.23-.57 5.9.9 1.67-1.47 3.97-1.87 5.9-.9 3 1.5 3.9 4.86 2.2 7.57C18.7 16.65 12 21 12 21z"/></svg> Best For</label><input type="text" id="ven-r-best" placeholder="Dinner reception, dancing, cocktail hour, garden portraits…" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-amenities"><svg viewBox="0 0 24 24"><path d="m12 3 2.2 5 5.3.5-4 3.5 1.2 5.2L12 14.5 7.3 17.2 8.5 12l-4-3.5 5.3-.5Z"/></svg> Amenities</label><textarea id="ven-r-amenities" rows="2" placeholder="Tables, chairs, dance floor, bridal suite, catering kitchen…" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-food"><svg viewBox="0 0 24 24"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg> Food &amp; Drink Rules</label><textarea id="ven-r-food" rows="2" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-cancel"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/><path d="M4.93 4.93 19.07 19.07"/></svg> Cancellation Policy</label><textarea id="ven-r-cancel" rows="2" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-other"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Other Important Info</label><textarea id="ven-r-other" rows="2" oninput="saveVenue()"></textarea></div>
-            </div>
-            <div class="venue-detail-actions"><button type="button" class="venue-full-link" onclick="toggleVenueFullDetails()"><span class="venue-full-toggle-text">View Full Details</span> <span aria-hidden="true">→</span></button></div>
-          </div>
-          <div class="venue-full-details" id="venue-full-details"></div>
-        </section>
-
-        <!-- Venue Shortlist card removed — venue vs. vendor shortlisting now lives on the shared "Shortlist & Compare" tab (Vendors engine). -->
-
-        <section class="ued-panel venue-notes-panel venue-widget" data-card="notes" data-size="half">
-          <div class="venue-widget-toolbar">
-            <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Notes</span></div>
-            <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('notes')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
-          </div>
-          <div class="venue-note-header">
-            <div class="venue-note-title-wrap">
-              <h3>Notes</h3>
-              <div class="venue-rule"></div>
-            </div>
-            <button class="venue-edit-note-btn" id="venue-edit-note-btn" type="button" onclick="editVenueNote()">Edit Note</button>
-          </div>
-          <div class="venue-note-stack" id="venue-note-stack"></div>
-        </section>
-        <section class="ued-panel venue-reminders-panel venue-widget" data-card="reminders" data-size="half">
-          <div class="venue-widget-toolbar">
-            <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Reminders</span></div>
-            <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('reminders')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
-          </div>
-          <h3>Reminders &amp; Next Steps</h3>
-          <div class="venue-rule"></div>
-          <div class="venue-reminder-list" id="venue-reminder-list"></div>
-          <div class="venue-reminder-summary" id="venue-reminder-summary"></div>
-        </section>
-      </div>
-
+      <!-- Filled by uedVenueShell() / renderVenuePage() (pagehead · KPIs · Compare|Details|Notes · drawer) -->
     </div>
 
 
@@ -2971,7 +2860,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-4c3"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-venue1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -2990,10 +2879,11 @@
 <script src="js/payments-redesign.js?v=redesign-furniture3"></script>
 <script src="js/contracts-redesign.js?v=redesign-furniture3"></script>
 <script src="js/vendors-redesign.js?v=redesign-4c3"></script>
+<script src="js/venue-redesign.js?v=redesign-venue1"></script>
 <script src="js/timeline-redesign.js?v=redesign-vendors1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-4c3"></script>
+<script src="js/redesign-shell.js?v=redesign-venue1"></script>
 <script>
 (function () {
   try {

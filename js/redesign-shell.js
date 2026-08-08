@@ -255,6 +255,7 @@
     var giftsSlot = document.getElementById('gifts-drawer-slot');
     var tablesSlot = document.getElementById('tables-drawer-slot');
     var vendorsSlot = document.getElementById('vendors-drawer-slot');
+    var venueSlot = document.getElementById('venue-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -275,6 +276,8 @@
     else if (panel === 'gifts') slot = giftsSlot;
     else if (panel === 'tables') slot = tablesSlot;
     else if (panel === 'vendors') slot = vendorsSlot;
+    /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
+       park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
     if (taskSlot && d.parentElement === taskSlot) taskSlot.classList.remove('is-open');
     if (apptSlot && d.parentElement === apptSlot) apptSlot.classList.remove('is-open');
@@ -300,6 +303,10 @@
       if (giftsSlot) giftsSlot.classList.remove('is-open');
       if (tablesSlot) tablesSlot.classList.remove('is-open');
       if (vendorsSlot) vendorsSlot.classList.remove('is-open');
+    }
+    /* Keep venue custom drawer open state intact when shared drawer parks away. */
+    if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
+      venueSlot.classList.add('is-open');
     }
   }
 
@@ -648,6 +655,7 @@
     tasks: 'Timeline & Tasks / Task',
     appointments: 'Appointments / Appointment',
     vendors: 'Venue & Vendors / Vendor',
+    venue: 'Venue Comparison / Venue',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',

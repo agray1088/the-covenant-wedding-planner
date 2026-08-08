@@ -1448,6 +1448,55 @@
     }
   }
 
+  /* Venue Comparison rail — All / Ceremony / Reception / Shortlist / Incomplete */
+  function buildVenueContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('venue', 'all');
+    else if (typeof window._venRailView === 'string' && window._venRailView) activeView = window._venRailView;
+    window._venRailView = activeView;
+
+    var counts = typeof window.venueRailCounts === 'function' ? window.venueRailCounts() : {
+      all: 0, ceremony: 1, reception: 1, shortlist: 0, incomplete: 0
+    };
+    var figures = typeof window.venueFigures === 'function' ? window.venueFigures() : {
+      costSummary: '—', maxCap: null, incomplete: 0
+    };
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyVenueRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All venues', counts.all) +
+      viewItem('ceremony', 'Ceremony', counts.ceremony) +
+      viewItem('reception', 'Reception', counts.reception) +
+      viewItem('shortlist', 'Shortlist', counts.shortlist) +
+      viewItem('incomplete', 'Incomplete details', counts.incomplete, true) +
+      '</div></div>';
+
+    var metersHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Spaces</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Capacity</span><span class="rd-rail__count">' +
+      esc(figures.maxCap ? String(figures.maxCap) : '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Cost / deposit</span><span class="rd-rail__count">' +
+      esc(figures.costSummary || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Gaps left</span><span class="rd-rail__count">' +
+      (figures.incomplete || counts.incomplete || 0) + '</span></div>' +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Ceremony and reception are fixed columns; shortlist venues are for comparison only. Room details and reminders live under Details and Notes.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="venue">' + viewsHtml + metersHtml + noteHtml + '</div>';
+  }
+
   function buildCateringContext() {
     var d = plannerData() || {};
     var target = parseInt(d.setup && d.setup.guests, 10) || 0;
@@ -1591,6 +1640,7 @@
     payments: buildPaymentsContext,
     contracts: buildContractsContext,
     vendors: buildVendorsContext,
+    venue: buildVenueContext,
     timeline: buildTimelineContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
