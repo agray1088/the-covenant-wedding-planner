@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-17b1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-13b1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -850,62 +850,9 @@
       <!-- Filled by uedCeremonyShell() / renderCeremonyPage() (Order|Programme|Script · drawer) -->
     </div>
 
-    <!-- ═══ PRAYER ═══ -->
+    <!-- ═══ PRAYER JOURNAL — All.dc #13b · Views 32c/32d · Drawers 26 · prayer-redesign.js ═══ -->
     <div id="panel-prayer" class="panel prayer-mockup ued-scope">
-      <div class="m-stats" id="prayer-stats" aria-label="Prayer summary"></div>
-
-      <div class="m-banner" id="prayer-prompt-card">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3c1.5 3 1.8 6.5.6 10L8 21"/><path d="M14 3c-1.5 3-1.8 6.5-.6 10L16 21"/><path d="M10.8 13h2.4"/></svg>
-        <span class="m-banner-t"><b>Prayer prompt</b> — <span id="prayer-prompt-text"></span></span>
-      </div>
-
-      <section class="prayer-focus-grid" aria-label="Prayer focus cards">
-        <article class="prayer-focus-card">
-          <h3>Wisdom</h3>
-          <p>Ask for clear decisions, gentle words, and ordered priorities.</p>
-          <cite>James 1:5</cite>
-        </article>
-        <article class="prayer-focus-card">
-          <h3>Unity</h3>
-          <p>Pray for one heart as you prepare for covenant and family.</p>
-          <cite>Ecclesiastes 4:12</cite>
-        </article>
-        <article class="prayer-focus-card">
-          <h3>Peace</h3>
-          <p>Bring pressure, details, and expectations before the Lord.</p>
-          <cite>Philippians 4:7</cite>
-        </article>
-      </section>
-
-      <section class="ued-panel span12 record-editor-inline-shell prayer-inline-editor" id="prayer-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div>
-            <div class="ued-table-title">Prayer journal editor <span class="gie-mode" data-inline-editor-mode>Adding a new prayer journal entry</span></div>
-            <p class="gie-note">Record the full prayer, scripture, answer, and status in one place.</p>
-          </div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="prayer-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('prayer',null,'prayer-inline-editor-body')" style="display:none">Start new prayer</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add prayer journal entry</button>
-        </div>
-      </section>
-
-      <section class="ued-table-card prayer-table-card">
-        <div class="ued-table-head">
-          <div class="ued-table-title">Prayer log <span class="ro-badge-inline">Read only</span></div>
-          <div class="ued-actions">
-            <button class="ued-link" onclick="exportSectionCSV('Prayer Journal',data.prayer)">Export CSV</button>
-            <button class="ued-btn db-edit-btn" onclick="openDataHub('faith','prayer')">Edit in Faith Hub</button>
-          </div>
-        </div>
-        <div id="cwp-prayer" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Full table editing lives in Faith Hub; bulk remains off for this reflective journal.</span></div>
-      </section>
+      <!-- Filled by uedPrayerShell() / renderPrayerPage() (Journal|Table|Print · drawer) -->
     </div>
 
     <!-- ═══ COUNSELING ═══ -->
@@ -2175,7 +2122,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-17b1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-13b1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -2201,9 +2148,10 @@
 <script src="js/timeline-redesign.js?v=redesign-6b1"></script>
 <script src="js/ceremony-redesign.js?v=redesign-11a1"></script>
 <script src="js/honeymoon-redesign.js?v=redesign-17b1"></script>
+<script src="js/prayer-redesign.js?v=redesign-13b1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-17b1"></script>
+<script src="js/redesign-shell.js?v=redesign-13b1"></script>
 <script>
 (function () {
   try {

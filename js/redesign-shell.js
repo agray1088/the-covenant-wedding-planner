@@ -262,6 +262,7 @@
     var timelineSlot = document.getElementById('timeline-drawer-slot');
     var ceremonySlot = document.getElementById('ceremony-drawer-slot');
     var honeymoonSlot = document.getElementById('honeymoon-drawer-slot');
+    var prayerSlot = document.getElementById('prayer-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -288,6 +289,7 @@
     else if (panel === 'timeline') slot = timelineSlot;
     else if (panel === 'ceremony') slot = ceremonySlot;
     else if (panel === 'honeymoon') slot = honeymoonSlot;
+    else if (panel === 'prayer') slot = prayerSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -305,6 +307,7 @@
     if (timelineSlot && d.parentElement === timelineSlot) timelineSlot.classList.remove('is-open');
     if (ceremonySlot && d.parentElement === ceremonySlot) ceremonySlot.classList.remove('is-open');
     if (honeymoonSlot && d.parentElement === honeymoonSlot) honeymoonSlot.classList.remove('is-open');
+    if (prayerSlot && d.parentElement === prayerSlot) prayerSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -327,6 +330,7 @@
       if (timelineSlot) timelineSlot.classList.remove('is-open');
       if (ceremonySlot) ceremonySlot.classList.remove('is-open');
       if (honeymoonSlot) honeymoonSlot.classList.remove('is-open');
+      if (prayerSlot) prayerSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
@@ -349,6 +353,9 @@
     }
     if (honeymoonSlot && honeymoonSlot.querySelector('.rd-hm-drawer') && !(d.parentElement === honeymoonSlot && open)) {
       honeymoonSlot.classList.add('is-open');
+    }
+    if (prayerSlot && prayerSlot.querySelector('.rd-pr-drawer') && !(d.parentElement === prayerSlot && open)) {
+      prayerSlot.classList.add('is-open');
     }
   }
 
@@ -721,6 +728,7 @@
     packing: 'Honeymoon & After / Packing',
     hmBudgetItems: 'Honeymoon & After / Budget line',
     hmJournal: 'Honeymoon & After / Journal',
+    prayer: 'Prayer Journal / Entry',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',

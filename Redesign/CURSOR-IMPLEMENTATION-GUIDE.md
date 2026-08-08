@@ -391,7 +391,8 @@ Shot Lists = All `#11b` + Views `#30l` / `#30m` + Drawers Shot → `js/shotlist-
 Wedding Day Timeline = All `#6b` + Views `#31a` / `#31b` + Drawers Event → `js/timeline-redesign.js`.
 Ceremony & Reception = All `#11a` + Views `#31c` / `#31d` + Drawers Element → `js/ceremony-redesign.js`.
 Honeymoon & After = All `#17b` + Dark rail + Drawers Booking → `js/honeymoon-redesign.js`.
-**Next on continue:** Prayer Journal (`prayer` / All **13b`).
+Prayer Journal = All `#13b` + Views `#32c` / `#32d` + Drawers Entry → `js/prayer-redesign.js`.
+**Next on continue:** Premarital Counseling (`counseling` / All **13c`).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -519,8 +520,8 @@ before moving to the next category. Do not jump ahead inside Vendors.
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| ▶ | **Prayer Journal** | `prayer` | **13b** · Views 32 · Drawers 26 |
-| 9 | Premarital Counseling | `counseling` | **13c** · Views 32 · Drawers 26 |
+| ✓ | Prayer Journal | `prayer` | All **13b** · Views `#32c`/`#32d` · `js/prayer-redesign.js` |
+| ▶ | **Premarital Counseling** | `counseling` | **13c** · Views 32 · Drawers 26 |
 
 (Also redesign **13a** Vision & Foundation / **13d** First-Month Rhythms when they appear in nav
 or when the user asks — inventory may list more than the current `TABS` strip.)

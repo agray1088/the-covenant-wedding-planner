@@ -1946,6 +1946,71 @@
     return '<div class="rd-rail__stack" data-page-rail="honeymoon">' + sectionsHtml + readinessHtml + afterHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #13b / Dark.dc #13b rail — Views + Rhythm + Group by. */
+  function buildPrayerContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('prayer', 'all');
+    else if (typeof window._prRailView === 'string' && window._prRailView) activeView = window._prRailView;
+    window._prRailView = activeView;
+
+    var counts = typeof window.prayerRailCounts === 'function' ? window.prayerRailCounts() : {
+      all: 0, answered: 0, open: 0, laid: 0, together: 0
+    };
+    var figures = typeof window.prayerFigures === 'function' ? window.prayerFigures() : {
+      weeksWithEntry: 0, weeksWindow: 20, streak: 0, lastEntry: '—', answered: 0, entries: 0
+    };
+    var groupBy = window._prGroupBy || 'status';
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPrayerRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All entries', counts.all || 0) +
+      viewItem('answered', 'Answered', counts.answered || 0) +
+      viewItem('open', 'Still praying', counts.open || 0) +
+      viewItem('laid', 'Laid down', counts.laid || 0) +
+      viewItem('together', 'Written together', counts.together || 0) +
+      '</div></div>';
+
+    var rhythmHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Rhythm</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Weeks with an entry</span><span class="rd-rail__count">' +
+      (figures.weeksWithEntry || 0) + ' of ' + (figures.weeksWindow || 20) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Longest streak</span><span class="rd-rail__count">' +
+      (figures.streak || 0) + ' weeks</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last entry</span><span class="rd-rail__count">' +
+      esc(figures.lastEntry || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Answered</span><span class="rd-rail__count">' +
+      (figures.answered || 0) + ' of ' + (figures.entries || 0) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPrayerGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('status', 'Status') +
+      groupItem('author', 'Author') +
+      groupItem('month', 'Month') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Entries are private by default. A prayer is never included in a share packet, whatever sections you pick.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="prayer">' + viewsHtml + rhythmHtml + groupHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     party: buildPartyContext,
@@ -1960,6 +2025,7 @@
     timeline: buildTimelineContext,
     ceremony: buildCeremonyContext,
     honeymoon: buildHoneymoonContext,
+    prayer: buildPrayerContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,
