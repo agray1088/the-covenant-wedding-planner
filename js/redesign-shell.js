@@ -256,6 +256,7 @@
     var tablesSlot = document.getElementById('tables-drawer-slot');
     var vendorsSlot = document.getElementById('vendors-drawer-slot');
     var venueSlot = document.getElementById('venue-drawer-slot');
+    var cateringSlot = document.getElementById('catering-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -276,6 +277,7 @@
     else if (panel === 'gifts') slot = giftsSlot;
     else if (panel === 'tables') slot = tablesSlot;
     else if (panel === 'vendors') slot = vendorsSlot;
+    else if (panel === 'catering') slot = cateringSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -287,6 +289,7 @@
     if (giftsSlot && d.parentElement === giftsSlot) giftsSlot.classList.remove('is-open');
     if (tablesSlot && d.parentElement === tablesSlot) tablesSlot.classList.remove('is-open');
     if (vendorsSlot && d.parentElement === vendorsSlot) vendorsSlot.classList.remove('is-open');
+    if (cateringSlot && d.parentElement === cateringSlot) cateringSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -303,10 +306,14 @@
       if (giftsSlot) giftsSlot.classList.remove('is-open');
       if (tablesSlot) tablesSlot.classList.remove('is-open');
       if (vendorsSlot) vendorsSlot.classList.remove('is-open');
+      if (cateringSlot) cateringSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
       venueSlot.classList.add('is-open');
+    }
+    if (cateringSlot && cateringSlot.querySelector('.rd-cat-drawer') && !(d.parentElement === cateringSlot && open)) {
+      cateringSlot.classList.add('is-open');
     }
   }
 
@@ -656,6 +663,8 @@
     appointments: 'Appointments / Appointment',
     vendors: 'Venue & Vendors / Vendor',
     venue: 'Venue Comparison / Venue',
+    catering: 'Catering & Menu / Menu item',
+    menu: 'Catering & Menu / Menu item',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',

@@ -1497,20 +1497,50 @@
     return '<div class="rd-rail__stack" data-page-rail="venue">' + viewsHtml + metersHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #7a rail — Views + Dietary needs (live from Guest List). */
   function buildCateringContext() {
-    var d = plannerData() || {};
-    var target = parseInt(d.setup && d.setup.guests, 10) || 0;
-    var guests = typeof safeArray === 'function' ? safeArray(d.guests) : [];
-    var yes = guests.filter(function (g) { return /yes|accepted/i.test(g.rsvp || ''); }).length;
-    var mealsMissing = guests.filter(function (g) { return /yes|accepted/i.test(g.rsvp || '') && !String(g.meal || '').trim(); }).length;
+    var activeView = 'full';
+    if (typeof getSavedView === 'function') activeView = getSavedView('catering', 'full');
+    else if (typeof window._catRailView === 'string' && window._catRailView) activeView = window._catRailView;
+    window._catRailView = activeView;
 
-    return pcsHead('Catering & Menu', 'This page') +
-      pcsStats([
-        { val: String(target || yes), lbl: 'Target' },
-        { val: String(yes), lbl: 'Confirmed' },
-        { val: String(mealsMissing), lbl: 'Meals TBD' }
-      ]) +
-      pcsLinks([{ panel: 'guests', label: 'Guest list' }, { action: "openDataHub('catering','menu')", label: 'Menu tables' }]);
+    var counts = typeof window.cateringRailCounts === 'function' ? window.cateringRailCounts() : {
+      full: 0, notchosen: 0, allergen: 0, cake: 0, drinks: 0, rentals: 0
+    };
+    var meters = typeof window.cateringDietaryMeters === 'function' ? window.cateringDietaryMeters() : [];
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCateringRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('full', 'Full menu', counts.full) +
+      viewItem('notchosen', 'Not yet chosen', counts.notchosen) +
+      viewItem('allergen', 'Allergen-relevant', counts.allergen) +
+      viewItem('cake', 'Cake & dessert', counts.cake, true) +
+      viewItem('drinks', 'Drinks', counts.drinks) +
+      viewItem('rentals', 'Rentals', counts.rentals) +
+      '</div></div>';
+
+    var dietHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Dietary needs</div>' +
+      '<div class="rd-rail__meters">' +
+      (meters.length ? meters.map(function (m) {
+        return '<div class="rd-rail__meter-top"><span>' + esc(m.label) + '</span><span class="rd-rail__count">' + m.count + '</span></div>';
+      }).join('') : '<div class="rd-rail__meter-top"><span>No flags yet</span><span class="rd-rail__count">0</span></div>') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Counts read live from the Guest List — they are never typed here.</p>' +
+      '<p class="rd-rail__note">This page owns Food, Cake, Drinks and Rentals in the Budget. Editing a price here updates the Catering category there.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="catering">' + viewsHtml + dietHtml + noteHtml + '</div>';
   }
 
   function buildDataHubContext() {

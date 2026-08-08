@@ -384,9 +384,9 @@ drawing that applies, keep legacy `data.venue` behaviour, and still apply §07 f
 match to whatever is drawn. Note undrawn gaps in the PR — do not skip the page in the queue.
 
 Worked examples: Venue & Vendors = All `#4c` + Views `#30f` / `#30g` + 4c drawer panel.
-Venue Comparison (`venue`) = thin inventory (§07 + vendors.html arrangements/reminders + legacy
-`data.venue`) → `js/venue-redesign.js`.
-**Next on continue:** Catering & Menu (`catering` / All **7a`).
+Venue Comparison (`venue`) = thin inventory → `js/venue-redesign.js`.
+Catering & Menu = All `#7a` + Views `#30h` / `#30i` + Drawers batch 24 → `js/catering-redesign.js`.
+**Next on continue:** Entertainment (`entertainment` / All **10d`).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -493,13 +493,13 @@ panel.
 **Order = live `TABS` in `js/redesign-shell.js`:** finish each category’s sub-pages left-to-right
 before moving to the next category. Do not jump ahead inside Vendors.
 
-**Vendors** (current category — Venue & Vendors `4c` + Venue Comparison done):
+**Vendors** (current category — through Catering & Menu done):
 
 | # | Sub-page (nav label) | Panel key | All.dc / notes |
 |---|---|---|---|
-| ✓ | Venue Comparison | `venue` | Thin inventory; `js/venue-redesign.js` · §07 + shell arrangements/reminders |
-| ▶ | **Catering & Menu** | `catering` | All **7a** · Views batch 30 · Drawers 24 |
-| 3 | Entertainment | `entertainment` | All **10d** · Views 30 · Drawers 24 |
+| ✓ | Venue Comparison | `venue` | Thin inventory; `js/venue-redesign.js` |
+| ✓ | Catering & Menu | `catering` | All **7a** · Views `#30h`/`#30i` · Drawers 24 · `js/catering-redesign.js` |
+| ▶ | **Entertainment** | `entertainment` | All **10d** · Views 30 · Drawers 24 |
 | 4 | Shot Lists | `shotlist` | All **11b** · Views 30 · Drawers 24 |
 
 **The Day** (after Vendors sub-pages):

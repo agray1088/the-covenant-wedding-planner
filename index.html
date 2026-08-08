@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-venue1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-7a1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1439,79 +1439,11 @@
     </div>
 
 
-    <!-- ═══ CATERING, MENU & BEVERAGE ═══ -->
+    <!-- ═══ CATERING & MENU — All.dc #7a · Views 30h/30i · Drawers 24 · catering-redesign.js ═══ -->
     <div id="panel-catering" class="panel catering-mockup ued-scope">
-      <svg class="cat-symbols" aria-hidden="true" focusable="false" width="0" height="0">
-        <symbol id="cat-i-guests" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M14.5 15.5A4.6 4.6 0 0 1 20.5 20"/></symbol>
-        <symbol id="cat-i-dollar" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.7-1.4-2.3-2.2-5-2.2-3 0-4.7 1.2-4.7 3 0 4.6 9.4 2 9.4 7 0 1.9-1.7 3.4-4.8 3.4-2.6 0-4.4-1-5.2-2.7"/></symbol>
-        <symbol id="cat-i-utensils" viewBox="0 0 24 24"><path d="M8 2v8"/><path d="M5 2v8"/><path d="M11 2v8"/><path d="M5 10h6"/><path d="M8 10v12"/><path d="M17 2v20"/><path d="M14 2c2.2 1.6 3 3.6 3 7"/></symbol>
-        <symbol id="cat-i-alert" viewBox="0 0 24 24"><path d="M12 3 2.5 20.5h19L12 3Z"/><path d="M12 9v5"/><path d="M12 17h.01"/></symbol>
-        <symbol id="cat-i-menu" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
-        <symbol id="cat-i-glass" viewBox="0 0 24 24"><path d="M7 3h10l-1 8a4 4 0 0 1-8 0L7 3Z"/><path d="M12 15v6"/><path d="M8.5 21h7"/></symbol>
-        <symbol id="cat-i-child" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6 21c1-4 3-6 6-6s5 2 6 6"/><path d="M9 11c1.2 1 4.8 1 6 0"/></symbol>
-        <symbol id="cat-i-plate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.5"/></symbol>
-        <symbol id="cat-i-table" viewBox="0 0 24 24"><path d="M4 8h16"/><path d="M6 8v12"/><path d="M18 8v12"/><path d="M8 14h8"/><path d="M10 14v6M14 14v6"/></symbol>
-        <symbol id="cat-i-leaf" viewBox="0 0 24 24"><path d="M20 4C12 4 6 9 5 19c8 0 14-5 15-15Z"/><path d="M5 19c4-5 8-8 15-15"/></symbol>
-      </svg>
-
-      <div class="cat-title-wrap">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="cat-title">Catering &amp; Menu</h2>
-        <p class="cat-subtitle">Plan food, bar, and place settings — estimates use your <strong>target guest count</strong> from Wedding Setup.</p>
-        <p class="cat-note" id="catering-guest-target-note"></p>
-        <div class="cat-header-actions no-print">
-          <button type="button" class="m-btn m-btn-primary" onclick="openMealCountSheet()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Print Caterer Sheet
-          </button>
-          <button type="button" class="m-btn" onclick="openMenuCard()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-            Print Menu Card
-          </button>
-        </div>
-      </div>
-
-      <div class="m-stats" id="catering-stats"></div>
-
-      <section class="cat-top-grid" aria-label="Catering overview">
-        <div class="ued-panel cat-menu-panel">
-          <div class="cat-card-head">
-            <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-menu"></use></svg></span><div><h3>Menu Builder</h3><p>Snapshot by course</p></div></div>
-            <span class="cat-badge gold">Summary</span>
-          </div>
-          <div id="catering-menu-summary"></div>
-        </div>
-        <div class="ued-panel cat-bar-panel">
-          <div class="cat-card-head">
-            <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-glass"></use></svg></span><div><h3>Bar &amp; Beverages</h3><p>Type · signature · calculator</p></div></div>
-          </div>
-          <div class="cat-meta-grid" id="catering-bar-summary"></div>
-          <div class="cat-divider"></div>
-          <div class="cat-note">Auto-estimates from Wedding Setup target guest count</div>
-        </div>
-      </section>
-
-      <div class="preview-foot data-hub-foot">
-        <span class="ued-soft">Menu, bar, place settings, snacks, and vendor meals — manage every catering table in the Database Hub.</span>
-        <button type="button" class="hub-link" onclick="openDataHub('catering','menu')">Open Catering Database Hub →</button>
-      </div>
-
-      <section class="cat-bottom-grid">
-        <div class="ued-panel cat-dietary-panel">
-          <div class="cat-card-head">
-            <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-alert"></use></svg></span><div><h3>Dietary Summary</h3><p>Auto-counted from your guest list and menu tags</p></div></div>
-          </div>
-          <div class="cat-dietary-wrap" id="catering-dietary-summary"></div>
-        </div>
-        <div class="ued-panel cat-costs-panel">
-          <div class="cat-card-head">
-            <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-dollar"></use></svg></span><div><h3>Catering Costs</h3><p>Rolls into Budget</p></div></div>
-          </div>
-          <div id="catering-costs"></div>
-        </div>
-      </section>
-
+      <!-- Filled by uedCateringShell() / renderCateringPage() (pagehead · KPIs · Menu|Tasting|Allergens · drawer) -->
     </div>
+
 
     <!-- ═══ ENTERTAINMENT ═══ -->
     <div id="panel-entertainment" class="panel entertainment-mockup ued-scope">
@@ -2860,7 +2792,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-venue1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-7a1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -2880,10 +2812,11 @@
 <script src="js/contracts-redesign.js?v=redesign-furniture3"></script>
 <script src="js/vendors-redesign.js?v=redesign-4c3"></script>
 <script src="js/venue-redesign.js?v=redesign-venue1"></script>
+<script src="js/catering-redesign.js?v=redesign-7a1"></script>
 <script src="js/timeline-redesign.js?v=redesign-vendors1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-venue1"></script>
+<script src="js/redesign-shell.js?v=redesign-7a1"></script>
 <script>
 (function () {
   try {
