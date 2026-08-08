@@ -904,6 +904,17 @@
     if (typeof _standardizeVenuePageShell === 'function') return _standardizeVenuePageShell.apply(this, arguments);
   };
 
+  const _renderVenueShortlist = window.renderVenueShortlist;
+  window.renderVenueShortlist = function () {
+    const panel = document.getElementById('panel-venue');
+    if (panel && panel.dataset.uedShell === 'venue-rd') {
+      renderVenueCompareView();
+      renderVenueStatsRd();
+      return;
+    }
+    if (typeof _renderVenueShortlist === 'function') return _renderVenueShortlist.apply(this, arguments);
+  };
+
   function hookVenuePanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) {
       window.SYSTEM_PANEL_RENDERERS.venue = function () { renderVenueRd(); };
