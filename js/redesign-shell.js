@@ -259,6 +259,7 @@
     var cateringSlot = document.getElementById('catering-drawer-slot');
     var entertainmentSlot = document.getElementById('entertainment-drawer-slot');
     var shotlistSlot = document.getElementById('shotlist-drawer-slot');
+    var timelineSlot = document.getElementById('timeline-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -282,6 +283,7 @@
     else if (panel === 'catering') slot = cateringSlot;
     else if (panel === 'entertainment') slot = entertainmentSlot;
     else if (panel === 'shotlist') slot = shotlistSlot;
+    else if (panel === 'timeline') slot = timelineSlot;
     /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
        park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
@@ -296,6 +298,7 @@
     if (cateringSlot && d.parentElement === cateringSlot) cateringSlot.classList.remove('is-open');
     if (entertainmentSlot && d.parentElement === entertainmentSlot) entertainmentSlot.classList.remove('is-open');
     if (shotlistSlot && d.parentElement === shotlistSlot) shotlistSlot.classList.remove('is-open');
+    if (timelineSlot && d.parentElement === timelineSlot) timelineSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -315,6 +318,7 @@
       if (cateringSlot) cateringSlot.classList.remove('is-open');
       if (entertainmentSlot) entertainmentSlot.classList.remove('is-open');
       if (shotlistSlot) shotlistSlot.classList.remove('is-open');
+      if (timelineSlot) timelineSlot.classList.remove('is-open');
     }
     /* Keep venue custom drawer open state intact when shared drawer parks away. */
     if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
@@ -328,6 +332,9 @@
     }
     if (shotlistSlot && shotlistSlot.querySelector('.rd-shot-drawer') && !(d.parentElement === shotlistSlot && open)) {
       shotlistSlot.classList.add('is-open');
+    }
+    if (timelineSlot && timelineSlot.querySelector('.rd-wday-drawer') && !(d.parentElement === timelineSlot && open)) {
+      timelineSlot.classList.add('is-open');
     }
   }
 
@@ -687,6 +694,8 @@
     shotlist: 'Shot Lists / Shot',
     videoShots: 'Shot Lists / Shot',
     videoShotlist: 'Shot Lists / Shot',
+    timeline: 'Wedding Day Timeline / Event',
+    wdayTimeline: 'Wedding Day Timeline / Event',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',

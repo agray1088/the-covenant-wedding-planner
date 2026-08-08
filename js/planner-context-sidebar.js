@@ -1746,18 +1746,22 @@
   }
 
   /* Wedding Day Timeline rail — Whole day / blocks / Needs an owner */
+  /* All.dc #6b rail — Full day / Vendor calls / Couple / Party / Unassigned + Blocks + Checks. */
   function buildTimelineContext() {
-    var activeView = 'all';
-    if (typeof getSavedView === 'function') activeView = getSavedView('timeline', 'all');
+    var activeView = 'full';
+    if (typeof getSavedView === 'function') activeView = getSavedView('timeline', 'full');
     else if (typeof window._wdayRailView === 'string' && window._wdayRailView) activeView = window._wdayRailView;
+    if (activeView === 'all') activeView = 'full';
+    if (activeView === 'unowned') activeView = 'unassigned';
     window._wdayRailView = activeView;
 
     var counts = typeof window.timelineRailCounts === 'function' ? window.timelineRailCounts() : {
-      all: 0, morning: 0, ceremony: 0, evening: 0, unowned: 0
+      full: 0, vendorCalls: 0, couple: 0, party: 0, unassigned: 0
     };
     var figures = typeof window.timelineFigures === 'function' ? window.timelineFigures() : {
-      first: '—', last: '—', unowned: 0, count: 0
+      first: '—', gaps: 0, unassigned: 0, blockCounts: {}, gapList: []
     };
+    var bc = figures.blockCounts || {};
 
     function viewItem(id, label, count, warn) {
       return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
@@ -1767,29 +1771,40 @@
 
     var viewsHtml =
       '<div class="rd-rail__section">' +
-      '<div class="rd-rail__title">Views</div>' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
       '<div class="rd-rail__list" role="list">' +
-      viewItem('all', 'Whole day', counts.all) +
-      viewItem('morning', 'Morning', counts.morning) +
-      viewItem('ceremony', 'Ceremony', counts.ceremony) +
-      viewItem('evening', 'Evening', counts.evening) +
-      viewItem('unowned', 'Needs an owner', counts.unowned, true) +
+      viewItem('full', 'Full day', counts.full || counts.all || 0) +
+      viewItem('vendorCalls', 'Vendor calls', counts.vendorCalls || 0) +
+      viewItem('couple', 'Couple only', counts.couple || 0) +
+      viewItem('party', 'Wedding party', counts.party || 0) +
+      viewItem('unassigned', 'Unassigned', counts.unassigned || counts.unowned || 0, true) +
       '</div></div>';
 
-    var metersHtml =
+    var blocksHtml =
       '<div class="rd-rail__section">' +
-      '<div class="rd-rail__title">The day</div>' +
+      '<div class="rd-rail__title">Blocks</div>' +
       '<div class="rd-rail__meters">' +
-      '<div class="rd-rail__meter-top"><span>Events</span><span class="rd-rail__count">' + (figures.count || counts.all || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>First</span><span class="rd-rail__count">' + esc(figures.first || '—') + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Last</span><span class="rd-rail__count">' + esc(figures.last || '—') + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Unowned</span><span class="rd-rail__count">' + (figures.unowned || counts.unowned || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Morning prep</span><span class="rd-rail__count">' + (bc.morning || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Portraits</span><span class="rd-rail__count">' + (bc.portraits || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Ceremony</span><span class="rd-rail__count">' + (bc.ceremony || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Reception</span><span class="rd-rail__count">' + ((bc.reception || 0) + (bc.close || 0)) + '</span></div>' +
+      '</div></div>';
+
+    var gapN = figures.gaps || 0;
+    var unownedN = figures.unassigned || counts.unassigned || 0;
+    var checksHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Checks</div>' +
+      '<div class="rd-rail__list">' +
+      '<div class="rd-rail__item" style="cursor:default">' + (gapN ? '▲ ' + gapN + '-minute gap(s) in the day' : '✓ No large gaps') + '</div>' +
+      '<div class="rd-rail__item" style="cursor:default">✓ Vendor arrivals when listed</div>' +
+      '<div class="rd-rail__item" style="cursor:default">' + (unownedN ? '▲ ' + unownedN + ' event' + (unownedN === 1 ? '' : 's') + ' have no owner' : '✓ Every event has an owner') + '</div>' +
       '</div></div>';
 
     var noteHtml =
-      '<p class="rd-rail__note">Two renderings of one set of events — reading and editing. That is a view switcher.</p>';
+      '<p class="rd-rail__note">Duration is a real field — gaps between events show as rows, not notes.</p>';
 
-    return '<div class="rd-rail__stack" data-page-rail="timeline">' + viewsHtml + metersHtml + noteHtml + '</div>';
+    return '<div class="rd-rail__stack" data-page-rail="timeline">' + viewsHtml + blocksHtml + checksHtml + noteHtml + '</div>';
   }
 
   var CONTEXT_BUILDERS = {

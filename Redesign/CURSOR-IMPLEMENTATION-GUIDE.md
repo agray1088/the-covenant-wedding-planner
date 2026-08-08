@@ -388,7 +388,8 @@ Venue Comparison (`venue`) = thin inventory → `js/venue-redesign.js`.
 Catering & Menu = All `#7a` + Views `#30h` / `#30i` + Drawers batch 24 → `js/catering-redesign.js`.
 Entertainment = All `#10d` + Views `#30j` / `#30k` + Drawers Song → `js/entertainment-redesign.js`.
 Shot Lists = All `#11b` + Views `#30l` / `#30m` + Drawers Shot → `js/shotlist-redesign.js`.
-**Next on continue:** Wedding Day Timeline (`timeline` / All **6b`).
+Wedding Day Timeline = All `#6b` + Views `#31a` / `#31b` + Drawers Event → `js/timeline-redesign.js`.
+**Next on continue:** Ceremony & Reception (`ceremony` / All **11a`).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -508,8 +509,8 @@ before moving to the next category. Do not jump ahead inside Vendors.
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| ▶ | **Wedding Day Timeline** | `timeline` | **6b** (+ Views 31; finish open Vertical/Details gaps) |
-| 6 | Ceremony & Reception | `ceremony` | **11a** · Views 31 · Drawers 25 |
+| ✓ | Wedding Day Timeline | `timeline` | All **6b** · Views `#31a`/`#31b` · `js/timeline-redesign.js` |
+| ▶ | **Ceremony & Reception** | `ceremony` | **11a** · Views 31 · Drawers 25 |
 | 7 | Honeymoon & After | `honeymoon` | **17b** · Views as drawn |
 
 **Covenant** (live nav order):
