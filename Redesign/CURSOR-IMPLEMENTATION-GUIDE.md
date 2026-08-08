@@ -109,7 +109,7 @@ Every view is one of these. Class names in `redesign/class-map.md`.
 | Planning | Timeline & Tasks · Appointments · Smart Calendar · Database Hub |
 | People | Guest List · Households · Contacts · Wedding Party · Table Layout · Gifts |
 | Money | Budget · Payments · Contracts & Invoices |
-| Vendors | Venue & Vendors · Catering & Menu · Entertainment · Shot Lists |
+| Vendors | Venue & Vendors · **Venue Comparison** · Catering & Menu · Entertainment · Shot Lists |
 | The Day | Wedding Day Timeline · Ceremony & Reception · Weekend Logistics · Newlywed Homecoming · Planner History |
 | Covenant | Vision & Foundation · Prayer Journal · Premarital Counseling · First-Month Rhythms |
 | Documents | Share Packets · Email Templates · Print Centre · Vision Board |
@@ -342,14 +342,16 @@ lookup, or queue order.
 
 When the user says **continue**, **keep going**, **next page**, or similar:
 
-1. Take the **next unfinished page** from §11.7 (skip anything already fidelity-complete on the branch).
-2. Resolve its **page id** and find **all** mocks (§11.1a).
+1. Take the **next unfinished page** from §11.7 — that queue follows **live category → sub-page
+   order** from `js/redesign-shell.js` `TABS` (not a reshuffled “priority” list).
+2. Resolve its panel key / All.dc badge and find **all** mocks (§11.1a).
 3. Complete the mandatory inventory (§11.2) — no coding until that is done.
 4. Implement so the live UI **matches the mockups exactly** (§11.1 fidelity rule).
 5. Run the gap pass (§11.5), then commit, push, and update the PR.
 
 Do not ask which page unless the queue is ambiguous or blocked. Do not wait for mock file paths —
-look them up.
+look them up. Do **not** skip ahead inside a category (e.g. after Venue & Vendors, next is
+**Venue Comparison**, not Catering & Menu).
 
 ### 11.1 · Fidelity rule (non-negotiable)
 
@@ -364,18 +366,25 @@ pagehead, toolbar, view switcher, work surface, drawer, marks, copy, and view-sp
 
 ### 11.1a · How to find every mock for a page
 
-Lookup by **page id**, not by guessing filenames.
+Lookup by **live sub-nav order** first, then **page / badge id** — not by guessing filenames.
 
 | Step | Where | What to do |
 |---|---|---|
-| A | Guide §3 + `planner-screens-all-catalog.md` | Map page name → badge id (`7a`, `10d`, `11b`, …) |
+| 0 | `js/redesign-shell.js` → `TABS` | Authoritative **category → sub-page** order for “continue” |
+| A | Guide §3 + `planner-screens-all-catalog.md` | Map page name → All.dc badge id when one exists (`4c`, `7a`, `10d`, …) |
 | B | `Planner Screens All.dc.html` | Open `id="{badge}"`. Read **Build notes**, then the full 1440px screen |
-| C | `Planner Screens Views.dc.html` | Use §3 batch map (30 Vendors/Money, 31 The Day, 32 Covenant, 33 Documents). Collect every screen whose title/badge is that page (or “{id} · … view”) |
+| C | `Planner Screens Views.dc.html` | §3 batch map (30 Vendors/Money, 31 The Day, 32 Covenant, 33 Documents). Collect every sibling view for that page |
 | D | `Planner Screens Drawers.dc.html` | Tab-group batch (Vendors 24, The Day 25, Covenant 26, Documents 27). Every tab of the record type |
 | E | `redesign/pages/{page}*.html` | Shell/rail hints only — secondary |
-| F | Views batches **34–43** | Depth, states, furniture, responsive, roles — apply when relevant; don’t skip forever |
+| F | Views batches **34–43** | Depth, states, furniture, responsive, roles — apply when relevant |
 
-Worked example (already done): Venue & Vendors = All `#4c` + Views `#30f` / `#30g` + 4c drawer panel.
+If a **live sub-nav page has no All.dc badge yet** (e.g. Venue Comparison may be inventory-thin):
+search All/Views/Drawers/Dark/Spec by page title and panel id (`#panel-venue`), use every
+drawing that applies, keep legacy `data.venue` behaviour, and still apply §07 frame + exact
+match to whatever is drawn. Note undrawn gaps in the PR — do not skip the page in the queue.
+
+Worked example (done): Venue & Vendors = All `#4c` + Views `#30f` / `#30g` + 4c drawer panel.
+**Next on continue:** Venue Comparison (`panel` / nav key `venue`).
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -479,27 +488,47 @@ panel.
 
 ### 11.7 · Remaining page queue (default order for “continue”)
 
-Unless the user names a page, **continue** in this order. Ids from `planner-screens-all-catalog.md`:
+**Order = live `TABS` in `js/redesign-shell.js`:** finish each category’s sub-pages left-to-right
+before moving to the next category. Do not jump ahead inside Vendors.
 
-| # | Page | All.dc id | Views batch | Drawers batch |
-|---|---|---|---|---|
-| 1 | Catering & Menu | **7a** | 30 | 24 (Vendors tab group) |
-| 2 | Entertainment | **10d** | 30 | 24 |
-| 3 | Shot Lists | **11b** | 30 | 24 |
-| 4 | Ceremony & Reception | **11a** | 31 | 25 |
-| 5 | Weekend Logistics (if open) | **11d** | 31 | 25 |
-| 6 | Vision & Foundation | **13a** | 32 | 26 |
-| 7 | Prayer Journal | **13b** | 32 | 26 |
-| 8 | Premarital Counseling | **13c** | 32 | 26 |
-| 9 | First-Month Rhythms | **13d** | 32 | 26 |
-| 10 | Share Packets | **12b** | 33 | 27 |
-| 11 | Email Templates | **12c** | 33 | 27 |
-| 12 | Print Centre | **12d** | 33 | 27 |
-| 13 | Vision Board | **8b** | (see Views) | 24/27 as drawn |
-| 14 | Responsive / Roles | — | **41–43** | — |
+**Vendors** (current category — Venue & Vendors `4c` done):
 
-Wedding Day Timeline was started on this branch; finish any open Timeline/Ceremony view gaps when
-they block The Day work. Cross-cutting depth (38–40) only when it blocks page fidelity.
+| # | Sub-page (nav label) | Panel key | All.dc / notes |
+|---|---|---|---|
+| ▶ | **Venue Comparison** | `venue` | Find mocks via §11.1a (may be thin in All.dc); exact match to drawings + §07 |
+| 2 | Catering & Menu | `catering` | All **7a** · Views batch 30 · Drawers 24 |
+| 3 | Entertainment | `entertainment` | All **10d** · Views 30 · Drawers 24 |
+| 4 | Shot Lists | `shotlist` | All **11b** · Views 30 · Drawers 24 |
+
+**The Day** (after Vendors sub-pages):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| 5 | Wedding Day Timeline | `timeline` | **6b** (+ Views 31; finish open Vertical/Details gaps) |
+| 6 | Ceremony & Reception | `ceremony` | **11a** · Views 31 · Drawers 25 |
+| 7 | Honeymoon & After | `honeymoon` | **17b** · Views as drawn |
+
+**Covenant** (live nav order):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| 8 | Prayer Journal | `prayer` | **13b** · Views 32 · Drawers 26 |
+| 9 | Premarital Counseling | `counseling` | **13c** · Views 32 · Drawers 26 |
+
+(Also redesign **13a** Vision & Foundation / **13d** First-Month Rhythms when they appear in nav
+or when the user asks — inventory may list more than the current `TABS` strip.)
+
+**Documents** (live nav order):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| 10 | Vision Board | `mood` | **8b** |
+| 11 | Essentials Checklist | `essentials` | **17a** |
+| 12 | Share Packets | `packets` | **12b** · Views 33 · Drawers 27 |
+| 13 | Email Templates | `emails` | **12c** · Views 33 |
+| 14 | Database Hub | `data-hub` | **7b** / **7c** |
+
+Then cross-cutting: Responsive **41–42**, Roles **43**, Vendor Portal last.
 
 For each page: **§11.1a find mocks → §11.2 inventory → §11.3–11.4 build → §11.5 gap pass →
 commit / push / PR update.**
