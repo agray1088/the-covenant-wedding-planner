@@ -273,19 +273,22 @@
     if (!host) return;
     const groups = groupItems();
     let html = '<section class="ued-table-card"><div class="ued-table-head"><div><div class="ued-kicker">Rhythms</div><div class="ued-table-title">First-month rhythm table</div></div></div>';
-    html += '<div class="ued-table-wrap"><table class="ued-table rd-table"><thead><tr><th>Rhythm</th><th>Cadence</th><th>Area</th><th>Owner</th><th>Plan</th></tr></thead><tbody>';
-    if (!groups.length) html += '<tr><td colspan="5" class="rd-empty">No rhythms match this view.</td></tr>';
+    html += '<div class="ued-table-wrap"><table class="ued-table rd-table"><thead><tr><th>Rhythm</th><th>Cadence</th><th>Area</th><th>Owner</th><th>Plan</th><th></th></tr></thead><tbody>';
+    if (!groups.length) html += '<tr><td colspan="6" class="rd-empty">No rhythms match this view.</td></tr>';
     groups.forEach(g => {
-      html += `<tr class="rd-group-row"><td colspan="5">${esc(g.key)}</td></tr>`;
+      html += `<tr class="rd-group-row"><td colspan="6">${esc(g.key)}</td></tr>`;
       g.rows.forEach(r => {
         const id = r.source + ':' + r.index;
         const open = window._fmDrawerId === id;
+        /* Editable cells stopPropagation so typing doesn't open the drawer;
+           title (base rows) + Open button open Rhythm · Cadence · Streak · History. */
         html += `<tr class="${open ? 'is-open' : ''}" style="cursor:pointer" onclick="rdFmOpenDrawer('${esc(id)}')">
-          <td onclick="event.stopPropagation()">${r.source === 'extra' ? `<input value="${esc(r.title)}" oninput="rdFmSave('${esc(id)}','title',this.value)">` : `<strong>${esc(r.title)}</strong>`}</td>
-          <td onclick="event.stopPropagation()">${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','cadence',this.value)">${selectHtml(CADENCES, r.cadence)}</select>` : esc(r.cadence)}</td>
-          <td onclick="event.stopPropagation()">${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','area',this.value)">${selectHtml(AREAS, r.area)}</select>` : esc(r.area)}</td>
-          <td onclick="event.stopPropagation()">${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','owner',this.value)">${selectHtml(OWNERS, r.owner)}</select>` : esc(r.owner)}</td>
+          <td>${r.source === 'extra' ? `<input value="${esc(r.title)}" onclick="event.stopPropagation()" oninput="rdFmSave('${esc(id)}','title',this.value)">` : `<strong>${esc(r.title)}</strong>`}</td>
+          <td>${r.source === 'extra' ? `<select onclick="event.stopPropagation()" onchange="rdFmSave('${esc(id)}','cadence',this.value)">${selectHtml(CADENCES, r.cadence)}</select>` : esc(r.cadence)}</td>
+          <td>${r.source === 'extra' ? `<select onclick="event.stopPropagation()" onchange="rdFmSave('${esc(id)}','area',this.value)">${selectHtml(AREAS, r.area)}</select>` : esc(r.area)}</td>
+          <td>${r.source === 'extra' ? `<select onclick="event.stopPropagation()" onchange="rdFmSave('${esc(id)}','owner',this.value)">${selectHtml(OWNERS, r.owner)}</select>` : esc(r.owner)}</td>
           <td onclick="event.stopPropagation()">${rowEditor(r)}</td>
+          <td onclick="event.stopPropagation()"><button type="button" class="rd-btn rd-btn--quiet" onclick="rdFmOpenDrawer('${esc(id)}')">Open</button></td>
         </tr>`;
       });
     });
