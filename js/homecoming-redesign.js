@@ -5,6 +5,10 @@
 
   window._hcMode = window._hcMode || 'tasks';
   window._hcRailView = window._hcRailView || 'settling';
+  window._hcDrawerIndex = window._hcDrawerIndex == null ? null : window._hcDrawerIndex;
+  window._hcDrawerTab = window._hcDrawerTab || 0;
+
+  const DRAWER_TABS = ['Institution', 'Documents', 'Dates', 'History'];
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
@@ -120,15 +124,19 @@
       <div class="rd-stats m-stats" id="homecoming-stats" aria-label="Homecoming summary"></div>
       <div class="rd-toolbar" id="homecoming-toolbar"></div>
       <div class="rd-surface">
-        <div class="rd-surface__row">
+        <div class="rd-surface__row" id="homecoming-surface-row">
           <div class="rd-surface__main" id="homecoming-view-host">
             <div class="rd-view" id="hc-view-tasks"></div>
             <div class="rd-view" id="hc-view-namechange" hidden></div>
             <div class="rd-view" id="hc-view-budget" hidden></div>
           </div>
+          <div id="homecoming-drawer-slot"></div>
         </div>
       </div>
     </div>`;
+    if (typeof window.covenantShell !== 'undefined' && window.covenantShell.drawer) {
+      window.covenantShell.drawer();
+    }
   }
   function renderStats() {
     const host = document.getElementById('homecoming-stats');
@@ -226,20 +234,150 @@
     if (!host) return;
     const d = ensureData();
     let html = '<section class="ued-table-card"><div class="ued-table-head"><div><div class="ued-kicker">Name change</div><div class="ued-table-title">Legal and account updates</div></div><button type="button" class="rd-btn" onclick="rdHcAddNameChange()">+ Add name-change task</button></div>';
-    html += '<div class="ued-table-wrap"><table class="ued-table rd-table"><thead><tr><th>Task</th><th>Category</th><th>Due</th><th>Status</th><th>Done</th><th>Notes</th></tr></thead><tbody>';
-    if (!d.nameChange.length) html += '<tr><td colspan="6" class="rd-empty">No name-change tasks yet.</td></tr>';
+    html += '<div class="ued-table-wrap"><table class="ued-table rd-table"><thead><tr><th>Task</th><th>Category</th><th>Due</th><th>Status</th><th>Done</th><th>Notes</th><th></th></tr></thead><tbody>';
+    if (!d.nameChange.length) html += '<tr><td colspan="7" class="rd-empty">No name-change tasks yet.</td></tr>';
     d.nameChange.forEach((r, i) => {
-      html += `<tr>
-        <td><input value="${esc(r.task || '')}" placeholder="Task" oninput="rdHcSaveName(${i},'task',this.value)"></td>
-        <td><select onchange="rdHcSaveName(${i},'category',this.value)">${selectHtml(nameCats(), r.category || 'Legal')}</select></td>
-        <td><input type="date" value="${esc(r.due || '')}" onchange="rdHcSaveName(${i},'due',this.value)"></td>
-        <td><select onchange="rdHcSaveName(${i},'status',this.value)">${selectHtml(nameStatuses(), r.status || 'Not Started')}</select></td>
-        <td><input type="checkbox"${r.done || completeStatus(r.status) ? ' checked' : ''} onchange="rdHcSaveName(${i},'done',this.checked)"></td>
-        <td><textarea rows="2" oninput="rdHcSaveName(${i},'notes',this.value)">${esc(r.notes || '')}</textarea></td>
+      const open = window._hcDrawerIndex === i;
+      html += `<tr class="${open ? 'is-open' : ''}">
+        <td onclick="event.stopPropagation()"><input value="${esc(r.task || '')}" placeholder="Task" oninput="rdHcSaveName(${i},'task',this.value)"></td>
+        <td onclick="event.stopPropagation()"><select onchange="rdHcSaveName(${i},'category',this.value)">${selectHtml(nameCats(), r.category || 'Legal')}</select></td>
+        <td onclick="event.stopPropagation()"><input type="date" value="${esc(r.due || '')}" onchange="rdHcSaveName(${i},'due',this.value)"></td>
+        <td onclick="event.stopPropagation()"><select onchange="rdHcSaveName(${i},'status',this.value)">${selectHtml(nameStatuses(), r.status || 'Not Started')}</select></td>
+        <td onclick="event.stopPropagation()"><input type="checkbox"${r.done || completeStatus(r.status) ? ' checked' : ''} onchange="rdHcSaveName(${i},'done',this.checked)"></td>
+        <td onclick="event.stopPropagation()"><textarea rows="2" oninput="rdHcSaveName(${i},'notes',this.value)">${esc(r.notes || '')}</textarea></td>
+        <td><button type="button" class="rd-btn rd-btn--quiet" onclick="rdHcOpenNameDrawer(${i})">Open</button></td>
       </tr>`;
     });
     html += '</tbody></table></div></section>';
     host.innerHTML = html;
+  }
+
+  /* ── Name-change drawer (Institution · Documents · Dates · History) ──── */
+
+  function parkSharedHcDrawerAway(slot) {
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot && slot.contains(shared)) {
+      const park = document.getElementById('layout') || document.body;
+      park.appendChild(shared);
+    }
+  }
+  function field(label, val, onclick) {
+    const click = onclick ? ` class="rd-drawer__link" onclick="${onclick}"` : '';
+    return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong${click}>${esc(val)}</strong></div>`;
+  }
+  function fmtDrawerDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(String(iso).split('T')[0] + 'T00:00:00');
+    if (Number.isNaN(d.getTime())) return String(iso);
+    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function renderHcNameDrawer() {
+    const slot = document.getElementById('homecoming-drawer-slot');
+    if (!slot) return;
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot.contains(shared) && !shared.hasAttribute('hidden')) {
+      slot.classList.add('is-open');
+      return;
+    }
+    const d = ensureData();
+    const i = window._hcDrawerIndex;
+    const r = (i != null && d.nameChange[i]) ? d.nameChange[i] : null;
+    if (!r || window._hcMode !== 'namechange') {
+      if (!(shared && slot.contains(shared) && !shared.hasAttribute('hidden'))) {
+        parkSharedHcDrawerAway(slot);
+        slot.innerHTML = '';
+        slot.classList.remove('is-open');
+      }
+      return;
+    }
+    parkSharedHcDrawerAway(slot);
+    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._hcDrawerTab, 10) || 0));
+    const total = d.nameChange.length;
+    const done = completeStatus(r.status) || r.done;
+    const blocks = Math.max(0, total - i - 1);
+    let body = '';
+    if (tab === 0) {
+      body =
+        field('Institution', r.task || 'Untitled step') +
+        field('Category', r.category || 'Legal') +
+        field('Order', (i + 1) + ' of ' + total) +
+        field('Owner', r.owner || 'Both') +
+        field('Status', r.status || 'Not Started') +
+        (i === 0 && blocks
+          ? `<p class="rd-drawer__note">This one is first because every other institution can wait on it. ${blocks} of the ${total - 1} remaining steps assume it is done.</p>`
+          : `<p class="rd-drawer__note">Order matters here — institutions later in the list often need what this one produces.</p>`);
+    } else if (tab === 1) {
+      const cat = String(r.category || '').toLowerCase();
+      const needsCert = /legal|government|financial|household/.test(cat) || i === 0;
+      body =
+        `<div class="rd-drawer__section-title">Documents needed</div>` +
+        field('Marriage certificate', needsCert ? (i === 0 ? 'Not yet issued' : (done ? 'Held' : 'Needed')) : 'Not required') +
+        field('Notes on file', r.notes ? 'Yes' : 'None yet') +
+        (r.notes ? `<p class="rd-drawer__note">${esc(r.notes)}</p>` : '') +
+        `<p class="rd-drawer__note">${i === 0
+          ? 'The certificate this step produces is the document every other institution on this list needs.'
+          : 'This institution needs the marriage certificate the first step on the list produces.'}</p>`;
+    } else if (tab === 2) {
+      body =
+        field('Due', r.due ? fmtDrawerDate(r.due) : '—') +
+        field('Submitted', r.status === 'In Progress' || done ? fmtDrawerDate(r.due) : '—') +
+        field('Confirmed', done ? fmtDrawerDate(r.due) : '—') +
+        `<p class="rd-drawer__note">${done
+          ? 'Confirmed and done.'
+          : 'A step with a due date and no confirmed date is the one to chase.'}</p>`;
+    } else {
+      body =
+        `<div class="rd-drawer__section-title">This institution</div>` +
+        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Added as step ${i + 1} of ${total}</div></div>` +
+        (done
+          ? `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Marked ${esc(r.status || 'Complete')}</div></div>`
+          : '') +
+        `<p class="rd-drawer__note">A short history here means the plan has not started, not that nothing was logged.</p>`;
+    }
+
+    slot.classList.add('is-open');
+    slot.innerHTML =
+      `<aside class="rd-drawer rd-hc-drawer" aria-label="Name-change step">` +
+      `<div class="rd-drawer__head">` +
+      `<div class="rd-drawer__eyebrow">Name change · step ${i + 1}</div>` +
+      `<h2 class="rd-drawer__title">${esc(r.task || 'Untitled step')}</h2>` +
+      `<div class="rd-drawer__chips">` +
+      `<span class="status-pill" data-pillscheme="${done ? 'green' : 'gray'}">${esc(r.status || 'Not Started')}</span>` +
+      `<span class="status-pill" data-pillscheme="gray">${esc(r.category || 'Legal')}</span>` +
+      `</div>` +
+      `<button type="button" class="rd-drawer__close" onclick="rdHcCloseNameDrawer()" aria-label="Close">×</button>` +
+      `<div class="rd-drawer__tabs" role="tablist">` +
+      DRAWER_TABS.map((label, idx) =>
+        `<button type="button" class="rd-drawer__tab${idx === tab ? ' is-active' : ''}" onclick="rdHcSetNameDrawerTab(${idx})">${esc(label)}</button>`
+      ).join('') +
+      `</div></div>` +
+      `<div class="rd-drawer__body">${body}</div>` +
+      `<div class="rd-drawer__foot">` +
+      `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHcCloseNameDrawer()">Save</button>` +
+      `<button type="button" class="rd-btn" onclick="rdHcAddNameChange()">Full editor</button>` +
+      `</div></aside>`;
+  }
+
+  function rdHcOpenNameDrawer(index) {
+    window._hcDrawerIndex = index;
+    window._hcDrawerTab = 0;
+    window._hcMode = 'namechange';
+    window._hcRailView = 'namechange';
+    renderHomecomingRd();
+  }
+  function rdHcCloseNameDrawer() {
+    window._hcDrawerIndex = null;
+    const slot = document.getElementById('homecoming-drawer-slot');
+    if (slot) {
+      parkSharedHcDrawerAway(slot);
+      slot.innerHTML = '';
+      slot.classList.remove('is-open');
+    }
+  }
+  function rdHcSetNameDrawerTab(i) {
+    window._hcDrawerTab = i;
+    renderHcNameDrawer();
   }
 
   function renderBudgetView() {
@@ -279,6 +417,7 @@
     saveNow();
     renderStats();
     renderToolbar();
+    if (window._hcDrawerIndex === index) renderHcNameDrawer();
   }
   function rdHcAddTask() {
     if (typeof addHCRow === 'function') {
@@ -355,6 +494,7 @@
     renderTasksView();
     renderNameChangeView();
     renderBudgetView();
+    renderHcNameDrawer();
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'homecoming'
       && document.body.classList.contains('context-sidebar-mode')) {
@@ -378,6 +518,9 @@
   window.rdHcPrint = rdHcPrint;
   window.rdHcExport = rdHcExport;
   window.rdHcOpenBudget = rdHcOpenBudget;
+  window.rdHcOpenNameDrawer = rdHcOpenNameDrawer;
+  window.rdHcCloseNameDrawer = rdHcCloseNameDrawer;
+  window.rdHcSetNameDrawerTab = rdHcSetNameDrawerTab;
 
   function hookHomecomingPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) window.SYSTEM_PANEL_RENDERERS.homecoming = function () { renderHomecomingRd(); };
