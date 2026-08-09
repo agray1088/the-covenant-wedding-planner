@@ -403,8 +403,8 @@ Notes = All `#12a` + Views `#33a` Cards / `#33b` Timeline + Drawers Note → `js
 (**33c** is Share Packets, not Notes.)
 Responsive = Views `#41a` (≤1240) / `#42a` (≤720) / `#42b` Day-of → `js/responsive-redesign.js`.
 Roles = Views `#43a` planner / couple / vendor preview → `js/roles-redesign.js`.
-(Vendor Portal full product is separate — `Planner Vendor Portal.dc.html`.)
-**Next on continue:** Vendor Portal.
+Vendor Portal = `Planner Vendor Portal.dc.html` V1–V5 → `vendor-portal.html` + `js/vendor-portal.js` (separate product).
+**Playbook queue complete** for live `TABS` + cross-cutting Responsive / Roles / Vendor Portal.
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -561,7 +561,7 @@ or when the user asks — inventory may list more than the current `TABS` strip.
 |---|---|---|---|
 | ✓ | Responsive | whole app | Views **41a** / **42a** / **42b** · `js/responsive-redesign.js` |
 | ✓ | Roles | whole app | Views **43a** · `js/roles-redesign.js` |
-| ▶ | **Vendor Portal** | separate product | `Planner Vendor Portal.dc.html` |
+| ✓ | Vendor Portal | separate product | V1–V5 · `vendor-portal.html` · `js/vendor-portal.js` |
 
 For each page: **§11.1a find mocks → §11.2 inventory → §11.3–11.4 build → §11.5 gap pass →
 commit / push / PR update.**

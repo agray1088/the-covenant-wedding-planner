@@ -438,7 +438,8 @@
       `<div class="rd-pkt-preview__head">` +
       `<div><div class="rd-pagehead__eyebrow">packet · ${esc(x.link)} · no login, no editing</div>` +
       `<h3>What the recipient sees</h3></div>` +
-      `<button type="button" class="rd-btn" onclick="rdPktPreview('${esc(x.id)}')">Preview as recipient</button>` +
+      `<button type="button" class="rd-btn" onclick="rdPktOpenPortal('${esc(x.id)}')">Open portal preview</button>` +
+      `<button type="button" class="rd-btn" onclick="rdPktPreview('${esc(x.id)}')">Sections preview</button>` +
       `</div>` +
       `<div class="rd-pkt-preview__cards">` +
       cards.map(c => `<article><strong>${esc(c)}</strong><span>Included</span></article>`).join('') +
@@ -784,6 +785,17 @@
     window._pktDrawerTab = 1;
     renderPacketsRd();
   }
+  function rdPktOpenPortal(id) {
+    const x = id ? allPackets().find(p => p.id === id) : null;
+    let token = 'cat9';
+    if (x && x.link) {
+      const m = String(x.link).match(/\/g\/([A-Za-z0-9_-]+)/);
+      if (m) token = m[1];
+    }
+    const expired = x && (/expir/i.test(x.status) || x.revoked) ? '&expired=1' : '';
+    const url = 'vendor-portal.html?g=' + encodeURIComponent(token) + expired;
+    window.open(url, '_blank', 'noopener');
+  }
   function rdPktToggleLiveOnly() {
     window._pktLiveOnly = !window._pktLiveOnly;
     renderPacketsRd();
@@ -891,6 +903,7 @@
   window.rdPktRevokeAll = rdPktRevokeAll;
   window.rdPktCopyLink = rdPktCopyLink;
   window.rdPktPreview = rdPktPreview;
+  window.rdPktOpenPortal = rdPktOpenPortal;
   window.rdPktToggleLiveOnly = rdPktToggleLiveOnly;
   window.rdPktToggleSel = rdPktToggleSel;
   window.rdPktBulkClear = rdPktBulkClear;
