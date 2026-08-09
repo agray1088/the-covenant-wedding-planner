@@ -1047,7 +1047,8 @@
   var LOG_DRAWER_TABS = ['Movement', 'People', 'Transport', 'History'];
   var LOG_DRAWER_TAB_MAX = LOG_DRAWER_TABS.length - 1;
   /* 3b: Identity · Response · Contact · Invitation · Party · Note · History */
-  var GUEST_DRAWER_TABS = ['Identity', 'Response', 'Contact', 'Invitation', 'Party', 'Note', 'History'];
+  /* Gaps Batch 44 — Guest · Household · Seating · RSVP · History (planner.js guestDrawerShellTabs wins). */
+  var GUEST_DRAWER_TABS = ['Guest', 'Household', 'Seating', 'RSVP', 'History'];
   var GUEST_DRAWER_TAB_MAX = GUEST_DRAWER_TABS.length - 1;
   var LOG_DRAWER_KEYS = {
     weekendTimeline: 1, hotelBlocks: 1, travelAccommodations: 1,

@@ -564,17 +564,17 @@ every page already shipped.
 **Vendors / Money / Overview / Cross-cutting** — already complete (venue→shotlist, budget→contracts,
 dashboard+notes, Responsive **41–42**, Roles **43a**, Vendor Portal V1–V5).
 
-**Next “continue” work:** depth / state / furniture gap passes (batches **34–40**) across the new
-pages, then Guest List drawer polish if still open.
+**Planner Screens Gaps (`Planner Screens Gaps.dc.html`, batches 44–48) — complete.**
 
-**Planner Screens Gaps (batches 44–48) — in progress.** The gaps chrome is done: `js/gaps-redesign.js`
-(loaded after `redesign-shell.js`) draws **batch 45** (avatar menu, search records-first + ⌘K footer,
-undo history flyout, page-aware help menu — the gear is retired via `body.rd-gaps-chrome`), **batch 47**
-(the 1240px settings window, all fourteen panes + the Wedding-setup pointer, `window.openSettingsWindow(paneId)` /
-`window.closeSettingsWindow()`; Display & density shares one device-prefs store with the profile Display tab),
-and **batch 48** (the `#profile-drawer` retabbed to the Profile · Display · Alerts · Access anatomy, with the
-legacy profile switcher / appearance / roles view-as controls relocated into the Access tab so nothing is lost).
-Batch 44 (the four record drawers) and batch 46 (record editor window) remain for a later pass.
+| Batch | What | Implementation |
+|---|---|---|
+| **44** | Guest / Task / Payment / Vendor drawers (18 tabs) | `planner.js` guest tabs · `redesign-shell.js` Task · `payments-redesign.js` · `vendors-redesign.js` |
+| **45** | Avatar menu · search · undo flyout · help | `js/gaps-redesign.js` (gear retired) |
+| **46** | Full editors for Task / Vendor / Payment | Same tab IA as drawers in `render*RecordEditor` |
+| **47** | Settings window · 14 panes | `openSettingsWindow(paneId)` |
+| **48** | Profile drawer · Profile / Display / Alerts / Access | `#profile-drawer` retabbed; device prefs shared with Settings |
+
+**Next “continue” work:** depth / state / furniture gap passes (batches **34–40**) across live pages.
 
 For each page: **§11.1a find mocks → §11.2 inventory → §11.3–11.4 build → §11.5 gap pass →
 commit / push / PR update.**
