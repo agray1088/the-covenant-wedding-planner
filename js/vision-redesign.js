@@ -5,6 +5,25 @@
 
   window._visMode = window._visMode || 'read';
   window._visRailView = window._visRailView || 'vision';
+  window._visDrawerId = window._visDrawerId || null;
+  window._visDrawerTab = window._visDrawerTab || 0;
+
+  const DRAWER_TABS = ['Section', 'Wording', 'Print', 'History'];
+  const SECTION_ORDER = ['vision', 'values', 'scriptures', 'promises', 'building'];
+  const SECTION_PRIMARY_KEY = {
+    vision: 'marriageVision',
+    values: 'priority1',
+    scriptures: 'marriageVerseFull',
+    promises: 'marriagePrayer',
+    building: 'marriageFirst'
+  };
+  const SECTION_LINKS = {
+    vision: ['Keepsake print · page 1'],
+    values: ['Keepsake print · page 2', 'Premarital Counseling · session 4'],
+    scriptures: ['Keepsake print · page 3', 'Ceremony & Reception · readings'],
+    promises: ['Keepsake print · page 4'],
+    building: ['Marriage Rhythms · monthly check-in']
+  };
 
   const SECTION_KEYS = {
     vision: ['marriageVision', 'marriageFirst'],
@@ -209,7 +228,10 @@
   function section(id, title, body, sub) {
     const active = window._visRailView === id ? ' is-active' : '';
     return `<section class="ued-table-card rd-vis-section${active}" id="vis-section-${esc(id)}">
-      <div class="ued-table-head"><div><div class="ued-kicker">${esc(sub || 'Foundation')}</div><div class="ued-table-title">${esc(title)}</div></div></div>
+      <div class="ued-table-head" onclick="rdVisOpenDrawer('${esc(id)}')" style="cursor:pointer">
+        <div><div class="ued-kicker">${esc(sub || 'Foundation')}</div><div class="ued-table-title">${esc(title)}</div></div>
+        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="event.stopPropagation();rdVisOpenDrawer('${esc(id)}')">Open</button>
+      </div>
       <div class="rd-vis-keepsake">${body}</div>
     </section>`;
   }
@@ -275,10 +297,135 @@
     </section>`;
   }
 
+  /* ── drawer (Section · Wording · Print · History) ────────────────────── */
+
+  function parkSharedVisDrawerAway(slot) {
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot && slot.contains(shared)) {
+      const park = document.getElementById('layout') || document.body;
+      park.appendChild(shared);
+    }
+  }
+  function field(label, val, onclick) {
+    const click = onclick ? ` class="rd-drawer__link" onclick="${onclick}"` : '';
+    return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong${click}>${esc(val)}</strong></div>`;
+  }
+
+  function renderVisDrawer() {
+    const slot = document.getElementById('vision-drawer-slot');
+    if (!slot) return;
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot.contains(shared) && !shared.hasAttribute('hidden')) {
+      slot.classList.add('is-open');
+      return;
+    }
+    const id = window._visDrawerId;
+    if (!id || SECTION_ORDER.indexOf(id) < 0) {
+      if (!(shared && slot.contains(shared) && !shared.hasAttribute('hidden'))) {
+        parkSharedVisDrawerAway(slot);
+        slot.innerHTML = '';
+        slot.classList.remove('is-open');
+      }
+      return;
+    }
+    parkSharedVisDrawerAway(slot);
+    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._visDrawerTab, 10) || 0));
+    const title = SECTION_LABELS[id] || id;
+    const primaryKey = SECTION_PRIMARY_KEY[id];
+    const prose = primaryKey ? value(primaryKey) : '';
+    const position = SECTION_ORDER.indexOf(id) + 1;
+    const links = SECTION_LINKS[id] || [];
+    const printReady = !!prose;
+
+    let body = '';
+    if (tab === 0) {
+      body =
+        field('Section', title) +
+        field('Position', position + ' of ' + SECTION_ORDER.length) +
+        field('Written by', 'Both') +
+        field('Last edited', fmtUpdated()) +
+        `<div class="rd-drawer__section-title">Where this shows</div>` +
+        (links.length
+          ? links.map(l => field(l.split(' · ')[0], l.split(' · ').slice(1).join(' · '))).join('')
+          : `<p class="rd-drawer__note">Not yet referenced elsewhere.</p>`) +
+        `<p class="rd-drawer__note">This section is referenced by id — renaming it here updates every place it shows.</p>`;
+    } else if (tab === 1) {
+      body =
+        `<div class="rd-vis-drawer__prose">${prose ? esc(prose).replace(/\n/g, '<br>') : '<em class="rd-empty">Nothing written yet.</em>'}</div>` +
+        (primaryKey
+          ? `<label class="rd-vis-field"><span>Edit wording</span><textarea class="rd-vis-drawer__textarea" oninput="rdVisSave('${esc(primaryKey)}', this.value)">${esc(prose)}</textarea></label>`
+          : '') +
+        `<p class="rd-drawer__note">The one tab in the planner where prose is the record rather than a note about one. It renders in Cormorant here because it will print in Cormorant.</p>`;
+    } else if (tab === 2) {
+      body =
+        field('Print ready', printReady ? 'Yes' : 'Not yet — section is unwritten') +
+        field('Class', 'B · keepsake') +
+        field('Type', 'Cormorant 19pt') +
+        field('Last printed', fmtUpdated()) +
+        `<p class="rd-drawer__note">Print is a tab here and nowhere else, because for a Covenant record the printed page is the deliverable. Everything else prints as a by-product.</p>`;
+    } else {
+      body =
+        `<div class="rd-drawer__section-title">This section</div>` +
+        (prose
+          ? `<div class="rd-drawer__hist"><strong>${esc(fmtUpdated())}</strong> · Both<div>Written</div></div>`
+          : `<div class="rd-drawer__hist"><strong>—</strong> · Both<div>Still unwritten</div></div>`) +
+        `<div class="rd-drawer__hist"><strong>—</strong> · Both<div>Added as section ${position} of ${SECTION_ORDER.length}</div></div>` +
+        `<p class="rd-drawer__note">Printing is logged. A keepsake that has been printed and then edited is a keepsake whose paper copy is now wrong.</p>`;
+    }
+
+    slot.classList.add('is-open');
+    slot.innerHTML =
+      `<aside class="rd-drawer rd-vis-drawer" aria-label="Vision section">` +
+      `<div class="rd-drawer__head">` +
+      `<div class="rd-drawer__eyebrow">Section · ${esc(id)}</div>` +
+      `<h2 class="rd-drawer__title">${esc(title)}</h2>` +
+      `<div class="rd-drawer__chips">` +
+      `<span class="status-pill" data-pillscheme="blue">Value ${String(position).padStart(2, '0')}</span>` +
+      `<span class="status-pill" data-pillscheme="gray">Both</span>` +
+      `</div>` +
+      `<button type="button" class="rd-drawer__close" onclick="rdVisCloseDrawer()" aria-label="Close">×</button>` +
+      `<div class="rd-drawer__tabs" role="tablist">` +
+      DRAWER_TABS.map((label, i) =>
+        `<button type="button" class="rd-drawer__tab${i === tab ? ' is-active' : ''}" onclick="rdVisSetDrawerTab(${i})">${esc(label)}</button>`
+      ).join('') +
+      `</div></div>` +
+      `<div class="rd-drawer__body">${body}</div>` +
+      `<div class="rd-drawer__foot">` +
+      (tab === 2
+        ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdVisPrint()">Print keepsake</button>`
+        : `<button type="button" class="rd-btn" onclick="rdVisCloseDrawer()">Save</button>`) +
+      `<button type="button" class="rd-btn" onclick="rdVisDrawerFullEditor()">Full editor</button>` +
+      `</div></aside>`;
+  }
+
+  function rdVisOpenDrawer(id) {
+    window._visDrawerId = SECTION_KEYS[id] ? id : 'vision';
+    window._visDrawerTab = 0;
+    renderVisDrawer();
+  }
+  function rdVisCloseDrawer() {
+    window._visDrawerId = null;
+    const slot = document.getElementById('vision-drawer-slot');
+    if (slot) {
+      parkSharedVisDrawerAway(slot);
+      slot.innerHTML = '';
+      slot.classList.remove('is-open');
+    }
+  }
+  function rdVisSetDrawerTab(i) {
+    window._visDrawerTab = i;
+    renderVisDrawer();
+  }
+  function rdVisDrawerFullEditor() {
+    rdSetVisionView('edit');
+    rdVisCloseDrawer();
+  }
+
   function rdVisSave(key, val) {
     saveVision(key, val);
     renderStats();
     if (window._visMode === 'read') renderReadView();
+    if (window._visDrawerId) renderVisDrawer();
   }
   function rdVisPrint() {
     if (typeof openCovenantPrintTemplate === 'function' && typeof buildVisionFoundationPrintSheets === 'function') {
@@ -329,6 +476,7 @@
     renderReadView();
     renderEditView();
     renderPrintView();
+    renderVisDrawer();
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'vision'
       && document.body.classList.contains('context-sidebar-mode')) {
@@ -348,6 +496,10 @@
   window.rdVisPrint = rdVisPrint;
   window.rdVisExport = rdVisExport;
   window.rdVisAddValue = rdVisAddValue;
+  window.rdVisOpenDrawer = rdVisOpenDrawer;
+  window.rdVisCloseDrawer = rdVisCloseDrawer;
+  window.rdVisSetDrawerTab = rdVisSetDrawerTab;
+  window.rdVisDrawerFullEditor = rdVisDrawerFullEditor;
 
   function hookVisionPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) window.SYSTEM_PANEL_RENDERERS.vision = function () { renderVisionRd(); };
