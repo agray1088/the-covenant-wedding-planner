@@ -262,7 +262,7 @@
 
   function pageheadActionsHtml() {
     const mode = window._catMode || 'menu';
-    const starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCatLoadStarter()">Load a starter list</button>';
+    const starter = '<button type="button" class="rd-btn" onclick="rdCatLoadStarter()">Load a starter list</button>';
     if (mode === 'tasting') {
       return starter
         + '<button type="button" class="rd-btn" onclick="rdCatPrintTasting()">Print tasting sheet</button>'

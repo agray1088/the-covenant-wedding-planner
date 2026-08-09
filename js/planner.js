@@ -37649,6 +37649,7 @@ function savePaletteChoice(p){
   ensureMoodData();
   data.palettes.push(paletteCloneWithSpecs(p));
   save(); if (typeof refreshThemeOptionsFromMood === 'function') refreshThemeOptionsFromMood(); renderSavedPalettes(); renderMoodStats();
+  if (typeof renderMoodRd === 'function' && document.body.getAttribute('data-active-panel') === 'mood') renderMoodRd();
 }
 function usePreset(idx){ const p=PRESET_PALETTES[idx]; if(!p) return; savePaletteChoice(p); }
 function useSeasonPalette(season,idx){ const p=(SEASONAL_PRESET_PALETTES[season]||[])[idx]; if(!p) return; savePaletteChoice(p); }
@@ -37659,13 +37660,53 @@ function addCustomPalette(){
   const colors=['mb-c1','mb-c2','mb-c3','mb-c4','mb-c5'].map(id=>normalizeHex(document.getElementById(id)?.value || '#F9F7F4'));
   data.palettes.push(paletteCloneWithSpecs({name,colors,season:'Custom',note:'Custom palette with editable color specifications.'}));
   save(); if (typeof refreshThemeOptionsFromMood === 'function') refreshThemeOptionsFromMood(); if(nameEl) nameEl.value=''; renderSavedPalettes(); renderMoodStats();
+  if (typeof renderMoodRd === 'function' && document.body.getAttribute('data-active-panel') === 'mood') renderMoodRd();
 }
+function paletteColorsForTheme(p){
+  return (p && Array.isArray(p.colors) ? p.colors : []).map(c => {
+    if (typeof c === 'string') return normalizeHex(c);
+    return normalizeHex((c && (c.hex || c.color)) || '#F9F7F4');
+  }).filter(Boolean);
+}
+/* Save a Vision Board palette into customThemes and apply it sitewide. */
+function applyPaletteAsPlannerTheme(paletteIdx){
+  ensureMoodData();
+  if (!data.setup) data.setup = {};
+  const p = data.palettes[paletteIdx];
+  if (!p) return;
+  const baseName = String(p.name || 'Wedding palette').trim() || 'Wedding palette';
+  let name = baseName;
+  let n = 2;
+  while (Object.prototype.hasOwnProperty.call(THEMES, name)) name = `${baseName} (${n++})`;
+  const vars = plannerThemeVarsFromMoodColors(paletteColorsForTheme(p));
+  if (!Array.isArray(data.setup.customThemes)) data.setup.customThemes = [];
+  const existing = data.setup.customThemes.find(t => t && t.name === name);
+  if (existing) existing.vars = vars;
+  else data.setup.customThemes.push({ name, vars });
+  data.setup.theme = name;
+  save();
+  if (typeof refreshThemeOptionsFromMood === 'function') refreshThemeOptionsFromMood();
+  if (typeof loadAppearance === 'function') loadAppearance();
+  if (typeof showToast === 'function') showToast('Applied “' + name + '” as the planner theme.');
+  else if (typeof covAlert === 'function') covAlert('Applied “' + name + '” as the planner theme.');
+}
+window.applyPaletteAsPlannerTheme = applyPaletteAsPlannerTheme;
 function renderSavedPalettes(){
   const el=document.getElementById('saved-palettes'); if(!el) return; ensureMoodData();
   if(!data.palettes.length){ el.innerHTML='<div class="empty-dashboard-note">No saved palettes yet. Pick a preset above or build your own.</div>'; return; }
-  el.innerHTML='<div class="mood-divider"><span>Your Palettes</span></div>'+data.palettes.map((p,i)=>paletteCardHTML(p, plannerTrashButton(`removePalette(${i})`,'Delete palette'), i)).join('');
+  el.innerHTML='<div class="mood-divider"><span>Your Palettes</span></div>'+data.palettes.map((p,i)=>paletteCardHTML(p,
+    `<button type="button" class="btn btn-forest btn-sm" onclick="applyPaletteAsPlannerTheme(${i})">Use as theme</button>` +
+    plannerTrashButton(`removePalette(${i})`,'Delete palette'), i)).join('');
 }
-function removePalette(i){ ensureMoodData(); data.palettes.splice(i,1); save(); if (typeof refreshThemeOptionsFromMood === 'function') refreshThemeOptionsFromMood(); renderSavedPalettes(); renderMoodStats(); }
+function removePalette(i){
+  ensureMoodData();
+  data.palettes.splice(i,1);
+  save();
+  if (typeof refreshThemeOptionsFromMood === 'function') refreshThemeOptionsFromMood();
+  renderSavedPalettes();
+  renderMoodStats();
+  if (typeof renderMoodRd === 'function' && document.body.getAttribute('data-active-panel') === 'mood') renderMoodRd();
+}
 function moodUploadLabel(section){
   return `<div class="mood-upload-row"><label class="mood-upload-label">+ Add Photo(s)<input type="file" accept="image/*" multiple style="display:none" onchange="uploadMoodPhoto('${String(section).replace(/'/g,"\\'")}',event)"></label></div>`;
 }

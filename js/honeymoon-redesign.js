@@ -275,7 +275,15 @@
   /* ── shell ───────────────────────────────────────────────────────────── */
 
   function pageheadActionsHtml() {
+    const section = window._hmSection || 'bookings';
+    let starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdHmLoadStarter()">Load a starter list</button>';
+    if (section === 'packing') {
+      starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdHmLoadPacking()">Load a starter list</button>';
+    } else if (section === 'budget') {
+      starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdHmLoadBudget()">Load budget starter</button>';
+    }
     return ''
+      + starter
       + '<button type="button" class="rd-btn" onclick="rdHmAddPhoto()">Add destination photo</button>'
       + '<button type="button" class="rd-btn" onclick="rdHmPrint()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>'
       + '<button type="button" class="rd-btn" onclick="rdHmFullEditor()">Full editor</button>'
@@ -588,7 +596,7 @@
     let html = sectionHead(
       'Trip budget · ' + rows.length + ' line' + (rows.length === 1 ? '' : 's'),
       money0(committed) + ' committed of ' + money0(target) + ' · entirely separate from the wedding budget',
-      'Print the budget', 'rdHmPrint()'
+      'Load budget starter', 'rdHmLoadBudget()'
     );
     html += `<table class="rd-hm-table"><thead><tr>` +
       `<th style="width:34px"></th><th>Line</th><th>Category</th><th>Budgeted</th><th>Committed</th><th>Paid</th><th>Status</th>` +
@@ -878,6 +886,27 @@
   }
   function rdHmLoadPacking() {
     if (typeof loadPackingPreset === 'function') loadPackingPreset();
+    renderHoneymoonRd();
+  }
+  function rdHmLoadBudget() {
+    if (typeof loadHmBudgetPreset === 'function') loadHmBudgetPreset();
+    else if (typeof loadHmBudget === 'function') loadHmBudget();
+    renderHoneymoonRd();
+  }
+  async function rdHmLoadStarter() {
+    const section = window._hmSection || 'bookings';
+    if (section === 'packing') return rdHmLoadPacking();
+    if (section === 'budget') return rdHmLoadBudget();
+    if (typeof rdChoose === 'function') {
+      const choice = await rdChoose('Load a starter list', [
+        'Packing list',
+        'Trip budget lines'
+      ]);
+      if (choice === 'Packing list') return rdHmLoadPacking();
+      if (choice === 'Trip budget lines') return rdHmLoadBudget();
+      return;
+    }
+    return rdHmLoadPacking();
   }
   function rdHmTogglePacked(i, on) {
     ensureHm();
@@ -1014,6 +1043,8 @@
   window.rdHmAddPacking = rdHmAddPacking;
   window.rdHmOpenPacking = rdHmOpenPacking;
   window.rdHmLoadPacking = rdHmLoadPacking;
+  window.rdHmLoadBudget = rdHmLoadBudget;
+  window.rdHmLoadStarter = rdHmLoadStarter;
   window.rdHmTogglePacked = rdHmTogglePacked;
   window.rdHmAddBudget = rdHmAddBudget;
   window.rdHmOpenBudget = rdHmOpenBudget;

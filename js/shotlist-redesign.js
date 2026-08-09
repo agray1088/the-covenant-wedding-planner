@@ -314,7 +314,7 @@
 
   function pageheadActionsHtml() {
     const mode = window._shotMode || 'table';
-    const starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdShotLoadStarter()">Load a starter list</button>';
+    const starter = '<button type="button" class="rd-btn" onclick="rdShotLoadStarter()">Load a starter list</button>';
     if (mode === 'cards') {
       return starter
         + '<button type="button" class="rd-btn" onclick="rdShotPrint()">Print shot list</button>'

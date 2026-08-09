@@ -262,7 +262,7 @@
 
   function pageheadActionsHtml() {
     const mode = window._entMode || 'setlist';
-    const starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdEntLoadStarter()">Load a starter list</button>';
+    const starter = '<button type="button" class="rd-btn" onclick="rdEntLoadStarter()">Load a starter list</button>';
     if (mode === 'performers') {
       return starter
         + '<button type="button" class="rd-btn" onclick="rdEntPrintTech()">Print tech sheet</button>'

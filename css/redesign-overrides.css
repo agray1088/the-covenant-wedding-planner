@@ -17031,6 +17031,77 @@ body.rd-scope #panel-mood .rd-section__head {
 }
 body.rd-scope #panel-mood .rd-section__head .rd-help { margin: 0; color: #8a7e6b; }
 
+body.rd-scope #panel-mood .rd-mood-palette-creator {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-subtle, #e7e1d4);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+body.rd-scope #panel-mood .rd-mood-palette-creator__head h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-family: var(--font-serif, Georgia, serif);
+  color: var(--forest, #2D4A3E);
+  font-weight: 500;
+}
+body.rd-scope #panel-mood .rd-mood-palette-creator__head p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted, #6b645d);
+}
+body.rd-scope #panel-mood .rd-mood-builder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+body.rd-scope #panel-mood .rd-mood-builder input[type="text"] {
+  flex: 1 1 160px;
+  min-width: 140px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border-subtle, #e7e1d4);
+  background: #fff;
+  font: inherit;
+}
+body.rd-scope #panel-mood .rd-mood-builder input[type="color"] {
+  width: 40px;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid var(--border-subtle, #e7e1d4);
+  background: #fff;
+  cursor: pointer;
+}
+body.rd-scope #panel-mood .mood-season-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 14px;
+}
+body.rd-scope #panel-mood .mood-season-btn {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid #d9cfba;
+  background: #fff;
+  color: #3f3b34;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+body.rd-scope #panel-mood .mood-season-btn.active {
+  background: #2D4A3E;
+  border-color: #2D4A3E;
+  color: #F4EFE6;
+  font-weight: 600;
+}
+body.rd-scope #panel-mood .mood-palette-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 body.rd-scope #panel-mood .rd-mood-palette__swatches {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -21361,7 +21432,60 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 .rd-pd__lrow-label { flex: 1; min-width: 0; }
 .rd-pd__lrow-tail { font-size: 12px; font-variant-numeric: tabular-nums; }
 .rd-pd__legacy { display: flex; flex-direction: column; gap: 14px; }
+.rd-pd__appear {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.rd-pd__appear .pd-sec { margin: 0; padding: 0; border: 0; }
+.rd-pd__appear .pd-sec-head { display: none; }
+.rd-pd__appear .pd-field { margin: 0 0 10px; }
+.rd-pd__appear .pd-custom-colors {
+  width: 100%;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 34px; border: 1px solid #d9cfba; background: #f5efe4; color: #2D4A3E;
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.rd-pd__appear .pd-custom-colors:hover { background: #ebe3d2; }
+.rd-pd__appear .pd-custom-colors svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+.rd-pd__appear #theme-select,
+.rd-pd__appear #font-select { width: 100%; }
 .rd-pd__foot { padding: 12px 18px; border-top: 1px solid #e7e1d4; display: flex; gap: 8px; }
+
+/* Settings · Display — colour themes + custom builder entry */
+.rd-set__appear {
+  margin-top: 18px; padding-top: 18px; border-top: 1px solid #e7e1d4;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.rd-set__appear-head {
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: #8a7e6b; font-weight: 700;
+}
+.rd-set__appear-desc {
+  margin: 0; font-size: 12.5px; line-height: 1.55; color: #6b645d;
+}
+.rd-set__theme-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+}
+.rd-set__theme {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  padding: 10px; border: 1px solid #e7e1d4; background: #fff; cursor: pointer;
+  text-align: left; font: inherit; color: #3f3b34;
+}
+.rd-set__theme:hover { border-color: #c9bda3; background: #fdfaf4; }
+.rd-set__theme.is-active {
+  border-color: #2D4A3E; box-shadow: inset 0 0 0 1px #2D4A3E;
+}
+.rd-set__theme-swatches { display: inline-flex; gap: 3px; }
+.rd-set__theme-swatches i {
+  display: block; width: 18px; height: 18px; border: 1px solid rgba(0,0,0,.08);
+}
+.rd-set__theme-name { font-size: 12px; line-height: 1.3; }
+.rd-set__appear-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.rd-set__appear-actions .rd-set__btn.is-on { background: #2D4A3E; color: #F4EFE6; }
+.rd-set__select {
+  min-width: 180px; max-width: 100%; height: 32px; padding: 0 8px;
+  border: 1px solid #d9cfba; background: #fff; font: inherit; color: #3f3b34;
+}
 .rd-pd__foot-primary, .rd-pd__foot-secondary {
   flex: 1; text-align: center; height: 32px; line-height: 32px; font-size: 13px; cursor: pointer; border: 0;
 }

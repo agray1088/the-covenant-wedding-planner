@@ -538,10 +538,100 @@
       '><span class="rd-gaps-switch__dot"></span></span>';
   }
 
+  /* — colour themes + fonts (planner file) — shared by Settings Display + helpers — */
+  function currentThemeName() {
+    try {
+      var d = getData();
+      var name = (d && d.setup && d.setup.theme) || 'Forest & Gold';
+      if (hasFn('resolveThemeName')) return resolveThemeName(name);
+      return name;
+    } catch (e) { return 'Forest & Gold'; }
+  }
+  function currentFontName() {
+    try {
+      var d = getData();
+      return (d && d.setup && d.setup.font) || 'Cormorant & Inter';
+    } catch (e) { return 'Cormorant & Inter'; }
+  }
+  function themeSwatchTriple(name) {
+    var c1 = '#2D4A3E', c2 = '#B89968', c3 = '#EFE8DD';
+    try {
+      if (hasFn('themeMergedPalette')) {
+        var m = themeMergedPalette(name) || {};
+        c1 = m['--theme-primary'] || m['--forest'] || c1;
+        c2 = m['--gold'] || c2;
+        c3 = m['--gold-pale'] || m['--ivory-dk'] || c3;
+      }
+    } catch (e) { /* soft */ }
+    return '<span class="rd-set__theme-swatches" aria-hidden="true">' +
+      '<i style="background:' + esc(c1) + '"></i>' +
+      '<i style="background:' + esc(c2) + '"></i>' +
+      '<i style="background:' + esc(c3) + '"></i></span>';
+  }
+  function appearanceThemeGridHtml() {
+    var names = [];
+    try {
+      if (typeof THEMES === 'object' && THEMES) names = Object.keys(THEMES);
+      if (hasFn('customThemesMap')) {
+        Object.keys(customThemesMap() || {}).forEach(function (n) {
+          if (names.indexOf(n) === -1) names.push(n);
+        });
+      }
+      /* Vision Board / mood palettes already applied as planner themes show up too */
+      if (hasFn('allThemes')) {
+        Object.keys(allThemes() || {}).forEach(function (n) {
+          if (/^Vision Board - |^Mood Seasonal - /.test(n) && names.indexOf(n) === -1) names.push(n);
+        });
+      }
+    } catch (e) { names = ['Forest & Gold']; }
+    if (!names.length) names = ['Forest & Gold'];
+    var cur = currentThemeName();
+    return '<div class="rd-set__theme-grid" role="listbox" aria-label="Colour themes">' + names.map(function (name) {
+      var on = name === cur;
+      return '<button type="button" class="rd-set__theme' + (on ? ' is-active' : '') +
+        '" role="option" aria-selected="' + (on ? 'true' : 'false') +
+        '" data-gaps-action="theme:' + esc(name) + '">' +
+        themeSwatchTriple(name) +
+        '<span class="rd-set__theme-name">' + esc(name) + '</span></button>';
+    }).join('') + '</div>';
+  }
+  function appearanceFontSelectHtml() {
+    var fonts = {};
+    try { if (typeof FONTS === 'object' && FONTS) fonts = FONTS; } catch (e) { fonts = {}; }
+    var names = Object.keys(fonts);
+    if (!names.length) names = ['Cormorant & Inter'];
+    var cur = currentFontName();
+    return '<select class="rd-set__select" data-gaps-font-select aria-label="Font pairing">' +
+      names.map(function (n) {
+        return '<option value="' + esc(n) + '"' + (n === cur ? ' selected' : '') + '>' + esc(n) + '</option>';
+      }).join('') + '</select>';
+  }
+  function appearanceBlockHtml() {
+    var darkOn = false;
+    try {
+      var d = getData();
+      if (d && d.setup && typeof d.setup.darkMode === 'boolean') darkOn = !!d.setup.darkMode;
+      else darkOn = !!(document.body && document.body.classList.contains('dark-mode'));
+    } catch (e) { /* soft */ }
+    return '<div class="rd-set__appear">' +
+      '<div class="rd-set__appear-head">Colour themes &amp; type</div>' +
+      '<p class="rd-set__appear-desc">Built-in palettes, any theme you save in the Custom Theme Builder, and Vision Board palettes you have applied. Themes travel with the wedding file.</p>' +
+      appearanceThemeGridHtml() +
+      '<div class="rd-set__appear-actions">' +
+        pBtn('Create Custom Colors', 'themeBuilder') +
+        '<button type="button" class="rd-set__btn' + (darkOn ? ' is-on' : '') +
+          '" data-gaps-action="darkMode">' + (darkOn ? 'Light Mode' : 'Dark Mode') + '</button>' +
+      '</div>' +
+      pRow('Font pairing', 'Serif for headings, sans for tables and forms. Print uses the same pairing.',
+        appearanceFontSelectHtml()) +
+      pNote('Create Custom Colors opens the five-swatch builder. Saved themes appear in this list and in Profile → Display.') +
+      '</div>';
+  }
+
   /* — device controls shared with the profile Display tab — */
   function paneDisplay() {
     return pTitle('Display &amp; density',
-      'Everything in the <b>This device</b> group affects this browser only. Nothing here is shared with the couple, the vendors, or a second machine — and nothing here travels in a backup.') +
+      'Everything in the <b>This device</b> group affects this browser only. Colour themes below are part of the wedding file and travel with a backup.') +
       pRow('Row density', 'Comfortable is 44px rows; compact is 32px and fits eleven more guests on a screen.',
         seg('density', [['comfortable', 'Comfortable'], ['compact', 'Compact']])) +
       pRow('Show derived figures in grey', 'Derived numbers can never be typed. Greying them is the fastest way to see which cells are yours.',
@@ -552,7 +642,8 @@
         seg('dateFormat', [['long', '8 Nov 2026'], ['iso', '2026-11-08']])) +
       pRow('Reduce motion', 'Drawer and toast transitions become instant.', sw('reduceMotion')) +
       pRow('Font size', 'Print output is unaffected.', seg('fontSize', [['default', 'Default'], ['large', 'Large']])) +
-      pNote('Device settings live in this browser. Restoring a backup on another machine brings the wedding, not these preferences.');
+      pNote('Device settings live in this browser. Restoring a backup on another machine brings the wedding, not these preferences.') +
+      appearanceBlockHtml();
   }
 
   function paneDayOf() {
@@ -797,6 +888,45 @@
     }).join('');
   }
 
+  function applySettingsTheme(name) {
+    try {
+      var d = getData();
+      if (!d) return;
+      if (!d.setup || typeof d.setup !== 'object') d.setup = {};
+      var resolved = hasFn('resolveThemeName') ? resolveThemeName(name) : name;
+      d.setup.theme = resolved;
+      var ts = document.getElementById('theme-select');
+      if (ts) {
+        if (hasFn('allThemes') && typeof escapeHtml === 'function') {
+          ts.innerHTML = Object.keys(allThemes()).map(function (n) {
+            return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + '</option>';
+          }).join('');
+        }
+        ts.value = resolved;
+      }
+      if (hasFn('applyTheme')) applyTheme(resolved);
+      if (hasFn('renderThemePicker')) renderThemePicker();
+      if (hasFn('save')) save();
+      else if (hasFn('saveAppearance')) saveAppearance();
+    } catch (e) { /* soft */ }
+    if (document.getElementById('rd-settings-window')) renderSettingsPane('display');
+  }
+  function applySettingsFont(name) {
+    try {
+      var d = getData();
+      if (!d) return;
+      if (!d.setup || typeof d.setup !== 'object') d.setup = {};
+      d.setup.font = name;
+      var fsel = document.getElementById('font-select');
+      if (fsel) fsel.value = name;
+      if (hasFn('applyFont')) applyFont(name);
+      if (hasFn('renderFontPicker')) renderFontPicker();
+      if (hasFn('save')) save();
+      else if (hasFn('saveAppearance')) saveAppearance();
+    } catch (e) { /* soft */ }
+    if (document.getElementById('rd-settings-window')) renderSettingsPane('display');
+  }
+
   function renderSettingsPane(pane) {
     var win = document.getElementById('rd-settings-window');
     if (!win) return;
@@ -806,6 +936,13 @@
     var body = win.querySelector('.rd-set__panebody');
     var fn = SET_PANES[pane] || SET_PANES.display;
     if (body) { body.innerHTML = fn(); body.scrollTop = 0; }
+    if (pane === 'display' && body) {
+      var fsel = body.querySelector('[data-gaps-font-select]');
+      if (fsel && fsel.dataset.bound !== '1') {
+        fsel.dataset.bound = '1';
+        fsel.addEventListener('change', function () { applySettingsFont(fsel.value); });
+      }
+    }
   }
 
   function openSettingsWindow(pane) {
@@ -904,6 +1041,16 @@
         closeSettingsWindow();
         if (hasFn('loadSampleData')) call('loadSampleData');
         break;
+      case 'theme':
+        applySettingsTheme(parts.slice(1).join(':'));
+        break;
+      case 'themeBuilder':
+        call('openThemeBuilder');
+        break;
+      case 'darkMode':
+        call('toggleDarkMode');
+        renderSettingsPane('display');
+        break;
       default: break;
     }
   }
@@ -966,10 +1113,14 @@
       '</div>';
   }
 
-  /* Display tab shares the device-prefs store (one store, two doors) */
+  /* Display tab shares the device-prefs store (one store, two doors) and
+     hosts the live Appearance section (themes + Create Custom Colors). */
   function pdDisplayTabInner() {
     var pdSeg = function (key, opts) { return seg(key, opts); };
     return '<div class="rd-pd__body" data-pd-panel="display">' +
+      pdSub('Colour themes &amp; type') +
+      '<div class="rd-pd__appear" id="pd-appearance-mount"></div>' +
+      '<div class="rd-pd__note rd-pd__note--ok">Pick a built-in theme or open Create Custom Colors. Themes save with the wedding file — the same list as Settings → Display &amp; density.</div>' +
       pdSub('This device') +
       '<div class="rd-pd__ctrls">' +
         '<div class="rd-pd__ctrl"><span class="rd-pd__ctrl-k">Row density</span>' + pdSeg('density', [['comfortable', 'Comfy'], ['compact', 'Compact']]) + '</div>' +
@@ -979,20 +1130,50 @@
         '<div class="rd-pd__ctrl"><span class="rd-pd__ctrl-k">Currency</span>' + pdSeg('currency', [['$', '$'], ['GH₵', 'GH₵']]) + '</div>' +
         '<div class="rd-pd__ctrl"><span class="rd-pd__ctrl-k">Dates</span>' + pdSeg('dateFormat', [['long', '8 Nov'], ['iso', '2026-11-08']]) + '</div>' +
       '</div>' +
-      '<div class="rd-pd__note rd-pd__note--ok">These are the same six controls as Settings → Display &amp; density, not a second set. Changing one here changes it there — one store, two doors.</div>' +
+      '<div class="rd-pd__note rd-pd__note--ok">These six device controls match Settings → Display &amp; density — one store, two doors.</div>' +
       pdSub('Day-of mode') +
       '<div class="rd-pd__kvs">' + pdKV('Armed for', '8 Nov · 00:00', 'rd-pd__v--ok') +
       '<div class="rd-pd__kv"><span class="rd-pd__k">Enter now</span>' +
       '<button type="button" class="rd-pd__v rd-pd__v--gold rd-pd__link" data-pd-action="dayof">Rehearsal only</button></div></div>' +
       '</div>';
   }
+  function findLegacyAppearanceSection(root) {
+    if (!root) return null;
+    var direct = root.querySelector('.pd-sec #theme-select');
+    if (direct) return direct.closest('.pd-sec');
+    var secs = root.querySelectorAll('.pd-sec');
+    for (var i = 0; i < secs.length; i++) {
+      if (secs[i].querySelector('#theme-select, #theme-picker, .pd-custom-colors')) return secs[i];
+    }
+    return null;
+  }
+  function relocateAppearanceToDisplay(drawer) {
+    drawer = drawer || document.getElementById('profile-drawer');
+    if (!drawer) return;
+    var mount = drawer.querySelector('#pd-appearance-mount');
+    if (!mount) return;
+    if (mount.querySelector('#theme-select, #theme-picker, .pd-custom-colors')) return;
+    var legacy = drawer.querySelector('#pd-legacy-mount');
+    var appearance = findLegacyAppearanceSection(legacy) || findLegacyAppearanceSection(drawer);
+    if (appearance) mount.appendChild(appearance);
+  }
   function renderProfileDisplayTab() {
     var host = document.querySelector('#profile-drawer [data-pd-panel="display"]');
     if (!host) return;
     var wasActive = host.classList.contains('is-active');
+    var held = null;
+    var appearance = host.querySelector('#pd-appearance-mount');
+    if (appearance && appearance.childNodes.length) {
+      held = document.createDocumentFragment();
+      while (appearance.firstChild) held.appendChild(appearance.firstChild);
+    }
     var next = el(pdDisplayTabInner());
     if (wasActive) next.classList.add('is-active');
     host.parentNode.replaceChild(next, host);
+    var mount = next.querySelector('#pd-appearance-mount');
+    if (mount && held) mount.appendChild(held);
+    else relocateAppearanceToDisplay();
+    if (wasActive) call('loadAppearance');
   }
 
   function pdListRow(label, tail, tailClass, alt) {
@@ -1039,7 +1220,7 @@
       '</div>' +
       pdSub('Audit') +
       '<div class="rd-pd__kvs">' + pdKV('Sessions this month', '34') + pdKV('Last export', '2 Aug · guests CSV') + pdKV('Last seen', 'Today · 09:41', 'rd-pd__v--ok') + '</div>' +
-      pdSub('Wedding, roles &amp; appearance') +
+      pdSub('Wedding, roles &amp; modes') +
       '<div class="rd-pd__legacy" id="pd-legacy-mount"></div>' +
       '</div>';
   }
@@ -1066,6 +1247,8 @@
     /* re-home the preserved legacy controls into the Access tab */
     var mount = drawer.querySelector('#pd-legacy-mount');
     if (mount) mount.appendChild(holder);
+    /* Appearance (themes + Create Custom Colors) lives on Display */
+    relocateAppearanceToDisplay(drawer);
 
     /* tab strip */
     drawer.addEventListener('click', function (e) {
@@ -1101,8 +1284,12 @@
     });
     var foot = drawer.querySelector('.rd-pd__foot');
     if (foot) foot.outerHTML = pdFooter(tab);
-    /* refresh live appearance controls when Access is shown */
-    if (tab === 'access') { call('loadAppearance'); call('renderTemplatesGalleryHosts'); }
+    /* refresh live appearance when Display is shown; templates stay on Access */
+    if (tab === 'display') {
+      relocateAppearanceToDisplay(drawer);
+      call('loadAppearance');
+    }
+    if (tab === 'access') { call('renderTemplatesGalleryHosts'); }
   }
 
 })();

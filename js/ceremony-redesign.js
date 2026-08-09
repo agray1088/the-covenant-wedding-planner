@@ -298,7 +298,7 @@
 
   function pageheadActionsHtml() {
     const mode = window._cerMode || 'order';
-    const starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCerLoadStarter()">Load a starter list</button>';
+    const starter = '<button type="button" class="rd-btn" onclick="rdCerLoadStarter()">Load a starter list</button>';
     if (mode === 'programme') {
       return starter
         + '<button type="button" class="rd-btn" onclick="rdCerPrintProgramme()">Print keepsake</button>'

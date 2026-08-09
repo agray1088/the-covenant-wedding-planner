@@ -411,7 +411,7 @@
     let html = `<section class="rd-mood-palette-page">` +
       `<div class="rd-section__head">` +
       `<div class="rd-pagehead__eyebrow">Palette · ${colors.length}</div>` +
-      `<p class="rd-help">The approved colours every pin and vendor packet should work to</p>` +
+      `<p class="rd-help">Seasonal presets, signature stories, or build your own — then Use as theme to colour the whole planner</p>` +
       `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="rdMoodAddColour()">Add a colour</button>` +
       `</div>` +
       `<div class="rd-mood-palette__swatches is-large">`;
@@ -425,8 +425,28 @@
     });
     html += `</div>` +
       `<p class="rd-help" style="margin-top:18px">${pins.filter(p => p.vendor).length} pin${pins.filter(p => p.vendor).length === 1 ? '' : 's'} linked to a vendor · send the palette with a share packet, not as a free-floating file</p>` +
+      `<div class="rd-mood-palette-creator">` +
+        `<div class="rd-mood-palette-creator__head">` +
+          `<h3>Color Palette</h3>` +
+          `<p>Pick a ready-made palette or build your own. Saved palettes can be applied as the planner theme.</p>` +
+        `</div>` +
+        `<div id="preset-palettes" class="preset-palettes mood-palette-cards"></div>` +
+        `<div class="mood-divider"><span>Build Your Own</span></div>` +
+        `<div class="palette-builder mood-palette-builder rd-mood-builder">` +
+          `<input type="text" id="mb-name" placeholder="Palette name (optional)" maxlength="40">` +
+          `<input type="color" id="mb-c1" value="#F9F7F4" title="Color 1">` +
+          `<input type="color" id="mb-c2" value="#2D4A3E" title="Color 2">` +
+          `<input type="color" id="mb-c3" value="#B89968" title="Color 3">` +
+          `<input type="color" id="mb-c4" value="#D4B896" title="Color 4">` +
+          `<input type="color" id="mb-c5" value="#A95D4E" title="Color 5">` +
+          `<button type="button" class="rd-btn rd-btn--primary" onclick="addCustomPalette()">+ Save Palette</button>` +
+        `</div>` +
+        `<div id="saved-palettes" class="saved-palettes mood-palette-cards"></div>` +
+      `</div>` +
       `</section>`;
     host.innerHTML = html;
+    if (typeof renderPresetPalettes === 'function') renderPresetPalettes();
+    if (typeof renderSavedPalettes === 'function') renderSavedPalettes();
   }
 
   function renderListView() {
