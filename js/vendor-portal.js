@@ -1,6 +1,7 @@
-/* Vendor Portal — separate product (Planner Vendor Portal.dc.html V1–V5).
-   No login. Token in ?g=… or ?expired=1. Reads planner localStorage when present;
-   falls back to Adom Catering demo matching the mocks. Counts without names. */
+/* Vendor Portal — separate product (Planner Vendor Portal.dc.html V1–V7).
+   No login. Token in ?g=… . Test hooks: ?expired=1, ?revoked=1, ?paperwork=empty.
+   Reads planner localStorage when present; falls back to Adom Catering demo
+   matching the mocks. Counts without names. */
 (function () {
   'use strict';
 
@@ -16,7 +17,9 @@
   var state = {
     tab: 'brief',
     session: null,
-    forceExpired: false
+    forceExpired: false,
+    forceRevoked: false,
+    forcePaperworkEmpty: false
   };
 
   function esc(s) {
@@ -97,6 +100,7 @@
       sharedBy: 'Mary Osei',
       sharedOn: '4 April',
       expires: opts.expires || '2026-11-12',
+      revokedOn: opts.revokedOn || '12 November',
       mode: 'Live',
       wedding: { coupleNames: 'Ama & Kwesi', date: '2026-11-08', dateLabel: '8 November 2026' },
       vendor: { name: 'Adom Catering', category: 'Catering' },
@@ -166,7 +170,7 @@
     };
   }
 
-  function buildSessionFromData(data, token, forceExpired) {
+  function buildSessionFromData(data, token, forceExpired, forceRevoked) {
     var packets = (data && Array.isArray(data.packets)) ? data.packets : [];
     var packet = null;
     if (token) {
@@ -186,7 +190,8 @@
     });
 
     if (!data && !packet) {
-      if (forceExpired) demo.status = 'expired';
+      if (forceRevoked) demo.status = 'revoked';
+      else if (forceExpired) demo.status = 'expired';
       return demo;
     }
 
@@ -202,7 +207,7 @@
     var weddingDate = String(setup.date || demo.wedding.date).slice(0, 10);
     var expires = String((packet && packet.expires) || demo.expires).slice(0, 10);
     var status = 'live';
-    if (forceExpired || (packet && (packet.revoked || /revok/i.test(packet.status)))) status = 'revoked';
+    if (forceRevoked || (packet && (packet.revoked || /revok/i.test(packet.status)))) status = 'revoked';
     else if (forceExpired || (packet && /expir/i.test(packet.status))) status = 'expired';
     else if (expires) {
       var today = new Date(); today.setHours(0, 0, 0, 0);
@@ -243,6 +248,7 @@
       sharedBy: setup.plannerName || demo.sharedBy,
       sharedOn: (packet && packet.created) ? fmtShort(packet.created) : demo.sharedOn,
       expires: expires,
+      revokedOn: (packet && packet.revokedOn) ? fmtLong(packet.revokedOn) : demo.revokedOn,
       mode: (packet && packet.mode) || 'Live',
       wedding: {
         coupleNames: coupleNames(setup),
@@ -282,6 +288,7 @@
   }
 
   function renderExpired(s) {
+    var revoked = s.status === 'revoked';
     return ''
       + '<div class="vp-topbar">'
       + '<span class="vp-topbar__mark">✦</span>'
@@ -289,12 +296,16 @@
       + '<span class="vp-topbar__badge">Vendor</span>'
       + '<span class="vp-topbar__vendor">' + esc(s.vendor.name) + '</span>'
       + '</div>'
-      + '<div class="vp-expired">'
-      + '<div class="vp-eyebrow">Access ended</div>'
-      + '<h1>This link has expired</h1>'
-      + '<p>Access ended by design four days after the wedding. Your contract, invoices, and anything you uploaded still belong to you — ask '
-      + esc(s.sharedBy) + ' if you need a copy.</p>'
-      + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="message">Message ' + esc(s.sharedBy.split(' ')[0]) + '</button>'
+      + '<div class="vp-expired' + (revoked ? ' is-revoked' : '') + '">'
+      + '<div class="vp-expired__icon">' + (revoked ? '⊘' : '⏱') + '</div>'
+      + '<div class="vp-eyebrow">' + (revoked ? 'Access revoked' : 'Access ended') + '</div>'
+      + '<h1>' + (revoked ? 'Access to this link was revoked' : 'This link has expired') + '</h1>'
+      + '<p>' + (revoked
+        ? 'Access was revoked by ' + esc(s.sharedBy) + ' on ' + esc(s.revokedOn) + '. Revoking stops the live link and any further downloads immediately — it does not recall anything you already downloaded, and it does not delete what you uploaded.'
+        : 'Access ended by design four days after the wedding. Your contract, invoices, and anything you uploaded still belong to you — ask '
+          + esc(s.sharedBy) + ' if you need a copy.')
+      + '</p>'
+      + '<button type="button" class="vp-btn" data-vp-act="message">Request access from ' + esc(s.sharedBy.split(' ')[0]) + '</button>'
       + '</div>';
   }
 
@@ -354,6 +365,24 @@
 
   function renderPaperwork(s) {
     var p = s.paperwork;
+    var hasContract = !!(p.contract && p.contract.title);
+    var hasAny = hasContract || (p.clauses && p.clauses.length) || (p.instalments && p.instalments.length) || (p.invoices && p.invoices.length);
+
+    if (!hasAny) {
+      return ''
+        + '<div class="vp-pagehead"><div class="vp-eyebrow">Your paperwork</div>'
+        + '<h1 class="vp-title">Contract, instalments, invoices</h1>'
+        + '<p class="vp-sub">Your figures only</p></div>'
+        + '<div class="vp-empty">'
+        + '<div class="vp-empty__icon">📄</div>'
+        + '<p>Nothing has been raised against this booking yet.</p>'
+        + '<p class="vp-empty__sub">Once ' + esc(s.sharedBy) + ' sends a contract, it will appear here — your figures only, never the couple\'s total budget or any other vendor\'s pricing.</p>'
+        + '</div>'
+        + '<div class="vp-foot">'
+        + '<button type="button" class="vp-btn" data-vp-act="message">Message ' + esc(s.sharedBy.split(' ')[0]) + '</button>'
+        + '</div>';
+    }
+
     return ''
       + '<div class="vp-pagehead"><div class="vp-eyebrow">Your paperwork</div>'
       + '<h1 class="vp-title">Contract, instalments, invoices</h1>'
@@ -364,23 +393,29 @@
       + '<div class="vp-stat"><span>Outstanding</span><strong class="is-warn">' + esc(p.outstanding) + '</strong></div>'
       + '<div class="vp-stat"><span>Next due</span><strong style="font-size:13px">' + esc(p.nextDue) + '</strong></div>'
       + '</div>'
-      + '<div class="vp-section-head"><strong>Your contract</strong><span>1</span></div>'
-      + '<div class="vp-row"><div><strong>' + esc(p.contract.title) + '</strong><em>' + esc(p.contract.meta)
-      + '</em></div><span class="vp-meta">View · Download</span></div>'
+      + '<div class="vp-section-head"><strong>Your contract</strong><span>' + (hasContract ? '1' : '0') + '</span></div>'
+      + (hasContract
+        ? '<div class="vp-row"><div><strong>' + esc(p.contract.title) + '</strong><em>' + esc(p.contract.meta)
+          + '</em></div><span class="vp-meta">View · Download</span></div>'
+        : '<div class="vp-row vp-row--empty"><em>No contract on file yet.</em></div>')
       + p.clauses.map(function (c) {
         return '<div class="vp-row"><div><strong>' + esc(c.title) + '</strong><em>' + esc(c.meta)
           + '</em></div><span class="' + chipClass(c.tone) + '">' + esc(c.chip) + '</span></div>';
       }).join('')
       + '<div class="vp-section-head"><strong>Your instalments</strong><span>' + p.instalments.length + ' · derived from the contract</span></div>'
-      + p.instalments.map(function (r) {
-        return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
-          + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.amount) + '</span></div>';
-      }).join('')
+      + (p.instalments.length
+        ? p.instalments.map(function (r) {
+          return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
+            + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.amount) + '</span></div>';
+        }).join('')
+        : '<div class="vp-row vp-row--empty"><em>No instalments yet — nothing has been scheduled against a contract.</em></div>')
       + '<div class="vp-section-head"><strong>Your invoices</strong><span>' + p.invoices.length + ' issued</span></div>'
-      + p.invoices.map(function (r) {
-        return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
-          + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.amount) + '</span></div>';
-      }).join('')
+      + (p.invoices.length
+        ? p.invoices.map(function (r) {
+          return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
+            + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.amount) + '</span></div>';
+        }).join('')
+        : '<div class="vp-row vp-row--empty"><em>No invoices raised yet.</em></div>')
       + '<p class="vp-note">You see your own figures only. The couple\'s total budget, their targets, and what any other vendor charges are not part of this view.</p>'
       + '<div class="vp-foot">'
       + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="invoice">Raise an invoice</button>'
@@ -487,9 +522,17 @@
     var token = qs('g') || qs('token') || '';
     var tab = qs('tab') || 'brief';
     state.forceExpired = qs('expired') === '1' || qs('expired') === 'true';
+    state.forceRevoked = qs('revoked') === '1' || qs('revoked') === 'true';
+    state.forcePaperworkEmpty = qs('paperwork') === 'empty';
     state.tab = TABS.some(function (t) { return t.id === tab; }) ? tab : 'brief';
     var data = loadPlannerData();
-    state.session = buildSessionFromData(data, token, state.forceExpired);
+    state.session = buildSessionFromData(data, token, state.forceExpired, state.forceRevoked);
+    if (state.forcePaperworkEmpty && state.session) {
+      state.session.paperwork = {
+        contractValue: '$0', paid: '$0', outstanding: '$0', nextDue: '—',
+        contract: null, clauses: [], instalments: [], invoices: []
+      };
+    }
     document.title = state.session.vendor.name + ' · Vendor Portal';
     render();
     if (window.matchMedia) {

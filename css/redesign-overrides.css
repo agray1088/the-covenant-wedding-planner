@@ -11060,13 +11060,32 @@ body.rd-scope #panel-budget .rd-pagehead__actions {
   flex-wrap: wrap;
 }
 body.rd-scope #panel-budget .rd-page > .rd-pagehead { order: 0; }
-body.rd-scope #panel-budget .rd-page > .rd-stats { order: 1; flex: 0 0 auto; }
-body.rd-scope #panel-budget .rd-page > .rd-bgt-usedbar { order: 2; flex: 0 0 auto; }
-body.rd-scope #panel-budget .rd-page > .rd-surface { order: 3; flex: 1 1 auto; min-height: 0; }
+body.rd-scope #panel-budget .rd-page > .rd-bgt-viewbar { order: 1; flex: 0 0 auto; }
+body.rd-scope #panel-budget .rd-page > .rd-stats { order: 2; flex: 0 0 auto; }
+body.rd-scope #panel-budget .rd-page > .rd-bgt-usedbar { order: 3; flex: 0 0 auto; }
+body.rd-scope #panel-budget .rd-page > .rd-surface { order: 4; flex: 1 1 auto; min-height: 0; }
 
-/* Mock 4a is one continuous scroll — no in-page view tabs between the used
-   bar and the work surface. Keep legacy tab markup hidden if an older shell
-   is still mounted. */
+/* Views 30a/30b: a small toolbar switcher between the pagehead and the stat
+   strip jumps the page between primarily "By category", primarily "Pledged &
+   paid", or the original single-scroll "All sections" — the sections
+   themselves stay in the DOM (§7.1 depth, printing, rail jumps) and are only
+   hidden, never removed. */
+body.rd-scope #panel-budget .rd-bgt-viewbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-sunken, var(--surface-content));
+}
+body.rd-scope #panel-budget .rd-bgt-viewbar__note {
+  font-size: var(--type-meta);
+  color: var(--text-muted);
+}
+body.rd-scope #panel-budget .rd-bgt-sect[hidden],
+body.rd-scope #panel-budget .rd-bgt-cols[hidden] { display: none !important; }
+
+/* Keep legacy tab markup hidden if an older shell is still mounted. */
 body.rd-scope #panel-budget .rd-viewtabs { display: none !important; }
 body.rd-scope #panel-budget .rd-bgt-view[hidden] { display: none !important; }
 body.rd-scope #panel-budget .rd-bgt-view {
@@ -20568,6 +20587,91 @@ body.rd-scope #panel-print-centre #print-centre-drawer-slot.is-open > .rd-drawer
   box-shadow: none;
 }
 
+/* Household / contact drawer chrome (Depth · drawer, §7.1) — these two
+   drawers build their own markup rather than using the shared inline
+   editor, so they need the same head/body/foot rules every other custom
+   drawer (vendors, venue, catering, …) already carries. */
+body.rd-scope #panel-households .rd-hh-drawer,
+body.rd-scope #panel-contacts .rd-ct-drawer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  position: relative;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__head,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__head {
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__eyebrow,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__eyebrow {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__title,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__title {
+  margin: 6px 0 10px; font-size: 18px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__chips,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__close,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__close {
+  position: absolute; top: 12px; right: 12px; border: 0; background: transparent;
+  font-size: 20px; color: #8a7e6b; cursor: pointer;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__tabs,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__tabs {
+  display: flex; margin-top: 12px; border: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__tab,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__tab {
+  flex: 1; text-align: center; padding: 6px 0; font-size: 12px; color: #6b645d;
+  border-left: 1px solid #e7e1d4; background: none; cursor: pointer;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__tab:first-child,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__tab:first-child { border-left: 0; }
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__tab.is-active,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__tab.is-active {
+  background: #20362D; color: #F4EFE6; font-weight: 600;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__body,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__body {
+  padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; min-height: 0;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__field,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__field {
+  display: flex; justify-content: space-between; gap: 12px; font-size: 13px;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__field span,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__field span { color: #8a7e6b; }
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__link,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__link {
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: #946f33;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__note,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__note {
+  font-size: 12px; color: #6b645d; line-height: 1.45; margin: 0;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__foot,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__foot {
+  display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid #e7e1d4; flex: 0 0 auto;
+}
+/* Depth extras row (avatar + prev/next + quick actions) sits under the
+   chips, above the tabs — see RdDepth.drawerHeaderExtras(). */
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__depth-extras,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__depth-extras {
+  margin-top: 10px;
+}
+body.rd-scope #panel-households .rd-hh-drawer .rd-related,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-related { margin-top: 4px; }
+body.rd-scope #panel-households .rd-hh-drawer .rd-drawer__provenance,
+body.rd-scope #panel-contacts .rd-ct-drawer .rd-drawer__provenance {
+  margin-top: 4px; padding-top: 10px; border-top: 1px solid #f0ebe0;
+  font-size: 11.5px; color: #8a7e6b;
+}
+
 /* Household / contact table density */
 body.rd-scope #panel-households .rd-hh-table,
 body.rd-scope #panel-contacts .rd-ct-table,
@@ -21263,3 +21367,391 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 }
 .rd-pd__foot-primary { background: #2D4A3E; color: #F4EFE6; font-weight: 600; }
 .rd-pd__foot-secondary { border: 1px solid #d9cfba; background: #fff; font-weight: 500; color: #3f3b34; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   HELP PAGES — §07 shells · All.dc 15b (Get Started) · 15d (Page-by-Page
+   Guide) · 15c (FAQ). js/help-pages-redesign.js. Untabbed pages, so these
+   rules are scoped to the three panels only. ════════════════════════════ */
+body.rd-scope #panel-instructions,
+body.rd-scope #panel-guide,
+body.rd-scope #panel-faq {
+  display: block;
+}
+body.rd-scope #panel-instructions .rd-page,
+body.rd-scope #panel-guide .rd-page,
+body.rd-scope #panel-faq .rd-page {
+  min-height: 0;
+}
+
+/* ── shared: reading intro + help text + concept/CTA cards ─────────────── */
+body.rd-scope #panel-instructions .rd-prose {
+  max-width: 760px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-body);
+}
+body.rd-scope #panel-instructions .rd-prose p { margin: 0; }
+body.rd-scope #panel-instructions .rd-progressmeter {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+body.rd-scope #panel-instructions .rd-progressmeter__top {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--type-meta);
+  color: var(--text-muted);
+}
+body.rd-scope #panel-instructions .rd-progressmeter .rd-track,
+body.rd-scope #panel-guide .rd-track,
+body.rd-scope #panel-faq .rd-track {
+  height: 4px;
+  background: var(--border-subtle);
+  overflow: hidden;
+}
+body.rd-scope #panel-instructions .rd-progressmeter .rd-fill,
+body.rd-scope #panel-guide .rd-fill,
+body.rd-scope #panel-faq .rd-fill {
+  height: 100%;
+  background: var(--forest);
+}
+
+/* ── Get Started: six steps ─────────────────────────────────────────────── */
+body.rd-scope #panel-instructions .rd-steps {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-subtle);
+}
+body.rd-scope #panel-instructions .rd-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-hairline);
+}
+body.rd-scope #panel-instructions .rd-step:last-child { border-bottom: 0; }
+body.rd-scope #panel-instructions .rd-step.is-done { background: var(--surface-raised); }
+body.rd-scope #panel-instructions .rd-step__chip {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 12.5px/1 var(--font-ui);
+  color: var(--text-subtle);
+  border: 1px solid var(--border-control);
+  background: var(--surface-content);
+}
+body.rd-scope #panel-instructions .rd-step__chip--done {
+  color: var(--status-green-text);
+  border-color: var(--status-green-border);
+  background: var(--status-green-bg);
+}
+body.rd-scope #panel-instructions .rd-step__body { flex: 1 1 auto; min-width: 0; }
+body.rd-scope #panel-instructions .rd-step__title { font: 600 14px/1.4 var(--font-ui); color: var(--text-heading); }
+body.rd-scope #panel-instructions .rd-step__desc { margin-top: 3px; font-size: var(--type-body); color: var(--text-muted); line-height: 1.55; }
+body.rd-scope #panel-instructions .rd-step__detail { color: var(--text-subtle); }
+body.rd-scope #panel-instructions .rd-step__tail { flex: 0 0 auto; margin-left: auto; padding-top: 1px; }
+body.rd-scope #panel-instructions .rd-step__tag {
+  font: 600 11px/1 var(--font-ui);
+  letter-spacing: .04em;
+  padding: 5px 10px;
+  border: 1px solid var(--status-green-border);
+  color: var(--status-green-text);
+  background: var(--status-green-bg);
+}
+body.rd-scope #panel-instructions .rd-grid-3 .rd-concept,
+body.rd-scope #panel-instructions .rd-grid-2 .rd-cta-card {
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-content);
+}
+body.rd-scope #panel-instructions .rd-concept__title { margin: 0 0 6px; font: 600 14px/1.4 var(--font-ui); color: var(--text-heading); }
+body.rd-scope #panel-instructions .rd-concept__body { margin: 0; font-size: var(--type-body); color: var(--text-muted); line-height: 1.6; }
+body.rd-scope #panel-instructions .rd-cta-card h3 { margin: 0 0 6px; font: 600 14px/1.4 var(--font-ui); color: var(--text-heading); }
+body.rd-scope #panel-instructions .rd-cta-card p { margin: 0 0 10px; font-size: var(--type-body); color: var(--text-muted); line-height: 1.55; }
+body.rd-scope #panel-instructions .rd-cta-card .rd-help { margin-top: 8px; }
+
+/* ── shared toolbar search input (Guide + FAQ) ──────────────────────────── */
+body.rd-scope #panel-guide .rd-search-input,
+body.rd-scope #panel-faq .rd-search-input {
+  height: var(--component-chip-height, 30px);
+  padding: 0 10px;
+  border: 1px solid var(--border-control);
+  background: var(--surface-content);
+  color: var(--text-body);
+  font: 400 var(--type-meta)/1 var(--font-ui);
+  min-width: 220px;
+}
+body.rd-scope #panel-guide .rd-search-input:focus,
+body.rd-scope #panel-faq .rd-search-input:focus { border-color: var(--forest); outline: none; }
+body.rd-scope #panel-guide .rd-chip__count,
+body.rd-scope #panel-faq .rd-chip__count { opacity: .65; }
+
+/* ── Page-by-Page Guide: table + print views ────────────────────────────── */
+body.rd-scope #panel-guide .rd-table tbody tr.is-group { cursor: pointer; }
+body.rd-scope #panel-guide .rd-table__caret { display: inline-block; width: 1em; }
+body.rd-scope #panel-guide .rd-table__groupcount { margin-left: 6px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--text-faint); }
+body.rd-scope #panel-guide .rd-table__muted { color: var(--text-subtle); }
+body.rd-scope #panel-guide .rd-table__gold { color: var(--gold); }
+body.rd-scope #panel-guide .rd-printsheet__paper--guide h2 { margin: 0 0 4px; font-family: var(--font-display); font-weight: 500; }
+body.rd-scope #panel-guide .rd-printsheet__cols {
+  margin-top: var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+body.rd-scope #panel-guide .rd-printsheet__col h4 {
+  margin: 0 0 6px;
+  font: 700 var(--type-section)/1.4 var(--font-ui);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 4px;
+}
+body.rd-scope #panel-guide .rd-printsheet__col ul { margin: 0; padding: 0; list-style: none; }
+body.rd-scope #panel-guide .rd-printsheet__col li { margin-bottom: 6px; font-size: 12px; line-height: 1.5; }
+
+/* ── FAQ: category chips, accordion, 360px quick-answers aside ─────────── */
+body.rd-scope #panel-faq .rd-toolbar { flex-wrap: wrap; row-gap: var(--space-2); }
+body.rd-scope #panel-faq .rd-faq-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--space-5);
+  align-items: start;
+}
+body.rd-scope #panel-faq .rd-faq-main { min-width: 0; display: flex; flex-direction: column; gap: var(--space-5); }
+body.rd-scope #panel-faq .rd-faq {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-subtle);
+}
+body.rd-scope #panel-faq .rd-faq__item { border-bottom: 1px solid var(--border-hairline); }
+body.rd-scope #panel-faq .rd-faq__item:last-child { border-bottom: 0; }
+body.rd-scope #panel-faq .rd-faq__q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 12px var(--space-4);
+  background: var(--surface-content);
+  border: 0;
+  text-align: left;
+  font: 500 var(--type-body)/1.5 var(--font-ui);
+  color: var(--text-heading);
+  cursor: pointer;
+}
+body.rd-scope #panel-faq .rd-faq__item.is-open .rd-faq__q { background: var(--surface-raised); }
+body.rd-scope #panel-faq .rd-faq__caret {
+  flex: 0 0 auto;
+  transition: transform var(--dur, .15s) var(--ease, ease);
+  color: var(--text-faint);
+}
+body.rd-scope #panel-faq .rd-faq__item.is-open .rd-faq__caret { transform: rotate(90deg); }
+body.rd-scope #panel-faq .rd-faq__catlabel {
+  margin-left: auto;
+  flex: 0 0 auto;
+  font: 500 10.5px/1 var(--font-ui);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+body.rd-scope #panel-faq .rd-faq__a {
+  padding: 0 var(--space-4) 16px calc(var(--space-4) + 1.4em);
+  font-size: var(--type-body);
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 680px;
+}
+body.rd-scope #panel-faq .rd-faq-aside {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+body.rd-scope #panel-faq .rd-faq-aside__title {
+  margin: 0;
+  font: 700 var(--type-section)/1.4 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+}
+body.rd-scope #panel-faq .rd-faq-aside__item strong { display: block; font: 600 13px/1.4 var(--font-ui); color: var(--text-heading); margin-bottom: 2px; }
+body.rd-scope #panel-faq .rd-faq-aside__item p { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+body.rd-scope #panel-faq .rd-cta-card--quiet {
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-content);
+}
+body.rd-scope #panel-faq .rd-cta-card--quiet h3 { margin: 0 0 6px; font: 600 13.5px/1.4 var(--font-ui); color: var(--text-heading); }
+body.rd-scope #panel-faq .rd-cta-card--quiet p { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+@media (max-width: 1100px) {
+  body.rd-scope #panel-faq .rd-faq-layout { grid-template-columns: 1fr; }
+}
+@media print {
+  body.rd-scope #panel-faq .rd-faq-aside { display: none; }
+}
+
+/* ── WEDDING SETUP: form grid, sections, danger zone (All.dc 15a) ───────── */
+body.rd-scope #panel-setup .rd-setup-complete {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  padding: var(--space-4) var(--space-5);
+}
+body.rd-scope #panel-setup .rd-setup-complete__title {
+  font: 700 var(--type-section)/1.4 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: var(--space-2);
+}
+body.rd-scope #panel-setup .rd-setup-complete__row {
+  display: flex; justify-content: space-between; gap: var(--space-3);
+  font-size: var(--type-meta); color: var(--text-muted);
+  padding: 3px 0;
+}
+body.rd-scope #panel-setup .rd-setup-complete .rd-track { margin: 6px 0; }
+body.rd-scope #panel-setup .rd-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+@media (max-width: 1100px) {
+  body.rd-scope #panel-setup .rd-setup-grid { grid-template-columns: 1fr; }
+}
+body.rd-scope #panel-setup .rd-setup-section,
+body.rd-scope #panel-setup .rd-setup-band {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-content);
+}
+body.rd-scope #panel-setup .rd-setup-section__head,
+body.rd-scope #panel-setup .rd-setup-band__head {
+  display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap;
+  padding: 13px var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  font: 700 var(--type-section)/1.4 var(--font-ui);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+body.rd-scope #panel-setup .rd-setup-band__meta {
+  text-transform: none; letter-spacing: 0; font-weight: 400;
+  color: var(--text-muted); font-size: var(--type-meta);
+}
+body.rd-scope #panel-setup .rd-setup-band__link {
+  margin-left: auto; background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--text-link); font-size: var(--type-meta); text-transform: none; letter-spacing: 0;
+}
+body.rd-scope #panel-setup .rd-setup-band__link:hover { text-decoration: underline; }
+body.rd-scope #panel-setup .rd-setup-section__body,
+body.rd-scope #panel-setup .rd-setup-band__body {
+  padding: var(--space-4) var(--space-5);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+body.rd-scope #panel-setup .rd-setup-field {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+}
+body.rd-scope #panel-setup .rd-setup-field__label {
+  flex: 0 0 150px;
+  padding-top: 8px;
+  font: 500 var(--type-body)/1.4 var(--font-ui);
+  color: var(--text-heading);
+}
+body.rd-scope #panel-setup .rd-setup-field__control { flex: 1 1 auto; min-width: 0; }
+body.rd-scope #panel-setup .rd-setup-field__control input,
+body.rd-scope #panel-setup .rd-setup-field__control select,
+body.rd-scope #panel-setup .rd-setup-field__control textarea {
+  width: 100%;
+  height: var(--component-input-height);
+  padding: 6px 9px;
+  font: 400 var(--type-body)/1.4 var(--font-ui);
+  color: var(--text-primary);
+  background: var(--surface-content);
+  border: 1px solid var(--border-field);
+}
+body.rd-scope #panel-setup .rd-setup-field__control textarea { height: auto; min-height: 68px; }
+body.rd-scope #panel-setup .rd-setup-field__control input:focus,
+body.rd-scope #panel-setup .rd-setup-field__control select:focus,
+body.rd-scope #panel-setup .rd-setup-field__control textarea:focus {
+  outline: none; border-color: var(--forest);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--forest) 16%, transparent);
+}
+body.rd-scope #panel-setup .rd-setup-field__note {
+  margin-top: 4px; font-size: var(--type-meta); color: var(--text-muted);
+}
+body.rd-scope #panel-setup .rd-setup-field__open {
+  flex: 0 0 auto; margin-top: 6px;
+  background: none; border: 0; cursor: pointer;
+  color: var(--text-faint); font-size: 14px;
+}
+body.rd-scope #panel-setup .rd-setup-field__open:hover { color: var(--text-link); }
+body.rd-scope #panel-setup .rd-setup-menu-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+body.rd-scope #panel-setup .rd-setup-grid2 {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4);
+}
+@media (max-width: 820px) {
+  body.rd-scope #panel-setup .rd-setup-grid2 { grid-template-columns: 1fr; }
+}
+body.rd-scope #panel-setup .rd-setup-photo {
+  display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap;
+}
+body.rd-scope #panel-setup .rd-setup-photo__copy strong { display: block; color: var(--text-heading); margin-bottom: 4px; }
+body.rd-scope #panel-setup .rd-setup-photo__copy p { margin: 0 0 var(--space-2); font-size: var(--type-meta); color: var(--text-muted); max-width: 44ch; }
+body.rd-scope #panel-setup .rd-setup-devicerow {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: 10px 0; border-top: 1px solid var(--border-hairline);
+  font-size: var(--type-body); color: var(--text-body);
+}
+body.rd-scope #panel-setup .rd-setup-danger { border-color: var(--status-red-border); }
+body.rd-scope #panel-setup .rd-setup-danger .rd-setup-band__head { color: var(--status-red-text); }
+body.rd-scope #panel-setup .rd-setup-danger__grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+@media (max-width: 1100px) {
+  body.rd-scope #panel-setup .rd-setup-danger__grid { grid-template-columns: 1fr; }
+}
+body.rd-scope #panel-setup .rd-setup-danger__cell {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  padding: var(--space-3) var(--space-4);
+  display: flex; flex-direction: column; gap: var(--space-2);
+}
+body.rd-scope #panel-setup .rd-setup-danger__title { font: 600 13.5px/1.35 var(--font-ui); color: var(--text-heading); }
+body.rd-scope #panel-setup .rd-setup-danger__cell p { margin: 0; font-size: var(--type-meta); color: var(--text-muted); }
+body.rd-scope #panel-setup .rd-setup-danger__row { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+body.rd-scope #panel-setup .rd-setup-danger__row select {
+  flex: 1 1 auto; min-width: 160px; height: var(--component-input-height);
+  border: 1px solid var(--border-field); background: var(--surface-content); padding: 0 8px;
+}
+@media print {
+  body.rd-scope #panel-setup .rd-setup-danger,
+  body.rd-scope #panel-setup .rd-setup-band#setup-sec-device { display: none !important; }
+}
+
+/* ── PLANNER HISTORY: Log / By record / Field detail (All.dc 18b) ───────── */
+body.rd-scope #panel-history .rd-page__surface { display: flex; align-items: stretch; min-height: 0; }
+body.rd-scope #panel-history .rd-page__work { flex: 1 1 auto; min-width: 0; padding: 0; }
+body.rd-scope #panel-history .rd-hist-datefield {
+  display: flex; align-items: center; gap: var(--space-2);
+  font: 500 var(--type-meta)/1 var(--font-ui); color: var(--text-muted);
+}
+body.rd-scope #panel-history .rd-hist-datefield input {
+  height: var(--component-input-height); padding: 0 8px;
+  border: 1px solid var(--border-field); background: var(--surface-content);
+}
+body.rd-scope #panel-history .rd-hist-help { font-size: var(--type-meta); color: var(--text-muted); max-width: 52ch; }
+body.rd-scope #panel-history .rd-grouplist__head { flex-wrap: wrap; }
+body.rd-scope #panel-history #history-drawer-slot:empty { display: none; }
+@media print {
+  body.rd-scope #panel-history .rd-hist-datefield,
+  body.rd-scope #panel-history #history-drawer-slot { display: none !important; }
+}

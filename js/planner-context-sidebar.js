@@ -495,14 +495,22 @@
     var activeJump = typeof window.budgetJumpSection === 'function'
       ? window.budgetJumpSection()
       : (window._budgetJumpSection || 'bgt-sect-categories');
-    var jumps = [
-      ['bgt-sect-categories', 'Budget by category'],
-      ['bgt-sect-recon', 'Reconciliation'],
-      ['bgt-sect-truetotal', 'True Total'],
-      ['bgt-sect-logic', 'Budget Logic'],
-      ['bgt-sect-tipping', 'Tipping Etiquette'],
-      ['bgt-sect-itemized', 'Itemized · ' + ((activeCat && activeCat.cat) || 'all')]
-    ];
+    /* budgetViewList() is the same list the Views 30a/30b toolbar switcher
+       shows (incl. Pledged & paid) — read it from the page module so the rail
+       and the toolbar can never drift apart. */
+    var jumps = typeof window.budgetViewList === 'function'
+      ? window.budgetViewList().map(function (v) {
+        return [v.id, v.id === 'bgt-sect-itemized' ? (v.label + ' · ' + ((activeCat && activeCat.cat) || 'all')) : v.label];
+      })
+      : [
+        ['bgt-sect-categories', 'Budget by category'],
+        ['bgt-sect-recon', 'Reconciliation'],
+        ['bgt-sect-truetotal', 'True Total'],
+        ['bgt-sect-logic', 'Budget Logic'],
+        ['bgt-sect-tipping', 'Tipping Etiquette'],
+        ['bgt-sect-itemized', 'Itemized · ' + ((activeCat && activeCat.cat) || 'all')],
+        ['bgt-sect-pledged', 'Pledged & paid']
+      ];
     var jumpHtml =
       '<div class="rd-rail__section">' +
       '<div class="rd-rail__title">Jump to</div>' +
@@ -2673,6 +2681,103 @@
     return '<div class="rd-rail__stack" data-page-rail="homecoming">' + viewsHtml + metersHtml + noteHtml + '</div>';
   }
 
+  /* Help pages — All.dc 15b/15d/15c. Untabbed; the rail replaces the missing
+     sub-nav with a table of contents / topic index instead of stats. */
+  function buildInstructionsContext() {
+    var steps = typeof window.rdGsSteps === 'function' ? window.rdGsSteps() : [];
+    var doneCount = steps.filter(function (s) { return s.done; }).length;
+    var pct = steps.length ? Math.round((doneCount / steps.length) * 100) : 0;
+    function stepItem(s) {
+      return '<button type="button" class="rd-rail__item' + (s.done ? ' is-done' : '') + '" onclick="showPanel(\'instructions\')">' +
+        esc(s.n + ' \u00b7 ' + s.title) + '<span class="rd-rail__count">' + (s.done ? '\u2713' : '') + '</span></button>';
+    }
+    var stepsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Steps</div><div class="rd-rail__list" role="list">' +
+      steps.map(stepItem).join('') + '</div></div>';
+    var d = plannerData() || {};
+    var guests = typeof safeArray === 'function' ? safeArray(d.guests) : [];
+    var vendors = typeof safeArray === 'function' ? safeArray(d.vendors) : [];
+    var setupOk = !!(d.setup && d.setup.bride && d.setup.groom && d.setup.date);
+    var vendorsWithContract = vendors.filter(function (v) {
+      return v && (v.contract === true || /signed|^yes$|^1$/i.test(String(v.contract || '')));
+    }).length;
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Your setup</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Steps done</span><span class="rd-rail__count">' + doneCount + ' of ' + steps.length + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + pct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Basics set</span><span class="rd-rail__count">' + (setupOk ? 'Yes' : 'Not yet') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Guests added</span><span class="rd-rail__count">' + guests.length + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Vendors with a contract</span><span class="rd-rail__count">' + vendorsWithContract + ' of ' + vendors.length + '</span></div>' +
+      '</div></div>';
+    var alsoHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Also see</div><div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item" onclick="showPanel(\'guide\')">Page-by-Page Guide</button>' +
+      '<button type="button" class="rd-rail__item" onclick="showPanel(\'faq\')">FAQ</button>' +
+      '<button type="button" class="rd-rail__item" onclick="downloadSqliteBackup()">Backup &amp; restore</button>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Nothing here is a record. This page explains the planner; it does not hold any of your wedding.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="instructions">' + stepsHtml + metersHtml + alsoHtml + noteHtml + '</div>';
+  }
+
+  function buildGuideContext() {
+    var tabs = ['Overview', 'Planning', 'People', 'Money', 'Vendors', 'The Day', 'Covenant', 'Documents', 'Outside the tabs'];
+    var rows = (typeof window.rdGuideRows === 'function') ? window.rdGuideRows() : [];
+    var counts = {};
+    rows.forEach(function (r) { counts[r[1]] = (counts[r[1]] || 0) + 1; });
+    var activeTab = window._guideTabFilter || 'all';
+    function tabItem(t) {
+      return '<button type="button" class="rd-rail__item' + (activeTab === t ? ' is-active' : '') + '" onclick="rdGuideSetTab(\'' + esc(t) + '\')">' +
+        esc(t) + '<span class="rd-rail__count">' + (counts[t] || 0) + '</span></button>';
+    }
+    var tabsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Tabs</div><div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item' + (activeTab === 'all' ? ' is-active' : '') + '" onclick="rdGuideSetTab(\'all\')">All pages<span class="rd-rail__count">' + rows.length + '</span></button>' +
+      tabs.map(tabItem).join('') + '</div></div>';
+    var outside = counts['Outside the tabs'] || 0;
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">The planner</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Pages</span><span class="rd-rail__count">' + rows.length + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Tabs</span><span class="rd-rail__count">8</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Outside the tabs</span><span class="rd-rail__count">' + outside + '</span></div>' +
+      '</div></div>';
+    var alsoHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Also see</div><div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item" onclick="showPanel(\'instructions\')">Get Started</button>' +
+      '<button type="button" class="rd-rail__item" onclick="showPanel(\'faq\')">FAQ</button>' +
+      '<button type="button" class="rd-rail__item" onclick="showPanel(\'setup\')">Wedding Setup</button>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">One entry per page: what it owns, what it reads from elsewhere, and what nothing else can tell you.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="guide">' + tabsHtml + metersHtml + alsoHtml + noteHtml + '</div>';
+  }
+
+  function buildFaqContext() {
+    var cats = ['Numbers', 'The file', 'Limits', 'Printing', 'Saving'];
+    var items = (typeof window.rdFaqItems === 'function') ? window.rdFaqItems() : [];
+    var counts = {};
+    items.forEach(function (it) { counts[it[0]] = (counts[it[0]] || 0) + 1; });
+    var activeCat = window._faqCatRd || 'Everything';
+    function catItem(c) {
+      return '<button type="button" class="rd-rail__item' + (activeCat === c ? ' is-active' : '') + '" onclick="rdFaqSetCat(\'' + esc(c) + '\')">' +
+        esc(c) + '<span class="rd-rail__count">' + (counts[c] || 0) + '</span></button>';
+    }
+    var topicsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Topics</div><div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item' + (activeCat === 'Everything' ? ' is-active' : '') + '" onclick="rdFaqSetCat(\'Everything\')">Everything<span class="rd-rail__count">' + items.length + '</span></button>' +
+      cats.map(catItem).join('') + '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">This planner</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Questions</span><span class="rd-rail__count">' + items.length + '</span></div>' +
+      '</div></div>';
+    var alsoHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Also see</div><div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item" onclick="showPanel(\'instructions\')">Get Started</button>' +
+      '<button type="button" class="rd-rail__item" onclick="showPanel(\'guide\')">Page-by-Page Guide</button>' +
+      '<button type="button" class="rd-rail__item" onclick="showPanel(\'setup\')">Wedding Setup</button>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">The answer to &ldquo;where did my data go&rdquo; is always the same: it is in this browser, so take backups.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="faq">' + topicsHtml + metersHtml + alsoHtml + noteHtml + '</div>';
+  }
+
   /* All.dc #12d — Print Centre. */
   function buildPrintCentreContext() {
     var activeView = 'everything';
@@ -2712,6 +2817,75 @@
     return '<div class="rd-rail__stack" data-page-rail="print-centre">' + viewsHtml + metersHtml + paperHtml + noteHtml + '</div>';
   }
 
+  /* Wedding Setup rail — All.dc 15a. Jump links to each form section plus the
+     Setup complete meter (mirrors the Dashboard rail's jump-list pattern,
+     since Setup is a form, not a filterable list). */
+  function buildSetupContext() {
+    var sections = [
+      ['setup-sec-couple', 'The couple'],
+      ['setup-sec-day', 'The day'],
+      ['setup-sec-money', 'Money'],
+      ['setup-sec-guests', 'Guests & seating'],
+      ['setup-sec-print', 'Print & sharing'],
+      ['setup-sec-menu', 'Menu visibility'],
+      ['setup-sec-device', 'This device']
+    ];
+    function jump(id, label) {
+      return '<button type="button" class="rd-rail__item" onclick="rdSetupJumpTo(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var jumpsHtml = '<div class="rd-rail__section"><div class="rd-rail__title">On this page</div>' +
+      '<div class="rd-rail__list" role="list">' + sections.map(function (s) { return jump(s[0], s[1]); }).join('') + '</div></div>';
+
+    var c = typeof window.setupCompleteFigures === 'function'
+      ? window.setupCompleteFigures()
+      : { filled: 0, total: 0, empty: 0, pct: 0 };
+    var meterHtml = '<div class="rd-rail__section"><div class="rd-rail__title">Setup complete</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Filled</span><span class="rd-rail__count">' + (c.filled || 0) + ' of ' + (c.total || 0) + '</span></div>' +
+      '<div class="rd-track" aria-hidden="true"><div class="rd-fill" style="width:' + (c.pct || 0) + '%"></div></div>' +
+      '<div class="rd-rail__meter-top" style="margin-top:8px"><span>Empty</span><span class="rd-rail__count">' + (c.empty || 0) + '</span></div>' +
+      '</div></div>';
+    var dangerHtml = '<div class="rd-rail__section"><div class="rd-rail__title">Danger zone</div><div class="rd-rail__list" role="list">' +
+      jump('setup-sec-danger', 'Clear a table · reset · backups') + '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Every field here is the fact every other page reads — changing it re-derives stats, countdowns, and print packs the moment you save.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="setup">' + jumpsHtml + meterHtml + dangerHtml + noteHtml + '</div>';
+  }
+
+  /* Planner History rail — All.dc 18b. Filter categories, not saved views:
+     Everything · Guests · Budget & payments · Tasks · Vendors. Counts read the
+     current Log-view day so the number on the rail matches what a click shows. */
+  function buildHistoryContext() {
+    var d = plannerData() || {};
+    var log = typeof safeArray === 'function' ? safeArray(d._historyLog) : (d._historyLog || []);
+    var activeCat = window._histRailCat || 'all';
+    var cats = (typeof window.histRailCategories !== 'undefined' && window.histRailCategories) || [
+      { id: 'all', label: 'Everything' },
+      { id: 'guests', label: 'Guests' },
+      { id: 'budget', label: 'Budget & payments' },
+      { id: 'tasks', label: 'Tasks' },
+      { id: 'vendors', label: 'Vendors' }
+    ];
+    var matchLog = typeof window.histLogMatchesCategory === 'function'
+      ? window.histLogMatchesCategory
+      : function () { return true; };
+    function catItem(cat) {
+      var count = log.filter(function (item) { return matchLog(item, cat.id); }).length;
+      return '<button type="button" class="rd-rail__item' + (activeCat === cat.id ? ' is-active' : '') + '"' +
+        ' onclick="applyHistoryRailFilter(\'' + cat.id + '\')">' + esc(cat.label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+    var catsHtml = '<div class="rd-rail__section"><div class="rd-rail__title">Filter by category</div>' +
+      '<div class="rd-rail__list" role="list">' + cats.map(catItem).join('') + '</div></div>';
+
+    var undoCount = (typeof safeArray === 'function' ? safeArray(d._undoSnapshots) : (d._undoSnapshots || [])).length;
+    var redoCount = (typeof safeArray === 'function' ? safeArray(d._redoSnapshots) : (d._redoSnapshots || [])).length;
+    var metersHtml = '<div class="rd-rail__section"><div class="rd-rail__title">Undo / redo</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Undo steps</span><span class="rd-rail__count">' + undoCount + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Redo steps</span><span class="rd-rail__count">' + redoCount + '</span></div>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Log is a day-by-day read of every saved change. By record and Field detail trace one guest, task, vendor, or payment at a time.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="history">' + catsHtml + metersHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
     households: buildHouseholdsContext,
@@ -2746,7 +2920,12 @@
     catering: buildCateringContext,
     entertainment: buildEntertainmentContext,
     shotlist: buildShotlistContext,
-    'data-hub': buildDataHubContext
+    'data-hub': buildDataHubContext,
+    instructions: buildInstructionsContext,
+    guide: buildGuideContext,
+    faq: buildFaqContext,
+    setup: buildSetupContext,
+    history: buildHistoryContext
   };
 
   function renderContextSidebarPageContext(panelId) {

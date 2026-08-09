@@ -490,6 +490,20 @@
     return allHouseholds().find(h => h.key === key) || null;
   }
 
+  /* Depth · drawer quick actions (§7.1) — Call/Email/WhatsApp for whichever
+     member carries the household's contact details (the address guest, or
+     failing that the first member). */
+  function hhQuickActions(h) {
+    const g = hhAddressGuest(h) || (h.members || [])[0] || {};
+    const digits = String(g.phone || '').replace(/[^0-9+]/g, '');
+    const email = String(g.email || '').trim().replace(/'/g, '');
+    return [
+      { label: 'Call', onclick: digits ? "location.href='tel:" + digits + "'" : '', title: digits ? '' : 'No phone on file' },
+      { label: 'Email', onclick: email ? "location.href='mailto:" + email + "'" : '', title: email ? '' : 'No email on file' },
+      { label: 'WhatsApp', onclick: digits ? "window.open('https://wa.me/" + digits.replace(/^\+/, '') + "','_blank')" : '', title: digits ? '' : 'No phone on file' }
+    ];
+  }
+
   function openFirstGuestDrawer(h) {
     const guest = (h.members || [])[0];
     if (!guest || !Array.isArray(data.guests)) return false;
@@ -539,17 +553,20 @@
     const addrG = hhAddressGuest(h);
     const lines = addrG && typeof guestAddressLines === 'function' ? guestAddressLines(addrG) : [];
     const members = h.members || [];
+    const rdDepth = typeof RdDepth !== 'undefined' ? RdDepth : null;
     let body = '';
     if (tab === 0) {
       /* Guests — the people inside the envelope. This is a group, not a record of its own. */
       const seats = hhSeatsSummary(h);
+      const memberRows = members.map(g => {
+        const memberSeats = hhGuestSeatsForMember(g);
+        return { left: g.name || 'Guest', right: (g.rsvp || 'Pending') + (memberSeats > 1 ? ' · ' + memberSeats + ' seats' : '') };
+      });
       body = `<p class="rd-drawer__note"><b>This is a group, not a record.</b> The fields below write to the ${members.length} guest${members.length === 1 ? '' : 's'} inside it.</p>` +
-        `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">Guests · ${members.length}</div>` +
-        (members.map(g => {
-          const memberSeats = hhGuestSeatsForMember(g);
-          const status = (g.rsvp || 'Pending') + (memberSeats > 1 ? ' · ' + memberSeats + ' seats' : '');
-          return field(g.name || 'Guest', status);
-        }).join('') || `<p class="rd-drawer__note">No members.</p>`) +
+        (rdDepth && rdDepth.relatedList
+          ? rdDepth.relatedList('Guests · ' + members.length, memberRows, { id: 'hh-guests', empty: 'No members.' })
+          : (`<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">Guests · ${members.length}</div>` +
+            (memberRows.map(r => field(r.left, r.right)).join('') || `<p class="rd-drawer__note">No members.</p>`))) +
         `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:10px">Seats needed</div>` +
         field('Total', String(seats.total)) +
         field('Seated', seats.seatedLabel) +
@@ -560,7 +577,7 @@
         ? lines.map(l => field('Line', l)).join('') +
           field('Applies to', members.length + ' guest record' + (members.length === 1 ? '' : 's')) +
           `<p class="rd-drawer__note">Editing any line here rewrites the address on all ${members.length} guest${members.length === 1 ? '' : 's'}. To change one person only, edit them on the Guest List instead.</p>`
-        : `<p class="rd-drawer__note">No address on file. Add one before printing labels.</p>` +
+        : (rdDepth && rdDepth.emptyField ? rdDepth.emptyField('Address') : `<p class="rd-drawer__note">No address on file. Add one before printing labels.</p>`) +
           `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHhSetAddressForKey('${esc(String(h.key).replace(/'/g, "\\'"))}')">Set address</button>`;
     } else if (tab === 2) {
       /* Invitation — the envelope/RSVP aggregate: one envelope, several separate RSVPs. */
@@ -585,6 +602,23 @@
         `<p class="rd-drawer__note">A household is derived, so its history records only envelope events. Guest-level changes are logged on each guest.</p>`;
     }
     const safeKey = String(h.key).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const list = filteredHouseholds();
+    const pos = list.findIndex(x => x.key === h.key);
+    const headerExtras = rdDepth && rdDepth.drawerHeaderExtras
+      ? rdDepth.drawerHeaderExtras({
+        avatarName: hhDisplayName(h),
+        position: pos >= 0 ? (pos + 1) + ' of ' + list.length : '',
+        onPrev: pos > 0 ? 'rdHhDrawerNav(-1)' : '',
+        onNext: pos >= 0 && pos < list.length - 1 ? 'rdHhDrawerNav(1)' : '',
+        quickActions: hhQuickActions(h)
+      })
+      : '';
+    const provenance = rdDepth && rdDepth.provenance
+      ? rdDepth.provenance({
+        created: 'Derived from ' + members.length + ' guest' + (members.length === 1 ? '' : 's'),
+        modified: hhReplyLabel(h)
+      })
+      : '';
     slot.classList.add('is-open');
     slot.innerHTML =
       `<aside class="rd-drawer rd-hh-drawer" aria-label="Household">` +
@@ -595,17 +629,28 @@
       `<span class="status-pill" data-pillscheme="blue">${members.length} guest${members.length === 1 ? '' : 's'}</span>` +
       `<span class="status-pill" data-pillscheme="gold">${esc(hhReplyLabel(h))}</span>` +
       `</div>` +
+      headerExtras +
       `<button type="button" class="rd-drawer__close" onclick="rdHhCloseDrawer()" aria-label="Close">×</button>` +
       `<div class="rd-drawer__tabs" role="tablist">` +
       DRAWER_TABS.map((label, i) =>
         `<button type="button" class="rd-drawer__tab${i === tab ? ' is-active' : ''}" onclick="rdHhSetDrawerTab(${i})">${esc(label)}</button>`
       ).join('') +
       `</div></div>` +
-      `<div class="rd-drawer__body">${body}</div>` +
+      `<div class="rd-drawer__body">${body}${provenance}</div>` +
       `<div class="rd-drawer__foot">` +
       `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHhOpenGuest('${esc(safeKey)}')">Open guest</button>` +
       `<button type="button" class="rd-btn" onclick="rdHhCloseDrawer()">Close</button>` +
       `</div></aside>`;
+    if (rdDepth && rdDepth.decorateDrawer) rdDepth.decorateDrawer(slot);
+  }
+  function rdHhDrawerNav(delta) {
+    const list = filteredHouseholds();
+    const idx = list.findIndex(x => x.key === window._hhDrawerKey);
+    if (idx < 0) return;
+    const next = idx + delta;
+    if (next < 0 || next >= list.length) return;
+    window._hhDrawerKey = list[next].key;
+    renderHhDrawer();
   }
 
   /* ── actions ─────────────────────────────────────────────────────────── */
@@ -787,6 +832,7 @@
   window.rdHhOpenGuest = rdHhOpenGuest;
   window.rdHhCloseDrawer = rdHhCloseDrawer;
   window.rdHhSetDrawerTab = rdHhSetDrawerTab;
+  window.rdHhDrawerNav = rdHhDrawerNav;
   window.rdHhToggleSel = rdHhToggleSel;
   window.rdHhBulkClear = rdHhBulkClear;
   window.rdHhBulk = rdHhBulk;

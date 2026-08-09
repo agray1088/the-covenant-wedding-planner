@@ -344,17 +344,39 @@ html, body {
   border-bottom: 1px solid var(--vp-hair);
 }
 
-/* Expired — calm, not an error */
+/* Expired — calm, not an error. Revoked shares the same shape but reads as
+   an action someone took, not a natural end of access, so it gets the
+   danger palette instead of the neutral one. */
 .vp-expired {
   padding: 40px 28px;
   text-align: center;
 }
+.vp-expired__icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 14px;
+  border: 1px solid var(--vp-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b0a794;
+  font-size: 17px;
+}
+.vp-expired.is-revoked .vp-expired__icon {
+  border-color: var(--vp-danger-bd);
+  color: var(--vp-danger);
+}
+.vp-expired .vp-eyebrow {
+  display: block;
+}
+.vp-expired.is-revoked .vp-eyebrow { color: var(--vp-danger); }
 .vp-expired h1 {
-  margin: 0;
+  margin: 8px 0 0;
   font-size: 15px;
   font-weight: 600;
   color: var(--vp-ink);
 }
+.vp-expired.is-revoked h1 { color: var(--vp-danger); }
 .vp-expired p {
   margin: 10px auto 0;
   max-width: 320px;
@@ -367,6 +389,40 @@ html, body {
   display: inline-block;
   flex: none;
   padding: 10px 18px;
+}
+
+/* Empty state — a section with nothing raised against it yet, e.g. paperwork
+   before a contract exists. Calm and explanatory, matching the expired tone
+   rather than looking like an error. */
+.vp-empty {
+  padding: 34px 28px;
+  text-align: center;
+}
+.vp-empty__icon {
+  font-size: 22px;
+  opacity: .55;
+  margin-bottom: 10px;
+}
+.vp-empty p {
+  margin: 0 auto;
+  max-width: 380px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--vp-body);
+}
+.vp-empty p + p {
+  margin-top: 8px;
+}
+.vp-empty__sub {
+  color: var(--vp-soft) !important;
+}
+.vp-row--empty {
+  color: var(--vp-muted);
+}
+.vp-row--empty em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--vp-muted);
 }
 
 .vp-toast {

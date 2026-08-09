@@ -474,6 +474,18 @@
     return allContacts().find(x => x.id === id) || null;
   }
 
+  /* Depth · drawer quick actions (§7.1) — Call/Email/WhatsApp straight off
+     the unified contact row. */
+  function ctQuickActions(x) {
+    const digits = String(x && x.phone || '').replace(/[^0-9+]/g, '');
+    const email = String(x && x.email || '').trim().replace(/'/g, '');
+    return [
+      { label: 'Call', onclick: digits ? "location.href='tel:" + digits + "'" : '', title: digits ? '' : 'No phone on file' },
+      { label: 'Email', onclick: email ? "location.href='mailto:" + email + "'" : '', title: email ? '' : 'No email on file' },
+      { label: 'WhatsApp', onclick: digits ? "window.open('https://wa.me/" + digits.replace(/^\+/, '') + "','_blank')" : '', title: digits ? '' : 'No phone on file' }
+    ];
+  }
+
   function openSourceRecord(x) {
     if (!x) return false;
     if (x.isManual && x.manualIndex != null && typeof openRecordEditor === 'function') {
@@ -513,11 +525,12 @@
     }
     parkSharedDrawerAway(slot);
     const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._ctDrawerTab, 10) || 0));
+    const rdDepth = typeof RdDepth !== 'undefined' ? RdDepth : null;
     let body = '';
     if (tab === 0) {
       body = field('Name', x.name) +
         field('Role', x.role) +
-        field('Company', x.company) +
+        (x.companyRaw ? field('Company', x.company) : (rdDepth && rdDepth.emptyField ? rdDepth.emptyField('Company') : field('Company', x.company))) +
         field('Side', x.side) +
         field('On day-of sheet', x.dayof ? 'Yes' : 'No') +
         `<p class="rd-drawer__note">${x.isManual
@@ -526,13 +539,15 @@
     } else if (tab === 1) {
       /* Reaches — the escalation chain: phone, email, backup, who is above them. */
       const chain = ctEscalatesTo(x);
-      body = field('Phone', x.phone || 'Not on file') +
+      body = (x.phone ? field('Phone', x.phone) : (rdDepth && rdDepth.emptyField ? rdDepth.emptyField('Phone') : field('Phone', 'Not on file'))) +
         field('WhatsApp', x.hasPhone ? 'Same number' : 'Not available') +
-        field('Email', x.email || 'Not on file') +
+        (x.email ? field('Email', x.email) : (rdDepth && rdDepth.emptyField ? rdDepth.emptyField('Email') : field('Email', 'Not on file'))) +
         (x.notes ? `<div class="rd-ess-drawer__noteblock">${esc(x.notes)}</div>` : '') +
-        `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">Escalation chain</div>` +
-        field('Escalates to', chain.label) +
-        (chain.phone ? field('Backup phone', chain.phone) : '') +
+        (rdDepth && rdDepth.relatedList
+          ? rdDepth.relatedList('Escalation chain', [{ left: 'Escalates to', right: chain.label }].concat(chain.phone ? [{ left: 'Backup phone', right: chain.phone }] : []), { id: 'ct-escalation' })
+          : (`<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">Escalation chain</div>` +
+            field('Escalates to', chain.label) +
+            (chain.phone ? field('Backup phone', chain.phone) : ''))) +
         `<p class="rd-drawer__note">${chain.top
           ? 'The escalation chain is what makes the sheet usable at 7am. Nobody above them means this is the end of the chain, and the sheet says so rather than leaving it blank.'
           : 'If ' + (x.name || 'this contact').split(' ')[0] + " can't be reached, escalate up this chain."}</p>` +
@@ -542,15 +557,18 @@
       const priorityList = ctDayOfPriorityList();
       const pos = priorityList.findIndex(r => r.id === x.id);
       const safeId = String(x.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      const sheetRows = priorityList.filter(r => r.id !== x.id).slice(0, 6).map(r => ({ left: r.name, right: r.role }));
       body = field('On day-of sheet', x.dayof ? 'Yes' : 'No') +
         (x.dayof
           ? field('Position', (pos + 1) + ' of ' + priorityList.length)
           : '') +
         field('Ordered by', 'Who you call first, not alphabetically') +
-        `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">On the sheet</div>` +
-        field('Vendors', String(priorityList.filter(r => r.isVendor).length)) +
-        field('Wedding party', String(priorityList.filter(r => r.isParty).length)) +
-        field('Family', String(priorityList.filter(r => r.isFamily).length)) +
+        (rdDepth && rdDepth.relatedList
+          ? rdDepth.relatedList('On the sheet · ' + priorityList.length, sheetRows, { id: 'ct-dayof', empty: 'Nobody else is on the sheet yet.', addLabel: 'Add contact', addOnclick: 'rdCtAdd()' })
+          : (`<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">On the sheet</div>` +
+            field('Vendors', String(priorityList.filter(r => r.isVendor).length)) +
+            field('Wedding party', String(priorityList.filter(r => r.isParty).length)) +
+            field('Family', String(priorityList.filter(r => r.isFamily).length)))) +
         `<p class="rd-drawer__note">${x.dayof
           ? 'Position ' + (pos + 1) + ' because the sheet is ordered by who you call first, not alphabetically.'
           : 'Not on the day-of sheet yet. Add it to give this contact a call-priority position.'}</p>` +
@@ -567,6 +585,23 @@
         (x.isManual ? '' : `<button type="button" class="rd-btn rd-btn--primary" onclick="${openFn}">Open source</button>`);
     }
     const safeId = String(x.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const list = allContacts();
+    const pos = list.findIndex(c => c.id === x.id);
+    const headerExtras = rdDepth && rdDepth.drawerHeaderExtras
+      ? rdDepth.drawerHeaderExtras({
+        avatarName: x.name,
+        position: pos >= 0 ? (pos + 1) + ' of ' + list.length : '',
+        onPrev: pos > 0 ? 'rdCtDrawerNav(-1)' : '',
+        onNext: pos >= 0 && pos < list.length - 1 ? 'rdCtDrawerNav(1)' : '',
+        quickActions: ctQuickActions(x)
+      })
+      : '';
+    const provenance = rdDepth && rdDepth.provenance
+      ? rdDepth.provenance({
+        created: x.isManual ? 'Typed on Contacts' : ('Derived from ' + x.source),
+        modified: x.dayof ? 'On the day-of sheet' : 'Not on the day-of sheet'
+      })
+      : '';
     slot.classList.add('is-open');
     slot.innerHTML =
       `<aside class="rd-drawer rd-ct-drawer" aria-label="Contact">` +
@@ -577,17 +612,29 @@
       sourcePill(x) +
       (x.dayof ? `<span class="status-pill" data-pillscheme="coral">Day-of</span>` : '') +
       `</div>` +
+      headerExtras +
       `<button type="button" class="rd-drawer__close" onclick="rdCtCloseDrawer()" aria-label="Close">×</button>` +
       `<div class="rd-drawer__tabs" role="tablist">` +
       DRAWER_TABS.map((label, i) =>
         `<button type="button" class="rd-drawer__tab${i === tab ? ' is-active' : ''}" onclick="rdCtSetDrawerTab(${i})">${esc(label)}</button>`
       ).join('') +
       `</div></div>` +
-      `<div class="rd-drawer__body">${body}</div>` +
+      `<div class="rd-drawer__body">${body}${provenance}</div>` +
       `<div class="rd-drawer__foot">` +
       `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCtOpenSource('${esc(safeId)}')">Open source</button>` +
       `<button type="button" class="rd-btn" onclick="rdCtCloseDrawer()">Close</button>` +
       `</div></aside>`;
+    if (rdDepth && rdDepth.decorateDrawer) rdDepth.decorateDrawer(slot);
+  }
+  function rdCtDrawerNav(delta) {
+    const list = allContacts();
+    const idx = list.findIndex(c => c.id === window._ctDrawerId);
+    if (idx < 0) return;
+    const next = idx + delta;
+    if (next < 0 || next >= list.length) return;
+    window._ctDrawerId = list[next].id;
+    window._ctDrawerTab = 0;
+    renderCtDrawer();
   }
 
   /* ── actions ─────────────────────────────────────────────────────────── */
@@ -795,6 +842,7 @@
   window.rdCtOpen = rdCtOpen;
   window.rdCtCloseDrawer = rdCtCloseDrawer;
   window.rdCtSetDrawerTab = rdCtSetDrawerTab;
+  window.rdCtDrawerNav = rdCtDrawerNav;
   window.rdCtOpenSource = rdCtOpenSource;
   window.rdCtToggleDayOf = rdCtToggleDayOf;
   window.rdCtToggleSel = rdCtToggleSel;

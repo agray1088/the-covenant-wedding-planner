@@ -64,6 +64,10 @@
   window._budgetDrawerRef = window._budgetDrawerRef || null;
   window._budgetDrawerTab = window._budgetDrawerTab || 0;
   window._budgetPledgeSel = window._budgetPledgeSel || new Set();
+  /* Views 30a/30b: the page-level surface the toolbar switcher shows.
+     'category' = By category + Itemized (default) · 'pledged' = Pledged &
+     paid only · 'scroll' = every section, the original single-scroll page. */
+  window._bgtMode = window._bgtMode || 'category';
 
   const esc = s => (typeof escapeHtml === 'function' ? escapeHtml(s == null ? '' : String(s)) : String(s == null ? '' : s));
 
@@ -266,14 +270,16 @@
     const panel = document.getElementById('panel-budget');
     if (!panel) return;
     panel.classList.add('ued-scope', 'budget-mockup');
-    /* 4a draws one continuous scroll — bump the shell key when the anatomy
-       changes so an already-mounted panel rebuilds instead of keeping tabs. */
-    if (panel.dataset.uedShell === 'budget-rd4a-scroll') {
+    /* Views 30a/30b added a toolbar switcher above the used bar — bump the
+       shell key when the anatomy changes so an already-mounted panel rebuilds
+       instead of keeping the older markup. */
+    if (panel.dataset.uedShell === 'budget-rd4b-views') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
+      renderBudgetViewSwitch();
       return;
     }
-    panel.dataset.uedShell = 'budget-rd4a-scroll';
+    panel.dataset.uedShell = 'budget-rd4b-views';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -283,6 +289,11 @@
           </div>
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
+      </div>
+      <div class="rd-bgt-viewbar" id="budget-viewbar">
+        <span class="rd-bgt-eyebrow">Layout</span>
+        <div class="rd-viewswitch" id="budget-viewswitch" role="group" aria-label="Budget view"></div>
+        <span class="rd-bgt-viewbar__note" id="budget-viewbar-note"></span>
       </div>
       <div class="rd-stats m-stats" id="budget-stats"></div>
       <div class="rd-bgt-usedbar" id="budget-used-bar"></div>
@@ -298,6 +309,7 @@
               </div>
               <section class="rd-bgt-sect" id="bgt-sect-tipping"></section>
               <section class="rd-bgt-sect" id="bgt-sect-itemized"></section>
+              <section class="rd-bgt-sect" id="bgt-sect-pledged"></section>
             </div>
           </div>
           <div id="budget-drawer-slot"></div>
@@ -305,6 +317,7 @@
       </div>
       <datalist id="budget-cat-options"></datalist>
     </div>`;
+    renderBudgetViewSwitch();
   }
 
   /* Jump targets for the rail — mock 4a lists these under "Jump to". */
@@ -314,16 +327,56 @@
     { id: 'bgt-sect-truetotal', label: 'True Total' },
     { id: 'bgt-sect-logic', label: 'Budget Logic' },
     { id: 'bgt-sect-tipping', label: 'Tipping Etiquette' },
-    { id: 'bgt-sect-itemized', label: 'Itemized' }
+    { id: 'bgt-sect-itemized', label: 'Itemized' },
+    { id: 'bgt-sect-pledged', label: 'Pledged & paid' }
   ];
 
-  function budgetView() {
-    /* Kept for rail callers that still ask which "view" is active. On the
-       single-scroll page the answer is always the full reading order. */
-    return 'all';
+  /* The section ids every layout mode shows or hides together (Views 30a/30b).
+     'scroll' is the original single-scroll page — every section, in order. */
+  const BGT_SECTION_IDS = ['bgt-sect-categories', 'bgt-sect-recon', 'bgt-sect-truetotal', 'bgt-sect-tipping', 'bgt-sect-itemized', 'bgt-sect-pledged'];
+  function bgtSectionVisible(id) {
+    const m = window._bgtMode || 'category';
+    if (m === 'scroll') return true;
+    if (m === 'pledged') return id === 'bgt-sect-pledged';
+    return id === 'bgt-sect-categories' || id === 'bgt-sect-itemized';
   }
-  function rdBudgetSetView() {
-    /* No-op: 4a is one scroll, not tabbed views. */
+  function applyBudgetSectionVisibility() {
+    BGT_SECTION_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.hidden = !bgtSectionVisible(id);
+    });
+  }
+
+  function budgetView() {
+    /* Kept for rail callers that ask which "view" is active. */
+    return window._bgtMode || 'category';
+  }
+  function bgtModeNote(m) {
+    if (m === 'pledged') return 'Showing Pledged & paid only.';
+    if (m === 'scroll') return 'Showing every section, one continuous scroll.';
+    return 'Showing By category + Itemized.';
+  }
+  function renderBudgetViewSwitch() {
+    const host = document.getElementById('budget-viewswitch');
+    if (!host) return;
+    const m = window._bgtMode || 'category';
+    const item = (id, label) => `<button type="button" class="rd-viewswitch__item${m === id ? ' is-active' : ''}" onclick="rdBudgetSetView('${id}')">${esc(label)}</button>`;
+    host.innerHTML = item('category', 'By category') + item('pledged', 'Pledged & paid') + item('scroll', 'All sections');
+    const note = document.getElementById('budget-viewbar-note');
+    if (note) note.textContent = bgtModeNote(m);
+  }
+  /* Views 30a/30b: the toolbar switcher jumps between showing primarily the
+     By category surface, primarily Pledged & paid, or the full single-scroll
+     page — Load full categories and Import checklist stay reachable in every
+     mode that keeps the categories section on screen. */
+  function rdBudgetSetView(mode) {
+    window._bgtMode = (mode === 'pledged' || mode === 'scroll') ? mode : 'category';
+    rerender();
+    requestAnimationFrame(() => {
+      const target = window._bgtMode === 'pledged' ? 'bgt-sect-pledged' : 'bgt-sect-categories';
+      const el = document.getElementById(target);
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   /* ── stat strip (7 cells) ────────────────────────────────────────────── */
@@ -940,12 +993,19 @@
           <tbody>${bodyRows}</tbody>
         </table>
       </div>`
-      + pledgeBlockHtml()
       + `<div class="rd-bgt-sect__foot">
         <span>The 360px drawer is the full editor — the Line item tab edits the row, the Category tab edits the group&rsquo;s name, target %, budget and note, History shows every change. Same component as the Guest List and Payments drawers.</span>
         <button type="button" class="rd-btn rd-btn--danger" onclick="rdBudgetDeleteCategory()">Delete category</button>
       </div>`;
     renderBudgetBulkBar();
+  }
+
+  /* ── §7b Pledged & paid, as its own jumpable/hideable surface (View 30b) ── */
+
+  function renderBudgetPledgeSection() {
+    const host = document.getElementById('bgt-sect-pledged');
+    if (!host) return;
+    host.innerHTML = pledgeBlockHtml();
   }
 
   function rowHeightKey() {
@@ -1348,8 +1408,18 @@
   }
   function rdBudgetJumpTo(sectionId) {
     window._budgetJumpSection = sectionId || '';
-    const el = document.getElementById(sectionId);
-    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    /* A rail jump must always land somewhere visible — if the current layout
+       mode (Views 30a/30b) is hiding this section, drop to 'scroll' first so
+       jumping never lands on a zero-height, hidden section. */
+    if (sectionId && !bgtSectionVisible(sectionId)) {
+      window._bgtMode = 'scroll';
+      rerender();
+    }
+    requestAnimationFrame(() => {
+      const el = document.getElementById(sectionId);
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      renderBudgetViewSwitch();
+    });
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'budget') {
       renderContextSidebar('budget');
@@ -1701,7 +1771,9 @@
     renderBudgetLogicSection();
     renderBudgetTippingSection();
     renderBudgetItemizedSection();
+    renderBudgetPledgeSection();
     renderBudgetDrawer();
+    applyBudgetSectionVisibility();
 
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'budget'
@@ -1710,6 +1782,14 @@
     }
     requestAnimationFrame(() => {
       if (typeof makeColumnsResizable === 'function') makeColumnsResizable(document.getElementById('panel-budget'));
+      /* Every itemized/category re-render rebuilds these <table> nodes from a
+         fresh HTML string, so the depth pass (§7.1 type glyphs, summary bar,
+         frozen first column) has to be re-applied here — not only on the
+         initial showPanel() mount — or it disappears the moment a filter,
+         sort or category click redraws the table. */
+      if (typeof RdDepth !== 'undefined' && RdDepth.scheduleDecorate) {
+        RdDepth.scheduleDecorate(document.getElementById('panel-budget'));
+      }
     });
   }
 

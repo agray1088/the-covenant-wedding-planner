@@ -1049,6 +1049,22 @@ body.dark-mode .rd-overlay { background: rgba(14,22,18,.66); }
   margin-top: var(--space-3);
 }
 .rd-drawer__quick .rd-btn { height: 28px; padding: 0 10px; font-size: 12px; }
+/* RdDepth.drawerHeaderExtras() — avatar + chips, prev/next, quick actions as
+   one row a hand-rolled drawer head can drop in below its title/chips. */
+.rd-drawer__depth-extras {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.rd-drawer__depth-extras .rd-drawer__identity { margin-top: 0; align-items: center; }
+.rd-drawer__depth-extras .rd-drawer__nav { margin-left: auto; }
+.rd-drawer__depth-extras .rd-drawer__quick { margin-top: 0; }
+/* RdDepth.emptyField() — a full field row (label + pale "Add…") for drawers
+   that build `.rd-drawer__field` rows as plain label/value strings. */
+.rd-drawer__field--empty > strong,
+.rd-drawer__field--empty .rd-empty-add { color: var(--text-empty); }
 .rd-field-row__value.is-empty,
 .rd-field-row__value[data-empty],
 .rd-empty-add {
