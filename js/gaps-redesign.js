@@ -366,7 +366,7 @@
       });
     });
     var hist = pop.querySelector('.js-history');
-    if (hist) hist.addEventListener('click', function () { closePopovers(); if (hasFn('openHistoryDrawer')) call('openHistoryDrawer'); else call('showPanel', 'history', true); });
+    if (hist) hist.addEventListener('click', function () { closePopovers(); call('showPanel', 'history', true); });
     var redo = pop.querySelector('.js-redo');
     if (redo && canRedo) redo.addEventListener('click', function () { closePopovers(); call('redoPlannerChange'); });
   }

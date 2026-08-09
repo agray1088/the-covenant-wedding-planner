@@ -21466,8 +21466,10 @@ body.rd-scope #panel-instructions .rd-step__tag {
 body.rd-scope #panel-instructions .rd-grid-3 .rd-concept,
 body.rd-scope #panel-instructions .rd-grid-2 .rd-cta-card {
   padding: var(--space-4);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-content);
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--surface-content) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 body.rd-scope #panel-instructions .rd-concept__title { margin: 0 0 6px; font: 600 14px/1.4 var(--font-ui); color: var(--text-heading); }
 body.rd-scope #panel-instructions .rd-concept__body { margin: 0; font-size: var(--type-body); color: var(--text-muted); line-height: 1.6; }
@@ -21588,8 +21590,10 @@ body.rd-scope #panel-faq .rd-faq-aside__item strong { display: block; font: 600 
 body.rd-scope #panel-faq .rd-faq-aside__item p { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
 body.rd-scope #panel-faq .rd-cta-card--quiet {
   padding: var(--space-4);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-content);
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--surface-content) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 body.rd-scope #panel-faq .rd-cta-card--quiet h3 { margin: 0 0 6px; font: 600 13.5px/1.4 var(--font-ui); color: var(--text-heading); }
 body.rd-scope #panel-faq .rd-cta-card--quiet p { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }

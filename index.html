@@ -1848,6 +1848,14 @@
      window, retabbed profile drawer. Loads AFTER the shell so .rd-topbar and
      the live controls already exist; it mutates the built chrome. -->
 <script src="js/gaps-redesign.js?v=gaps44-48"></script>
+<!-- Wedding Setup — All.dc 15a + Drawers (Field · Impact · History). Untabbed
+     form shell; wires straight into data.setup and the existing saveSetup()/
+     saveLocaleSettings() mutators so every other page keeps working. -->
+<script src="js/setup-redesign.js?v=redesign-15a1"></script>
+<!-- Planner History — All.dc 18b + Views 31i/31j + Drawers (Change · Record ·
+     Snapshot). Log / By record / Field detail share one shell over the
+     existing data._historyLog and data._recordHistory stores. -->
+<script src="js/history-redesign.js?v=redesign-18b1"></script>
 <script>
 (function () {
   try {

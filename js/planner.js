@@ -5772,7 +5772,7 @@ function renderRegisteredPanel(id){
 window.SYSTEM_PANEL_RENDERERS = SYSTEM_PANEL_RENDERERS;
 
 function showPanel(id, forceOpen = false) {
-  if (id === 'history') id = 'dashboard';
+  if (id === 'history' && !forceOpen) id = 'dashboard';
   if (id === 'plan') id = 'tasks';
   if (id === 'reflect' && typeof _rflTab === 'undefined') _rflTab = 'vision';
   /* Redesign chrome (§06) lists the full IA — Weekend Logistics, Wedding Party,
