@@ -222,6 +222,10 @@
       subnav.appendChild(b);
     });
     syncDrawerSlot();
+    /* Roles · Views #43a — Covenant tab visibility / role chrome */
+    if (window.RdRoles && typeof window.RdRoles.afterSync === 'function') {
+      try { window.RdRoles.afterSync(); } catch (e) { /* soft */ }
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════════════════

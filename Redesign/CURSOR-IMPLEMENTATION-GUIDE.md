@@ -280,7 +280,7 @@ Guest List, Timeline & Tasks, Appointments and Smart Calendar were already compl
 - [ ] **Furniture (34–36)** — 10 overlays that belong to no page: ⌘K, filter builder, saved views, bulk edit, import, shortcuts, notifications, share, small states, templates/trash/merge
 - [ ] **All 28 drawer types** now have every tab drawn in `Planner Screens Drawers.dc.html` — previously only the first tab existed. Check the record types on your finished pages: Household `14b`, Contact `14c`, Wedding party member `10a`, Table `8a`, Gift `10b`, Appointment `14a`
 - [x] **Responsive (41–42)** — 1240px and 720px + Day-of → `js/responsive-redesign.js`
-- [ ] **Roles (43)**
+- [x] **Roles (43)** — planner / couple / vendor preview → `js/roles-redesign.js`
 
 ---
 
@@ -402,7 +402,9 @@ Dashboard = All `#3a` + Dark rail (jump links + Foundation) → `js/dashboard-re
 Notes = All `#12a` + Views `#33a` Cards / `#33b` Timeline + Drawers Note → `js/notes-redesign.js`.
 (**33c** is Share Packets, not Notes.)
 Responsive = Views `#41a` (≤1240) / `#42a` (≤720) / `#42b` Day-of → `js/responsive-redesign.js`.
-**Next on continue:** Roles **43**, then Vendor Portal.
+Roles = Views `#43a` planner / couple / vendor preview → `js/roles-redesign.js`.
+(Vendor Portal full product is separate — `Planner Vendor Portal.dc.html`.)
+**Next on continue:** Vendor Portal.
 
 ### 11.1b · Sources of truth (priority order)
 
@@ -558,8 +560,8 @@ or when the user asks — inventory may list more than the current `TABS` strip.
 | # | Item | Scope | Notes |
 |---|---|---|---|
 | ✓ | Responsive | whole app | Views **41a** / **42a** / **42b** · `js/responsive-redesign.js` |
-| ▶ | **Roles** | whole app | Views **43** |
-| | Vendor Portal | separate product | `Planner Vendor Portal.dc.html` |
+| ✓ | Roles | whole app | Views **43a** · `js/roles-redesign.js` |
+| ▶ | **Vendor Portal** | separate product | `Planner Vendor Portal.dc.html` |
 
 For each page: **§11.1a find mocks → §11.2 inventory → §11.3–11.4 build → §11.5 gap pass →
 commit / push / PR update.**
