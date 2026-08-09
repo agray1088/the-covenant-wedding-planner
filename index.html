@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-fullia1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=gaps44-48">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -1840,6 +1840,10 @@
 <script src="js/redesign-shell.js?v=redesign-fullia1"></script>
 <script src="js/responsive-redesign.js?v=redesign-41a1"></script>
 <script src="js/roles-redesign.js?v=redesign-fullia1"></script>
+<!-- Planner Screens Gaps.dc.html · batches 45/47/48 — top-bar menus, settings
+     window, retabbed profile drawer. Loads AFTER the shell so .rd-topbar and
+     the live controls already exist; it mutates the built chrome. -->
+<script src="js/gaps-redesign.js?v=gaps44-48"></script>
 <script>
 (function () {
   try {
