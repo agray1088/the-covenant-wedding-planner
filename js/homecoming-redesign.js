@@ -182,6 +182,7 @@
     if (window._hcMode === 'namechange') window._hcRailView = 'namechange';
     else if (window._hcMode === 'budget') window._hcRailView = 'budget';
     else if (window._hcRailView === 'namechange' || window._hcRailView === 'budget') window._hcRailView = 'settling';
+    if (typeof setSavedView === 'function') setSavedView('homecoming', window._hcRailView);
     renderHomecomingRd();
   }
   function applyHomecomingRailView(viewId) {
