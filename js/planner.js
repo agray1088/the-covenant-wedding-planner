@@ -13899,7 +13899,25 @@ function recordEditorBuildJumpList(){
   const jump = document.getElementById('record-editor-jump-list');
   const body = document.getElementById('record-editor-body');
   if (!jump || !body) return;
-  const sections = [...body.querySelectorAll(':scope > .record-editor-section')];
+  /* Gaps Batch 46 — full-editor jump rail mirrors drawer tabs exactly. */
+  const gapsJumpAllow = {
+    vendors: ['Vendor', 'Contract', 'Schedule', 'Contacts', 'History'],
+    payments: ['Payment', 'Contract', 'Method', 'History'],
+    tasks: ['Task', 'Depends on', 'People', 'History']
+  };
+  const allow = gapsJumpAllow[recordEditorState && recordEditorState.key];
+  let sections = [...body.querySelectorAll(':scope > .record-editor-section')];
+  if (allow && allow.length) {
+    sections = sections.filter(sec => {
+      const h4 = sec.querySelector('h4');
+      let label = (h4 && h4.textContent.trim()) || '';
+      label = label.replace(/\s*·\s*\d+\s*(fields?|changes?)?/i, '').replace(/\s*Details$/i, '').trim();
+      const keep = allow.some(a => label === a || label.indexOf(a) === 0);
+      if (!keep) sec.setAttribute('data-gaps-jump-hidden', '1');
+      else sec.removeAttribute('data-gaps-jump-hidden');
+      return keep;
+    });
+  }
   if (sections.length < 2) {
     jump.innerHTML = '';
     jump.closest?.('.re-rail-block')?.setAttribute('hidden', '');
@@ -13909,7 +13927,11 @@ function recordEditorBuildJumpList(){
   jump.innerHTML = sections.map((sec, i) => {
     const h4 = sec.querySelector('h4');
     let label = (h4 && h4.textContent.trim()) || ('Group ' + (i + 1));
-    label = label.replace(/\s*·\s*\d+\s*fields?/i, '').replace(/\s*Details$/i, '');
+    label = label.replace(/\s*·\s*\d+\s*(fields?|changes?)?/i, '').replace(/\s*Details$/i, '');
+    if (allow) {
+      const hit = allow.find(a => label === a || label.indexOf(a) === 0);
+      if (hit) label = hit;
+    }
     const id = 're-group-' + i;
     sec.id = id;
     sec.classList.add('re-field-group');
@@ -15655,15 +15677,15 @@ function renderTaskRecordEditor(){
       ${recordInput('Effort','effort')}
       ${recordTextarea('Notes','notes')}
     </div></section>
-    ${renderSmartCalendarPresentationSection({
+    ${renderPlanEditorSubtasks()}
+    <div class="record-editor-subsection" data-gaps-fold="task">${renderSmartCalendarPresentationSection({
       title: 'On the calendar',
       note: 'Optional schedule, appearance, and reminder fields from the classic Smart Calendar editor. Due date above is the calendar date when set.',
       defaultIcon: 'task',
       includeDescription: true,
       descriptionKey: 'description',
       descriptionLabel: 'Calendar description'
-    })}
-    ${renderPlanEditorSubtasks()}
+    }).replace('record-editor-section', 'record-editor-nested').replace(/<h4>/, '<h5 style="margin:0 0 8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a7e6b">').replace('</h4>', '</h5>')}</div>
     <section class="record-editor-section"><h4>People</h4><div class="record-editor-grid">
       ${recordDatalist('Owner','assigned',recordAssigneeOptionValues())}
       ${recordInput('Watchers','watchers')}
@@ -16271,7 +16293,8 @@ function renderPaymentEditorInstallments(){
     <td><input value="${escapeHtml(inst.notes||'')}" oninput="setEditorInstallment(${i},'notes',this.value)"></td>
     <td><button type="button" class="tracker-open-btn" onclick="removeEditorInstallment(${i})">Delete</button></td>
   </tr>`).join('');
-  return `<section class="record-editor-section"><h4>Schedule</h4><p class="record-editor-note">Deposit, balance, and payment-plan rows stay attached to this payment. The main payment totals update from these rows.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Installment</th><th>Due Date</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th><th>Date Paid</th><th>Notes</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="8" style="text-align:center;padding:.85rem;color:#7a7268;">No installments yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorInstallment()">+ Add Installment</button></div></section>`;
+  /* Gaps Batch 46 — instalment schedule lives under Contract, not its own jump tab. */
+  return `<div class="record-editor-subsection" data-gaps-fold="contract"><h5 style="margin:16px 0 8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a7e6b">Instalment schedule</h5><p class="record-editor-note">Deposit, balance, and payment-plan rows stay attached to this payment. The main payment totals update from these rows.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Installment</th><th>Due Date</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th><th>Date Paid</th><th>Notes</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="8" style="text-align:center;padding:.85rem;color:#7a7268;">No installments yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorInstallment()">+ Add Installment</button></div></div>`;
 }
 function addEditorInstallment(){
   const d = recordEditorState?.draft;
