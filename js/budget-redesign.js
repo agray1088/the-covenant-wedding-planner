@@ -257,8 +257,8 @@
     } else if (choice === 'Full itemized budget' && typeof loadFullItemizedBudget === 'function') {
       await loadFullItemizedBudget();
     }
-    if (typeof renderBudgetPage === 'function') renderBudgetPage();
-    else if (typeof renderBudgetRd === 'function') renderBudgetRd();
+    if (typeof renderBudget === 'function') renderBudget();
+    else renderBudgetRd();
   }
   window.rdBudgetImportChecklist = rdBudgetImportChecklist;
 
