@@ -12,6 +12,10 @@
   window._pcSel = window._pcSel instanceof Set ? window._pcSel : new Set();
   window._pcPreviewId = window._pcPreviewId || null;
   window._pcSort = window._pcSort || 'class';
+  window._pcDrawerId = window._pcDrawerId || null;
+  window._pcDrawerTab = window._pcDrawerTab || 0;
+
+  const DRAWER_TABS = ['Document', 'Layout', 'Pack', 'History'];
 
   const CLASS_B_IDS = {
     vision: 1,
@@ -697,7 +701,7 @@
       g.items.forEach(x => {
         const sel = window._pcSel.has(x.id);
         const open = window._pcPreviewId === x.id;
-        html += `<tr class="rd-pc-row${sel ? ' is-selected' : ''}${open ? ' is-open' : ''}" onclick="rdPcSelectPreview('${esc(x.id)}')">`
+        html += `<tr class="rd-pc-row${sel ? ' is-selected' : ''}${open ? ' is-open' : ''}" onclick="rdPcOpenDrawer('${esc(x.id)}')">`
           + `<td class="rd-pc-check" onclick="event.stopPropagation();rdPcToggleSel('${esc(x.id)}')">`
           + `<input type="checkbox" ${sel ? 'checked' : ''} aria-label="Select ${esc(x.title)}"></td>`
           + `<td class="rd-pc-name">${esc(x.title)}`
@@ -862,6 +866,144 @@
     return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`;
   }
 
+  /* ── drawer (Document · Layout · Pack · History) ─────────────────────── */
+
+  function parkSharedPcDrawerAway(slot) {
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot && slot.contains(shared)) {
+      const park = document.getElementById('layout') || document.body;
+      park.appendChild(shared);
+    }
+  }
+  function field(label, value, onclick) {
+    const click = onclick ? ` class="rd-drawer__link" onclick="${onclick}"` : '';
+    return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong${click}>${esc(value)}</strong></div>`;
+  }
+
+  function renderPcDrawer() {
+    const slot = document.getElementById('print-centre-drawer-slot');
+    if (!slot) return;
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot.contains(shared) && !shared.hasAttribute('hidden')) {
+      slot.classList.add('is-open');
+      return;
+    }
+    const x = allPrintables().find(i => i.id === window._pcDrawerId);
+    if (!x) {
+      if (!(shared && slot.contains(shared) && !shared.hasAttribute('hidden'))) {
+        parkSharedPcDrawerAway(slot);
+        slot.innerHTML = '';
+        slot.classList.remove('is-open');
+      }
+      return;
+    }
+    parkSharedPcDrawerAway(slot);
+    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._pcDrawerTab, 10) || 0));
+    const pc = ensurePc();
+    const inPack = pc.pack.indexOf(x.id) >= 0;
+    const pack = packItemsOrdered();
+    const packBlocked = pack.filter(p => p.status === 'Blocked');
+    let body = '';
+    if (tab === 0) {
+      body =
+        field('Source', x.source, "rdPcOpenSource('" + esc(x.id) + "')") +
+        field('Class', x.class === 'B' ? 'B · keepsake' : 'A · working document') +
+        field('Paper', (x.paper || 'Letter') + ' · A4 aware') +
+        field('Pages', String(x.pages)) +
+        field('Status', x.status) +
+        field('Last printed', fmtLong(x.lastPrinted)) +
+        (x.blockedReason
+          ? `<p class="rd-drawer__note">Blocked: ${esc(x.blockedReason)}</p>`
+          : `<p class="rd-drawer__note">There is no print template. The page prints itself — screen chrome hides and the work surface expands. A separate template would be a second copy that drifts.</p>`);
+    } else if (tab === 1) {
+      body =
+        field('Header', 'Couple · title · date printed') +
+        field('Footer', 'Page x of y') +
+        field('Colour', x.class === 'B' ? 'Cormorant · one gold hairline' : 'Black on white') +
+        field('Breaks', 'At row boundaries') +
+        field('Minimum type', x.class === 'B' ? '19pt Cormorant' : '12pt') +
+        `<p class="rd-drawer__note">${x.class === 'A'
+          ? 'Class A never prints gold or fills. Even from a share packet, the recipient gets the working document, not a styled page.'
+          : 'Class B keeps Cormorant and one gold hairline — a keepsake even when opened from a share packet.'}</p>`;
+    } else if (tab === 2) {
+      body =
+        field('In the day-of pack', inPack ? ('Yes · position ' + String(pack.findIndex(p => p.id === x.id) + 1).padStart(2, '0')) : 'No') +
+        field('Pack size', String(pack.length) + ' documents') +
+        field('Pack status', packBlocked.length ? (packBlocked.length + ' blocked') : 'All ready') +
+        `<div class="rd-drawer__section-title">The pack · ${pack.length}</div>` +
+        pack.slice(0, 6).map((p, i) =>
+          `<div class="rd-drawer__hist"><strong>${String(i + 1).padStart(2, '0')} ${esc(p.title)}</strong><div>${statusPill(p.status)}</div></div>`
+        ).join('') +
+        (packBlocked.length
+          ? `<p class="rd-drawer__note">The pack prints as one job in this order. ${packBlocked.length} document${packBlocked.length === 1 ? '' : 's'} blocked, so printing now would leave a gap — the pack refuses rather than printing a partial.</p>`
+          : `<p class="rd-drawer__note">The pack prints as one job, in this order. Every document in it is ready.</p>`);
+    } else {
+      body =
+        `<div class="rd-drawer__section-title">This document</div>` +
+        (x.lastPrinted
+          ? `<div class="rd-drawer__hist"><strong>${esc(fmtShort(x.lastPrinted))}</strong> · Planner<div>Printed · ${x.pages} page${x.pages === 1 ? '' : 's'}</div></div>`
+          : '') +
+        (inPack
+          ? `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Added to the day-of pack</div></div>`
+          : '') +
+        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Created from ${esc(x.source)}</div></div>` +
+        `<p class="rd-drawer__note">${x.lastPrinted
+          ? 'Printing is logged — a document printed and then changed is a paper copy that is now wrong. The log is the only way to know that.'
+          : 'Not printed yet. Printing will be logged here, because paper goes stale the moment the source changes.'}</p>`;
+    }
+
+    const eyebrow = 'Printable · class ' + x.class;
+    slot.classList.add('is-open');
+    slot.innerHTML =
+      `<aside class="rd-drawer rd-pc-drawer" aria-label="Printable">` +
+      `<div class="rd-drawer__head">` +
+      `<div class="rd-drawer__eyebrow">${esc(eyebrow)}</div>` +
+      `<h2 class="rd-drawer__title">${esc(x.title)}</h2>` +
+      `<div class="rd-drawer__chips">` +
+      classPill(x.class) +
+      `<span class="status-pill" data-pillscheme="gray">${esc(x.pages)} page${x.pages === 1 ? '' : 's'}</span>` +
+      `</div>` +
+      `<button type="button" class="rd-drawer__close" onclick="rdPcCloseDrawer()" aria-label="Close">×</button>` +
+      `<div class="rd-drawer__tabs" role="tablist">` +
+      DRAWER_TABS.map((label, i) =>
+        `<button type="button" class="rd-drawer__tab${i === tab ? ' is-active' : ''}" onclick="rdPcSetDrawerTab(${i})">${esc(label)}</button>`
+      ).join('') +
+      `</div></div>` +
+      `<div class="rd-drawer__body">${body}</div>` +
+      `<div class="rd-drawer__foot">` +
+      (tab === 2
+        ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdPcPrintOne('${esc(x.id)}')">${packBlocked.length ? 'Resolve the ' + packBlocked.length : 'Print the pack'}</button>`
+        : `<button type="button" class="rd-btn" onclick="rdPcCloseDrawer()">Save</button>`) +
+      `<button type="button" class="rd-btn" onclick="rdPcFullEditor('${esc(x.id)}')">Full editor</button>` +
+      `</div></aside>`;
+  }
+
+  function rdPcOpenDrawer(id) {
+    window._pcDrawerId = id;
+    window._pcDrawerTab = 0;
+    window._pcPreviewId = id;
+    renderPcDrawer();
+    if (window._pcMode === 'table') renderTableView();
+  }
+  function rdPcCloseDrawer() {
+    window._pcDrawerId = null;
+    const slot = document.getElementById('print-centre-drawer-slot');
+    if (slot) {
+      parkSharedPcDrawerAway(slot);
+      slot.innerHTML = '';
+      slot.classList.remove('is-open');
+    }
+  }
+  function rdPcSetDrawerTab(i) {
+    window._pcDrawerTab = i;
+    renderPcDrawer();
+  }
+  function rdPcFullEditor(id) {
+    const item = allPrintables().find(x => x.id === (id || window._pcDrawerId));
+    rdPcCloseDrawer();
+    if (item) rdPcOpenSource(item.id);
+  }
+
   /* ── actions ──────────────────────────────────────────────────────────── */
 
   function rdPcSelectPreview(id) {
@@ -1001,6 +1143,7 @@
     if (mode === 'dayof') renderDayOfView();
     else if (mode === 'preview') renderPreviewView();
     else renderTableView();
+    renderPcDrawer();
 
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'print-centre'
@@ -1035,6 +1178,10 @@
   window.rdPcClearFilter = rdPcClearFilter;
   window.rdPcCycleSort = rdPcCycleSort;
   window.printPrintable = printPrintable;
+  window.rdPcOpenDrawer = rdPcOpenDrawer;
+  window.rdPcCloseDrawer = rdPcCloseDrawer;
+  window.rdPcSetDrawerTab = rdPcSetDrawerTab;
+  window.rdPcFullEditor = rdPcFullEditor;
 
   function hookPcPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) {
