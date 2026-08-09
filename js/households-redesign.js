@@ -656,9 +656,10 @@
   /* ── actions ─────────────────────────────────────────────────────────── */
 
   function rdHhOpen(key) {
+    /* Drawers.dc 14b — row click opens the Household drawer (Guests · Address ·
+       Invitation · History). Guest records open only via the footer "Open guest". */
     const h = findHousehold(key);
     if (!h) return;
-    if (openFirstGuestDrawer(h)) return;
     window._hhDrawerKey = key;
     window._hhDrawerTab = 0;
     renderHhDrawer();
