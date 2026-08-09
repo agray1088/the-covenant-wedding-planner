@@ -262,27 +262,50 @@
 
   function pageheadActionsHtml() {
     const mode = window._catMode || 'menu';
+    const starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCatLoadStarter()">Load a starter list</button>';
     if (mode === 'tasting') {
-      return ''
+      return starter
         + '<button type="button" class="rd-btn" onclick="rdCatPrintTasting()">Print tasting sheet</button>'
         + '<button type="button" class="rd-btn" onclick="rdCatFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Menu\',data.menu)">Export</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdCatAddTasting()">Add tasting</button>';
     }
     if (mode === 'allergens') {
-      return ''
+      return starter
         + '<button type="button" class="rd-btn" onclick="rdCatPrintKitchen()">Print for kitchen</button>'
         + '<button type="button" class="rd-btn" onclick="rdCatFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Menu\',data.menu)">Export</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdCatAddItem()">Add dish</button>';
     }
-    return ''
+    return starter
       + '<button type="button" class="rd-btn" onclick="rdCatSendToCaterer()">Send to caterer</button>'
       + '<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>'
       + '<button type="button" class="rd-btn" onclick="rdCatFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
       + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Menu\',data.menu)">Export</button>'
       + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdCatAddItem()">+ New item</button>';
   }
+
+  async function rdCatLoadStarter() {
+    if (typeof rdChoose !== 'function') {
+      if (typeof loadMenuPreset === 'function') await loadMenuPreset();
+      renderCateringRd();
+      return;
+    }
+    const choice = await rdChoose('Load a starter list', [
+      'Starter menu',
+      'Kids menu',
+      'Beverages',
+      'Place settings',
+      'Rentals'
+    ]);
+    if (choice === 'Starter menu' && typeof loadMenuPreset === 'function') await loadMenuPreset();
+    else if (choice === 'Kids menu' && typeof loadKidsMenuPreset === 'function') await loadKidsMenuPreset();
+    else if (choice === 'Beverages' && typeof loadBeveragePreset === 'function') await loadBeveragePreset();
+    else if (choice === 'Place settings' && typeof loadPlaceSettingPreset === 'function') await loadPlaceSettingPreset();
+    else if (choice === 'Rentals' && typeof loadRentalPreset === 'function') await loadRentalPreset();
+    renderCateringRd();
+  }
+  window.rdCatLoadStarter = rdCatLoadStarter;
 
   function uedCateringShellRd() {
     const panel = document.getElementById('panel-catering');
@@ -581,7 +604,7 @@
       `</tr></thead><tbody>`;
 
     if (!groups.length) {
-      html += `<tr class="rd-cat-empty"><td colspan="6">No menu items in this view yet.</td></tr>`;
+      html += `<tr class="rd-cat-empty"><td colspan="6">No menu items in this view yet. <button type="button" class="rd-btn rd-btn--quiet" onclick="rdCatLoadStarter()">Load a starter list</button></td></tr>`;
     } else {
       groups.forEach(g => {
         const chosen = g.rows.filter(x => isChosen(x.row)).length;

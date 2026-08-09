@@ -262,27 +262,34 @@
 
   function pageheadActionsHtml() {
     const mode = window._entMode || 'setlist';
+    const starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdEntLoadStarter()">Load a starter list</button>';
     if (mode === 'performers') {
-      return ''
+      return starter
         + '<button type="button" class="rd-btn" onclick="rdEntPrintTech()">Print tech sheet</button>'
         + '<button type="button" class="rd-btn" onclick="rdEntFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Entertainment\',data.entertainment)">Export</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdEntAddPerformer()">Add performer</button>';
     }
     if (mode === 'timeline') {
-      return ''
+      return starter
         + '<button type="button" class="rd-btn" onclick="rdEntPrintRun()">Print run sheet</button>'
         + '<button type="button" class="rd-btn" onclick="rdEntFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Entertainment\',data.entertainment)">Export</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdEntAddPerformer()">Add performer</button>';
     }
-    return ''
+    return starter
       + '<button type="button" class="rd-btn" onclick="rdEntSendSetList()">Send set list</button>'
       + '<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>'
       + '<button type="button" class="rd-btn" onclick="rdEntFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
       + '<button type="button" class="rd-btn" onclick="rdEntExport()">Export</button>'
       + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdEntAddSong()">Add song</button>';
   }
+
+  async function rdEntLoadStarter() {
+    if (typeof loadRecSongPreset === 'function') await loadRecSongPreset();
+    renderEntertainmentRd();
+  }
+  window.rdEntLoadStarter = rdEntLoadStarter;
 
   function uedEntertainmentShellRd() {
     const panel = document.getElementById('panel-entertainment');
@@ -544,7 +551,7 @@
       `</tr></thead><tbody>`;
 
     if (!groups.length) {
-      html += `<tr class="rd-ent-empty"><td colspan="6">No songs in this view yet.</td></tr>`;
+      html += `<tr class="rd-ent-empty"><td colspan="6">No songs in this view yet. <button type="button" class="rd-btn rd-btn--quiet" onclick="rdEntLoadStarter()">Load a starter list</button></td></tr>`;
     } else {
       groups.forEach(g => {
         html += `<tr class="rd-ent-group"><td colspan="6">${esc(g.label)}</td></tr>`;

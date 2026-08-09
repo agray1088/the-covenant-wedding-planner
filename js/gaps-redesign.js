@@ -732,6 +732,8 @@
       paneGetStartedStep('4', 'rd-set__gs-chip--pend', 'Add your vendors and their contracts', '3 of 14 have a contract on file. A vendor without one has no authoritative total, so the budget is a guess.', pBtn('Continue', 'showPanel:vendors'), '') +
       paneGetStartedStep('5', 'rd-set__gs-chip--num', 'Build the day', 'Run sheet, then the vendor blocks that hang off it. The day drives four printed documents.', pLink('Start', 'showPanel:timeline'), '', true) +
       paneGetStartedStep('6', 'rd-set__gs-chip--num', 'Invite the couple and your helpers', 'Roles decide what each of them sees. Covenant is granted by the couple, not claimed by you.', pLink('Start', 'people'), '', true) +
+      pRow('Explore with sample data', 'Prefer to click around a filled planner first? Loads demo guests, vendors, budget and day-of content — same action as Get Started → Load Sample Data.', pBtn('Load Sample Data', 'sample')) +
+      '<div class="rd-set__pointer">' + pBtn('Open the full Get Started page', 'showPanel:instructions') + '</div>' +
       pNote('The full <b>Get Started</b> page — with the same six steps at reading width and a progress meter — is drawn in <b>Planner Screens All</b>. This pane is the same checklist reached mid-task, so you can see what is unfinished without leaving the page you are on.');
   }
 
@@ -898,6 +900,10 @@
         else { var ri = document.getElementById('restore-file-input') || document.querySelector('input[type="file"][accept*="sqlite"], input[type="file"][accept*="db"]'); if (ri) ri.click(); }
         break;
       case 'spec': window.open('Redesign/Covenant Design Spec.dc.html', '_blank'); break;
+      case 'sample':
+        closeSettingsWindow();
+        if (hasFn('loadSampleData')) call('loadSampleData');
+        break;
       default: break;
     }
   }

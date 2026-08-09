@@ -298,27 +298,48 @@
 
   function pageheadActionsHtml() {
     const mode = window._cerMode || 'order';
+    const starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCerLoadStarter()">Load a starter list</button>';
     if (mode === 'programme') {
-      return ''
+      return starter
         + '<button type="button" class="rd-btn" onclick="rdCerPrintProgramme()">Print keepsake</button>'
         + '<button type="button" class="rd-btn" onclick="rdCerFullEditor()">Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="rdCerExport()">Export PDF</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdCerAdd()">Add element</button>';
     }
     if (mode === 'script') {
-      return ''
+      return starter
         + '<button type="button" class="rd-btn" onclick="rdCerPrintScript()">Print script</button>'
         + '<button type="button" class="rd-btn" onclick="rdCerFullEditor()">Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="rdCerSendOfficiant()">Share with officiant</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdCerWriteVows()">Write the vows</button>';
     }
-    return ''
+    return starter
       + '<button type="button" class="rd-btn" onclick="rdCerSendOfficiant()">Send to officiant</button>'
       + '<button type="button" class="rd-btn" onclick="rdCerPrint()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>'
       + '<button type="button" class="rd-btn" onclick="rdCerFullEditor()">Full editor</button>'
       + '<button type="button" class="rd-btn" onclick="rdCerExport()">Export</button>'
       + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdCerAdd()">Add element</button>';
   }
+
+  async function rdCerLoadStarter() {
+    if (typeof rdChoose !== 'function') {
+      if (typeof loadCeremonyOrderPreset === 'function') await loadCeremonyOrderPreset();
+      renderCeremonyRd();
+      return;
+    }
+    const choice = await rdChoose('Load a starter list', [
+      'Order of service',
+      'Processional',
+      'Recessional',
+      'Ceremony checklist'
+    ]);
+    if (choice === 'Order of service' && typeof loadCeremonyOrderPreset === 'function') await loadCeremonyOrderPreset();
+    else if (choice === 'Processional' && typeof loadProcessionalPreset === 'function') await loadProcessionalPreset();
+    else if (choice === 'Recessional' && typeof loadRecessionalPreset === 'function') await loadRecessionalPreset();
+    else if (choice === 'Ceremony checklist' && typeof loadCeremonyChecklistPreset === 'function') await loadCeremonyChecklistPreset();
+    renderCeremonyRd();
+  }
+  window.rdCerLoadStarter = rdCerLoadStarter;
 
   function uedCeremonyShellRd() {
     const panel = document.getElementById('panel-ceremony');
@@ -525,7 +546,7 @@
     if (showRec) {
       html += serviceBlock('Reception', venueName('reception'), receptionStartMins(), f.receptionMins, 'MC', rec, 'reception');
     }
-    if (!html) html = '<p class="rd-cer-empty">No elements in this view yet. Add an element to build the order of service.</p>';
+    if (!html) html = '<p class="rd-cer-empty">No elements in this view yet. <button type="button" class="rd-btn rd-btn--quiet" onclick="rdCerLoadStarter()">Load a starter list</button> or add an element to build the order of service.</p>';
     host.innerHTML = html;
     renderUnassigned();
   }

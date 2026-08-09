@@ -237,12 +237,30 @@
 
   function pageheadActionsHtml() {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
-    return `<button type="button" class="rd-btn rd-btn--quiet" onclick="printCurrentPage()">Print page</button>
+    /* All.dc Budget pagehead leads with quiet "Import checklist" (same tertiary as Tasks). */
+    return `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdBudgetImportChecklist()">Import checklist</button>
+      <button type="button" class="rd-btn rd-btn--quiet" onclick="printCurrentPage()">Print page</button>
       <button type="button" class="rd-btn" onclick="exportSectionCSV('Budget',budgetExportRows())">Export CSV</button>
       <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
       <button type="button" class="rd-btn" data-rd-full-editor onclick="rdBudgetFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
       <button type="button" class="rd-btn rd-btn--primary" onclick="addBudgetCategory()">+ Add category</button>`;
   }
+
+  async function rdBudgetImportChecklist() {
+    if (typeof rdChoose !== 'function') {
+      if (typeof loadBudgetPreset === 'function') return loadBudgetPreset();
+      return;
+    }
+    const choice = await rdChoose('Import checklist', ['Full categories', 'Full itemized budget']);
+    if (choice === 'Full categories' && typeof loadBudgetPreset === 'function') {
+      await loadBudgetPreset();
+    } else if (choice === 'Full itemized budget' && typeof loadFullItemizedBudget === 'function') {
+      await loadFullItemizedBudget();
+    }
+    if (typeof renderBudgetPage === 'function') renderBudgetPage();
+    else if (typeof renderBudgetRd === 'function') renderBudgetRd();
+  }
+  window.rdBudgetImportChecklist = rdBudgetImportChecklist;
 
   function uedBudgetShellRd() {
     const panel = document.getElementById('panel-budget');

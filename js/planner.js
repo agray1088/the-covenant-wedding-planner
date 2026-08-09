@@ -9712,12 +9712,28 @@ function logisticsRailGroupBy(){
 
 function logisticsPageheadActionsHtml(){
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
-  return `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>
+  return `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdLogLoadStarter()">Load weekend starter</button>
+        <button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>
         <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
         <button type="button" class="rd-btn" data-rd-full-editor onclick="rdLogFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
         <button type="button" class="rd-btn" onclick="exportSectionCSV('Weekend Logistics',(data.weekendTimeline||[]).concat(data.transportation||[]))">Export</button>
         <button type="button" class="rd-btn rd-btn--primary" onclick="addLogisticsRow()">+ Add movement</button>`;
 }
+async function rdLogLoadStarter(){
+  if (typeof rdChoose !== 'function') {
+    if (typeof loadWeekendTimelinePreset === 'function') return loadWeekendTimelinePreset();
+    return;
+  }
+  const choice = await rdChoose('Load weekend starter', [
+    'Weekend timeline',
+    'Hotel & travel rows',
+    'Transportation routes'
+  ]);
+  if (choice === 'Weekend timeline' && typeof loadWeekendTimelinePreset === 'function') return loadWeekendTimelinePreset();
+  if (choice === 'Hotel & travel rows' && typeof loadTravelStarter === 'function') return loadTravelStarter();
+  if (choice === 'Transportation routes' && typeof loadTransportationStarter === 'function') return loadTransportationStarter();
+}
+window.rdLogLoadStarter = rdLogLoadStarter;
 function logisticsSurfaceRowHtml(){
   return `<div class="rd-surface__row" id="logistics-surface-row">
     <div class="rd-surface__main" id="logistics-view-host">
@@ -14597,8 +14613,9 @@ const GUEST_DRAWER_TAB_ABBR = {
   Guest: 'Gst', Household: 'Hh', Seating: 'Seat', RSVP: 'RSVP', History: 'His'
 };
 function guestDrawerTabStripLabel(label, isActive){
-  if (isActive) return label;
-  return GUEST_DRAWER_TAB_ABBR[label] || String(label || '').slice(0, 3);
+  /* Gaps Batch 44 draws full tab names (Guest · Household · Seating · RSVP · History).
+     Abbreviations were a width hack; keep the full word so the strip matches the mock. */
+  return label;
 }
 window.guestDrawerTabStripLabel = guestDrawerTabStripLabel;
 function guestDrawerSeatDisplay(d){

@@ -314,27 +314,41 @@
 
   function pageheadActionsHtml() {
     const mode = window._shotMode || 'table';
+    const starter = '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdShotLoadStarter()">Load a starter list</button>';
     if (mode === 'cards') {
-      return ''
+      return starter
         + '<button type="button" class="rd-btn" onclick="rdShotPrint()">Print shot list</button>'
         + '<button type="button" class="rd-btn" onclick="rdShotFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="rdShotExport()">Export</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdShotAdd()">Add shot</button>';
     }
     if (mode === 'window') {
-      return ''
+      return starter
         + '<button type="button" class="rd-btn" onclick="rdShotPrint()">Print by window</button>'
         + '<button type="button" class="rd-btn" onclick="rdShotFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="rdShotExport()">Export</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdShotAdd()">Add shot</button>';
     }
-    return ''
+    return starter
       + '<button type="button" class="rd-btn" onclick="rdShotSendPhoto()">Send to photographer</button>'
       + '<button type="button" class="rd-btn" onclick="rdShotPrint()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>'
       + '<button type="button" class="rd-btn" onclick="rdShotFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
       + '<button type="button" class="rd-btn" onclick="rdShotExport()">Export</button>'
       + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdShotAdd()">Add shot</button>';
   }
+
+  async function rdShotLoadStarter() {
+    if (typeof rdChoose !== 'function') {
+      if (typeof loadShotPreset === 'function') await loadShotPreset();
+      renderShotlistRd();
+      return;
+    }
+    const choice = await rdChoose('Load a starter list', ['Photo shot list', 'Video shot list']);
+    if (choice === 'Photo shot list' && typeof loadShotPreset === 'function') await loadShotPreset();
+    else if (choice === 'Video shot list' && typeof loadVideoShotPreset === 'function') await loadVideoShotPreset();
+    renderShotlistRd();
+  }
+  window.rdShotLoadStarter = rdShotLoadStarter;
 
   function uedShotlistShellRd() {
     const panel = document.getElementById('panel-shotlist');
@@ -606,7 +620,7 @@
       `</tr></thead><tbody>`;
 
     if (!groups.length) {
-      html += `<tr class="rd-shot-empty"><td colspan="6">No shots in this view yet. Load a starter list or add a shot.</td></tr>`;
+      html += `<tr class="rd-shot-empty"><td colspan="6">No shots in this view yet. <button type="button" class="rd-btn rd-btn--quiet" onclick="rdShotLoadStarter()">Load a starter list</button> or add a shot.</td></tr>`;
     } else {
       groups.forEach(g => {
         html += `<tr class="rd-shot-group${g.risk ? ' is-risk' : ''}"><td colspan="6">${esc(g.label)}</td></tr>`;
