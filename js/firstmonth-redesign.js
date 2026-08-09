@@ -6,6 +6,11 @@
   window._fmMode = window._fmMode || 'table';
   window._fmRailView = window._fmRailView || 'all';
   window._fmGroupBy = window._fmGroupBy || 'cadence';
+  window._fmDrawerId = window._fmDrawerId || null;
+  window._fmDrawerTab = window._fmDrawerTab || 0;
+
+  const DRAWER_TABS = ['Rhythm', 'Cadence', 'Streak', 'History'];
+  const CADENCE_FREQUENCY = { Daily: 'Every night', Weekly: 'Every week', Monthly: 'Every month', Yearly: 'Every year' };
 
   const BASE_ROWS = [
     { id: 'sabbath', key: 'sabbath', cadence: 'Weekly', title: 'Weekly Sabbath / Rest Day', area: 'Faith', owner: 'Both' },
@@ -153,15 +158,19 @@
       <div class="rd-stats m-stats" id="firstmonth-stats" aria-label="First-month rhythm summary"></div>
       <div class="rd-toolbar" id="firstmonth-toolbar"></div>
       <div class="rd-surface">
-        <div class="rd-surface__row">
+        <div class="rd-surface__row" id="firstmonth-surface-row">
           <div class="rd-surface__main" id="firstmonth-view-host">
             <div class="rd-view" id="fm-view-table"></div>
             <div class="rd-view" id="fm-view-cards" hidden></div>
             <div class="rd-view" id="fm-view-year" hidden></div>
           </div>
+          <div id="firstmonth-drawer-slot"></div>
         </div>
       </div>
     </div>`;
+    if (typeof window.covenantShell !== 'undefined' && window.covenantShell.drawer) {
+      window.covenantShell.drawer();
+    }
   }
 
   function renderStats() {
@@ -270,12 +279,13 @@
       html += `<tr class="rd-group-row"><td colspan="5">${esc(g.key)}</td></tr>`;
       g.rows.forEach(r => {
         const id = r.source + ':' + r.index;
-        html += `<tr>
-          <td>${r.source === 'extra' ? `<input value="${esc(r.title)}" oninput="rdFmSave('${esc(id)}','title',this.value)">` : `<strong>${esc(r.title)}</strong>`}</td>
-          <td>${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','cadence',this.value)">${selectHtml(CADENCES, r.cadence)}</select>` : esc(r.cadence)}</td>
-          <td>${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','area',this.value)">${selectHtml(AREAS, r.area)}</select>` : esc(r.area)}</td>
-          <td>${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','owner',this.value)">${selectHtml(OWNERS, r.owner)}</select>` : esc(r.owner)}</td>
-          <td>${rowEditor(r)}</td>
+        const open = window._fmDrawerId === id;
+        html += `<tr class="${open ? 'is-open' : ''}" style="cursor:pointer" onclick="rdFmOpenDrawer('${esc(id)}')">
+          <td onclick="event.stopPropagation()">${r.source === 'extra' ? `<input value="${esc(r.title)}" oninput="rdFmSave('${esc(id)}','title',this.value)">` : `<strong>${esc(r.title)}</strong>`}</td>
+          <td onclick="event.stopPropagation()">${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','cadence',this.value)">${selectHtml(CADENCES, r.cadence)}</select>` : esc(r.cadence)}</td>
+          <td onclick="event.stopPropagation()">${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','area',this.value)">${selectHtml(AREAS, r.area)}</select>` : esc(r.area)}</td>
+          <td onclick="event.stopPropagation()">${r.source === 'extra' ? `<select onchange="rdFmSave('${esc(id)}','owner',this.value)">${selectHtml(OWNERS, r.owner)}</select>` : esc(r.owner)}</td>
+          <td onclick="event.stopPropagation()">${rowEditor(r)}</td>
         </tr>`;
       });
     });
@@ -288,13 +298,13 @@
     const rows = visibleRows();
     host.innerHTML = `<div class="hub-record-card-grid rd-fm-cards">${rows.map(r => {
       const id = r.source + ':' + r.index;
-      return `<article class="hub-record-card rd-fm-card">
+      return `<article class="hub-record-card rd-fm-card" onclick="rdFmOpenDrawer('${esc(id)}')">
         <div class="hub-record-card-head"><h3 class="hub-record-card-title">${esc(r.title)}</h3><span class="status-pill" data-pillscheme="${isKept(r) ? 'green' : 'amber'}">${esc(isKept(r) ? 'Seeded' : 'Open')}</span></div>
         <div class="hub-record-card-fields">
           <div class="hub-record-card-field"><span>Cadence</span><strong>${esc(r.cadence)}</strong></div>
           <div class="hub-record-card-field"><span>Area</span><strong>${esc(r.area)}</strong></div>
           <div class="hub-record-card-field"><span>Owner</span><strong>${esc(r.owner)}</strong></div>
-          <div class="hub-record-card-field full"><span>Plan</span><textarea rows="3" oninput="rdFmSave('${esc(id)}','value',this.value)">${esc(r.value)}</textarea></div>
+          <div class="hub-record-card-field full" onclick="event.stopPropagation()"><span>Plan</span><textarea rows="3" oninput="rdFmSave('${esc(id)}','value',this.value)">${esc(r.value)}</textarea></div>
         </div>
       </article>`;
     }).join('') || '<div class="rd-empty">No rhythm cards match this view.</div>'}</div>`;
@@ -330,6 +340,146 @@
     saveCell(row, field, val);
     renderStats();
     if (window._fmMode === 'year') renderYearView();
+    if (window._fmDrawerId === ref) renderFmDrawer();
+  }
+
+  /* ── drawer (Rhythm · Cadence · Streak · History) ─────────────────────── */
+
+  function parkSharedFmDrawerAway(slot) {
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot && slot.contains(shared)) {
+      const park = document.getElementById('layout') || document.body;
+      park.appendChild(shared);
+    }
+  }
+  function field(label, val, onclick) {
+    const click = onclick ? ` class="rd-drawer__link" onclick="${onclick}"` : '';
+    return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong${click}>${esc(val)}</strong></div>`;
+  }
+  function weddingDateLabel(offsetDays) {
+    const d = store();
+    const s = d.setup || {};
+    const raw = s.weddingDate || s.date || '';
+    if (!raw) return '—';
+    const dt = new Date(String(raw).split('T')[0] + 'T00:00:00');
+    if (Number.isNaN(dt.getTime())) return String(raw);
+    if (offsetDays) dt.setDate(dt.getDate() + offsetDays);
+    return dt.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function renderFmDrawer() {
+    const slot = document.getElementById('firstmonth-drawer-slot');
+    if (!slot) return;
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot.contains(shared) && !shared.hasAttribute('hidden')) {
+      slot.classList.add('is-open');
+      return;
+    }
+    const r = findRow(window._fmDrawerId);
+    if (!r) {
+      if (!(shared && slot.contains(shared) && !shared.hasAttribute('hidden'))) {
+        parkSharedFmDrawerAway(slot);
+        slot.innerHTML = '';
+        slot.classList.remove('is-open');
+      }
+      return;
+    }
+    parkSharedFmDrawerAway(slot);
+    const id = r.source + ':' + r.index;
+    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._fmDrawerTab, 10) || 0));
+    const kept = isKept(r);
+    const f = fmFigures();
+    let body = '';
+    if (tab === 0) {
+      body =
+        field('Rhythm', r.title) +
+        field('Area', r.area) +
+        field('Owner', r.owner) +
+        field('Cadence', r.cadence) +
+        field('Begins', weddingDateLabel(1)) +
+        `<div class="rd-drawer__section-title">What it means</div>` +
+        `<div class="rd-fm-drawer__prose">${r.value ? esc(r.value).replace(/\n/g, '<br>') : '<em class="rd-empty">Not written yet.</em>'}</div>` +
+        `<p class="rd-drawer__note">The definition matters more than the field. A rhythm with a vague meaning is one that gets quietly redefined until it is always kept.</p>`;
+    } else if (tab === 1) {
+      body =
+        field('Frequency', CADENCE_FREQUENCY[r.cadence] || r.cadence) +
+        field('Begins', weddingDateLabel(1)) +
+        field('Reviewed', 'Each anniversary') +
+        field('Paused', 'Never') +
+        `<p class="rd-drawer__note">Rhythms begin the day after the wedding and never appear on the Timeline. They are not wedding work, and mixing them in would make the task list look unfinishable.</p>` +
+        `<div class="rd-drawer__section-title">The ${f.rhythms}</div>` +
+        field('Daily', String(f.daily)) +
+        field('Weekly', String(f.weekly)) +
+        field('Monthly', String(f.monthly)) +
+        field('Yearly', String(f.yearly));
+    } else if (tab === 2) {
+      body =
+        field('Streak', kept ? 'Seeded' : 'Not started') +
+        field('This week', kept ? 'Seeded' : '0') +
+        field('Longest run', kept ? 'Seeded' : '—') +
+        `<p class="rd-drawer__note">A streak is counted, not scored. There is no target and no badge — the number exists so a slip is visible, not so it can be won. Streaks are seeded here, not scored.</p>` +
+        `<div class="rd-drawer__section-title">Across the ${f.rhythms}</div>` +
+        field('Kept this month', f.keptThisMonth + ' of ' + f.rhythms) +
+        field('Streaks seeded', String(f.streaks));
+    } else {
+      body =
+        `<div class="rd-drawer__section-title">This rhythm</div>` +
+        (r.value
+          ? `<div class="rd-drawer__hist"><strong>—</strong> · Both<div>Written, before the wedding</div></div>`
+          : `<div class="rd-drawer__hist"><strong>—</strong> · Both<div>Not yet written</div></div>`) +
+        `<div class="rd-drawer__hist"><strong>—</strong> · Both<div>Added to the ${esc(r.cadence.toLowerCase())} rhythms</div></div>` +
+        `<p class="rd-drawer__note">Written before the wedding, started after it. The gap between defining a rhythm and beginning it is deliberate — deciding under no pressure, keeping it under real conditions.</p>`;
+    }
+
+    slot.classList.add('is-open');
+    slot.innerHTML =
+      `<aside class="rd-drawer rd-fm-drawer" aria-label="Rhythm">` +
+      `<div class="rd-drawer__head">` +
+      `<div class="rd-drawer__eyebrow">Rhythm · ${esc(r.cadence.toLowerCase())}</div>` +
+      `<h2 class="rd-drawer__title">${esc(r.title)}</h2>` +
+      `<div class="rd-drawer__chips">` +
+      `<span class="status-pill" data-pillscheme="blue">${esc(r.cadence)}</span>` +
+      `<span class="status-pill" data-pillscheme="${kept ? 'green' : 'gray'}">${esc(kept ? 'Seeded' : 'Unwritten')}</span>` +
+      `</div>` +
+      `<button type="button" class="rd-drawer__close" onclick="rdFmCloseDrawer()" aria-label="Close">×</button>` +
+      `<div class="rd-drawer__tabs" role="tablist">` +
+      DRAWER_TABS.map((label, i) =>
+        `<button type="button" class="rd-drawer__tab${i === tab ? ' is-active' : ''}" onclick="rdFmSetDrawerTab(${i})">${esc(label)}</button>`
+      ).join('') +
+      `</div></div>` +
+      `<div class="rd-drawer__body">${body}</div>` +
+      `<div class="rd-drawer__foot">` +
+      `<button type="button" class="rd-btn rd-btn--primary" onclick="rdFmCloseDrawer()">Save</button>` +
+      `<button type="button" class="rd-btn" onclick="rdFmDrawerFullEditor('${esc(id)}')">Full editor</button>` +
+      `</div></aside>`;
+  }
+
+  function rdFmOpenDrawer(id) {
+    window._fmDrawerId = id;
+    window._fmDrawerTab = 0;
+    renderFmDrawer();
+  }
+  function rdFmCloseDrawer() {
+    window._fmDrawerId = null;
+    const slot = document.getElementById('firstmonth-drawer-slot');
+    if (slot) {
+      parkSharedFmDrawerAway(slot);
+      slot.innerHTML = '';
+      slot.classList.remove('is-open');
+    }
+  }
+  function rdFmSetDrawerTab(i) {
+    window._fmDrawerTab = i;
+    renderFmDrawer();
+  }
+  function rdFmDrawerFullEditor(id) {
+    rdFmCloseDrawer();
+    window._fmMode = 'cards';
+    renderFirstmonthRd();
+    setTimeout(() => {
+      const el = document.querySelector('.rd-fm-card textarea');
+      if (el) el.focus();
+    }, 30);
   }
   function rdFmAdd() {
     const d = ensureData();
@@ -368,6 +518,7 @@
     renderTableView();
     renderCardsView();
     renderYearView();
+    renderFmDrawer();
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'firstmonth'
       && document.body.classList.contains('context-sidebar-mode')) {
@@ -389,6 +540,10 @@
   window.rdFmAdd = rdFmAdd;
   window.rdFmPrint = rdFmPrint;
   window.rdFmExport = rdFmExport;
+  window.rdFmOpenDrawer = rdFmOpenDrawer;
+  window.rdFmCloseDrawer = rdFmCloseDrawer;
+  window.rdFmSetDrawerTab = rdFmSetDrawerTab;
+  window.rdFmDrawerFullEditor = rdFmDrawerFullEditor;
 
   function hookFirstmonthPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) window.SYSTEM_PANEL_RENDERERS.firstmonth = function () { renderFirstmonthRd(); };

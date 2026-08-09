@@ -20725,6 +20725,15 @@ body.rd-scope #panel-firstmonth .rd-yearplot__cell strong {
   margin-bottom: 4px;
   font-size: 12.5px;
 }
+body.rd-scope #panel-firstmonth .rd-fm-drawer__prose {
+  padding: 12px 13px;
+  border-left: 2px solid #B89968;
+  background: #fdfcfa;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 17px;
+  line-height: 1.6;
+  color: #20362D;
+}
 
 body.rd-scope #panel-homecoming .rd-hc-table {
   width: 100%;
