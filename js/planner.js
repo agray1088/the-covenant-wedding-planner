@@ -14547,14 +14547,16 @@ function recordEditorSetJson(key,value){
 }
 /* Mock 3b / Batch 21 continued: tab strip + single active pane + Other-tabs previews.
    Party tab is conditional — wedding-party guests only. History is synthetic in shell. */
-const GUEST_DRAWER_TAB_KEYS = ['identity', 'response', 'contact', 'invitation', 'party', 'note'];
+/* Gaps Batch 44 · Guest drawer — Guest · Household · Seating · RSVP · History.
+   Tabs by the questions asked of a guest: who she is, which envelope she
+   belongs to, where she sits, what she replied — History is synthetic. */
+const GUEST_DRAWER_TAB_KEYS = ['guest', 'household', 'seating', 'rsvp'];
 const GUEST_DRAWER_TAB_META = {
-  identity: { label: 'Identity', fields: 6 },
-  response: { label: 'Response', fields: 7 },
-  contact: { label: 'Contact', fields: 8 },
-  invitation: { label: 'Invitation', fields: 6 },
-  party: { label: 'Party', fields: 4 },
-  note: { label: 'Note', fields: 1 }
+  guest: { label: 'Guest', fields: 8 },
+  household: { label: 'Household', fields: 6 },
+  seating: { label: 'Seating', fields: 5 },
+  rsvp: { label: 'RSVP', fields: 6 },
+  history: { label: 'History', fields: 0 }
 };
 function guestIsWeddingPartyMember(d){
   if (!d) return false;
@@ -14566,14 +14568,11 @@ function guestIsWeddingPartyMember(d){
 function guestShowsPartyTab(d){ return guestIsWeddingPartyMember(d); }
 window.guestShowsPartyTab = guestShowsPartyTab;
 function guestDrawerShellTabs(){
-  const labels = ['Identity', 'Response', 'Contact', 'Invitation', 'Party', 'Note', 'History'];
-  const d = recordEditorState && recordEditorState.draft;
-  if (d && !guestShowsPartyTab(d)) return labels.filter(l => l !== 'Party');
-  return labels;
+  return ['Guest', 'Household', 'Seating', 'RSVP', 'History'];
 }
 window.guestDrawerShellTabs = guestDrawerShellTabs;
 const GUEST_DRAWER_TAB_ABBR = {
-  Identity: 'Ide', Response: 'Res', Contact: 'Con', Invitation: 'Inv', Party: 'Par', Note: 'Not', History: 'His'
+  Guest: 'Gst', Household: 'Hh', Seating: 'Seat', RSVP: 'RSVP', History: 'His'
 };
 function guestDrawerTabStripLabel(label, isActive){
   if (isActive) return label;
@@ -14665,9 +14664,7 @@ function guestDrawerRefreshTabStripLabels(activeIndex){
 }
 window.guestDrawerRefreshTabStripLabels = guestDrawerRefreshTabStripLabels;
 function guestDrawerTabKeysForDraft(d){
-  const keys = GUEST_DRAWER_TAB_KEYS.slice();
-  if (d && !guestShowsPartyTab(d)) return keys.filter(k => k !== 'party').concat(['history']);
-  return keys.concat(['history']);
+  return GUEST_DRAWER_TAB_KEYS.concat(['history']);
 }
 function guestDrawerActiveTabKey(){
   const keys = guestDrawerTabKeysForDraft(recordEditorState && recordEditorState.draft);
@@ -15061,6 +15058,38 @@ function guestDrawerPinnedNotesHtml(d){
       muted: true
     })));
 }
+/* Gaps 44 · per-tab footer secondary button (Open household · Print envelope …) */
+const GUEST_DRAWER_FOOTER_SECONDARY = {
+  guest: 'Open household',
+  household: 'Print envelope',
+  seating: 'Open table layout',
+  rsvp: 'Message guest',
+  history: 'Export record'
+};
+function guestDrawerFooterSecondaryLabel(){
+  const key = (typeof guestDrawerActiveTabKey === 'function') ? guestDrawerActiveTabKey() : 'guest';
+  return GUEST_DRAWER_FOOTER_SECONDARY[key] || 'Full editor';
+}
+window.guestDrawerFooterSecondaryLabel = guestDrawerFooterSecondaryLabel;
+function guestDrawerFooterAction(){
+  const key = (typeof guestDrawerActiveTabKey === 'function') ? guestDrawerActiveTabKey() : 'guest';
+  if (key === 'guest' || key === 'household') { guestDrawerJumpHousehold(); return; }
+  if (key === 'seating') {
+    if (typeof showPanel === 'function') showPanel('tables');
+    if (typeof showSyncToast === 'function') showSyncToast('Table layout');
+    return;
+  }
+  if (key === 'rsvp') {
+    if (typeof showSyncToast === 'function') showSyncToast('Message guest');
+    return;
+  }
+  if (key === 'history') {
+    if (typeof showSyncToast === 'function') showSyncToast('Record exported');
+    return;
+  }
+  if (typeof rdGuestFullEditor === 'function') rdGuestFullEditor();
+}
+window.guestDrawerFooterAction = guestDrawerFooterAction;
 function guestDrawerSelectTab(tabIndex){
   const d = document.getElementById('record-drawer');
   const keys = guestDrawerTabKeysForDraft(recordEditorState && recordEditorState.draft);
@@ -15186,65 +15215,163 @@ function guestDrawerPreviewLine(key, d){
   if (key === 'history') return guestDrawerHistoryPreview();
   return '—';
 }
+/* Gaps 44 · derived-value helpers for the Guest drawer panes */
+const GUEST_AGE_BANDS = ['Adult', 'Teen', 'Child', 'Infant'];
+const GUEST_PREFERRED_CONTACT = ['WhatsApp', 'Call', 'Text', 'Email', 'Post'];
+function guestDrawerPlaceCardName(d){
+  const v = String(d && d.placeCardName || '').trim();
+  if (v) return v;
+  return String(d && d.name || '').trim().split(/\s+/)[0] || '';
+}
+function guestDrawerHouseholdMembers(d){
+  const hh = String(d && d.household || '').trim();
+  if (!hh) return [];
+  return safeArray(data.guests).filter(g => String(g.household || '').trim() === hh);
+}
+function guestDrawerHouseholdMembersHtml(d){
+  const hh = String(d && d.household || '').trim();
+  const members = guestDrawerHouseholdMembers(d);
+  const title = (hh ? (/household$/i.test(hh) ? hh : hh + ' household') : 'Household')
+    + ' · ' + members.length + ' member' + (members.length === 1 ? '' : 's');
+  if (!members.length) {
+    return rdGuestDrawerSectionTitle(title)
+      + rdGuestDrawerTeachHtml('This guest is not in a household yet. Set one on the Guest tab and the envelope, address and seat count follow it.');
+  }
+  const thisName = String(d.name || '').trim().toLowerCase();
+  const rows = members.map(m => {
+    const rsvp = String(m.rsvp || 'Pending');
+    const isThis = String(m.name || '').trim().toLowerCase() === thisName;
+    const tone = /yes|accept/i.test(rsvp) ? 'ok' : (/no|declin|regret/i.test(rsvp) ? 'warn' : 'warn');
+    const sub = isThis ? ' · this guest' : '';
+    return { left: String(m.name || 'Guest') + sub, right: rsvp, [tone === 'ok' ? 'ok' : 'warn']: true };
+  });
+  return rdGuestDrawerSectionTitle(title) + rdGuestDrawerKvRows(rows);
+}
+function guestDrawerEnvelopeHtml(d){
+  const hh = String(d && d.household || '').trim();
+  const n = guestDrawerHouseholdMembers(d).length || 1;
+  const accepted = guestDrawerHouseholdMembers(d).filter(m => /yes|accept/i.test(String(m.rsvp || ''))).length;
+  const pending = Math.max(0, n - accepted);
+  const addr = [d.address1 || d.address, d.address2].filter(x => String(x || '').trim());
+  let html = rdGuestDrawerSectionTitle('Envelope')
+    + rdDrawerInputRow('Addressed to', 'envelopeName')
+    + rdDrawerInputRow('Line 1', 'address1')
+    + rdDrawerInputRow('City', 'city')
+    + rdDrawerInputRow('Postal', 'zip');
+  if (pending > 0) {
+    html += rdGuestDrawerBannerHtml(pending + ' pending member' + (pending === 1 ? '' : 's') + '. The household counts as '
+      + accepted + ' confirmed seat' + (accepted === 1 ? '' : 's') + ' until everyone answers — the seating chart holds the rest.');
+  }
+  html += rdGuestDrawerKvRows([
+    { left: 'Invitation', right: String(d.inviteSentDate || '').trim() ? ('Sent ' + d.inviteSentDate) : 'Not sent', muted: !String(d.inviteSentDate || '').trim() },
+    { left: 'Method', right: String(d.inviteMethod || 'Post + email'), muted: true },
+    { left: 'Seats held', right: String(guestDrawerSeatsNeeded(d)), muted: true }
+  ]);
+  return html;
+}
+function guestDrawerSeatingNeighborsHtml(d){
+  const table = String(d && d.table || '').trim();
+  if (!table) {
+    return rdGuestDrawerSectionTitle('At this table')
+      + rdGuestDrawerTeachHtml('Unseated. Assign a table on this tab and the neighbours, meal count and place card follow.');
+  }
+  const mates = safeArray(data.guests).filter(g =>
+    String(g.table || '').trim() === table && String(g.name || '').trim() !== String(d.name || '').trim());
+  const rows = mates.slice(0, 4).map(m => ({
+    left: 'seat ' + (m.seat != null && String(m.seat).trim() !== '' ? String(m.seat).trim() : '—'),
+    right: String(m.name || 'Guest')
+  }));
+  if (mates.length > 4) rows.push({ left: '', right: '+ ' + (mates.length - 4) + ' more', muted: true });
+  return rdGuestDrawerSectionTitle('At this table')
+    + (rows.length ? rdGuestDrawerKvRows(rows) : rdGuestDrawerTeachHtml('No one else is seated at this table yet.'));
+}
+function guestDrawerAppearsOnHtml(d){
+  const accepted = typeof guestIsAccepted === 'function' && guestIsAccepted(d);
+  const invited = (d.invited || (typeof guestIsInvited === 'function' && guestIsInvited(d)));
+  const seat = guestDrawerSeatDisplay(d);
+  const gift = guestDrawerGuestGift(d);
+  return rdGuestDrawerSectionTitle('Appears on')
+    + rdGuestDrawerKvRows([
+      { left: 'Invitations', right: invited ? '1 of 1 sent' : 'Not invited', ok: invited, muted: !invited },
+      { left: 'Seating chart', right: seat || 'Unseated', link: !!seat, muted: !seat },
+      { left: 'Meal count', right: accepted ? 'Included' : 'Not counted', ok: accepted, muted: !accepted },
+      { left: 'Thank-you list', right: gift ? (d.thankyou ? 'Note sent' : 'Pending gift') : 'No gift yet', muted: !gift }
+    ]);
+}
+function guestDrawerRsvpAttendingHtml(d){
+  ensureGuestEvents();
+  const guestId = d && (d._id || d.guestId);
+  const events = (data.guestEvents || []).filter(ev => ev.active !== false);
+  const rows = events.map(ev => {
+    const eventId = typeof guestEventId === 'function' ? guestEventId(ev) : (ev.id || ev._id);
+    const assignment = (recordEditorState.assignments || []).find(a => a.eventId === eventId)
+      || (typeof guestAssignments === 'function' ? guestAssignments(guestId).find(a => a.eventId === eventId) : null);
+    let right = 'Not asked', tone = 'muted';
+    if (assignment) {
+      const rsvp = assignment.rsvp || '';
+      if (/yes|accept/i.test(rsvp)) { right = 'Yes'; tone = 'ok'; }
+      else if (/no|declin/i.test(rsvp)) { right = 'No'; tone = 'warn'; }
+      else { right = 'Pending'; tone = 'warn'; }
+    }
+    const row = { left: String(ev.name || 'Event') };
+    row.right = right;
+    if (tone === 'ok') row.ok = true; else if (tone === 'warn') row.warn = true; else row.muted = true;
+    return row;
+  });
+  return rdGuestDrawerSectionTitle('Attending')
+    + (rows.length ? rdGuestDrawerKvRows(rows) : rdGuestDrawerTeachHtml('No events on this wedding yet.'));
+}
 function guestDrawerPrimaryFields(key, d){
   if (!Array.isArray(d.companions)) d.companions = [];
-  if (key === 'identity') {
-    return rdDrawerInputRow('Guest name', 'name')
-      + rdGuestDrawerHouseholdRow(d)
-      + rdGuestDrawerFamilyRow(d)
-      + rdDrawerSelectRow('Group', 'group', weddingGroupOptions(d.group))
+  if (key === 'guest') {
+    if (!String(d.placeCardName || '').trim()) d.placeCardName = guestDrawerPlaceCardName(d);
+    return rdGuestDrawerSectionTitle('Identity')
+      + rdDrawerInputRow('Place-card name', 'placeCardName')
+      + rdDrawerInputRow('Full name', 'name')
       + rdDrawerSelectRow('Side', 'side', ['Bride', 'Groom', 'Both', 'Family', 'Our Children'])
-      + rdDrawerSelectRow('Role', 'role', GUEST_ROLES)
-      + rdGuestDrawerTeachHtml('<b>Household, Family and Group are three different groupings and all three are real.</b> Household is the envelope. Family is the bloodline the seating chart respects. Group is why they were invited — wedding party, colleagues, church.')
-      + guestDrawerIdentityAlsoOnHtml(d)
-      + guestDrawerIdentityRecordHtml(d);
+      + rdDrawerSelectRow('Group', 'group', weddingGroupOptions(d.group))
+      + rdDrawerSelectRow('Age band', 'ageBand', GUEST_AGE_BANDS)
+      + rdGuestDrawerSectionTitle('Reaching her')
+      + rdDrawerInputRow('Mobile', 'phone', 'tel')
+      + guestDrawerInputWarnRow('Email', 'email', 'email')
+      + rdDrawerSelectRow('Preferred', 'preferredContact', GUEST_PREFERRED_CONTACT)
+      + rdGuestDrawerBannerHtml('Address is inherited from the household, not typed here. Change it on the Household tab and every guest in it moves.')
+      + guestDrawerAppearsOnHtml(d);
   }
-  if (key === 'response') {
-    const vegWarn = guestDrawerVegetarianMenuWarn(d);
-    return guestDrawerRsvpRow(d)
+  if (key === 'household') {
+    return guestDrawerHouseholdMembersHtml(d)
+      + guestDrawerEnvelopeHtml(d);
+  }
+  if (key === 'seating') {
+    return rdGuestDrawerSectionTitle('Placement')
+      + guestDrawerTableSeatRow(d)
       + guestDrawerMealRow('Meal', 'meal', typeof guestMealOptions === 'function' ? guestMealOptions(d.meal) : [d.meal])
       + guestDrawerDietaryRow(d)
-      + guestDrawerTableSeatRow(d)
+      + rdDrawerInputRow('Assigned by', 'seatAssignedBy')
+      + rdDrawerCheckRow('Locked', 'seatLocked')
+      + guestDrawerSeatingNeighborsHtml(d)
+      + rdGuestDrawerKvRows([
+        { left: 'Access needs', right: String(d.accessNeeds || 'None recorded'), muted: !String(d.accessNeeds || '').trim() },
+        { left: 'Place card', right: String(d.placeCardStatus || '').trim() ? d.placeCardStatus : 'Not printed', ok: /print/i.test(String(d.placeCardStatus || '')) }
+      ]);
+  }
+  if (key === 'rsvp') {
+    const vegWarn = guestDrawerVegetarianMenuWarn(d);
+    return rdGuestDrawerSectionTitle('Reply')
+      + guestDrawerRsvpRow(d)
+      + rdDrawerInputRow('Answered', 'rsvpDate', 'date')
+      + rdDrawerInputRow('Via', 'rsvpVia')
+      + rdGuestDrawerSectionTitle('Meal')
+      + guestDrawerMealRow('Main', 'meal', typeof guestMealOptions === 'function' ? guestMealOptions(d.meal) : [d.meal])
+      + guestDrawerDietaryRow(d)
       + (vegWarn ? rdGuestDrawerBannerHtml(vegWarn) : '')
       + rdGuestDrawerSectionTitle('Who is coming')
       + guestDrawerPlusOneRow(d)
       + rdDrawerInputRow('Kids', 'children', 'number')
       + rdGuestDrawerReadonlyRow('Seats needed', String(guestDrawerSeatsNeeded(d)))
-      + guestDrawerResponseFeedsHtml(d);
+      + guestDrawerRsvpAttendingHtml(d);
   }
-  if (key === 'contact') {
-    return rdDrawerInputRow('Phone', 'phone', 'tel')
-      + guestDrawerInputWarnRow('Email', 'email', 'email')
-      + rdDrawerInputRow('Address 1', 'address1')
-      + rdDrawerInputRow('Address 2', 'address2')
-      + rdDrawerInputRow('City', 'city')
-      + rdDrawerDatalistRow('State', 'state', recordExistingFieldValues('guests', 'state'))
-      + rdDrawerInputRow('Zip', 'zip')
-      + rdDrawerDatalistRow('Country', 'country', ['United States', 'Canada', 'United Kingdom', 'Australia', 'New Zealand', 'Ghana'].concat(recordExistingFieldValues('guests', 'country')))
-      + guestDrawerContactInheritHtml(d)
-      + guestDrawerContactReachableHtml(d);
-  }
-  if (key === 'invitation') {
-    return guestDrawerInviteDecisionRow(d)
-      + rdDrawerInputRow('Invite sent', 'inviteSentDate')
-      + rdDrawerInputRow('Save the date', 'saveTheDate')
-      + guestDrawerInvitationDeadlineHtml()
-      + guestDrawerInvitationEventsHtml(d)
-      + rdGuestDrawerTeachHtml('<b>Invite decision is not the same as RSVP.</b> The first is the couple\'s choice, the second is the guest\'s. Twelve guests are decided-but-unsent, which is why the rail counts them separately.')
-      + guestDrawerInvitationThankyouHtml(d);
-  }
-  if (key === 'party') {
-    if (!guestShowsPartyTab(d)) {
-      return '<p class="rd-guest-drawer-party-empty">This guest is not in the wedding party. Role and Side live on <b>Identity</b> — Party holds attire, fitting, and duties for the ten who need it. Everyone else sees six tabs.</p>';
-    }
-    const party = guestPartyRecordFor(d);
-    if (party) {
-      if (!d.partyAttire && party.attire) d.partyAttire = party.attire;
-      if (!d.partyAttire && party.status) d.partyAttire = party.status;
-    }
-    return guestDrawerPartyFieldsHtml(d);
-  }
-  if (key === 'note') {
+  if (key === 'legacy_note') {
     const v = d.notes ?? '';
     return '<div class="rd-guest-drawer-note-block rd-drawer-notes rd-guest-drawer-note"><textarea class="rd-guest-drawer-note__area" oninput="recordEditorSet(\'notes\',this.value)">' + escapeHtml(v) + '</textarea></div>'
       + guestDrawerPinnedNotesHtml(d)
@@ -15465,23 +15592,43 @@ function renderVendorRecordEditor(){
   const catOpts = ['<option value="">— Choose category —</option>']
     .concat(catLabels.map(l => `<option value="${escapeHtml(l)}"${l===cur?' selected':''}>${escapeHtml(l)}</option>`));
   if (cur && !catLabels.includes(cur)) catOpts.push(`<option value="${escapeHtml(cur)}" selected>${escapeHtml(cur)}</option>`);
-  return `<section class="record-editor-section"><h4>Vendor Details</h4><div class="record-editor-grid">
+  /* Gaps Batch 46 · full editor mirrors the drawer tabs: Vendor · Contract ·
+     Schedule · Contacts — same order, same fields, three columns instead of one. */
+  return `<section class="record-editor-section"><h4>Vendor</h4><div class="record-editor-grid">
     <div class="record-editor-field" style="display:none"><label>Vendor ID</label><input value="${escapeHtml(d._id||'')}" readonly></div>
     ${recordInput('Vendor Name','name')}
     <div class="record-editor-field"><label>Category</label><select onchange="recordEditorSet('cat',this.value);renderRecordEditor();">${catOpts.join('')}</select></div>
-    ${recordInput('Contact Person','contact')}
-    ${recordInput('Phone','phone','tel')}
-    ${recordInput('Email','email','email')}
+    ${recordInput('Service','service')}
+    ${recordInput('Capacity','capacity')}
+    ${recordSelect('Status','status',VENDOR_STATUS)}
+    ${recordInput('Booked on','bookedOn')}
+    <div class="record-editor-field"><label>Vendor Rating</label><div style="padding:.5rem;border:1px solid rgba(196,165,118,.34);background:#fff;">${recordEditorStars(d.rating||0)}</div></div>
+    ${recordInput('Found via','foundVia')}
+    ${recordTextarea('Pros','pros')}
+    ${recordTextarea('Cons','cons')}
+    ${recordTextarea('Notes','notes')}
+  </div></section>
+  <section class="record-editor-section"><h4>Contract</h4><div class="record-editor-grid">
     ${recordInput('Quote','quote','number',false,'min="0"')}
     ${recordInput('Deposit','deposit','number',false,'min="0"')}
     <div class="record-editor-field"><label>Balance</label><input value="${escapeHtml(vendorCurrency(bal))}" readonly></div>
-    ${recordSelect('Status','status',VENDOR_STATUS)}
-    <div class="record-editor-field"><label>Vendor Rating</label><div style="padding:.5rem;border:1px solid rgba(196,165,118,.34);background:#fff;">${recordEditorStars(d.rating||0)}</div></div>
+    ${recordInput('Instalments','instalments')}
     ${recordCheck('Contract Signed','contract')}
-    ${recordTextarea('Pros','pros')}
-    ${recordTextarea('Cons','cons')}
+    ${recordInput('Cancellation window','cancelWindow')}
+    ${recordInput('Date release after miss','dateRelease')}
     ${recordTextarea('Review Feedback','review')}
-    ${recordTextarea('Notes','notes')}
+  </div></section>
+  <section class="record-editor-section"><h4>Schedule</h4><div class="record-editor-grid">
+    ${recordInput('Access / setup','setupTime')}
+    ${recordInput('Turnaround','turnaround')}
+    ${recordInput('Next visit','nextVisit')}
+  </div></section>
+  <section class="record-editor-section"><h4>Contacts</h4><div class="record-editor-grid">
+    ${recordInput('Contact Person','contact')}
+    ${recordInput('Role','contactRole')}
+    ${recordInput('Phone','phone','tel')}
+    ${recordInput('Email','email','email')}
+    ${recordInput('Reachable','reachable')}
   </div></section>${renderVendorAttrEditorFields(d)}${renderVendorLinkedRecords(d)}`;
 }
 function recordEditorStars(value){
@@ -15492,21 +15639,21 @@ function recordEditorStars(value){
 }
 function renderTaskRecordEditor(){
   if (recordEditorState?.inlineMount === 'record-drawer-body') return renderTaskDrawerEditor();
-  /* Full editor: every group visible at once (§16). Core groups match the
-     drawer; Smart Calendar fields merge the classic calendar modal surface. */
+  /* Gaps Batch 46 · full editor mirrors the drawer tabs: Task · Depends on ·
+     People — same order, same fields, three columns instead of one. */
   return `
     <section class="record-editor-section"><h4>Task</h4><div class="record-editor-grid">
       <div class="record-editor-field" style="display:none"><label>Task ID</label><input value="${escapeHtml(recordEditorState.draft._id||'')}" readonly></div>
       ${recordInput('Task name','task','text',true)}
+      ${recordDatalist('Area','cat',recordExistingFieldValues('tasks','cat'))}
       ${recordSelect('Phase','phase',[''].concat(PLAN_PHASES))}
-      ${recordDatalist('Category','cat',recordExistingFieldValues('tasks','cat'))}
-    </div></section>
-    <section class="record-editor-section"><h4>Schedule</h4><div class="record-editor-grid">
-      ${recordInput('Due date','date','date')}
+      ${recordDatalist('Owner','assigned',recordAssigneeOptionValues())}
+      ${recordInput('Due','date','date')}
       ${recordInput('Suggested date','suggestedDue','date')}
       ${recordSelect('Priority','priority',PRIORITY)}
-      ${recordDatalist('Owner','assigned',recordAssigneeOptionValues())}
       ${recordSelect('Status','status',TASK_STATUS)}
+      ${recordInput('Effort','effort')}
+      ${recordTextarea('Notes','notes')}
     </div></section>
     ${renderSmartCalendarPresentationSection({
       title: 'On the calendar',
@@ -15516,13 +15663,14 @@ function renderTaskRecordEditor(){
       descriptionKey: 'description',
       descriptionLabel: 'Calendar description'
     })}
-    <section class="record-editor-section"><h4>Links</h4><div class="record-editor-grid">
+    ${renderPlanEditorSubtasks()}
+    <section class="record-editor-section"><h4>People</h4><div class="record-editor-grid">
+      ${recordDatalist('Owner','assigned',recordAssigneeOptionValues())}
+      ${recordInput('Watchers','watchers')}
       ${recordLinkSelect('Vendor','vendorId',data?.vendors,'name')}
       ${recordLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat')}
-    </div></section>
-    ${renderPlanEditorSubtasks()}
-    <section class="record-editor-section"><h4>Notes</h4><div class="record-editor-grid">
-      ${recordTextarea('Notes','notes')}
+      ${recordInput('Last chased','lastChased')}
+      ${recordInput('Response','chaseResponse')}
     </div></section>`;
 }
 /* §16 / screen 9a — 360px row drawer: same field groups as the full editor,
@@ -15619,31 +15767,47 @@ function guestDrawerHistoryEntries(d){
   if (!d || !d._id || typeof recordHistoryFor !== 'function') return [];
   return recordHistoryFor('guests', d._id) || [];
 }
+/* Gaps 44 · History separates typed changes from derived ones.
+   A typed line carries the actor and change; a derived line (a cascade the
+   edit re-computed) is indented, greyed, labelled "derived" and never editable. */
+function rdGapsHistoryRowsHtml(entries){
+  const who = (typeof guestDrawerHistoryActor === 'function') ? guestDrawerHistoryActor() : 'Planner';
+  let typed = 0, derived = 0;
+  const rows = [];
+  (entries || []).forEach(e => {
+    const when = (typeof guestDrawerHistoryWhenLabel === 'function')
+      ? guestDrawerHistoryWhenLabel(e, false) : (e.date || '');
+    const timeBit = e.time ? (' · ' + String(e.time)) : '';
+    const changes = Array.isArray(e.changes) ? e.changes : [];
+    if (!changes.length) {
+      rows.push({ derived: false, when: who + ' · ' + when + timeBit, text: e.action || 'Record updated' });
+      typed++;
+      return;
+    }
+    changes.forEach((c, i) => {
+      const field = String(c.label || c.field || 'field');
+      const to = c.to != null ? String(c.to) : '';
+      const text = to ? (field + (/^set|→/.test(field) ? '' : ' set to ') + to) : field;
+      const isDerived = !!c.derived || i > 0;
+      if (isDerived) { derived++; rows.push({ derived: true, when: 'derived · ' + when + timeBit, text: '→ ' + text }); }
+      else { typed++; rows.push({ derived: false, when: who + ' · ' + when + timeBit, text: text }); }
+    });
+  });
+  const list = rows.map(r =>
+    '<div class="rd-gaps-hist__row' + (r.derived ? ' rd-gaps-hist__row--derived' : '') + '">'
+    + '<span class="rd-gaps-hist__when">' + escapeHtml(r.when) + '</span>'
+    + '<span class="rd-gaps-hist__what">' + escapeHtml(r.text) + '</span>'
+    + '</div>').join('');
+  return { html: list, typed, derived };
+}
 function guestDrawerHistoryBodyHtml(d){
   const entries = guestDrawerHistoryEntries(d);
   if (!entries.length) {
     return '<div class="rd-empty">No changes recorded for this guest yet.</div>';
   }
-  const rows = guestDrawerHistoryFlatRows(entries.slice(0, 20));
-  const todayRows = rows.filter(r => r.group === 'today');
-  const earlierRows = rows.filter(r => r.group === 'earlier');
-  const n = entries.length;
-  const snapLimit = 15;
-  let html = '';
-  if (todayRows.length) {
-    html += rdGuestDrawerSectionTitle('Today')
-      + rdGuestDrawerKvRows(todayRows.map(r => ({ left: r.when, right: r.right })));
-  }
-  if (earlierRows.length) {
-    html += rdGuestDrawerSectionTitle('Earlier')
-      + rdGuestDrawerKvRows(earlierRows.map(r => ({ left: r.when, right: r.right, muted: true })));
-  }
-  html += rdGuestDrawerTeachHtml('Undo restores the whole planner to a moment, not this field. The three edits at 4:41pm were grouped because they happened within three seconds — Planner History shows them as one entry.');
-  html += rdGuestDrawerSectionTitle('Snapshot')
-    + rdGuestDrawerKvRows([
-      { left: 'Position', right: '1 of ' + snapLimit, muted: true },
-      { left: 'Ages out after', right: Math.max(0, snapLimit - n) + ' more changes', muted: true }
-    ]);
+  const built = rdGapsHistoryRowsHtml(entries.slice(0, 20));
+  let html = '<div class="rd-gaps-hist">' + built.html + '</div>';
+  html += rdGuestDrawerTeachHtml((built.typed + built.derived) + ' change' + ((built.typed + built.derived) === 1 ? '' : 's') + ', ' + built.derived + ' derived. Derived lines are indented, never editable and never count toward "last touched".');
   return html;
 }
 function guestDrawerHistoryPaneHtml(d){
@@ -15651,31 +15815,84 @@ function guestDrawerHistoryPaneHtml(d){
     + '<div class="rd-guest-drawer-history rd-guest-drawer-history--grouped">' + guestDrawerHistoryBodyHtml(d) + '</div>'
     + '</section>';
 }
+/* Gaps 44 · small note banner shared by the Task / Payment / Vendor drawers. */
+function rdGapsNote(text, tone){
+  return '<div class="rd-gaps-note' + (tone ? ' rd-gaps-note--' + tone : '') + '">' + escapeHtml(text) + '</div>';
+}
+function taskDrawerHistoryDates(d){
+  const entries = (d && d._id && typeof recordHistoryFor === 'function') ? (recordHistoryFor('tasks', d._id) || []) : [];
+  return {
+    created: entries.length ? (entries[entries.length - 1].date || '') : '',
+    last: entries.length ? (entries[0].date || '') : '',
+    count: entries.length
+  };
+}
 function renderTaskDrawerEditor(){
   const d = recordEditorState.draft;
   const overdue = typeof taskIsOverdue === 'function' && taskIsOverdue(d);
-  /* Full-editor parity — Task / Schedule / Links / Subtasks / Notes.
-     Tabs (redesign-shell): Task shows Task+Schedule+Notes; dedicated tabs for
-     Subtasks, Links, History. */
+  const blocked = /block/i.test(String(d.status || ''));
+  /* Gaps 44 tabs (redesign-shell): Task (the work + notes) · Depends on ·
+     People · History. Legacy subtasks fold into Depends on; links into People. */
   return `
     <section class="record-editor-section rd-drawer-fields" data-drawer-group="task"><h4>Task</h4>
+      ${rdGuestDrawerSectionTitle('The work')}
       ${rdDrawerInputRow('Task name','task','text')}
-      ${rdDrawerSelectRow('Phase','phase',[''].concat(PLAN_PHASES || []))}
-      ${rdDrawerDatalistRow('Category','cat',recordExistingFieldValues('tasks','cat'))}
-    </section>
-    <section class="record-editor-section rd-drawer-fields" data-drawer-group="schedule"><h4>Schedule</h4>
-      ${rdDrawerInputRow('Due date','date','date', overdue ? 'is-overdue' : '')}
-      ${rdDrawerInputRow('Suggested date','suggestedDue','date')}
-      ${rdDrawerSelectRow('Priority','priority',PRIORITY || [])}
+      ${rdDrawerDatalistRow('Area','cat',recordExistingFieldValues('tasks','cat'))}
       ${rdDrawerDatalistRow('Owner','assigned',recordAssigneeOptionValues(), true)}
+      ${rdDrawerInputRow('Due','date','date', overdue ? 'is-overdue' : '')}
+      ${rdDrawerSelectRow('Priority','priority',PRIORITY || [])}
       ${rdDrawerSelectRow('Status','status',TASK_STATUS || [])}
+      ${rdDrawerInputRow('Effort','effort')}
+      ${blocked ? rdGapsNote('Blocked until its dependency clears. This cannot start until the blocker lands — stated here rather than left for the owner to discover.', 'danger') : ''}
     </section>
-    <section class="record-editor-section rd-drawer-fields" data-drawer-group="links"><h4>Links</h4>
-      ${rdDrawerLinkSelect('Vendor','vendorId',data?.vendors,'name')}
-      ${rdDrawerLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat')}
-    </section>
+    ${renderTaskDrawerNotes()}
+    ${renderTaskDrawerDependsOn()}
     ${renderTaskDrawerSubtasks()}
-    ${renderTaskDrawerNotes()}`;
+    ${renderTaskDrawerPeople()}`;
+}
+function renderTaskDrawerDependsOn(){
+  const d = recordEditorState.draft;
+  if (!Array.isArray(d.subtasks)) d.subtasks = [];
+  const blockedBy = d.subtasks.filter(s => !s.done);
+  const blocks = d.subtasks.filter(s => s.done);
+  const overdue = typeof taskIsOverdue === 'function' && taskIsOverdue(d);
+  let html = '<section class="record-editor-section rd-drawer-fields" data-drawer-group="dependson"><h4>Depends on</h4>';
+  html += rdGuestDrawerSectionTitle('Blocked by · ' + blockedBy.length);
+  html += blockedBy.length
+    ? rdGuestDrawerKvRows(blockedBy.map(s => ({ left: s.text || 'Step', right: 'Open', warn: true })))
+    : rdGuestDrawerTeachHtml('Nothing is blocking this task.');
+  html += rdGuestDrawerSectionTitle('Blocks · ' + blocks.length);
+  html += blocks.length
+    ? rdGuestDrawerKvRows(blocks.map(s => ({ left: s.text || 'Step', right: 'Done', ok: true })))
+    : rdGuestDrawerTeachHtml('Nothing is waiting on this task.');
+  html += rdGapsNote('Moving this due date pushes everything downstream. The planner shows the cascade before it commits — a date change here can be several dates changed.', 'amber');
+  html += rdGuestDrawerSectionTitle('Critical path');
+  html += rdGuestDrawerKvRows([
+    { left: 'On critical path', right: overdue ? 'Yes' : 'No', warn: overdue },
+    { left: 'Slack', right: overdue ? '0 days' : '—', muted: !overdue },
+    { left: 'Earliest finish', right: d.date || '—', muted: true },
+    { left: 'Latest without slip', right: d.suggestedDue || d.date || '—', muted: true }
+  ]);
+  html += '</section>';
+  return html;
+}
+function renderTaskDrawerPeople(){
+  const d = recordEditorState.draft;
+  let html = '<section class="record-editor-section rd-drawer-fields" data-drawer-group="people"><h4>People</h4>';
+  html += rdGuestDrawerSectionTitle('Owner');
+  html += rdDrawerDatalistRow('Owner','assigned',recordAssigneeOptionValues(), true);
+  html += rdGuestDrawerSectionTitle('Watching');
+  html += rdDrawerInputRow('Watchers','watchers');
+  html += rdGuestDrawerSectionTitle('Vendor side');
+  html += rdDrawerLinkSelect('Vendor','vendorId',data?.vendors,'name');
+  html += rdDrawerLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat');
+  html += rdGapsNote('A vendor with no portal access cannot be chased in-app. Chasing it is an email — the planner drafts it, it never sends it.', 'amber');
+  html += rdGuestDrawerKvRows([
+    { left: 'Last chased', right: d.lastChased || '—', muted: !d.lastChased },
+    { left: 'Response', right: d.chaseResponse || 'None', warn: !d.chaseResponse }
+  ]);
+  html += '</section>';
+  return html;
 }
 function renderTaskDrawerSubtasks(){
   const d = recordEditorState.draft;
@@ -15688,13 +15905,23 @@ function renderTaskDrawerSubtasks(){
     <button type="button" class="rd-drawer-subtask-del" title="Remove subtask" aria-label="Remove subtask" onclick="removeEditorPlanSubtask(${i})">×</button>
   </div>`).join('');
   return `<section class="record-editor-section" data-drawer-group="subtasks"><h4>Subtasks · ${done} of ${total}</h4>
-    <div class="rd-drawer-subtasks">${items || '<div class="rd-empty">No subtasks yet.</div>'}</div>
-    <button type="button" class="rd-drawer-subtask-add" onclick="addEditorPlanSubtask()">+ Add subtask</button></section>`;
+    ${rdGuestDrawerSectionTitle('Steps · ' + done + ' of ' + total)}
+    <div class="rd-drawer-subtasks">${items || '<div class="rd-empty">No steps yet.</div>'}</div>
+    <button type="button" class="rd-drawer-subtask-add" onclick="addEditorPlanSubtask()">+ Add step</button></section>`;
 }
 function renderTaskDrawerNotes(){
-  const v = recordEditorState?.draft?.notes ?? '';
-  return `<section class="record-editor-section" data-drawer-group="notes"><h4>Notes</h4>
-    <div class="rd-drawer-notes"><textarea oninput="recordEditorSet('notes',this.value)">${escapeHtml(v)}</textarea></div></section>`;
+  const d = recordEditorState?.draft || {};
+  const v = d.notes ?? '';
+  const h = taskDrawerHistoryDates(d);
+  return `<section class="record-editor-section rd-drawer-fields" data-drawer-group="notes"><h4>Notes</h4>
+    ${rdGuestDrawerSectionTitle('Notes')}
+    <div class="rd-drawer-notes"><textarea oninput="recordEditorSet('notes',this.value)">${escapeHtml(v)}</textarea></div>
+    ${rdGuestDrawerKvRows([
+      { left: 'Created', right: h.created || '—', muted: true },
+      { left: 'Last touched', right: h.last || '—', muted: true },
+      { left: 'Reminders', right: String(d.reminders || '0 sent'), muted: true }
+    ])}
+  </section>`;
 }
 function renderAppointmentRecordEditor(){
   const d = recordEditorState.draft;
@@ -16000,24 +16227,36 @@ function renderPaymentBudgetItemField(){
 function renderPaymentRecordEditor(){
   const d = recordEditorState.draft;
   const summary = paymentPlanSummary(d);
-  return `<section class="record-editor-section"><h4>Payment Details</h4><div class="record-editor-grid">
+  /* Gaps Batch 46 · full editor mirrors the drawer tabs: Payment · Contract ·
+     Method — same order, same fields, three columns instead of one. */
+  return `<section class="record-editor-section"><h4>Payment</h4><div class="record-editor-grid">
     <div class="record-editor-field" style="display:none"><label>Payment ID</label><input value="${escapeHtml(d._id||'')}" readonly></div>
     ${recordDatalist('Vendor','vendor',safeArray(data?.vendors).map(v=>v.name).concat(recordExistingFieldValues('payments','vendor')))}
     ${recordInput('Description','desc','text',true)}
     ${recordInput('Amount Due','due','number',false,'min="0"')}
     ${recordInput('Amount Paid','paid','number',false,'min="0"')}
-    ${recordInput('Gratuity / Tip','gratuity','number',false,'min="0"')}
-    ${recordSelect('Gratuity Status','gratuityStatus',['Not Planned','Planned','Included in Quote','Prepared Cash','Given','Not Needed'])}
     <div class="record-editor-field"><label>Balance</label><input value="${escapeHtml(fmt(summary.balance||0))}" readonly></div>
     ${recordInput('Due Date','date','date')}
     ${recordInput('Date Paid','paiddate','date')}
-    ${recordSelect('Payment Type','ptype',PAYMENT_TYPES)}
     ${recordSelect('Status','status',PAYMENT_STATUS)}
+    ${recordTextarea('Notes','notes')}
+  </div></section>
+  <section class="record-editor-section"><h4>Contract</h4><div class="record-editor-grid">
+    ${recordSelect('Contract','contractIdx',(data.contracts||[]).map((c,i)=>String(i)),false,'--')}
     ${recordSelect('Budget Category','budgetCat',(data.budget||[]).filter(c=>!c.cateringOwned).map(c=>c.cat),false,'--')}
     ${renderPaymentBudgetItemField()}
-    ${recordSelect('Contract','contractIdx',(data.contracts||[]).map((c,i)=>String(i)),false,'--')}
-    ${recordTextarea('Notes','notes')}
-  </div></section>${renderPaymentEditorInstallments()}`;
+  </div></section>${renderPaymentEditorInstallments()}
+  <section class="record-editor-section"><h4>Method</h4><div class="record-editor-grid">
+    ${recordSelect('Payment Type','ptype',PAYMENT_TYPES)}
+    ${recordInput('From','payFrom')}
+    ${recordInput('Reference','reference')}
+    ${recordInput('Payer','payer')}
+    ${recordInput('Account name','acctName')}
+    ${recordInput('Bank','bank')}
+    ${recordInput('Account','acctNo')}
+    ${recordInput('Gratuity / Tip','gratuity','number',false,'min="0"')}
+    ${recordSelect('Gratuity Status','gratuityStatus',['Not Planned','Planned','Included in Quote','Prepared Cash','Given','Not Needed'])}
+  </div></section>`;
 }
 function renderPaymentEditorInstallments(){
   const d = recordEditorState.draft;
@@ -16032,7 +16271,7 @@ function renderPaymentEditorInstallments(){
     <td><input value="${escapeHtml(inst.notes||'')}" oninput="setEditorInstallment(${i},'notes',this.value)"></td>
     <td><button type="button" class="tracker-open-btn" onclick="removeEditorInstallment(${i})">Delete</button></td>
   </tr>`).join('');
-  return `<section class="record-editor-section"><h4>Installment Payments</h4><p class="record-editor-note">Deposit, balance, and payment-plan rows stay attached to this payment. The main payment totals update from these rows.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Installment</th><th>Due Date</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th><th>Date Paid</th><th>Notes</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="8" style="text-align:center;padding:.85rem;color:#7a7268;">No installments yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorInstallment()">+ Add Installment</button></div></section>`;
+  return `<section class="record-editor-section"><h4>Schedule</h4><p class="record-editor-note">Deposit, balance, and payment-plan rows stay attached to this payment. The main payment totals update from these rows.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Installment</th><th>Due Date</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th><th>Date Paid</th><th>Notes</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="8" style="text-align:center;padding:.85rem;color:#7a7268;">No installments yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorInstallment()">+ Add Installment</button></div></section>`;
 }
 function addEditorInstallment(){
   const d = recordEditorState?.draft;
@@ -16136,7 +16375,7 @@ function renderPlanEditorSubtasks(){
     <td><input value="${escapeHtml(sub.text||'')}" placeholder="Describe this step..." oninput="setEditorPlanSubtask(${i},'text',this.value)"></td>
     <td><button type="button" class="tracker-open-btn" onclick="removeEditorPlanSubtask(${i})">Delete</button></td>
   </tr>`).join('');
-  return `<section class="record-editor-section"><h4>Subtasks</h4><p class="record-editor-note">Keep each task's nested checklist attached here. These are the same subtasks shown when the Planning Timeline row is expanded.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Done</th><th>Subtask</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="3" style="text-align:center;padding:.85rem;color:#7a7268;">No subtasks yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorPlanSubtask()">+ Add Subtask</button></div></section>`;
+  return `<section class="record-editor-section"><h4>Depends on</h4><p class="record-editor-note">What must happen first, and what is waiting on this. Keep each task's nested checklist attached here — the same steps shown when the Planning Timeline row is expanded.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Done</th><th>Depends on</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="3" style="text-align:center;padding:.85rem;color:#7a7268;">No dependencies yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorPlanSubtask()">+ Add dependency</button></div></section>`;
 }
 function addEditorPlanSubtask(){
   if (!recordEditorState?.draft) return;

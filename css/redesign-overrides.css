@@ -20737,3 +20737,166 @@ body.rd-scope #panel-homecoming .rd-hc-budget p {
     box-shadow: -8px 0 24px rgba(32, 54, 45, .08);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Gaps Batch 44 · the four drawers that were missing
+   Shared drawer anatomy: uppercase section labels, typed-vs-derived History,
+   consequence notes, and the vendor five-tab drawer.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Consequence / inheritance notes — every drawer names its consequence. */
+body.rd-scope .rd-gaps-note {
+  padding: 9px 11px;
+  border: 1px solid #e7ce80;
+  background: #fff7df;
+  color: #8a640f;
+  line-height: 1.55;
+  font-size: 12.5px;
+  margin: 8px 0;
+}
+body.rd-scope .rd-gaps-note--danger {
+  border-color: #e3b7b1;
+  background: #fbeeec;
+  color: #9c3b34;
+}
+body.rd-scope .rd-gaps-note--amber {
+  border-color: #e7ce80;
+  background: #fff7df;
+  color: #8a640f;
+}
+
+/* History separates typed changes from derived ones. */
+body.rd-scope .rd-gaps-hist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 8px;
+}
+body.rd-scope .rd-gaps-hist__row {
+  display: grid;
+  grid-template-columns: minmax(96px, 40%) 1fr;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #3f3b34;
+  padding: 4px 0;
+  border-bottom: 1px solid #f2ede2;
+  align-items: baseline;
+}
+body.rd-scope .rd-gaps-hist__row--derived {
+  padding-left: 16px;
+  color: #9a9184;
+  border-bottom-color: transparent;
+}
+body.rd-scope .rd-gaps-hist__when {
+  color: #8a7e6b;
+  font-size: 11.5px;
+}
+body.rd-scope .rd-gaps-hist__row--derived .rd-gaps-hist__when {
+  color: #b0a794;
+}
+body.rd-scope .rd-gaps-hist__what {
+  color: inherit;
+}
+
+/* Vendor five-tab drawer (Gaps 44) — reuse the guest tab-strip anatomy. */
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 10px;
+  border: 1px solid #d9cfba;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__tabs > button {
+  flex: 1;
+  height: 30px;
+  border: 0;
+  border-right: 1px solid #e7e1d4;
+  background: #fbfaf8;
+  color: #6b645d;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 4px;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__tabs > button:last-child {
+  border-right: 0;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__tabs > button.is-active {
+  background: #2D4A3E;
+  color: #F4EFE6;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-section-title {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #e7e1d4;
+  margin: 14px 0 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-section-title:first-child {
+  margin-top: 2px;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-vnd-link {
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #946f33;
+  font-weight: 600;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: #6b645d;
+  padding: 3px 0;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-kv .is-over { color: #9c3b34; }
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-kv .is-ok { color: #2f6b45; }
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-kv .is-link { color: #946f33; }
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-kv .is-warn { color: #8a640f; }
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-kv .is-muted { color: #b0a794; }
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-field-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 0;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-field-row__label {
+  font-size: 12.5px;
+  color: #8a7e6b;
+  flex: 0 0 40%;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-field-row__value {
+  flex: 1;
+  text-align: right;
+  border: 0;
+  background: transparent;
+  color: #3f3b34;
+  font-size: 13px;
+  font-family: inherit;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer input.rd-field-row__value,
+body.rd-scope #panel-vendors .rd-vnd-drawer select.rd-field-row__value {
+  border-bottom: 1px solid #ece6da;
+  border-radius: 0;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-field-row__value--readonly {
+  color: #3f3b34;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-field-row__value--readonly.is-warn { color: #8a640f; }
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__foot {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid #e7e1d4;
+  margin-top: auto;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__foot .rd-btn {
+  flex: 1;
+}

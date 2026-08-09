@@ -620,7 +620,8 @@
         var st = window.recordEditorState;
         if (!st) return;
         if (st.key === 'guests') {
-          if (typeof rdGuestFullEditor === 'function') rdGuestFullEditor();
+          if (typeof guestDrawerFooterAction === 'function') guestDrawerFooterAction();
+          else if (typeof rdGuestFullEditor === 'function') rdGuestFullEditor();
           return;
         }
         if (st.key === 'party') {
@@ -726,6 +727,8 @@
            rows.join('') + '</section>';
   }
 
+  /* Gaps 44 · History separates typed changes from derived ones. Derived lines
+     are indented, greyed, prefixed with an arrow and never editable. */
   function historySectionHtml(st) {
     var entries = (typeof recordHistoryFor === 'function' && st && st.draft)
       ? recordHistoryFor(st.key, st.draft._id) : [];
@@ -733,19 +736,36 @@
       return '<section class="record-editor-section" data-drawer-synth="History" data-drawer-group="history"><h4>History</h4>' +
              '<div class="rd-empty">No changes recorded for this record yet.</div></section>';
     }
-    var html = entries.slice(0, 20).map(function (e) {
-      var changes = (e.changes || []).map(function (c) {
-        return '<div class="rd-hist__change"><span class="rd-hist__field">' + esc(c.label) +
-               '</span><span class="rd-hist__from">' + esc(c.from) + '</span>' +
-               '<span class="rd-hist__arrow">&#8594;</span>' +
-               '<span class="rd-hist__to">' + esc(c.to) + '</span></div>';
-      }).join('');
-      return '<div class="rd-hist"><div class="rd-hist__top">' + esc(e.action) +
-             '<span class="rd-hist__when">' + esc(e.date) + ' · ' + esc(e.time) + '</span></div>' +
-             changes + '</div>';
-    }).join('');
+    var actor = (typeof drawerActorInitials === 'function') ? drawerActorInitials() : 'You';
+    var typed = 0, derived = 0;
+    var rows = [];
+    entries.slice(0, 20).forEach(function (e) {
+      var when = esc((e.date || '') + (e.time ? ' · ' + e.time : ''));
+      var changes = (e.changes || []);
+      if (!changes.length) {
+        typed++;
+        rows.push('<div class="rd-gaps-hist__row"><span class="rd-gaps-hist__when">' + esc(actor) + ' · ' + when +
+          '</span><span class="rd-gaps-hist__what">' + esc(e.action || 'Updated') + '</span></div>');
+        return;
+      }
+      changes.forEach(function (c, i) {
+        var txt = esc(c.label) + (c.to != null && c.to !== '' ? ' → ' + esc(c.to) : '');
+        var isDerived = !!c.derived || i > 0;
+        if (isDerived) {
+          derived++;
+          rows.push('<div class="rd-gaps-hist__row rd-gaps-hist__row--derived"><span class="rd-gaps-hist__when">derived · ' + when +
+            '</span><span class="rd-gaps-hist__what">&#8594; ' + txt + '</span></div>');
+        } else {
+          typed++;
+          rows.push('<div class="rd-gaps-hist__row"><span class="rd-gaps-hist__when">' + esc(actor) + ' · ' + when +
+            '</span><span class="rd-gaps-hist__what">' + txt + '</span></div>');
+        }
+      });
+    });
+    var teach = '<div class="rd-drawer-note">' + (typed + derived) + ' change' + ((typed + derived) === 1 ? '' : 's') +
+      ', ' + derived + ' derived. Derived lines are never editable and never count toward &ldquo;last touched&rdquo;.</div>';
     return '<section class="record-editor-section" data-drawer-synth="History" data-drawer-group="history"><h4>History</h4>' +
-           html + '</section>';
+           '<div class="rd-gaps-hist">' + rows.join('') + '</div>' + teach + '</section>';
   }
 
   var DRAWER_PAGE_CRUMB = {
@@ -1017,7 +1037,8 @@
      Subtasks / Links / History keep dedicated tabs — every field reachable.
      ───────────────────────────────────────────────────────────────────── */
   var DECORATING = false;
-  var TASK_DRAWER_TABS = ['Task', 'Subtasks', 'Links', 'History'];
+  /* Gaps 44 · Task · Depends on · People · History */
+  var TASK_DRAWER_TABS = ['Task', 'Depends on', 'People', 'History'];
   var TASK_DRAWER_TAB_MAX = TASK_DRAWER_TABS.length - 1;
   /* 14a: Appointment · Travel · Who · History */
   var APPT_DRAWER_TABS = ['Appointment', 'Travel', 'Who', 'History'];
@@ -1065,14 +1086,15 @@
     section.classList.toggle('is-drawer-tab-hidden', !show);
   }
 
-  /* Task tab: Task + Schedule + Notes. Dedicated tabs for the rest. */
+  /* Gaps 44 · Task tab stacks the work + notes; Depends on / People / History
+     have dedicated tabs. Legacy subtasks/links fold into Depends on / People. */
   function showTaskDrawerSections(sections, tabIndex) {
     sections.forEach(function (s) {
       var g = taskDrawerSectionGroup(s);
       var show = false;
       if (tabIndex === 0) show = (g === 'task' || g === 'schedule' || g === 'notes');
-      else if (tabIndex === 1) show = (g === 'subtasks');
-      else if (tabIndex === 2) show = (g === 'links');
+      else if (tabIndex === 1) show = (g === 'dependson' || g === 'subtasks');
+      else if (tabIndex === 2) show = (g === 'people' || g === 'links');
       else if (tabIndex === 3) show = (g === 'history');
       setDrawerSectionVisible(s, show);
     });
@@ -1473,15 +1495,10 @@
             });
             strip.appendChild(b);
           });
+          /* Gaps 44: section headers come from in-body uppercase titles. */
           sections.forEach(function (section) {
             var h4 = section.querySelector('h4');
-            if (!h4) return;
-            /* Task tab stacks three groups — keep their section eyebrows.
-               Links/History titles live in the tab strip. Subtasks keep the
-               count eyebrow. */
-            var label = taskDrawerTabLabel(section);
-            var keepH4 = (label === 'Task' || label === 'Schedule' || label === 'Notes' || label === 'Subtasks');
-            h4.style.display = keepH4 ? '' : 'none';
+            if (h4) h4.style.display = 'none';
           });
           writeDrawerTab(d, activeTab);
           showTaskDrawerSections(sections, activeTab);
@@ -1668,10 +1685,11 @@
           act.classList.add('rd-btn');
           if (canComplete) act.removeAttribute('hidden'); else act.setAttribute('hidden', '');
         } else if (st && st.key === 'guests') {
-          /* Batch 21 continued: Save + Full editor */
-          act.textContent = 'Full editor';
+          /* Gaps 44: secondary follows the active tab (Open household …) */
+          act.textContent = (typeof guestDrawerFooterSecondaryLabel === 'function')
+            ? guestDrawerFooterSecondaryLabel() : 'Full editor';
           act.classList.add('rd-btn');
-          if (!st.isNew) act.removeAttribute('hidden'); else act.setAttribute('hidden', '');
+          act.removeAttribute('hidden');
         } else if (st && st.key === 'party') {
           act.textContent = 'Open full editor';
           act.classList.add('rd-btn');
