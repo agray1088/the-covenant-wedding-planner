@@ -2,7 +2,13 @@
    Derived from guests via guestAggregatedHouseholds() — never a separate array.
    Rail: All · Invited · Fully replied · Partly replied · No reply
    Group by: Side · City · Reply status
-   Drawer: Household · Members · Address · History (or open first guest drawer). */
+   Drawer: Guests · Address · Invitation · History (or open first guest drawer).
+   Guests — the people inside the envelope, folding the old overview fields
+     (side, member count, reply status) into the header chips.
+   Address — one address, every guest; editing here rewrites all of them.
+   Invitation — the envelope/RSVP aggregate: invite status, sent date, and
+     all-replied vs per-guest reply states.
+   History — envelope-level events only; guest-level changes log on the guest. */
 (function () {
   'use strict';
 
@@ -14,7 +20,7 @@
   window._hhDrawerTab = window._hhDrawerTab || 0;
   window._hhSel = window._hhSel instanceof Set ? window._hhSel : new Set();
 
-  const DRAWER_TABS = ['Household', 'Members', 'Address', 'History'];
+  const DRAWER_TABS = ['Guests', 'Address', 'Invitation', 'History'];
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
     : String(s == null ? '' : s));
@@ -73,6 +79,33 @@
     if (!lines.length) return { text: 'Address on file', danger: false };
     const short = lines[0] + (lines[1] ? (', ' + String(lines[1]).split(',')[0]) : '');
     return { text: short, danger: false };
+  }
+
+  function hhGuestSeatsForMember(g) {
+    if (typeof guestExtra === 'function') {
+      const extra = guestExtra(g) || {};
+      return 1 + (extra.adults || 0) + (extra.kids || 0);
+    }
+    return 1 + (g.plusone ? 1 : 0) + (parseInt(g.children, 10) || 0);
+  }
+
+  function hhSeatsSummary(h) {
+    const members = h.members || [];
+    const seatedMembers = members.filter(g => !!g.table);
+    const tables = new Set(seatedMembers.map(g => String(g.table)));
+    let seatedLabel = String(seatedMembers.length);
+    if (seatedMembers.length && tables.size === 1) {
+      const tbl = typeof guestTableLabelShort === 'function'
+        ? guestTableLabelShort(seatedMembers[0].table)
+        : ('Table ' + seatedMembers[0].table);
+      seatedLabel += ' at ' + tbl;
+    }
+    return {
+      total: members.length,
+      seated: seatedMembers.length,
+      seatedLabel: seatedLabel,
+      unseated: members.length - seatedMembers.length
+    };
   }
 
   function hhMembersSubline(h) {
@@ -503,35 +536,53 @@
     }
     parkSharedDrawerAway(slot);
     const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._hhDrawerTab, 10) || 0));
-    const side = typeof guestHouseholdSide === 'function' ? guestHouseholdSide(h) : 'Both';
     const addrG = hhAddressGuest(h);
     const lines = addrG && typeof guestAddressLines === 'function' ? guestAddressLines(addrG) : [];
+    const members = h.members || [];
     let body = '';
     if (tab === 0) {
-      body = field('Household', hhDisplayName(h)) +
-        field('Side', side) +
-        field('Members', String((h.members || []).length)) +
-        field('Reply', hhReplyLabel(h)) +
-        field('Invitation', (typeof guestHouseholdInvitationPill === 'function' ? guestHouseholdInvitationPill(h).label : '—')) +
-        `<p class="rd-drawer__note">A derived view. Editing an address here edits it on every guest in this household.</p>`;
+      /* Guests — the people inside the envelope. This is a group, not a record of its own. */
+      const seats = hhSeatsSummary(h);
+      body = `<p class="rd-drawer__note"><b>This is a group, not a record.</b> The fields below write to the ${members.length} guest${members.length === 1 ? '' : 's'} inside it.</p>` +
+        `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">Guests · ${members.length}</div>` +
+        (members.map(g => {
+          const memberSeats = hhGuestSeatsForMember(g);
+          const status = (g.rsvp || 'Pending') + (memberSeats > 1 ? ' · ' + memberSeats + ' seats' : '');
+          return field(g.name || 'Guest', status);
+        }).join('') || `<p class="rd-drawer__note">No members.</p>`) +
+        `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:10px">Seats needed</div>` +
+        field('Total', String(seats.total)) +
+        field('Seated', seats.seatedLabel) +
+        field('Unseated', String(seats.unseated));
     } else if (tab === 1) {
-      body = (h.members || []).map(g =>
-        `<div class="rd-drawer__hist"><strong>${esc(g.name || 'Guest')}</strong> · ${esc(g.rsvp || 'pending')}<div>${esc(g.role || g.side || 'Guest')}${g.table ? ' · Table ' + esc(g.table) : ''}</div></div>`
-      ).join('') || `<p class="rd-drawer__note">No members.</p>`;
-    } else if (tab === 2) {
+      /* Address — one address, every guest. Editing it rewrites the whole household. */
       body = lines.length
         ? lines.map(l => field('Line', l)).join('') +
-          `<p class="rd-drawer__note">One address per envelope — shared across every guest in the household.</p>`
+          field('Applies to', members.length + ' guest record' + (members.length === 1 ? '' : 's')) +
+          `<p class="rd-drawer__note">Editing any line here rewrites the address on all ${members.length} guest${members.length === 1 ? '' : 's'}. To change one person only, edit them on the Guest List instead.</p>`
         : `<p class="rd-drawer__note">No address on file. Add one before printing labels.</p>` +
           `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHhSetAddressForKey('${esc(String(h.key).replace(/'/g, "\\'"))}')">Set address</button>`;
+    } else if (tab === 2) {
+      /* Invitation — the envelope/RSVP aggregate: one envelope, several separate RSVPs. */
+      const invPill = typeof guestHouseholdInvitationPill === 'function' ? guestHouseholdInvitationPill(h) : { label: '—' };
+      const sentRaw = typeof guestHouseholdInviteSentRaw === 'function' ? guestHouseholdInviteSentRaw(h) : '';
+      const bucket = hhReplyBucket(h);
+      body = field('Invitation', invPill.label) +
+        field('Sent', sentRaw && typeof guestFormatInviteSentPill === 'function' ? guestFormatInviteSentPill(sentRaw) : (hhIsInvited(h) ? 'Sent' : 'Not sent')) +
+        `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">RSVPs · ${members.length}</div>` +
+        (members.map(g => field(g.name || 'Guest', g.rsvp || 'Pending')).join('') || `<p class="rd-drawer__note">No members.</p>`) +
+        (bucket === 'fully'
+          ? `<p class="rd-drawer__note">All ${members.length} guest${members.length === 1 ? '' : 's'} have replied.</p>`
+          : `<p class="rd-drawer__note">One envelope, ${members.length} separate RSVP${members.length === 1 ? '' : 's'} — the invitation is sent once and each reply comes back on its own guest record.</p>`);
     } else {
+      /* History — envelope-level events only; guest-level changes are logged on each guest. */
       body =
-        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>${esc(hhDisplayName(h))} · ${(h.members || []).length} members</div></div>` +
+        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Created from ${members.length} guest${members.length === 1 ? '' : 's'}</div></div>` +
         (hhIsInvited(h)
           ? `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Marked invited</div></div>`
           : `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Not invited yet</div></div>`) +
         `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>${esc(hhReplyLabel(h))}</div></div>` +
-        `<p class="rd-drawer__note">History is provisional until household audit tracking lands.</p>`;
+        `<p class="rd-drawer__note">A household is derived, so its history records only envelope events. Guest-level changes are logged on each guest.</p>`;
     }
     const safeKey = String(h.key).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     slot.classList.add('is-open');
@@ -541,7 +592,7 @@
       `<div class="rd-drawer__eyebrow">Household · derived</div>` +
       `<h2 class="rd-drawer__title">${esc(hhDisplayName(h))}</h2>` +
       `<div class="rd-drawer__chips">` +
-      invPillHtml(h) +
+      `<span class="status-pill" data-pillscheme="blue">${members.length} guest${members.length === 1 ? '' : 's'}</span>` +
       `<span class="status-pill" data-pillscheme="gold">${esc(hhReplyLabel(h))}</span>` +
       `</div>` +
       `<button type="button" class="rd-drawer__close" onclick="rdHhCloseDrawer()" aria-label="Close">×</button>` +

@@ -2,7 +2,11 @@
    Derived via masterContactRows() — manual edits → data.contacts; sourced rows open source panel.
    Rail: Everyone · Vendors · Wedding party · Family · Day-of only
    Group by: Role · Side · Company
-   Drawer: Contact · Reach · Source · History */
+   Drawer: Contact · Reaches · Day-of · Source.
+   Contact — identity fields; saving writes through to the source record.
+   Reaches — the escalation chain: phone, email, backup, and who is above them.
+   Day-of — position on the day-of sheet, ordered by call priority, not A–Z.
+   Source — where the row comes from, and why this page cannot create one. */
 (function () {
   'use strict';
 
@@ -14,7 +18,7 @@
   window._ctDrawerTab = window._ctDrawerTab || 0;
   window._ctSel = window._ctSel instanceof Set ? window._ctSel : new Set();
 
-  const DRAWER_TABS = ['Contact', 'Reach', 'Source', 'History'];
+  const DRAWER_TABS = ['Contact', 'Reaches', 'Day-of', 'Source'];
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
     : String(s == null ? '' : s));
@@ -143,6 +147,31 @@
       return a.localeCompare(b);
     });
     return keys.map(k => ({ key: k, items: map.get(k) }));
+  }
+
+  /* ── escalation chain + day-of priority ─────────────────────────────── */
+
+  function ctCallPriorityRank(x) {
+    if (/planner|coordinator/i.test(x.role)) return 0;
+    if (x.emergency) return 1;
+    if (x.isVendor) return 2;
+    if (x.isParty) return 3;
+    if (x.isFamily) return 4;
+    return 5;
+  }
+
+  function ctDayOfPriorityList() {
+    return allContacts().filter(r => r.dayof)
+      .sort((a, b) => ctCallPriorityRank(a) - ctCallPriorityRank(b) || a.index - b.index);
+  }
+
+  function ctEscalatesTo(x) {
+    if (/planner|coordinator/i.test(x.role)) {
+      return { label: 'Nobody — ' + (x.name || 'they').split(' ')[0] + ' is the top', top: true };
+    }
+    const planner = allContacts().find(r => r.id !== x.id && /planner|coordinator/i.test(r.role));
+    if (planner) return { label: planner.name + (planner.phone ? ' · ' + planner.phone : ''), top: false, phone: planner.phone };
+    return { label: 'Planner', top: false, phone: '' };
   }
 
   /* ── shell ───────────────────────────────────────────────────────────── */
@@ -495,30 +524,47 @@
           ? 'A manual contact — edits save to the Contacts list.'
           : 'A derived contact. The phone number lives on the original ' + x.source + ' record.'}</p>`;
     } else if (tab === 1) {
-      body = field('Phone', x.phone || '—') +
-        field('Email', x.email || '—') +
-        field('Last contact', x.lastContact || '—') +
+      /* Reaches — the escalation chain: phone, email, backup, who is above them. */
+      const chain = ctEscalatesTo(x);
+      body = field('Phone', x.phone || 'Not on file') +
+        field('WhatsApp', x.hasPhone ? 'Same number' : 'Not available') +
+        field('Email', x.email || 'Not on file') +
         (x.notes ? `<div class="rd-ess-drawer__noteblock">${esc(x.notes)}</div>` : '') +
-        `<p class="rd-drawer__note">${x.neither ? 'Neither phone nor email — unreachable until one is added on the source record.' : 'Reach details are mirrored from the source record.'}</p>`;
+        `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">Escalation chain</div>` +
+        field('Escalates to', chain.label) +
+        (chain.phone ? field('Backup phone', chain.phone) : '') +
+        `<p class="rd-drawer__note">${chain.top
+          ? 'The escalation chain is what makes the sheet usable at 7am. Nobody above them means this is the end of the chain, and the sheet says so rather than leaving it blank.'
+          : 'If ' + (x.name || 'this contact').split(' ')[0] + " can't be reached, escalate up this chain."}</p>` +
+        (x.neither ? `<p class="rd-drawer__note">Neither phone nor email — unreachable until one is added on the source record.</p>` : '');
     } else if (tab === 2) {
-      const openFn = `rdCtOpenSource('${esc(String(x.id).replace(/'/g, "\\'"))}')`;
-      body = field('Source', x.source, openFn) +
-        field('Source page', x.sourcePage || 'contacts') +
-        field('Kind', x.isManual ? 'Manual row' : 'Projected row') +
-        `<p class="rd-drawer__note">${x.isManual
-          ? 'Edit here or in the full editor — both write to data.contacts.'
-          : 'Open the source panel to change this person.'}</p>` +
-        `<button type="button" class="rd-btn rd-btn--primary" onclick="${openFn}">Open source</button>`;
-    } else {
-      body =
-        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Listed from ${esc(x.source)}</div></div>` +
-        (x.lastContact
-          ? `<div class="rd-drawer__hist"><strong>${esc(x.lastContact)}</strong> · Planner<div>Last contact noted</div></div>`
-          : '') +
+      /* Day-of — position on the day-of sheet, ordered by call priority, not alphabetically. */
+      const priorityList = ctDayOfPriorityList();
+      const pos = priorityList.findIndex(r => r.id === x.id);
+      const safeId = String(x.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      body = field('On day-of sheet', x.dayof ? 'Yes' : 'No') +
         (x.dayof
-          ? `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>On the day-of sheet</div></div>`
+          ? field('Position', (pos + 1) + ' of ' + priorityList.length)
           : '') +
-        `<p class="rd-drawer__note">History is provisional until contact audit tracking lands.</p>`;
+        field('Ordered by', 'Who you call first, not alphabetically') +
+        `<div class="rd-drawer__note" style="font-weight:600;color:#23211c;margin-top:6px">On the sheet</div>` +
+        field('Vendors', String(priorityList.filter(r => r.isVendor).length)) +
+        field('Wedding party', String(priorityList.filter(r => r.isParty).length)) +
+        field('Family', String(priorityList.filter(r => r.isFamily).length)) +
+        `<p class="rd-drawer__note">${x.dayof
+          ? 'Position ' + (pos + 1) + ' because the sheet is ordered by who you call first, not alphabetically.'
+          : 'Not on the day-of sheet yet. Add it to give this contact a call-priority position.'}</p>` +
+        `<button type="button" class="rd-btn${x.dayof ? '' : ' rd-btn--primary'}" onclick="rdCtToggleDayOf('${esc(safeId)}')">${x.dayof ? 'Remove from day-of sheet' : 'Add to day-of sheet'}</button>`;
+    } else {
+      /* Source — where the row comes from, and why this page cannot create one. */
+      const openFn = `rdCtOpenSource('${esc(String(x.id).replace(/'/g, "\\'"))}')`;
+      body = field('Derived from', x.isManual ? 'Typed here' : (x.source + ' → '), x.isManual ? undefined : openFn) +
+        field('Record type', x.isManual ? 'Manual row' : x.source) +
+        field('Owns the fields', x.isManual ? 'This contact' : (x.source + ' record')) +
+        (x.isManual
+          ? `<p class="rd-drawer__note">Edit here or in the full editor — both write to data.contacts.</p>`
+          : `<p class="rd-drawer__note">This page cannot create a sourced contact. Every derived row is a guest, vendor, or wedding-party member seen through one lens — so to add someone, add them on the source page instead.</p>`) +
+        (x.isManual ? '' : `<button type="button" class="rd-btn rd-btn--primary" onclick="${openFn}">Open source</button>`);
     }
     const safeId = String(x.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     slot.classList.add('is-open');
@@ -577,6 +623,19 @@
     if (!openSourceRecord(x) && typeof showToast === 'function') {
       showToast('Could not open the source record.', 'warn');
     }
+  }
+  function rdCtToggleDayOf(id) {
+    const x = findContact(id);
+    if (!x) return;
+    const next = !x.dayof;
+    if (x.isManual && x.manualIndex != null && Array.isArray(data.contacts) && data.contacts[x.manualIndex]) {
+      data.contacts[x.manualIndex].emergency = next;
+    } else if (x.row) {
+      x.row.emergency = next;
+    }
+    if (typeof save === 'function') save();
+    if (typeof showToast === 'function') showToast(next ? 'Added to day-of sheet' : 'Removed from day-of sheet');
+    renderContactsRd();
   }
   function rdCtToggleSel(id) {
     if (window._ctSel.has(id)) window._ctSel.delete(id);
@@ -737,6 +796,7 @@
   window.rdCtCloseDrawer = rdCtCloseDrawer;
   window.rdCtSetDrawerTab = rdCtSetDrawerTab;
   window.rdCtOpenSource = rdCtOpenSource;
+  window.rdCtToggleDayOf = rdCtToggleDayOf;
   window.rdCtToggleSel = rdCtToggleSel;
   window.rdCtBulkClear = rdCtBulkClear;
   window.rdCtBulk = rdCtBulk;

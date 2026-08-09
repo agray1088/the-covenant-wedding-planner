@@ -13919,7 +13919,8 @@ function recordEditorBuildJumpList(){
   const gapsJumpAllow = {
     vendors: ['Vendor', 'Contract', 'Schedule', 'Contacts', 'History'],
     payments: ['Payment', 'Contract', 'Method', 'History'],
-    tasks: ['Task', 'Depends on', 'People', 'History']
+    tasks: ['Task', 'Depends on', 'People', 'History'],
+    guests: ['Guest', 'Household', 'Seating', 'RSVP', 'History']
   };
   const allow = gapsJumpAllow[recordEditorState && recordEditorState.key];
   let sections = [...body.querySelectorAll(':scope > .record-editor-section')];
@@ -15467,25 +15468,23 @@ function renderGuestRecordEditor(){
   const d = recordEditorState.draft;
   const companionTools = renderGuestEditorCompanions();
   const eventTools = renderGuestEditorEvents();
-  /* Full editor: every group visible at once — mock 3b drawer tabs map to these section titles. */
+  /* Full editor: every group visible at once. Gaps Batch 46 — jump rail must mirror the
+     drawer's own tab set exactly (Guest · Household · Seating · RSVP · History), so these
+     h4 groups are named and ordered to match rather than the old Identity/Response/Contact/
+     Invitation split. Fields are unchanged — only the grouping and labels moved. */
   return `
-    <section class="record-editor-section"><h4>Identity</h4><div class="record-editor-grid">
+    <section class="record-editor-section"><h4>Guest</h4><div class="record-editor-grid">
       <div class="record-editor-field" style="display:none"><label>Guest ID</label><input value="${escapeHtml(d._id||'')}" readonly></div>
       ${recordInput('Guest name','name')}
-      ${recordInput('Household','household')}
-      ${recordCheck('Family / household group','family')}
-      ${recordSelect('Group','group',weddingGroupOptions(d.group))}
-      ${recordSelect('Side','side',['Bride','Groom','Both','Family','Our Children'])}
       ${recordSelect('Role','role',GUEST_ROLES)}
-    </div></section>
-    <section class="record-editor-section"><h4>Response</h4><div class="record-editor-grid">
-      ${recordSelect('RSVP','rsvp',RSVP_STATUS)}
-      ${recordDatalist('Meal','meal',typeof guestMealOptions === 'function' ? guestMealOptions(d.meal) : [d.meal])}
-      ${recordDatalist('Dietary notes','dietary',recordGuestDietaryValues())}
-    </div></section>
-    <section class="record-editor-section"><h4>Contact</h4><div class="record-editor-grid">
+      ${recordSelect('Side','side',['Bride','Groom','Both','Family','Our Children'])}
+      ${recordSelect('Group','group',weddingGroupOptions(d.group))}
       ${recordInput('Phone','phone','tel')}
       ${recordInput('Email','email','email')}
+    </div></section>
+    <section class="record-editor-section"><h4>Household</h4><div class="record-editor-grid">
+      ${recordInput('Household','household')}
+      ${recordCheck('Family / household group','family')}
       ${recordInput('Address 1','address1')}
       ${recordInput('Address 2','address2')}
       ${recordInput('City','city')}
@@ -15494,16 +15493,19 @@ function renderGuestRecordEditor(){
       ${recordDatalist('Country','country',['United States','Canada','United Kingdom','Australia','New Zealand','Ghana'].concat(recordExistingFieldValues('guests','country')))}
       ${recordInput('Legacy full address','address','text',true)}
     </div></section>
-    <section class="record-editor-section"><h4>Invitation</h4><div class="record-editor-grid">
-      ${recordSelect('Invite decision','inviteDecision',INVITE_DECISIONS)}
-      ${recordCheck('Invite sent','invited')}
-    </div></section>
-    ${eventTools}
-    <section class="record-editor-section"><h4>Party</h4><div class="record-editor-grid">
-      ${recordCheck('Plus-one allowed','plusone')}
-      ${recordInput('Kids','children','number',false,'min="0"')}
+    <section class="record-editor-section"><h4>Seating</h4><div class="record-editor-grid">
       ${recordGuestTableSelect('Table','table')}
     </div></section>
+    <section class="record-editor-section"><h4>RSVP</h4><div class="record-editor-grid">
+      ${recordSelect('RSVP','rsvp',RSVP_STATUS)}
+      ${recordDatalist('Meal','meal',typeof guestMealOptions === 'function' ? guestMealOptions(d.meal) : [d.meal])}
+      ${recordDatalist('Dietary notes','dietary',recordGuestDietaryValues())}
+      ${recordSelect('Invite decision','inviteDecision',INVITE_DECISIONS)}
+      ${recordCheck('Invite sent','invited')}
+      ${recordCheck('Plus-one allowed','plusone')}
+      ${recordInput('Kids','children','number',false,'min="0"')}
+    </div></section>
+    ${eventTools}
     <section class="record-editor-section"><h4>Note</h4><div class="record-editor-grid">
       ${recordTextarea('Note','notes',true)}
     </div></section>
