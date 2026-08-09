@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-43a1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-fullia1">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -813,6 +813,12 @@
       <!-- Filled by uedGuestShell() / renderGuests() (pagehead · KPIs · costs/events/workflow · toolbar · table · drawer) -->
     </div>
 
+    <!-- ═══ HOUSEHOLDS — All.dc #14b · Views #28 · derived from guests · households-redesign.js ═══ -->
+    <div id="panel-households" class="panel households-mockup ued-scope"></div>
+
+    <!-- ═══ CONTACTS — All.dc #14c · Views #28 · derived directory · contacts-redesign.js ═══ -->
+    <div id="panel-contacts" class="panel contacts-mockup ued-scope"></div>
+
     <!-- ═══ TASKS — §07 anatomy; uedTaskShell() fills toolbar/bulk on first render -->
     <div id="panel-tasks" class="panel tasks-mockup ued-scope">
       <div class="rd-page">
@@ -1046,11 +1052,20 @@
       </section>
     </div>
 
-    <!-- ═══ VISION & RHYTHMS (Reflective Pages) ═══ -->
+    <!-- ═══ VISION & RHYTHMS (legacy reflect host — redirects to dedicated panels) ═══ -->
     <div id="panel-reflect" class="panel">
       <div class="rfl-tabs" id="rfl-tabs"></div>
       <div id="rfl-content"></div>
     </div>
+
+    <!-- ═══ VISION & FOUNDATION — All.dc #13a · Views #32 · vision-redesign.js ═══ -->
+    <div id="panel-vision" class="panel vision-mockup ued-scope"></div>
+
+    <!-- ═══ FIRST-MONTH RHYTHMS — All.dc #13d · Views #32 · firstmonth-redesign.js ═══ -->
+    <div id="panel-firstmonth" class="panel firstmonth-mockup ued-scope"></div>
+
+    <!-- ═══ NEWLYWED HOMECOMING — All.dc · Views #31 · homecoming-redesign.js ═══ -->
+    <div id="panel-homecoming" class="panel homecoming-mockup ued-scope"></div>
 
         <!-- ═══ SHARE PACKETS — All.dc #12b · Views Cards/Activity · Drawers packet · packets-redesign.js ═══ -->
     <div id="panel-packets" class="panel packets-mockup ued-scope">
@@ -1061,6 +1076,9 @@
     <div id="panel-emails" class="panel emails-mockup ued-scope">
       <!-- Filled by uedEmailsShell() / renderEmailsPage() (Table|Preview|Sent log · drawer) -->
     </div>
+
+    <!-- ═══ PRINT CENTRE — All.dc #12d · Views #33 · print-centre-redesign.js ═══ -->
+    <div id="panel-print-centre" class="panel print-centre-mockup ued-scope"></div>
 
 <!-- ═══ FAQ ═══ -->
     <div id="panel-faq" class="panel faq-mockup ued-scope">
@@ -1776,7 +1794,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-41a1"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-fullia1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -1789,6 +1807,8 @@
 <script src="js/rd-states.js?v=redesign-furniture3"></script>
 <script src="js/rd-furniture.js?v=redesign-furniture3"></script>
 <script src="js/party-redesign.js?v=redesign-furniture3"></script>
+<script src="js/households-redesign.js?v=redesign-fullia1"></script>
+<script src="js/contacts-redesign.js?v=redesign-fullia1"></script>
 <script src="js/tables-redesign.js?v=redesign-furniture3"></script>
 <script src="js/gifts-redesign.js?v=redesign-furniture3"></script>
 <script src="js/budget-redesign.js?v=redesign-furniture3"></script>
@@ -1804,18 +1824,22 @@
 <script src="js/honeymoon-redesign.js?v=redesign-17b1"></script>
 <script src="js/prayer-redesign.js?v=redesign-13b1"></script>
 <script src="js/counseling-redesign.js?v=redesign-13c1"></script>
+<script src="js/vision-redesign.js?v=redesign-fullia1"></script>
+<script src="js/firstmonth-redesign.js?v=redesign-fullia1"></script>
+<script src="js/homecoming-redesign.js?v=redesign-fullia1"></script>
 <script src="js/mood-redesign.js?v=redesign-12c1"></script>
 <script src="js/essentials-redesign.js?v=redesign-12c1"></script>
 <script src="js/packets-redesign.js?v=redesign-vp1"></script>
 <script src="js/emails-redesign.js?v=redesign-12c1"></script>
+<script src="js/print-centre-redesign.js?v=redesign-fullia1"></script>
 <script src="js/data-hub-redesign.js?v=redesign-7b1"></script>
 <script src="js/dashboard-redesign.js?v=redesign-3a1"></script>
 <script src="js/notes-redesign.js?v=redesign-12a1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-43a1"></script>
+<script src="js/redesign-shell.js?v=redesign-fullia1"></script>
 <script src="js/responsive-redesign.js?v=redesign-41a1"></script>
-<script src="js/roles-redesign.js?v=redesign-vp1"></script>
+<script src="js/roles-redesign.js?v=redesign-fullia1"></script>
 <script>
 (function () {
   try {

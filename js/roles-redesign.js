@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var COVENANT_PANELS = { prayer: 1, counseling: 1, reflect: 1, vision: 1, rhythms: 1 };
+  var COVENANT_PANELS = { prayer: 1, counseling: 1, reflect: 1, vision: 1, firstmonth: 1, rhythms: 1 };
 
   function ensureRoleSetup() {
     if (typeof window.data === 'undefined' || !data) return null;

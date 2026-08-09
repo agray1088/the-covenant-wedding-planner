@@ -508,60 +508,64 @@ panel.
 
 ### 11.7 · Remaining page queue (default order for “continue”)
 
-**Order = live `TABS` in `js/redesign-shell.js`:** finish each category’s sub-pages left-to-right
-before moving to the next category. Do not jump ahead inside Vendors.
+**Order = live `TABS` in `js/redesign-shell.js` (full planning IA, guide §3).** Finish each
+category’s sub-pages left-to-right. Gap passes and furniture (batches 34–40) still apply to
+every page already shipped.
 
-**Vendors** (complete):
+**People** (live nav order):
 
-| # | Sub-page (nav label) | Panel key | All.dc / notes |
+| # | Sub-page | Panel key | All.dc / notes |
 |---|---|---|---|
-| ✓ | Venue Comparison | `venue` | Thin inventory; `js/venue-redesign.js` |
-| ✓ | Catering & Menu | `catering` | All **7a** · Views `#30h`/`#30i` · `js/catering-redesign.js` |
-| ✓ | Entertainment | `entertainment` | All **10d** · Views `#30j`/`#30k` · `js/entertainment-redesign.js` |
-| ✓ | Shot Lists | `shotlist` | All **11b** · Views `#30l`/`#30m` · `js/shotlist-redesign.js` |
+| ✓ | Guest List | `guests` | Batch 21 · guest shell |
+| ✓ | Households | `households` | All **14b** · Views **28** · derived · `js/households-redesign.js` |
+| ✓ | Contacts | `contacts` | All **14c** · Views **28** · derived · `js/contacts-redesign.js` |
+| ✓ | Wedding Party | `party` | All **10a** · `js/party-redesign.js` |
+| ✓ | Table Layout | `tables` | All **8a** · `js/tables-redesign.js` |
+| ✓ | Gifts | `gifts` | All **10b** · `js/gifts-redesign.js` |
 
-**The Day** (complete):
+**The Day** (live nav order):
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
 | ✓ | Wedding Day Timeline | `timeline` | All **6b** · Views `#31a`/`#31b` · `js/timeline-redesign.js` |
 | ✓ | Ceremony & Reception | `ceremony` | All **11a** · Views `#31c`/`#31d` · `js/ceremony-redesign.js` |
+| ✓ | Weekend Logistics | `logistics` | Moved under The Day per §3 IA |
+| ✓ | Newlywed Homecoming | `homecoming` | Views **31** · `js/homecoming-redesign.js` |
 | ✓ | Honeymoon & After | `honeymoon` | All **17b** · Dark rail · `js/honeymoon-redesign.js` |
 
 **Covenant** (live nav order):
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
+| ✓ | Vision & Foundation | `vision` | All **13a** · Views **32** · `js/vision-redesign.js` |
 | ✓ | Prayer Journal | `prayer` | All **13b** · Views `#32c`/`#32d` · `js/prayer-redesign.js` |
 | ✓ | Premarital Counseling | `counseling` | All **13c** · Views `#32e`/`#32f` · `js/counseling-redesign.js` |
-
-(Also redesign **13a** Vision & Foundation / **13d** First-Month Rhythms when they appear in nav
-or when the user asks — inventory may list more than the current `TABS` strip.)
+| ✓ | First-Month Rhythms | `firstmonth` | All **13d** · Views **32** · `js/firstmonth-redesign.js` |
 
 **Documents** (live nav order):
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| ✓ | Vision Board | `mood` | All **8b** · Dark rail · `js/mood-redesign.js` |
-| ✓ | Essentials Checklist | `essentials` | All **17a** · Views By person/Print · `js/essentials-redesign.js` |
 | ✓ | Share Packets | `packets` | All **12b** · Views Cards/Activity · `js/packets-redesign.js` |
 | ✓ | Email Templates | `emails` | All **12c** · Views Preview/Sent log · `js/emails-redesign.js` |
-| ✓ | Database Hub | `data-hub` | All **7b** / **7c** · Dark rails · `js/data-hub-redesign.js` |
+| ✓ | Print Centre | `print-centre` | All **12d** · Views **33** · `js/print-centre-redesign.js` |
+| ✓ | Vision Board | `mood` | All **8b** · Dark rail · `js/mood-redesign.js` |
+| ✓ | Essentials Checklist | `essentials` | All **17a** · Views By person/Print · `js/essentials-redesign.js` |
 
-**Overview** (live `TABS` order):
+**Planning** (Database Hub lives here per §3):
 
 | # | Sub-page | Panel key | All.dc |
 |---|---|---|---|
-| ✓ | Dashboard | `dashboard` | All **3a** · Dark rail · no Views/Drawers · `js/dashboard-redesign.js` |
-| ✓ | Notes | `notes` | All **12a** · Views **33a** Cards / **33b** Timeline · Drawers Note · `js/notes-redesign.js` |
+| ✓ | Timeline & Tasks | `tasks` | existing |
+| ✓ | Smart Calendar | `calendar` | existing |
+| ✓ | Appointments | `appointments` | existing |
+| ✓ | Database Hub | `data-hub` | All **7b** / **7c** · `js/data-hub-redesign.js` |
 
-**Cross-cutting**
+**Vendors / Money / Overview / Cross-cutting** — already complete (venue→shotlist, budget→contracts,
+dashboard+notes, Responsive **41–42**, Roles **43a**, Vendor Portal V1–V5).
 
-| # | Item | Scope | Notes |
-|---|---|---|---|
-| ✓ | Responsive | whole app | Views **41a** / **42a** / **42b** · `js/responsive-redesign.js` |
-| ✓ | Roles | whole app | Views **43a** · `js/roles-redesign.js` |
-| ✓ | Vendor Portal | separate product | V1–V5 · `vendor-portal.html` · `js/vendor-portal.js` |
+**Next “continue” work:** depth / state / furniture gap passes (batches **34–40**) across the new
+pages, then Guest List drawer polish if still open.
 
 For each page: **§11.1a find mocks → §11.2 inventory → §11.3–11.4 build → §11.5 gap pass →
 commit / push / PR update.**

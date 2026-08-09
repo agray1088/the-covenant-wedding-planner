@@ -2161,6 +2161,9 @@ function tryCovenantPrintTemplate(target){
       if (_rflTab === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
       if (_rflTab === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
     }
+    if (target === 'vision') { openCovenantPrintTemplate(buildVisionFoundationPrintSheets()); return true; }
+    if (target === 'firstmonth' || target === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
+    if (target === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
     if (target === 'packets') {
       openCovenantPrintTemplate(buildPacketsPrintSheets());
       return true;
@@ -11471,7 +11474,16 @@ function renderReflectPage(){
 function rflSetTab(t){ _rflTab = t; renderReflectPage(); if(typeof injectMasthead==='function') injectMasthead('reflect'); }
 function showReflectTabPage(t){
   _rflTab = t || 'vision';
-  if (_rflTab === 'homecoming') _homecomingSubTab = 'checklist';
+  if (_rflTab === 'homecoming') {
+    _homecomingSubTab = 'checklist';
+    if (document.getElementById('panel-homecoming')) { showPanel('homecoming', true); return; }
+  }
+  if (_rflTab === 'rhythms') {
+    if (document.getElementById('panel-firstmonth')) { showPanel('firstmonth', true); return; }
+  }
+  if (_rflTab === 'vision') {
+    if (document.getElementById('panel-vision')) { showPanel('vision', true); return; }
+  }
   showPanel('reflect', true);
   renderReflectPage();
   if(typeof injectMasthead==='function') injectMasthead('reflect');
@@ -11479,6 +11491,11 @@ function showReflectTabPage(t){
 function showNameChangePage(){
   _rflTab = 'homecoming';
   _homecomingSubTab = 'namechange';
+  if (document.getElementById('panel-homecoming')) {
+    showPanel('homecoming', true);
+    if (typeof rdSetHomecomingView === 'function') rdSetHomecomingView('namechange');
+    return;
+  }
   showPanel('reflect');
 }
 function setHomecomingSubTab(tab){
@@ -40587,9 +40604,10 @@ function renderGuestPreviewTable(){
     }
   }
 }
-function guestAggregatedHouseholds(){
+function guestAggregatedHouseholds(opts){
+  const skipFilters = !!(opts && opts.all);
   const map = new Map();
-  safeArray(data.guests).filter(g => typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true).forEach((g, idx) => {
+  safeArray(data.guests).filter(g => skipFilters ? true : (typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true)).forEach((g, idx) => {
     const key = String(g.household || '').trim() || ('__solo__:' + (g._id || g.name || idx));
     const label = String(g.household || '').trim() || (g.name || 'Household');
     if (!map.has(key)) {

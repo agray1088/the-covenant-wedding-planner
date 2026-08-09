@@ -21,7 +21,7 @@
 
   function allHouseholds() {
     return typeof guestAggregatedHouseholds === 'function'
-      ? guestAggregatedHouseholds()
+      ? guestAggregatedHouseholds({ all: true })
       : [];
   }
 

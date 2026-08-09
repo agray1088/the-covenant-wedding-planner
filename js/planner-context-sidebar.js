@@ -2468,8 +2468,254 @@
     return '<div class="rd-rail__stack" data-page-rail="emails">' + viewsHtml + useHtml + groupHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #14b / Views #28 — derived households over guests. */
+  function buildHouseholdsContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('households', 'all');
+    else if (typeof window._hhRailView === 'string' && window._hhRailView) activeView = window._hhRailView;
+    window._hhRailView = activeView;
+    var counts = typeof window.hhRailCounts === 'function' ? window.hhRailCounts() : {
+      all: 0, invited: 0, fully: 0, partly: 0, none: 0
+    };
+    var figures = typeof window.hhFigures === 'function' ? window.hhFigures() : {
+      invited: 0, households: 0, fully: 0, seats: 0, confirmed: 0
+    };
+    var groupBy = window._hhGroupBy || 'side';
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHouseholdsRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All households', counts.all || 0) +
+      viewItem('invited', 'Invited', counts.invited || 0) +
+      viewItem('fully', 'Fully replied', counts.fully || 0) +
+      viewItem('partly', 'Partly replied', counts.partly || 0, true) +
+      viewItem('none', 'No reply', counts.none || 0, true) +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Invitations</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Sent</span><span class="rd-rail__count">' + (figures.invited || 0) + ' of ' + (figures.households || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Replied</span><span class="rd-rail__count">' + (figures.fully || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Seats requested</span><span class="rd-rail__count">' + (figures.seats || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Seats confirmed</span><span class="rd-rail__count">' + (figures.confirmed || 0) + '</span></div>' +
+      '</div></div>';
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHouseholdsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
+      groupItem('side', 'Side') + groupItem('city', 'City') + groupItem('reply', 'Reply status') +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note"><b>A derived view.</b> Households are grouped guest records — editing an address here edits it on every guest in that household.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="households">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #14c / Views #28 — master contact directory. */
+  function buildContactsContext() {
+    var activeView = 'everyone';
+    if (typeof getSavedView === 'function') activeView = getSavedView('contacts', 'everyone');
+    else if (typeof window._ctRailView === 'string' && window._ctRailView) activeView = window._ctRailView;
+    window._ctRailView = activeView;
+    var counts = typeof window.ctRailCounts === 'function' ? window.ctRailCounts() : {
+      everyone: 0, vendors: 0, party: 0, family: 0, dayof: 0
+    };
+    var figures = typeof window.ctFigures === 'function' ? window.ctFigures() : {
+      withPhone: 0, contacts: 0, withEmail: 0, neither: 0, dayof: 0
+    };
+    var groupBy = window._ctGroupBy || 'role';
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyContactsRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('everyone', 'Everyone', counts.everyone || 0) +
+      viewItem('vendors', 'Vendors', counts.vendors || 0) +
+      viewItem('party', 'Wedding party', counts.party || 0) +
+      viewItem('family', 'Family', counts.family || 0) +
+      viewItem('dayof', 'Day-of only', counts.dayof || 0) +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Reachable</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>With a phone number</span><span class="rd-rail__count">' + (figures.withPhone || 0) + ' of ' + (figures.contacts || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>With an email</span><span class="rd-rail__count">' + (figures.withEmail || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Neither</span><span class="rd-rail__count">' + (figures.neither || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>On the day-of sheet</span><span class="rd-rail__count">' + (figures.dayof || 0) + '</span></div>' +
+      '</div></div>';
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyContactsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
+      groupItem('role', 'Role') + groupItem('side', 'Side') + groupItem('company', 'Company') +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note"><b>A derived view.</b> Contacts are vendors and guests seen through one lens — the phone number lives on the original record.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="contacts">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #13a — Vision & Foundation. */
+  function buildVisionContext() {
+    var activeView = 'vision';
+    if (typeof getSavedView === 'function') activeView = getSavedView('vision', 'vision');
+    else if (typeof window._visRailView === 'string' && window._visRailView) activeView = window._visRailView;
+    window._visRailView = activeView;
+    var counts = typeof window.visRailCounts === 'function' ? window.visRailCounts() : {
+      vision: 0, values: 0, scriptures: 0, promises: 0, building: 0
+    };
+    var figures = typeof window.visFigures === 'function' ? window.visFigures() : {
+      sectionsComplete: 0, sectionsTotal: 5, words: 0, lastWritten: '—'
+    };
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyVisionRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + (count || '') + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Sections</div><div class="rd-rail__list" role="list">' +
+      viewItem('vision', 'Our vision', '') +
+      viewItem('values', 'Values', counts.values || 0) +
+      viewItem('scriptures', 'Scriptures', counts.scriptures || 0) +
+      viewItem('promises', 'Promises', counts.promises || 0) +
+      viewItem('building', 'What we are building', '') +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Written</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Sections complete</span><span class="rd-rail__count">' + (figures.sectionsComplete || 0) + ' of ' + (figures.sectionsTotal || 5) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Words</span><span class="rd-rail__count">' + (figures.words || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last written</span><span class="rd-rail__count">' + esc(figures.lastWritten || '—') + '</span></div>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Prints as a <b>Class B keepsake</b>: Cormorant returns, margins open, one gold hairline per page.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="vision">' + viewsHtml + metersHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #13d — First-Month Rhythms. */
+  function buildFirstmonthContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('firstmonth', 'all');
+    else if (typeof window._fmRailView === 'string' && window._fmRailView) activeView = window._fmRailView;
+    window._fmRailView = activeView;
+    var counts = typeof window.fmRailCounts === 'function' ? window.fmRailCounts() : {
+      all: 0, daily: 0, weekly: 0, monthly: 0, yearly: 0
+    };
+    var figures = typeof window.fmFigures === 'function' ? window.fmFigures() : {
+      keptThisMonth: 0, rhythms: 0, streaks: 0
+    };
+    var groupBy = window._fmGroupBy || 'cadence';
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyFirstmonthRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div><div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All rhythms', counts.all || 0) +
+      viewItem('daily', 'Daily', counts.daily || 0) +
+      viewItem('weekly', 'Weekly', counts.weekly || 0) +
+      viewItem('monthly', 'Monthly', counts.monthly || 0) +
+      viewItem('yearly', 'Yearly', counts.yearly || 0) +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Since the wedding</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Kept this month</span><span class="rd-rail__count">' + (figures.keptThisMonth || 0) + ' of ' + (figures.rhythms || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Longest streak</span><span class="rd-rail__count">' + (figures.streaks || 0) + ' weeks</span></div>' +
+      '</div></div>';
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyFirstmonthGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
+      groupItem('cadence', 'Cadence') + groupItem('owner', 'Owner') + groupItem('area', 'Area') +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Rhythms begin the day after the wedding. Nothing here appears on the Timeline — it is not wedding work.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="firstmonth">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* Newlywed Homecoming — The Day. */
+  function buildHomecomingContext() {
+    var activeView = 'settling';
+    if (typeof getSavedView === 'function') activeView = getSavedView('homecoming', 'settling');
+    else if (typeof window._hcRailView === 'string' && window._hcRailView) activeView = window._hcRailView;
+    window._hcRailView = activeView;
+    var counts = typeof window.hcRailCounts === 'function' ? window.hcRailCounts() : {
+      settling: 0, namechange: 0, budget: 0, noticed: 0
+    };
+    var figures = typeof window.hcFigures === 'function' ? window.hcFigures() : {
+      homeDone: 0, homecoming: 0, nameDone: 0, nameChange: 0
+    };
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHomecomingRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + (count || '') + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Sections<button type="button" class="rd-rail__add" onclick="rdHcAddTask()" aria-label="Add">+</button></div><div class="rd-rail__list" role="list">' +
+      viewItem('settling', 'Settling in', counts.settling || 0) +
+      viewItem('namechange', 'Name change', counts.namechange || 0) +
+      viewItem('budget', 'First month budget', counts.budget || 0) +
+      viewItem('noticed', 'What we noticed', '') +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Progress</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Settling in</span><span class="rd-rail__count">' + (figures.homeDone || 0) + ' of ' + (figures.homecoming || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Name change</span><span class="rd-rail__count">' + (figures.nameDone || 0) + ' of ' + (figures.nameChange || 0) + '</span></div>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Written now so the first month is not spent deciding what to do.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="homecoming">' + viewsHtml + metersHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #12d — Print Centre. */
+  function buildPrintCentreContext() {
+    var activeView = 'everything';
+    if (typeof getSavedView === 'function') activeView = getSavedView('print-centre', 'everything');
+    else if (typeof window._pcRailView === 'string' && window._pcRailView) activeView = window._pcRailView;
+    window._pcRailView = activeView;
+    var counts = typeof window.pcRailCounts === 'function' ? window.pcRailCounts() : {
+      everything: 0, classA: 0, classB: 0, printed: 0, dayof: 0
+    };
+    var figures = typeof window.pcFigures === 'function' ? window.pcFigures() : {
+      dayOfReady: 0, dayOfTotal: 0, packBlocked: 0, paper: 'Letter'
+    };
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPrintCentreRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div><div class="rd-rail__list" role="list">' +
+      viewItem('everything', 'Everything', counts.everything || 0) +
+      viewItem('classA', 'Class A · working', counts.classA || 0) +
+      viewItem('classB', 'Class B · keepsakes', counts.classB || 0) +
+      viewItem('printed', 'Printed already', counts.printed || 0) +
+      viewItem('dayof', 'Day-of pack', counts.dayof || 0) +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Day-of pack</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Ready to print</span><span class="rd-rail__count">' + (figures.dayOfReady || 0) + ' of ' + (figures.dayOfTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Blocked</span><span class="rd-rail__count">' + (figures.packBlocked || 0) + '</span></div>' +
+      '</div></div>';
+    var paperHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Paper</div><div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item' + ((figures.paper || 'Letter') === 'Letter' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'Letter\')">Letter</button>' +
+      '<button type="button" class="rd-rail__item' + ((figures.paper || '') === 'A4' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'A4\')">A4</button>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note"><b>Class A</b> prints black on white with repeating headers; <b>Class B</b> keeps Cormorant and gold hairlines.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="print-centre">' + viewsHtml + metersHtml + paperHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
+    households: buildHouseholdsContext,
+    contacts: buildContactsContext,
     party: buildPartyContext,
     gifts: buildGiftsContext,
     tables: buildTablesContext,
@@ -2483,12 +2729,16 @@
     timeline: buildTimelineContext,
     ceremony: buildCeremonyContext,
     honeymoon: buildHoneymoonContext,
+    homecoming: buildHomecomingContext,
+    vision: buildVisionContext,
     prayer: buildPrayerContext,
     counseling: buildCounselingContext,
+    firstmonth: buildFirstmonthContext,
     mood: buildMoodContext,
     essentials: buildEssentialsContext,
     packets: buildPacketsContext,
     emails: buildEmailsContext,
+    'print-centre': buildPrintCentreContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,

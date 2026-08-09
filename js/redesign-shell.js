@@ -18,19 +18,18 @@
 (function () {
   'use strict';
 
-  /* ── §06: eight tabs. Only panels that actually exist in this build are
-     listed; pages the spec names but the app has not built yet (Households,
-     Contacts, Print Centre, Vision & Foundation) are deliberately absent
-     rather than rendered as dead nav. ─────────────────────────────────── */
+  /* ── §06: eight tabs · full planning IA (guide §3 + live shells).
+     Households / Contacts / Vision / First-Month / Print Centre / Homecoming
+     are first-class panels — derive, never store duplicates. ───────────── */
   var TABS = [
     { id: 'overview',  label: 'Overview',  pages: [['dashboard','Dashboard'], ['notes','Notes']] },
-    { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments'], ['logistics','Weekend Logistics']] },
-    { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
+    { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments'], ['data-hub','Database Hub']] },
+    { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['households','Households'], ['contacts','Contacts'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
     { id: 'money',     label: 'Money',     pages: [['budget','Budget'], ['payments','Payments'], ['contracts','Contracts & Invoices']] },
     { id: 'vendors',   label: 'Vendors',   pages: [['vendors','Venue & Vendors'], ['venue','Venue Comparison'], ['catering','Catering & Menu'], ['entertainment','Entertainment'], ['shotlist','Shot Lists']] },
-    { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['honeymoon','Honeymoon & After']] },
-    { id: 'covenant',  label: 'Covenant',  pages: [['prayer','Prayer Journal'], ['counseling','Premarital Counseling']], dot: true },
-    { id: 'documents', label: 'Documents', pages: [['mood','Vision Board'], ['essentials','Essentials Checklist'], ['packets','Share Packets'], ['emails','Email Templates'], ['data-hub','Database Hub']] }
+    { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['logistics','Weekend Logistics'], ['homecoming','Newlywed Homecoming'], ['honeymoon','Honeymoon & After']] },
+    { id: 'covenant',  label: 'Covenant',  pages: [['vision','Vision & Foundation'], ['prayer','Prayer Journal'], ['counseling','Premarital Counseling'], ['firstmonth','First-Month Rhythms']], dot: true },
+    { id: 'documents', label: 'Documents', pages: [['packets','Share Packets'], ['emails','Email Templates'], ['print-centre','Print Centre'], ['mood','Vision Board'], ['essentials','Essentials Checklist']] }
   ];
 
   /* Reached from the top bar or help, never from a tab (§06). */
