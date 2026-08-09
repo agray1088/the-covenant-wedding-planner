@@ -158,8 +158,13 @@ State library: `js/rd-states.js` → `window.RdStates` (empty / filter-empty / l
 | `.rd-state--table` `.rd-state--reference` `.rd-state--form` `.rd-state--canvas` | Archetype variants |
 | `.rd-state__heading` `.rd-state__body` `.rd-state__actions` | State copy + CTAs |
 | `.rd-cmd` `.rd-cmd__group` `.rd-cmd__foot` | Command palette furniture (batch 34) |
-| `.rd-filter-builder` / `__row` / `__foot` | Filter builder overlay |
+| `.rd-filter-builder` / `__row` / `__foot` / `__readas` / `__nested` | Filter builder overlay (Views S2) |
+| `.rd-views-mgr` | Saved views management (Views S3) |
+| `.rd-bulk-edit` | Bulk edit dialog (Views S4) |
+| `.rd-kbd` | Keyboard shortcuts sheet (Views S6) |
+| `.rd-share` | Share dialog (Views S8) |
+| `.rd-undo-toast` | Forest undo toast (Views S9) |
 
-JS: `js/rd-furniture.js` → `window.RdFurniture` (filter builder + saved-view helpers).
+JS: `js/rd-furniture.js` → `window.RdFurniture` (filter builder, views mgr, shortcuts, bulk edit, share, undo toast).
 
 View shells (§7.2–§7.3): `households-{labels,cards}`, `contacts-{dayof,cards}`, `party-{cards,duties}`, `tables-{list,byguest}`, `gifts-notes`, `budget-{bycategory,pledged}`, `payments-calendar`, `contracts-{documents,schedule}`.
