@@ -16414,7 +16414,12 @@ function renderRecordEditorTarget(key){
     hotelBlocks:()=>{ renderLogisticsPage(); renderSmartCalendarIfActive(); },
     transportation:()=>{ renderLogisticsPage(); logAfterChange(); },
     vipCare:renderLogisticsPage, events:()=>{ renderLogisticsPage(); renderSmartCalendarIfActive(); },
-    locations:renderLogisticsPage, contacts:renderLogisticsPage, vendorCompare:renderVendorCompare,
+    locations:renderLogisticsPage,
+    contacts:()=>{
+      if (typeof renderLogisticsPage === 'function') renderLogisticsPage();
+      if (typeof renderContactsRd === 'function') renderContactsRd();
+    },
+    vendorCompare:renderVendorCompare,
     attire:renderLogisticsPage, decor:renderLogisticsPage, stationery:renderLogisticsPage
   };
   if (key === 'payments') syncPaymentsToBudget();
