@@ -21550,26 +21550,197 @@ body.rd-scope #panel-vision .rd-vis-drawer__textarea {
   resize: vertical;
 }
 
-body.rd-scope #panel-firstmonth .rd-yearplot,
-body.rd-scope #panel-firstmonth #firstmonth-year-plot {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 12px 4px 24px;
+/* First-Month Rhythms · All.dc #13d table + keepsake year plot */
+body.rd-scope #panel-firstmonth .rd-fm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
 }
-body.rd-scope #panel-firstmonth .rd-yearplot__cell {
-  border: 1px solid #e7e1d4;
-  padding: 10px;
-  min-height: 72px;
+body.rd-scope #panel-firstmonth .rd-fm-table th,
+body.rd-scope #panel-firstmonth .rd-fm-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0ebe0;
+  vertical-align: top;
+}
+body.rd-scope #panel-firstmonth .rd-fm-table input,
+body.rd-scope #panel-firstmonth .rd-fm-table select,
+body.rd-scope #panel-firstmonth .rd-fm-table textarea {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  resize: vertical;
+}
+body.rd-scope #panel-firstmonth .rd-fm-table tr.rd-fm-group > td,
+body.rd-scope #panel-firstmonth .rd-fm-table tr.rd-group-row > td {
+  background: #ebe4d6;
+  color: #3d3830;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 9px 12px;
+  border-bottom: 1px solid #ddd4c2;
+}
+body.rd-scope #panel-firstmonth .rd-fm-rhythmcell .rd-fm-title {
+  font-weight: 600;
+  color: #23211c;
+  display: block;
+}
+body.rd-scope #panel-firstmonth .rd-fm-rhythmcell .rd-fm-meaning {
+  margin-top: 2px;
   font-size: 12px;
   color: #6b645d;
-  background: #fdfcfa;
+  line-height: 1.4;
+  min-height: 1.4em;
 }
-body.rd-scope #panel-firstmonth .rd-yearplot__cell strong {
-  display: block;
-  color: #23211c;
+body.rd-scope #panel-firstmonth .rd-fm-table tr.is-paused td { opacity: .55; }
+body.rd-scope #panel-firstmonth .rd-fm-addbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 8px;
+  border: 0;
+  background: transparent;
+  color: #5a534c;
+  font: inherit;
+  cursor: pointer;
+}
+body.rd-scope #panel-firstmonth .rd-fm-addbtn span { font-weight: 600; color: #b89968; }
+body.rd-scope #panel-firstmonth .rd-section__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 28px 0 14px;
+  flex-wrap: wrap;
+}
+body.rd-scope #panel-firstmonth .rd-section__head .rd-pagehead__eyebrow {
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+}
+body.rd-scope #panel-firstmonth .rd-section__head .rd-help {
+  margin: 4px 0 0;
+  color: #6b645d;
+  font-size: 13px;
+  line-height: 1.45;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot,
+body.rd-scope #panel-firstmonth #firstmonth-year-plot {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 0 28px;
+  overflow-x: auto;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot__months,
+body.rd-scope #panel-firstmonth .rd-yearplot__row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) repeat(13, minmax(28px, 1fr));
+  align-items: center;
+  gap: 4px;
+  min-width: 720px;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot__months {
+  padding: 0 0 8px;
+  border-bottom: 1px solid #e7e1d4;
   margin-bottom: 4px;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot__months b {
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot__row {
+  padding: 5px 0;
+  border-bottom: 1px solid #f3efe6;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot__row strong {
   font-size: 12.5px;
+  font-weight: 600;
+  color: #23211c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot__cell {
+  text-align: center;
+  font-size: 12px;
+  color: #cfc6b4;
+  min-height: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot__cell.is-on,
+body.rd-scope #panel-firstmonth .rd-yearplot__cell.is-daily { color: #20362D; }
+body.rd-scope #panel-firstmonth .rd-yearplot__cell.is-weekly { color: #5a7a4a; }
+body.rd-scope #panel-firstmonth .rd-yearplot__cell.is-month { color: #946f33; }
+body.rd-scope #panel-firstmonth .rd-yearplot__cell.is-year { color: #b89968; }
+body.rd-scope #panel-firstmonth .rd-yearplot__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: #6b645d;
+}
+body.rd-scope #panel-firstmonth .rd-yearplot__leg::before {
+  content: "●";
+  margin-right: 6px;
+  color: #b89968;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card {
+  cursor: default;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #23211c;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card__cadence {
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+  white-space: nowrap;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card__meaning {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: #6b645d;
+  line-height: 1.45;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  font-size: 12px;
+  color: #5a534c;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card__meta b {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  margin-bottom: 2px;
 }
 body.rd-scope #panel-firstmonth .rd-fm-drawer__prose {
   padding: 12px 13px;
