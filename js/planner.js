@@ -5531,19 +5531,29 @@ document.addEventListener('keydown', function(e){
 function isCurrencyLikeTableInput(el){
   if (!el || el.tagName !== 'INPUT' || !el.closest('table')) return false;
   /* The CWP unified table engine formats its own money cells (cwpEditMoney) and
-     must NOT be touched by this legacy heuristic. The heuristic below inspects
-     ALL of a table's <th> text, so any engine table containing a money column
-     (Amount, Total, Cost, Balance…) would wrongly flag every text cell as
-     currency and strip its letters on focus — the "text disappears" bug. */
+     must NOT be touched by this legacy heuristic. */
   if (el.closest('.cwp-table')) return false;
   if (['date','time','datetime-local','checkbox','email','tel','search'].includes(el.type)) return false;
   if (el.classList?.contains('no-currency') || el.dataset?.currency === 'false') return false;
-  if (el.closest('#prayer-body') && /scripture/i.test([el.placeholder, el.getAttribute('oninput'), el.className].join(' '))) return false;
-  const ths = Array.from(el.closest('table')?.querySelectorAll('th') || []).map(th => th.textContent || '').join(' ');
-  const sig = [el.id, el.name, el.placeholder, el.className, el.getAttribute('oninput'), ths].join(' ').toLowerCase();
-  if (/\b(scripture|bible|verse|passage|reference)\b/.test(sig)) return false;
-  if (/\b(kid|kids|child|children|count|quantity|qty|guest count|headcount|table #|table number)\b/.test(sig) && !/\b(cost|price|amount|budget|paid|payment|deposit|balance|quote|rate|actual|value|total|fee)\b/.test([el.id, el.name, el.placeholder, el.className, el.getAttribute('oninput')].join(' ').toLowerCase())) return false;
-  return /cost|price|amount|budget|paid|payment|deposit|balance|quote|rate|actual|value|total|fee/.test(sig);
+  if (el.classList?.contains('payment-money') || el.dataset?.currency === 'true') return true;
+  /* Judge only THIS cell's column header + the input's own attrs.
+     Do NOT scan every <th> in the table (a money column elsewhere would
+     mark every text cell as currency), and do NOT read oninput — nearly
+     every handler contains `this.value`, which falsely matched the
+     currency keyword `value` and stripped letters on focus (Newlywed
+     Homecoming Item / Name-change Task columns). */
+  const cell = el.closest('td, th');
+  const row = cell && cell.parentElement;
+  const colIndex = (row && cell) ? Array.prototype.indexOf.call(row.children, cell) : -1;
+  const headRow = el.closest('table')?.querySelector('thead tr:not(.bulk-table-row)');
+  const colTh = (colIndex >= 0 && headRow && headRow.children[colIndex])
+    ? String(headRow.children[colIndex].textContent || '')
+    : '';
+  const ownSig = [el.id, el.name, el.placeholder, el.className, colTh].join(' ').toLowerCase();
+  if (/\b(scripture|bible|verse|passage|reference)\b/.test(ownSig)) return false;
+  const moneyRe = /\b(cost|price|amount|budget|paid|payment|deposit|balance|quote|rate|actual|value|total|fee)\b/;
+  if (/\b(kid|kids|child|children|count|quantity|qty|guest count|headcount|table #|table number)\b/.test(ownSig) && !moneyRe.test(ownSig)) return false;
+  return moneyRe.test(ownSig);
 }
 function stripCurrencyDisplay(value){
   return String(value ?? '').replace(/[^0-9.-]/g,'');
