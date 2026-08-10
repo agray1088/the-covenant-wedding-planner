@@ -13643,6 +13643,40 @@ function recordEditorTitle(key){
     vendorCompare:'Vendor Comparison Row', attire:'Attire Item', decor:'Decor Item', stationery:'Stationery Item'
   }[key] || 'Record');
 }
+/* Match the page’s “+ Add …” wording when available; otherwise derive from the record title. */
+function recordEditorAddNewLabel(key){
+  try {
+    const d = (typeof CWP !== 'undefined' && CWP.TABLES) ? CWP.TABLES[key] : null;
+    if (d && d.addLabel) return d.addLabel;
+  } catch (e) { /* ignore */ }
+  const title = recordEditorTitle(key);
+  return '+ Add ' + String(title || 'record').toLowerCase();
+}
+/* Open a blank record of the same type from inside the full-editor popout.
+   Saves the current draft first when dirty (same pattern as Prev/Next). */
+async function recordEditorAddNew(){
+  if (!recordEditorState) return;
+  if (typeof isSmartCalendarWorkspaceEditor === 'function' && isSmartCalendarWorkspaceEditor(recordEditorState)) {
+    if (typeof smartCalendarWorkspaceCreate === 'function') smartCalendarWorkspaceCreate('appointment');
+    return;
+  }
+  const key = recordEditorState.key;
+  if (recordEditorState.isNew) {
+    saveRecordEditor(true);
+    return;
+  }
+  if (recordEditorIsDirty()) {
+    const saveFirst = await covConfirm(
+      'Save your changes before adding a new entry? Choose OK to save and continue, or Cancel to stay on this entry.',
+      { title: 'Save changes?', okText: 'Save & continue', cancelText: 'Stay' }
+    );
+    if (!saveFirst) return;
+    const saved = saveRecordEditor(false, { keepOpen: true });
+    if (!saved) return;
+  }
+  openRecordEditor(key);
+}
+window.recordEditorAddNew = recordEditorAddNew;
 function syncRecordEditorChrome(overlay){
   if (!overlay) return;
   overlay.querySelectorAll('.record-editor-actions .m-btn, .record-editor-actions-left .m-btn, .record-editor-actions-right .m-btn, .re-content-actions .m-btn').forEach(btn => {
@@ -13845,11 +13879,12 @@ function recordEditorRenderRail(){
     const newLabel = `New ${title.toLowerCase()}`;
     list.innerHTML = `<button type="button" class="re-rail-item is-active" disabled title="${escapeHtml(newLabel)}">
       <span class="re-rail-item-name">${escapeHtml(newLabel)}</span>
-    </button>`;
+    </button>
+    <button type="button" class="re-rail-add" onclick="recordEditorAddNew()">${escapeHtml(recordEditorAddNewLabel(key))}</button>`;
     return;
   }
   const shown = meta.indices.slice(0, 40);
-  list.innerHTML = shown.map(i => {
+  list.innerHTML = (shown.map(i => {
     const row = rows[i];
     const name = recordEditorDisplayName(key, row, false);
     const side = recordEditorSiblingMetaLabel(key, row);
@@ -13859,7 +13894,8 @@ function recordEditorRenderRail(){
       <span class="re-rail-item-name">${escapeHtml(name)}</span>
       ${side ? `<span class="re-rail-item-meta">${escapeHtml(side)}</span>` : ''}
     </button>`;
-  }).join('') || `<div class="re-rail-empty">No sibling records</div>`;
+  }).join('') || `<div class="re-rail-empty">No sibling records</div>`)
+    + `<button type="button" class="re-rail-add" onclick="recordEditorAddNew()">${escapeHtml(recordEditorAddNewLabel(key))}</button>`;
 }
 async function recordEditorJumpTo(index){
   if (!recordEditorState || recordEditorState.isNew) return;
@@ -14024,9 +14060,16 @@ function recordEditorDecorateFullShell(){
       addAnother.textContent = '+ New appointment';
       addAnother.setAttribute('onclick', "smartCalendarWorkspaceCreate('appointment')");
     } else {
-      addAnother.style.display = isNew ? '' : 'none';
-      addAnother.textContent = 'Save & add another';
-      addAnother.setAttribute('onclick', 'saveRecordEditor(true)');
+      /* Always offer add-from-editor: Save & add another while composing a
+         new draft; otherwise a page-style “+ Add …” that opens a blank record. */
+      addAnother.style.display = '';
+      if (isNew) {
+        addAnother.textContent = 'Save & add another';
+        addAnother.setAttribute('onclick', 'saveRecordEditor(true)');
+      } else {
+        addAnother.textContent = recordEditorAddNewLabel(key);
+        addAnother.setAttribute('onclick', 'recordEditorAddNew()');
+      }
     }
   }
   if (prev) prev.style.display = isCalWs ? 'none' : '';
@@ -17324,6 +17367,24 @@ function budgetItemEditorUpdateSaveState(){
   const text = el.querySelector('span') || el;
   text.textContent = dirty ? 'Unsaved changes' : 'Saved';
 }
+async function budgetItemEditorAddNew(){
+  const st = budgetItemEditorState;
+  if (!st) return;
+  if (st.isNew) {
+    saveBudgetItemEditor(true);
+    return;
+  }
+  if (budgetItemDirty()) {
+    const saveFirst = await covConfirm(
+      'Save your changes before adding a new line item? Choose OK to save and continue, or Cancel to stay here.',
+      { title: 'Save changes?', okText: 'Save & continue', cancelText: 'Stay' }
+    );
+    if (!saveFirst) return;
+    if (!saveBudgetItemEditor(false, { keepOpen: true })) return;
+  }
+  openBudgetItemEditor(st.ci, null);
+}
+window.budgetItemEditorAddNew = budgetItemEditorAddNew;
 function budgetItemEditorRenderRail(){
   const list = document.getElementById('budget-item-sibling-list');
   const label = document.getElementById('budget-item-rail-label');
@@ -17335,10 +17396,11 @@ function budgetItemEditorRenderRail(){
   if (st.isNew) {
     list.innerHTML = `<button type="button" class="re-rail-item is-active" disabled title="New line item">
       <span class="re-rail-item-name">New line item</span>
-    </button>`;
+    </button>
+    <button type="button" class="re-rail-add" onclick="budgetItemEditorAddNew()">+ Add line item</button>`;
     return;
   }
-  list.innerHTML = items.slice(0, 40).map((it, i) => {
+  list.innerHTML = (items.slice(0, 40).map((it, i) => {
     const name = it.name || 'Untitled line';
     const side = fmt(budgetItemActual(it));
     const active = i === visibleIndex ? ' is-active' : '';
@@ -17346,7 +17408,8 @@ function budgetItemEditorRenderRail(){
       <span class="re-rail-item-name">${escapeHtml(name)}</span>
       <span class="re-rail-item-meta">${escapeHtml(side)}</span>
     </button>`;
-  }).join('') || '<div class="re-rail-empty">No other line items</div>';
+  }).join('') || '<div class="re-rail-empty">No other line items</div>')
+    + `<button type="button" class="re-rail-add" onclick="budgetItemEditorAddNew()">+ Add line item</button>`;
 }
 function budgetItemEditorBuildJumpList(){
   const jump = document.getElementById('budget-item-jump-list');
@@ -17424,7 +17487,16 @@ function renderBudgetItemEditor(){
   if (sub) sub.hidden = true;
   if (pills) pills.innerHTML = budgetItemEditorPillsHtml();
   if (del) del.style.display = st.isNew ? 'none' : '';
-  if (addAnother) addAnother.style.display = st.isNew ? '' : 'none';
+  if (addAnother) {
+    addAnother.style.display = '';
+    if (st.isNew) {
+      addAnother.textContent = 'Save & add another';
+      addAnother.setAttribute('onclick', 'saveBudgetItemEditor(true)');
+    } else {
+      addAnother.textContent = '+ Add line item';
+      addAnother.setAttribute('onclick', 'budgetItemEditorAddNew()');
+    }
+  }
   if (saveClose) saveClose.textContent = st.isNew ? 'Add & close' : 'Save & close';
   updateBudgetItemEditorNav();
   budgetItemEditorRenderRail();
