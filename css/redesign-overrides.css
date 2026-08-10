@@ -914,6 +914,57 @@ body.rd-scope [id^="panel-"] .rd-viewswitch > button.active {
   font-size: var(--type-meta) !important;
   color: var(--text-muted) !important;
 }
+/* Left-align every page-top stat strip (all categories). Beats
+   body.editorial-v4 .m-stat { text-align: center } and
+   body.editorial-v4 #main .panel .m-stats { justify-content: center }.
+   Tasks/Guests/Budget already opted in per-panel; this covers Vendors,
+   Covenant, Documents, The Day, Overview, and the rest. */
+#main#main .m-stats,
+#main#main .rd-stats,
+#main#main .ued-band,
+#main#main [id$="-stats"].m-stats,
+#main#main [id$="-stats"].rd-stats,
+#main#main [id$="-stats"] {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+#main#main .m-stat,
+#main#main .rd-stat,
+#main#main .ued-stat,
+#main#main button.rd-stat,
+#main#main button.m-stat {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+#main#main .m-stat-top,
+#main#main .rd-stat .m-stat-top {
+  justify-content: flex-start !important;
+}
+#main#main .m-stat-label,
+#main#main .m-stat-val,
+#main#main .m-stat-sub,
+#main#main .rd-stat__label,
+#main#main .rd-stat__value,
+#main#main .rd-stat__note,
+#main#main .ued-stat-label,
+#main#main .ued-stat-val {
+  text-align: left !important;
+}
+body.editorial-v4 #main .panel .m-stats,
+body.editorial-v4 #main .panel .rd-stats,
+body.editorial-v4 #main .panel .ued-band,
+body.editorial-v4 #main .panel [id$="-stats"] {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+body.editorial-v4 #main .panel .m-stat,
+body.editorial-v4 #main .panel .rd-stat,
+body.editorial-v4 #main .panel .ued-stat {
+  text-align: left !important;
+}
+body.editorial-v4 #main .panel .m-stat-top {
+  justify-content: flex-start !important;
+}
 /* icons never appear in a stat strip, a table header or a table cell */
 #main#main .ued-stat svg, #main#main .rd-stat svg,
 #main#main .m-stat svg, #main#main .m-stat-top svg,
