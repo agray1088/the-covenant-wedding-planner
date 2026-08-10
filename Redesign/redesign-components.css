@@ -78,9 +78,10 @@
 .ued-btn:hover, .rd-btn:hover { background: var(--surface-raised); border-color: var(--border-strong); }
 .ued-btn:focus-visible, .rd-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
 
-/* primary — ONE per view. Forest fill, never gold. */
+/* primary — ONE per view. Forest fill, never gold. Same 28px / 12px size as chips. */
 .ued-btn.primary, .rd-btn--primary {
   background: var(--forest); border-color: var(--forest); color: var(--text-on-dark);
+  font-weight: 600;
 }
 .ued-btn.primary:hover, .rd-btn--primary:hover {
   background: var(--forest-deep); border-color: var(--text-heading);

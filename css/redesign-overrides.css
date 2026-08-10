@@ -436,11 +436,23 @@ body.rd-scope #panel-tasks .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-
   overflow: visible !important;
 }
 
-/* ?? 4. BUTTONS ???????????????????????????????????????????????????????????? */
+/* ?? 4. BUTTONS — same height + type as filter-bar chips (Auto-fit columns) */
 #main#main .ued-btn,
 #main#main .rd-btn,
 #main#main .cwp-btn,
-#main#main .m-btn {
+#main#main .m-btn,
+#main#main .btn:not([role="switch"]):not(.pd-switch):not(.rd-gaps-switch),
+#main#main .btn-sm,
+#main#main .btn-forest,
+#main#main .btn-outline,
+#main#main .btn-gold,
+body.rd-scope .rd-set__btn,
+body.rd-scope .rd-pd__foot-primary,
+body.rd-scope .rd-pd__foot-secondary,
+body.rd-scope .pd-mini,
+body.rd-scope .pd-custom-colors,
+body.rd-scope .tb-actions .btn,
+body.rd-scope #theme-builder-overlay .btn {
   height: var(--component-button-height) !important;
   min-height: var(--component-button-height) !important;
   padding: var(--btn-pad-y) var(--btn-pad-x) !important;
@@ -448,13 +460,20 @@ body.rd-scope #panel-tasks .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-
   font-size: var(--btn-font-size) !important;
   font-weight: var(--btn-font-weight) !important;
   line-height: 1 !important;
-  background-color: var(--surface-content) !important;
-  border: 1px solid var(--border-control) !important;
-  color: var(--text-body) !important;
   box-shadow: none !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  gap: 6px !important;
+  box-sizing: border-box !important;
+}
+#main#main .ued-btn,
+#main#main .rd-btn,
+#main#main .cwp-btn,
+#main#main .m-btn {
+  background-color: var(--surface-content) !important;
+  border: 1px solid var(--border-control) !important;
+  color: var(--text-body) !important;
 }
 #main#main .ued-btn:hover,
 #main#main .rd-btn:hover,
@@ -465,13 +484,18 @@ body.rd-scope #panel-tasks .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-
 /* exactly one primary per view ? forest fill, never gold */
 #main#main .ued-btn.primary,
 #main#main .ued-btn--primary,
-#main#main .rd-btn--primary {
+#main#main .rd-btn--primary,
+#main#main .btn-forest,
+body.rd-scope .btn-forest {
   background-color: var(--forest) !important;
   border-color: var(--forest) !important;
   color: var(--text-on-dark) !important;
+  font-weight: 600 !important;
 }
 #main#main .ued-btn.primary:hover,
-#main#main .rd-btn--primary:hover { background-color: var(--forest-deep) !important; }
+#main#main .rd-btn--primary:hover,
+#main#main .btn-forest:hover,
+body.rd-scope .btn-forest:hover { background-color: var(--forest-deep) !important; }
 #main#main .m-btn-quiet,
 #main#main .rd-btn--quiet {
   background-color: transparent !important;
@@ -489,6 +513,7 @@ body.rd-scope #panel-tasks .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-
   padding: var(--btn-toolbar-pad-y) var(--btn-toolbar-pad-x) !important;
   font-family: var(--font-ui) !important;
   font-size: var(--btn-toolbar-font-size) !important;
+  font-weight: 400 !important;
   background-color: var(--surface-content) !important;
   border: 1px solid var(--border-control) !important;
   color: var(--text-body) !important;
@@ -2284,9 +2309,11 @@ body.editorial-v4 .record-editor-overlay .re-content-actions {
 body.editorial-v4 .record-editor-overlay .re-content-actions .rd-btn,
 body.editorial-v4 .record-editor-overlay .re-content-actions .ued-btn,
 body.editorial-v4 .record-editor-overlay .re-content-foot .rd-btn {
-  height: 32px !important;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
   font-family: var(--font-ui) !important;
-  font-size: 13px !important;
+  font-size: var(--btn-font-size) !important;
+  font-weight: var(--btn-font-weight) !important;
   border-radius: 0 !important;
 }
 body.editorial-v4 .record-editor-overlay .record-editor-body {
@@ -2776,9 +2803,10 @@ body.rd-scope #panel-calendar .rd-toolbar__select {
   max-width: 11rem;
 }
 body.rd-scope #panel-calendar .rd-toolbar .rd-chip {
-  height: 32px;
+  height: var(--component-chip-height);
   border-radius: 0 !important;
   font-family: var(--font-ui) !important;
+  font-size: var(--btn-toolbar-font-size) !important;
 }
 body.rd-scope #panel-calendar .smart-month-nav {
   display: inline-flex;
@@ -3251,8 +3279,8 @@ body.rd-scope #panel-calendar .cal-conflict-box__actions {
 body.rd-scope #panel-calendar .cal-conflict-box__actions .rd-btn {
   border-radius: 0 !important;
   font-family: var(--font-ui) !important;
-  height: 30px;
-  font-size: 12px;
+  height: var(--component-button-height);
+  font-size: var(--btn-font-size);
 }
 body.rd-scope #panel-calendar .cal-day-entries {
   display: flex;
@@ -7936,10 +7964,10 @@ body.rd-scope #record-drawer.is-guest-drawer .rd-drawer__toolbar,
 body.rd-scope #record-drawer.is-guest-drawer .rd-drawer__toolbar .rd-btn,
 #main#main #record-drawer.is-guest-drawer .rd-drawer__toolbar .rd-btn {
   flex: 1 1 0 !important;
-  height: 32px !important;
-  min-height: 32px !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  font-size: var(--btn-font-size) !important;
+  font-weight: var(--btn-font-weight) !important;
 }
 body.rd-scope #record-drawer.is-guest-drawer .rd-drawer__toolbar .rd-btn--primary,
 #main#main #record-drawer.is-guest-drawer .rd-drawer__toolbar .rd-btn--primary {
@@ -21299,8 +21327,12 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 .rd-set__note--amber { background: #fff7df; border-color: #e7ce80; color: #8a640f; }
 .rd-set__note b { color: inherit; }
 .rd-set__btn {
-  padding: 7px 14px; background: #2D4A3E; color: #F4EFE6; border: 0;
-  font-size: 12.5px; font-weight: 600; cursor: pointer;
+  padding: 0 11px; height: var(--component-button-height, 28px);
+  background: #2D4A3E; color: #F4EFE6; border: 0;
+  font-size: var(--btn-font-size, 12px); font-family: var(--font-ui);
+  font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box;
 }
 .rd-set__btn--danger { background: #fbeeec; color: #9c3b34; border: 1px solid #f0d3ce; }
 .rd-set__link {
@@ -21487,7 +21519,8 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
   border: 1px solid #d9cfba; background: #fff; font: inherit; color: #3f3b34;
 }
 .rd-pd__foot-primary, .rd-pd__foot-secondary {
-  flex: 1; text-align: center; height: 32px; line-height: 32px; font-size: 13px; cursor: pointer; border: 0;
+  flex: 1; text-align: center; height: var(--component-button-height, 28px); line-height: 1;
+  font-size: var(--btn-font-size, 12px); font-family: var(--font-ui); cursor: pointer; border: 0;
 }
 .rd-pd__foot-primary { background: #2D4A3E; color: #F4EFE6; font-weight: 600; }
 .rd-pd__foot-secondary { border: 1px solid #d9cfba; background: #fff; font-weight: 500; color: #3f3b34; }
