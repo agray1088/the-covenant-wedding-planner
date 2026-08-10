@@ -31793,9 +31793,16 @@ function openShotPeoplePicker(entity, id, btn){
     }).join('') : '<p class="spp-empty">Add guests on the Guest List first, then pick names here.</p>')
     + '</div><div class="spp-actions"><button type="button" class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="closeShotPeoplePicker()">Cancel</button><button type="button" class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="addShotPeoplePicker()">Add</button></div>';
   document.body.appendChild(pop);
-  const rect = btn.getBoundingClientRect();
-  pop.style.top = (window.scrollY + rect.bottom + 6) + 'px';
-  pop.style.left = Math.min(window.scrollX + rect.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 12) + 'px';
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 280, gap: 6, zIndex: 12000 });
+  } else {
+    const rect = btn.getBoundingClientRect();
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    const w = Math.max(pop.offsetWidth || 0, 280);
+    pop.style.top = (rect.bottom + 6) + 'px';
+    pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - w - 12)) + 'px';
+  }
   setTimeout(() => document.addEventListener('mousedown', shotPeoplePickerOutside, true), 0);
 }
 function addShotPeoplePicker(){
@@ -39456,14 +39463,18 @@ function guestFilterOutside(ev){
 }
 function positionGuestMenu(pop, btn){
   if (!pop || !btn || !btn.getBoundingClientRect) return;
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { minWidth: 180, gap: 4, zIndex: 12000 });
+    return;
+  }
   const r = btn.getBoundingClientRect();
-  pop.style.position = 'absolute';
+  pop.style.position = 'fixed';
+  pop.style.display = 'inline-block';
+  pop.style.width = 'max-content';
   pop.style.zIndex = '12000';
-  let left = window.scrollX + r.left;
-  const maxLeft = window.scrollX + document.documentElement.clientWidth - Math.max(pop.offsetWidth, 180) - 8;
-  if (left > maxLeft) left = Math.max(window.scrollX + 8, maxLeft);
-  pop.style.top = (window.scrollY + r.bottom + 4) + 'px';
-  pop.style.left = left + 'px';
+  const w = Math.max(pop.offsetWidth || 0, 180);
+  pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+  pop.style.top = (r.bottom + 4) + 'px';
 }
 function openGuestFilter(field, btn){
   closeGuestFilterMenu();
@@ -45011,10 +45022,16 @@ function mountAllTabs(root){
         return '<label class="cfp-item" data-val="'+attr(String(v).toLowerCase())+'"><input type="checkbox" value="'+attr(v)+'" '+(checked?'checked':'')+' onchange="cwpColFilterToggle(\''+key+'\',\''+colKey+'\',this.value,this.checked)"> '+label+'</label>'; }).join('')+'</div>'
       +'<div class="cfp-actions"><button type="button" class="cfp-btn" onclick="cwpColFilterClear(\''+key+'\',\''+colKey+'\')">Clear</button><button type="button" class="cfp-btn cfp-btn-primary" onclick="cwpCloseColFilter()">Done</button></div>';
     document.body.appendChild(pop);
-    const r=btn.getBoundingClientRect(); let left=window.scrollX+r.left;
-    const maxLeft=window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-8;
-    if(left>maxLeft) left=Math.max(window.scrollX+8,maxLeft);
-    pop.style.top=(window.scrollY+r.bottom+4)+'px'; pop.style.left=left+'px';
+    if (typeof window.rdAnchorToButton === 'function') {
+      window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 236, gap: 4, zIndex: 2147483600 });
+    } else {
+      pop.style.position = 'fixed';
+      pop.style.display = 'inline-block';
+      const r = btn.getBoundingClientRect();
+      const w = Math.max(pop.offsetWidth || 0, 236);
+      pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+      pop.style.top = (r.bottom + 4) + 'px';
+    }
     setTimeout(()=>document.addEventListener('mousedown', colFilterOutside, true),0);
   };
   window.cwpColFilterToggle=(key,colKey,val,on)=>{ const s=st(key); if(!s.colf[colKey]) s.colf[colKey]=new Set(distinctValues(key,colKey)); if(on) s.colf[colKey].add(val); else s.colf[colKey].delete(val); if(s.colf[colKey].size===distinctValues(key,colKey).length) delete s.colf[colKey]; s.page=0; renderRows(key); };
@@ -45442,9 +45459,17 @@ function openFieldPicker(input, getOptions, cfg){
     it.addEventListener('mousedown', function(ev){ ev.preventDefault(); pickFieldOption(it.getAttribute('data-val')); });
   });
   var r = input.getBoundingClientRect();
-  pop.style.top = (window.scrollY + r.bottom + 2) + 'px';
-  pop.style.left = (window.scrollX + r.left) + 'px';
-  pop.style.minWidth = Math.max(180, r.width) + 'px';
+  var minW = Math.max(180, r.width);
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, input, { minWidth: minW, gap: 2, zIndex: 2147483600 });
+  } else {
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    pop.style.width = 'max-content';
+    pop.style.minWidth = minW + 'px';
+    pop.style.top = (r.bottom + 2) + 'px';
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - minW - 8)) + 'px';
+  }
 }
 function pickFieldOption(val){
   var s = _fpState, input = s.input; if(!input) return;
@@ -45684,10 +45709,16 @@ PT.openColFilter = function(key, field, btn){
       }).join('') + '</div>'
     + '<div class="cfp-actions"><button type="button" class="cfp-btn" onclick="PT.colClear(\''+key+'\',\''+field+'\')">Clear</button><button type="button" class="cfp-btn cfp-btn-primary" onclick="PT.closeColFilter()">Done</button></div>';
   document.body.appendChild(pop);
-  var r = btn.getBoundingClientRect(), left = window.scrollX + r.left;
-  var maxLeft = window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 8;
-  if(left > maxLeft) left = Math.max(window.scrollX + 8, maxLeft);
-  pop.style.top = (window.scrollY + r.bottom + 4) + 'px'; pop.style.left = left + 'px';
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 236, gap: 4, zIndex: 2147483600 });
+  } else {
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    var r = btn.getBoundingClientRect();
+    var w = Math.max(pop.offsetWidth || 0, 236);
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+    pop.style.top = (r.bottom + 4) + 'px';
+  }
   setTimeout(function(){ document.addEventListener('mousedown', PT._colOutside, true); }, 0);
 };
 PT.cfpFilter = function(q){ q = (q||'').toLowerCase(); document.querySelectorAll('#pt-col-pop .cfp-list .cfp-item').forEach(function(it){ it.style.display = (!q || (it.getAttribute('data-val')||'').indexOf(q) !== -1) ? '' : 'none'; }); };
