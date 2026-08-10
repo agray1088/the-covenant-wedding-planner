@@ -2593,7 +2593,7 @@
     return '<div class="rd-rail__stack" data-page-rail="vision">' + viewsHtml + metersHtml + noteHtml + '</div>';
   }
 
-  /* All.dc #13d — First-Month Rhythms. */
+  /* All.dc #13d — First-Month Rhythms. Views · Since the wedding · Group by. */
   function buildFirstmonthContext() {
     var activeView = 'all';
     if (typeof getSavedView === 'function') activeView = getSavedView('firstmonth', 'all');
@@ -2603,7 +2603,7 @@
       all: 0, daily: 0, weekly: 0, monthly: 0, yearly: 0
     };
     var figures = typeof window.fmFigures === 'function' ? window.fmFigures() : {
-      keptThisMonth: 0, rhythms: 0, streaks: 0
+      keptThisMonth: 0, rhythms: 0, longestStreak: '—', startsLong: '—', review: 'Every anniversary'
     };
     var groupBy = window._fmGroupBy || 'cadence';
     function viewItem(id, label, count) {
@@ -2612,21 +2612,32 @@
         '<span class="rd-rail__count">' + count + '</span></button>';
     }
     var viewsHtml =
-      '<div class="rd-rail__section"><div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div><div class="rd-rail__list" role="list">' +
+      '<div class="rd-rail__section"><div class="rd-rail__title">Views<button type="button" class="rd-rail__add" onclick="rdFmAdd()" aria-label="Add rhythm">+</button></div><div class="rd-rail__list" role="list">' +
       viewItem('all', 'All rhythms', counts.all || 0) +
       viewItem('daily', 'Daily', counts.daily || 0) +
       viewItem('weekly', 'Weekly', counts.weekly || 0) +
       viewItem('monthly', 'Monthly', counts.monthly || 0) +
       viewItem('yearly', 'Yearly', counts.yearly || 0) +
       '</div></div>';
+    var keptPct = (figures.rhythms || 0) > 0
+      ? Math.round(((figures.keptThisMonth || 0) / figures.rhythms) * 100)
+      : 0;
     var metersHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Since the wedding</div><div class="rd-rail__meters">' +
-      '<div class="rd-rail__meter-top"><span>Kept this month</span><span class="rd-rail__count">' + (figures.keptThisMonth || 0) + ' of ' + (figures.rhythms || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Longest streak</span><span class="rd-rail__count">' + (figures.streaks || 0) + ' weeks</span></div>' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Kept this month</span><span class="rd-rail__count">' +
+      (figures.keptThisMonth || 0) + ' of ' + (figures.rhythms || 0) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + keptPct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Longest streak</span><span class="rd-rail__count">' +
+      esc(figures.longestStreak || figures.streaks || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Starts</span><span class="rd-rail__count">' +
+      esc(figures.startsLong || figures.beginsLong || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Review</span><span class="rd-rail__count">' +
+      esc(figures.review || 'Every anniversary') + '</span></div>' +
       '</div></div>';
     function groupItem(id, label) {
       return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
-        ' onclick="applyFirstmonthGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+        ' onclick="applyFirstmonthGroupBy(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count"></span></button>';
     }
     var groupHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
