@@ -30651,6 +30651,9 @@ function updateTable(i, key, val) {
       data.tables[i].capacity = preset.capacity;
     }
   }
+  /* Shape is owned by Size & Shape (preset). A direct shape change means
+     custom geometry — clear preset so normalizeTableRecord cannot fight back. */
+  if (key === 'shape') data.tables[i].preset = '';
   data.tables[i][key] = val;
   if (key === 'name') {
     if (!data.tables[i].type) data.tables[i].type = inferTableType(val);
@@ -30730,7 +30733,7 @@ function tablePresetGuide(value){
     half:'Half-round tables work well as sweetheart/VIP tables or against walls when you want a softer shape without a full round footprint.',
     square:'Square tables feel modern and balanced, giving each guest an equal position around the table.',
     serpentine:'Serpentine tables create curves, waves, buffet stations, dessert displays, or a more dramatic reception flow.',
-    custom:'Choose a preset size above, then adjust capacity or shape if your rental company uses a custom table.'
+    custom:'Choose a preset size above. Floor-plan size and round/rectangle shape follow that preset; use Custom only when your rental uses a non-standard table.'
   };
   return guides[family] || guides.custom;
 }
@@ -31285,9 +31288,8 @@ function renderTables() {
     const vip = tableIsVip(t);
     const typeOptions = ['guest','head','sweetheart','parents'].map(opt => `<option value="${opt}" ${type===opt?'selected':''}>${opt==='guest'?'Guest Table':opt==='head'?'Head Table':opt==='sweetheart'?'Sweetheart Table':'Parents Table'}</option>`).join('');
     const presetOptions = tablePresetOptions(t.preset || '');
-    const shapeOptions = ['circle','rect'].map(opt => `<option value="${opt}" ${(t.shape||'circle')===opt?'selected':''}>${opt==='circle'?'Round / Circle':'Rectangle / Square'}</option>`).join('');
     const facingOptions = ['down','up','left','right'].map(opt => `<option value="${opt}" ${(t.facing||'down')===opt?'selected':''}>Chairs ${opt}</option>`).join('');
-    return `<div class="table-card card ${vip ? 'vip-table-card' : ''}"><div class="table-card-head"><span class="table-card-head-left">${vip ? `<span class="table-card-crown" title="VIP table">${tableCrownSvg()}</span>` : ''}<span class="table-label-display">${escapeHtml(tableLabel(t.name))}</span></span>${plannerTrashButton(`removeTable(${t._i})`,'Remove table')}</div><label class="table-name-edit">Name / number <input class="table-name-input" type="text" value="${escapeHtml(t.name)}" oninput="updateTable(${t._i},'name',this.value)"></label><div class="table-seat-row"><span class="table-count ${over ? 'over' : ''}">${count} of ${cap || '?'} seated</span><label class="table-cap">Seats <input type="number" min="1" value="${cap || ''}" oninput="updateTable(${t._i},'capacity',this.value)"></label></div><div class="progress-track ued-track"><span style="width:${pct}%"></span></div><div class="table-card-controls"><label>Table Type<select onchange="updateTable(${t._i},'type',this.value)">${typeOptions}</select></label><label>Size & Shape<select onchange="updateTable(${t._i},'preset',this.value)">${presetOptions}</select></label><label>Shape Override<select onchange="updateTable(${t._i},'shape',this.value)">${shapeOptions}</select></label><label>Chair Side<select onchange="updateTable(${t._i},'facing',this.value)">${facingOptions}</select></label><label class="table-vip-toggle"><input type="checkbox" ${vip?'checked':''} onchange="updateTable(${t._i},'vip',this.checked)"> VIP Table</label></div><div class="v4-help-note">${escapeHtml(tablePresetGuide(t.preset))}</div><input class="table-placement" type="text" value="${escapeHtml(t.placement || '')}" placeholder="Placement note - e.g. near dance floor" oninput="updateTable(${t._i},'placement',this.value)"><div class="table-guests">${people.length ? people.map(chip).join('') : '<span class="table-empty">No guests assigned yet</span>'}</div></div>`;
+    return `<div class="table-card card ${vip ? 'vip-table-card' : ''}"><div class="table-card-head"><span class="table-card-head-left">${vip ? `<span class="table-card-crown" title="VIP table">${tableCrownSvg()}</span>` : ''}<span class="table-label-display">${escapeHtml(tableLabel(t.name))}</span></span>${plannerTrashButton(`removeTable(${t._i})`,'Remove table')}</div><label class="table-name-edit">Name / number <input class="table-name-input" type="text" value="${escapeHtml(t.name)}" oninput="updateTable(${t._i},'name',this.value)"></label><div class="table-seat-row"><span class="table-count ${over ? 'over' : ''}">${count} of ${cap || '?'} seated</span><label class="table-cap">Seats <input type="number" min="1" value="${cap || ''}" oninput="updateTable(${t._i},'capacity',this.value)"></label></div><div class="progress-track ued-track"><span style="width:${pct}%"></span></div><div class="table-card-controls"><label>Table Type<select onchange="updateTable(${t._i},'type',this.value)">${typeOptions}</select></label><label>Size & Shape<select onchange="updateTable(${t._i},'preset',this.value)">${presetOptions}</select></label><label>Chair Side<select onchange="updateTable(${t._i},'facing',this.value)">${facingOptions}</select></label><label class="table-vip-toggle"><input type="checkbox" ${vip?'checked':''} onchange="updateTable(${t._i},'vip',this.checked)"> VIP Table</label></div><div class="v4-help-note">${escapeHtml(tablePresetGuide(t.preset))}</div><input class="table-placement" type="text" value="${escapeHtml(t.placement || '')}" placeholder="Placement note - e.g. near dance floor" oninput="updateTable(${t._i},'placement',this.value)"><div class="table-guests">${people.length ? people.map(chip).join('') : '<span class="table-empty">No guests assigned yet</span>'}</div></div>`;
   }).join('');
   renderTableMap();
 }
@@ -31337,7 +31339,21 @@ function renderTableMap() {
   if (changed) save();
   if (typeof wireSeatingDragDrop === 'function') wireSeatingDragDrop();
 }
-function toggleTableShape(idx) { data.tables[idx].shape = (data.tables[idx].shape === 'rect') ? 'circle' : 'rect'; save(); renderTableMap(); }
+function toggleTableShape(idx) {
+  const t = data.tables[idx];
+  if (!t) return;
+  t.shape = (t.shape === 'rect') ? 'circle' : 'rect';
+  /* Floor-plan toggle is a custom override — drop the size preset so
+     normalizeTableRecord / tableNodeDims stop re-applying the old shape. */
+  t.preset = '';
+  save();
+  renderTableMap();
+  if (typeof window.renderTablesDetailGrid === 'function' && document.getElementById('tables-detail-grid')) {
+    window.renderTablesDetailGrid();
+  } else if (typeof renderTableAssignments === 'function') {
+    renderTableAssignments();
+  }
+}
 function toggleTableRotate(idx) { data.tables[idx].vert = !data.tables[idx].vert; save(); renderTableMap(); }
 function cycleTableFacing(idx) { const order = ['down','left','up','right']; const cur = data.tables[idx]?.facing || 'down'; data.tables[idx].facing = order[(order.indexOf(cur)+1+order.length)%order.length]; save(); renderTableMap(); }
 function startTableDrag(e, idx, node, map) {
