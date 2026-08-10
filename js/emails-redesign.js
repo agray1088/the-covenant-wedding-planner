@@ -517,15 +517,18 @@
   }
 
   function renderInlinePreview(x) {
-    if (!x) return '';
+    if (!x) {
+      return `<section class="rd-et-inline-preview"><p class="rd-help">Select a template to preview the resolved copy beside the table.</p></section>`;
+    }
     const subject = fillPreviewText(x.subject, x);
     const body = fillPreviewText(x.body, x).replace(/\n/g, '<br>');
     const blank = x.fields.find(f => f.blank);
+    const blanks = x.fields.filter(f => f.blank).length;
     return `<section class="rd-et-inline-preview">` +
       `<div class="rd-et-inline-preview__head">` +
       `<div><div class="rd-pagehead__eyebrow">Preview · ${esc(x.title)}</div>` +
-      `<p class="rd-help">Resolved against sample recipient</p></div>` +
-      `<button type="button" class="rd-btn" onclick="rdEtSendTest('${esc(x.id)}')">Send test</button>` +
+      `<p class="rd-help">Resolved against a real record — gold is filled, red is blank.</p></div>` +
+      `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdEtSendTest('${esc(x.id)}')">Send test</button>` +
       `</div>` +
       `<div class="rd-et-letter">` +
       `<div class="rd-et-letter__row"><span>Subject</span><strong>${esc(subject)}</strong></div>` +
@@ -533,7 +536,7 @@
       `<div class="rd-et-letter__body">${body}</div>` +
       `</div>` +
       (blank
-        ? `<div class="rd-et-callout"><strong>1 blank field</strong><p>${esc(blank.token)} is not set on Wedding Setup — fix it before this template can send.</p></div>`
+        ? `<div class="rd-et-callout"><strong>${blanks} blank field${blanks === 1 ? '' : 's'}</strong><p>${esc(blank.token)} is not set on Wedding Setup — fix it before this template can send.</p></div>`
         : '') +
       `<div class="rd-drawer__section-title">Merge fields · ${x.fieldCount}</div>` +
       x.fields.map(f =>
@@ -552,20 +555,23 @@
       return;
     }
     const groups = groupTemplates(items, window._etGroupBy === 'last' ? 'last' : (window._etGroupBy === 'author' ? 'author' : 'audience'));
-    let html = `<table class="rd-et-table"><thead><tr>` +
+    const preview = items.find(x => x.id === window._etPreviewId) || items.find(x => /rsvp reminder/i.test(x.title)) || items[0];
+    window._etPreviewId = preview ? preview.id : null;
+    let table = `<table class="rd-et-table"><thead><tr>` +
       `<th class="rd-et-check"></th><th>Template</th><th>Audience</th><th>Fields</th><th>Sent</th><th>Last used</th><th>Status</th>` +
       `</tr></thead><tbody>`;
     groups.forEach(g => {
       const sent = g.items.reduce((n, x) => n + x.sent, 0);
-      html += `<tr class="rd-et-group"><td colspan="7"><span>${esc(g.key)} · ${g.items.length} template${g.items.length === 1 ? '' : 's'} · ${sent} sent</span></td></tr>`;
+      table += `<tr class="rd-et-group"><td colspan="7"><span>${esc(g.key)} · ${g.items.length} template${g.items.length === 1 ? '' : 's'} · ${sent} sent</span></td></tr>`;
       g.items.forEach(x => {
         const sel = window._etSel.has(x.id);
-        const open = window._etPreviewId === x.id || window._etDrawerId === x.id;
-        html += `<tr class="rd-et-row${sel ? ' is-selected' : ''}${open ? ' is-open' : ''}" onclick="rdEtOpenDrawer('${esc(x.id)}')">` +
+        const open = window._etPreviewId === x.id;
+        table += `<tr class="rd-et-row${sel ? ' is-selected' : ''}${open ? ' is-open' : ''}" onclick="rdEtSelectPreview('${esc(x.id)}')">` +
           `<td class="rd-et-check" onclick="event.stopPropagation();rdEtToggleSel('${esc(x.id)}')">` +
           `<input type="checkbox" ${sel ? 'checked' : ''} aria-label="Select ${esc(x.title)}"></td>` +
           `<td class="rd-et-name">${esc(x.title)}` +
           `<span class="rd-et-row__actions">` +
+          `<button type="button" class="rd-btn rd-btn--quiet" onclick="event.stopPropagation();rdEtSelectPreview('${esc(x.id)}')">Preview</button>` +
           `<button type="button" class="rd-btn rd-btn--quiet" onclick="event.stopPropagation();rdEtOpenDrawer('${esc(x.id)}')">Open</button>` +
           `<button type="button" class="rd-btn rd-btn--quiet" onclick="event.stopPropagation();rdEtFullEditor('${esc(x.id)}')">Full editor</button>` +
           `</span></td>` +
@@ -577,12 +583,15 @@
           `</tr>`;
       });
     });
-    html += `</tbody></table>` +
+    table += `</tbody></table>` +
       `<button type="button" class="rd-et-addbtn" onclick="rdEtAdd()"><span>+</span> New template</button>`;
-    const preview = items.find(x => x.id === window._etPreviewId) || items.find(x => /rsvp reminder/i.test(x.title)) || items[0];
-    window._etPreviewId = preview ? preview.id : null;
-    html += renderInlinePreview(preview);
-    host.innerHTML = html;
+    /* All.dc #12c — preview sits in a 470px column to the right of the table. */
+    host.innerHTML =
+      `<div class="rd-et-split">` +
+      `<div class="rd-et-split__main">${table}</div>` +
+      `<aside class="rd-et-split__preview" id="et-inline-preview-host" aria-label="Template preview">` +
+      renderInlinePreview(preview) +
+      `</aside></div>`;
   }
 
   /* ── Preview view ────────────────────────────────────────────────────── */
@@ -756,6 +765,21 @@
 
   /* ── actions ─────────────────────────────────────────────────────────── */
 
+  function rdEtSelectPreview(id) {
+    window._etPreviewId = id;
+    /* Keep the side preview in view; close the edit drawer if it was covering it. */
+    if (window._etDrawerId) {
+      window._etDrawerId = null;
+      const slot = document.getElementById('emails-drawer-slot');
+      if (slot) {
+        parkSharedDrawerAway(slot);
+        slot.innerHTML = '';
+        slot.classList.remove('is-open');
+      }
+    }
+    if (window._etMode === 'table') renderTableView();
+    else if (window._etMode === 'preview') renderPreviewView();
+  }
   function rdEtOpenDrawer(id) {
     window._etDrawerId = id;
     window._etDrawerTab = 0;
@@ -949,6 +973,7 @@
   window.applyEmailsGroupBy = applyEmailsGroupBy;
   window.etRailCounts = etRailCounts;
   window.etFigures = etFigures;
+  window.rdEtSelectPreview = rdEtSelectPreview;
   window.rdEtOpenDrawer = rdEtOpenDrawer;
   window.rdEtCloseDrawer = rdEtCloseDrawer;
   window.rdEtSetDrawerTab = rdEtSetDrawerTab;
