@@ -284,7 +284,7 @@ body[data-theme="dark"] .rd-table tbody tr:hover { background: #202020; }
 .rd-table tbody tr.is-focused td:nth-child(2) { font-weight: 600; }
 /* group row: sticky under the header, one format everywhere */
 .rd-table tbody tr.is-group td {
-  background: var(--surface-sunken);
+  background: var(--surface-group, var(--surface-sunken));
   padding: 7px 12px;
   font: 700 var(--type-section)/1.4 var(--font-ui);
   letter-spacing: .14em; text-transform: uppercase; color: var(--text-subtle);
