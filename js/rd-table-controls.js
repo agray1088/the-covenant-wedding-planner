@@ -785,6 +785,47 @@
   window.rdEnhanceVisibleTables = enhanceVisible;
   window.rdEnhanceTable = enhanceTable;
 
+  /* Stamp the shared table class so every redesign/custom grid inherits the
+     All.dc forest-header + group-band recipe from redesign-overrides §3. */
+  var PLANNER_TABLE_SEL = [
+    'table.cwp-table', 'table.rd-table', 'table.ued-table',
+    'table.rd-ent-table', 'table.rd-shot-table', 'table.rd-cat-table',
+    'table.rd-wday-table', 'table.rd-hm-table', 'table.rd-vnd-table',
+    'table.rd-vnd-cmp-table', 'table.rd-cou-table', 'table.rd-cou-hwtable',
+    'table.rd-ess-table', 'table.rd-pkt-table', 'table.rd-et-table',
+    'table.rd-mood-table', 'table.rd-dh-table', 'table.rd-notes-table',
+    'table.rd-pc-table', 'table.rd-hh-table', 'table.rd-ct-table',
+    'table.rd-hc-table', 'table.rd-guest-mini-table', 'table.rd-guest-comp-table',
+    'table.rd-guest-hh-table', 'table.rd-bgt-table', 'table.rd-pay-table',
+    'table.rd-con-table', 'table.record-editor-small-table',
+    'table.budget-table', 'table.payment-plan-table'
+  ].join(',');
+
+  function canonicalizePlannerTables(root) {
+    root = root || document;
+    var tables = root.querySelectorAll(PLANNER_TABLE_SEL);
+    Array.prototype.forEach.call(tables, function (table) {
+      if (!table.classList.contains('rd-table')) table.classList.add('rd-table');
+      if (!table.classList.contains('rd-planner-table')) table.classList.add('rd-planner-table');
+    });
+    /* Catch-all: any thead table inside a panel surface that looks like a data grid. */
+    var panels = root.querySelectorAll
+      ? root.querySelectorAll('.panel .rd-surface table, .panel .rd-view table, .panel .ued-table-wrap table, .cwp-mount > table, .rd-table-wrap table')
+      : [];
+    if (root.matches && root.matches('table')) {
+      /* single table root — skip panel scan */
+    } else {
+      Array.prototype.forEach.call(panels, function (table) {
+        if (!table || !table.tHead) return;
+        if (table.closest('.rd-week, .rd-cal, .rd-gantt, .print-sheet, .pv-root')) return;
+        if (!table.classList.contains('rd-table')) table.classList.add('rd-table');
+        if (!table.classList.contains('rd-planner-table')) table.classList.add('rd-planner-table');
+      });
+    }
+    return tables.length;
+  }
+  window.rdCanonicalizePlannerTables = canonicalizePlannerTables;
+
   /* Only after a CWP render, and only when the page does not already own chrome.
      No MutationObserver — it re-injected bars under every redesign toolbar. */
   if (typeof document !== 'undefined') {
@@ -792,9 +833,19 @@
       setTimeout(function () {
         var activeId = document.body.getAttribute('data-active-panel');
         var root = (activeId && document.getElementById('panel-' + activeId)) || document;
+        canonicalizePlannerTables(root);
         removeDuplicateToolbars(root);
         if (!panelHasPageToolbarChrome(root)) enhanceVisible();
       }, 0);
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+      canonicalizePlannerTables(document);
+    });
+    /* After panel switches — redesign pages re-render tables into custom classes. */
+    document.addEventListener('cwp:panel-shown', function (ev) {
+      var id = ev && ev.detail && ev.detail.id;
+      var root = (id && document.getElementById('panel-' + id)) || document;
+      setTimeout(function () { canonicalizePlannerTables(root); }, 0);
     });
   }
 })();
