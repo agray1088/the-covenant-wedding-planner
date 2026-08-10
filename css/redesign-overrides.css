@@ -205,8 +205,8 @@ body.dark-mode #topbar#topbar, body[data-theme="dark"] #topbar#topbar {
 }
 #main#main .cwp-table tbody td > * { vertical-align: middle !important; }
 
-/* Group / category band — All.dc sunken fill #F9F5EF everywhere.
-   Mock: uppercase 10px/700/.14em · #8a7e6b on --surface-sunken.
+/* Group / category band — slightly deeper cream than rail sunken.
+   Fill: --surface-group (#EEE8DE). Type: 10px/700/.14em · #8a7e6b.
    Covers CWP (is-group / cwp-group-row) and every redesign group-row class.
    Residual / danger / risk / over keep page-local exception fills. */
 #main#main .cwp-table tbody tr.is-group:not(.is-group--residual) > td,
@@ -10057,7 +10057,7 @@ body.rd-scope #panel-party .cwp-table tbody tr.is-group td,
 body.rd-scope #panel-party .cwp-table tbody tr.cwp-group-row td,
 #main#main #panel-party .cwp-table tbody tr.is-group td,
 #main#main #panel-party .cwp-table tbody tr.cwp-group-row td {
-  background: var(--surface-sunken, #f9f5ef) !important;
+  background: var(--surface-group, #eee8de) !important;
   padding: 7px 12px !important;
   height: auto !important;
   font-family: var(--font-ui) !important;
@@ -10584,7 +10584,7 @@ body.rd-scope #panel-tables .cwp-table thead th {
   border-bottom: 1px solid var(--gold, #B89968) !important;
 }
 body.rd-scope #panel-tables .cwp-table tbody tr.is-group td {
-  background: #f9f5ef !important;
+  background: var(--surface-group, #eee8de) !important;
   padding: 7px 12px !important;
   font-size: 10px !important;
   font-weight: 700 !important;
@@ -11153,7 +11153,7 @@ body.rd-scope #panel-gifts .cwp-table tbody tr.is-group td,
 body.rd-scope #panel-gifts .cwp-table tbody tr.cwp-group-row td,
 #main#main #panel-gifts .cwp-table tbody tr.is-group td,
 #main#main #panel-gifts .cwp-table tbody tr.cwp-group-row td {
-  background: var(--surface-sunken, #f9f5ef) !important;
+  background: var(--surface-group, #eee8de) !important;
   padding: 7px 12px !important;
   height: auto !important;
   font-size: 10px !important;
@@ -11774,7 +11774,7 @@ body.rd-scope #panel-budget .rd-bgt-addrow td {
 body.rd-scope #panel-budget .rd-bgt-addrow:hover td { color: var(--text-link, #946f33); }
 body.rd-scope #panel-budget .rd-bgt-grouprow td {
   padding: 7px 12px;
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   border-bottom: 1px solid var(--border-subtle);
   font-size: 10px;
   font-weight: 700;
@@ -12588,7 +12588,7 @@ body.rd-scope #panel-payments .rd-pay-nil { color: var(--text-empty, #cfc6b4); }
 body.rd-scope #panel-payments .rd-pay-cat { color: var(--text-link, #946f33); }
 body.rd-scope #panel-payments .rd-pay-grouprow td {
   padding: 7px 12px;
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   border-bottom: 1px solid var(--border-subtle);
   font-size: 10px;
   font-weight: 700;
@@ -13727,7 +13727,7 @@ body.rd-scope #panel-vendors .rd-vnd-table td {
   vertical-align: top;
 }
 body.rd-scope #panel-vendors .rd-vnd-group td {
-  background: #f9f5ef;
+  background: var(--surface-group, #eee8de);
   padding: 7px 12px;
   border-bottom: 1px solid #e7e1d4;
   font-size: 10px;
@@ -14475,7 +14475,7 @@ body.rd-scope #panel-catering .rd-cat-table td {
   vertical-align: top;
 }
 body.rd-scope #panel-catering .rd-cat-group td {
-  background: #f9f5ef;
+  background: var(--surface-group, #eee8de);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .14em;
@@ -14826,7 +14826,7 @@ body.rd-scope #panel-entertainment .rd-ent-table td {
   vertical-align: top;
 }
 body.rd-scope #panel-entertainment .rd-ent-group td {
-  background: #f9f5ef;
+  background: var(--surface-group, #eee8de);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .14em;
@@ -15145,7 +15145,7 @@ body.rd-scope #panel-shotlist .rd-shot-table td {
   vertical-align: top;
 }
 body.rd-scope #panel-shotlist .rd-shot-group td {
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   color: #6b645d;
   font-size: 12px;
   font-weight: 600;
@@ -15512,7 +15512,7 @@ body.rd-scope #panel-timeline .rd-wday-table td {
   vertical-align: top;
 }
 body.rd-scope #panel-timeline .rd-wday-group td {
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   color: #6b645d;
   font-size: 12px;
   font-weight: 600;
@@ -16259,7 +16259,7 @@ body.rd-scope #panel-honeymoon .rd-hm-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-honeymoon .rd-hm-group td {
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -16943,7 +16943,7 @@ body.rd-scope #panel-counseling .rd-cou-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-counseling .rd-cou-group td {
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -17836,7 +17836,7 @@ body.rd-scope #panel-essentials .rd-ess-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-essentials .rd-ess-group td {
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -18175,7 +18175,7 @@ body.rd-scope #panel-packets .rd-pkt-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-packets .rd-pkt-group td {
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -18559,7 +18559,7 @@ body.rd-scope #panel-emails .rd-et-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-emails .rd-et-group td {
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -18900,7 +18900,7 @@ body.rd-scope #panel-data-hub .rd-dh-group td {
   text-transform: uppercase;
   font-weight: 700;
   color: #8a7e6b;
-  background: var(--surface-sunken, #f9f5ef);
+  background: var(--surface-group, #eee8de);
   padding: 12px;
 }
 body.rd-scope #panel-data-hub .rd-dh-row { cursor: pointer; }
@@ -19755,7 +19755,7 @@ body.rd-scope #panel-notes .rd-notes-group td {
   font-size: 12px;
   font-weight: 600;
   color: #8a7e6b;
-  background: #f9f5ef;
+  background: var(--surface-group, #eee8de);
   padding: 8px 12px;
 }
 body.rd-scope #panel-notes .rd-notes-row { cursor: pointer; }
@@ -20305,7 +20305,7 @@ body.rd-scope #ux-mobile-fab { display: none !important; }
     flex: 0 0 38%;
   }
   body.rd-scope .rd-notes-table thead { display: none; }
-  body.rd-scope .rd-notes-group { display: block; padding: 8px 14px; background: #f9f5ef; }
+  body.rd-scope .rd-notes-group { display: block; padding: 8px 14px; background: var(--surface-group, #eee8de); }
   body.rd-scope .rd-notes-addrow { display: block; padding: 12px 14px; }
 
   /* Mobile tab bar + FAB */
