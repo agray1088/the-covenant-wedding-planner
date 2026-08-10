@@ -2865,6 +2865,24 @@ body.editorial-v4 .record-editor-overlay .re-rail-item-meta {
   font-weight: 400 !important;
   color: var(--text-subtle) !important;
 }
+body.editorial-v4 .record-editor-overlay .re-rail-add {
+  display: block !important;
+  width: 100% !important;
+  margin-top: 10px !important;
+  padding: 8px 10px !important;
+  text-align: left !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--surface-content) !important;
+  color: var(--forest) !important;
+  font: 600 12px/1.35 var(--font-ui) !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+body.editorial-v4 .record-editor-overlay .re-rail-add:hover,
+body.editorial-v4 .record-editor-overlay .re-rail-add:focus-visible {
+  border-color: var(--forest) !important;
+  background: var(--surface-raised, var(--surface-content)) !important;
+}
 body.editorial-v4 .record-editor-overlay .re-rail-hint {
   margin-top: auto !important;
   font: 400 12px/1.55 var(--font-ui) !important;
