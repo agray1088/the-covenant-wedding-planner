@@ -18218,6 +18218,7 @@ function paymentFormatDate(val) {
   return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 function addPaymentRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('payments')) return;
   if (document.body.getAttribute('data-active-panel') === 'payments' && document.getElementById('payment-inline-editor-body')) {
     covInlineLoad('payments', null, 'payment-inline-editor-body');
     return;
@@ -19102,6 +19103,7 @@ function addVendorRow() {
     const catDef = typeof vendorCategoryByKey === 'function' ? vendorCategoryByKey(catKey) : null;
     if (catDef && catDef.label) seed.cat = catDef.label;
   }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('vendors', seed)) return;
   if (document.body.getAttribute('data-active-panel') === 'vendors' && document.getElementById('vendor-inline-editor-body')) {
     covInlineLoad('vendors', null, 'vendor-inline-editor-body', seed);
     return;
@@ -19389,15 +19391,10 @@ function setGuestPage(page) {
 }
 function changeGuestPage(direction) { setGuestPage(guestPageIndex + direction); }
 function addGuestRow() {
-  if (document.body.getAttribute('data-active-panel') === 'guests') {
-    if (typeof rdOpenDrawer === 'function' && document.getElementById('record-drawer-body')) {
-      rdOpenDrawer('guests', null);
-      return;
-    }
-    if (document.getElementById('guest-inline-editor-body')) {
-      covInlineLoad('guests', null, 'guest-inline-editor-body');
-      return;
-    }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('guests')) return;
+  if (document.body.getAttribute('data-active-panel') === 'guests' && document.getElementById('guest-inline-editor-body')) {
+    covInlineLoad('guests', null, 'guest-inline-editor-body');
+    return;
   }
   openRecordEditor('guests');
 }
@@ -20517,15 +20514,10 @@ function ensureWitnessTask(){
   save();
 }
 function addTaskRow() {
-  if (document.body.getAttribute('data-active-panel') === 'tasks') {
-    if (document.getElementById('record-drawer-body') && typeof rdOpenDrawer === 'function') {
-      rdOpenDrawer('tasks', null);
-      return;
-    }
-    if (document.getElementById('task-inline-editor-body')) {
-      covInlineLoad('tasks', null, 'task-inline-editor-body');
-      return;
-    }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('tasks')) return;
+  if (document.body.getAttribute('data-active-panel') === 'tasks' && document.getElementById('task-inline-editor-body')) {
+    covInlineLoad('tasks', null, 'task-inline-editor-body');
+    return;
   }
   openRecordEditor('tasks');
 }
@@ -22614,6 +22606,7 @@ function resetTasksSpreadsheetWidthsOnce(){
    TIMELINE
 ════════════════════════════════════════════════ */
 function addTimelineRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('timeline')) return;
   openRecordEditor('timeline');
 }
 const WDAY_TIMELINE_PRESET = [
@@ -23432,6 +23425,7 @@ function prayerInlineAvailable(){
 }
 
 function addPrayerRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('prayer')) return;
   if (prayerInlineAvailable()) {
     covInlineLoad('prayer', null, 'prayer-inline-editor-body');
     return;
@@ -23522,6 +23516,7 @@ function counselingInlineAvailable(){
 }
 
 function addCounselingRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('counseling')) return;
   if (counselingInlineAvailable()) {
     covInlineLoad('counseling', null, 'counseling-inline-editor-body');
     return;
@@ -25192,11 +25187,7 @@ function appointmentClashCount(){
 function addAppointmentRow(){
   ensureAppointmentData();
   smartAppointmentFilters.range = 'All Dates';
-  if (document.body.getAttribute('data-active-panel') === 'appointments' && document.getElementById('record-drawer-body')) {
-    if (typeof rdOpenDrawer === 'function') rdOpenDrawer('appointments', null);
-    else openRecordEditor('appointments');
-    return;
-  }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('appointments')) return;
   if (document.body.getAttribute('data-active-panel') === 'appointments' && document.getElementById('appointment-inline-editor-body')) {
     covInlineLoad('appointments', null, 'appointment-inline-editor-body');
     return;
@@ -30415,6 +30406,7 @@ let partyStatusFilter = 'all';
 const PARTY_ROLE_OPTIONS = ['Maid of Honor','Matron of Honor','Bridesmaid','Junior Bridesmaid','Best Man','Groomsman','Usher','Flower Girl','Ring Bearer','Honor Attendant','Reader','Officiant Assistant'];
 const PARTY_STATUS_OPTIONS = ['Dress Ordered','Dress Ready','Tux Confirmed','Fitting Scheduled','Tux Fitting','Outfit Ready','Needs Follow-Up','Not Started'];
 function addPartyRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('party')) return;
   if (document.body.getAttribute('data-active-panel') === 'party' && document.getElementById('party-inline-editor-body')) {
     covInlineLoad('party', null, 'party-inline-editor-body');
     return;
@@ -31382,6 +31374,7 @@ function giftIconSvg(type) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[type] || icons.gift}</svg>`;
 }
 function addGiftRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('gifts')) return;
   if (document.getElementById('gifts-inline-editor-body')) {
     covInlineLoad('gifts', null, 'gifts-inline-editor-body');
     return;
@@ -31806,11 +31799,13 @@ function ensureShotInlineEditor(){
 }
 window.setShotInlineTable = setShotInlineTable;
 function addShotRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('shotlist')) return;
   if (shotInlineAdd('shotlist')) return;
   openRecordEditor('shotlist');
 }
 function addVideoShotRow() {
   if (!Array.isArray(data.videoShotlist)) data.videoShotlist = [];
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('videoShots')) return;
   if (shotInlineAdd('videoShots')) return;
   openRecordEditor('videoShots');
 }
@@ -36158,6 +36153,7 @@ const ESSENTIALS_PRESET = [
   ['Exit / Send-Off','Getaway car keys','Best Man','Coordinator binder','Confirm assigned person']
 ];
 function addEssentialRow(){
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('essentials')) return;
   if (document.getElementById('essentials-inline-editor-body')) {
     covInlineLoad('essentials', null, 'essentials-inline-editor-body');
     return;
@@ -36814,6 +36810,7 @@ function uedContractsShell(){
   </div>`;
 }
 function addContractRow(){
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('contracts')) return;
   if (document.body.getAttribute('data-active-panel') === 'contracts' && document.getElementById('contracts-inline-editor-body')) {
     covInlineLoad('contracts', null, 'contracts-inline-editor-body');
     return;
@@ -43498,6 +43495,7 @@ function mountAllTabs(root){
       entity:'counseling', title:'Session tracker', mount:'cwp-counseling',
       search:true, filters:[], bulk:{enabled:false}, rowClickEdit:true,
       addLabel:'+ Add session', recordLabel:'Counseling Session',
+      addFn:()=>{ if(typeof addCounselingRow==='function') addCounselingRow(); },
       newRecord:()=>({ date:'', topic:'', homework:'', takeaway:'', questions:'', status:'Not Started' }),
       afterChange:()=>{ if(typeof renderCounselingStats==='function') renderCounselingStats(); if(typeof renderCounselingCurriculum==='function') renderCounselingCurriculum(); },
       columns:[
@@ -43514,6 +43512,7 @@ function mountAllTabs(root){
       entity:'essentials', title:'Packing checklist', mount:'cwp-essentials',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add item', recordLabel:'Essential Item',
+      addFn:()=>{ if(typeof addEssentialRow==='function') addEssentialRow(); },
       newRecord:()=>({ cat:'', item:'', packed:false, assigned:'', location:'', notes:'' }),
       afterChange:()=>{ if(typeof renderEssentialsStats==='function') renderEssentialsStats(); if(typeof renderEssentialsCategoryProgress==='function') renderEssentialsCategoryProgress(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('essentials'); },
       columns:[
@@ -43529,6 +43528,7 @@ function mountAllTabs(root){
       entity:'shotlist', title:'Photo shot list', mount:'cwp-shotlist',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add shot', recordLabel:'Photo Shot',
+      addFn:()=>{ if(typeof addShotRow==='function') addShotRow(); },
       newRecord:()=>({ completed:false, section:'', shot:'', priority:'Important', must:'No', people:'', timing:'', notes:'' }),
       afterChange:()=>{ if(typeof renderShotlistStats==='function') renderShotlistStats(); if(typeof renderShotOverviewCards==='function') renderShotOverviewCards(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('shotlist'); },
       columns:[
@@ -43547,6 +43547,7 @@ function mountAllTabs(root){
       entity:'videoShots', title:'Video shot list', mount:'cwp-videoShots',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add video shot', recordLabel:'Video Shot',
+      addFn:()=>{ if(typeof addVideoShotRow==='function') addVideoShotRow(); },
       newRecord:()=>({ completed:false, section:'', shot:'', priority:'Important', must:'No', people:'', timing:'', notes:'' }),
       afterChange:()=>{ if(typeof renderVideoShotlistStats==='function') renderVideoShotlistStats(); if(typeof renderVideoShotOverviewCards==='function') renderVideoShotOverviewCards(); },
       columns:[
@@ -43565,6 +43566,7 @@ function mountAllTabs(root){
       entity:'party', title:'Wedding party members', mount:'cwp-party',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add member', recordLabel:'Wedding Party Member',
+      addFn:()=>{ if(typeof addPartyRow==='function') addPartyRow(); },
       newRecord:()=>({ name:'', role:'Bridesmaid', phone:'', email:'', attire:'', size:'', status:'', notes:'' }),
       afterChange:()=>{ if(typeof renderPartyStats==='function') renderPartyStats(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('party'); },
       columns:[
@@ -43582,6 +43584,7 @@ function mountAllTabs(root){
       entity:'prayer', title:'Prayer log', mount:'cwp-prayer',
       search:true, filters:[], bulk:{enabled:false}, rowClickEdit:true,
       addLabel:'+ Add prayer', recordLabel:'Prayer Entry',
+      addFn:()=>{ if(typeof addPrayerRow==='function') addPrayerRow(); },
       newRecord:()=>({ date:'', focus:'', request:'', scripture:'', answer:'', status:'Praying' }),
       afterChange:()=>{ if(typeof renderPrayerStats==='function') renderPrayerStats(); },
       columns:[
@@ -43616,6 +43619,7 @@ function mountAllTabs(root){
       entity:'gifts', title:'Gifts received', mount:'cwp-gifts',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add gift', recordLabel:'Gift',
+      addFn:()=>{ if(typeof addGiftRow==='function') addGiftRow(); },
       newRecord:()=>({ from:'', desc:'', value:0, category:'Registry', date:'', thankyou:false, phone:'', email:'', address:'', notes:'' }),
       afterChange:()=>{ if(typeof renderGiftStats==='function') renderGiftStats(); if(typeof renderGiftDashboardExtras==='function') renderGiftDashboardExtras(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('gifts'); },
       /* honor the category / thank-you quick-filter pills (global giftLogFilter) */
@@ -43642,6 +43646,7 @@ function mountAllTabs(root){
       entity:'guests', title:'Guest tracker', mount:'cwp-guests',
       search:false, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ Add guest', recordLabel:'Guest',
+      addFn:()=>{ if(typeof addGuestRow==='function') addGuestRow(); },
       pageSize:(typeof GUEST_PAGE_SIZE!=='undefined'?GUEST_PAGE_SIZE:15),
       newRecord:()=>({ name:'', household:'', group:'Everyone', side:'Both', role:'Adult Guest', phone:'', email:'', inviteDecision:'Maybe', invited:false, rsvp:'Pending', meal:'', dietary:'', plusone:false, children:0, family:false, companions:[], table:'', thankyou:false, notes:'' }),
       /* Group by rail (household/side/table/group/rsvp); residual buckets always last. */
@@ -43731,6 +43736,7 @@ function mountAllTabs(root){
       entity:'payments', title:'Payment schedule', mount:'cwp-payments',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ Add payment', recordLabel:'Payment',
+      addFn:()=>{ if(typeof addPaymentRow==='function') addPaymentRow(); },
       pageSize:(typeof PAYMENT_PAGE_SIZE!=='undefined'?PAYMENT_PAGE_SIZE:8),
       wrapClass:'payments-table-wrap',
       newRecord:()=>({ vendor:'', desc:'', due:0, paid:0, gratuity:0, gratuityStatus:'Not Planned', date:'', paiddate:'', ptype:'', status:'Not Paid', notes:'', installments:[], budgetCat:'', budgetItemId:'', budgetItem:'', contractIdx:'' }),
@@ -43783,6 +43789,7 @@ function mountAllTabs(root){
       entity:'contracts', title:'Contracts, invoices & receipts', mount:'cwp-contracts',
       search:false, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add document', recordLabel:'Contract or Invoice',
+      addFn:()=>{ if(typeof addContractRow==='function') addContractRow(); },
       newRecord:()=>({ name:'', vendor:'', type:'Contract', date:'', total:0, deposit:0, status:'Not Signed', where:'', notes:'' }),
       afterChange:()=>{ if(typeof renderContractStats==='function') renderContractStats(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('contracts'); },
       /* the shell keeps its search + type/status filter card */
@@ -43818,6 +43825,7 @@ function mountAllTabs(root){
       entity:'appointments', title:'Appointment tracker', mount:'cwp-appointments',
       search:false, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true, hideToolbar:true,
       addLabel:'+ Book appointment', recordLabel:'Appointment',
+      addFn:()=>{ if(typeof addAppointmentRow==='function') addAppointmentRow(); },
       /* Row grouping: month buckets + Held residual (undated). Other Group-by modes from rail. */
       rowGroup:(r)=> (typeof apptRowGroupMeta === 'function' ? apptRowGroupMeta(r) : null),
       groupHeader:(meta, groupRows)=> (typeof apptGroupHeaderLabel === 'function'
@@ -43882,6 +43890,7 @@ function mountAllTabs(root){
       hideToolbar:true,
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ New task', recordLabel:'Task',
+      addFn:()=>{ if(typeof addTaskRow==='function') addTaskRow(); },
       pageSize:(typeof TASKS_PER_PAGE!=='undefined'?TASKS_PER_PAGE:8),
       sortRows:(a,b)=>{
         const da=String(a.date||a.suggestedDue||''), db=String(b.date||b.suggestedDue||'');
@@ -45644,7 +45653,25 @@ function mountAllTabs(root){
   window.cwpViewAll=(key,on)=>{ const s=st(key); s.viewAll=!!on; s.page=0; renderRows(key); };
   window.cwpClear=(key)=>{ const s=st(key); s.search=''; s.filters={}; s.colf={}; renderTable(key); };
   function indexOf(entity,id){ return DB.all(entity).findIndex(r=>String(r._id)===String(id)); }
-  window.cwpAdd=(key)=>{ const d=TABLES[key]; if(typeof d.addFn==='function'){ d.addFn(); return; } if(typeof openRecordEditor==='function'){ openRecordEditor(d.entity); } else { const rec=DB.add(d.entity, d.newRecord?d.newRecord():{}); renderRows(key); openEditor(d.entity, rec._id); } };
+  window.cwpAdd=(key)=>{
+    const d=TABLES[key]; if(!d) return;
+    /* Prefer page helpers / redesign drawer — never jump straight to the
+       traffic-light full-editor window for a blank +Add when a drawer exists. */
+    if(typeof d.addFn==='function'){ d.addFn(); return; }
+    const entity=d.entity||key;
+    const helpers={
+      tasks:'addTaskRow', guests:'addGuestRow', appointments:'addAppointmentRow',
+      vendors:'addVendorRow', party:'addPartyRow', gifts:'addGiftRow',
+      payments:'addPaymentRow', contracts:'addContractRow', essentials:'addEssentialRow',
+      shotlist:'addShotRow', videoShots:'addVideoShotRow', prayer:'addPrayerRow',
+      counseling:'addCounselingRow', timeline:'addTimelineRow', notesDetails:'addNotesDetailRow'
+    };
+    const fnName=helpers[entity]||helpers[key];
+    if(fnName && typeof window[fnName]==='function'){ window[fnName](); return; }
+    if(typeof rdOpenNewInDrawer==='function' && rdOpenNewInDrawer(entity)) return;
+    if(typeof openRecordEditor==='function'){ openRecordEditor(entity); return; }
+    const rec=DB.add(entity, d.newRecord?d.newRecord():{}); renderRows(key); openEditor(entity, rec._id);
+  };
   window.cwpDelete=async (key,id)=>{ const d=TABLES[key]; if(!(await covConfirm('Delete this '+(ENTITIES[d.entity].label||'record').toLowerCase()+'?', {title:'Delete record?', danger:true, okText:'Delete'}))) return; DB.remove(d.entity,id); st(key).sel.delete(String(id)); renderRows(key); if(typeof afterCwpChange==='function') afterCwpChange(d.entity); };
   window.cwpToggleRow=(key,id,on,el)=>{
     const s=st(key);
