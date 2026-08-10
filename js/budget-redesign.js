@@ -273,13 +273,13 @@
     /* Views 30a/30b added a toolbar switcher above the used bar — bump the
        shell key when the anatomy changes so an already-mounted panel rebuilds
        instead of keeping the older markup. */
-    if (panel.dataset.uedShell === 'budget-rd4b-views') {
+    if (panel.dataset.uedShell === 'budget-rd4b-views2') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       renderBudgetViewSwitch();
       return;
     }
-    panel.dataset.uedShell = 'budget-rd4b-views';
+    panel.dataset.uedShell = 'budget-rd4b-views2';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -295,6 +295,7 @@
         <div class="rd-viewswitch" id="budget-viewswitch" role="group" aria-label="Budget view"></div>
         <span class="rd-bgt-viewbar__note" id="budget-viewbar-note"></span>
       </div>
+      <div class="rd-toolbar" id="budget-toolbar"></div>
       <div class="rd-stats m-stats" id="budget-stats"></div>
       <div class="rd-bgt-usedbar" id="budget-used-bar"></div>
       <div class="rd-surface">
@@ -1748,6 +1749,23 @@
 
   /* ── main render ─────────────────────────────────────────────────────── */
 
+  function renderBudgetPageToolbar() {
+    const host = document.getElementById('budget-toolbar');
+    if (!host) return;
+    host.innerHTML =
+      itemFilterChip('Category', 'category') +
+      itemFilterChip('Vendor', 'vendor') +
+      itemFilterChip('Status', 'status') +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdBudgetOpenItemSort(this)">${esc(itemSortLabel())}</button>` +
+      (typeof rdStandardRightHtml === 'function'
+        ? rdStandardRightHtml(typeof BGT_ITEM_SCOPE !== 'undefined' ? BGT_ITEM_SCOPE : 'budget-items', {
+            openColumns: 'rdBudgetOpenColumns(this)',
+            autofit: 'rdBudgetAutoFitColumns(this)',
+            rowHeight: 'rdBudgetCycleRowHeight()'
+          })
+        : '');
+  }
+
   function renderBudgetRd() {
     if (typeof migrateBudget === 'function') migrateBudget();
     if (typeof ensureSuggestedGratuityLine === 'function') ensureSuggestedGratuityLine();
@@ -1763,6 +1781,7 @@
     if (typeof refreshBudgetCatOptions === 'function') refreshBudgetCatOptions();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('budget');
 
+    renderBudgetPageToolbar();
     renderBudgetStatsRd();
     renderBudgetUsedBar();
     renderBudgetCategorySection();

@@ -499,7 +499,7 @@
         filterChip('Tasting', 'course') +
         filterChip('Verdict', 'status') +
         `<button type="button" class="rd-chip${window._catShowRejected ? ' is-active' : ''}" onclick="rdCatToggleRejected()">Show rejected${window._catShowRejected ? ' ✕' : ''}</button>` +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by tasting date</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by tasting date', "rdCatOpenSort(this)") : '');
     } else if (mode === 'allergens') {
       left =
         filterChip('Allergen', 'allergen') +
@@ -516,9 +516,11 @@
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
       (mode === 'menu'
-        ? `<button type="button" class="rd-chip" onclick="rdCatOpenColumns()">${esc(colLabel)}</button>` +
-          `<button type="button" class="rd-chip" onclick="rdCatAutoFit()">Auto-fit columns</button>` +
-          `<button type="button" class="rd-chip" onclick="rdCatCycleRowHeight()">Row height · ${esc(height)}</button>`
+        ? (typeof rdStandardRightHtml === 'function'
+            ? rdStandardRightHtml('catering')
+            : `<button type="button" class="rd-chip" onclick="rdCatOpenColumns()">${esc(colLabel)}</button>` +
+              `<button type="button" class="rd-chip" onclick="rdCatAutoFit()">Auto-fit columns</button>` +
+              `<button type="button" class="rd-chip" onclick="rdCatCycleRowHeight()">Row height · ${esc(height)}</button>`)
         : '') +
       `<div class="rd-viewswitch" role="group" aria-label="Catering view">` +
       `<button type="button" class="rd-viewswitch__item${mode === 'menu' ? ' is-active' : ''}" onclick="rdSetCateringView('menu')">Menu</button>` +

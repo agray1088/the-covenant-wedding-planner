@@ -356,10 +356,10 @@
     } else if (mode === 'table') {
       left = filterChip('Status', 'status') + filterChip('Written by', 'author') +
         `<button type="button" class="rd-chip is-active">Group by status</button>` +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by days open</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by days open', "rdPrayerOpenSort(this)") : '') + (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('prayer') : '');
     } else {
       left = filterChip('Status', 'status') + filterChip('Author', 'author') + filterChip('Month', 'month') +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by newest</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by newest', "rdPrayerOpenSort(this)") : '') + (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('prayer') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

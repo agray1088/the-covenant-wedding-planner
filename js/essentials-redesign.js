@@ -317,7 +317,8 @@
         `<span class="rd-ess-toolbar-note">Sort by carrier</span>`;
     } else {
       left = filterChip('Kit', 'kit') + filterChip('Person', 'person') + filterChip('Status', 'status') +
-        `<span class="rd-ess-toolbar-note">Sort by kit · Columns · 6 of 6 · Row height · compact</span>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by kit', "rdEssOpenSort(this)") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('essentials') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

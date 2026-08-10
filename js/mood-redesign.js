@@ -307,6 +307,8 @@
     if (!host) return;
     const mode = window._moodMode || 'board';
     host.innerHTML = filterChip('Category', 'category') + filterChip('Linked', 'linked') +
+      (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by category', "rdStdOpenSort(this,'mood')") : '') +
+      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('mood') : '') +
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Vision Board view">` +
       `<button type="button" class="rd-viewswitch__item${mode === 'board' ? ' is-active' : ''}" onclick="rdSetMoodView('board')">Board</button>` +

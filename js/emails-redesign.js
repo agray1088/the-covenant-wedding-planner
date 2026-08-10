@@ -433,7 +433,8 @@
         `<span class="rd-et-toolbar-note">Sort by send date</span>`;
     } else {
       left = filterChip('Audience', 'audience') + filterChip('Status', 'status') + filterChip('Field', 'field') +
-        `<span class="rd-et-toolbar-note">Sort by last used · Columns · 6 of 6 · Row height · compact</span>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by last used', "rdEtOpenSort(this)") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('emails') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

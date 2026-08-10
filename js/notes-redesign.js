@@ -384,7 +384,8 @@
         `<span class="rd-notes-toolbar-note">Newest first</span>`;
     } else {
       left = filterChip('Subject', 'subject') + filterChip('Author', 'author') + filterChip('Flag', 'flag') +
-        `<span class="rd-notes-toolbar-note">Sort by newest · Columns · 5 of 5 · Row height · compact</span>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by newest', "rdNotesOpenSort(this)") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('notes') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

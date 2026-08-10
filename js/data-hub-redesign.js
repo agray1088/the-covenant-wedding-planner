@@ -446,7 +446,7 @@
       const def = hubDef(window._dhTableId);
       const surface = window._dhTableSurface || 'rows';
       const left = filterChipForTable(def) +
-        `<span class="rd-dh-toolbar-note">Table: ${esc(def.id)} · Columns · Auto-fit · Row height · compact</span>`;
+        `<span class="rd-dh-toolbar-note">Table: ${esc(def.id)}</span>` + (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml(def.id || 'datahub') : '');
       host.innerHTML = left +
         `<div class="rd-toolbar__right">` +
         `<div class="rd-viewswitch" role="group" aria-label="Table view">` +
@@ -459,7 +459,7 @@
     const surface = window._dhSurface || 'tables';
     host.innerHTML =
       `<button type="button" class="rd-chip" onclick="rdDhCycleSort()">Sort by ${esc(window._dhSort === 'name' ? 'name' : 'records')}</button>` +
-      `<span class="rd-dh-toolbar-note">Section: all · Status: all · Columns · Auto-fit columns · Row height · compact</span>` +
+      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('datahub') : '') +
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Hub surface">` +
       `<button type="button" class="rd-viewswitch__item${surface === 'tables' ? ' is-active' : ''}" onclick="rdDhSetSurface('tables')">Tables</button>` +

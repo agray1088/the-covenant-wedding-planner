@@ -168,6 +168,8 @@
       ${chip('namechange', 'Name change')}
       ${chip('budget', 'Budget')}
       ${chip('noticed', 'Noticed')}
+      ${typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by status', "rdStdOpenSort(this,'homecoming')") : ''}
+      ${typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('homecoming') : ''}
     </div>
     <div class="rd-toolbar__right">
       <div class="rd-viewswitch" role="group" aria-label="Homecoming view">

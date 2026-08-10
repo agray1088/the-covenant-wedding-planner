@@ -365,12 +365,14 @@
       left = filterChip('Status', 'status') + filterChip('Topic', 'topic') + filterChip('Month', 'month') +
         `<button type="button" class="rd-chip rd-chip--ghost">Sort by session number</button>`;
     }
+    /* Table mode: keep filters + shared Columns/Auto-fit/Row height (CWP mount
+       may be empty until sessions exist; page chrome must still match Tasks). */
+    if (mode === 'table') {
+      left = filterChip('Status', 'status') + filterChip('Topic', 'topic') + filterChip('Month', 'month') +
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by session number', "rdStdOpenSort(this,'counseling')") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('counseling') : '');
+    }
     host.innerHTML = left +
-      (mode === 'table'
-        ? `<button type="button" class="rd-chip rd-chip--ghost">Columns · 5 of 5</button>` +
-          `<button type="button" class="rd-chip rd-chip--ghost">Auto-fit columns</button>` +
-          `<button type="button" class="rd-chip rd-chip--ghost">Row height · compact</button>`
-        : '') +
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Counseling view">` +
       `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetCounselingView('table')">Table</button>` +
