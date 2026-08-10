@@ -628,28 +628,12 @@
   function rdCtAdd() {
     if (!window.data) window.data = {};
     if (!Array.isArray(data.contacts)) data.contacts = [];
-    const name = prompt('Contact name:', '');
-    if (!name) return;
-    const role = prompt('Role (optional):', 'Contact') || 'Contact';
-    const phone = prompt('Phone (optional):', '') || '';
-    const email = prompt('Email (optional):', '') || '';
-    const row = {
-      name: name,
-      role: role,
-      category: role,
-      phone: phone,
-      email: email,
-      company: '',
-      emergency: false,
-      lastContact: '',
-      notes: ''
-    };
-    if (typeof ensureRowId === 'function') ensureRowId(row, 'contacts');
-    else if (typeof nextRecordId === 'function') row._id = nextRecordId('contacts');
-    data.contacts.push(row);
-    if (typeof save === 'function') save();
-    if (typeof showToast === 'function') showToast('Added contact · ' + name);
-    renderContactsRd();
+    /* Use the planner record editor overlay — never browser prompt(). */
+    if (typeof openRecordEditor === 'function') {
+      openRecordEditor('contacts');
+      return;
+    }
+    if (typeof showToast === 'function') showToast('Record editor unavailable', 'warn');
   }
   function rdCtPrintSheet() {
     window._ctMode = 'dayof';
