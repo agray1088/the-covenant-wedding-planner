@@ -660,8 +660,57 @@
   window.rdSortChipHtml = sortChipHtml;
   window.rdCwpToolbarShell = cwpToolbarHtml;
 
-  /* Catch-all for custom (non-CWP) tables that still lack Columns / Auto-fit /
-     Row height. Inserts a slim bar above the table when none is nearby. */
+  /* True when the page (not an in-mount CWP bar) already exposes
+     Columns · Auto-fit · Row height. Used to skip duplicate injection. */
+  function toolbarHasChrome(tb) {
+    if (!tb) return false;
+    var t = tb.textContent || '';
+    return /Auto-fit columns/i.test(t) && /Columns\s*·/i.test(t) && /Row height/i.test(t);
+  }
+  function panelRootFrom(el) {
+    if (!el) return null;
+    return el.closest('.panel, .rd-page') ||
+      (document.body.getAttribute('data-active-panel')
+        ? document.getElementById('panel-' + document.body.getAttribute('data-active-panel'))
+        : null);
+  }
+  function panelHasPageToolbarChrome(fromEl) {
+    var root = panelRootFrom(fromEl) || document;
+    var bars = root.querySelectorAll('.rd-toolbar, .rd-cwp-toolbar');
+    for (var i = 0; i < bars.length; i++) {
+      var bar = bars[i];
+      /* Skip auto-injected duplicates — we are looking for the page chrome. */
+      if (bar.classList.contains('rd-toolbar--enhanced')) continue;
+      if (bar.classList.contains('rd-cwp-toolbar') && bar.closest('.cwp-mount')) continue;
+      if (toolbarHasChrome(bar)) return true;
+    }
+    return false;
+  }
+  window.rdPanelHasPageToolbarChrome = panelHasPageToolbarChrome;
+  window.rdToolbarHasChrome = toolbarHasChrome;
+
+  /* Remove enhancer-injected bars (and empty CWP duplicate bars) when the
+     page toolbar already owns Columns / Auto-fit / Row height. */
+  function removeDuplicateToolbars(root) {
+    root = root || panelRootFrom(document.body) || document;
+    if (!panelHasPageToolbarChrome(root)) return 0;
+    var removed = 0;
+    root.querySelectorAll('.rd-toolbar--enhanced, .cwp-mount > .cwp-section > .rd-cwp-toolbar, .cwp-mount .rd-cwp-toolbar').forEach(function (bar) {
+      if (bar.closest && bar.closest('.rd-page > .rd-toolbar')) return;
+      /* Keep page-level bars outside mounts. */
+      if (!bar.closest('.cwp-mount') && !bar.classList.contains('rd-toolbar--enhanced')) return;
+      if (bar.parentNode) {
+        bar.parentNode.removeChild(bar);
+        removed++;
+      }
+    });
+    return removed;
+  }
+  window.rdRemoveDuplicateToolbars = removeDuplicateToolbars;
+
+  /* Catch-all ONLY for tables that have no page chrome and no CWP bar.
+     Never run on a MutationObserver — that duplicated bars under every
+     redesign page toolbar. */
   function nearestToolbar(table) {
     var root = table.closest('.rd-view, .rd-surface__main, .cwp-section, .panel, .rd-page') || table.parentElement;
     if (!root) return null;
@@ -674,13 +723,18 @@
     }
     return null;
   }
-  function toolbarHasChrome(tb) {
-    if (!tb) return false;
-    var t = tb.textContent || '';
-    return /Auto-fit columns/i.test(t) && /Columns\s*·/i.test(t) && /Row height/i.test(t);
-  }
   function enhanceTable(table, scopeHint) {
     if (!table || table.dataset.rdChrome === '1') return false;
+    /* Page already has the chip bar — never add another under the table. */
+    if (panelHasPageToolbarChrome(table)) {
+      table.dataset.rdChrome = '1';
+      return false;
+    }
+    /* CWP mounts inject their own bar in renderTable. */
+    if (table.closest('.cwp-mount')) {
+      table.dataset.rdChrome = '1';
+      return false;
+    }
     var tb = nearestToolbar(table);
     if (toolbarHasChrome(tb)) { table.dataset.rdChrome = '1'; return false; }
     var scope = scopeHint || table.getAttribute('data-rd-scope') || table.id || ('tbl-' + Math.abs(hashStr(table.className + (table.parentElement && table.parentElement.id || ''))));
@@ -702,7 +756,6 @@
       autofit: "rdStdAutoFit(this,'" + esc(scope) + "')",
       rowHeight: "rdStdCycleRowHeight('" + esc(scope) + "')"
     });
-    /* Prefer inserting before the table wrap so layout stays intact. */
     var wrap = table.closest('.cwp-table-wrap, .rd-table-wrap') || table;
     wrap.parentNode.insertBefore(bar, wrap);
     applyHeight(scope, table.closest('.cwp-mount, .rd-view, .panel') || table);
@@ -716,19 +769,15 @@
     return h;
   }
   function enhanceVisible() {
-    var panel = document.querySelector('.panel.active, [data-active-panel]') || document;
     var activeId = document.body.getAttribute('data-active-panel');
-    var root = (activeId && document.getElementById('panel-' + activeId)) || panel;
-    if (!root) root = document;
+    var root = (activeId && document.getElementById('panel-' + activeId)) || document;
+    /* Prefer the page bar: strip any duplicate injects first. */
+    removeDuplicateToolbars(root);
+    if (panelHasPageToolbarChrome(root)) return 0;
     var tables = root.querySelectorAll('table.cwp-table, table.rd-table, .rd-surface table, .rd-view table');
     var n = 0;
     Array.prototype.forEach.call(tables, function (table) {
       if (table.offsetParent === null && getComputedStyle(table).display === 'none') return;
-      /* CWP mounts already inject their own bar. */
-      if (table.closest('.cwp-mount') && table.closest('.cwp-mount').querySelector('.rd-cwp-toolbar')) {
-        table.dataset.rdChrome = '1';
-        return;
-      }
       if (enhanceTable(table, activeId || undefined)) n++;
     });
     return n;
@@ -736,25 +785,16 @@
   window.rdEnhanceVisibleTables = enhanceVisible;
   window.rdEnhanceTable = enhanceTable;
 
-  /* Re-run after panel switches so sub-tabs and lazy mounts get chrome. */
+  /* Only after a CWP render, and only when the page does not already own chrome.
+     No MutationObserver — it re-injected bars under every redesign toolbar. */
   if (typeof document !== 'undefined') {
     document.addEventListener('cwp:table-rendered', function () {
-      setTimeout(enhanceVisible, 0);
+      setTimeout(function () {
+        var activeId = document.body.getAttribute('data-active-panel');
+        var root = (activeId && document.getElementById('panel-' + activeId)) || document;
+        removeDuplicateToolbars(root);
+        if (!panelHasPageToolbarChrome(root)) enhanceVisible();
+      }, 0);
     });
-    var _enhTimer = null;
-    var _obs = null;
-    function armObserver() {
-      if (_obs || !document.body) return;
-      _obs = new MutationObserver(function () {
-        clearTimeout(_enhTimer);
-        _enhTimer = setTimeout(enhanceVisible, 120);
-      });
-      _obs.observe(document.body, { childList: true, subtree: true });
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', armObserver);
-    } else {
-      armObserver();
-    }
   }
 })();
