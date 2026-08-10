@@ -43476,7 +43476,7 @@ function mountAllTabs(root){
     },
     contracts:{
       entity:'contracts', title:'Contracts, invoices & receipts', mount:'cwp-contracts',
-      search:false, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
+      search:false, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true, pageOwnsToolbar:true,
       addLabel:'+ Add document', recordLabel:'Contract or Invoice',
       addFn:()=>{ if(typeof addContractRow==='function') addContractRow(); },
       newRecord:()=>({ name:'', vendor:'', type:'Contract', date:'', total:0, deposit:0, status:'Not Signed', where:'', notes:'' }),
@@ -45207,6 +45207,16 @@ function mountAllTabs(root){
     const d=TABLES[key]; if(!d) return;
     if (mountOverride) _cwpMountOverride[key] = mountOverride;
     else if (!isDataHubPanelActive()) delete _cwpMountOverride[key];
+    /* Contracts redesign (10c) owns the live page table + drawer. Do not let
+       CWP wipe #cwp-contracts / the redesign grid on panel show — that removed
+       rdConOpenDrawer row clicks. Data Hub still passes a mountOverride. */
+    if (key === 'contracts' && !mountOverride && !isDataHubPanelActive()) {
+      const panel = document.getElementById('panel-contracts');
+      if (panel && (panel.dataset.uedShell === 'contracts-rd10c' || panel.classList.contains('contracts-mockup'))
+        && typeof window.__contractsRenderRd === 'function') {
+        return;
+      }
+    }
     ensureIds(d.entity);
     const mountId = _cwpMountOverride[key] || d.mount;
     const mount=document.getElementById(mountId); if(!mount) return;

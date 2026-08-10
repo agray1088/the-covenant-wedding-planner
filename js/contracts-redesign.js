@@ -692,8 +692,8 @@
         (all.length === 0 || (filterOn && list.length === 0))) {
       host.innerHTML = toolbarHtml()
         + '<div class="rd-bulkbar rd-con-bulkbar" id="contracts-bulk-bar" hidden></div>'
-        + '<div id="cwp-contracts" data-rd-state-slot="1"></div>';
-      RdStates.maybeEmpty(host.querySelector('#cwp-contracts'), {
+        + '<div id="rd-contracts-table" data-rd-state-slot="1"></div>';
+      RdStates.maybeEmpty(host.querySelector('#rd-contracts-table'), {
         pageId: 'contracts',
         total: all.length,
         filtered: list.length,
@@ -739,8 +739,8 @@
       if (!list.length) {
         body = `<tr class="rd-con-addrow" onclick="rdConAddContract()"><td class="rd-con-tick">+</td><td colspan="${dataSpan}">${anyFilter() ? 'No contracts match these filters' : 'No contracts yet'} — add the first one…</td></tr>`;
       }
-      main = `<div class="rd-con-tablewrap" id="cwp-contracts" data-rd-row-height="${esc(rowHeightLabel())}">
-        <table class="cwp-table rd-con-table rd-table--${esc(rowHeightLabel())}">
+      main = `<div class="rd-con-tablewrap" id="rd-contracts-table" data-rd-row-height="${esc(rowHeightLabel())}">
+        <table class="rd-con-table rd-table rd-table--${esc(rowHeightLabel())}">
           <thead><tr>
             <th class="rd-con-tick" style="width:34px"></th>
             ${colHeadHtml()}
@@ -935,9 +935,30 @@
   function rerender() { renderContractsRd(); }
 
   function rdConOpenDrawer(id) {
-    window._conDrawerId = String(id);
+    /* Ensure every contract has a stable id so row clicks resolve after sort/filter. */
+    rows().forEach(c => {
+      if (!c._id && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
+    });
+    let key = id == null ? '' : String(id);
+    let c = key ? rowById(key) : null;
+    if (!c && key !== '' && /^\d+$/.test(key)) {
+      const list = rows();
+      const i = parseInt(key, 10);
+      if (i >= 0 && i < list.length) c = list[i];
+    }
+    if (!c) return;
+    if (!conId(c) && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
+    window._conDrawerId = conId(c) || String(indexOfRow(c));
     window._conDrawerTab = 0;
     renderContractsDrawer();
+    const slot = document.getElementById('contracts-drawer-slot');
+    if (!slot) {
+      /* Fallback: full record editor if the page drawer slot is missing. */
+      const i = indexOfRow(c);
+      if (i >= 0 && typeof openRecordEditor === 'function') openRecordEditor('contracts', i);
+      return;
+    }
+    slot.classList.add('is-open');
     const row = document.getElementById('contracts-surface-row');
     if (row && typeof row.scrollIntoView === 'function') row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
@@ -1138,7 +1159,7 @@
     }
   }
   function rdConAutoFitColumns() {
-    const mount = document.getElementById('cwp-contracts');
+    const mount = document.getElementById('rd-contracts-table');
     const table = mount && mount.querySelector('table');
     if (!table) return;
     if (typeof window.rdAutoFitTable === 'function') window.rdAutoFitTable(table);
@@ -1182,6 +1203,21 @@
 
   /* ── orchestration ────────────────────────────────────────────────────── */
 
+  function wireContractsRowClicks() {
+    const host = document.getElementById('contracts-body');
+    if (!host || host.dataset.rdConClickWired === '1') return;
+    host.dataset.rdConClickWired = '1';
+    host.addEventListener('click', function (ev) {
+      const t = ev.target;
+      if (!t || !t.closest) return;
+      if (t.closest('input,select,textarea,button,a,label,.rd-con-planlink,.rd-chip,.rd-viewswitch')) return;
+      const row = t.closest('tr.rd-con-row[data-con-id]');
+      if (!row) return;
+      const id = row.getAttribute('data-con-id');
+      if (id != null && id !== '') rdConOpenDrawer(id);
+    });
+  }
+
   function renderContractsRd() {
     rows().forEach(c => {
       if (!c._id && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
@@ -1191,6 +1227,7 @@
     if (typeof syncVendorNameOptions === 'function') syncVendorNameOptions();
     renderContractStatsRd();
     renderContractsTable();
+    wireContractsRowClicks();
     renderContractsDrawer();
 
     if (typeof renderContextSidebar === 'function'
