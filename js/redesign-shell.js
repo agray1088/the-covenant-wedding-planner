@@ -1701,7 +1701,7 @@
 
   /* Open a record in the drawer. scroll:false because a fixed 360px panel
      must not drag the work surface around underneath it. */
-  function openDrawer(key, index) {
+  function openDrawer(key, index, seed) {
     if (typeof covInlineLoad !== 'function') return;
     var d = ensureDrawer();
     if (!d) return;
@@ -1709,7 +1709,16 @@
     syncDrawerSlot();
     /* decorate() fills the eyebrow from the loaded record — writing it here
        would overwrite the row that holds the close button. */
-    covInlineLoad(key, index, DRAWER_BODY, null, { scroll: false });
+    covInlineLoad(key, index, DRAWER_BODY, seed || null, { scroll: false });
+  }
+
+  /* Prefer the 360px record drawer for +Add when redesign chrome is live.
+     Falls back to false so callers can open the full editor / inline mount. */
+  function openNewInDrawer(key, seed) {
+    if (!document.body.classList.contains('rd-scope')) return false;
+    if (!document.getElementById(DRAWER_BODY)) return false;
+    openDrawer(key, null, seed || null);
+    return true;
   }
 
   function closeDrawer(force) {
@@ -1902,6 +1911,7 @@
   window.rdOpenDrawer     = openDrawer;
   window.rdCloseDrawer    = closeDrawer;
   window.rdOpenFullEditor = openFullEditor;
+  window.rdOpenNewInDrawer = openNewInDrawer;
   window.covenantShell = {
     rebuild: build,
     sync: sync,
