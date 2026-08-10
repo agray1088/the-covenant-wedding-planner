@@ -34178,25 +34178,36 @@ function autoFitActivePanelTables() {
   return count;
 }
 function removeLegacyAutofitPairButtons(root) {
-  /* Strip the old Auto-fit columns | Auto-fit rows pair. Keep rd-chip
-     "Auto-fit columns" and the Row height control in the standard toolbar. */
+  /* Strip the old Auto-fit columns | Auto-fit rows pair everywhere —
+     including leftovers parked inside .rd-toolbar from older injectors.
+     Keep rd-chip "Auto-fit columns", Row height, Sort, Filters, Columns · N of M,
+     and the topbar Auto-fit Columns (autoFitActivePanelTables). */
   const scope = root && root.querySelectorAll ? root : document;
-  scope.querySelectorAll('.planner-autofit-btn, .planner-autofit-bar, .cwp-toolbar--autofit, [data-planner-autofit-cols-for], [data-planner-autofit-rows-for]').forEach(el => {
+  scope.querySelectorAll('.planner-autofit-btn, .planner-autofit-bar, .planner-autofit-cols-btn, .planner-autofit-rows-btn, .cwp-toolbar--autofit, [data-planner-autofit-cols-for], [data-planner-autofit-rows-for], [data-planner-autofit-for]').forEach(el => {
     if (el.classList && el.classList.contains('rd-chip')) return;
     if (el.parentNode) el.parentNode.removeChild(el);
   });
   scope.querySelectorAll('button, .ued-btn, .cwp-btn, .m-btn, .btn').forEach(btn => {
     if (btn.classList && btn.classList.contains('rd-chip')) return;
-    if (btn.closest && btn.closest('.rd-toolbar, .rd-cwp-toolbar, .rd-toolbar-right, .rd-page > .rd-toolbar')) return;
     const t = (btn.textContent || '').replace(/\s+/g, ' ').trim();
     const on = btn.getAttribute('onclick') || '';
-    const isRows = /^Auto-fit rows$/i.test(t) || /autoFitDataHubTableRows|vcmpAutoFitRows|cwpAutoFitTableRows/.test(on);
-    const isLegacyCols = /^Auto-fit columns$/i.test(t) && /autoFitDataHubTables|vcmpAutoFitCols|cwpAutoFitTableColumns/.test(on);
-    if (isRows || isLegacyCols) {
-      if (btn.parentNode) btn.parentNode.removeChild(btn);
+    const title = btn.getAttribute('title') || '';
+    const isRows = /^Auto-fit rows$/i.test(t)
+      || /autoFitDataHubTableRows|vcmpAutoFitRows|cwpAutoFitTableRows/.test(on)
+      || /Size all rows to fit their contents/i.test(title);
+    const isLegacyCols = (/^Auto-fit columns$/i.test(t) && /autoFitDataHubTables|vcmpAutoFitCols|cwpAutoFitTableColumns/.test(on))
+      || (/Size all columns to fit their contents/i.test(title) && !/autoFitActivePanelTables|rdStdAutoFit|rdTableAutofit|smartCalendarAutoFit/.test(on));
+    if (!(isRows || isLegacyCols)) return;
+    const parent = btn.parentNode;
+    if (parent) parent.removeChild(btn);
+    /* Drop an empty twin-button wrapper left behind. */
+    if (parent && parent.classList && /planner-autofit-bar|cwp-toolbar--autofit/.test(parent.className)
+      && !parent.querySelector('button, a, input, select')) {
+      if (parent.parentNode) parent.parentNode.removeChild(parent);
     }
   });
 }
+window.removeLegacyAutofitPairButtons = removeLegacyAutofitPairButtons;
 function ensureAutoFitTableButton(/* table, tableIndex */) {
   /* Legacy Auto-fit columns | Auto-fit rows injector retired. Standard
      toolbars already include the Auto-fit columns chip + Row height bar. */
