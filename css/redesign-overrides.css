@@ -17769,6 +17769,47 @@ body.rd-scope #panel-mood .rd-mood-builder input[type="color"] {
   background: #fff;
   cursor: pointer;
 }
+/* Restored Color Palette kit (seasonal + signature presets + Build Your Own) */
+body.rd-scope #panel-mood .rd-mood-palette-kit {
+  margin: 28px 8px 24px;
+  padding: 20px 20px 24px;
+  border: 1px solid #e7e1d4;
+  background: #fdfcfa;
+}
+body.rd-scope #panel-mood .rd-mood-palette-kit .mood-card-head {
+  margin-bottom: 14px;
+}
+body.rd-scope #panel-mood .rd-mood-palette-kit .mood-card-head h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-family: var(--font-serif, Georgia, "Times New Roman", serif);
+  font-weight: 500;
+  color: #2D4A3E;
+}
+body.rd-scope #panel-mood .rd-mood-palette-kit .mood-card-head p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b645d;
+}
+body.rd-scope #panel-mood .rd-mood-palette-kit .mood-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 12px;
+  color: #8a7e6b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+body.rd-scope #panel-mood .rd-mood-palette-kit .mood-divider::before,
+body.rd-scope #panel-mood .rd-mood-palette-kit .mood-divider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: #e7e1d4;
+}
 body.rd-scope #panel-mood .mood-season-picker {
   display: flex;
   flex-wrap: wrap;
