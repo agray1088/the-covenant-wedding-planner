@@ -12529,6 +12529,24 @@ body.rd-scope #panel-payments .rd-pay-toolbar {
   font-family: var(--font-ui);
   font-size: 13px;
 }
+/* CWP-injected Tasks-style chip toolbar (filters · sort · columns · autofit · row height) */
+.cwp-mount .rd-cwp-toolbar,
+.rd-toolbar.rd-cwp-toolbar,
+.rd-toolbar.rd-toolbar--enhanced {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 10px;
+  margin: 0 0 4px;
+  box-sizing: border-box;
+}
+.cwp-mount .rd-cwp-toolbar + .cwp-toolbar--bulk {
+  padding-top: 0;
+  border-top: 0;
+  gap: 8px;
+}
+
 /* Body-level filter pops must not measure as full viewport width before
    left-clamping — that pins menus to ~8px. Fixed-width pops keep their CSS
    width; content-sized pops shrink-wrap. */

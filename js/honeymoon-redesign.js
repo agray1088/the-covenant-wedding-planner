@@ -392,9 +392,7 @@
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
-      `<button type="button" class="rd-chip rd-chip--ghost">Columns · 7 of 7</button>` +
-      `<button type="button" class="rd-chip rd-chip--ghost">Auto-fit columns</button>` +
-      `<button type="button" class="rd-chip rd-chip--ghost">Row height · compact</button>` +
+      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('honeymoon') : '') +
       `</div>`;
   }
 

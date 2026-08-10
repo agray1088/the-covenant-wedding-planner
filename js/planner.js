@@ -44707,7 +44707,22 @@ function mountAllTabs(root){
 
   /* ---------- per-table UI state ---------- */
   const STATE={};
-  function st(k){ return STATE[k] || (STATE[k]={search:'', filters:{}, colf:{}, sel:new Set(), page:0, viewAll:false, colw:{}, rowh:{}}); }
+  function st(k){ return STATE[k] || (STATE[k]={search:'', filters:{}, colf:{}, sel:new Set(), page:0, viewAll:false, colw:{}, rowh:{}, sortKey:'', sortDir:'asc'}); }
+  /* Pages that already paint a complete Tasks-style chip toolbar above the
+     mount (filters + sort + Columns · N of M + Auto-fit + Row height). Those
+     mounts skip the injected CWP rd-toolbar to avoid a duplicate bar. */
+  const CWP_PAGE_OWNS_TOOLBAR=new Set([
+    'tasks','guests','appointments','party','gifts','vendors','budgetItems',
+    'payments','paymentStages','contracts','tables',
+    /* logistics page chrome owns Day/Type/Owner + Columns/Auto-fit/Row height */
+    'weekendTimeline','travelAccommodations','hotelBlocks','transportation','vipCare'
+  ]);
+  function pageOwnsToolbar(key){
+    const d=TABLES[key];
+    if(d && d.pageOwnsToolbar===true) return true;
+    if(d && d.pageOwnsToolbar===false) return false;
+    return CWP_PAGE_OWNS_TOOLBAR.has(key);
+  }
   /* Tables that manage their OWN selection or show merged/computed rows that
      cannot be mutated through DB — the engine selection column is suppressed here. */
   const CWP_NO_BULK=new Set(['contactsDirectory']);
@@ -44787,7 +44802,16 @@ function mountAllTabs(root){
       if(typeof window.linkedPageMatchesRow==='function' && !window.linkedPageMatchesRow(key, r)) return false;
       return true;
     });
-    if(typeof d.sortRows==='function') out.sort((a,b)=>d.sortRows(a.r,b.r));
+    if(s.sortKey){
+      const col=d.columns.find(c=>c.key===s.sortKey);
+      const dir=s.sortDir==='desc'?-1:1;
+      out.sort((a,b)=>{
+        const av=col?colText(col,a.r):String(a.r[s.sortKey]==null?'':a.r[s.sortKey]);
+        const bv=col?colText(col,b.r):String(b.r[s.sortKey]==null?'':b.r[s.sortKey]);
+        if(av===bv) return 0;
+        return av<bv?-1*dir:1*dir;
+      });
+    } else if(typeof d.sortRows==='function') out.sort((a,b)=>d.sortRows(a.r,b.r));
     return out;
   }
 
@@ -44903,7 +44927,11 @@ function mountAllTabs(root){
     const hasGroups=typeof d.rowGroup==='function';
     if(hasGroups) all=applyRowGroups(key, all);
     const s=st(key);
-    const cols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns, bulk=!readOnlyPreview&&bulkOn(key);
+    const rawCols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns;
+    const cols=(typeof window.rdColumns!=='undefined' && window.rdColumns.isVisible)
+      ? rawCols.filter(c=>window.rdColumns.isVisible(key, c.key))
+      : rawCols;
+    const bulk=!readOnlyPreview&&bulkOn(key);
     const span=cols.length+(bulk?1:0);
     if(!all.length){
       const ghostHtml = typeof cwpGhostRowsHtml === 'function' ? cwpGhostRowsHtml(key, cols, bulk) : '';
@@ -45040,6 +45068,126 @@ function mountAllTabs(root){
   window.cwpCloseColFilter=()=>closeColFilter();
   window.cwpColFilterSearch=(q)=>{ q=String(q||'').toLowerCase(); const pop=document.getElementById('cwp-colfilter-pop'); if(!pop) return; pop.querySelectorAll('.cfp-list .cfp-item').forEach(it=>{ it.style.display=it.getAttribute('data-val').indexOf(q)>-1?'':'none'; }); };
 
+  function cwpColIsFixed(c){
+    if(!c||!c.key) return true;
+    if(String(c.key).startsWith('_')) return true;
+    if(c.type==='index'||c.type==='drag'||c.type==='id') return true;
+    return !!c.fixed;
+  }
+  function cwpRegisterRdColumns(key, allCols){
+    if(typeof window.rdColumns==='undefined'||!window.rdColumns.register) return allCols;
+    const catalog=(allCols||[]).map(c=>({ key:c.key, label:c.label||c.key, fixed:cwpColIsFixed(c) }));
+    window.rdColumns.register(key, catalog, function(){ renderTable(key); });
+    return (allCols||[]).filter(c=>window.rdColumns.isVisible(key, c.key));
+  }
+  function cwpChipFilterCols(cols){
+    let list=(cols||[]).filter(c=>c.filter===true && !cwpColIsFixed(c));
+    if(!list.length){
+      list=(cols||[]).filter(c=>colFilterable(c) && (c.type==='select'||c.type==='status'||c.type==='text'||c.type==='date'||c.type==='checkbox'));
+    }
+    return list.slice(0, 3);
+  }
+  function cwpSortableCols(cols){
+    return (cols||[]).filter(c=>!cwpColIsFixed(c) && c.type!=='longtext' && c.type!=='stars' && c.type!=='review' && colFilterable(c));
+  }
+  function cwpSortLabel(key){
+    const s=st(key), d=TABLES[key]; if(!d) return 'Sort';
+    if(!s.sortKey) return 'Sort by '+(cwpSortableCols(d.columns)[0]?.label||'column').toLowerCase();
+    const col=d.columns.find(c=>c.key===s.sortKey);
+    const dir=s.sortDir==='desc'?' (Z–A)':'';
+    return 'Sort by '+((col&&col.label)||s.sortKey).toLowerCase()+dir;
+  }
+  function cwpRdToolbarHtml(key){
+    const d=TABLES[key]; if(!d) return '';
+    const s=st(key);
+    const filterCols=cwpChipFilterCols(d.columns);
+    let html='<div class="rd-toolbar rd-cwp-toolbar" data-rd-cwp-key="'+esc(key)+'">';
+    filterCols.forEach(col=>{
+      const cur=s.filters[col.key]||'all';
+      const on=cur && cur!=='all' && cur!=='';
+      const text=on?(col.label+': '+cur):(col.label+': all');
+      html+='<button type="button" class="rd-chip'+(on?' is-active':'')+'" onclick="rdCwpOpenFilter(\''+key+'\',\''+col.key+'\',this)">'
+        +esc(text)
+        +(on?'<span class="rd-chip__clear" onclick="event.stopPropagation();rdCwpClearFilter(\''+key+'\',\''+col.key+'\')">&#10005;</span>'
+            :'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg>')
+        +'</button>';
+    });
+    html+='<button type="button" class="rd-chip rd-chip--ghost" onclick="rdCwpOpenSort(\''+key+'\',this)">'
+      +'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>'
+      +esc(cwpSortLabel(key))
+      +'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg></button>';
+    if(typeof window.rdStandardRightHtml==='function'){
+      html+=window.rdStandardRightHtml(key, {
+        openColumns:"rdCwpOpenColumns(this,'"+key+"')",
+        autofit:"rdCwpAutoFit('"+key+"')",
+        rowHeight:"rdCwpCycleRowHeight('"+key+"')"
+      });
+    } else {
+      html+='<button type="button" class="rd-chip" onclick="rdCwpOpenColumns(this,\''+key+'\')">Columns</button>'
+        +'<button type="button" class="rd-chip" onclick="rdCwpAutoFit(\''+key+'\')">Auto-fit columns</button>'
+        +'<button type="button" class="rd-chip" onclick="rdCwpCycleRowHeight(\''+key+'\')">Row height</button>';
+    }
+    html+='</div>';
+    return html;
+  }
+  window.rdCwpToolbarHtml=cwpRdToolbarHtml;
+  window.rdCwpOpenFilter=function(key, field, btn){
+    const d=TABLES[key]; if(!d) return;
+    const col=d.columns.find(c=>c.key===field);
+    const s=st(key);
+    const cur=s.filters[field]||'all';
+    const values=[...new Set(DB.all(d.entity).map(r=>{
+      return col?colText(col,r):String(r[field]==null?'':r[field]).trim();
+    }).filter(v=>v!==''))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+    const opts=[{value:'all',label:'All'}].concat(values.map(v=>({value:v,label:v})));
+    if(typeof window.rdPickOne==='function'){
+      window.rdPickOne(btn, opts, cur||'all', val=>{
+        if(!val||val==='all') delete s.filters[field];
+        else s.filters[field]=val;
+        s.page=0; renderTable(key);
+      });
+    }
+  };
+  window.rdCwpClearFilter=function(key, field){
+    const s=st(key); delete s.filters[field]; s.page=0; renderTable(key);
+  };
+  window.rdCwpOpenSort=function(key, btn){
+    const d=TABLES[key]; if(!d) return;
+    const s=st(key);
+    const cols=cwpSortableCols(d.columns);
+    const opts=[{value:'',label:'Default order'}].concat(cols.map(c=>({
+      value:c.key+':asc', label:c.label+' (A–Z)'
+    })).concat(cols.map(c=>({
+      value:c.key+':desc', label:c.label+' (Z–A)'
+    }))));
+    const current=s.sortKey?(s.sortKey+':'+(s.sortDir||'asc')):'';
+    if(typeof window.rdPickOne==='function'){
+      window.rdPickOne(btn, opts, current, val=>{
+        if(!val){ s.sortKey=''; s.sortDir='asc'; }
+        else { const parts=String(val).split(':'); s.sortKey=parts[0]; s.sortDir=parts[1]==='desc'?'desc':'asc'; }
+        s.page=0; renderTable(key);
+      });
+    }
+  };
+  window.rdCwpOpenColumns=function(btn, key){
+    if(typeof window.rdOpenColumns==='function') window.rdOpenColumns(btn, key);
+  };
+  window.rdCwpAutoFit=function(key){
+    if(typeof window.rdStdAutoFit==='function') window.rdStdAutoFit(null, key);
+    else if(typeof window.cwpAutoFitTableColumns==='function') window.cwpAutoFitTableColumns(key);
+  };
+  window.rdCwpCycleRowHeight=function(key){
+    const mount=cwpMountEl(key);
+    if(typeof window.rdStdApplyRowHeight==='function' && typeof window.rdStdHeightLabel==='function'){
+      const order=['compact','default','tall'];
+      const cur=window.rdStdHeightLabel(key);
+      const next=order[(Math.max(0, order.indexOf(cur))+1)%order.length];
+      try { localStorage.setItem('rdRowHeight:'+(typeof activeProfile!=='undefined'&&activeProfile!=null?activeProfile:'default')+':'+key, next); } catch(e) {}
+      window.rdStdApplyRowHeight(key, mount);
+    }
+    renderTable(key);
+  };
+
   function renderTable(key, mountOverride){
     const d=TABLES[key]; if(!d) return;
     if (mountOverride) _cwpMountOverride[key] = mountOverride;
@@ -45050,9 +45198,12 @@ function mountAllTabs(root){
     mount.classList.add('cwp-mount');
     const readOnlyPreview=mount.classList.contains('ro-preview');
     mount.classList.toggle('cwp-readonly-preview', readOnlyPreview);
-    const cols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns, bulk=!readOnlyPreview&&bulkOn(key);
+    const rawCols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns;
+    const cols=cwpRegisterRdColumns(key, rawCols), bulk=!readOnlyPreview&&bulkOn(key);
     const s=st(key);
     const hubFullToolbar = isCwpHubMount(mountId);
+    const ownsPage = pageOwnsToolbar(key) && !hubFullToolbar && !readOnlyPreview;
+    const injectRdToolbar = !ownsPage;
     const showFullToolbar = !d.hideToolbar || hubFullToolbar || readOnlyPreview;
     /* bulk action buttons (Edit Selected / Delete Selected) — shared so they can
        appear in the full toolbar OR in a slim bar when the page owns the header */
@@ -45075,11 +45226,15 @@ function mountAllTabs(root){
     const autofitRowsBtn='<button class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="cwpAutoFitTableRows(\''+key+'\')" title="Size all rows to fit their contents">Auto-fit rows</button>';
     if(readOnlyPreview) {
       tools+=autofitBtn+autofitRowsBtn;
-    } else if(d.hideToolbar && bulk && !hubFullToolbar) bulkTools=autofitBtn+autofitRowsBtn+bulkTools;
-    else {
+    } else if(d.hideToolbar && bulk && !hubFullToolbar) bulkTools=bulkTools;
+    else if(!injectRdToolbar) {
       tools+=autofitBtn+autofitRowsBtn;
       tools+='<button class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="cwpAdd(\''+key+'\')">'+esc(d.addLabel||'+ Add')+'</button>';
       tools+=bulkTools;
+    } else {
+      /* Chip toolbar owns Filters / Sort / Columns / Auto-fit / Row height.
+         Keep Add + bulk on a slim secondary strip. */
+      tools='<button class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="cwpAdd(\''+key+'\')">'+esc(d.addLabel||'+ Add')+'</button>'+bulkTools;
     }
 
     let head='<tr>';
@@ -45092,10 +45247,23 @@ function mountAllTabs(root){
       ? '<th data-t="'+c.type+'"'+w+'><span class="cwp-th-flx">'+esc(c.label)+'<button type="button" class="col-filter cwp-col-filter" data-col="'+attr(c.key)+'" onclick="cwpOpenColFilter(\''+key+'\',\''+c.key+'\',this)" aria-label="Filter '+attr(c.label)+'">▾</button></span><span class="cwp-col-resizer" data-col="'+attr(c.key)+'"></span></th>'
       : '<th data-t="'+c.type+'"'+w+'>'+esc(c.label)+'<span class="cwp-col-resizer" data-col="'+attr(c.key)+'"></span></th>'; }).join('')+'</tr>';
 
+    const rdBar = injectRdToolbar ? cwpRdToolbarHtml(key) : '';
+    let legacyBar='';
+    if(ownsPage){
+      legacyBar = showFullToolbar
+        ? '<div class="cwp-toolbar">'+tools+'</div>'
+        : (bulk?'<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>':'');
+    } else if(tools){
+      legacyBar = '<div class="cwp-toolbar cwp-toolbar--bulk">'+tools+'</div>';
+    } else if(bulk){
+      legacyBar = '<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>';
+    }
+
     mount.innerHTML=
       '<section class="cwp-section">'
       +(!d.hideToolbar?'<div class="cwp-section-head"><h2 class="cwp-section-title">'+esc(d.title)+'</h2></div>':'')
-      +(showFullToolbar?'<div class="cwp-toolbar">'+tools+'</div>':(bulk?'<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>':'<div class="cwp-toolbar cwp-toolbar--autofit">'+autofitBtn+autofitRowsBtn+'</div>'))
+      +rdBar
+      +legacyBar
       +'<div class="cwp-section-body"><div class="cwp-table-wrap'+(d.wrapClass?' '+d.wrapClass:'')+'"><table class="cwp-table"><thead>'+head+'</thead><tbody id="cwp-tbody-'+key+'"></tbody></table></div></div>'
       +'<div class="cwp-pager" id="cwp-pager-'+key+'"></div>'
       +'</section>';
@@ -45104,12 +45272,16 @@ function mountAllTabs(root){
     if(stripActions(key)){ const hr=mount.querySelector('thead tr'); if(hr && hr.lastElementChild) hr.removeChild(hr.lastElementChild); }
     cwpWireResizers(key);
     const tableEl = mount.querySelector('table.cwp-table');
+    if (typeof window.rdStdApplyRowHeight === 'function') window.rdStdApplyRowHeight(key, mount);
     if (tableEl && typeof scheduleStretchPlannerTable === 'function') scheduleStretchPlannerTable(tableEl);
     if (tableEl && typeof ensureTableWidthStretchObserver === 'function') ensureTableWidthStretchObserver(tableEl);
     if (typeof uedApplyTableHeaderColor === 'function') uedApplyTableHeaderColor(mount);
     if (typeof RdDepth !== 'undefined' && RdDepth.decorateTable && tableEl) {
       try { RdDepth.decorateTable(tableEl, { force: true, summary: true, addColumn: false }); } catch (e) {}
     }
+    try {
+      mount.dispatchEvent(new CustomEvent('cwp:table-rendered', { bubbles: true, detail: { key: key } }));
+    } catch (e) { /* IE ignore */ }
   }
 
   function updateBulkBar(key){

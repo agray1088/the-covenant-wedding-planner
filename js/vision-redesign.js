@@ -170,6 +170,8 @@
     host.innerHTML = `<div class="rd-toolbar__left">
       <span class="rd-chip rd-chip--ghost">Keepsake foundation</span>
       <span class="rd-chip rd-chip--ghost">${esc(visFigures().sectionsComplete)} sections started</span>
+      ${typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by section', "rdStdOpenSort(this,'vision')") : ''}
+      ${typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('vision') : ''}
     </div>
     <div class="rd-toolbar__right">
       <div class="rd-viewswitch" role="group" aria-label="Vision view">

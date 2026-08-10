@@ -262,7 +262,8 @@
         `<span class="rd-ess-toolbar-note">One card per person</span>`;
     } else {
       left = filterChip('Role', 'role') + filterChip('Side', 'side') + filterChip('Reachable', 'reachable') +
-        `<span class="rd-ess-toolbar-note">Sort by name · Columns · 6 of 6 · Row height · compact</span>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by name', "rdContactsOpenSort(this)") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('contacts') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

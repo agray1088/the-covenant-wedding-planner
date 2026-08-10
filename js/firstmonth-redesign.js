@@ -207,6 +207,8 @@
       ${filterChip('monthly', 'Monthly')}
       ${filterChip('yearly', 'Yearly')}
       <button type="button" class="rd-chip" onclick="rdFmCycleGroup()">Group by: ${esc(group)}</button>
+      ${typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by cadence', "rdStdOpenSort(this,'firstmonth')") : ''}
+      ${typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('firstmonth') : ''}
     </div>
     <div class="rd-toolbar__right">
       <div class="rd-viewswitch" role="group" aria-label="First-month view">

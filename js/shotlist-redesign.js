@@ -452,17 +452,15 @@
     if (mode === 'cards') {
       left = filterChip('List', 'list') + filterChip('Priority', 'priority') +
         `<button type="button" class="rd-chip${window._shotMustOnly ? ' is-active' : ''}" onclick="rdShotToggleMustOnly()">Must-have only${window._shotMustOnly ? ' ✕' : ''}</button>` +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by window</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by window', "rdShotOpenSort(this)") : '');
     } else if (mode === 'window') {
       left = filterChip('Window', 'window') + filterChip('Priority', 'priority') +
         `<button type="button" class="rd-chip${window._shotShowUnsched ? ' is-active' : ''}" onclick="rdShotToggleUnsched()">Show unscheduled${window._shotShowUnsched ? ' ✕' : ''}</button>` +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by time</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by time', "rdShotOpenSort(this)") : '');
     } else {
       left = filterChip('List', 'list') + filterChip('Window', 'window') + filterChip('Supplier', 'supplier') +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by window</button>` +
-        `<button type="button" class="rd-chip" onclick="rdShotOpenColumns()">Columns · 5 of 5</button>` +
-        `<button type="button" class="rd-chip" onclick="rdShotAutoFit()">Auto-fit columns</button>` +
-        `<button type="button" class="rd-chip" onclick="rdShotCycleRowHeight()">Row height · ${esc(window._shotRowHeight || 'compact')}</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by window', "rdShotOpenSort(this)") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('shotlist') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

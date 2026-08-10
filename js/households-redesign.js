@@ -284,7 +284,8 @@
         `<span class="rd-ess-toolbar-note">One card per envelope</span>`;
     } else {
       left = filterChip('Side', 'side') + filterChip('Reply', 'reply') + filterChip('City', 'city') +
-        `<span class="rd-ess-toolbar-note">Sort by surname · Columns · 6 of 6 · Row height · compact</span>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by surname', "rdHhOpenSort(this)") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('households') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
