@@ -5841,8 +5841,8 @@ function showPanel(id, forceOpen = false) {
   if (id === 'venue' && typeof syncVenueVendorsHubTabs === 'function') syncVenueVendorsHubTabs('venue');
   else if (id === 'vendors' && typeof syncVenueVendorsHubTabs === 'function') syncVenueVendorsHubTabs(_vndTab === 'shortlist' ? 'shortlist' : 'vendors');
   if (typeof updateTopbarNotificationsBell === 'function') updateTopbarNotificationsBell();
-  requestAnimationFrame(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); mountAllTabs(); normalizeCurrencyTableInputs(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot, { reset:true }); });
-  setTimeout(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot); }, 80);
+  requestAnimationFrame(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; if (typeof rdRemoveDuplicateToolbars === 'function') rdRemoveDuplicateToolbars(panelRoot); enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); mountAllTabs(); normalizeCurrencyTableInputs(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot, { reset:true }); });
+  setTimeout(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; if (typeof rdRemoveDuplicateToolbars === 'function') rdRemoveDuplicateToolbars(panelRoot); enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot); }, 80);
   injectMasthead(id);
   injectPageScripture(id);
   injectPrayerPrompt(id);
@@ -44715,13 +44715,28 @@ function mountAllTabs(root){
     'tasks','guests','appointments','party','gifts','vendors','budgetItems',
     'payments','paymentStages','contracts','tables',
     /* logistics page chrome owns Day/Type/Owner + Columns/Auto-fit/Row height */
-    'weekendTimeline','travelAccommodations','hotelBlocks','transportation','vipCare'
+    'weekendTimeline','travelAccommodations','hotelBlocks','transportation','vipCare',
+    /* Redesign pages that paint rdStandardRightHtml on the page toolbar */
+    'counseling','essentials','prayer','shotlist','videoShots','menu','kidsMenu',
+    'beverages','placeSettings','cateringRentals','snacks','vendorMeals',
+    'ceremonyOrder','ceremonyProcessional','ceremonyRecessional','scriptures',
+    'ceremonyChecklist','ceremonyVows','ceremonyReceptionDetails','ceremonyTraditions',
+    'entertainment','honeymoon','honeyDetails','honeyTransport','honeyItinerary',
+    'wdayTimeline','notesDetails','notes','contactsDirectory','homecoming','nameChange',
+    'moodItems','packing'
   ]);
   function pageOwnsToolbar(key){
     const d=TABLES[key];
     if(d && d.pageOwnsToolbar===true) return true;
     if(d && d.pageOwnsToolbar===false) return false;
-    return CWP_PAGE_OWNS_TOOLBAR.has(key);
+    if(CWP_PAGE_OWNS_TOOLBAR.has(key)) return true;
+    /* Live DOM: the redesign page toolbar already has Columns/Auto-fit/Row height. */
+    try {
+      const mountId=(d && d.mount) || ('cwp-'+key);
+      const mount=document.getElementById(mountId);
+      if(mount && typeof window.rdPanelHasPageToolbarChrome==='function' && window.rdPanelHasPageToolbarChrome(mount)) return true;
+    } catch(e) { /* ignore */ }
+    return false;
   }
   /* Tables that manage their OWN selection or show merged/computed rows that
      cannot be mutated through DB — the engine selection column is suppressed here. */
@@ -45282,6 +45297,10 @@ function mountAllTabs(root){
     try {
       mount.dispatchEvent(new CustomEvent('cwp:table-rendered', { bubbles: true, detail: { key: key } }));
     } catch (e) { /* IE ignore */ }
+    /* Page chrome owns Columns/Auto-fit — drop any inject that slipped in. */
+    if (ownsPage && typeof window.rdRemoveDuplicateToolbars === 'function') {
+      try { window.rdRemoveDuplicateToolbars(mount.closest('.panel, .rd-page') || mount); } catch (e) {}
+    }
   }
 
   function updateBulkBar(key){
