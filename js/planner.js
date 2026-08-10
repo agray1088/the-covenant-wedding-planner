@@ -2317,7 +2317,8 @@ function renderWhenInputComplete(renderFn) {
    PLANNER HISTORY, UNDO, AND REDO
 ════════════════════════════════════════════════ */
 const HISTORY_SNAPSHOT_LIMIT = 15;
-const HISTORY_LOG_LIMIT = 250;
+/* Readable change log capacity (All.dc 18b). Undo snapshots stay at 15. */
+const HISTORY_LOG_LIMIT = 200;
 const HISTORY_GROUP_MS = 3000;
 /* _recordHistory belongs here for the same reason the others do: it is a
    record OF changes, not a change. Left out, every per-record history write
@@ -2427,9 +2428,26 @@ function historySummarizeChange(beforeText, afterText) {
   const page = historyPanelLabel();
   const visible = changed.slice(0,4).map(item => item.detail).join('; ');
   const extra = changed.length > 4 ? `; plus ${changed.length - 4} more section${changed.length - 4 === 1 ? '' : 's'}` : '';
+  const primary = changed[0] ? historySectionLabel(changed[0].key) : page;
+  const fieldCount = changed.length;
+  const changeTitle = fieldCount === 1
+    ? `Changed 1 field on ${primary}`
+    : `Changed ${fieldCount} fields on ${primary}`;
+  const fields = changed.slice(0, 6).map(item => {
+    const m = String(item.detail || '').match(/^([^:]+):\s*(.*)$/);
+    return { label: m ? m[1].trim() : historySectionLabel(item.key), from: '', to: m ? m[2].trim() : (item.detail || 'updated') };
+  });
+  const who = (() => {
+    const bride = String((data.setup && data.setup.bride) || '').trim();
+    return bride ? bride.split(/\s+/)[0] : 'You';
+  })();
   return {
     source: page,
-    action: `Updated ${page}`,
+    action: changeTitle,
+    change: changeTitle,
+    record: page + (primary && primary !== page ? ' · ' + primary : ''),
+    who,
+    fields,
     details: visible + extra,
     groupKey: page + '|' + changed.map(item => item.key).join(',')
   };
@@ -2457,6 +2475,10 @@ function recordPlannerHistory() {
     last.date = historyTodayISO();
     last.time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
     last.details = summary.details;
+    last.action = summary.action;
+    last.change = summary.change || summary.action;
+    last.record = summary.record || summary.source;
+    last.fields = summary.fields || last.fields;
   } else {
     data._undoSnapshots.unshift(HISTORY_BASE_SNAPSHOT);
     data._undoSnapshots = data._undoSnapshots.slice(0, HISTORY_SNAPSHOT_LIMIT);
@@ -2468,13 +2490,21 @@ function recordPlannerHistory() {
       time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
       source: summary.source,
       action: summary.action,
+      change: summary.change || summary.action,
+      record: summary.record || summary.source,
+      who: summary.who || 'You',
+      fields: summary.fields || [],
       details: summary.details,
-      groupKey: summary.groupKey
+      groupKey: summary.groupKey,
+      hasSnapshot: true
     });
     data._historyLog = data._historyLog.slice(0, HISTORY_LOG_LIMIT);
   }
   HISTORY_BASE_SNAPSHOT = nextSnapshot;
   updateHistoryControls();
+  if (document.body?.getAttribute('data-active-panel') === 'history' && typeof renderHistoryRd === 'function') {
+    renderWhenInputComplete(renderHistoryRd);
+  }
 }
 function saveHistorySilent() {
   normalizeHistoryState();
@@ -2520,8 +2550,13 @@ function addHistorySystemEntry(action, details) {
     time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
     source: 'Planner History',
     action,
+    change: action,
+    record: 'Planner History',
+    who: 'You',
+    fields: [],
     details,
-    groupKey: 'system|' + action
+    groupKey: 'system|' + action,
+    hasSnapshot: false
   });
   data._historyLog = data._historyLog.slice(0, HISTORY_LOG_LIMIT);
 }
@@ -2647,10 +2682,13 @@ async function clearPlannerHistory() {
   HISTORY_BASE_SNAPSHOT = historySnapshotString();
   HISTORY_SUSPENDED = true;
   try { saveHistorySilent(); } finally { HISTORY_SUSPENDED = false; }
-  renderHistoryPage();
+  if (typeof renderHistoryRd === 'function') renderHistoryRd();
+  else renderHistoryPage();
   renderHistoryDrawer();
   updateHistoryControls();
 }
+window.undoLastChange = undoPlannerChange;
+window.redoLastChange = redoPlannerChange;
 
 /* ── Track 4 / Phase B — SQLite write-through ──
    After every JSON/localStorage save, mirror the current `data` into the live
@@ -5782,8 +5820,8 @@ function renderRegisteredPanel(id){
 window.SYSTEM_PANEL_RENDERERS = SYSTEM_PANEL_RENDERERS;
 
 function showPanel(id, forceOpen = false) {
-  if (id === 'history') id = 'dashboard';
   if (id === 'plan') id = 'tasks';
+  /* History is UNTABBED (All.dc 18b) — reachable from undo/redo + prefs. */
   if (id === 'reflect' && typeof _rflTab === 'undefined') _rflTab = 'vision';
   /* Redesign chrome (§06) lists the full IA — Weekend Logistics, Wedding Party,
      Table Layout, Contracts, etc. Essentials / Focus presets still hide those
@@ -12729,6 +12767,27 @@ function renderSetupPage() {
   renderTopbarPhoto();
   renderMenuVisibilitySettings();
   renderEssentialsHubHosts();
+  /* All.dc 18b — Clear History lives in Wedding Setup danger zone, not on the log. */
+  let danger = document.getElementById('setup-history-danger');
+  if (!danger && panel) {
+    danger = document.createElement('section');
+    danger.id = 'setup-history-danger';
+    danger.className = 'm-block rd-setup-danger';
+    danger.innerHTML = `
+      <div class="m-head">Danger zone</div>
+      <p class="v4-help-note">Irreversible actions. Clearing history removes the readable log and undo/redo snapshots — it does not delete guests, budget lines, or any other planner content.</p>
+      <div class="rd-setup-danger__grid">
+        <div class="rd-setup-danger__cell">
+          <div class="rd-setup-danger__title">Clear Planner History</div>
+          <p>Drops up to ${HISTORY_LOG_LIMIT} log entries and ${HISTORY_SNAPSHOT_LIMIT} undo snapshots. Download a backup first if you may need the record later.</p>
+          <div class="rd-setup-danger__row">
+            <button type="button" class="btn btn-danger" onclick="clearPlannerHistory()">Clear History</button>
+            <button type="button" class="m-btn" onclick="showPanel('history', true)">Open Planner History</button>
+          </div>
+        </div>
+      </div>`;
+    panel.appendChild(danger);
+  }
 }
 
 /* ════════════════════════════════════════════════

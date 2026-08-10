@@ -176,6 +176,49 @@
       });
       prefs.insertBefore(trashBtn, prefs.firstChild);
     }
+    /* All.dc 18b — Planner History is reached from the top bar / prefs, not a tab. */
+    if (prefs && !prefs.querySelector('[data-rd-history]')) {
+      var histBtn = el('<button type="button" class="rd-prefs__history" data-rd-history>Planner History</button>');
+      histBtn.addEventListener('click', function () {
+        prefs.setAttribute('hidden', '');
+        var g = document.getElementById('rd-gear-btn');
+        if (g) g.setAttribute('aria-expanded', 'false');
+        window._histReturnPanel = document.body.getAttribute('data-active-panel') || 'dashboard';
+        if (typeof showPanel === 'function') showPanel('history', true);
+      });
+      prefs.insertBefore(histBtn, prefs.firstChild);
+    }
+    /* Undo/Redo cluster: secondary click / Alt+click opens the History log. */
+    ['undo-btn', 'redo-btn'].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (!b || b.dataset.rdHistBound) return;
+      b.dataset.rdHistBound = '1';
+      b.addEventListener('click', function (ev) {
+        if (ev.altKey || ev.metaKey) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          window._histReturnPanel = document.body.getAttribute('data-active-panel') || 'dashboard';
+          if (typeof showPanel === 'function') showPanel('history', true);
+        }
+      }, true);
+      b.title = (b.title || '') + (b.title ? ' · ' : '') + 'Alt-click for Planner History';
+    });
+    var histTop = document.querySelector('#topbar button[onclick*="openHistoryDrawer"]');
+    if (histTop) {
+      histTop.style.display = '';
+      histTop.removeAttribute('aria-hidden');
+      histTop.removeAttribute('tabindex');
+      histTop.classList.add('rd-undo');
+      histTop.setAttribute('title', 'Planner History');
+      histTop.onclick = function (ev) {
+        if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+        window._histReturnPanel = document.body.getAttribute('data-active-panel') || 'dashboard';
+        if (typeof showPanel === 'function') showPanel('history', true);
+        if (typeof toggleTopbarOverflow === 'function') toggleTopbarOverflow();
+      };
+      var undoSlot = bar.querySelector('.rd-topbar__undoslot');
+      if (undoSlot && histTop.parentElement !== undoSlot) undoSlot.appendChild(histTop);
+    }
 
     /* ─── retire the legacy chrome ────────────────────────────────────── */
     legacyBar.setAttribute('hidden', '');
@@ -205,10 +248,26 @@
     subnav.innerHTML = '';
     if (!tab) {
       if (UNTABBED.indexOf(active) > -1) {
-        subnav.appendChild(el('<span class="rd-subnav__note">Reached from the top bar</span>'));
+        if (active === 'history') {
+          subnav.classList.add('rd-subnav--context');
+          subnav.appendChild(el(
+            '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M9 7H4V2"/><path d="M4 7a9 9 0 1 1 1.6 9"/></svg>' +
+            '<span class="rd-subnav__note">Opened from the undo and redo buttons · this page has no tab of its own</span>' +
+            '<button type="button" class="rd-subnav__item" style="margin-left:auto" id="rd-history-back">Back</button>'
+          ));
+          var back = subnav.querySelector('#rd-history-back');
+          if (back) back.addEventListener('click', function () {
+            if (window._histReturnPanel && typeof showPanel === 'function') showPanel(window._histReturnPanel, true);
+            else if (typeof showPanel === 'function') showPanel('dashboard', true);
+          });
+        } else {
+          subnav.classList.remove('rd-subnav--context');
+          subnav.appendChild(el('<span class="rd-subnav__note">Reached from the top bar</span>'));
+        }
       }
       return;
     }
+    subnav.classList.remove('rd-subnav--context');
     tab.pages.forEach(function (p) {
       if (!panelOf(p[0])) return;
       var b = el('<button type="button" class="rd-subnav__item' +

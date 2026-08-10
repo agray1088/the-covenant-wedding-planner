@@ -22654,21 +22654,98 @@ body.rd-scope #panel-setup .rd-setup-danger__row select {
 }
 
 /* ── PLANNER HISTORY: Log / By record / Field detail (All.dc 18b) ───────── */
-body.rd-scope #panel-history .rd-page__surface { display: flex; align-items: stretch; min-height: 0; }
-body.rd-scope #panel-history .rd-page__work { flex: 1 1 auto; min-width: 0; padding: 0; }
-body.rd-scope #panel-history .rd-hist-datefield {
-  display: flex; align-items: center; gap: var(--space-2);
-  font: 500 var(--type-meta)/1 var(--font-ui); color: var(--text-muted);
+body.rd-scope #panel-history.ued-scope { min-height: 0; }
+body.rd-scope #panel-history .rd-page {
+  display: flex; flex-direction: column; min-height: 0;
 }
-body.rd-scope #panel-history .rd-hist-datefield input {
-  height: var(--component-input-height); padding: 0 8px;
-  border: 1px solid var(--border-field); background: var(--surface-content);
+body.rd-scope #panel-history .rd-surface {
+  flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
 }
-body.rd-scope #panel-history .rd-hist-help { font-size: var(--type-meta); color: var(--text-muted); max-width: 52ch; }
-body.rd-scope #panel-history .rd-grouplist__head { flex-wrap: wrap; }
-body.rd-scope #panel-history #history-drawer-slot:empty { display: none; }
+body.rd-scope #panel-history .rd-surface__row {
+  display: flex; align-items: stretch; min-height: 0; flex: 1 1 auto;
+}
+body.rd-scope #panel-history .rd-surface__main {
+  flex: 1 1 auto; min-width: 0; overflow: auto; padding: 4px 4px 28px;
+}
+body.rd-scope #panel-history .rd-hist-date-hidden {
+  position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;
+}
+body.rd-scope #panel-history .rd-hist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+body.rd-scope #panel-history .rd-hist-table th,
+body.rd-scope #panel-history .rd-hist-table td {
+  text-align: left; padding: 8px 10px; border-bottom: 1px solid #f0ebe0; vertical-align: top;
+}
+body.rd-scope #panel-history .rd-hist-table tr.rd-hist-group > td,
+body.rd-scope #panel-history .rd-hist-table tr.rd-group-row > td {
+  background: #ebe4d6; color: #3d3830; font-size: 11px; font-weight: 700;
+  letter-spacing: .04em; padding: 9px 12px; border-bottom: 1px solid #ddd4c2;
+}
+body.rd-scope #panel-history .rd-hist-change { font-weight: 600; color: #23211c; }
+body.rd-scope #panel-history .rd-hist-diffs {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;
+}
+body.rd-scope #panel-history .rd-hist-diff {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px;
+  background: #f7f3ea; border: 1px solid #e7e1d4; font-size: 11px; color: #5a534c;
+}
+body.rd-scope #panel-history .rd-hist-diff__k { font-weight: 700; color: #8a7e6b; }
+body.rd-scope #panel-history .rd-hist-diff__from { text-decoration: line-through; opacity: .75; }
+body.rd-scope #panel-history .rd-hist-diff__arrow { color: #b89968; }
+body.rd-scope #panel-history .rd-hist-undo {
+  border: 0; background: transparent; color: #946f33; font: inherit; font-weight: 600;
+  cursor: pointer; padding: 0;
+}
+body.rd-scope #panel-history .rd-hist-aged { color: #8a7e6b; font-size: 12px; }
+body.rd-scope #panel-history .rd-callout {
+  display: flex; align-items: flex-start; gap: 16px; padding: 14px 16px; margin: 0 0 14px;
+  border: 1px solid #e4c27a; background: #fbf6ea;
+}
+body.rd-scope #panel-history .rd-callout strong { display: block; margin-bottom: 4px; color: #20362D; }
+body.rd-scope #panel-history .rd-callout p { margin: 0; color: #6b645d; font-size: 13px; line-height: 1.45; max-width: 52rem; }
+body.rd-scope #panel-history .rd-hist-loadmore {
+  display: inline-flex; margin: 14px 0 8px; border: 0; background: transparent;
+  color: #5a534c; font: inherit; cursor: pointer;
+}
+body.rd-scope #panel-history .rd-hist-explainer {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 8px 0 18px;
+}
+body.rd-scope #panel-history .rd-hist-explainer article {
+  padding: 14px 16px; border-top: 1px solid #e7ce80; background: #fdfcfa;
+}
+body.rd-scope #panel-history .rd-hist-explainer h3 {
+  margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #panel-history .rd-hist-explainer p {
+  margin: 0; font-size: 13px; line-height: 1.5; color: #6b645d;
+}
+body.rd-scope #panel-history .rd-hist-clear-note { margin: 0 0 24px; max-width: 54rem; }
+body.rd-scope #panel-history .rd-linkbtn {
+  border: 0; background: transparent; color: #946f33; font: inherit; font-weight: 600; cursor: pointer; padding: 0;
+}
+body.rd-scope #panel-history .rd-hist-fields { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+body.rd-scope #panel-history .rd-hist-fieldcard {
+  padding: 14px 16px; border: 1px solid #e7e1d4; background: #fdfcfa;
+}
+body.rd-scope #panel-history .rd-hist-fieldcard__title { font-weight: 600; color: #23211c; }
+body.rd-scope #panel-history .rd-hist-fieldcard__meta { margin-top: 4px; font-size: 12px; color: #8a7e6b; }
+body.rd-scope #panel-history .rd-hist-fieldcard ul { list-style: none; margin: 12px 0 0; padding: 0; }
+body.rd-scope #panel-history .rd-hist-fieldcard li {
+  display: grid; grid-template-columns: 1.2fr 1fr auto 1fr auto; gap: 8px; align-items: center;
+  padding: 8px 0; border-top: 1px solid #f0ebe0; font-size: 13px;
+}
+body.rd-scope .rd-prefs__history {
+  display: block; width: 100%; text-align: left; border: 0; background: transparent;
+  padding: 8px 12px; font: inherit; color: inherit; cursor: pointer;
+}
+body.rd-scope .rd-subnav--context {
+  display: flex; align-items: center; gap: 10px;
+}
+body.rd-scope #panel-setup .rd-setup-danger { margin-top: 18px; }
+@media (max-width: 900px) {
+  body.rd-scope #panel-history .rd-hist-explainer { grid-template-columns: 1fr; }
+}
 @media print {
-  body.rd-scope #panel-history .rd-hist-datefield,
+  body.rd-scope #panel-history .rd-hist-date-hidden,
   body.rd-scope #panel-history #history-drawer-slot { display: none !important; }
 }
 
