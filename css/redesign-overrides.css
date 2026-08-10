@@ -527,16 +527,29 @@ body.rd-scope .btn-forest:hover { background-color: var(--forest-deep) !importan
   font-weight: 600 !important;
 }
 
-/* Sub-page view switchers (Table · Households · Seating, etc.) — same
-   height + type as Auto-fit columns chips. */
+/* Sub-page view switchers (Month · Week · Agenda / Table · Households · Seating)
+   — same outer height + type as Auto-fit columns. Group owns the frame. */
+#main#main .rd-viewswitch,
+body.rd-scope .rd-viewswitch {
+  display: inline-flex !important;
+  align-items: stretch !important;
+  height: var(--component-chip-height) !important;
+  min-height: var(--component-chip-height) !important;
+  max-height: var(--component-chip-height) !important;
+  box-sizing: border-box !important;
+  border: 1px solid var(--border-control) !important;
+  overflow: hidden !important;
+  background: var(--surface-content) !important;
+}
 #main#main .rd-viewswitch > *,
 #main#main .rd-viewswitch__item,
 #main#main .rd-sectiontabs__item,
 body.rd-scope .rd-viewswitch > *,
 body.rd-scope .rd-viewswitch__item,
 body.rd-scope .rd-sectiontabs__item {
-  height: var(--component-chip-height) !important;
-  min-height: var(--component-chip-height) !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
   padding: 0 var(--btn-toolbar-pad-x) !important;
   font-family: var(--font-ui) !important;
   font-size: var(--btn-toolbar-font-size) !important;
@@ -549,11 +562,19 @@ body.rd-scope .rd-sectiontabs__item {
 }
 #main#main .rd-viewswitch > .is-active,
 #main#main .rd-viewswitch__item.is-active,
+#main#main .rd-viewswitch > .active,
+#main#main .rd-viewswitch__item.active,
 body.rd-scope .rd-viewswitch > .is-active,
-body.rd-scope .rd-viewswitch__item.is-active {
+body.rd-scope .rd-viewswitch__item.is-active,
+body.rd-scope .rd-viewswitch > .active,
+body.rd-scope .rd-viewswitch__item.active {
   font-weight: 600 !important;
 }
 /* Honeymoon section tabs keep the underline treatment, but same type size. */
+body.rd-scope .rd-sectiontabs__item {
+  height: var(--component-chip-height) !important;
+  min-height: var(--component-chip-height) !important;
+}
 body.rd-scope .rd-sectiontabs__item.is-active {
   font-weight: 600 !important;
 }
@@ -2876,22 +2897,25 @@ body.rd-scope #panel-calendar #smart-month-label {
   color: var(--text-heading, #20362D);
 }
 body.rd-scope #panel-calendar .rd-viewswitch > button:not(.is-active) {
-  background: none;
+  background: transparent;
   border-top: 0;
   border-right: 0;
   border-bottom: 0;
   margin: 0;
   font-family: var(--font-ui);
+  font-size: var(--btn-toolbar-font-size) !important;
 }
 body.rd-scope #panel-calendar .rd-viewswitch > button {
   cursor: pointer;
   border-radius: 0 !important;
+  height: 100% !important;
+  font-size: var(--btn-toolbar-font-size) !important;
+  line-height: 1 !important;
 }
 body.rd-scope #panel-calendar .rd-viewswitch > button.is-active,
 body.rd-scope #panel-calendar .rd-viewswitch > button.active {
   background: var(--forest-deep, #20362D) !important;
   color: var(--on-forest, #fff) !important;
-  border-color: var(--forest-deep, #20362D) !important;
 }
 
 /* Surface row: calendar main + 360 drawer (Tasks pattern) ? edge-to-edge.

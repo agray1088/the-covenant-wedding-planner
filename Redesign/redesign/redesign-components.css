@@ -321,12 +321,22 @@ body[data-theme="dark"] .rd-table tbody tr:hover { background: #202020; }
   flex-wrap: wrap; min-width: 0;
 }
 .rd-toolbar__cols { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-width: 0; }
-.rd-viewswitch { display: flex; border: 1px solid var(--border-control); align-items: stretch; }
+/* Segmented view control — same outer height as .rd-chip (Auto-fit columns).
+   The group owns the 1px frame; items fill it (do not add another 28px inside). */
+.rd-viewswitch {
+  display: inline-flex;
+  align-items: stretch;
+  height: var(--component-chip-height);
+  box-sizing: border-box;
+  border: 1px solid var(--border-control);
+  overflow: hidden;
+  background: var(--surface-content);
+}
 .rd-viewswitch > *,
 .rd-viewswitch__item {
   display: inline-flex; align-items: center; justify-content: center;
-  height: var(--component-chip-height);
-  min-height: var(--component-chip-height);
+  height: 100%;
+  min-height: 0;
   padding: 0 var(--btn-toolbar-pad-x);
   font-family: var(--font-ui);
   font-size: var(--btn-toolbar-font-size);
@@ -335,7 +345,8 @@ body[data-theme="dark"] .rd-table tbody tr:hover { background: #202020; }
   color: var(--text-muted);
   border: 0;
   border-left: 1px solid var(--border-control);
-  background: var(--surface-content);
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
   box-sizing: border-box;
   white-space: nowrap;
