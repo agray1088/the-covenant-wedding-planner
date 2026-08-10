@@ -25,7 +25,7 @@ function blankData() {
     entertainment: [], mustPlay: [], doNotPlay: [], receptionPlaylist: [], palettes: [], moodPhotos: [], moodFavorites: [], moodItems: [],
     honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], firstMonthBudget: [], homecomingReflection: {}, honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
     packets: [], emailTemplates: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
-    vision: {}, homecoming: [], firstmonth: {}, marriageLicense: {},
+    vision: {}, homecoming: [], firstmonth: {}, rhythms: [], marriageLicense: {},
     vendorCompare: [], reception: {}, attire: [], decor: [], stationery: [], events: [], locations: [], contacts: [],
     weekendTimeline: [], travelAccommodations: [], hotelBlocks: [], transportation: [], vipCare: [],
     _historyLog: [], _undoSnapshots: [], _redoSnapshots: [], _historyPrefs: {}
