@@ -353,12 +353,12 @@
     const panel = document.getElementById('panel-timeline');
     if (!panel) return;
     panel.classList.add('ued-scope', 'wday-mockup');
-    if (panel.dataset.uedShell === 'timeline-rd6b-v2') {
+    if (panel.dataset.uedShell === 'timeline-rd6b-v3') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'timeline-rd6b-v2';
+    panel.dataset.uedShell = 'timeline-rd6b-v3';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -993,6 +993,13 @@
     else if (mode === 'vendor') renderVendorView();
     else renderTableView();
     renderTimelineDrawer();
+
+    /* Scrub any leftover Auto-fit columns | Auto-fit rows twin buttons.
+       Keep Sort / Filters / Columns · N of M / Auto-fit chip / Row height. */
+    const panel = document.getElementById('panel-timeline');
+    if (typeof window.removeLegacyAutofitPairButtons === 'function') {
+      window.removeLegacyAutofitPairButtons(panel || document);
+    }
 
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'timeline'

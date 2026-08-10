@@ -22569,6 +22569,19 @@ body.editorial-v4 #backup-banner .backup-banner-dismiss {
 /* Retired Auto-fit columns | Auto-fit rows pair — keep rd-chip Auto-fit + Row height */
 #main#main .planner-autofit-btn,
 #main#main .planner-autofit-bar,
-#main#main .cwp-toolbar--autofit {
+#main#main .planner-autofit-cols-btn,
+#main#main .planner-autofit-rows-btn,
+#main#main .cwp-toolbar--autofit,
+#main#main button[data-planner-autofit-cols-for],
+#main#main button[data-planner-autofit-rows-for],
+#main#main button[data-planner-autofit-for],
+#main#main button[title="Size all rows to fit their contents"],
+#main#main button[title="Size all columns to fit their contents"]:not(.rd-chip),
+#main#main button[onclick*="cwpAutoFitTableRows"],
+#main#main button[onclick*="autoFitDataHubTableRows"],
+#main#main button[onclick*="vcmpAutoFitRows"],
+#main#main button[onclick*="cwpAutoFitTableColumns"]:not(.rd-chip),
+#main#main button[onclick*="autoFitDataHubTables"]:not(.rd-chip),
+#main#main button[onclick*="vcmpAutoFitCols"]:not(.rd-chip) {
   display: none !important;
 }
