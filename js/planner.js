@@ -9760,11 +9760,13 @@ function logisticsRailGroupBy(){
 
 function logisticsPageheadActionsHtml(){
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
+  const view = rdGetLogView();
+  const primaryLabel = view === 'rooms' ? '+ Assign a room' : view === 'transport' ? '+ Assign a driver' : '+ Add movement';
   return `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>
         <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
         <button type="button" class="rd-btn" data-rd-full-editor onclick="rdLogFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
         <button type="button" class="rd-btn" onclick="exportSectionCSV('Weekend Logistics',(data.weekendTimeline||[]).concat(data.transportation||[]))">Export</button>
-        <button type="button" class="rd-btn rd-btn--primary" onclick="addLogisticsRow()">+ Add movement</button>`;
+        <button type="button" class="rd-btn rd-btn--primary" onclick="addLogisticsRow()">${escapeHtml(primaryLabel)}</button>`;
 }
 function logisticsSurfaceRowHtml(){
   return `<div class="rd-surface__row" id="logistics-surface-row">
@@ -9775,14 +9777,22 @@ function logisticsSurfaceRowHtml(){
         <div class="rd-log-roomblock" id="logistics-room-block"></div>
       </div>
       <div class="rd-view" id="log-view-rooms" data-log-view="rooms" hidden>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-hotelBlocks"></div>
-        <span class="rd-table-foot ued-soft" id="cwp-hotelBlocks-foot"></span>
-        <div class="rd-log-section-label">Travel &amp; accommodations</div>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-travelAccommodations"></div>
+        <div class="rd-log-rooms" id="logistics-rooms-grouped"></div>
+        <details class="rd-log-editor-toggle">
+          <summary>Edit as table</summary>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-hotelBlocks"></div>
+          <span class="rd-table-foot ued-soft" id="cwp-hotelBlocks-foot"></span>
+          <div class="rd-log-section-label">Travel &amp; accommodations</div>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-travelAccommodations"></div>
+        </details>
       </div>
       <div class="rd-view" id="log-view-transport" data-log-view="transport" hidden>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-transportation"></div>
-        <span class="rd-table-foot ued-soft" id="cwp-transportation-foot"></span>
+        <div class="rd-log-gantt" id="logistics-transport-gantt"></div>
+        <details class="rd-log-editor-toggle">
+          <summary>Edit as table</summary>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-transportation"></div>
+          <span class="rd-table-foot ued-soft" id="cwp-transportation-foot"></span>
+        </details>
       </div>
     </div>
     <div id="logistics-drawer-slot"></div>
@@ -9873,9 +9883,35 @@ function logisticsStatsData(){
 function renderLogisticsStats(){
   const host = document.getElementById('logistics-stats');
   if (!host) return;
-  const s = logisticsStatsData();
   const cell = (label, val, tone) =>
     `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
+  const view = rdGetLogView();
+  if (view === 'transport' && typeof logisticsTransportStatsData === 'function') {
+    const s = logisticsTransportStatsData();
+    const spend = typeof fmt === 'function' ? fmt(s.spend) : ('$' + (s.spend || 0));
+    host.innerHTML = [
+      cell('Vehicles', s.vehicles),
+      cell('Movements', s.movements),
+      cell('Covered', s.covered),
+      cell('No driver', s.noDriver, s.noDriver ? 'danger' : ''),
+      cell('Transport spend', spend)
+    ].join('');
+    return;
+  }
+  if (view === 'rooms' && typeof logisticsRoomsStatsData === 'function') {
+    const s = logisticsRoomsStatsData();
+    const couplePays = typeof fmt === 'function' ? fmt(s.couplePays) : ('$' + (s.couplePays || 0));
+    const releaseLabel = s.releaseLabel && s.releaseLabel !== '—' ? ('Releasing ' + s.releaseLabel) : 'Releasing date';
+    host.innerHTML = [
+      cell('Rooms held', s.roomsHeld),
+      cell('Claimed', s.claimed),
+      cell(releaseLabel, s.releaseAtRisk, s.releaseAtRisk ? 'warn' : ''),
+      cell('Couple pays', couplePays),
+      cell('Nowhere booked', s.nowhereGuests + (s.nowhereGuests === 1 ? ' guest' : ' guests'), s.nowhereGuests ? 'danger' : '')
+    ].join('');
+    return;
+  }
+  const s = logisticsStatsData();
   host.innerHTML = [
     cell('Movements', s.movements),
     cell('Days covered', s.daysCovered),
@@ -10475,10 +10511,12 @@ function renderLogisticsPage(options={}){
           if (typeof bindRoPreviewInline === 'function') bindRoPreviewInline('travelAccommodations', 'cwp-travelAccommodations', 'record-drawer-body');
           afterLogisticsPreviewRendered('travelAccommodations');
         }
+        if (typeof renderLogisticsRoomsGrouped === 'function') renderLogisticsRoomsGrouped();
       } else if (view === 'transport' && document.getElementById('cwp-transportation')) {
         cwpRenderTable('transportation');
         if (typeof bindRoPreviewInline === 'function') bindRoPreviewInline('transportation', 'cwp-transportation', 'record-drawer-body');
         afterLogisticsPreviewRendered('transportation');
+        if (typeof renderLogisticsTransportGantt === 'function') renderLogisticsTransportGantt();
       }
     }
     /* These table definitions are shared with the Database Hub, so the trimmed
@@ -30014,9 +30052,9 @@ const SAMPLE_DATA = {
     { date: "2026-11-14", start: "10:00", end: "12:00", event: "Morning-After Brunch", location: "Comfort Suites lobby", host: "Whitfield family", group: "Family & out-of-town guests", attire: "Casual", status: "Planned", cost: "250", notes: "Say goodbye before travel" }
   ],
   travelAccommodations: [
-    { guest: "Uncle George & Aunt Mary Carter", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "15:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44120", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "", notes: "Driving in from Riverton" },
-    { guest: "The Thompson Family", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "18:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44121", roomBlock: "Carter-Whitfield Wedding", transportNeeded: false, cost: "", notes: "Two rooms, 3 kids" },
-    { guest: "Grace Bennett", group: "Wedding Party", arrival: "2026-11-12", arrivalTime: "12:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44122", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "", notes: "Bridesmaid — needs ride to church" },
+    { guest: "Uncle George & Aunt Mary Carter", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "15:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44120", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "238", notes: "Driving in from Riverton" },
+    { guest: "The Thompson Family", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "18:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44121", roomBlock: "Carter-Whitfield Wedding", transportNeeded: false, cost: "476", notes: "Two rooms, 3 kids" },
+    { guest: "Grace Bennett", group: "Wedding Party", arrival: "2026-11-12", arrivalTime: "12:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44122", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "238", notes: "Bridesmaid — needs ride to church" },
     { guest: "Pastor David & Ruth Reynolds", group: "VIP", arrival: "2026-11-13", arrivalTime: "15:00", departure: "2026-11-13", hotel: "Local", confirmation: "", roomBlock: "", transportNeeded: false, notes: "Local, no hotel needed" }
   ],
   hotelBlocks: [

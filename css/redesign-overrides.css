@@ -7223,6 +7223,226 @@ body.rd-scope #panel-logistics .rd-log-section-label {
 }
 
 /* ----------------------------------------------------------------------
+   WEEKEND LOGISTICS — Transport gantt (Views.dc #31f) & Rooms household
+   rows (Views.dc #31e). Bars/pills: green = covered, gold = owner elsewhere
+   / at risk, red = no driver / unresolved — same five-scheme language as
+   the rest of the planner, just applied to a clock axis and a grouped list.
+   ---------------------------------------------------------------------- */
+body.rd-scope #panel-logistics .m-stat--danger .m-stat-val,
+#main#main #panel-logistics .m-stat--danger .m-stat-val {
+  color: var(--status-red-text, #9c3b34) !important;
+}
+
+/* Raw CWP tables stay mounted for editing, tucked under a collapsed toggle
+   below the gantt / grouped list so the read surface leads. */
+body.rd-scope #panel-logistics .rd-log-editor-toggle {
+  margin-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+  flex: 0 0 auto;
+}
+body.rd-scope #panel-logistics .rd-log-editor-toggle > summary {
+  cursor: pointer;
+  padding: 12px 24px;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-muted, #8a7e6b);
+  list-style: none;
+  user-select: none;
+}
+body.rd-scope #panel-logistics .rd-log-editor-toggle > summary::-webkit-details-marker { display: none; }
+body.rd-scope #panel-logistics .rd-log-editor-toggle > summary::before {
+  content: '\25B8';
+  display: inline-block;
+  width: 1em;
+  margin-right: 6px;
+  color: var(--gold, #B89968);
+}
+body.rd-scope #panel-logistics .rd-log-editor-toggle[open] > summary::before { content: '\25BE'; }
+body.rd-scope #panel-logistics .rd-log-editor-toggle .rd-table-wrap { margin: 0 24px 16px; }
+body.rd-scope #panel-logistics .rd-log-editor-toggle .rd-log-section-label { padding-left: 24px; padding-right: 24px; }
+
+/* ------------------------------ Transport gantt (31f) ------------------- */
+body.rd-scope #panel-logistics .rd-log-gantt {
+  padding: 16px 24px 20px;
+  flex: 0 0 auto;
+  overflow-x: auto;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__empty,
+body.rd-scope #panel-logistics .rd-log-rooms__empty {
+  padding: 36px 24px;
+  text-align: center;
+  color: var(--text-muted, #8a7e6b);
+  font-size: 13px;
+  font-style: italic;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__clash {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--status-red-border, #ebb4aa);
+  background: var(--status-red-bg, #fff0ed);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__clash-title {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--status-red-text, #9c3b34);
+}
+body.rd-scope #panel-logistics .rd-log-gantt__clash-item {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-primary, #3f3b34);
+}
+body.rd-scope #panel-logistics .rd-log-gantt__axis {
+  display: flex;
+  min-width: 620px;
+  padding-left: 180px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4);
+}
+body.rd-scope #panel-logistics .rd-log-gantt__axis-spacer { flex: 0 0 0; }
+body.rd-scope #panel-logistics .rd-log-gantt__axis-mark {
+  flex: 1;
+  font-size: 10px;
+  color: var(--text-muted, #8a7e6b);
+  font-variant-numeric: tabular-nums;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__rows { min-width: 620px; }
+body.rd-scope #panel-logistics .rd-log-gantt__row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--surface-sunken, #f0ebe0);
+  min-height: 56px;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__label {
+  flex: 0 0 180px;
+  padding: 12px 14px 12px 0;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__label-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--forest-deep, #20362D);
+}
+body.rd-scope #panel-logistics .rd-log-gantt__label-sub {
+  font-size: 11px;
+  color: var(--text-muted, #8a7e6b);
+  margin-top: 2px;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__track {
+  flex: 1 1 auto;
+  position: relative;
+  min-width: 0;
+  border-left: 1px solid var(--border-subtle, #e7e1d4);
+  background-image: repeating-linear-gradient(to right, var(--surface-sunken, #f0ebe0) 0 1px, transparent 1px 16.6667%);
+}
+body.rd-scope #panel-logistics .rd-log-gantt__bar {
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  padding: 6px 9px;
+  overflow: hidden;
+  z-index: 1;
+  border: 1px solid transparent;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__bar-title {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__bar-sub {
+  font-size: 11px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.rd-scope #panel-logistics .rd-log-gantt__bar--green {
+  border-color: var(--forest, #2D4A3E);
+  background: var(--status-green-bg, #eef6f0);
+}
+body.rd-scope #panel-logistics .rd-log-gantt__bar--green .rd-log-gantt__bar-title { color: var(--forest-deep, #20362D); }
+body.rd-scope #panel-logistics .rd-log-gantt__bar--green .rd-log-gantt__bar-sub { color: var(--text-muted, #8a7e6b); }
+body.rd-scope #panel-logistics .rd-log-gantt__bar--amber {
+  border-color: var(--status-gold-border, #e7ce80);
+  background: var(--status-gold-bg, #fff7df);
+}
+body.rd-scope #panel-logistics .rd-log-gantt__bar--amber .rd-log-gantt__bar-title { color: var(--forest-deep, #20362D); }
+body.rd-scope #panel-logistics .rd-log-gantt__bar--amber .rd-log-gantt__bar-sub { color: var(--status-gold-text, #8a640f); font-weight: 600; }
+body.rd-scope #panel-logistics .rd-log-gantt__bar--red {
+  border-color: var(--status-red-border, #c2564a);
+  background: var(--status-red-bg, #fdf1ef);
+}
+body.rd-scope #panel-logistics .rd-log-gantt__bar--red .rd-log-gantt__bar-title,
+body.rd-scope #panel-logistics .rd-log-gantt__bar--red .rd-log-gantt__bar-sub { color: var(--status-red-text, #9c3b34); }
+
+/* ------------------------------ Rooms grouped list (31e) ---------------- */
+body.rd-scope #panel-logistics .rd-log-rooms { flex: 0 0 auto; }
+body.rd-scope #panel-logistics .rd-log-rooms__group-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 24px 7px;
+  background: var(--surface-sunken, #f9f5ef);
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4);
+  border-top: 1px solid var(--border-subtle, #e7e1d4);
+}
+body.rd-scope #panel-logistics .rd-log-rooms__group:first-child .rd-log-rooms__group-head { border-top: 0; }
+body.rd-scope #panel-logistics .rd-log-rooms__group-title {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--forest-deep, #20362D);
+}
+body.rd-scope #panel-logistics .rd-log-rooms__group-sub {
+  font-size: 12px;
+  color: var(--text-muted, #8a7e6b);
+}
+body.rd-scope #panel-logistics .rd-log-rooms__group--danger .rd-log-rooms__group-title { color: var(--status-red-text, #9c3b34); }
+body.rd-scope #panel-logistics .rd-log-rooms__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 24px;
+  border-bottom: 1px solid var(--surface-sunken, #f0ebe0);
+}
+body.rd-scope #panel-logistics .rd-log-rooms__who { flex: 1 1 auto; min-width: 0; }
+body.rd-scope #panel-logistics .rd-log-rooms__name { font-size: 14px; color: var(--text-primary, #23211c); }
+body.rd-scope #panel-logistics .rd-log-rooms__meta { font-size: 12px; color: var(--text-muted, #8a7e6b); margin-top: 2px; }
+body.rd-scope #panel-logistics .rd-log-rooms__payer { flex: 0 0 150px; font-size: 12px; color: var(--text-muted, #6b645d); }
+body.rd-scope #panel-logistics .rd-log-rooms__amount {
+  flex: 0 0 110px;
+  font-size: 13px;
+  color: var(--text-primary, #3f3b34);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+body.rd-scope #panel-logistics .rd-log-rooms__status { flex: 0 0 auto; }
+body.rd-scope #panel-logistics .rd-log-rooms__row--residual {
+  background: color-mix(in srgb, var(--status-gold-bg, #fff7df) 55%, transparent);
+}
+body.rd-scope #panel-logistics .rd-log-rooms__row--callout {
+  background: var(--status-red-bg, #fff0ed);
+  box-shadow: inset 3px 0 0 0 var(--status-red-border, #ebb4aa);
+}
+
+@media (max-width: 1100px) {
+  body.rd-scope #panel-logistics .rd-log-gantt__label { flex-basis: 140px; }
+  body.rd-scope #panel-logistics .rd-log-gantt__axis { padding-left: 140px; }
+  body.rd-scope #panel-logistics .rd-log-rooms__payer { flex-basis: 110px; }
+  body.rd-scope #panel-logistics .rd-log-rooms__row,
+  body.rd-scope #panel-logistics .rd-log-rooms__group-head { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ----------------------------------------------------------------------
    GUESTS PAGE ? mock 3b Guest List (redesign-step12e)
    Composition: pagehead ? KPIs ? support (costs|headcount|seating, events, workflow)
      ? toolbar ? bulk ? table+360 drawer ? companions block under table
