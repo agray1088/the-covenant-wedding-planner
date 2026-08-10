@@ -879,9 +879,6 @@
       const presetOpts = typeof tablePresetOptions === 'function'
         ? tablePresetOptions(t.preset || '')
         : '<option value="">Custom size / shape</option>';
-      const shapeOpts = ['circle', 'rect'].map(opt =>
-        `<option value="${opt}" ${(t.shape || 'circle') === opt ? 'selected' : ''}>${opt === 'circle' ? 'Round / Circle' : 'Rectangle / Square'}</option>`
-      ).join('');
       const facingOpts = ['down', 'up', 'left', 'right'].map(opt =>
         `<option value="${opt}" ${(t.facing || 'down') === opt ? 'selected' : ''}>Chairs ${opt}</option>`
       ).join('');
@@ -914,10 +911,6 @@
           <label class="rd-tables-detail-field">
             <span>Size &amp; Shape</span>
             <select onchange="tablesUpdateField(${i},'preset',this.value)">${presetOpts}</select>
-          </label>
-          <label class="rd-tables-detail-field">
-            <span>Shape Override</span>
-            <select onchange="tablesUpdateField(${i},'shape',this.value)">${shapeOpts}</select>
           </label>
           <label class="rd-tables-detail-field">
             <span>Chair Side</span>
@@ -1412,6 +1405,7 @@
   window.tablesAddTable = tablesAddTable;
   window.tablesAddTables = tablesAddTables;
   window.tablesUpdateField = tablesUpdateField;
+  window.renderTablesDetailGrid = renderTablesDetailGrid;
   window.openTablesFilter = openTablesFilter;
   window.clearTablesFilter = clearTablesFilter;
   window.openTablesSort = openTablesSort;
