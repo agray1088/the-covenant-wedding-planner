@@ -22022,3 +22022,23 @@ body.rd-scope #panel-history #history-drawer-slot:empty { display: none; }
   body.rd-scope #panel-history .rd-hist-datefield,
   body.rd-scope #panel-history #history-drawer-slot { display: none !important; }
 }
+
+
+/* Backup banner: center the device-save notice across the full bar */
+body.editorial-v4 #backup-banner {
+  position: relative !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding-right: 5.5rem !important;
+}
+body.editorial-v4 #backup-banner .backup-banner-copy {
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+body.editorial-v4 #backup-banner .backup-banner-dismiss {
+  position: absolute !important;
+  right: 1.25rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
