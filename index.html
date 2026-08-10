@@ -31,10 +31,10 @@
      Loads after every legacy sheet so its token values win the cascade.
      Step 1: tokens only.
      ========================================================================== -->
-<link rel="stylesheet" href="Redesign/redesign-tokens.css?v=viewswitch-chip28">
-<link rel="stylesheet" href="Redesign/redesign-components.css?v=viewswitch-chip28">
+<link rel="stylesheet" href="Redesign/redesign-tokens.css?v=viewswitch-all">
+<link rel="stylesheet" href="Redesign/redesign-components.css?v=viewswitch-all">
 <link rel="stylesheet" href="Redesign/redesign-shell.css?v=redesign-step6n">
-<link rel="stylesheet" href="Redesign/redesign-layouts.css?v=viewswitch-chip28">
+<link rel="stylesheet" href="Redesign/redesign-layouts.css?v=viewswitch-all">
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
@@ -1835,11 +1835,27 @@
 <script src="js/data-hub-redesign.js?v=table-toolbar1"></script>
 <script src="js/dashboard-redesign.js?v=redesign-3a1"></script>
 <script src="js/notes-redesign.js?v=table-toolbar1"></script>
+<!-- Help pages §07 shells — Get Started · Page-by-Page Guide · FAQ (All.dc
+     15b/15d/15c). Untabbed; overrides renderStartHere/renderPageGuide/renderFAQ
+     so initAll()'s boot-time calls land on the redesign shell too. -->
+<script src="js/help-pages-redesign.js?v=redesign-help1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
 <script src="js/redesign-shell.js?v=add-drawer1"></script>
 <script src="js/responsive-redesign.js?v=redesign-41a1"></script>
 <script src="js/roles-redesign.js?v=redesign-fullia1"></script>
+<!-- Planner Screens Gaps.dc.html · batches 45/47/48 — top-bar menus, settings
+     window, retabbed profile drawer. Loads AFTER the shell so .rd-topbar and
+     the live controls already exist; it mutates the built chrome. -->
+<script src="js/gaps-redesign.js?v=gaps44-48"></script>
+<!-- Wedding Setup — All.dc 15a + Drawers (Field · Impact · History). Untabbed
+     form shell; wires straight into data.setup and the existing saveSetup()/
+     saveLocaleSettings() mutators so every other page keeps working. -->
+<script src="js/setup-redesign.js?v=redesign-15a1"></script>
+<!-- Planner History — All.dc 18b + Views 31i/31j + Drawers (Change · Record ·
+     Snapshot). Log / By record / Field detail share one shell over the
+     existing data._historyLog and data._recordHistory stores. -->
+<script src="js/history-redesign.js?v=redesign-18b1"></script>
 <script>
 (function () {
   try {
