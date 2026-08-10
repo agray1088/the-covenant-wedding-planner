@@ -1,9 +1,12 @@
-/* Newlywed Homecoming - Views #31
-   Views: Tasks | Name change | Budget. Rail: settling | namechange | budget | noticed. */
+/* Newlywed Homecoming — After the Day + Views #31
+   Views: After the day | Settling | Name change | Budget.
+   Rail: Settling in · Name change · First month budget · What we noticed · Progress.
+   After the day merges Timeline & Tasks + homecoming + nameChange into one table,
+   with thank-you notes due read from Gifts (moved here from Honeymoon). */
 (function () {
   'use strict';
 
-  window._hcMode = window._hcMode || 'tasks';
+  window._hcMode = window._hcMode || 'after';
   window._hcRailView = window._hcRailView || 'settling';
   window._hcDrawerIndex = window._hcDrawerIndex == null ? null : window._hcDrawerIndex;
   window._hcDrawerTab = window._hcDrawerTab || 0;
@@ -24,6 +27,9 @@
     const d = store();
     if (!Array.isArray(d.homecoming)) d.homecoming = [];
     if (!Array.isArray(d.nameChange)) d.nameChange = [];
+    if (!Array.isArray(d.tasks)) d.tasks = [];
+    if (!Array.isArray(d.gifts)) d.gifts = [];
+    if (!Array.isArray(d.guests)) d.guests = [];
     if (!d.firstmonth || typeof d.firstmonth !== 'object' || Array.isArray(d.firstmonth)) d.firstmonth = {};
     return d;
   }
@@ -55,11 +61,62 @@
   function selectHtml(list, val) {
     return list.map(x => `<option value="${esc(x)}"${String(x) === String(val || '') ? ' selected' : ''}>${esc(x)}</option>`).join('');
   }
-  function completeStatus(v) { return /complete|done/i.test(String(v || '')); }
+  function completeStatus(v) { return /complete|done|sent/i.test(String(v || '')); }
   function attentionRow(r) {
     return !completeStatus(r.status) || /note|notice|remember|follow/i.test(String(r.notes || ''));
   }
   function saveNow() { if (typeof save === 'function') save(); }
+
+  function thankYouDue() {
+    const d = ensureData();
+    if (d.gifts.length) return d.gifts.filter(g => !g.thankyou).length;
+    if (d.guests.length) return d.guests.filter(g => !g.thankyou).length;
+    return 0;
+  }
+
+  /* Unified After-the-day table: Timeline post-wedding tasks + homecoming + name change. */
+  function afterTasks() {
+    const d = ensureData();
+    const out = [];
+    d.tasks.forEach((t, i) => {
+      const hay = [t.task, t.title, t.phase, t.category, t.notes, t.owner].join(' ').toLowerCase();
+      if (/post[- ]?wedding|after the|thank[- ]?you|honeymoon return|newlywed|name change|homecoming/i.test(hay)
+        || /after/i.test(String(t.phase || ''))) {
+        out.push({
+          id: 'tasks:' + (t._id || ('idx:' + i)),
+          src: 'tasks', index: i, row: t,
+          task: String(t.task || t.title || 'Task').trim(),
+          owner: String(t.owner || t.who || '—').trim() || '—',
+          due: String(t.due || t.date || '').trim() || '—',
+          source: 'Timeline & Tasks',
+          status: String(t.status || (t.done ? 'Complete' : 'Not started')).trim()
+        });
+      }
+    });
+    d.homecoming.forEach((r, i) => {
+      out.push({
+        id: 'homecoming:' + (r._id || ('idx:' + i)),
+        src: 'homecoming', index: i, row: r,
+        task: String(r.item || r.task || 'Homecoming item').trim(),
+        owner: String(r.owner || '—').trim() || '—',
+        due: String(r.due || '').trim() || '—',
+        source: 'Settling in',
+        status: String(r.status || (r.done ? 'Complete' : 'Not started')).trim()
+      });
+    });
+    d.nameChange.forEach((r, i) => {
+      out.push({
+        id: 'nameChange:' + (r._id || ('idx:' + i)),
+        src: 'nameChange', index: i, row: r,
+        task: String(r.task || r.item || 'Name-change task').trim(),
+        owner: String(r.owner || 'Both').trim() || 'Both',
+        due: String(r.due || '').trim() || '—',
+        source: 'Name change',
+        status: String(r.status || (r.done ? 'Complete' : 'Not started')).trim()
+      });
+    });
+    return out;
+  }
 
   function hcFigures() {
     const d = ensureData();
@@ -68,6 +125,8 @@
     const homeDone = home.filter(r => completeStatus(r.status)).length;
     const nameDone = names.filter(r => r.done || completeStatus(r.status)).length;
     const attention = home.filter(attentionRow).length + names.filter(r => !r.done && !completeStatus(r.status)).length;
+    const after = afterTasks();
+    const afterDone = after.filter(t => completeStatus(t.status) || t.row.done).length;
     const byCat = home.reduce((out, r) => {
       const k = String(r.cat || 'Other');
       out[k] = (out[k] || 0) + 1;
@@ -83,7 +142,10 @@
       noticed: attention,
       budgetRows: Array.isArray(d.budget) ? d.budget.length : 0,
       firstMonthBudgetNote: String((d.firstmonth || {}).budgetMeeting || ''),
-      byCat: byCat
+      byCat: byCat,
+      thankYouDue: thankYouDue(),
+      afterTotal: after.length,
+      afterDone: afterDone
     };
   }
   function hcRailCounts() {
@@ -92,7 +154,9 @@
       settling: f.homecoming,
       namechange: f.nameChange,
       budget: f.budgetRows,
-      noticed: f.noticed
+      noticed: f.noticed,
+      after: f.afterTotal,
+      thankYou: f.thankYouDue
     };
   }
 
@@ -101,18 +165,19 @@
       + '<button type="button" class="rd-btn" onclick="rdHcLoadPreset()">Load starter list</button>'
       + '<button type="button" class="rd-btn" onclick="rdHcPrint()">Print</button>'
       + '<button type="button" class="rd-btn" onclick="rdHcExport()">Export</button>'
+      + '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'gifts\')">Open Gifts</button>'
       + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdHcAddTask()">+ Add task</button>';
   }
   function ensureShell() {
     const panel = document.getElementById('panel-homecoming');
     if (!panel) return;
     panel.classList.add('ued-scope', 'homecoming-mockup');
-    if (panel.dataset.uedShell === 'homecoming-rd31') {
+    if (panel.dataset.uedShell === 'homecoming-rd32') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'homecoming-rd31';
+    panel.dataset.uedShell = 'homecoming-rd32';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -126,7 +191,8 @@
       <div class="rd-surface">
         <div class="rd-surface__row" id="homecoming-surface-row">
           <div class="rd-surface__main" id="homecoming-view-host">
-            <div class="rd-view" id="hc-view-tasks"></div>
+            <div class="rd-view" id="hc-view-after"></div>
+            <div class="rd-view" id="hc-view-tasks" hidden></div>
             <div class="rd-view" id="hc-view-namechange" hidden></div>
             <div class="rd-view" id="hc-view-budget" hidden></div>
           </div>
@@ -142,8 +208,10 @@
     const host = document.getElementById('homecoming-stats');
     if (!host) return;
     const f = hcFigures();
+    const afterVal = f.afterDone + ' of ' + Math.max(f.afterTotal, f.afterDone || 0);
     const stats = [
-      { label: 'Homecoming tasks', value: String(f.homecoming) },
+      { label: 'Post-wedding tasks', value: afterVal },
+      { label: 'Thank-you notes due', value: String(f.thankYouDue), attention: f.thankYouDue ? 'from Gifts' : undefined },
       { label: 'Settled', value: f.homeDone + ' of ' + f.homecoming },
       { label: 'Name change', value: f.nameDone + ' of ' + f.nameChange },
       { label: 'Needs notice', value: String(f.noticed) }
@@ -157,41 +225,50 @@
   function renderToolbar() {
     const host = document.getElementById('homecoming-toolbar');
     if (!host) return;
-    const mode = window._hcMode || 'tasks';
+    const mode = window._hcMode || 'after';
     const counts = hcRailCounts();
-    function chip(id, label) {
+    function chip(id, label, count) {
       const on = (window._hcRailView || 'settling') === id;
-      return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="applyHomecomingRailView('${esc(id)}')">${esc(label)} <span>${esc(counts[id] || 0)}</span></button>`;
+      const n = count == null ? counts[id] : count;
+      return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="applyHomecomingRailView('${esc(id)}')">${esc(label)}${n === '' || n == null ? '' : ' <span>' + esc(n) + '</span>'}</button>`;
     }
     host.innerHTML = `<div class="rd-toolbar__left">
-      ${chip('settling', 'Settling')}
+      ${chip('settling', 'Settling in')}
       ${chip('namechange', 'Name change')}
-      ${chip('budget', 'Budget')}
-      ${chip('noticed', 'Noticed')}
+      ${chip('budget', 'First month budget')}
+      ${chip('noticed', 'What we noticed', '')}
       ${typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by status', "rdStdOpenSort(this,'homecoming')") : ''}
       ${typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('homecoming') : ''}
     </div>
     <div class="rd-toolbar__right">
       <div class="rd-viewswitch" role="group" aria-label="Homecoming view">
-        <button type="button" class="rd-viewswitch__item${mode === 'tasks' ? ' is-active' : ''}" onclick="rdSetHomecomingView('tasks')">Tasks</button>
+        <button type="button" class="rd-viewswitch__item${mode === 'after' ? ' is-active' : ''}" onclick="rdSetHomecomingView('after')">After the day</button>
+        <button type="button" class="rd-viewswitch__item${mode === 'tasks' ? ' is-active' : ''}" onclick="rdSetHomecomingView('tasks')">Settling</button>
         <button type="button" class="rd-viewswitch__item${mode === 'namechange' ? ' is-active' : ''}" onclick="rdSetHomecomingView('namechange')">Name change</button>
         <button type="button" class="rd-viewswitch__item${mode === 'budget' ? ' is-active' : ''}" onclick="rdSetHomecomingView('budget')">Budget</button>
       </div>
     </div>`;
   }
   function applyMode() {
-    const mode = window._hcMode || 'tasks';
-    ['tasks', 'namechange', 'budget'].forEach(name => {
+    const mode = window._hcMode || 'after';
+    ['after', 'tasks', 'namechange', 'budget'].forEach(name => {
       const el = document.getElementById('hc-view-' + name);
       if (el) el.hidden = mode !== name;
     });
   }
+  function normalizeMode(mode) {
+    if (mode === 'nameChange') return 'namechange';
+    if (mode === 'tasks' || mode === 'settling') return 'tasks';
+    if (mode === 'namechange' || mode === 'budget' || mode === 'after') return mode;
+    return 'after';
+  }
   function rdSetHomecomingView(mode) {
-    if (mode === 'nameChange') mode = 'namechange';
-    window._hcMode = (mode === 'namechange' || mode === 'budget') ? mode : 'tasks';
+    window._hcMode = normalizeMode(mode);
     if (window._hcMode === 'namechange') window._hcRailView = 'namechange';
     else if (window._hcMode === 'budget') window._hcRailView = 'budget';
-    else if (window._hcRailView === 'namechange' || window._hcRailView === 'budget') window._hcRailView = 'settling';
+    else if (window._hcMode === 'tasks') {
+      if (window._hcRailView !== 'noticed') window._hcRailView = 'settling';
+    } else window._hcRailView = 'settling';
     if (typeof setSavedView === 'function') setSavedView('homecoming', window._hcRailView);
     renderHomecomingRd();
   }
@@ -210,11 +287,56 @@
     return rows;
   }
 
+  function sectionHead(title, help, ctaLabel, ctaOnclick) {
+    return `<div class="rd-section__head">` +
+      `<div><div class="rd-pagehead__eyebrow">${esc(title)}</div>` +
+      `<p class="rd-help">${esc(help)}</p></div>` +
+      (ctaLabel ? `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="${ctaOnclick}">${esc(ctaLabel)}</button>` : '') +
+      `</div>`;
+  }
+
+  function renderAfterView() {
+    const host = document.getElementById('hc-view-after');
+    if (!host) return;
+    const rows = afterTasks();
+    const f = hcFigures();
+    let html = sectionHead(
+      'After the wedding · ' + rows.length + ' task' + (rows.length === 1 ? '' : 's'),
+      'None can close before the wedding day · two of these counts are read from elsewhere',
+      'Open Gifts', "typeof showPanel==='function'&&showPanel('gifts')"
+    );
+    html += `<div class="rd-hm-callouts rd-hc-callouts">` +
+      `<article class="rd-hm-callout"><strong>Two counts, not typed</strong><p>Thank-you notes due (${f.thankYouDue}) is read from Gifts. Post-wedding tasks (${f.afterDone} of ${f.afterTotal}) is read from Timeline &amp; Tasks and Newlywed Homecoming.</p></article>` +
+      `<article class="rd-hm-callout"><strong>Where the lists live</strong><p>Settling in, Name change, and First-month budget stay on this page — use the view switcher or rail to edit them in place.</p></article>` +
+      `</div>`;
+    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hc-table"><thead><tr>` +
+      `<th>Task</th><th>Owner</th><th>Due</th><th>Source</th><th>Status</th>` +
+      `</tr></thead><tbody>`;
+    if (!rows.length) {
+      html += `<tr><td colspan="5" class="rd-empty">No post-wedding tasks yet. Add one, or open Gifts and Settling — those counts feed this strip.</td></tr>`;
+    } else {
+      rows.forEach(t => {
+        html += `<tr class="rd-hc-after-row" onclick="rdHcOpenAfter('${esc(t.id)}')">` +
+          `<td class="rd-hc-name">${esc(t.task)}</td>` +
+          `<td>${esc(t.owner)}</td><td>${esc(t.due)}</td><td>${esc(t.source)}</td><td>${esc(t.status)}</td>` +
+          `</tr>`;
+      });
+    }
+    html += `</tbody></table></div>`;
+    html += `<button type="button" class="rd-hm-addbtn rd-hc-addbtn" onclick="rdHcAddAfter()"><span>+</span> Add a post-wedding task</button>`;
+    host.innerHTML = html;
+  }
+
   function renderTasksView() {
     const host = document.getElementById('hc-view-tasks');
     if (!host) return;
     const rows = visibleHomeRows();
-    let html = '<section class="ued-table-card"><div class="ued-table-head"><div><div class="ued-kicker">Tasks</div><div class="ued-table-title">Homecoming checklist</div></div><button type="button" class="rd-btn" onclick="rdHcAddTask()">+ Add task</button></div>';
+    const noticed = window._hcRailView === 'noticed';
+    let html = '<section class="ued-table-card"><div class="ued-table-head"><div><div class="ued-kicker">' +
+      (noticed ? 'What we noticed' : 'Settling in') +
+      '</div><div class="ued-table-title">' +
+      (noticed ? 'Items that still need attention' : 'Homecoming checklist') +
+      '</div></div><button type="button" class="rd-btn" onclick="rdHcAddTask()">+ Add task</button></div>';
     html += '<div class="ued-table-wrap"><table class="ued-table rd-table"><thead><tr><th>Item</th><th>Area</th><th>Owner</th><th>Status</th><th>Notes</th></tr></thead><tbody>';
     if (!rows.length) html += '<tr><td colspan="5" class="rd-empty">No homecoming tasks match this view.</td></tr>';
     rows.forEach(x => {
@@ -390,7 +512,7 @@
       ? esc(f.firstMonthBudgetNote)
       : 'Add the first-month budget meeting in First-Month Rhythms, then open Budget for the numbers.';
     host.innerHTML = `<section class="ued-table-card rd-hc-budget">
-      <div class="ued-table-head"><div><div class="ued-kicker">Budget</div><div class="ued-table-title">First-month money handoff</div></div></div>
+      <div class="ued-table-head"><div><div class="ued-kicker">First month budget</div><div class="ued-table-title">First-month money handoff</div></div></div>
       <div class="rd-hc-budget__body">
         <p><strong>First-month note:</strong> ${note}</p>
         <p>Use this as a handoff: decide when you will sit down together, then open Budget to review wedding closeout, gift deposits, shared expenses, and first household categories.</p>
@@ -442,6 +564,27 @@
     saveNow();
     renderHomecomingRd();
   }
+  function rdHcAddAfter() {
+    if (typeof openRecordEditor === 'function') openRecordEditor('tasks');
+    else if (typeof addTaskRow === 'function') addTaskRow();
+  }
+  function rdHcOpenAfter(id) {
+    const t = afterTasks().find(x => x.id === id);
+    if (!t) return;
+    if (t.src === 'homecoming') {
+      window._hcMode = 'tasks';
+      window._hcRailView = 'settling';
+      renderHomecomingRd();
+      return;
+    }
+    if (t.src === 'nameChange') {
+      window._hcMode = 'namechange';
+      window._hcRailView = 'namechange';
+      renderHomecomingRd();
+      return;
+    }
+    if (typeof openRecordEditor === 'function') openRecordEditor(t.src, t.index);
+  }
   async function rdHcLoadPreset() {
     if (typeof loadHCPreset === 'function') {
       const out = loadHCPreset();
@@ -468,7 +611,7 @@
   }
   function rdHcExport() {
     const d = ensureData();
-    const payload = { homecoming: d.homecoming, nameChange: d.nameChange };
+    const payload = { homecoming: d.homecoming, nameChange: d.nameChange, afterTasks: afterTasks() };
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
     a.download = 'newlywed-homecoming.json';
@@ -487,12 +630,16 @@
     if (typeof getSavedView === 'function') window._hcRailView = getSavedView('homecoming', window._hcRailView || 'settling');
     if (window._hcRailView === 'namechange') window._hcMode = 'namechange';
     else if (window._hcRailView === 'budget') window._hcMode = 'budget';
-    else if (window._hcMode !== 'namechange' && window._hcMode !== 'budget') window._hcMode = 'tasks';
+    else if (window._hcRailView === 'noticed') window._hcMode = 'tasks';
+    else if (window._hcMode !== 'namechange' && window._hcMode !== 'budget' && window._hcMode !== 'tasks') {
+      window._hcMode = 'after';
+    }
     ensureShell();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('homecoming');
     applyMode();
     renderStats();
     renderToolbar();
+    renderAfterView();
     renderTasksView();
     renderNameChangeView();
     renderBudgetView();
@@ -512,10 +659,14 @@
   window.applyHomecomingRailView = applyHomecomingRailView;
   window.hcRailCounts = hcRailCounts;
   window.hcFigures = hcFigures;
+  window.hcAfterTasks = afterTasks;
+  window.hcThankYouDue = thankYouDue;
   window.rdHcSaveTask = rdHcSaveTask;
   window.rdHcSaveName = rdHcSaveName;
   window.rdHcAddTask = rdHcAddTask;
   window.rdHcAddNameChange = rdHcAddNameChange;
+  window.rdHcAddAfter = rdHcAddAfter;
+  window.rdHcOpenAfter = rdHcOpenAfter;
   window.rdHcLoadPreset = rdHcLoadPreset;
   window.rdHcPrint = rdHcPrint;
   window.rdHcExport = rdHcExport;

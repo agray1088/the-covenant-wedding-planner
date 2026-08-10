@@ -1,11 +1,11 @@
-/* Honeymoon & After — All.dc #17b + Dark.dc #17b rail + Drawers batch 25 (Booking).
-   Sections (All tab bar; Views.dc has no honeymoon screens): Details & bookings · Itinerary ·
-   Packing · Budget · Daily journal · After the day.
-   Rail: Sections counts + Readiness meters + After the day links + budget note.
-   Stats: Days until trip · Bookings complete · Post-wedding tasks · Thank-you notes due · Trip budget.
+/* Honeymoon — All.dc #17b + Dark.dc #17b rail + Drawers batch 25 (Booking).
+   Sections: Details & bookings · Itinerary · Packing · Budget · Daily journal.
+   Rail: Sections counts + Readiness meters + budget note.
+   Stats: Days until trip · Bookings complete · Packed · Itinerary days · Trip budget.
    Booking drawer tabs: Booking · Cost · Documents · History.
    Data: honeymoon · honeyDetails · honeyTransport · honeyItinerary · packing ·
-         hmBudget / hmBudgetItems · hmJournal · gifts · tasks · homecoming / nameChange. */
+         hmBudget / hmBudgetItems · hmJournal.
+   Post-wedding / After the day lives on Newlywed Homecoming. */
 (function () {
   'use strict';
 
@@ -20,8 +20,7 @@
     { id: 'itinerary', label: 'Itinerary' },
     { id: 'packing', label: 'Packing' },
     { id: 'budget', label: 'Budget' },
-    { id: 'journal', label: 'Daily journal' },
-    { id: 'after', label: 'After the day' }
+    { id: 'journal', label: 'Daily journal' }
   ];
   const DRAWER_TABS = ['Booking', 'Cost', 'Documents', 'History'];
 
@@ -44,7 +43,7 @@
   function ensureHm() {
     if (!window.data) window.data = {};
     if (!data.honeymoon || typeof data.honeymoon !== 'object') data.honeymoon = {};
-    ['honeyDetails', 'honeyTransport', 'honeyItinerary', 'packing', 'hmBudgetItems', 'hmJournal', 'homecoming', 'nameChange', 'gifts', 'tasks'].forEach(k => {
+    ['honeyDetails', 'honeyTransport', 'honeyItinerary', 'packing', 'hmBudgetItems', 'hmJournal'].forEach(k => {
       if (!Array.isArray(data[k])) data[k] = [];
     });
     if (!data.hmBudget || typeof data.hmBudget !== 'object') data.hmBudget = {};
@@ -168,58 +167,6 @@
     }, 0);
   }
 
-  function thankYouDue() {
-    ensureHm();
-    const gifts = data.gifts || [];
-    if (gifts.length) return gifts.filter(g => !g.thankyou).length;
-    const guests = data.guests || [];
-    if (guests.length) return guests.filter(g => !g.thankyou).length;
-    return 0;
-  }
-
-  function afterTasks() {
-    ensureHm();
-    const out = [];
-    (data.tasks || []).forEach((t, i) => {
-      const hay = [t.task, t.title, t.phase, t.category, t.notes, t.owner].join(' ').toLowerCase();
-      if (/post[- ]?wedding|after the|thank[- ]?you|honeymoon return|newlywed|name change|homecoming/i.test(hay)
-        || /after/i.test(String(t.phase || ''))) {
-        out.push({
-          id: 'tasks:' + (t._id || ('idx:' + i)),
-          src: 'tasks', index: i, row: t,
-          task: String(t.task || t.title || 'Task').trim(),
-          owner: String(t.owner || t.who || '—').trim() || '—',
-          due: String(t.due || t.date || '').trim() || '—',
-          source: 'Timeline & Tasks',
-          status: String(t.status || (t.done ? 'Complete' : 'Not started')).trim()
-        });
-      }
-    });
-    (data.homecoming || []).forEach((r, i) => {
-      out.push({
-        id: 'homecoming:' + (r._id || ('idx:' + i)),
-        src: 'homecoming', index: i, row: r,
-        task: String(r.item || r.task || 'Homecoming item').trim(),
-        owner: String(r.owner || '—').trim() || '—',
-        due: String(r.due || '').trim() || '—',
-        source: 'Newlywed Homecoming',
-        status: String(r.status || (r.done ? 'Complete' : 'Not started')).trim()
-      });
-    });
-    (data.nameChange || []).forEach((r, i) => {
-      out.push({
-        id: 'nameChange:' + (r._id || ('idx:' + i)),
-        src: 'nameChange', index: i, row: r,
-        task: String(r.task || r.item || 'Name-change task').trim(),
-        owner: String(r.owner || 'Both').trim() || 'Both',
-        due: String(r.due || '').trim() || '—',
-        source: 'Name change',
-        status: String(r.status || (r.done ? 'Complete' : 'Not started')).trim()
-      });
-    });
-    return out;
-  }
-
   function honeymoonFigures() {
     ensureHm();
     const bookings = allBookings();
@@ -232,8 +179,6 @@
       return plan && !/^nothing planned$/i.test(plan);
     }).length;
     const items = data.hmBudgetItems || [];
-    const after = afterTasks();
-    const afterDone = after.filter(t => /complete|done|sent/i.test(String(t.status || '')) || t.row.done).length;
     const days = daysUntil(data.honeymoon.depart);
     return {
       daysUntil: days,
@@ -246,10 +191,7 @@
       budgetLines: items.length,
       budgetTarget: tripBudgetTarget(),
       budgetCommitted: budgetCommitted(),
-      journalCount: (data.hmJournal || []).length,
-      thankYouDue: thankYouDue(),
-      afterTotal: after.length,
-      afterDone: afterDone
+      journalCount: (data.hmJournal || []).length
     };
   }
   function honeymoonRailCounts() {
@@ -259,9 +201,7 @@
       itinerary: f.itineraryTotal,
       packing: f.packingTotal,
       budget: f.budgetLines,
-      journal: f.journalCount,
-      after: f.afterTotal,
-      thankYou: f.thankYouDue
+      journal: f.journalCount
     };
   }
 
@@ -295,18 +235,18 @@
     const panel = document.getElementById('panel-honeymoon');
     if (!panel) return;
     panel.classList.add('ued-scope', 'honeymoon-mockup');
-    if (panel.dataset.uedShell === 'honeymoon-rd17b') {
+    if (panel.dataset.uedShell === 'honeymoon-rd17c') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'honeymoon-rd17b';
+    panel.dataset.uedShell = 'honeymoon-rd17c';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
           <div class="rd-pagehead__eyebrow">The Day</div>
           <div class="rd-pagehead__title-row">
-            <h1 class="rd-pagehead__title">Honeymoon &amp; After</h1>
+            <h1 class="rd-pagehead__title">Honeymoon</h1>
           </div>
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
@@ -334,13 +274,14 @@
     const f = honeymoonFigures();
     const daysVal = f.daysUntil == null ? '—' : String(Math.max(f.daysUntil, 0));
     const bookingsVal = f.bookingsComplete + ' of ' + Math.max(f.bookingsTotal, f.bookingsComplete);
-    const afterVal = f.afterDone + ' of ' + Math.max(f.afterTotal, f.afterDone || 0);
+    const packedVal = f.packed + ' of ' + Math.max(f.packingTotal, f.packed || 0);
+    const itiVal = f.itineraryPlanned + ' of ' + Math.max(f.itineraryTotal, f.itineraryPlanned || 0);
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
       RdDepth.renderStats(host, [
         { label: 'Days until trip', value: daysVal },
         { label: 'Bookings complete', value: bookingsVal },
-        { label: 'Post-wedding tasks', value: afterVal },
-        { label: 'Thank-you notes due', value: String(f.thankYouDue), attention: f.thankYouDue ? 'from Gifts' : undefined },
+        { label: 'Packed', value: packedVal },
+        { label: 'Itinerary days', value: itiVal },
         { label: 'Trip budget', value: money0(f.budgetTarget) }
       ]);
       return;
@@ -348,8 +289,8 @@
     host.innerHTML = [
       ['Days until trip', daysVal],
       ['Bookings complete', bookingsVal],
-      ['Post-wedding tasks', afterVal],
-      ['Thank-you notes due', f.thankYouDue],
+      ['Packed', packedVal],
+      ['Itinerary days', itiVal],
       ['Trip budget', money0(f.budgetTarget)]
     ].map(([l, v]) =>
       `<div class="m-stat"><div class="m-stat-label">${esc(l)}</div><div class="m-stat-val">${esc(String(v))}</div></div>`
@@ -397,8 +338,8 @@
     } else if (sec === 'journal') {
       left = `<button type="button" class="rd-chip rd-chip--ghost">Sort by date</button>`;
     } else {
-      left = filterChip('Status', 'status') +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by due</button>`;
+      left = filterChip('Type', 'type') + filterChip('Status', 'status') +
+        `<button type="button" class="rd-chip rd-chip--ghost">Sort by date</button>`;
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
@@ -408,6 +349,7 @@
 
   function applyHoneymoonSection(id) {
     const ok = SECTIONS.some(s => s.id === id);
+    /* Retired After the day section — post-wedding work lives on Homecoming. */
     window._hmSection = ok ? id : 'bookings';
     if (typeof setSavedView === 'function') setSavedView('honeymoon', window._hmSection);
     window._hmDrawerId = null;
@@ -663,37 +605,6 @@
     return html;
   }
 
-  function renderAfterView() {
-    const rows = afterTasks();
-    const f = honeymoonFigures();
-    let html = sectionHead(
-      'After the wedding · ' + rows.length + ' task' + (rows.length === 1 ? '' : 's'),
-      'None can close before the wedding day · two of these counts are read from elsewhere',
-      'Open Gifts', "typeof showPanel==='function'&&showPanel('gifts')"
-    );
-    html += `<div class="rd-hm-callouts">` +
-      `<article class="rd-hm-callout"><strong>Two counts, not typed</strong><p>Thank-you notes due (${f.thankYouDue}) is read from Gifts. Post-wedding tasks (${f.afterDone} of ${f.afterTotal}) is read from Timeline &amp; Tasks and Newlywed Homecoming.</p></article>` +
-      `<article class="rd-hm-callout"><strong>Where this ends</strong><p><button type="button" class="rd-drawer__link" onclick="typeof showReflectTabPage==='function'?showReflectTabPage('homecoming'):(typeof showPanel==='function'&&showPanel('reflect'))">Newlywed Homecoming →</button> and Marriage Rhythms carry on after the trip.</p></article>` +
-      `</div>`;
-    html += `<table class="rd-hm-table"><thead><tr>` +
-      `<th style="width:34px"></th><th>Task</th><th>Owner</th><th>Due</th><th>Source</th><th>Status</th>` +
-      `</tr></thead><tbody>`;
-    if (!rows.length) {
-      html += `<tr class="rd-hm-empty"><td colspan="6">No post-wedding tasks yet. Add one, or open Gifts and Newlywed Homecoming — those counts feed this strip.</td></tr>`;
-    } else {
-      rows.forEach(t => {
-        html += `<tr class="rd-hm-row" onclick="rdHmOpenAfter('${esc(t.id)}')">` +
-          `<td></td>` +
-          `<td class="rd-hm-name">${esc(t.task)}</td>` +
-          `<td>${esc(t.owner)}</td><td>${esc(t.due)}</td><td>${esc(t.source)}</td><td>${esc(t.status)}</td>` +
-          `</tr>`;
-      });
-    }
-    html += `</tbody></table>`;
-    html += `<button type="button" class="rd-hm-addbtn" onclick="rdHmAddAfter()"><span>+</span> Add a post-wedding task</button>`;
-    return html;
-  }
-
   function renderMainSurface() {
     const host = document.getElementById('honeymoon-view-host');
     if (!host) return;
@@ -702,7 +613,6 @@
     else if (sec === 'packing') host.innerHTML = renderPackingView();
     else if (sec === 'budget') host.innerHTML = renderBudgetView();
     else if (sec === 'journal') host.innerHTML = renderJournalView();
-    else if (sec === 'after') host.innerHTML = renderAfterView();
     else host.innerHTML = renderBookingsView();
   }
 
@@ -929,14 +839,6 @@
   function rdHmOpenJournal(i) {
     if (typeof openRecordEditor === 'function') openRecordEditor('hmJournal', i);
   }
-  function rdHmAddAfter() {
-    if (typeof openRecordEditor === 'function') openRecordEditor('tasks');
-    else if (typeof addTaskRow === 'function') addTaskRow();
-  }
-  function rdHmOpenAfter(id) {
-    const t = afterTasks().find(x => x.id === id);
-    if (t && typeof openRecordEditor === 'function') openRecordEditor(t.src, t.index);
-  }
   function rdHmBookInsurance() {
     ensureHm();
     const existing = allBookings().find(b => /insurance/i.test(b.type + b.title));
@@ -1004,9 +906,12 @@
   function renderHoneymoonRd() {
     ensureHm();
     if (typeof getSavedView === 'function') {
-      const saved = getSavedView('honeymoon', window._hmSection || 'bookings');
+      let saved = getSavedView('honeymoon', window._hmSection || 'bookings');
+      if (saved === 'after') saved = 'bookings';
       if (SECTIONS.some(s => s.id === saved)) window._hmSection = saved;
+      else window._hmSection = 'bookings';
     }
+    if (window._hmSection === 'after') window._hmSection = 'bookings';
     uedHoneymoonShellRd();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('honeymoon');
     renderHmStatsRd();
@@ -1050,8 +955,6 @@
   window.rdHmOpenBudget = rdHmOpenBudget;
   window.rdHmAddJournal = rdHmAddJournal;
   window.rdHmOpenJournal = rdHmOpenJournal;
-  window.rdHmAddAfter = rdHmAddAfter;
-  window.rdHmOpenAfter = rdHmOpenAfter;
   window.rdHmBookInsurance = rdHmBookInsurance;
   window.rdHmCycleFilter = rdHmCycleFilter;
   window.rdHmClearFilter = rdHmClearFilter;

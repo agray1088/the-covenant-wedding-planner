@@ -1956,19 +1956,20 @@
     return '<div class="rd-rail__stack" data-page-rail="ceremony">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
-  /* All.dc #17b / Dark.dc #17b rail — Sections + Readiness + After the day. */
+  /* All.dc #17b / Dark.dc #17b rail — Sections + Readiness (After the day moved to Homecoming). */
   function buildHoneymoonContext() {
     var active = 'bookings';
     if (typeof getSavedView === 'function') active = getSavedView('honeymoon', 'bookings');
     else if (typeof window._hmSection === 'string' && window._hmSection) active = window._hmSection;
+    if (active === 'after') active = 'bookings';
     window._hmSection = active;
 
     var counts = typeof window.honeymoonRailCounts === 'function' ? window.honeymoonRailCounts() : {
-      bookings: 0, itinerary: 0, packing: 0, budget: 0, journal: 0, after: 0, thankYou: 0
+      bookings: 0, itinerary: 0, packing: 0, budget: 0, journal: 0
     };
     var figures = typeof window.honeymoonFigures === 'function' ? window.honeymoonFigures() : {
       bookingsComplete: 0, bookingsTotal: 0, packed: 0, packingTotal: 0,
-      itineraryPlanned: 0, itineraryTotal: 0, budgetCommitted: 0, afterDone: 0, afterTotal: 0, thankYouDue: 0
+      itineraryPlanned: 0, itineraryTotal: 0, budgetCommitted: 0
     };
 
     function money0(n) {
@@ -2007,22 +2008,17 @@
       esc(money0(figures.budgetCommitted || 0)) + '</span></div>' +
       '</div></div>';
 
-    var afterHtml =
+    var homecomingHtml =
       '<div class="rd-rail__section">' +
-      '<div class="rd-rail__title">After the day</div>' +
+      '<div class="rd-rail__title">After the wedding</div>' +
       '<div class="rd-rail__list" role="list">' +
-      '<button type="button" class="rd-rail__item' + (active === 'after' ? ' is-active' : '') + '" onclick="applyHoneymoonSection(\'after\')">Thank-you notes' +
-      '<span class="rd-rail__count' + ((figures.thankYouDue || 0) > 0 ? ' rd-rail__count--warn' : '') + '">' +
-      (figures.thankYouDue || 0) + ' due</span></button>' +
-      '<button type="button" class="rd-rail__item' + (active === 'after' ? ' is-active' : '') + '" onclick="applyHoneymoonSection(\'after\')">Post-wedding tasks' +
-      '<span class="rd-rail__count">' + (figures.afterDone || 0) + ' of ' + (figures.afterTotal || 0) + '</span></button>' +
-      '<button type="button" class="rd-rail__item" onclick="typeof showReflectTabPage===\'function\'?showReflectTabPage(\'homecoming\'):(typeof showPanel===\'function\'&&showPanel(\'reflect\'))">Newlywed Homecoming</button>' +
+      '<button type="button" class="rd-rail__item" onclick="typeof showPanel===\'function\'&&showPanel(\'homecoming\')">Newlywed Homecoming</button>' +
       '</div></div>';
 
     var noteHtml =
-      '<p class="rd-rail__note">The honeymoon budget is its own target — it is not part of the wedding budget and never appears on the Budget page.</p>';
+      '<p class="rd-rail__note">The honeymoon budget is its own target — it is not part of the wedding budget and never appears on the Budget page. Post-wedding tasks live on Newlywed Homecoming.</p>';
 
-    return '<div class="rd-rail__stack" data-page-rail="honeymoon">' + sectionsHtml + readinessHtml + afterHtml + noteHtml + '</div>';
+    return '<div class="rd-rail__stack" data-page-rail="honeymoon">' + sectionsHtml + readinessHtml + homecomingHtml + noteHtml + '</div>';
   }
 
   /* All.dc #13b / Dark.dc #13b rail — Views + Rhythm + Group by. */
@@ -2648,17 +2644,17 @@
     return '<div class="rd-rail__stack" data-page-rail="firstmonth">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
-  /* Newlywed Homecoming — The Day. */
+  /* Newlywed Homecoming — After the Day + Settling / Name change / Budget. */
   function buildHomecomingContext() {
     var activeView = 'settling';
     if (typeof getSavedView === 'function') activeView = getSavedView('homecoming', 'settling');
     else if (typeof window._hcRailView === 'string' && window._hcRailView) activeView = window._hcRailView;
     window._hcRailView = activeView;
     var counts = typeof window.hcRailCounts === 'function' ? window.hcRailCounts() : {
-      settling: 0, namechange: 0, budget: 0, noticed: 0
+      settling: 0, namechange: 0, budget: 0, noticed: 0, after: 0, thankYou: 0
     };
     var figures = typeof window.hcFigures === 'function' ? window.hcFigures() : {
-      homeDone: 0, homecoming: 0, nameDone: 0, nameChange: 0
+      homeDone: 0, homecoming: 0, nameDone: 0, nameChange: 0, afterDone: 0, afterTotal: 0, thankYouDue: 0
     };
     function viewItem(id, label, count) {
       return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
@@ -2676,9 +2672,18 @@
       '<div class="rd-rail__section"><div class="rd-rail__title">Progress</div><div class="rd-rail__meters">' +
       '<div class="rd-rail__meter-top"><span>Settling in</span><span class="rd-rail__count">' + (figures.homeDone || 0) + ' of ' + (figures.homecoming || 0) + '</span></div>' +
       '<div class="rd-rail__meter-top"><span>Name change</span><span class="rd-rail__count">' + (figures.nameDone || 0) + ' of ' + (figures.nameChange || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Post-wedding tasks</span><span class="rd-rail__count">' + (figures.afterDone || 0) + ' of ' + (figures.afterTotal || 0) + '</span></div>' +
       '</div></div>';
-    var noteHtml = '<p class="rd-rail__note">Written now so the first month is not spent deciding what to do.</p>';
-    return '<div class="rd-rail__stack" data-page-rail="homecoming">' + viewsHtml + metersHtml + noteHtml + '</div>';
+    var afterHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">After the day</div><div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item' + ((window._hcMode || 'after') === 'after' ? ' is-active' : '') + '" onclick="rdSetHomecomingView(\'after\')">After the day overview' +
+      '<span class="rd-rail__count">' + (counts.after || 0) + '</span></button>' +
+      '<button type="button" class="rd-rail__item" onclick="typeof showPanel===\'function\'&&showPanel(\'gifts\')">Thank-you notes' +
+      '<span class="rd-rail__count' + ((figures.thankYouDue || 0) > 0 ? ' rd-rail__count--warn' : '') + '">' +
+      (figures.thankYouDue || 0) + ' due</span></button>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Written now so the first month is not spent deciding what to do. Thank-you notes due is read from Gifts; post-wedding tasks merge Timeline &amp; Tasks with this page.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="homecoming">' + viewsHtml + metersHtml + afterHtml + noteHtml + '</div>';
   }
 
   /* Help pages — All.dc 15b/15d/15c. Untabbed; the rail replaces the missing

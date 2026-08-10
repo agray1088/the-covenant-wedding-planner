@@ -46,7 +46,7 @@
     { id: 'prayer_entries', entity: 'prayer', owner: 'Prayer Journal', ownerPanel: 'prayer', group: 'Covenant & keepsakes', cwp: 'prayer' },
     { id: 'gifts', entity: 'gifts', owner: 'Gifts', ownerPanel: 'gifts', group: 'Covenant & keepsakes', cwp: 'gifts' },
     { id: 'vision_pins', entity: 'moodItems', owner: 'Vision Board', ownerPanel: 'mood', group: 'Covenant & keepsakes', cwp: 'moodItems' },
-    { id: 'honeymoon', entity: 'honeyDetails', owner: 'Honeymoon & After', ownerPanel: 'honeymoon', group: 'Empty / not started', cwp: 'honeyDetails' },
+    { id: 'honeymoon', entity: 'honeyDetails', owner: 'Honeymoon', ownerPanel: 'honeymoon', group: 'Empty / not started', cwp: 'honeyDetails' },
     { id: 'rhythms', entity: 'rhythms', owner: 'First-Month Rhythms', ownerPanel: 'reflect', group: 'Empty / not started', cwp: null },
     { id: 'notes', entity: 'notesDetails', owner: 'Notes', ownerPanel: 'notes', group: 'Empty / not started', cwp: 'notesDetails' },
     { id: 'logistics', entity: 'weekendTimeline', owner: 'Weekend Logistics', ownerPanel: 'logistics', group: 'Empty / not started', cwp: 'weekendTimeline' },
