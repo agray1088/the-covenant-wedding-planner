@@ -21473,8 +21473,8 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 .rd-pd__appear .pd-custom-colors {
   width: 100%;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 34px; border: 1px solid #d9cfba; background: #f5efe4; color: #2D4A3E;
-  font-size: 12.5px; font-weight: 600; cursor: pointer;
+  height: var(--component-button-height, 28px); border: 1px solid #d9cfba; background: #f5efe4; color: #2D4A3E;
+  font-size: var(--btn-font-size, 12px); font-weight: 600; cursor: pointer;
 }
 .rd-pd__appear .pd-custom-colors:hover { background: #ebe3d2; }
 .rd-pd__appear .pd-custom-colors svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
