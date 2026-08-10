@@ -79,17 +79,29 @@
         + '<span class="rd-picker__tick" aria-hidden="true">' + (on ? '&#10003;' : '') + '</span>'
         + '<span class="rd-picker__label">' + esc(o.label) + '</span></button>';
     }).join('');
+    /* Shrink-wrap BEFORE measuring. A block-level div on <body> is full
+       viewport width, so clamping with that width pinned left to 8px and the
+       menu appeared on the far left of the page instead of under the chip. */
+    el.style.position = 'fixed';
+    el.style.display = 'inline-block';
+    el.style.width = 'max-content';
+    el.style.maxWidth = 'min(320px, calc(100vw - 16px))';
+    el.style.visibility = 'hidden';
+    el.style.left = '0';
+    el.style.top = '0';
     document.body.appendChild(el);
 
     var r = btn.getBoundingClientRect();
-    var w = el.offsetWidth;
-    var h = el.offsetHeight;
-    el.style.position = 'fixed';
-    el.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+    var w = Math.max(el.offsetWidth || 0, el.getBoundingClientRect().width || 0, 190);
+    var h = Math.max(el.offsetHeight || 0, el.getBoundingClientRect().height || 0, 40);
+    var left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
     /* flip above the chip when there is no room below */
-    el.style.top = (r.bottom + h + 8 > window.innerHeight && r.top - h - 4 > 8)
-      ? (r.top - h - 4) + 'px'
-      : Math.max(8, Math.min(r.bottom + 4, window.innerHeight - h - 8)) + 'px';
+    var top = (r.bottom + h + 8 > window.innerHeight && r.top - h - 4 > 8)
+      ? (r.top - h - 4)
+      : Math.max(8, Math.min(r.bottom + 4, window.innerHeight - h - 8));
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+    el.style.visibility = '';
 
     el.addEventListener('click', function (e) {
       var item = e.target.closest ? e.target.closest('.rd-picker__item') : null;
