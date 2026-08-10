@@ -410,6 +410,9 @@
     if (!host) return;
     const colors = paletteColors();
     const pins = filteredPins();
+    /* Active swatches + the full old Color Palette toolkit:
+       seasonal ready-mades, signature presets, Build Your Own, and Your Palettes.
+       Mount ids (preset-palettes / saved-palettes / mb-*) match planner.js. */
     let html = `<section class="rd-mood-palette-page">` +
       `<div class="rd-section__head">` +
       `<div class="rd-pagehead__eyebrow">Palette · ${colors.length}</div>` +
@@ -427,24 +430,23 @@
     });
     html += `</div>` +
       `<p class="rd-help" style="margin-top:18px">${pins.filter(p => p.vendor).length} pin${pins.filter(p => p.vendor).length === 1 ? '' : 's'} linked to a vendor · send the palette with a share packet, not as a free-floating file</p>` +
-      `<div class="rd-mood-palette-creator">` +
-        `<div class="rd-mood-palette-creator__head">` +
-          `<h3>Color Palette</h3>` +
-          `<p>Pick a ready-made palette or build your own. Saved palettes can be applied as the planner theme.</p>` +
-        `</div>` +
-        `<div id="preset-palettes" class="preset-palettes mood-palette-cards"></div>` +
-        `<div class="mood-divider"><span>Build Your Own</span></div>` +
-        `<div class="palette-builder mood-palette-builder rd-mood-builder">` +
-          `<input type="text" id="mb-name" placeholder="Palette name (optional)" maxlength="40">` +
-          `<input type="color" id="mb-c1" value="#F9F7F4" title="Color 1">` +
-          `<input type="color" id="mb-c2" value="#2D4A3E" title="Color 2">` +
-          `<input type="color" id="mb-c3" value="#B89968" title="Color 3">` +
-          `<input type="color" id="mb-c4" value="#D4B896" title="Color 4">` +
-          `<input type="color" id="mb-c5" value="#A95D4E" title="Color 5">` +
-          `<button type="button" class="rd-btn rd-btn--primary" onclick="addCustomPalette()">+ Save Palette</button>` +
-        `</div>` +
-        `<div id="saved-palettes" class="saved-palettes mood-palette-cards"></div>` +
+      `<article class="mood-card mood-palette-feature rd-mood-palette-kit">` +
+      `<div class="mood-card-head">` +
+      `<div><h3>Color Palette</h3><p>Pick a ready-made palette or build your own — seasonal stories, signature presets, and your saved palettes.</p></div>` +
       `</div>` +
+      `<div id="preset-palettes" class="preset-palettes mood-palette-cards"></div>` +
+      `<div class="mood-divider"><span>Build Your Own</span></div>` +
+      `<div class="palette-builder mood-palette-builder rd-mood-builder">` +
+      `<input type="text" id="mb-name" placeholder="Palette name (optional)" aria-label="Custom palette name">` +
+      `<input type="color" id="mb-c1" value="#F9F7F4" title="Color 1" aria-label="Color 1">` +
+      `<input type="color" id="mb-c2" value="#2D4A3E" title="Color 2" aria-label="Color 2">` +
+      `<input type="color" id="mb-c3" value="#B89968" title="Color 3" aria-label="Color 3">` +
+      `<input type="color" id="mb-c4" value="#D4B896" title="Color 4" aria-label="Color 4">` +
+      `<input type="color" id="mb-c5" value="#A95D4E" title="Color 5" aria-label="Color 5">` +
+      `<button type="button" class="rd-btn rd-btn--primary" onclick="addCustomPalette()">+ Save Palette</button>` +
+      `</div>` +
+      `<div id="saved-palettes" class="saved-palettes mood-palette-cards"></div>` +
+      `</article>` +
       `</section>`;
     host.innerHTML = html;
     if (typeof renderPresetPalettes === 'function') renderPresetPalettes();
@@ -763,6 +765,27 @@
     }
     if (typeof uxRevealPanel === 'function') uxRevealPanel('mood');
   }
+
+  /* After Use / Save / Delete palette, refresh the redesign Palette view
+     so active swatches and Your Palettes stay in sync. */
+  function refreshMoodAfterPaletteChange() {
+    if (typeof refreshThemeOptionsFromMood === 'function') {
+      try { refreshThemeOptionsFromMood(); } catch (e) { /* soft */ }
+    }
+    if (window._moodMode === 'palette') renderPaletteView();
+    else if (document.body.getAttribute('data-active-panel') === 'mood') renderMoodRd();
+  }
+  ['savePaletteChoice', 'addCustomPalette', 'removePalette', 'setMoodSeason', 'usePreset', 'useSeasonPalette'].forEach(name => {
+    const original = window[name];
+    if (typeof original !== 'function' || original.__moodRdWrapped) return;
+    const wrapped = function () {
+      const result = original.apply(this, arguments);
+      try { refreshMoodAfterPaletteChange(); } catch (e) { /* soft */ }
+      return result;
+    };
+    wrapped.__moodRdWrapped = true;
+    window[name] = wrapped;
+  });
 
   window.uedMoodShell = uedMoodShellRd;
   window.renderMoodPage = renderMoodRd;
