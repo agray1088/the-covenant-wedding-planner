@@ -30046,6 +30046,7 @@ const SAMPLE_DATA = {
   ],
   weekendTimeline: [
     { date: "2026-11-12", start: "17:00", end: "18:00", event: "Ceremony Rehearsal", location: "Grace Community Church", host: "Pastor David Reynolds", group: "Wedding Party", attire: "Casual", status: "Confirmed", cost: "", notes: "Bring marriage license" },
+    { date: "2026-11-12", start: "17:00", end: "18:00", event: "Wedding Party Call Time", location: "Grace Community Church", host: "Michael Whitfield", group: "Wedding Party", attire: "Casual", status: "Confirmed", cost: "", notes: "Best man — walkthrough starts sharp at 5" },
     { date: "2026-11-12", start: "18:30", end: "21:00", event: "Rehearsal Dinner", location: "The Copper Table", host: "Thomas & Carol Carter", group: "Wedding Party", attire: "Smart casual", status: "Confirmed", cost: "500", notes: "Groom's parents hosting" },
     { date: "2026-11-13", start: "14:00", end: "16:00", event: "Hair & Makeup", location: "Bridal suite", host: "Blossom Bridal Beauty", group: "Bride & Bridesmaids", attire: "Robes", status: "Confirmed", cost: "", notes: "" },
     { date: "2026-11-13", start: "17:00", end: "23:00", event: "Wedding Day", location: "Church → Magnolia Barn", host: "Both families", group: "Everyone", attire: "Formal", status: "Confirmed", cost: "", notes: "See Day-Of Timeline" },
@@ -30062,8 +30063,10 @@ const SAMPLE_DATA = {
     { hotel: "Riverton Inn & Suites", address: "12 River Rd, Riverton", link: "https://rivertoninn.example/block", blockName: "Whitfield Wedding", rate: "$99/night", cutoff: "2026-10-20", reserved: "8", booked: "3", contact: "(555) 010-7200", notes: "Closer to reception venue" }
   ],
   transportation: [
+    { date: "2026-11-12", pickupTime: "17:15", dropoffTime: "18:00", pickup: "Springfield Regional Airport", dropoff: "Comfort Suites Springfield", driver: "Michael Whitfield", vehicle: "Family SUV", group: "Grandma Eleanor's flight", capacity: "4", status: "Booked", cost: "0", notes: "Grandma Eleanor lands 5:15 — same window as rehearsal walkthrough" },
     { date: "2026-11-13", pickupTime: "16:00", dropoffTime: "16:45", pickup: "Comfort Suites Springfield", dropoff: "Grace Community Church", driver: "Premier Limo Service", vehicle: "24-passenger shuttle", group: "Out-of-town guests", capacity: "24", status: "Booked", cost: "150", notes: "One loop before ceremony" },
     { date: "2026-11-13", pickupTime: "18:15", dropoffTime: "18:45", pickup: "Grace Community Church", dropoff: "The Magnolia Barn", driver: "Premier Limo Service", vehicle: "24-passenger shuttle", group: "Guests without cars", capacity: "24", status: "Booked", cost: "50", notes: "After ceremony" },
+    { date: "2026-11-13", pickupTime: "20:00", dropoffTime: "20:30", pickup: "The Magnolia Barn", dropoff: "Comfort Suites Springfield", driver: "", vehicle: "Sedan (TBD)", group: "Grandparents — early departure", capacity: "4", status: "Needed", cost: "", notes: "Nobody's confirmed for this run yet" },
     { date: "2026-11-13", pickupTime: "21:45", dropoffTime: "22:15", pickup: "The Magnolia Barn", dropoff: "Getaway", driver: "Vintage Rides Co.", vehicle: "Classic white convertible", group: "Bride & Groom", capacity: "2", status: "Needed", cost: "120", notes: "Send-off car — confirm final payment" }
   ],
   vipCare: [

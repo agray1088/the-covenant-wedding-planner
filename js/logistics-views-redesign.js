@@ -86,7 +86,7 @@
      appointments where the host/contact is the same person as a driver. */
   function buildPersonCommitments() {
     const list = [];
-    arr(global.data && global.data.weekendTimeline).forEach(w => {
+    arr(data.weekendTimeline).forEach(w => {
       if (!w.host) return;
       list.push({
         person: w.host,
@@ -95,7 +95,7 @@
         label: w.event || 'Weekend item'
       });
     });
-    arr(global.data && global.data.appointments).forEach(a => {
+    arr(data.appointments).forEach(a => {
       if (!a.contact) return;
       list.push({
         person: a.contact,
@@ -206,7 +206,7 @@
   function renderLogisticsTransportGantt() {
     const host = document.getElementById('logistics-transport-gantt');
     if (!host) return;
-    const rows = arr(global.data && global.data.transportation);
+    const rows = arr(data.transportation);
     if (!rows.length) {
       host.innerHTML = emptyState('No transportation movements recorded yet.');
       return;
@@ -243,7 +243,7 @@
   }
 
   function logisticsTransportStatsData() {
-    const rows = arr(global.data && global.data.transportation);
+    const rows = arr(data.transportation);
     const vehicleKeys = new Set();
     let covered = 0, noDriver = 0, spend = 0;
     rows.forEach((r, idx) => {
@@ -286,8 +286,8 @@
      address on any member of the household is treated as "local, no room
      needed" rather than unresolved. */
   function nowhereBookedHouseholds() {
-    const guests = arr(global.data && global.data.guests);
-    const travel = arr(global.data && global.data.travelAccommodations);
+    const guests = arr(data.guests);
+    const travel = arr(data.travelAccommodations);
     const housedNames = new Set(travel.map(r => String(r.guest || '').trim().toLowerCase()).filter(Boolean));
 
     const resolvedHouseholds = new Set();
@@ -453,8 +453,8 @@
   function renderLogisticsRoomsGrouped() {
     const host = document.getElementById('logistics-rooms-grouped');
     if (!host) return;
-    const blocks = arr(global.data && global.data.hotelBlocks);
-    const travel = arr(global.data && global.data.travelAccommodations);
+    const blocks = arr(data.hotelBlocks);
+    const travel = arr(data.travelAccommodations);
 
     if (!blocks.length && !travel.length) {
       host.innerHTML = emptyState('No hotel blocks or accommodations recorded yet.');
@@ -496,8 +496,8 @@
   }
 
   function logisticsRoomsStatsData() {
-    const blocks = arr(global.data && global.data.hotelBlocks);
-    const travel = arr(global.data && global.data.travelAccommodations);
+    const blocks = arr(data.hotelBlocks);
+    const travel = arr(data.travelAccommodations);
     let roomsHeld = 0, claimed = 0;
     blocks.forEach(h => {
       const reserved = intOrNull(h.reserved);
