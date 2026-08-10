@@ -527,6 +527,37 @@ body.rd-scope .btn-forest:hover { background-color: var(--forest-deep) !importan
   font-weight: 600 !important;
 }
 
+/* Sub-page view switchers (Table · Households · Seating, etc.) — same
+   height + type as Auto-fit columns chips. */
+#main#main .rd-viewswitch > *,
+#main#main .rd-viewswitch__item,
+#main#main .rd-sectiontabs__item,
+body.rd-scope .rd-viewswitch > *,
+body.rd-scope .rd-viewswitch__item,
+body.rd-scope .rd-sectiontabs__item {
+  height: var(--component-chip-height) !important;
+  min-height: var(--component-chip-height) !important;
+  padding: 0 var(--btn-toolbar-pad-x) !important;
+  font-family: var(--font-ui) !important;
+  font-size: var(--btn-toolbar-font-size) !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
+#main#main .rd-viewswitch > .is-active,
+#main#main .rd-viewswitch__item.is-active,
+body.rd-scope .rd-viewswitch > .is-active,
+body.rd-scope .rd-viewswitch__item.is-active {
+  font-weight: 600 !important;
+}
+/* Honeymoon section tabs keep the underline treatment, but same type size. */
+body.rd-scope .rd-sectiontabs__item.is-active {
+  font-weight: 600 !important;
+}
+
 /* ?? 6. STATUS PILLS ?????????????????????????????????????????????????????????
    Five schemes, driven by [data-pillscheme] (written by pillSchemeFor) or by
    the planner's own --scheme classes. Radius 0, no shadow, no uppercase. */
@@ -15912,8 +15943,10 @@ body.rd-scope #panel-honeymoon .rd-sectiontabs {
 body.rd-scope #panel-honeymoon .rd-sectiontabs__item {
   border: 0;
   background: transparent;
-  padding: 10px 14px;
-  font-size: 13px;
+  padding: 0 11px;
+  height: var(--component-chip-height);
+  font-size: var(--btn-toolbar-font-size);
+  font-family: var(--font-ui);
   color: #8a7e6b;
   cursor: pointer;
   border-bottom: 2px solid transparent;
