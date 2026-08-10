@@ -163,47 +163,274 @@ body.dark-mode #topbar#topbar, body[data-theme="dark"] #topbar#topbar {
   --shell-topbar-bg: #16241E;
 }
 
-/* ?? 3. TABLES ????????????????????????????????????????????????????????????? */
+/* ?? 3. TABLES — canonical All.dc recipe for EVERY planner data table ???????
+   Forest thead + gold rule + 9×12 body + sunken/group bands + raised hover.
+   Custom redesign tables (rd-*-table) get the same chrome as cwp/rd-table. */
 #main#main .cwp-table,
-#main#main .rd-table {
+#main#main .rd-table,
+#main#main .ued-table,
+#main#main .rd-ent-table,
+#main#main .rd-shot-table,
+#main#main .rd-cat-table,
+#main#main .rd-wday-table,
+#main#main .rd-hm-table,
+#main#main .rd-vnd-table,
+#main#main .rd-vnd-cmp-table,
+#main#main .rd-cou-table,
+#main#main .rd-cou-hwtable,
+#main#main .rd-ess-table,
+#main#main .rd-pkt-table,
+#main#main .rd-et-table,
+#main#main .rd-mood-table,
+#main#main .rd-dh-table,
+#main#main .rd-notes-table,
+#main#main .rd-pc-table,
+#main#main .rd-hh-table,
+#main#main .rd-ct-table,
+#main#main .rd-hc-table,
+#main#main .rd-guest-mini-table,
+#main#main .rd-guest-comp-table,
+#main#main .rd-guest-hh-table,
+#main#main .rd-bgt-table,
+#main#main .rd-pay-table,
+#main#main .rd-con-table,
+#main#main .record-editor-small-table,
+body.rd-scope .cwp-table,
+body.rd-scope .rd-table,
+body.rd-scope .ued-table,
+body.rd-scope .rd-ent-table,
+body.rd-scope .rd-shot-table,
+body.rd-scope .rd-cat-table,
+body.rd-scope .rd-wday-table,
+body.rd-scope .rd-hm-table,
+body.rd-scope .rd-vnd-table,
+body.rd-scope .rd-vnd-cmp-table,
+body.rd-scope .rd-cou-table,
+body.rd-scope .rd-cou-hwtable,
+body.rd-scope .rd-ess-table,
+body.rd-scope .rd-pkt-table,
+body.rd-scope .rd-et-table,
+body.rd-scope .rd-mood-table,
+body.rd-scope .rd-dh-table,
+body.rd-scope .rd-notes-table,
+body.rd-scope .rd-pc-table,
+body.rd-scope .rd-hh-table,
+body.rd-scope .rd-ct-table,
+body.rd-scope .rd-hc-table,
+body.rd-scope .rd-guest-mini-table,
+body.rd-scope .rd-guest-comp-table,
+body.rd-scope .rd-guest-hh-table,
+body.rd-scope .rd-bgt-table,
+body.rd-scope .rd-pay-table,
+body.rd-scope .rd-con-table,
+body.rd-scope .record-editor-small-table {
   font-family: var(--font-ui) !important;
-  font-size: var(--type-table) !important;
-  background-color: var(--surface-content) !important;
+  font-size: var(--type-table, 13px) !important;
+  color: var(--text-primary, #23211c) !important;
+  background-color: var(--surface-content, #fff) !important;
   border-collapse: collapse !important;
+  width: 100%;
 }
 #main#main .cwp-table thead th,
-#main#main .rd-table thead th {
-  background-color: var(--table-header-bg) !important;
-  color: var(--text-on-dark) !important;
+#main#main .rd-table thead th,
+#main#main .ued-table thead th,
+#main#main .rd-ent-table thead th,
+#main#main .rd-shot-table thead th,
+#main#main .rd-cat-table thead th,
+#main#main .rd-wday-table thead th,
+#main#main .rd-hm-table thead th,
+#main#main .rd-vnd-table thead th,
+#main#main .rd-vnd-cmp-table thead th,
+#main#main .rd-cou-table thead th,
+#main#main .rd-cou-hwtable thead th,
+#main#main .rd-ess-table thead th,
+#main#main .rd-pkt-table thead th,
+#main#main .rd-et-table thead th,
+#main#main .rd-mood-table thead th,
+#main#main .rd-dh-table thead th,
+#main#main .rd-notes-table thead th,
+#main#main .rd-pc-table thead th,
+#main#main .rd-hh-table thead th,
+#main#main .rd-ct-table thead th,
+#main#main .rd-hc-table thead th,
+#main#main .rd-guest-mini-table thead th,
+#main#main .rd-guest-comp-table thead th,
+#main#main .rd-guest-hh-table thead th,
+#main#main .rd-bgt-table thead th,
+#main#main .rd-pay-table thead th,
+#main#main .rd-con-table thead th,
+#main#main .record-editor-small-table thead th,
+body.rd-scope .cwp-table thead th,
+body.rd-scope .rd-table thead th,
+body.rd-scope .ued-table thead th,
+body.rd-scope .rd-ent-table thead th,
+body.rd-scope .rd-shot-table thead th,
+body.rd-scope .rd-cat-table thead th,
+body.rd-scope .rd-wday-table thead th,
+body.rd-scope .rd-hm-table thead th,
+body.rd-scope .rd-vnd-table thead th,
+body.rd-scope .rd-vnd-cmp-table thead th,
+body.rd-scope .rd-cou-table thead th,
+body.rd-scope .rd-cou-hwtable thead th,
+body.rd-scope .rd-ess-table thead th,
+body.rd-scope .rd-pkt-table thead th,
+body.rd-scope .rd-et-table thead th,
+body.rd-scope .rd-mood-table thead th,
+body.rd-scope .rd-dh-table thead th,
+body.rd-scope .rd-notes-table thead th,
+body.rd-scope .rd-pc-table thead th,
+body.rd-scope .rd-hh-table thead th,
+body.rd-scope .rd-ct-table thead th,
+body.rd-scope .rd-hc-table thead th,
+body.rd-scope .rd-guest-mini-table thead th,
+body.rd-scope .rd-guest-comp-table thead th,
+body.rd-scope .rd-guest-hh-table thead th,
+body.rd-scope .rd-bgt-table thead th,
+body.rd-scope .rd-pay-table thead th,
+body.rd-scope .rd-con-table thead th,
+body.rd-scope .record-editor-small-table thead th,
+#main#main .cwp-table th,
+#main#main .rd-table th,
+#main#main .ued-table th,
+#main#main .rd-ent-table th,
+#main#main .rd-shot-table th,
+#main#main .rd-cat-table th,
+#main#main .rd-wday-table th,
+#main#main .rd-hm-table th,
+#main#main .rd-vnd-table th,
+#main#main .rd-vnd-cmp-table th,
+#main#main .rd-cou-table th,
+#main#main .rd-cou-hwtable th,
+#main#main .rd-ess-table th,
+#main#main .rd-pkt-table th,
+#main#main .rd-et-table th,
+#main#main .rd-mood-table th,
+#main#main .rd-dh-table th,
+#main#main .rd-notes-table th,
+#main#main .rd-pc-table th,
+#main#main .rd-hh-table th,
+#main#main .rd-ct-table th,
+#main#main .rd-hc-table th,
+#main#main .rd-guest-mini-table th,
+#main#main .rd-guest-comp-table th,
+#main#main .rd-guest-hh-table th,
+#main#main .rd-bgt-table th,
+#main#main .rd-pay-table th,
+#main#main .rd-con-table th,
+#main#main .record-editor-small-table th,
+body.rd-scope .cwp-table th,
+body.rd-scope .rd-table th,
+body.rd-scope .ued-table th,
+body.rd-scope .rd-ent-table th,
+body.rd-scope .rd-shot-table th,
+body.rd-scope .rd-cat-table th,
+body.rd-scope .rd-wday-table th,
+body.rd-scope .rd-hm-table th,
+body.rd-scope .rd-vnd-table th,
+body.rd-scope .rd-vnd-cmp-table th,
+body.rd-scope .rd-cou-table th,
+body.rd-scope .rd-cou-hwtable th,
+body.rd-scope .rd-ess-table th,
+body.rd-scope .rd-pkt-table th,
+body.rd-scope .rd-et-table th,
+body.rd-scope .rd-mood-table th,
+body.rd-scope .rd-dh-table th,
+body.rd-scope .rd-notes-table th,
+body.rd-scope .rd-pc-table th,
+body.rd-scope .rd-hh-table th,
+body.rd-scope .rd-ct-table th,
+body.rd-scope .rd-hc-table th,
+body.rd-scope .rd-guest-mini-table th,
+body.rd-scope .rd-guest-comp-table th,
+body.rd-scope .rd-guest-hh-table th,
+body.rd-scope .rd-bgt-table th,
+body.rd-scope .rd-pay-table th,
+body.rd-scope .rd-con-table th,
+body.rd-scope .record-editor-small-table th {
+  text-align: left !important;
+  background-color: var(--table-header-bg, var(--forest-deep, #20362D)) !important;
+  background: var(--table-header-bg, var(--forest-deep, #20362D)) !important;
+  color: var(--text-on-dark, #F4EFE6) !important;
   font-family: var(--font-ui) !important;
-  font-size: var(--type-section) !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
-  letter-spacing: var(--tracking-header) !important;
+  letter-spacing: .12em !important;
   text-transform: uppercase !important;
-  border-bottom: 1px solid var(--table-header-rule) !important;
+  border-bottom: 1px solid var(--table-header-rule, var(--gold, #B89968)) !important;
+  border-bottom-color: var(--table-header-rule, var(--gold, #B89968)) !important;
   padding: 10px 12px !important;
+  white-space: nowrap;
+  vertical-align: middle !important;
 }
-#main#main .cwp-table thead th,
-#main#main .rd-table thead th { border-bottom-color: var(--table-header-rule) !important; }
 #main#main .cwp-table tbody td,
-#main#main .rd-table tbody td {
+#main#main .rd-table tbody td,
+#main#main .ued-table tbody td,
+#main#main .rd-ent-table tbody td,
+#main#main .rd-shot-table tbody td,
+#main#main .rd-cat-table tbody td,
+#main#main .rd-wday-table tbody td,
+#main#main .rd-hm-table tbody td,
+#main#main .rd-vnd-table tbody td,
+#main#main .rd-vnd-cmp-table tbody td,
+#main#main .rd-cou-table tbody td,
+#main#main .rd-cou-hwtable tbody td,
+#main#main .rd-ess-table tbody td,
+#main#main .rd-pkt-table tbody td,
+#main#main .rd-et-table tbody td,
+#main#main .rd-mood-table tbody td,
+#main#main .rd-dh-table tbody td,
+#main#main .rd-notes-table tbody td,
+#main#main .rd-pc-table tbody td,
+#main#main .rd-hh-table tbody td,
+#main#main .rd-ct-table tbody td,
+#main#main .rd-hc-table tbody td,
+#main#main .rd-guest-mini-table tbody td,
+#main#main .rd-guest-comp-table tbody td,
+#main#main .rd-guest-hh-table tbody td,
+#main#main .rd-bgt-table tbody td,
+#main#main .rd-pay-table tbody td,
+#main#main .rd-con-table tbody td,
+#main#main .record-editor-small-table tbody td,
+body.rd-scope .cwp-table tbody td,
+body.rd-scope .rd-table tbody td,
+body.rd-scope .ued-table tbody td,
+body.rd-scope .rd-ent-table tbody td,
+body.rd-scope .rd-shot-table tbody td,
+body.rd-scope .rd-cat-table tbody td,
+body.rd-scope .rd-wday-table tbody td,
+body.rd-scope .rd-hm-table tbody td,
+body.rd-scope .rd-vnd-table tbody td,
+body.rd-scope .rd-vnd-cmp-table tbody td,
+body.rd-scope .rd-cou-table tbody td,
+body.rd-scope .rd-cou-hwtable tbody td,
+body.rd-scope .rd-ess-table tbody td,
+body.rd-scope .rd-pkt-table tbody td,
+body.rd-scope .rd-et-table tbody td,
+body.rd-scope .rd-mood-table tbody td,
+body.rd-scope .rd-dh-table tbody td,
+body.rd-scope .rd-notes-table tbody td,
+body.rd-scope .rd-pc-table tbody td,
+body.rd-scope .rd-hh-table tbody td,
+body.rd-scope .rd-ct-table tbody td,
+body.rd-scope .rd-hc-table tbody td,
+body.rd-scope .rd-guest-mini-table tbody td,
+body.rd-scope .rd-guest-comp-table tbody td,
+body.rd-scope .rd-guest-hh-table tbody td,
+body.rd-scope .rd-bgt-table tbody td,
+body.rd-scope .rd-pay-table tbody td,
+body.rd-scope .rd-con-table tbody td,
+body.rd-scope .record-editor-small-table tbody td {
   height: var(--component-table-row-height);
-  /* the legacy cell size is expressed in rem, and planner.css sets
-     html{font-size:106.25%}, so 13px arrived as 13.94px. State it absolutely. */
-  font-size: var(--type-table) !important;
-  /* MEASURED FROM THE SCREENS: every table in Planner Screens All uses
-     9px 12px ? Tasks, Guest List, Payments, Budget, Database Hub alike ? and
-     lets the row size to its content (35px text-only, 40px with a pill).
-     The screens never pin 36px; --component-table-row-height is the floor.
-     This matches redesign-components.css:271 exactly. */
+  font-size: var(--type-table, 13px) !important;
   padding: 9px 12px !important;
   line-height: 1.45 !important;
-  border-bottom: 1px solid var(--border-hairline) !important;
+  border-bottom: 1px solid var(--border-hairline, #f0ebe0) !important;
   vertical-align: middle !important;
-  color: var(--text-primary);
+  color: var(--text-primary, #23211c) !important;
   background-color: transparent !important;
 }
-#main#main .cwp-table tbody td > * { vertical-align: middle !important; }
+#main#main .cwp-table tbody td > *,
+body.rd-scope .cwp-table tbody td > * { vertical-align: middle !important; }
 
 /* Group / category band — slightly deeper cream than rail sunken.
    Fill: --surface-group (#EEE8DE). Type: 10px/700/.14em · #8a7e6b.
@@ -231,6 +458,7 @@ body.dark-mode #topbar#topbar, body[data-theme="dark"] #topbar#topbar {
 #main#main table tbody tr.rd-pay-grouprow > td,
 #main#main table tbody tr.rd-bgt-grouprow:not(.is-over):not(.is-residual) > td,
 #main#main table tbody tr.rd-con-grouprow > td,
+#main#main table tbody tr.rd-guest-side-banner > td,
 body.rd-scope .cwp-table tbody tr.is-group:not(.is-group--residual) > td,
 body.rd-scope .cwp-table tbody tr.cwp-group-row > td,
 body.rd-scope .rd-table tbody tr.is-group:not(.is-group--residual) > td,
@@ -250,7 +478,8 @@ body.rd-scope table tbody tr.rd-notes-group > td,
 body.rd-scope table tbody tr.rd-pc-group > td,
 body.rd-scope table tbody tr.rd-pay-grouprow > td,
 body.rd-scope table tbody tr.rd-bgt-grouprow:not(.is-over):not(.is-residual) > td,
-body.rd-scope table tbody tr.rd-con-grouprow > td {
+body.rd-scope table tbody tr.rd-con-grouprow > td,
+body.rd-scope table tbody tr.rd-guest-side-banner > td {
   padding: 7px 12px !important;
   height: auto !important;
   font-family: var(--font-ui) !important;
@@ -259,8 +488,8 @@ body.rd-scope table tbody tr.rd-con-grouprow > td {
   letter-spacing: .14em !important;
   text-transform: uppercase !important;
   color: var(--text-subtle, #8a7e6b) !important;
-  background-color: var(--surface-sunken, #f9f5ef) !important;
-  background: var(--surface-sunken, #f9f5ef) !important;
+  background-color: var(--surface-group, #eee8de) !important;
+  background: var(--surface-group, #eee8de) !important;
   border-bottom: 1px solid var(--border-subtle, #e7e1d4) !important;
   border-radius: 0 !important;
   vertical-align: middle !important;
@@ -287,6 +516,7 @@ body.rd-scope table tbody tr.rd-con-grouprow > td {
 #main#main table tbody tr.rd-pay-grouprow:hover > td,
 #main#main table tbody tr.rd-bgt-grouprow:not(.is-over):not(.is-residual):hover > td,
 #main#main table tbody tr.rd-con-grouprow:hover > td,
+#main#main table tbody tr.rd-guest-side-banner:hover > td,
 body.rd-scope .cwp-table tbody tr.is-group:not(.is-group--residual):hover > td,
 body.rd-scope .cwp-table tbody tr.cwp-group-row:hover > td,
 body.rd-scope .rd-table tbody tr.is-group:not(.is-group--residual):hover > td,
@@ -306,16 +536,162 @@ body.rd-scope table tbody tr.rd-notes-group:hover > td,
 body.rd-scope table tbody tr.rd-pc-group:hover > td,
 body.rd-scope table tbody tr.rd-pay-grouprow:hover > td,
 body.rd-scope table tbody tr.rd-bgt-grouprow:not(.is-over):not(.is-residual):hover > td,
-body.rd-scope table tbody tr.rd-con-grouprow:hover > td {
-  background-color: var(--surface-sunken, #f9f5ef) !important;
-  background: var(--surface-sunken, #f9f5ef) !important;
+body.rd-scope table tbody tr.rd-con-grouprow:hover > td,
+body.rd-scope table tbody tr.rd-guest-side-banner:hover > td {
+  background-color: var(--surface-group, #eee8de) !important;
+  background: var(--surface-group, #eee8de) !important;
 }
 #main#main .cwp-table tbody tr,
-#main#main .rd-table tbody tr { background-color: var(--surface-content) !important; }
-#main#main .cwp-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group) td,
-#main#main .rd-table tbody tr:hover:not(.is-group):not(.cwp-group-row) td {
-  background-color: var(--surface-raised) !important;
+#main#main .rd-table tbody tr,
+#main#main .ued-table tbody tr,
+#main#main .rd-ent-table tbody tr,
+#main#main .rd-shot-table tbody tr,
+#main#main .rd-cat-table tbody tr,
+#main#main .rd-wday-table tbody tr,
+#main#main .rd-hm-table tbody tr,
+#main#main .rd-vnd-table tbody tr,
+#main#main .rd-vnd-cmp-table tbody tr,
+#main#main .rd-cou-table tbody tr,
+#main#main .rd-cou-hwtable tbody tr,
+#main#main .rd-ess-table tbody tr,
+#main#main .rd-pkt-table tbody tr,
+#main#main .rd-et-table tbody tr,
+#main#main .rd-mood-table tbody tr,
+#main#main .rd-dh-table tbody tr,
+#main#main .rd-notes-table tbody tr,
+#main#main .rd-pc-table tbody tr,
+#main#main .rd-hh-table tbody tr,
+#main#main .rd-ct-table tbody tr,
+#main#main .rd-hc-table tbody tr,
+#main#main .rd-guest-mini-table tbody tr,
+#main#main .rd-guest-comp-table tbody tr,
+#main#main .rd-guest-hh-table tbody tr,
+#main#main .rd-bgt-table tbody tr,
+#main#main .rd-pay-table tbody tr,
+#main#main .rd-con-table tbody tr,
+#main#main .record-editor-small-table tbody tr,
+body.rd-scope .cwp-table tbody tr,
+body.rd-scope .rd-table tbody tr,
+body.rd-scope .ued-table tbody tr,
+body.rd-scope .rd-ent-table tbody tr,
+body.rd-scope .rd-shot-table tbody tr,
+body.rd-scope .rd-cat-table tbody tr,
+body.rd-scope .rd-wday-table tbody tr,
+body.rd-scope .rd-hm-table tbody tr,
+body.rd-scope .rd-vnd-table tbody tr,
+body.rd-scope .rd-vnd-cmp-table tbody tr,
+body.rd-scope .rd-cou-table tbody tr,
+body.rd-scope .rd-cou-hwtable tbody tr,
+body.rd-scope .rd-ess-table tbody tr,
+body.rd-scope .rd-pkt-table tbody tr,
+body.rd-scope .rd-et-table tbody tr,
+body.rd-scope .rd-mood-table tbody tr,
+body.rd-scope .rd-dh-table tbody tr,
+body.rd-scope .rd-notes-table tbody tr,
+body.rd-scope .rd-pc-table tbody tr,
+body.rd-scope .rd-hh-table tbody tr,
+body.rd-scope .rd-ct-table tbody tr,
+body.rd-scope .rd-hc-table tbody tr,
+body.rd-scope .rd-guest-mini-table tbody tr,
+body.rd-scope .rd-guest-comp-table tbody tr,
+body.rd-scope .rd-guest-hh-table tbody tr,
+body.rd-scope .rd-bgt-table tbody tr,
+body.rd-scope .rd-pay-table tbody tr,
+body.rd-scope .rd-con-table tbody tr,
+body.rd-scope .record-editor-small-table tbody tr { background-color: var(--surface-content, #fff) !important; }
+#main#main .cwp-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .ued-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-ent-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-shot-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-cat-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-wday-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-hm-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-vnd-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-vnd-cmp-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-cou-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-cou-hwtable tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-ess-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-pkt-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-et-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-mood-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-dh-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-notes-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-pc-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-hh-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-ct-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-hc-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-guest-mini-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-guest-comp-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-guest-hh-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-bgt-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-pay-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .rd-con-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+#main#main .record-editor-small-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .cwp-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .ued-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-ent-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-shot-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-cat-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-wday-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-hm-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-vnd-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-vnd-cmp-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-cou-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-cou-hwtable tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-ess-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-pkt-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-et-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-mood-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-dh-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-notes-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-pc-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-hh-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-ct-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-hc-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-guest-mini-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-guest-comp-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-guest-hh-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-bgt-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-pay-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .rd-con-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td,
+body.rd-scope .record-editor-small-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group):not(.rd-ent-group):not(.rd-shot-group):not(.rd-vnd-group):not(.rd-cat-group):not(.rd-wday-group):not(.rd-hm-group):not(.rd-cou-group):not(.rd-ess-group):not(.rd-pkt-group):not(.rd-et-group):not(.rd-dh-group):not(.rd-notes-group):not(.rd-pc-group):not(.rd-pay-grouprow):not(.rd-bgt-grouprow):not(.rd-con-grouprow):not(.rd-group-row):not(.rd-guest-side-banner) td {
+  background-color: var(--surface-raised, #fdfcfa) !important;
 }
+/* Selected / focused row fills (screen 9a) — all planner tables */
+#main#main table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
+body.rd-scope table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
+#main#main table tbody tr.is-selected:not(.is-drawer-focus) > td,
+body.rd-scope table tbody tr.is-selected:not(.is-drawer-focus) > td {
+  background-color: var(--surface-selected, #f4f7fb) !important;
+}
+#main#main table tbody tr.is-drawer-focus > td,
+body.rd-scope table tbody tr.is-drawer-focus > td,
+#main#main table tbody tr.is-open > td,
+body.rd-scope table tbody tr.is-open > td {
+  background-color: var(--surface-focused, #fdfaf4) !important;
+}
+
+/* Nested / legacy tables inside drawers and plans — same forest chrome. */
+#main#main .record-editor-small-table thead th,
+#main#main .budget-table thead th,
+#main#main .payment-plan-table thead th,
+body.rd-scope .record-editor-small-table thead th,
+body.rd-scope .budget-table thead th,
+body.rd-scope .payment-plan-table thead th,
+body.rd-scope .rd-con-plan table thead th,
+body.rd-scope .rd-pay-plan table thead th {
+  background: var(--table-header-bg, #20362D) !important;
+  color: var(--text-on-dark, #F4EFE6) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+  border-bottom: 1px solid var(--table-header-rule, #B89968) !important;
+  padding: 10px 12px !important;
+}
+
 /* ?08 ? selected (#F4F7FB) and focused (#FDFAF4) row fills (screen 9a). */
 body.rd-scope #panel-tasks .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
   background-color: var(--surface-selected) !important;
@@ -8269,14 +8645,17 @@ body.rd-scope #panel-guests .rd-hh-row.is-selected td {
 body.rd-scope #panel-guests .rd-hh-row:hover td {
   background: var(--surface-hover, #fdfaf4);
 }
-body.rd-scope #panel-guests .rd-guest-side-banner td {
-  background: var(--surface-warm, #f9f5ef) !important;
+body.rd-scope #panel-guests .rd-guest-side-banner td,
+body.rd-scope #panel-households .rd-guest-side-banner td,
+body.rd-scope #panel-contacts .rd-guest-side-banner td {
+  background: var(--surface-group, var(--surface-sunken, #eee8de)) !important;
   padding: 7px 12px !important;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--text-subtle, #8a7e6b);
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+  color: var(--text-subtle, #8a7e6b) !important;
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4) !important;
   cursor: default;
 }
 body.rd-scope #panel-guests .rd-guest-td--quiet {
@@ -18876,17 +19255,9 @@ body.rd-scope #panel-data-hub .rd-dh-table {
   border-collapse: collapse;
   font-size: 13px;
 }
+/* Data Hub thead — inherits canonical forest+gold from §3. */
 body.rd-scope #panel-data-hub .rd-dh-table thead th {
-  text-align: left;
-  font-size: 10px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: #8a7e6b;
-  font-weight: 700;
-  padding: 10px 12px;
-  border-bottom: 1px solid #e7e1d4;
-  background: #fdfaf4;
-  white-space: nowrap;
+  /* kept for specificity hooks; chrome forced by §3 */
 }
 body.rd-scope #panel-data-hub .rd-dh-table td {
   padding: 10px 12px;
@@ -19734,16 +20105,8 @@ body.rd-scope #panel-notes .rd-notes-table {
   border-collapse: collapse;
   font-size: 13px;
 }
+/* Notes thead — inherits canonical forest+gold from §3. */
 body.rd-scope #panel-notes .rd-notes-table thead th {
-  text-align: left;
-  font-size: 11px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: #8a7e6b;
-  font-weight: 600;
-  padding: 10px 12px;
-  border-bottom: 1px solid #e7e1d4;
-  background: #fdfcfa;
 }
 body.rd-scope #panel-notes .rd-notes-table td {
   padding: 10px 12px;
@@ -21040,17 +21403,10 @@ body.rd-scope #panel-print-centre .rd-pc-table {
   border-collapse: collapse;
   font-size: 13px;
 }
+/* Households / Contacts / Print Centre thead — canonical forest+gold from §3. */
 body.rd-scope #panel-households .rd-hh-table th,
 body.rd-scope #panel-contacts .rd-ct-table th,
 body.rd-scope #panel-print-centre .rd-pc-table th {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid #e7e1d4;
-  font-size: 10px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: #8a7e6b;
-  font-weight: 700;
 }
 body.rd-scope #panel-households .rd-hh-table td,
 body.rd-scope #panel-contacts .rd-ct-table td,
