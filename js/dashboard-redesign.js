@@ -27,7 +27,7 @@
     ['counseling', 'Premarital Counseling'],
     ['contracts', 'Contracts'],
     ['gifts', 'Gifts'],
-    ['honeymoon', 'Honeymoon & After']
+    ['honeymoon', 'Honeymoon']
   ];
 
   const JUMPS = [
