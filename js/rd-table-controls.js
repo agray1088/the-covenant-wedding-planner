@@ -64,6 +64,58 @@
     }).filter(Boolean);
   }
 
+  /* Place any body-level popup under its trigger button.
+     Shrink-wrap first — a block div on <body> reads as full viewport width,
+     which made left-clamps pin menus to 8px (far left of the page). */
+  function anchorToButton(pop, anchor, opts) {
+    opts = opts || {};
+    if (!pop || !anchor || !anchor.getBoundingClientRect) return null;
+    var margin = opts.margin != null ? opts.margin : 8;
+    var gap = opts.gap != null ? opts.gap : 4;
+    var minW = opts.minWidth != null ? opts.minWidth : 180;
+    var mode = opts.mode === 'absolute' ? 'absolute' : 'fixed';
+    var flip = opts.flip !== false;
+
+    pop.style.boxSizing = 'border-box';
+    if (!opts.keepDisplay) pop.style.display = 'inline-block';
+    if (!opts.keepWidth) {
+      pop.style.width = 'max-content';
+      pop.style.maxWidth = 'min(320px, calc(100vw - ' + (margin * 2) + 'px))';
+    }
+    pop.style.visibility = 'hidden';
+    pop.style.left = '0';
+    pop.style.top = '0';
+    pop.style.position = mode;
+    if (!pop.parentNode) document.body.appendChild(pop);
+
+    var r = anchor.getBoundingClientRect();
+    var w = Math.max(pop.offsetWidth || 0, pop.getBoundingClientRect().width || 0, minW);
+    var h = Math.max(pop.offsetHeight || 0, pop.getBoundingClientRect().height || 0, 40);
+    var left;
+    var top;
+
+    if (mode === 'fixed') {
+      left = Math.max(margin, Math.min(r.left, window.innerWidth - w - margin));
+      if (flip && r.bottom + h + gap + 4 > window.innerHeight && r.top - h - gap > margin) {
+        top = r.top - h - gap;
+      } else {
+        top = Math.max(margin, Math.min(r.bottom + gap, window.innerHeight - h - margin));
+      }
+    } else {
+      left = window.scrollX + r.left;
+      var maxLeft = window.scrollX + document.documentElement.clientWidth - w - margin;
+      if (left > maxLeft) left = Math.max(window.scrollX + margin, maxLeft);
+      top = window.scrollY + r.bottom + gap;
+    }
+
+    pop.style.left = Math.round(left) + 'px';
+    pop.style.top = Math.round(top) + 'px';
+    if (!pop.style.zIndex) pop.style.zIndex = String(opts.zIndex || 12000);
+    pop.style.visibility = '';
+    return { left: left, top: top, width: w, height: h };
+  }
+  window.rdAnchorToButton = anchorToButton;
+
   function open(btn, opts, current, onPick, multi) {
     close();
     var list = normalise(opts);
@@ -79,29 +131,8 @@
         + '<span class="rd-picker__tick" aria-hidden="true">' + (on ? '&#10003;' : '') + '</span>'
         + '<span class="rd-picker__label">' + esc(o.label) + '</span></button>';
     }).join('');
-    /* Shrink-wrap BEFORE measuring. A block-level div on <body> is full
-       viewport width, so clamping with that width pinned left to 8px and the
-       menu appeared on the far left of the page instead of under the chip. */
-    el.style.position = 'fixed';
-    el.style.display = 'inline-block';
-    el.style.width = 'max-content';
-    el.style.maxWidth = 'min(320px, calc(100vw - 16px))';
-    el.style.visibility = 'hidden';
-    el.style.left = '0';
-    el.style.top = '0';
     document.body.appendChild(el);
-
-    var r = btn.getBoundingClientRect();
-    var w = Math.max(el.offsetWidth || 0, el.getBoundingClientRect().width || 0, 190);
-    var h = Math.max(el.offsetHeight || 0, el.getBoundingClientRect().height || 0, 40);
-    var left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
-    /* flip above the chip when there is no room below */
-    var top = (r.bottom + h + 8 > window.innerHeight && r.top - h - 4 > 8)
-      ? (r.top - h - 4)
-      : Math.max(8, Math.min(r.bottom + 4, window.innerHeight - h - 8));
-    el.style.left = left + 'px';
-    el.style.top = top + 'px';
-    el.style.visibility = '';
+    anchorToButton(el, btn, { minWidth: 190, gap: 4, zIndex: 4000 });
 
     el.addEventListener('click', function (e) {
       var item = e.target.closest ? e.target.closest('.rd-picker__item') : null;

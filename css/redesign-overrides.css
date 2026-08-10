@@ -12579,6 +12579,21 @@ body.rd-scope #panel-payments .rd-pay-toolbar {
   font-family: var(--font-ui);
   font-size: 13px;
 }
+/* Body-level filter pops must not measure as full viewport width before
+   left-clamping — that pins menus to ~8px. Fixed-width pops keep their CSS
+   width; content-sized pops shrink-wrap. */
+.col-filter-pop,
+.field-picker-pop,
+.shot-people-picker-pop,
+.rd-guest-filter-pop {
+  box-sizing: border-box;
+  display: inline-block;
+  max-width: min(360px, calc(100vw - 16px));
+}
+.field-picker-pop,
+.rd-guest-filter-pop {
+  width: max-content;
+}
 .rd-picker__item,
 .rd-pay-picker__item {
   display: flex;
