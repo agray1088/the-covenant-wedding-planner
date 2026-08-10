@@ -410,17 +410,15 @@
     if (mode === 'performers') {
       left = filterChip('Type', 'type') + filterChip('Status', 'status') +
         `<button type="button" class="rd-chip${window._entShowUnfilled ? ' is-active' : ''}" onclick="rdEntToggleUnfilled()">Show unfilled${window._entShowUnfilled ? ' ✕' : ''}</button>` +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by arrival time</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by arrival time', "rdEntOpenSort(this)") : '');
     } else if (mode === 'timeline') {
       left = filterChip('Act', 'act') + filterChip('Type', 'type') +
         `<button type="button" class="rd-chip${window._entShowLoadIn ? ' is-active' : ''}" onclick="rdEntToggleLoadIn()">Load-in shown${window._entShowLoadIn ? ' ✕' : ''}</button>` +
         `<span class="rd-ent-toolbar-note">Run of show</span>`;
     } else {
       left = filterChip('Moment', 'moment') + filterChip('Performer', 'performer') + filterChip('Source', 'source') +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by running order</button>` +
-        `<button type="button" class="rd-chip" onclick="rdEntOpenColumns()">Columns · 6 of 6</button>` +
-        `<button type="button" class="rd-chip" onclick="rdEntAutoFit()">Auto-fit columns</button>` +
-        `<button type="button" class="rd-chip" onclick="rdEntCycleRowHeight()">Row height · ${esc(window._entRowHeight || 'compact')}</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by running order', "rdEntOpenSort(this)") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('entertainment') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

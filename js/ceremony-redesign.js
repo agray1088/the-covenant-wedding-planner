@@ -458,10 +458,10 @@
     } else if (mode === 'script') {
       left = filterChip('Element', 'element') + filterChip('Author', 'person') +
         `<button type="button" class="rd-chip${window._cerUnwrittenOnly ? ' is-active' : ''}" onclick="rdCerToggleUnwritten()">Unwritten only${window._cerUnwrittenOnly ? ' ✕' : ''}</button>` +
-        `<button type="button" class="rd-chip rd-chip--ghost">Reading order</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Reading order', "rdCerOpenSort(this,'reading')") : '<button type="button" class="rd-chip rd-chip--ghost">Reading order</button>');
     } else {
       left = filterChip('Service', 'service') + filterChip('Type', 'type') + filterChip('Person', 'person') +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by running order</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by running order', "rdCerOpenSort(this,'order')") : '<button type="button" class="rd-chip rd-chip--ghost">Sort by running order</button>') + (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('ceremony') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

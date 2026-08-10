@@ -352,7 +352,8 @@
         `<button type="button" class="rd-chip${window._pktLiveOnly ? ' is-active' : ''}" onclick="rdPktToggleLiveOnly()">Live only${window._pktLiveOnly ? '<span class="rd-chip__clear">✕</span>' : ''}</button>`;
     } else {
       left = filterChip('Status', 'status') + filterChip('Recipient', 'recipient') + filterChip('Expiry', 'expiry') +
-        `<span class="rd-pkt-toolbar-note">Sort by last opened · Columns · 7 of 7 · Row height · compact</span>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by last opened', "rdPktOpenSort(this)") : '') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('packets') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +

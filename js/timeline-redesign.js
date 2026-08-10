@@ -465,12 +465,10 @@
     } else if (mode === 'vendor') {
       left = filterChip('Vendor', 'vendor') + filterChip('Block', 'block') +
         `<button type="button" class="rd-chip${window._wdayShowUnowned ? ' is-active' : ''}" onclick="rdWdayToggleUnowned()">Show unowned${window._wdayShowUnowned ? ' ✕' : ''}</button>` +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by arrival</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by arrival', "rdWdayOpenSort(this)") : '');
     } else {
       left = filterChip('Block', 'block') + filterChip('Owner', 'owner') + filterChip('Vendor', 'vendor') +
-        `<button type="button" class="rd-chip" onclick="rdWdayOpenColumns()">Columns · 5 of 5</button>` +
-        `<button type="button" class="rd-chip" onclick="rdWdayAutoFit()">Auto-fit columns</button>` +
-        `<button type="button" class="rd-chip" onclick="rdWdayCycleRowHeight()">Row height · ${esc(window._wdayRowHeight || 'compact')}</button>`;
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('wdayTimeline') : '');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
