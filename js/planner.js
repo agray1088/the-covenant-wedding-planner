@@ -1902,7 +1902,7 @@ function buildGiftsPrintSheets(){
   return _cvpPage(_CVP_BRAND + ' &middot; Design &amp; Details', 'Gift Log', 'Gifts received and thank-you tracking', info, stats + table, 'Every good gift is from above.', 'Gift Log');
 }
 
-/* Honeymoon & After */
+/* Honeymoon */
 function buildHoneymoonPrintSheets(){
   const it = safeArray(data && data.honeyItinerary), tr = safeArray(data && data.honeyTransport), pk = safeArray(data && data.packing);
   const iBody = it.map(r => '<tr><td>' + escapeHtml(_cvpStr(r.day)) + '</td><td>' + escapeHtml(_cvpStr(r.time)) + '</td><td class="strong">' + escapeHtml(_cvpStr(r.plan)) + '</td><td>' + escapeHtml(_cvpStr(r.location)) + '</td></tr>').join('');
@@ -1910,7 +1910,7 @@ function buildHoneymoonPrintSheets(){
   const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Itinerary days', it.length) + _cvpInfoCell('Packing items', pk.length);
   const body = _cvpSec('Itinerary') + _cvpTable([{label:'Day'},{label:'Time'},{label:'Plan'},{label:'Location'}], iBody, 'No itinerary yet.')
     + _cvpSec('Travel') + _cvpTable([{label:'Type'},{label:'Date'},{label:'From'},{label:'To'}], tBody, 'No travel legs yet.');
-  return _cvpPage(_CVP_BRAND + ' &middot; After the Day', 'Honeymoon &amp; After', 'Travel, itinerary, and rest', info, body, 'They twain shall be one flesh.', 'Honeymoon');
+  return _cvpPage(_CVP_BRAND + ' &middot; The Day', 'Honeymoon', 'Travel, itinerary, and rest', info, body, 'They twain shall be one flesh.', 'Honeymoon');
 }
 
 /* First-Month Rhythms (reflect / rhythms) */
@@ -2370,7 +2370,7 @@ function historyPanelLabel(id = historyPanelId()) {
     calendar:'Smart Calendar', appointments:'Appointments', notes:'Notes', contracts:'Contracts, Invoices & Rentals',
     venue:'Venue & Vendors', catering:'Catering & Menu', party:'Wedding Party', tables:'Table Layout',
     ceremony:'Ceremony & Reception', timeline:'Wedding Day Timeline', entertainment:'Music & Speeches', shotlist:'Photo & Video Shot Lists',
-    mood:'Vision Board', essentials:'Essentials Checklist', gifts:'Gift Log', honeymoon:'Honeymoon & After',
+    mood:'Vision Board', essentials:'Essentials Checklist', gifts:'Gift Log', honeymoon:'Honeymoon',
     prayer:'Prayer Journal', counseling:'Premarital Counseling'
   };
   return labels[id] || id.replace(/[-_]/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
@@ -3749,8 +3749,8 @@ const NAV_CATEGORIES = [
     { id:'emails', label:'Email Templates', subtitle:'Vendor & guest messages', icon:'mail' },
     { id:'packets', label:'Share Packets', subtitle:'Print-ready handoffs', icon:'folder_shared' }
   ]},
-  { id:'after', label:'After the Day', subtitle:'Honeymoon & beyond', icon:'beach_access', pages:[
-    { id:'honeymoon', label:'Honeymoon & After', subtitle:'Travel & journal', icon:'beach_access' }
+  { id:'after', label:'Honeymoon', subtitle:'Travel & trip', icon:'beach_access', pages:[
+    { id:'honeymoon', label:'Honeymoon', subtitle:'Travel & journal', icon:'beach_access' }
   ]},
   { id:'rhythms', label:'Marriage Rhythms', subtitle:'First months together', icon:'nightlight', pages:[
     { id:'reflect', label:'First-Month Rhythms', subtitle:'Date nights & devotions', icon:'nightlight', action:"showReflectTabPage('rhythms')" },
@@ -3870,15 +3870,13 @@ const DATA_HUB_REGISTRY = {
     ]
   },
   honeymoon: {
-    label: 'Honeymoon & After', icon: 'beach_access',
+    label: 'Honeymoon', icon: 'beach_access',
     tables: [
       { key: 'honeyDetails', label: 'Honeymoon Details' },
       { key: 'honeyTransport', label: 'Transportation' },
       { key: 'honeyItinerary', label: 'Itinerary' },
       { key: 'packing', label: 'Packing List' },
-      { key: 'hmBudgetItems', label: 'Honeymoon Budget' },
-      { key: 'homecoming', label: 'Homecoming Checklist' },
-      { key: 'nameChange', label: 'Name Change' }
+      { key: 'hmBudgetItems', label: 'Honeymoon Budget' }
     ]
   }
 };
@@ -3914,7 +3912,7 @@ const SYSTEM_PAGE_REGISTRY = {
   gifts: { id:'gifts', label:'Gift Log', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add gift', usesCwpTable:true, tableKeys:['gifts'], bulkMode:'shared', hub:'design' },
   emails: { id:'emails', label:'Email Templates', scopeTier:'launch', archetype:'editorial', status:'exception', primaryAction:'Copy template', usesCwpTable:false, tableKeys:[], bulkMode:'disabled', hub:'none', notes:'Template library, not a record tracker.' },
   packets: { id:'packets', label:'Share Packets', scopeTier:'launch', archetype:'editorial', status:'exception', primaryAction:'Prepare packet', usesCwpTable:false, tableKeys:[], bulkMode:'disabled', hub:'none', notes:'Print/share handoff surface.' },
-  honeymoon: { id:'honeymoon', label:'Honeymoon & After', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add honeymoon detail', usesCwpTable:true, tableKeys:['honeyDetails','honeyTransport','honeyItinerary','packing','hmBudgetItems','homecoming','nameChange'], bulkMode:'hubOnly', hub:'honeymoon', notes:'Primary tracker with travel, checklist, journal, and after-wedding tabs.' },
+  honeymoon: { id:'honeymoon', label:'Honeymoon', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add honeymoon detail', usesCwpTable:true, tableKeys:['honeyDetails','honeyTransport','honeyItinerary','packing','hmBudgetItems'], bulkMode:'hubOnly', hub:'honeymoon', notes:'Primary tracker with travel, packing, trip budget, and journal. Post-wedding work lives on Newlywed Homecoming.' },
   'data-hub': { id:'data-hub', label:'Database Hub', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Edit table rows', usesCwpTable:true, tableKeys:['*'], bulkMode:'shared', hub:'none', notes:'Customer-facing full-table workspace, not developer UI.' }
 };
 const SYSTEM_STATUS_SEMANTICS = {
@@ -4347,7 +4345,7 @@ function renderDataHubPrimaryAction(category, tableId){
     logistics: { weekendTimeline: "logAdd('weekendTimeline',{date:'',start:'',end:'',event:'',location:'',host:'',group:'Everyone',attire:'',status:'Planned',cost:'',notes:''})", travelAccommodations: "logAdd('travelAccommodations',{guest:'',group:'Out-of-Town Guests',arrival:'',arrivalTime:'',departure:'',hotel:'',confirmation:'',roomBlock:'',transportNeeded:false,cost:'',notes:''})", hotelBlocks: "logAdd('hotelBlocks',{hotel:'',address:'',link:'',blockName:'',rate:'',cutoff:'',reserved:'',booked:'',contact:'',notes:''})", transportation: "logAdd('transportation',{date:'',pickupTime:'',route:'',vehicle:'',driver:'',passengers:'',status:'Needed',cost:'',notes:''})", vipCare: "logAdd('vipCare',{person:'',relationship:'',need:'Other',helper:'',phone:'',location:'',status:'Needs Plan',notes:''})", logAttire: "logAdd('attire',{item:'',person:'',vendor:'',status:'Needed',notes:''})", logDecor: "logAdd('decor',{item:'',area:'',vendor:'',status:'Planned',notes:''})", logStationery: "logAdd('stationery',{item:'',qty:'',vendor:'',status:'Draft',notes:''})", logEvents: "logAdd('events',{event:'Bachelorette',date:'',host:'',location:'',guests:'',budget:'',actual:'',notes:''})", logLocations: "logAdd('locations',{name:'',address:'',contact:'',phone:'',arrival:'',parking:'',who:''})", contactsDirectory: "logAdd('contacts',{name:'',role:'',category:'Manual',email:'',phone:'',company:'',emergency:false,lastContact:'',notes:''})" },
     design: { essentials: "addEssentialRow()", moodItems: "addMoodItem()", shotlist: "addShotRow()", videoShots: "addVideoShotRow()", gifts: "addGiftRow()" },
     faith: { counseling: "addCounselingRow()", prayer: "addPrayerRow()" },
-    honeymoon: { honeyDetails: "addHoneyDetailRow()", honeyTransport: "addHoneyTransportRow()", honeyItinerary: "addHoneyItiRow()", packing: "addPackingRow()", hmBudgetItems: "openRecordEditor('hmBudgetItems')", nameChange: "addNameChangeRow()", homecoming: "addHCRow()" }
+    honeymoon: { honeyDetails: "addHoneyDetailRow()", honeyTransport: "addHoneyTransportRow()", honeyItinerary: "addHoneyItiRow()", packing: "addPackingRow()", hmBudgetItems: "openRecordEditor('hmBudgetItems')" }
   };
   const fn = actions[category] && actions[category][tableId];
   if (!fn) return '';
@@ -6115,7 +6113,7 @@ const SECTION_CARD_ORDER = [
   ['ceremony','Ceremony & Reception'],['timeline','Wedding Day Timeline'],['entertainment','Music & Speeches'],['shotlist','Photo Shot List'],
   ['essentials','Essentials'],['gifts','Gift Log'],['mood','Vision Board'],
   ['appointments','Appointments'],['counseling','Counseling'],['prayer','Prayer Journal'],
-  ['honeymoon','Honeymoon & After']
+  ['honeymoon','Honeymoon']
 ];
 function computeSectionProgress(){
   const out = {};
@@ -7051,7 +7049,7 @@ const QJ_PAGES = {
   ceremony:'Ceremony & Reception', timeline:'Wedding Day Timeline', entertainment:'Music & Speeches',
   shotlist:'Photo & Video Shot Lists', mood:'Vision Board', essentials:'Essentials Checklist',
   gifts:'Gift Log', emails:'Vendor Questions & Email Templates', packets:'Share Packets', logistics:'Wedding Weekend Logistics',
-  honeymoon:'Honeymoon & After', reflect:'Vision & Foundation', prayer:'Prayer Journal',
+  honeymoon:'Honeymoon', reflect:'Vision & Foundation', prayer:'Prayer Journal',
   counseling:'Premarital Counseling', history:'History', instructions:'Get Started', faq:'FAQ', 'data-hub':'Database Hub'
 };
 function trackRecentPage(id){
@@ -12095,7 +12093,7 @@ const PAGE_HELP = {
   plan: {title:'Planning Timeline',text:'A month-by-month master checklist organized by phase (12+ months out through the wedding week). Click <strong>Load Full Wedding Checklist</strong> for a comprehensive 8-phase, 59-task plan, and expand any task to add your own <strong>subtasks</strong>. Tasks with due dates appear in the Smart Calendar.'},
   venue: {title:'Venue & Vendors',text:'Use the Venue tab for ceremony and reception details and venue shortlist cards. Vendor comparisons live on the Shortlist & Compare tab.'},
   catering: {title:'Catering & Menu',text:'This page owns four budget categories — <strong>Food, Cake & Desserts, Drinks, and Rentals</strong>. It also tracks <strong>Pre-Wedding Snacks</strong> and <strong>Vendor Meals</strong> tables that roll into the Food budget. Every item auto-syncs as a read-only line in the Budget. Use <strong>Load Starter</strong> buttons on each table for pre-built lists. Costs recalculate live as you edit.'},
-  honeymoon: {title:'Honeymoon & After',text:'Plan your honeymoon travel, packing, reservations, transportation, budget, and journal across <strong>tabs</strong>. Name-change and newlywed homecoming workflows now live under <strong>Marriage Rhythms</strong> so post-wedding life tasks are separated from honeymoon travel. Your honeymoon budget is tracked <strong>separately</strong> from your wedding budget. Departure/return dates appear in the Smart Calendar.'},
+  honeymoon: {title:'Honeymoon',text:'Plan your honeymoon travel, packing, reservations, transportation, budget, and journal across <strong>tabs</strong>. Post-wedding settling, name change, and thank-you follow-up live on <strong>Newlywed Homecoming</strong>. Your honeymoon budget is tracked <strong>separately</strong> from your wedding budget. Departure/return dates appear in the Smart Calendar.'},
   emails: {title:'Vendor Questions & Email Templates',text:'Start with the <strong>Vendor Questions</strong> tab for comprehensive questions by vendor type, then use <strong>Email Templates</strong> for inquiry, follow-up, wedding party, guest, and thank-you messages. Merge fields like <strong>{{bride}}</strong> and <strong>{{date}}</strong> auto-fill from Wedding Setup.'},
   packets: {title:'Share Packets',text:'Print-ready packets for vendors, wedding party, your coordinator, and wedding-weekend helpers. Fields <strong>auto-fill from your planner</strong> (guest counts, meals, timeline, contacts, travel, hotels, transportation, and more) and stay editable where appropriate — your typed-in text always wins, and a per-field <strong>↺ Use planner value</strong> link or the packet <strong>Reset</strong> button restores the live value. Weekend packets stay live from Wedding Weekend Logistics. Every editable packet has a <strong>Special Notes</strong> box for personal instructions. Print any packet or copy it as text.'},
   reflect: {title:'Vision & Foundation',text:'Faith-first pages for building a marriage, not just a wedding. <strong>Vision & Foundation</strong> captures prayers, priorities, boundaries, and your marriage verse. <strong>First-Month Rhythms</strong> sets intentional habits like date nights, devotions, budget meetings, and check-ins. <strong>Newlywed Homecoming</strong> has two tabs: Homecoming Checklist and Name Change.'},
@@ -12190,7 +12188,7 @@ const PAGE_EYEBROW = {
   guests:'People', party:'People', tables:'People', ceremony:'Ceremony & Reception', timeline:'Ceremony & Reception',
   entertainment:'Ceremony & Reception', shotlist:'Ceremony & Reception', mood:'Design & Details',
   essentials:'Design & Details', gifts:'Design & Details', emails:'Design & Details', packets:'Design & Details',
-  honeymoon:'After the Day', reflect:'Start Here', prayer:'Start Here', counseling:'Start Here',
+  honeymoon:'The Day', reflect:'Start Here', prayer:'Start Here', counseling:'Start Here',
   instructions:'Start Planning', guide:'Start Planning', faq:'Start Planning'
 };
 function v4MastIcon(n){
@@ -32101,7 +32099,7 @@ const FAQ_ITEMS = [
   ['How do the Email Templates personalize each message?',
    'On the <strong>Email Templates</strong> page, pick a category from the left rail and the editable cards appear on the right. Merge fields like <strong>{{bride}}</strong> and <strong>{{date}}</strong> fill in automatically from your Wedding Setup — the <strong>Available Merge Fields</strong> card lists every field and its current value. Edit the subject and body, then <strong>Copy</strong> or <strong>Open in Email</strong> in your own mail app. The planner does not send mail — it prepares copy you paste or open locally.'],
   ['Is my honeymoon budget part of my wedding budget?',
-   'No — your honeymoon spending on the <strong>Honeymoon &amp; After</strong> page is tracked <strong>separately</strong> so it never inflates your wedding budget totals. That page also has a built-in <strong>Currency Converter</strong> for planning costs in another currency.'],
+   'No — your honeymoon spending on the <strong>Honeymoon</strong> page is tracked <strong>separately</strong> so it never inflates your wedding budget totals. That page also has a built-in <strong>Currency Converter</strong> for planning costs in another currency.'],
   ['Can I rate tasks or assign them to specific people?',
    'Yes. On the <strong>Tasks</strong> page each task has priority, status, due date, notes, and an <strong>Assigned to</strong> field that lets you pick anyone from your Guest List or Wedding Party — the list grows automatically as you add people. Vendor star ratings live on the <strong>Vendors</strong> page where comparison and shortlisting happen. A starter <strong>"Assign 2 witnesses"</strong> task is included for you.'],
   ['Where is the Wedding Day Timeline?',
@@ -32512,7 +32510,7 @@ const PAGE_GUIDE = [
 <h4>Topics Discussed</h4>
 <p>A chip cloud automatically shows all unique topics extracted from your sessions.</p>`],
 
-  ['Honeymoon & After','After the Day',`
+  ['Honeymoon','The Day',`
 <h4>Overview</h4>
 <p>Plan your honeymoon travel, packing, reservations, transportation, budget, and journal. Post-wedding homecoming and name-change tasks live together under <strong>Marriage Rhythms → Newlywed Homecoming</strong> so honeymoon travel and newlywed life stay cleanly separated.</p>
 <h4>Sections</h4>
@@ -43894,7 +43892,7 @@ function mountAllTabs(root){
       }
     },
     honeyDetails:{
-      entity:'honeyDetails', title:'Honeymoon & After Details Tracker', mount:'cwp-honeyDetails',
+      entity:'honeyDetails', title:'Honeymoon Details Tracker', mount:'cwp-honeyDetails',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add Detail', recordLabel:'Honeymoon Detail',
       addFn:()=>{ if(typeof addHoneyDetailRow==='function') addHoneyDetailRow(); },
