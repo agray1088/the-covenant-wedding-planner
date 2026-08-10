@@ -2644,22 +2644,25 @@
     return '<div class="rd-rail__stack" data-page-rail="firstmonth">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
-  /* Newlywed Homecoming — After the Day + Settling / Name change / Budget. */
+  /* All.dc #18a — Newlywed Homecoming. Sections · Progress (+ bars) · Group by. */
   function buildHomecomingContext() {
     var activeView = 'settling';
     if (typeof getSavedView === 'function') activeView = getSavedView('homecoming', 'settling');
     else if (typeof window._hcRailView === 'string' && window._hcRailView) activeView = window._hcRailView;
+    if (activeView === 'after') activeView = 'settling';
     window._hcRailView = activeView;
     var counts = typeof window.hcRailCounts === 'function' ? window.hcRailCounts() : {
-      settling: 0, namechange: 0, budget: 0, noticed: 0, after: 0, thankYou: 0
+      settling: 0, namechange: 0, budget: 0, noticed: ''
     };
     var figures = typeof window.hcFigures === 'function' ? window.hcFigures() : {
-      homeDone: 0, homecoming: 0, nameDone: 0, nameChange: 0, afterDone: 0, afterTotal: 0, thankYouDue: 0
+      homeDone: 0, homecoming: 0, nameDone: 0, nameChange: 0,
+      firstMonthStatus: 'Not started', beginsShort: '—'
     };
+    var groupBy = window._hcGroupBy || 'area';
     function viewItem(id, label, count) {
       return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
         ' onclick="applyHomecomingRailView(\'' + id + '\')">' + esc(label) +
-        '<span class="rd-rail__count">' + (count || '') + '</span></button>';
+        '<span class="rd-rail__count">' + (count === '' || count == null ? '' : count) + '</span></button>';
     }
     var viewsHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Sections<button type="button" class="rd-rail__add" onclick="rdHcAddTask()" aria-label="Add">+</button></div><div class="rd-rail__list" role="list">' +
@@ -2668,22 +2671,37 @@
       viewItem('budget', 'First month budget', counts.budget || 0) +
       viewItem('noticed', 'What we noticed', '') +
       '</div></div>';
+    function pct(done, total) {
+      return total > 0 ? Math.round((done / total) * 100) : 0;
+    }
+    var settlePct = pct(figures.homeDone || 0, figures.homecoming || 0);
+    var namePct = pct(figures.nameDone || 0, figures.nameChange || 0);
     var metersHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Progress</div><div class="rd-rail__meters">' +
-      '<div class="rd-rail__meter-top"><span>Settling in</span><span class="rd-rail__count">' + (figures.homeDone || 0) + ' of ' + (figures.homecoming || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Name change</span><span class="rd-rail__count">' + (figures.nameDone || 0) + ' of ' + (figures.nameChange || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Post-wedding tasks</span><span class="rd-rail__count">' + (figures.afterDone || 0) + ' of ' + (figures.afterTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Settling in</span><span class="rd-rail__count">' +
+      (figures.homeDone || 0) + ' of ' + (figures.homecoming || 0) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + settlePct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Name change</span><span class="rd-rail__count">' +
+      (figures.nameDone || 0) + ' of ' + (figures.nameChange || 0) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + namePct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>First month</span><span class="rd-rail__count">' +
+      esc(figures.firstMonthStatus || 'Not started') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Begins</span><span class="rd-rail__count">' +
+      esc(figures.beginsShort || '—') + '</span></div>' +
       '</div></div>';
-    var afterHtml =
-      '<div class="rd-rail__section"><div class="rd-rail__title">After the day</div><div class="rd-rail__list" role="list">' +
-      '<button type="button" class="rd-rail__item' + ((window._hcMode || 'after') === 'after' ? ' is-active' : '') + '" onclick="rdSetHomecomingView(\'after\')">After the day overview' +
-      '<span class="rd-rail__count">' + (counts.after || 0) + '</span></button>' +
-      '<button type="button" class="rd-rail__item" onclick="typeof showPanel===\'function\'&&showPanel(\'gifts\')">Thank-you notes' +
-      '<span class="rd-rail__count' + ((figures.thankYouDue || 0) > 0 ? ' rd-rail__count--warn' : '') + '">' +
-      (figures.thankYouDue || 0) + ' due</span></button>' +
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHomecomingGroupBy(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count"></span></button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
+      groupItem('area', 'Area') + groupItem('owner', 'Owner') + groupItem('due', 'Due') +
       '</div></div>';
-    var noteHtml = '<p class="rd-rail__note">Written now so the first month is not spent deciding what to do. Thank-you notes due is read from Gifts; post-wedding tasks merge Timeline &amp; Tasks with this page.</p>';
-    return '<div class="rd-rail__stack" data-page-rail="homecoming">' + viewsHtml + metersHtml + afterHtml + noteHtml + '</div>';
+    var noteHtml = '<p class="rd-rail__note">Nothing here can be ticked before ' +
+      esc(figures.beginsShort && figures.beginsShort !== '—' ? figures.beginsShort : 'the day after the wedding') +
+      '. It is written now so the first month is not spent deciding what to do.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="homecoming">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
   /* Help pages — All.dc 15b/15d/15c. Untabbed; the rail replaces the missing

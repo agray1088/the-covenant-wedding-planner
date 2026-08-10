@@ -19,7 +19,7 @@
   'use strict';
 
   /* ── §06: eight tabs · full planning IA (guide §3 + live shells).
-     Households / Contacts / Vision / First-Month / Print Centre / Homecoming
+     Households / Contacts / Vision / First-Month / Homecoming / Print Centre
      are first-class panels — derive, never store duplicates. ───────────── */
   var TABS = [
     { id: 'overview',  label: 'Overview',  pages: [['dashboard','Dashboard'], ['notes','Notes']] },
@@ -27,8 +27,8 @@
     { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['households','Households'], ['contacts','Contacts'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
     { id: 'money',     label: 'Money',     pages: [['budget','Budget'], ['payments','Payments'], ['contracts','Contracts & Invoices']] },
     { id: 'vendors',   label: 'Vendors',   pages: [['vendors','Venue & Vendors'], ['venue','Venue Comparison'], ['catering','Catering & Menu'], ['entertainment','Entertainment'], ['shotlist','Shot Lists']] },
-    { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['logistics','Weekend Logistics'], ['homecoming','Newlywed Homecoming'], ['honeymoon','Honeymoon']] },
-    { id: 'covenant',  label: 'Covenant',  pages: [['vision','Vision & Foundation'], ['prayer','Prayer Journal'], ['counseling','Premarital Counseling'], ['firstmonth','First-Month Rhythms']], dot: true },
+    { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['logistics','Weekend Logistics'], ['honeymoon','Honeymoon']] },
+    { id: 'covenant',  label: 'Covenant',  pages: [['vision','Vision & Foundation'], ['prayer','Prayer Journal'], ['counseling','Premarital Counseling'], ['firstmonth','First-Month Rhythms'], ['homecoming','Newlywed Homecoming']], dot: true },
     { id: 'documents', label: 'Documents', pages: [['packets','Share Packets'], ['emails','Email Templates'], ['print-centre','Print Centre'], ['mood','Vision Board'], ['essentials','Essentials Checklist']] }
   ];
 
