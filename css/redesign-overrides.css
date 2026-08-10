@@ -12510,10 +12510,15 @@ body.rd-scope #panel-payments .rd-pay-toolbar {
    overflow clipping, so they are not scoped to any one panel. */
 .rd-picker,
 .rd-pay-picker {
+  position: fixed;
   z-index: 4000;
+  display: inline-block;
+  width: max-content;
   min-width: 190px;
+  max-width: min(320px, calc(100vw - 16px));
   max-height: 60vh;
   overflow-y: auto;
+  box-sizing: border-box;
   padding: 6px;
   /* --surface and --accent are unset in this theme, so the picker rides on the
      raised-surface token, which is the one that flips with dark mode. */
