@@ -312,7 +312,7 @@
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
       <div class="rd-stats m-stats" id="honeymoon-stats" aria-label="Honeymoon summary"></div>
-      <div class="rd-sectiontabs" id="honeymoon-section-tabs" role="tablist" aria-label="Honeymoon sections"></div>
+      <div class="rd-viewswitch" id="honeymoon-section-tabs" role="tablist" aria-label="Honeymoon sections"></div>
       <div class="rd-toolbar" id="honeymoon-toolbar"></div>
       <div class="rd-bulkbar" id="honeymoon-bulk-bar" hidden></div>
       <div class="rd-surface">
@@ -359,9 +359,11 @@
   function renderSectionTabs() {
     const host = document.getElementById('honeymoon-section-tabs');
     if (!host) return;
+    host.classList.add('rd-viewswitch');
+    host.classList.remove('rd-sectiontabs');
     const cur = window._hmSection || 'bookings';
     host.innerHTML = SECTIONS.map(s =>
-      `<button type="button" class="rd-sectiontabs__item${cur === s.id ? ' is-active' : ''}" role="tab" aria-selected="${cur === s.id}" onclick="applyHoneymoonSection('${s.id}')">${esc(s.label)}</button>`
+      `<button type="button" class="rd-viewswitch__item${cur === s.id ? ' is-active' : ''}" role="tab" aria-selected="${cur === s.id}" onclick="applyHoneymoonSection('${s.id}')">${esc(s.label)}</button>`
     ).join('');
   }
 

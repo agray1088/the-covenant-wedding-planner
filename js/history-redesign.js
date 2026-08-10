@@ -120,7 +120,9 @@
   function viewSwitchHtml() {
     const views = [['log', 'Log'], ['record', 'By record'], ['field', 'Field detail']];
     return '<div class="rd-viewswitch" role="tablist" aria-label="Planner History view">'
-      + views.map(([id, label]) => `<span class="${window._histView === id ? 'is-active' : ''}" onclick="rdHistSetView('${id}')">${esc(label)}</span>`).join('')
+      + views.map(([id, label]) =>
+        `<button type="button" class="rd-viewswitch__item${window._histView === id ? ' is-active' : ''}" onclick="rdHistSetView('${id}')">${esc(label)}</button>`
+      ).join('')
       + '</div>';
   }
 

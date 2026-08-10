@@ -527,55 +527,90 @@ body.rd-scope .btn-forest:hover { background-color: var(--forest-deep) !importan
   font-weight: 600 !important;
 }
 
-/* Sub-page view switchers (Month · Week · Agenda / Table · Households · Seating)
-   — same outer height + type as Auto-fit columns. Group owns the frame. */
+/* ALL sub-page view switchers — same outer height + type as Auto-fit columns.
+   Covers .rd-viewswitch, legacy .rd-sectiontabs, and settings .rd-seg. */
 #main#main .rd-viewswitch,
-body.rd-scope .rd-viewswitch {
+#main#main .rd-sectiontabs,
+#main#main .rd-seg,
+body.rd-scope .rd-viewswitch,
+body.rd-scope .rd-sectiontabs,
+body.rd-scope .rd-seg,
+body.rd-scope [id^="panel-"] .rd-toolbar .rd-viewswitch,
+body.rd-scope [id^="panel-"] .rd-bgt-viewbar .rd-viewswitch {
   display: inline-flex !important;
   align-items: stretch !important;
+  flex-wrap: nowrap !important;
   height: var(--component-chip-height) !important;
   min-height: var(--component-chip-height) !important;
   max-height: var(--component-chip-height) !important;
   box-sizing: border-box !important;
-  border: 1px solid var(--border-control) !important;
+  border: 1px solid var(--border-control, #d9cfba) !important;
   overflow: hidden !important;
-  background: var(--surface-content) !important;
+  background: var(--surface-content, #fff) !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 #main#main .rd-viewswitch > *,
 #main#main .rd-viewswitch__item,
 #main#main .rd-sectiontabs__item,
+#main#main .rd-seg__opt,
 body.rd-scope .rd-viewswitch > *,
 body.rd-scope .rd-viewswitch__item,
-body.rd-scope .rd-sectiontabs__item {
+body.rd-scope .rd-sectiontabs__item,
+body.rd-scope .rd-seg__opt,
+body.rd-scope [id^="panel-"] .rd-viewswitch > button,
+body.rd-scope [id^="panel-"] .rd-viewswitch__item {
   height: 100% !important;
   min-height: 0 !important;
   max-height: none !important;
-  padding: 0 var(--btn-toolbar-pad-x) !important;
+  padding: 0 var(--btn-toolbar-pad-x, 11px) !important;
   font-family: var(--font-ui) !important;
-  font-size: var(--btn-toolbar-font-size) !important;
+  font-size: var(--btn-toolbar-font-size, 12px) !important;
   font-weight: 400 !important;
   line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   box-sizing: border-box !important;
+  border-radius: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 1px solid var(--border-control, #d9cfba) !important;
+  background: transparent !important;
+  color: var(--text-muted, #6b645d) !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+#main#main .rd-viewswitch > *:first-child,
+#main#main .rd-viewswitch__item:first-child,
+#main#main .rd-sectiontabs__item:first-child,
+#main#main .rd-seg__opt:first-child,
+body.rd-scope .rd-viewswitch > *:first-child,
+body.rd-scope .rd-viewswitch__item:first-child,
+body.rd-scope .rd-sectiontabs__item:first-child,
+body.rd-scope .rd-seg__opt:first-child {
+  border-left: 0 !important;
 }
 #main#main .rd-viewswitch > .is-active,
 #main#main .rd-viewswitch__item.is-active,
 #main#main .rd-viewswitch > .active,
 #main#main .rd-viewswitch__item.active,
+#main#main .rd-sectiontabs__item.is-active,
+#main#main .rd-seg__opt.is-active,
 body.rd-scope .rd-viewswitch > .is-active,
 body.rd-scope .rd-viewswitch__item.is-active,
 body.rd-scope .rd-viewswitch > .active,
-body.rd-scope .rd-viewswitch__item.active {
-  font-weight: 600 !important;
-}
-/* Honeymoon section tabs keep the underline treatment, but same type size. */
-body.rd-scope .rd-sectiontabs__item {
-  height: var(--component-chip-height) !important;
-  min-height: var(--component-chip-height) !important;
-}
-body.rd-scope .rd-sectiontabs__item.is-active {
+body.rd-scope .rd-viewswitch__item.active,
+body.rd-scope .rd-sectiontabs__item.is-active,
+body.rd-scope .rd-seg__opt.is-active,
+body.rd-scope [id^="panel-"] .rd-viewswitch > button.is-active,
+body.rd-scope [id^="panel-"] .rd-viewswitch > button.active {
+  background: var(--forest, #2D4A3E) !important;
+  color: var(--text-on-dark, #F4EFE6) !important;
   font-weight: 600 !important;
 }
 
@@ -15956,30 +15991,12 @@ body.rd-scope #panel-honeymoon .rd-page {
   gap: 0;
   min-height: 0;
 }
-body.rd-scope #panel-honeymoon .rd-sectiontabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  padding: 0 4px;
-  border-bottom: 1px solid #e7e1d4;
-  margin: 4px 0 0;
-}
-body.rd-scope #panel-honeymoon .rd-sectiontabs__item {
-  border: 0;
-  background: transparent;
-  padding: 0 11px;
-  height: var(--component-chip-height);
-  font-size: var(--btn-toolbar-font-size);
-  font-family: var(--font-ui);
-  color: #8a7e6b;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-}
-body.rd-scope #panel-honeymoon .rd-sectiontabs__item.is-active {
-  color: #20362D;
-  font-weight: 600;
-  border-bottom-color: #B89968;
+/* Honeymoon section tabs are a standard chip-height viewswitch (scroll if needed). */
+body.rd-scope #panel-honeymoon #honeymoon-section-tabs.rd-viewswitch {
+  margin: 8px 24px 0;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  max-width: calc(100% - 48px);
 }
 body.rd-scope #panel-honeymoon .rd-surface {
   flex: 1 1 auto;
@@ -21301,14 +21318,8 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 .gs-results.rd-gs-gaps .gs-cmdk-foot .rd-menu__kbd { color: #8a7e6b; }
 
 /* ── segmented control + switch (shared by settings + profile) ──────────── */
-.rd-seg { display: inline-flex; border: 1px solid #d9cfba; }
-.rd-seg__opt {
-  padding: 5px 12px; font-size: 12.5px; background: #fff; color: #6b645d;
-  border: 0; border-left: 1px solid #e7e1d4; cursor: pointer; font-weight: 400;
-}
-.rd-seg__opt:first-child { border-left: 0; }
-.rd-seg__opt.is-active { background: #2D4A3E; color: #F4EFE6; font-weight: 600; }
-.rd-seg--static .rd-seg__opt { cursor: default; }
+/* Settings segmented controls share the viewswitch / chip metric (global rule). */
+.rd-seg--static .rd-seg__opt { cursor: default !important; }
 
 .rd-gaps-switch {
   width: 40px; height: 22px; border-radius: 11px; background: #d9cfba;
