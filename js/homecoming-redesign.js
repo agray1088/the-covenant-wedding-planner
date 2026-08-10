@@ -1,13 +1,31 @@
-/* Newlywed Homecoming — After the Day + Views #31
-   Views: After the day | Settling | Name change | Budget.
-   Rail: Settling in · Name change · First month budget · What we noticed · Progress.
-   After the day merges Timeline & Tasks + homecoming + nameChange into one table,
-   with thank-you notes due read from Gifts (moved here from Honeymoon). */
+/* Newlywed Homecoming — All.dc #18a
+   Stacked: Settling in · Name change · First month budget · What we noticed.
+   Viewswitch: Tasks | Name change | Budget (scrolls to section).
+   Rail: Sections · Progress (+ bars) · Group by · note.
+   Thank-you / post-wedding counts fold into Settling rows (Gifts-derived), not a separate tab. */
 (function () {
   'use strict';
 
-  window._hcMode = window._hcMode || 'after';
+  window._hcMode = window._hcMode || 'tasks';
   window._hcRailView = window._hcRailView || 'settling';
+  window._hcGroupBy = window._hcGroupBy || 'area';
+  window._hcUiFilters = window._hcUiFilters || { area: 'all', owner: 'both', status: 'all' };
+  window._hcSel = window._hcSel instanceof Set ? window._hcSel : new Set();
+
+  const AREAS = ['The home', 'Wedding wrap-up', 'Money', 'Church', 'Documents', 'Home Setup', 'Thank-You Notes', 'Other'];
+  const OWNERS = ['Both', 'Bride', 'Groom', 'Ama', 'Kwesi', 'Akosua', 'Michael'];
+  const STATUSES = ['Not Started', 'In Progress', 'Blocked', 'Complete', 'Waiting'];
+  const NAME_BANDS = [
+    { id: 'first', label: 'First · everything else depends on these' },
+    { id: 'then', label: 'Then · needs the new passport' },
+    { id: 'any', label: 'Any time' }
+  ];
+  const BUDGET_CATS = ['Setting up the home', 'Admin', 'Living'];
+  const NOTICED_PROMPTS = [
+    { id: 'surprised', n: '01', q: 'What surprised us about living together', hint: 'Left blank until the first month ends' },
+    { id: 'rhythm', n: '02', q: 'Which rhythm we actually kept, and which we did not', hint: 'The Rhythms page has the counts; this is the honest version' },
+    { id: 'advise', n: '03', q: 'One thing we would tell a couple a month behind us', hint: 'Not written yet' }
+  ];
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
@@ -23,125 +41,134 @@
     const d = store();
     if (!Array.isArray(d.homecoming)) d.homecoming = [];
     if (!Array.isArray(d.nameChange)) d.nameChange = [];
-    if (!Array.isArray(d.tasks)) d.tasks = [];
+    if (!Array.isArray(d.firstMonthBudget)) d.firstMonthBudget = [];
     if (!Array.isArray(d.gifts)) d.gifts = [];
     if (!Array.isArray(d.guests)) d.guests = [];
-    if (!d.firstmonth || typeof d.firstmonth !== 'object' || Array.isArray(d.firstmonth)) d.firstmonth = {};
+    if (!d.homecomingReflection || typeof d.homecomingReflection !== 'object') {
+      d.homecomingReflection = { surprised: '', rhythm: '', advise: '' };
+    }
+    if (!d.setup || typeof d.setup !== 'object') d.setup = {};
+    /* Normalize legacy settling rows toward 18a fields. */
+    d.homecoming.forEach(r => {
+      if (r.item != null && r.task == null) r.task = r.item;
+      if (r.cat != null && r.area == null) r.area = mapLegacyArea(r.cat);
+      if (!r.owner) r.owner = 'Both';
+      if (!r.status) r.status = r.done ? 'Complete' : 'Not Started';
+      if (r.due == null) r.due = '';
+      if (r.dependsOn == null) r.dependsOn = '';
+    });
+    d.nameChange.forEach(r => {
+      if (r.task != null && r.institution == null) r.institution = r.task;
+      if (r.category != null && r.band == null) r.band = mapNameBand(r.category, r.status);
+      if (r.document == null) r.document = r.notes || '';
+      if (r.submitted == null) r.submitted = '';
+      if (r.confirmed == null) r.confirmed = '';
+      if (r.blocks == null) r.blocks = '';
+      if (!r.status) r.status = r.done ? 'Complete' : 'Not Started';
+    });
     return d;
   }
-  function cats() {
-    return (typeof HC_CATEGORIES !== 'undefined' && Array.isArray(HC_CATEGORIES))
-      ? HC_CATEGORIES
-      : ['Names', 'Banking', 'Insurance', 'Vehicles', 'Address', 'Documents', 'Home Setup', 'Thank-You Notes', 'Photos', 'Other'];
+  function mapLegacyArea(cat) {
+    const c = String(cat || '');
+    if (/home|address|setup/i.test(c)) return 'The home';
+    if (/thank|gift|photo|wrap/i.test(c)) return 'Wedding wrap-up';
+    if (/bank|money|insur/i.test(c)) return 'Money';
+    if (/church|document|name|legal/i.test(c)) return 'Documents';
+    return AREAS.includes(c) ? c : (c || 'Other');
   }
-  function statuses() {
-    return (typeof HC_STATUSES !== 'undefined' && Array.isArray(HC_STATUSES))
-      ? HC_STATUSES
-      : ['Not Started', 'In Progress', 'Complete'];
+  function mapNameBand(category, status) {
+    const c = String(category || '') + ' ' + String(status || '');
+    if (/legal|registry|birth|death|certificate/i.test(c)) return 'first';
+    if (/passport|bank|licence|license|nhis|driver/i.test(c)) return 'then';
+    return 'any';
   }
-  function owners() {
-    return (typeof HC_OWNERS !== 'undefined' && Array.isArray(HC_OWNERS))
-      ? HC_OWNERS
-      : ['Bride', 'Groom', 'Both'];
-  }
-  function nameCats() {
-    return (typeof HM_NAME_CATS !== 'undefined' && Array.isArray(HM_NAME_CATS))
-      ? HM_NAME_CATS
-      : ['Legal', 'Government ID', 'Financial', 'Employment', 'Insurance', 'Household', 'Online Accounts', 'Other'];
-  }
-  function nameStatuses() {
-    return (typeof HM_NAME_STATUS !== 'undefined' && Array.isArray(HM_NAME_STATUS))
-      ? HM_NAME_STATUS
-      : ['Not Started', 'In Progress', 'Complete'];
+  function completeStatus(v) { return /complete|done|sent|confirmed/i.test(String(v || '')); }
+  function saveNow() { if (typeof save === 'function') save(); }
+  function money0(n) {
+    const v = Math.round(parseFloat(n) || 0);
+    if (typeof fmt === 'function') { try { return fmt(v); } catch (e) { /* fall */ } }
+    return '$' + v.toLocaleString();
   }
   function selectHtml(list, val) {
     return list.map(x => `<option value="${esc(x)}"${String(x) === String(val || '') ? ' selected' : ''}>${esc(x)}</option>`).join('');
   }
-  function completeStatus(v) { return /complete|done|sent/i.test(String(v || '')); }
-  function attentionRow(r) {
-    return !completeStatus(r.status) || /note|notice|remember|follow/i.test(String(r.notes || ''));
+  function weddingDate() {
+    const d = ensureData();
+    const raw = String((d.setup && d.setup.date) || '').trim();
+    if (!raw) return null;
+    const dt = new Date(raw.split('T')[0] + 'T00:00:00');
+    return Number.isNaN(dt.getTime()) ? null : dt;
   }
-  function saveNow() { if (typeof save === 'function') save(); }
-
+  function beginsDate() {
+    const wed = weddingDate();
+    if (!wed) return null;
+    const next = new Date(wed.getTime());
+    next.setDate(next.getDate() + 1);
+    return next;
+  }
+  function fmtShort(dt) {
+    if (!dt) return '—';
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function fmtLong(dt) {
+    if (!dt) return '—';
+    return dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
   function thankYouDue() {
     const d = ensureData();
     if (d.gifts.length) return d.gifts.filter(g => !g.thankyou).length;
     if (d.guests.length) return d.guests.filter(g => !g.thankyou).length;
     return 0;
   }
-
-  /* Unified After-the-day table: Timeline post-wedding tasks + homecoming + name change. */
-  function afterTasks() {
+  function syncThankYouRow() {
     const d = ensureData();
-    const out = [];
-    d.tasks.forEach((t, i) => {
-      const hay = [t.task, t.title, t.phase, t.category, t.notes, t.owner].join(' ').toLowerCase();
-      if (/post[- ]?wedding|after the|thank[- ]?you|honeymoon return|newlywed|name change|homecoming/i.test(hay)
-        || /after/i.test(String(t.phase || ''))) {
-        out.push({
-          id: 'tasks:' + (t._id || ('idx:' + i)),
-          src: 'tasks', index: i, row: t,
-          task: String(t.task || t.title || 'Task').trim(),
-          owner: String(t.owner || t.who || '—').trim() || '—',
-          due: String(t.due || t.date || '').trim() || '—',
-          source: 'Timeline & Tasks',
-          status: String(t.status || (t.done ? 'Complete' : 'Not started')).trim()
-        });
-      }
-    });
-    d.homecoming.forEach((r, i) => {
-      out.push({
-        id: 'homecoming:' + (r._id || ('idx:' + i)),
-        src: 'homecoming', index: i, row: r,
-        task: String(r.item || r.task || 'Homecoming item').trim(),
-        owner: String(r.owner || '—').trim() || '—',
-        due: String(r.due || '').trim() || '—',
-        source: 'Settling in',
-        status: String(r.status || (r.done ? 'Complete' : 'Not started')).trim()
+    const due = thankYouDue();
+    let row = d.homecoming.find(r => /thank-?you notes/i.test(String(r.task || r.item || '')));
+    const nextStatus = due ? (due + ' outstanding') : 'Complete';
+    if (!row && due > 0) {
+      d.homecoming.push({
+        task: 'Write the last thank-you notes',
+        item: 'Write the last thank-you notes',
+        area: 'Wedding wrap-up', cat: 'Thank-You Notes',
+        owner: 'Both', due: '', dependsOn: 'Counted from Gifts',
+        status: nextStatus, notes: ''
       });
-    });
-    d.nameChange.forEach((r, i) => {
-      out.push({
-        id: 'nameChange:' + (r._id || ('idx:' + i)),
-        src: 'nameChange', index: i, row: r,
-        task: String(r.task || r.item || 'Name-change task').trim(),
-        owner: String(r.owner || 'Both').trim() || 'Both',
-        due: String(r.due || '').trim() || '—',
-        source: 'Name change',
-        status: String(r.status || (r.done ? 'Complete' : 'Not started')).trim()
-      });
-    });
-    return out;
+      return;
+    }
+    if (!row) return;
+    if (row.dependsOn !== 'Counted from Gifts') row.dependsOn = 'Counted from Gifts';
+    if (!completeStatus(row.status) || due === 0) {
+      if (String(row.status) !== nextStatus) row.status = nextStatus;
+    }
   }
 
   function hcFigures() {
     const d = ensureData();
+    syncThankYouRow();
     const home = d.homecoming;
     const names = d.nameChange;
-    const homeDone = home.filter(r => completeStatus(r.status)).length;
-    const nameDone = names.filter(r => r.done || completeStatus(r.status)).length;
-    const attention = home.filter(attentionRow).length + names.filter(r => !r.done && !completeStatus(r.status)).length;
-    const after = afterTasks();
-    const afterDone = after.filter(t => completeStatus(t.status) || t.row.done).length;
-    const byCat = home.reduce((out, r) => {
-      const k = String(r.cat || 'Other');
-      out[k] = (out[k] || 0) + 1;
-      return out;
-    }, {});
+    const budget = d.firstMonthBudget;
+    const homeDone = home.filter(r => completeStatus(r.status) || r.done).length;
+    const nameDone = names.filter(r => r.done || completeStatus(r.status) || /confirmed/i.test(String(r.confirmed || ''))).length;
+    const budgeted = budget.reduce((s, r) => s + (parseFloat(r.budgeted) || 0), 0);
+    const spent = budget.reduce((s, r) => s + (parseFloat(r.spent) || 0), 0);
+    const begins = beginsDate();
+    const totalTasks = home.length + names.length + budget.length;
+    const totalDone = homeDone + nameDone + budget.filter(r => (parseFloat(r.spent) || 0) > 0).length;
     return {
       homecoming: home.length,
-      homeDone: homeDone,
+      homeDone,
       nameChange: names.length,
-      nameDone: nameDone,
-      open: Math.max(0, home.length - homeDone),
-      nameOpen: Math.max(0, names.length - nameDone),
-      noticed: attention,
-      budgetRows: Array.isArray(d.budget) ? d.budget.length : 0,
-      firstMonthBudgetNote: String((d.firstmonth || {}).budgetMeeting || ''),
-      byCat: byCat,
+      nameDone,
+      budgetRows: budget.length,
+      budgeted,
+      spent,
+      tasksTotal: totalTasks,
+      tasksDone: totalDone,
+      beginsShort: fmtShort(begins),
+      beginsLong: fmtLong(begins),
       thankYouDue: thankYouDue(),
-      afterTotal: after.length,
-      afterDone: afterDone
+      firstMonthStatus: budget.length ? (spent > 0 ? 'In progress' : 'Not started') : 'Not started'
     };
   }
   function hcRailCounts() {
@@ -150,317 +177,475 @@
       settling: f.homecoming,
       namechange: f.nameChange,
       budget: f.budgetRows,
-      noticed: f.noticed,
-      after: f.afterTotal,
-      thankYou: f.thankYouDue
+      noticed: ''
     };
   }
 
   function pageheadActionsHtml() {
     return ''
-      + '<button type="button" class="rd-btn" onclick="rdHcLoadPreset()">Load starter list</button>'
-      + '<button type="button" class="rd-btn" onclick="rdHcPrint()">Print</button>'
+      + '<button type="button" class="rd-btn" onclick="rdHcLoadPreset()">Load a starter list</button>'
+      + '<button type="button" class="rd-btn" onclick="rdHcPrint()">Print section</button>'
+      + '<button type="button" class="rd-btn" onclick="rdHcFullEditor()">Full editor</button>'
       + '<button type="button" class="rd-btn" onclick="rdHcExport()">Export</button>'
-      + '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'gifts\')">Open Gifts</button>'
       + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdHcAddTask()">+ Add task</button>';
   }
+
   function ensureShell() {
     const panel = document.getElementById('panel-homecoming');
     if (!panel) return;
     panel.classList.add('ued-scope', 'homecoming-mockup');
-    if (panel.dataset.uedShell === 'homecoming-rd32') {
+    if (panel.dataset.uedShell === 'homecoming-rd18a') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'homecoming-rd32';
+    panel.dataset.uedShell = 'homecoming-rd18a';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
-          <div class="rd-pagehead__eyebrow">The Day</div>
+          <div class="rd-pagehead__eyebrow">Covenant</div>
           <div class="rd-pagehead__title-row"><h1 class="rd-pagehead__title">Newlywed Homecoming</h1></div>
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
       <div class="rd-stats m-stats" id="homecoming-stats" aria-label="Homecoming summary"></div>
       <div class="rd-toolbar" id="homecoming-toolbar"></div>
+      <div class="rd-bulkbar" id="homecoming-bulk-bar" hidden></div>
       <div class="rd-surface">
         <div class="rd-surface__row">
           <div class="rd-surface__main" id="homecoming-view-host">
-            <div class="rd-view" id="hc-view-after"></div>
-            <div class="rd-view" id="hc-view-tasks" hidden></div>
-            <div class="rd-view" id="hc-view-namechange" hidden></div>
-            <div class="rd-view" id="hc-view-budget" hidden></div>
+            <section class="rd-hc-block" id="hc-sec-settling" data-hc-sec="settling"></section>
+            <section class="rd-hc-block" id="hc-sec-namechange" data-hc-sec="namechange"></section>
+            <section class="rd-hc-block" id="hc-sec-budget" data-hc-sec="budget"></section>
+            <section class="rd-hc-block" id="hc-sec-noticed" data-hc-sec="noticed"></section>
           </div>
         </div>
       </div>
     </div>`;
   }
+
   function renderStats() {
     const host = document.getElementById('homecoming-stats');
     if (!host) return;
     const f = hcFigures();
-    const afterVal = f.afterDone + ' of ' + Math.max(f.afterTotal, f.afterDone || 0);
+    const spend = money0(f.spent) + ' of ' + money0(f.budgeted || 2400);
     const stats = [
-      { label: 'Post-wedding tasks', value: afterVal },
-      { label: 'Thank-you notes due', value: String(f.thankYouDue), attention: f.thankYouDue ? 'from Gifts' : undefined },
-      { label: 'Settled', value: f.homeDone + ' of ' + f.homecoming },
+      { label: 'Tasks', value: String(f.tasksTotal) },
+      { label: 'Done', value: String(f.tasksDone) },
       { label: 'Name change', value: f.nameDone + ' of ' + f.nameChange },
-      { label: 'Needs notice', value: String(f.noticed) }
+      { label: 'First month spend', value: spend },
+      { label: 'Begins', value: f.beginsShort }
     ];
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
       RdDepth.renderStats(host, stats);
       return;
     }
-    host.innerHTML = stats.map(s => `<div class="m-stat"><div class="m-stat-label">${esc(s.label)}</div><div class="m-stat-val">${esc(s.value)}</div></div>`).join('');
+    host.innerHTML = stats.map(s =>
+      `<div class="m-stat"><div class="m-stat-label">${esc(s.label)}</div><div class="m-stat-val">${esc(s.value)}</div></div>`
+    ).join('');
   }
+
+  function filterChip(label, field) {
+    const ui = window._hcUiFilters || {};
+    const cur = ui[field] || 'all';
+    const on = cur && cur !== 'all' && !(field === 'owner' && cur === 'both');
+    const display = field === 'owner' && (!cur || cur === 'all') ? 'both' : cur;
+    const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg>';
+    return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="rdHcCycleFilter('${field}')">${esc(label + ': ' + display)}`
+      + (on ? `<span class="rd-chip__clear" onclick="event.stopPropagation();rdHcClearFilter('${field}')">&#10005;</span>` : chev)
+      + '</button>';
+  }
+
   function renderToolbar() {
     const host = document.getElementById('homecoming-toolbar');
     if (!host) return;
-    const mode = window._hcMode || 'after';
-    const counts = hcRailCounts();
-    function chip(id, label, count) {
-      const on = (window._hcRailView || 'settling') === id;
-      const n = count == null ? counts[id] : count;
-      return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="applyHomecomingRailView('${esc(id)}')">${esc(label)}${n === '' || n == null ? '' : ' <span>' + esc(n) + '</span>'}</button>`;
+    const mode = window._hcMode || 'tasks';
+    host.innerHTML =
+      filterChip('Area', 'area') +
+      filterChip('Owner', 'owner') +
+      filterChip('Status', 'status') +
+      (typeof rdSortChipHtml === 'function'
+        ? rdSortChipHtml('Sort by due date', "rdHcSortDue()")
+        : '<button type="button" class="rd-chip rd-chip--ghost" onclick="rdHcSortDue()">Sort by due date</button>') +
+      `<div class="rd-toolbar__right">` +
+      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('homecoming') : '') +
+      `<div class="rd-viewswitch" role="group" aria-label="Homecoming view">` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'tasks' ? ' is-active' : ''}" onclick="rdSetHomecomingView('tasks')">Tasks</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'namechange' ? ' is-active' : ''}" onclick="rdSetHomecomingView('namechange')">Name change</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'budget' ? ' is-active' : ''}" onclick="rdSetHomecomingView('budget')">Budget</button>` +
+      `</div></div>`;
+  }
+
+  function renderBulkBar() {
+    const host = document.getElementById('homecoming-bulk-bar');
+    if (!host) return;
+    const n = window._hcSel.size;
+    if (!n) {
+      host.hidden = true;
+      host.innerHTML = '';
+      return;
     }
-    host.innerHTML = `<div class="rd-toolbar__left">
-      ${chip('settling', 'Settling in')}
-      ${chip('namechange', 'Name change')}
-      ${chip('budget', 'First month budget')}
-      ${chip('noticed', 'What we noticed', '')}
-      ${typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by status', "rdStdOpenSort(this,'homecoming')") : ''}
-      ${typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('homecoming') : ''}
-    </div>
-    <div class="rd-toolbar__right">
-      <div class="rd-viewswitch" role="group" aria-label="Homecoming view">
-        <button type="button" class="rd-viewswitch__item${mode === 'after' ? ' is-active' : ''}" onclick="rdSetHomecomingView('after')">After the day</button>
-        <button type="button" class="rd-viewswitch__item${mode === 'tasks' ? ' is-active' : ''}" onclick="rdSetHomecomingView('tasks')">Settling</button>
-        <button type="button" class="rd-viewswitch__item${mode === 'namechange' ? ' is-active' : ''}" onclick="rdSetHomecomingView('namechange')">Name change</button>
-        <button type="button" class="rd-viewswitch__item${mode === 'budget' ? ' is-active' : ''}" onclick="rdSetHomecomingView('budget')">Budget</button>
-      </div>
-    </div>`;
+    host.hidden = false;
+    host.innerHTML =
+      `<span class="rd-bulkbar__count">${n} selected</span><span class="rd-bulkbar__sep"></span>` +
+      `<button type="button" class="rd-bulkbar__action" onclick="rdHcBulkOwner()">Assign owner</button>` +
+      `<button type="button" class="rd-bulkbar__action" onclick="rdHcBulkDue()">Set due date</button>` +
+      `<button type="button" class="rd-bulkbar__action" onclick="rdHcBulkDone()">Mark done</button>` +
+      `<button type="button" class="rd-bulkbar__action" onclick="rdHcPrint()">Print the list</button>` +
+      `<button type="button" class="rd-bulkbar__clear" onclick="rdHcBulkClear()">Clear selection</button>`;
   }
-  function applyMode() {
-    const mode = window._hcMode || 'after';
-    ['after', 'tasks', 'namechange', 'budget'].forEach(name => {
-      const el = document.getElementById('hc-view-' + name);
-      if (el) el.hidden = mode !== name;
-    });
+
+  function scrollToSection(id) {
+    const el = document.getElementById('hc-sec-' + id);
+    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  function normalizeMode(mode) {
-    if (mode === 'nameChange') return 'namechange';
-    if (mode === 'tasks' || mode === 'settling') return 'tasks';
-    if (mode === 'namechange' || mode === 'budget' || mode === 'after') return mode;
-    return 'after';
-  }
+
   function rdSetHomecomingView(mode) {
-    window._hcMode = normalizeMode(mode);
-    if (window._hcMode === 'namechange') window._hcRailView = 'namechange';
-    else if (window._hcMode === 'budget') window._hcRailView = 'budget';
-    else if (window._hcMode === 'tasks') {
-      if (window._hcRailView !== 'noticed') window._hcRailView = 'settling';
-    } else window._hcRailView = 'settling';
+    if (mode === 'nameChange') mode = 'namechange';
+    if (mode === 'after' || mode === 'settling') mode = 'tasks';
+    window._hcMode = (mode === 'namechange' || mode === 'budget') ? mode : 'tasks';
+    window._hcRailView = window._hcMode === 'tasks' ? 'settling' : window._hcMode;
     if (typeof setSavedView === 'function') setSavedView('homecoming', window._hcRailView);
-    renderHomecomingRd();
+    renderToolbar();
+    scrollToSection(window._hcMode === 'tasks' ? 'settling' : window._hcMode);
+    if (typeof renderContextSidebar === 'function'
+      && document.body.getAttribute('data-active-panel') === 'homecoming') {
+      renderContextSidebar('homecoming');
+    }
   }
   function applyHomecomingRailView(viewId) {
     window._hcRailView = ['settling', 'namechange', 'budget', 'noticed'].includes(viewId) ? viewId : 'settling';
     if (typeof setSavedView === 'function') setSavedView('homecoming', window._hcRailView);
-    if (window._hcRailView === 'namechange') window._hcMode = 'namechange';
-    else if (window._hcRailView === 'budget') window._hcMode = 'budget';
-    else window._hcMode = 'tasks';
-    renderHomecomingRd();
+    window._hcMode = window._hcRailView === 'settling' || window._hcRailView === 'noticed'
+      ? 'tasks'
+      : window._hcRailView;
+    renderToolbar();
+    scrollToSection(window._hcRailView);
+    if (typeof renderContextSidebar === 'function'
+      && document.body.getAttribute('data-active-panel') === 'homecoming') {
+      renderContextSidebar('homecoming');
+    }
   }
-  function visibleHomeRows() {
-    const d = ensureData();
-    let rows = d.homecoming.map((row, index) => ({ row, index }));
-    if (window._hcRailView === 'noticed') rows = rows.filter(x => attentionRow(x.row));
-    return rows;
+  function applyHomecomingGroupBy(id) {
+    window._hcGroupBy = ['area', 'owner', 'due'].includes(id) ? id : 'area';
+    renderSettling();
+    if (typeof renderContextSidebar === 'function'
+      && document.body.getAttribute('data-active-panel') === 'homecoming') {
+      renderContextSidebar('homecoming');
+    }
   }
 
-  function sectionHead(title, help, ctaLabel, ctaOnclick) {
+  function matchesSettlingFilters(r) {
+    const ui = window._hcUiFilters || {};
+    if (ui.area && ui.area !== 'all' && String(r.area || r.cat || '') !== ui.area) return false;
+    if (ui.owner && ui.owner !== 'all' && ui.owner !== 'both' && String(r.owner || 'Both') !== ui.owner) return false;
+    if (ui.status && ui.status !== 'all' && String(r.status || '') !== ui.status) return false;
+    return true;
+  }
+  function settlingRows() {
+    const d = ensureData();
+    return d.homecoming.map((row, index) => ({ row, index })).filter(x => matchesSettlingFilters(x.row));
+  }
+  function groupSettling(rows) {
+    const by = window._hcGroupBy || 'area';
+    const map = {};
+    rows.forEach(x => {
+      let key = 'Other';
+      if (by === 'owner') key = String(x.row.owner || 'Both');
+      else if (by === 'due') key = String(x.row.due || 'No due date');
+      else key = String(x.row.area || x.row.cat || 'Other');
+      if (!map[key]) map[key] = [];
+      map[key].push(x);
+    });
+    return Object.keys(map).sort().map(k => ({ key: k, rows: map[k] }));
+  }
+
+  function sectionHead(eyebrow, help, ctaLabel, ctaOnclick) {
     return `<div class="rd-section__head">` +
-      `<div><div class="rd-pagehead__eyebrow">${esc(title)}</div>` +
+      `<div><div class="rd-pagehead__eyebrow">${esc(eyebrow)}</div>` +
       `<p class="rd-help">${esc(help)}</p></div>` +
       (ctaLabel ? `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="${ctaOnclick}">${esc(ctaLabel)}</button>` : '') +
       `</div>`;
   }
 
-  function renderAfterView() {
-    const host = document.getElementById('hc-view-after');
+  function renderSettling() {
+    const host = document.getElementById('hc-sec-settling');
     if (!host) return;
-    const rows = afterTasks();
-    const f = hcFigures();
-    let html = sectionHead(
-      'After the wedding · ' + rows.length + ' task' + (rows.length === 1 ? '' : 's'),
-      'None can close before the wedding day · two of these counts are read from elsewhere',
-      'Open Gifts', "typeof showPanel==='function'&&showPanel('gifts')"
-    );
-    html += `<div class="rd-hm-callouts rd-hc-callouts">` +
-      `<article class="rd-hm-callout"><strong>Two counts, not typed</strong><p>Thank-you notes due (${f.thankYouDue}) is read from Gifts. Post-wedding tasks (${f.afterDone} of ${f.afterTotal}) is read from Timeline &amp; Tasks and Newlywed Homecoming.</p></article>` +
-      `<article class="rd-hm-callout"><strong>Where the lists live</strong><p>Settling in, Name change, and First-month budget stay on this page — use the view switcher or rail to edit them in place.</p></article>` +
-      `</div>`;
-    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hc-table"><thead><tr>` +
-      `<th>Task</th><th>Owner</th><th>Due</th><th>Source</th><th>Status</th>` +
+    const d = ensureData();
+    syncThankYouRow();
+    const rows = settlingRows();
+    const begins = hcFigures().beginsLong;
+    const groups = groupSettling(rows);
+    let html = `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hc-table"><thead><tr>` +
+      `<th style="width:34px"></th><th>Task</th><th>Area</th><th>Owner</th><th>Due</th><th>Depends on</th><th>Status</th>` +
       `</tr></thead><tbody>`;
+    html += `<tr class="rd-group-row rd-hc-group"><td colspan="7">Settling in · ${d.homecoming.length} task${d.homecoming.length === 1 ? '' : 's'} · none can close before ${esc(begins === '—' ? 'the wedding day' : begins)}</td></tr>`;
     if (!rows.length) {
-      html += `<tr><td colspan="5" class="rd-empty">No post-wedding tasks yet. Add one, or open Gifts and Settling — those counts feed this strip.</td></tr>`;
+      html += `<tr><td colspan="7" class="rd-empty">No settling-in tasks match this view.</td></tr>`;
     } else {
-      rows.forEach(t => {
-        html += `<tr class="rd-hc-after-row" onclick="rdHcOpenAfter('${esc(t.id)}')">` +
-          `<td class="rd-hc-name">${esc(t.task)}</td>` +
-          `<td>${esc(t.owner)}</td><td>${esc(t.due)}</td><td>${esc(t.source)}</td><td>${esc(t.status)}</td>` +
-          `</tr>`;
+      groups.forEach(g => {
+        if ((window._hcGroupBy || 'area') !== 'area' || groups.length > 1) {
+          /* When grouped by owner/due, show sub-bands; area already has the main band. */
+          if ((window._hcGroupBy || 'area') !== 'area') {
+            html += `<tr class="rd-group-row"><td colspan="7">${esc(g.key)} · ${g.rows.length}</td></tr>`;
+          }
+        }
+        g.rows.forEach(x => {
+          const r = x.row;
+          const id = 'homecoming:' + x.index;
+          const sel = window._hcSel.has(id);
+          html += `<tr class="${sel ? 'is-selected' : ''}">` +
+            `<td><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdHcToggleSel('${esc(id)}')"></td>` +
+            `<td><input class="no-currency" data-currency="false" value="${esc(r.task || r.item || '')}" placeholder="Task" oninput="rdHcSaveTask(${x.index},'task',this.value)"></td>` +
+            `<td><select onchange="rdHcSaveTask(${x.index},'area',this.value)">${selectHtml(AREAS, r.area || mapLegacyArea(r.cat))}</select></td>` +
+            `<td><select onchange="rdHcSaveTask(${x.index},'owner',this.value)">${selectHtml(OWNERS, r.owner || 'Both')}</select></td>` +
+            `<td><input type="date" value="${esc(r.due || '')}" onchange="rdHcSaveTask(${x.index},'due',this.value)"></td>` +
+            `<td><input class="no-currency" data-currency="false" value="${esc(r.dependsOn || '')}" placeholder="—" oninput="rdHcSaveTask(${x.index},'dependsOn',this.value)"></td>` +
+            `<td><select onchange="rdHcSaveTask(${x.index},'status',this.value)">${selectHtml(STATUSES.concat(r.status && !STATUSES.includes(r.status) ? [r.status] : []), r.status || 'Not Started')}</select></td>` +
+            `</tr>`;
+        });
       });
     }
     html += `</tbody></table></div>`;
-    html += `<button type="button" class="rd-hm-addbtn rd-hc-addbtn" onclick="rdHcAddAfter()"><span>+</span> Add a post-wedding task</button>`;
+    html += `<button type="button" class="rd-hc-addbtn" onclick="rdHcAddTask()"><span>+</span> Add a settling-in task</button>`;
     host.innerHTML = html;
   }
 
-  function renderTasksView() {
-    const host = document.getElementById('hc-view-tasks');
-    if (!host) return;
-    const rows = visibleHomeRows();
-    const noticed = window._hcRailView === 'noticed';
-    let html = '<section class="ued-table-card"><div class="ued-table-head"><div><div class="ued-kicker">' +
-      (noticed ? 'What we noticed' : 'Settling in') +
-      '</div><div class="ued-table-title">' +
-      (noticed ? 'Items that still need attention' : 'Homecoming checklist') +
-      '</div></div><button type="button" class="rd-btn" onclick="rdHcAddTask()">+ Add task</button></div>';
-    html += '<div class="ued-table-wrap"><table class="ued-table rd-table"><thead><tr><th>Item</th><th>Area</th><th>Owner</th><th>Status</th><th>Notes</th></tr></thead><tbody>';
-    if (!rows.length) html += '<tr><td colspan="5" class="rd-empty">No homecoming tasks match this view.</td></tr>';
-    rows.forEach(x => {
-      const r = x.row;
-      html += `<tr>
-        <td><input class="no-currency" data-currency="false" value="${esc(r.item || '')}" placeholder="Task" oninput="rdHcSaveTask(${x.index},'item',this.value)"></td>
-        <td><select onchange="rdHcSaveTask(${x.index},'cat',this.value)">${selectHtml(cats(), r.cat || 'Other')}</select></td>
-        <td><select onchange="rdHcSaveTask(${x.index},'owner',this.value)">${selectHtml(owners(), r.owner || 'Both')}</select></td>
-        <td><select onchange="rdHcSaveTask(${x.index},'status',this.value)">${selectHtml(statuses(), r.status || 'Not Started')}</select></td>
-        <td><textarea rows="2" oninput="rdHcSaveTask(${x.index},'notes',this.value)">${esc(r.notes || '')}</textarea></td>
-      </tr>`;
-    });
-    html += '</tbody></table></div></section>';
-    host.innerHTML = html;
-  }
-
-  function renderNameChangeView() {
-    const host = document.getElementById('hc-view-namechange');
+  function renderNameChange() {
+    const host = document.getElementById('hc-sec-namechange');
     if (!host) return;
     const d = ensureData();
-    let html = '<section class="ued-table-card"><div class="ued-table-head"><div><div class="ued-kicker">Name change</div><div class="ued-table-title">Legal and account updates</div></div><button type="button" class="rd-btn" onclick="rdHcAddNameChange()">+ Add name-change task</button></div>';
-    html += '<div class="ued-table-wrap"><table class="ued-table rd-table"><thead><tr><th>Task</th><th>Category</th><th>Due</th><th>Status</th><th>Done</th><th>Notes</th></tr></thead><tbody>';
-    if (!d.nameChange.length) html += '<tr><td colspan="6" class="rd-empty">No name-change tasks yet.</td></tr>';
-    d.nameChange.forEach((r, i) => {
-      html += `<tr>
-        <td><input class="no-currency" data-currency="false" value="${esc(r.task || '')}" placeholder="Task" oninput="rdHcSaveName(${i},'task',this.value)"></td>
-        <td><select onchange="rdHcSaveName(${i},'category',this.value)">${selectHtml(nameCats(), r.category || 'Legal')}</select></td>
-        <td><input type="date" value="${esc(r.due || '')}" onchange="rdHcSaveName(${i},'due',this.value)"></td>
-        <td><select onchange="rdHcSaveName(${i},'status',this.value)">${selectHtml(nameStatuses(), r.status || 'Not Started')}</select></td>
-        <td><input type="checkbox"${r.done || completeStatus(r.status) ? ' checked' : ''} onchange="rdHcSaveName(${i},'done',this.checked)"></td>
-        <td><textarea rows="2" oninput="rdHcSaveName(${i},'notes',this.value)">${esc(r.notes || '')}</textarea></td>
-      </tr>`;
+    const n = d.nameChange.length;
+    let html = sectionHead(
+      'Name change · ' + n + ' institution' + (n === 1 ? '' : 's'),
+      'Nothing can start until the marriage certificate is in hand · order matters, three of these need the passport first',
+      'Print the pack', 'rdHcPrintNamePack()'
+    );
+    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hc-table"><thead><tr>` +
+      `<th style="width:34px"></th><th>Institution</th><th>Document needed</th><th>Submitted</th><th>Confirmed</th><th>Blocks</th><th>Status</th>` +
+      `</tr></thead><tbody>`;
+    NAME_BANDS.forEach(band => {
+      const rows = d.nameChange
+        .map((row, index) => ({ row, index }))
+        .filter(x => (x.row.band || mapNameBand(x.row.category, x.row.status)) === band.id);
+      if (!rows.length) return;
+      html += `<tr class="rd-group-row rd-hc-group"><td colspan="7">${esc(band.label)} · ${rows.length}</td></tr>`;
+      rows.forEach(x => {
+        const r = x.row;
+        const id = 'nameChange:' + x.index;
+        const sel = window._hcSel.has(id);
+        html += `<tr class="${sel ? 'is-selected' : ''}">` +
+          `<td><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdHcToggleSel('${esc(id)}')"></td>` +
+          `<td><input class="no-currency" data-currency="false" value="${esc(r.institution || r.task || '')}" placeholder="Institution" oninput="rdHcSaveName(${x.index},'institution',this.value)"></td>` +
+          `<td><input class="no-currency" data-currency="false" value="${esc(r.document || '')}" placeholder="Document" oninput="rdHcSaveName(${x.index},'document',this.value)"></td>` +
+          `<td><input type="date" value="${esc(r.submitted || '')}" onchange="rdHcSaveName(${x.index},'submitted',this.value)"></td>` +
+          `<td><input type="date" value="${esc(r.confirmed || '')}" onchange="rdHcSaveName(${x.index},'confirmed',this.value)"></td>` +
+          `<td><input class="no-currency" data-currency="false" value="${esc(r.blocks || '')}" placeholder="—" oninput="rdHcSaveName(${x.index},'blocks',this.value)"></td>` +
+          `<td><select onchange="rdHcSaveName(${x.index},'status',this.value)">${selectHtml(STATUSES, r.status || 'Not Started')}</select></td>` +
+          `</tr>`;
+      });
     });
-    html += '</tbody></table></div></section>';
+    if (!n) html += `<tr><td colspan="7" class="rd-empty">No institutions yet. Add the registry first — everything else waits on the certificate.</td></tr>`;
+    html += `</tbody></table></div>`;
+    html += `<button type="button" class="rd-hc-addbtn" onclick="rdHcAddNameChange()"><span>+</span> Add an institution</button>`;
     host.innerHTML = html;
   }
 
-  function renderBudgetView() {
-    const host = document.getElementById('hc-view-budget');
+  function renderBudget() {
+    const host = document.getElementById('hc-sec-budget');
     if (!host) return;
+    const d = ensureData();
+    const rows = d.firstMonthBudget;
     const f = hcFigures();
-    const note = f.firstMonthBudgetNote
-      ? esc(f.firstMonthBudgetNote)
-      : 'Add the first-month budget meeting in First-Month Rhythms, then open Budget for the numbers.';
-    host.innerHTML = `<section class="ued-table-card rd-hc-budget">
-      <div class="ued-table-head"><div><div class="ued-kicker">First month budget</div><div class="ued-table-title">First-month money handoff</div></div></div>
-      <div class="rd-hc-budget__body">
-        <p><strong>First-month note:</strong> ${note}</p>
-        <p>Use this as a handoff: decide when you will sit down together, then open Budget to review wedding closeout, gift deposits, shared expenses, and first household categories.</p>
-        <div class="rd-hc-budget__actions">
-          <button type="button" class="rd-btn rd-btn--primary" onclick="rdHcOpenBudget()">Open Budget</button>
-          <button type="button" class="rd-btn" onclick="typeof showPanel==='function'&&showPanel('firstmonth', true)">Open First-Month Rhythms</button>
-        </div>
-      </div>
-    </section>`;
+    const begins = beginsDate();
+    const end = begins ? new Date(begins.getTime()) : null;
+    if (end) end.setMonth(end.getMonth() + 1);
+    const range = begins && end
+      ? (fmtLong(begins).replace(/,\s*\d{4}/, '') + ' to ' + fmtLong(end).replace(/,\s*\d{4}/, '') + ' · the first month with no wedding in it')
+      : 'The first month with no wedding in it';
+    let html = sectionHead(
+      'First month budget · ' + rows.length + ' line' + (rows.length === 1 ? '' : 's'),
+      range,
+      'Open the Budget', "typeof showPanel==='function'&&showPanel('budget')"
+    );
+    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hc-table"><thead><tr>` +
+      `<th style="width:34px"></th><th>Line</th><th>Category</th><th>Budgeted</th><th>Spent</th><th>Left</th><th>Note</th>` +
+      `</tr></thead><tbody>`;
+    BUDGET_CATS.forEach(cat => {
+      const list = rows.map((row, index) => ({ row, index })).filter(x => String(x.row.category || '') === cat);
+      if (!list.length) return;
+      const sum = list.reduce((s, x) => s + (parseFloat(x.row.budgeted) || 0), 0);
+      html += `<tr class="rd-group-row rd-hc-group"><td colspan="7">${esc(cat)} · ${money0(sum)} budgeted</td></tr>`;
+      list.forEach(x => {
+        const r = x.row;
+        const budgeted = parseFloat(r.budgeted) || 0;
+        const spent = parseFloat(r.spent) || 0;
+        const left = budgeted - spent;
+        const id = 'firstMonthBudget:' + x.index;
+        const sel = window._hcSel.has(id);
+        html += `<tr class="${sel ? 'is-selected' : ''}">` +
+          `<td><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdHcToggleSel('${esc(id)}')"></td>` +
+          `<td><input class="no-currency" data-currency="false" value="${esc(r.line || r.item || '')}" placeholder="Line" oninput="rdHcSaveBudget(${x.index},'line',this.value)"></td>` +
+          `<td><select onchange="rdHcSaveBudget(${x.index},'category',this.value)">${selectHtml(BUDGET_CATS, r.category || 'Living')}</select></td>` +
+          `<td><input class="no-currency" data-currency="false" inputmode="decimal" value="${esc(r.budgeted == null ? '' : r.budgeted)}" oninput="rdHcSaveBudget(${x.index},'budgeted',this.value)"></td>` +
+          `<td><input class="no-currency" data-currency="false" inputmode="decimal" value="${esc(r.spent == null ? '' : r.spent)}" oninput="rdHcSaveBudget(${x.index},'spent',this.value)"></td>` +
+          `<td>${esc(money0(left))}</td>` +
+          `<td><input class="no-currency" data-currency="false" value="${esc(r.note || r.notes || '')}" placeholder="Note" oninput="rdHcSaveBudget(${x.index},'note',this.value)"></td>` +
+          `</tr>`;
+      });
+    });
+    const orphan = rows.map((row, index) => ({ row, index })).filter(x => !BUDGET_CATS.includes(String(x.row.category || '')));
+    orphan.forEach(x => {
+      const r = x.row;
+      const budgeted = parseFloat(r.budgeted) || 0;
+      const spent = parseFloat(r.spent) || 0;
+      html += `<tr>` +
+        `<td></td>` +
+        `<td><input class="no-currency" data-currency="false" value="${esc(r.line || '')}" oninput="rdHcSaveBudget(${x.index},'line',this.value)"></td>` +
+        `<td><select onchange="rdHcSaveBudget(${x.index},'category',this.value)">${selectHtml(BUDGET_CATS, r.category || 'Living')}</select></td>` +
+        `<td><input class="no-currency" data-currency="false" value="${esc(r.budgeted == null ? '' : r.budgeted)}" oninput="rdHcSaveBudget(${x.index},'budgeted',this.value)"></td>` +
+        `<td><input class="no-currency" data-currency="false" value="${esc(r.spent == null ? '' : r.spent)}" oninput="rdHcSaveBudget(${x.index},'spent',this.value)"></td>` +
+        `<td>${esc(money0(budgeted - spent))}</td>` +
+        `<td><input class="no-currency" data-currency="false" value="${esc(r.note || '')}" oninput="rdHcSaveBudget(${x.index},'note',this.value)"></td>` +
+        `</tr>`;
+    });
+    if (!rows.length) {
+      html += `<tr><td colspan="7" class="rd-empty">No first-month budget lines yet. Add rent, admin, and living — this total never appears on the wedding Budget page.</td></tr>`;
+    } else {
+      html += `<tr class="rd-hc-total"><td colspan="3">Total</td><td>${esc(money0(f.budgeted))}</td><td>${esc(money0(f.spent))}</td><td>${esc(money0(f.budgeted - f.spent))}</td><td>Separate from the wedding budget</td></tr>`;
+    }
+    html += `</tbody></table></div>`;
+    html += `<button type="button" class="rd-hc-addbtn" onclick="rdHcAddBudget()"><span>+</span> Add a budget line</button>`;
+    host.innerHTML = html;
   }
+
+  function renderNoticed() {
+    const host = document.getElementById('hc-sec-noticed');
+    if (!host) return;
+    const d = ensureData();
+    const ref = d.homecomingReflection;
+    let html = sectionHead(
+      'What we noticed',
+      'One page in the whole planner that asks a question instead of tracking an answer',
+      'Write an entry', "rdHcFocusNoticed()"
+    );
+    html += `<div class="rd-keepsake rd-hc-keepsake" id="homecoming-reflection">` +
+      `<p class="rd-hc-keepsake__lead">Three questions to answer together at the end of the first month, written down rather than remembered.</p>` +
+      NOTICED_PROMPTS.map(p => {
+        const val = String(ref[p.id] || '');
+        return `<article class="rd-hc-keepsake__q" id="hc-noticed-${p.id}">` +
+          `<div class="rd-hc-keepsake__n">${esc(p.n)}</div>` +
+          `<div class="rd-hc-keepsake__body">` +
+          `<h3>${esc(p.q)}</h3>` +
+          `<textarea rows="3" placeholder="${esc(p.hint)}" oninput="rdHcSaveNoticed('${p.id}',this.value)">${esc(val)}</textarea>` +
+          `</div></article>`;
+      }).join('') +
+      `</div>`;
+    host.innerHTML = html;
+  }
+
+  /* ── mutations ───────────────────────────────────────────────────────── */
 
   function rdHcSaveTask(index, key, val) {
     const d = ensureData();
     if (!d.homecoming[index]) return;
     d.homecoming[index][key] = val;
+    if (key === 'task') d.homecoming[index].item = val;
+    if (key === 'area') d.homecoming[index].cat = val;
     saveNow();
     renderStats();
-    if (key === 'status') renderToolbar();
   }
   function rdHcSaveName(index, key, val) {
     const d = ensureData();
     if (!d.nameChange[index]) return;
     d.nameChange[index][key] = val;
+    if (key === 'institution') d.nameChange[index].task = val;
     if (key === 'status') d.nameChange[index].done = completeStatus(val);
-    if (key === 'done') d.nameChange[index].status = val ? 'Complete' : (d.nameChange[index].status === 'Complete' ? 'In Progress' : d.nameChange[index].status || 'Not Started');
+    if (key === 'confirmed' && val) d.nameChange[index].status = 'Complete';
     saveNow();
     renderStats();
-    renderToolbar();
+  }
+  function rdHcSaveBudget(index, key, val) {
+    const d = ensureData();
+    if (!d.firstMonthBudget[index]) return;
+    d.firstMonthBudget[index][key] = val;
+    saveNow();
+    renderStats();
+    if (key === 'budgeted' || key === 'spent' || key === 'category') renderBudget();
+  }
+  function rdHcSaveNoticed(id, val) {
+    const d = ensureData();
+    d.homecomingReflection[id] = val;
+    saveNow();
   }
   function rdHcAddTask() {
-    if (typeof addHCRow === 'function') {
-      addHCRow();
-      setTimeout(() => { if (typeof renderHomecomingRd === 'function') renderHomecomingRd(); }, 60);
-      return;
-    }
     const d = ensureData();
-    d.homecoming.push({ cat: 'Home Setup', item: '', status: 'Not Started', owner: 'Both', notes: '' });
+    d.homecoming.push({
+      task: '', item: '', area: 'The home', cat: 'Home Setup',
+      owner: 'Both', due: '', dependsOn: '', status: 'Not Started', notes: ''
+    });
     saveNow();
     renderHomecomingRd();
+    scrollToSection('settling');
   }
   function rdHcAddNameChange() {
     const d = ensureData();
-    if (typeof openRecordEditor === 'function') {
-      openRecordEditor('nameChange');
-      return;
-    }
-    d.nameChange.push({ task: '', category: 'Legal', due: '', status: 'Not Started', done: false, notes: '' });
+    d.nameChange.push({
+      institution: '', task: '', document: '', submitted: '', confirmed: '',
+      blocks: '', status: 'Not Started', band: 'any', category: 'Other', done: false, notes: ''
+    });
     saveNow();
     renderHomecomingRd();
+    scrollToSection('namechange');
   }
-  function rdHcAddAfter() {
-    if (typeof openRecordEditor === 'function') openRecordEditor('tasks');
-    else if (typeof addTaskRow === 'function') addTaskRow();
-  }
-  function rdHcOpenAfter(id) {
-    const t = afterTasks().find(x => x.id === id);
-    if (!t) return;
-    if (t.src === 'homecoming') {
-      window._hcMode = 'tasks';
-      window._hcRailView = 'settling';
-      renderHomecomingRd();
-      return;
-    }
-    if (t.src === 'nameChange') {
-      window._hcMode = 'namechange';
-      window._hcRailView = 'namechange';
-      renderHomecomingRd();
-      return;
-    }
-    if (typeof openRecordEditor === 'function') openRecordEditor(t.src, t.index);
+  function rdHcAddBudget() {
+    const d = ensureData();
+    d.firstMonthBudget.push({ line: '', category: 'Living', budgeted: '', spent: '', note: '' });
+    saveNow();
+    renderHomecomingRd();
+    scrollToSection('budget');
   }
   async function rdHcLoadPreset() {
     if (typeof loadHCPreset === 'function') {
       const out = loadHCPreset();
       if (out && typeof out.then === 'function') await out;
-      renderHomecomingRd();
-      return;
+    } else {
+      const d = ensureData();
+      [
+        ['The home', 'Move things into the new home', 'Both'],
+        ['The home', 'Sign the tenancy · both names', 'Both'],
+        ['Wedding wrap-up', 'Return hired attire', 'Both'],
+        ['Wedding wrap-up', 'Write the last thank-you notes', 'Both'],
+        ['Documents', 'Collect the marriage certificate', 'Both'],
+        ['Church', 'Thank the officiant in person', 'Both']
+      ].forEach(([area, task, owner]) => d.homecoming.push({
+        task, item: task, area, cat: area, owner, due: '', dependsOn: '', status: 'Not Started', notes: ''
+      }));
     }
     const d = ensureData();
-    [
-      ['Documents', 'Place marriage certificate copies in a safe folder'],
-      ['Thank-You Notes', 'Begin thank-you note batches'],
-      ['Home Setup', 'Unpack wedding day and honeymoon bags'],
-      ['Photos', 'Back up wedding photos and videos'],
-      ['Banking', 'Deposit cash gifts and record totals']
-    ].forEach(([cat, item]) => d.homecoming.push({ cat, item, status: 'Not Started', owner: 'Both', notes: '' }));
+    if (!d.nameChange.length) {
+      [
+        ['first', 'Births & Deaths Registry', 'Marriage certificate', 'All ten below'],
+        ['first', 'Passport office', 'Certificate + old passport', 'Bank, licence, NHIS'],
+        ['then', 'Bank', 'New passport + Ghana Card', 'Joint account'],
+        ['then', 'Driver’s licence', 'New passport', ''],
+        ['any', 'Employer · payroll and HR', 'Certificate', 'Pension, tax']
+      ].forEach(([band, institution, document, blocks]) => d.nameChange.push({
+        band, institution, task: institution, document, blocks,
+        submitted: '', confirmed: '', status: 'Not Started', done: false, notes: ''
+      }));
+    }
+    if (!d.firstMonthBudget.length) {
+      [
+        ['Setting up the home', 'First month rent', 600, 'Due day 1 of the month'],
+        ['Setting up the home', 'Utilities connection', 120, ''],
+        ['Admin', 'Passport renewal', 180, ''],
+        ['Admin', 'Marriage certificate copies', 40, 'Institutions keep the original'],
+        ['Living', 'Groceries above the usual', 340, 'Hosting in the first month']
+      ].forEach(([category, line, budgeted, note]) => d.firstMonthBudget.push({
+        category, line, budgeted, spent: 0, note
+      }));
+    }
     saveNow();
     renderHomecomingRd();
   }
@@ -470,9 +655,22 @@
     } else if (typeof printCurrentPage === 'function') printCurrentPage();
     else window.print();
   }
+  function rdHcPrintNamePack() { rdHcPrint(); }
+  function rdHcFullEditor() {
+    if (typeof openRecordEditor !== 'function') return;
+    const mode = window._hcMode || 'tasks';
+    if (mode === 'namechange') openRecordEditor('nameChange');
+    else if (mode === 'budget') openRecordEditor('homecoming');
+    else openRecordEditor('homecoming');
+  }
   function rdHcExport() {
     const d = ensureData();
-    const payload = { homecoming: d.homecoming, nameChange: d.nameChange, afterTasks: afterTasks() };
+    const payload = {
+      homecoming: d.homecoming,
+      nameChange: d.nameChange,
+      firstMonthBudget: d.firstMonthBudget,
+      homecomingReflection: d.homecomingReflection
+    };
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
     a.download = 'newlywed-homecoming.json';
@@ -481,29 +679,104 @@
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
     if (typeof showToast === 'function') showToast('Homecoming exported.');
   }
-  function rdHcOpenBudget() {
-    if (typeof showToast === 'function') showToast('Review wedding closeout and first household categories together.');
-    if (typeof showPanel === 'function') showPanel('budget', true);
+  function rdHcFocusNoticed() {
+    applyHomecomingRailView('noticed');
+    const ta = document.querySelector('#hc-sec-noticed textarea');
+    if (ta) ta.focus();
+  }
+  function rdHcCycleFilter(field) {
+    const opts = { all: true };
+    const d = ensureData();
+    if (field === 'area') d.homecoming.forEach(r => { opts[r.area || mapLegacyArea(r.cat) || 'Other'] = true; });
+    if (field === 'owner') { opts.both = true; d.homecoming.forEach(r => { opts[r.owner || 'Both'] = true; }); }
+    if (field === 'status') d.homecoming.forEach(r => { opts[r.status || 'Not Started'] = true; });
+    const list = Object.keys(opts);
+    const cur = (window._hcUiFilters || {})[field] || (field === 'owner' ? 'both' : 'all');
+    const i = Math.max(0, list.indexOf(cur));
+    window._hcUiFilters[field] = list[(i + 1) % list.length];
+    renderToolbar();
+    renderSettling();
+  }
+  function rdHcClearFilter(field) {
+    window._hcUiFilters[field] = field === 'owner' ? 'both' : 'all';
+    renderToolbar();
+    renderSettling();
+  }
+  function rdHcSortDue() {
+    const d = ensureData();
+    d.homecoming.sort((a, b) => String(a.due || '9999').localeCompare(String(b.due || '9999')));
+    saveNow();
+    renderSettling();
+  }
+  function rdHcToggleSel(id) {
+    if (window._hcSel.has(id)) window._hcSel.delete(id);
+    else window._hcSel.add(id);
+    renderBulkBar();
+    renderSettling();
+    renderNameChange();
+    renderBudget();
+  }
+  function rdHcBulkClear() {
+    window._hcSel.clear();
+    renderBulkBar();
+    renderHomecomingRd();
+  }
+  function rdHcBulkDone() {
+    const d = ensureData();
+    window._hcSel.forEach(id => {
+      const [src, idx] = id.split(':');
+      const i = parseInt(idx, 10);
+      if (src === 'homecoming' && d.homecoming[i]) d.homecoming[i].status = 'Complete';
+      if (src === 'nameChange' && d.nameChange[i]) { d.nameChange[i].status = 'Complete'; d.nameChange[i].done = true; }
+    });
+    saveNow();
+    rdHcBulkClear();
+  }
+  function rdHcBulkOwner() {
+    const owner = window.prompt('Assign owner', 'Both');
+    if (!owner) return;
+    const d = ensureData();
+    window._hcSel.forEach(id => {
+      const [src, idx] = id.split(':');
+      const i = parseInt(idx, 10);
+      if (src === 'homecoming' && d.homecoming[i]) d.homecoming[i].owner = owner;
+    });
+    saveNow();
+    rdHcBulkClear();
+  }
+  function rdHcBulkDue() {
+    const due = window.prompt('Due date (YYYY-MM-DD)', '');
+    if (!due) return;
+    const d = ensureData();
+    window._hcSel.forEach(id => {
+      const [src, idx] = id.split(':');
+      const i = parseInt(idx, 10);
+      if (src === 'homecoming' && d.homecoming[i]) d.homecoming[i].due = due;
+    });
+    saveNow();
+    rdHcBulkClear();
   }
 
   function renderHomecomingRd() {
     ensureData();
-    if (typeof getSavedView === 'function') window._hcRailView = getSavedView('homecoming', window._hcRailView || 'settling');
+    if (typeof getSavedView === 'function') {
+      let saved = getSavedView('homecoming', window._hcRailView || 'settling');
+      if (saved === 'after') saved = 'settling';
+      window._hcRailView = ['settling', 'namechange', 'budget', 'noticed'].includes(saved) ? saved : 'settling';
+    }
+    if (window._hcMode === 'after') window._hcMode = 'tasks';
     if (window._hcRailView === 'namechange') window._hcMode = 'namechange';
     else if (window._hcRailView === 'budget') window._hcMode = 'budget';
-    else if (window._hcRailView === 'noticed') window._hcMode = 'tasks';
-    else if (window._hcMode !== 'namechange' && window._hcMode !== 'budget' && window._hcMode !== 'tasks') {
-      window._hcMode = 'after';
-    }
+    else window._hcMode = 'tasks';
     ensureShell();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('homecoming');
-    applyMode();
     renderStats();
     renderToolbar();
-    renderAfterView();
-    renderTasksView();
-    renderNameChangeView();
-    renderBudgetView();
+    renderBulkBar();
+    renderSettling();
+    renderNameChange();
+    renderBudget();
+    renderNoticed();
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'homecoming'
       && document.body.classList.contains('context-sidebar-mode')) {
@@ -517,20 +790,31 @@
   window.renderHomecomingRd = renderHomecomingRd;
   window.rdSetHomecomingView = rdSetHomecomingView;
   window.applyHomecomingRailView = applyHomecomingRailView;
+  window.applyHomecomingGroupBy = applyHomecomingGroupBy;
   window.hcRailCounts = hcRailCounts;
   window.hcFigures = hcFigures;
-  window.hcAfterTasks = afterTasks;
   window.hcThankYouDue = thankYouDue;
   window.rdHcSaveTask = rdHcSaveTask;
   window.rdHcSaveName = rdHcSaveName;
+  window.rdHcSaveBudget = rdHcSaveBudget;
+  window.rdHcSaveNoticed = rdHcSaveNoticed;
   window.rdHcAddTask = rdHcAddTask;
   window.rdHcAddNameChange = rdHcAddNameChange;
-  window.rdHcAddAfter = rdHcAddAfter;
-  window.rdHcOpenAfter = rdHcOpenAfter;
+  window.rdHcAddBudget = rdHcAddBudget;
   window.rdHcLoadPreset = rdHcLoadPreset;
   window.rdHcPrint = rdHcPrint;
+  window.rdHcPrintNamePack = rdHcPrintNamePack;
+  window.rdHcFullEditor = rdHcFullEditor;
   window.rdHcExport = rdHcExport;
-  window.rdHcOpenBudget = rdHcOpenBudget;
+  window.rdHcFocusNoticed = rdHcFocusNoticed;
+  window.rdHcCycleFilter = rdHcCycleFilter;
+  window.rdHcClearFilter = rdHcClearFilter;
+  window.rdHcSortDue = rdHcSortDue;
+  window.rdHcToggleSel = rdHcToggleSel;
+  window.rdHcBulkClear = rdHcBulkClear;
+  window.rdHcBulkDone = rdHcBulkDone;
+  window.rdHcBulkOwner = rdHcBulkOwner;
+  window.rdHcBulkDue = rdHcBulkDue;
 
   function hookHomecomingPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) window.SYSTEM_PANEL_RENDERERS.homecoming = function () { renderHomecomingRd(); };
@@ -544,7 +828,6 @@
       return out;
     };
   }
-
   var _loadHCPreset = window.loadHCPreset;
   if (typeof _loadHCPreset === 'function' && !_loadHCPreset.__rdHomecomingWrapped) {
     var wrapped = async function () {

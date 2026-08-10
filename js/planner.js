@@ -23,7 +23,7 @@ function blankData() {
     party: [], tables: [], gifts: [], shotlist: [], videoShotlist: [], recSongs: [], recMoments: [], speeches: [],
     menu: [], beverages: [], kidsMenu: [], placeSettings: [], cateringRentals: [], cateringMeta: {}, venue: {}, vtimeline: [], essentials: [], plan: [],
     entertainment: [], mustPlay: [], doNotPlay: [], receptionPlaylist: [], palettes: [], moodPhotos: [], moodFavorites: [], moodItems: [],
-    honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
+    honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], firstMonthBudget: [], homecomingReflection: {}, honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
     packets: [], emailTemplates: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
     vision: {}, homecoming: [], firstmonth: {}, marriageLicense: {},
     vendorCompare: [], reception: {}, attire: [], decor: [], stationery: [], events: [], locations: [], contacts: [],
