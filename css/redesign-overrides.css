@@ -16889,7 +16889,9 @@ body.rd-scope #panel-honeymoon .rd-hm-drawer .rd-drawer__foot {
     box-shadow: -8px 0 24px rgba(32, 54, 45, .08);
   }
   body.rd-scope #panel-honeymoon .rd-surface__row { position: relative; }
-  body.rd-scope #panel-honeymoon .rd-hm-callouts { grid-template-columns: 1fr; }
+  body.rd-scope #panel-honeymoon .rd-hm-callouts,
+  body.rd-scope #panel-homecoming .rd-hm-callouts,
+  body.rd-scope #panel-homecoming .rd-hc-callouts { grid-template-columns: 1fr; }
 }
 
 /* ── Prayer Journal (All.dc #13b) ─────────────────────────────────────────── */
