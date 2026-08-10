@@ -1,588 +1,676 @@
-/* Planner History — All.dc 18b + Views 31i/31j + Drawers batch
-   (Change · Record · Snapshot).
-   Untabbed. Three views share one shell:
-     Log         — data._historyLog, one row per saved change, filterable by day.
-     By record   — data._recordHistory grouped by entity+id, newest activity first.
-     Field detail — every value one field on one record has held, newest first.
-   Stat strip: Saved changes · Selected day · Undo steps · Redo steps. The four
-   stat ids and the Undo/Redo buttons keep their legacy ids (`history-stat-*`,
-   `history-undo-btn`, `history-redo-btn`) so updateHistoryControls() — called
-   from dozens of places whenever data changes — keeps them live without any
-   changes to planner.js's undo/redo/save code. */
+/* Planner History — All.dc #18b
+   No-tab page reached from the top-bar undo/redo cluster and prefs.
+   Views: By day | By record | Field detail.
+   Rail: Filter by record · Retention · Jump to.
+   Log capped at HISTORY_LOG_LIMIT (200). Undo snapshots stay at HISTORY_SNAPSHOT_LIMIT. */
 (function () {
   'use strict';
 
-  window._histView = window._histView || 'log';
-  window._histRailCat = window._histRailCat || 'all';
-  window._histDrawer = window._histDrawer || null;   /* {kind:'log', id} | {kind:'record', bucket, entryIndex, field} */
-  window._histDrawerTab = window._histDrawerTab || 0;
-  window._histRecordBucket = window._histRecordBucket || null;
-  window._histFieldKey = window._histFieldKey || null;
+  window._histMode = window._histMode || 'day';
+  window._histRailFilter = window._histRailFilter || 'all';
+  window._histJump = window._histJump || 'all';
+  window._histUiFilters = window._histUiFilters || { record: 'all', who: 'both', date: 'all' };
+  window._histSortNewest = window._histSortNewest !== false;
+  window._histPageSize = window._histPageSize || 50;
+  window._histVisible = window._histVisible || 50;
+  window._histSel = window._histSel instanceof Set ? window._histSel : new Set();
+
+  const RECORD_FILTERS = [
+    { id: 'all', label: 'Everything', match: null },
+    { id: 'guests', label: 'Guests', match: /guest|household|party|gift|table/i },
+    { id: 'budget', label: 'Budget & payments', match: /budget|payment|contract|rental/i },
+    { id: 'tasks', label: 'Tasks', match: /task|timeline|planning|appointment|calendar/i },
+    { id: 'vendors', label: 'Vendors', match: /vendor|venue|catering|entertainment|shot/i },
+    { id: 'tables', label: 'Table layout', match: /table layout|seating|tables/i },
+    { id: 'other', label: 'Everything else', match: null }
+  ];
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
-    : String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c])));
+    : String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])));
 
-  /* ── entity + rail category maps ────────────────────────────────────────── */
-
-  const ENTITY_META = {
-    guests: { label: 'Guest', plural: 'Guest List', panel: 'guests', category: 'guests' },
-    tasks: { label: 'Task', plural: 'Planning Timeline', panel: 'tasks', category: 'tasks' },
-    vendors: { label: 'Vendor', plural: 'Venue & Vendors', panel: 'vendors', category: 'vendors' },
-    budget: { label: 'Budget line', plural: 'Budget', panel: 'budget', category: 'budget' },
-    payments: { label: 'Payment', plural: 'Payments', panel: 'payments', category: 'budget' },
-    party: { label: 'Wedding party member', plural: 'Wedding Party', panel: 'party', category: null },
-    tables: { label: 'Table', plural: 'Table Layout', panel: 'tables', category: null },
-    gifts: { label: 'Gift', plural: 'Gift Log', panel: 'gifts', category: null },
-    contracts: { label: 'Contract', plural: 'Contracts, Invoices & Rentals', panel: 'contracts', category: null },
-    appointments: { label: 'Appointment', plural: 'Appointments', panel: 'appointments', category: null },
-    calendarEvents: { label: 'Calendar event', plural: 'Smart Calendar', panel: 'calendar', category: null },
-    notesDetails: { label: 'Note', plural: 'Notes', panel: 'notes', category: null },
-    vtimeline: { label: 'Arrival', plural: 'Vendor Arrival Timeline', panel: 'venue', category: 'vendors' }
-  };
-  function entityMeta(entity) {
-    return ENTITY_META[entity] || {
-      label: (typeof historySectionLabel === 'function' ? historySectionLabel(entity) : entity),
-      plural: (typeof historySectionLabel === 'function' ? historySectionLabel(entity) : entity),
-      panel: entity, category: null
-    };
-  }
-
-  const RAIL_CATEGORIES = [
-    { id: 'all', label: 'Everything', logSources: null, entities: null },
-    { id: 'guests', label: 'Guests', logSources: ['Guest List'], entities: ['guests'] },
-    { id: 'budget', label: 'Budget & payments', logSources: ['Budget', 'Payments'], entities: ['budget', 'payments'] },
-    { id: 'tasks', label: 'Tasks', logSources: ['Planning Timeline'], entities: ['tasks'] },
-    { id: 'vendors', label: 'Vendors', logSources: ['Venue & Vendors'], entities: ['vendors', 'vtimeline'] }
-  ];
-  function railCategory(id) { return RAIL_CATEGORIES.find(c => c.id === id) || RAIL_CATEGORIES[0]; }
-  function logMatchesCategory(item, catId) {
-    const cat = railCategory(catId);
-    if (!cat.logSources) return true;
-    return cat.logSources.indexOf(item.source) !== -1;
-  }
-  function entityMatchesCategory(entity, catId) {
-    const cat = railCategory(catId);
-    if (!cat.entities) return true;
-    return cat.entities.indexOf(entity) !== -1;
-  }
-
-  const SOURCE_LABEL_TO_PANEL = {
-    'Get Started': 'instructions', 'FAQ': 'faq', 'Planner History': 'history', 'Dashboard': 'dashboard',
-    'Wedding Setup': 'setup', 'Database Hub': 'data-hub', 'Budget': 'budget', 'Payments': 'payments',
-    'Venue & Vendors': 'vendors', 'Guest List': 'guests', 'Planning Timeline': 'tasks', 'Smart Calendar': 'calendar',
-    'Appointments': 'appointments', 'Notes': 'notes', 'Contracts, Invoices & Rentals': 'contracts',
-    'Catering & Menu': 'catering', 'Wedding Party': 'party', 'Table Layout': 'tables',
-    'Ceremony & Reception': 'ceremony', 'Wedding Day Timeline': 'timeline', 'Music & Speeches': 'entertainment',
-    'Photo & Video Shot Lists': 'shotlist', 'Vision Board': 'mood', 'Essentials Checklist': 'essentials',
-    'Gift Log': 'gifts', 'Honeymoon & After': 'honeymoon', 'Prayer Journal': 'prayer', 'Premarital Counseling': 'counseling'
-  };
-
-  function ensureHistoryData() {
-    if (typeof normalizeHistoryState === 'function') normalizeHistoryState();
+  function store() {
+    if (typeof getCovenantPlannerData === 'function') return getCovenantPlannerData();
+    try { if (typeof data !== 'undefined') return data; } catch (e) { /* lexical */ }
     if (!window.data) window.data = {};
-    if (!Array.isArray(data._historyLog)) data._historyLog = [];
-    if (!Array.isArray(data._undoSnapshots)) data._undoSnapshots = [];
-    if (!Array.isArray(data._redoSnapshots)) data._redoSnapshots = [];
-    if (!data._historyPrefs || typeof data._historyPrefs !== 'object') data._historyPrefs = {};
-    if (!data._recordHistory || typeof data._recordHistory !== 'object') data._recordHistory = {};
-    return data;
+    return window.data;
   }
-
-  function relTime(iso) {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '—';
-    const days = Math.floor((Date.now() - d.getTime()) / 86400000);
-    if (days <= 0) {
-      const h = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      return 'today ' + h;
-    }
-    if (days === 1) return 'yesterday';
-    if (days < 30) return days + ' days ago';
-    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  function ensureData() {
+    const d = store();
+    if (!Array.isArray(d._historyLog)) d._historyLog = [];
+    if (!Array.isArray(d._undoSnapshots)) d._undoSnapshots = [];
+    if (!Array.isArray(d._redoSnapshots)) d._redoSnapshots = [];
+    if (!d._historyPrefs || typeof d._historyPrefs !== 'object') d._historyPrefs = {};
+    return d;
   }
-
-  function historyTodayISOSafe() {
+  function logLimit() {
+    return (typeof HISTORY_LOG_LIMIT === 'number' && HISTORY_LOG_LIMIT > 0) ? HISTORY_LOG_LIMIT : 200;
+  }
+  function snapLimit() {
+    return (typeof HISTORY_SNAPSHOT_LIMIT === 'number' && HISTORY_SNAPSHOT_LIMIT > 0) ? HISTORY_SNAPSHOT_LIMIT : 15;
+  }
+  function todayISO() {
     return typeof historyTodayISO === 'function' ? historyTodayISO() : new Date().toISOString().slice(0, 10);
   }
-
-  /* ── shell ───────────────────────────────────────────────────────────────── */
+  function parseISODate(iso) {
+    if (!iso) return null;
+    const dt = new Date(String(iso).slice(0, 10) + 'T00:00:00');
+    return Number.isNaN(dt.getTime()) ? null : dt;
+  }
+  function fmtDayLong(iso) {
+    const dt = parseISODate(iso);
+    if (!dt) return iso || '—';
+    return dt.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+  function fmtDayShort(iso) {
+    const dt = parseISODate(iso);
+    if (!dt) return iso || '—';
+    return dt.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  }
+  function whoLabel() {
+    const d = ensureData();
+    const s = d.setup || {};
+    const bride = String(s.bride || '').trim();
+    if (bride) return bride.split(/\s+/)[0];
+    return 'You';
+  }
+  function entryWho(item) {
+    return String(item.who || whoLabel());
+  }
+  function entryRecord(item) {
+    if (item.record) return String(item.record);
+    return String(item.source || 'Planner');
+  }
+  function entryChange(item) {
+    if (item.change) return String(item.change);
+    if (item.action) return String(item.action);
+    return String(item.details || 'Updated the planner');
+  }
+  function entryFields(item) {
+    if (Array.isArray(item.fields) && item.fields.length) return item.fields;
+    const details = String(item.details || '');
+    const parts = details.split(/;\s*/).filter(Boolean);
+    return parts.map(part => {
+      const m = part.match(/^([^:]+):\s*(.+)$/);
+      if (!m) return { label: part, from: '', to: '' };
+      const arrow = m[2].match(/^(.*?)\s*→\s*(.*)$/);
+      if (arrow) return { label: m[1].trim(), from: arrow[1].trim(), to: arrow[2].trim() };
+      return { label: m[1].trim(), from: '', to: m[2].trim() };
+    });
+  }
+  function recordBucket(item) {
+    const hay = (entryRecord(item) + ' ' + entryChange(item) + ' ' + (item.source || '') + ' ' + (item.details || '')).toLowerCase();
+    for (let i = 1; i < RECORD_FILTERS.length - 1; i++) {
+      if (RECORD_FILTERS[i].match && RECORD_FILTERS[i].match.test(hay)) return RECORD_FILTERS[i].id;
+    }
+    return 'other';
+  }
+  function markUndoability() {
+    const d = ensureData();
+    const undoN = d._undoSnapshots.length;
+    let seen = 0;
+    d._historyLog.forEach(item => {
+      if (item && item.hasSnapshot) {
+        item.undoable = seen < undoN;
+        item.undoRank = seen;
+        seen += 1;
+      } else if (item) {
+        item.undoable = false;
+        item.undoRank = -1;
+      }
+    });
+  }
+  function histFigures() {
+    const d = ensureData();
+    markUndoability();
+    const log = d._historyLog;
+    const today = todayISO();
+    const todayCount = log.filter(i => i.date === today).length;
+    const limit = logLimit();
+    const snapMax = snapLimit();
+    const oldest = log.length ? log[log.length - 1] : null;
+    let oldestUndo = null;
+    for (let i = 0; i < log.length; i++) {
+      if (log[i] && log[i].undoable) oldestUndo = log[i];
+    }
+    const capacity = limit ? Math.round((log.length / limit) * 100) : 0;
+    const counts = {};
+    RECORD_FILTERS.forEach(f => { counts[f.id] = 0; });
+    log.forEach(item => {
+      counts.all += 1;
+      counts[recordBucket(item)] = (counts[recordBucket(item)] || 0) + 1;
+    });
+    return {
+      total: log.length,
+      today: todayCount,
+      undo: d._undoSnapshots.length,
+      redo: d._redoSnapshots.length,
+      capacity,
+      logLimit: limit,
+      snapLimit: snapMax,
+      oldestShort: oldest ? fmtDayShort(oldest.date) : '—',
+      oldestUndoShort: oldestUndo
+        ? (fmtDayShort(oldestUndo.date) + (oldestUndo.time ? ' · ' + oldestUndo.time : ''))
+        : '—',
+      counts,
+      warn: capacity >= 80
+    };
+  }
+  function histRailCounts() {
+    return histFigures().counts;
+  }
 
   function pageheadActionsHtml() {
     return ''
-      + '<button type="button" class="rd-btn" onclick="rdHistPrint()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print log</button>'
-      + '<button type="button" class="rd-btn" onclick="rdHistExport()">Export</button>';
+      + '<button type="button" class="rd-btn" onclick="rdHistJumpDate()">Jump to a date</button>'
+      + '<button type="button" class="rd-btn" onclick="rdHistPrint()">Print section</button>'
+      + '<button type="button" class="rd-btn" onclick="rdHistFullEditor()">Full editor</button>'
+      + '<button type="button" class="rd-btn" onclick="rdHistExport()">Export the log</button>'
+      + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdHistUndoLast()">Undo last change</button>';
   }
 
-  function viewSwitchHtml() {
-    const views = [['log', 'Log'], ['record', 'By record'], ['field', 'Field detail']];
-    return '<div class="rd-viewswitch" role="tablist" aria-label="Planner History view">'
-      + views.map(([id, label]) =>
-        `<button type="button" class="rd-viewswitch__item${window._histView === id ? ' is-active' : ''}" onclick="rdHistSetView('${id}')">${esc(label)}</button>`
-      ).join('')
-      + '</div>';
-  }
-
-  function toolbarHtml() {
-    ensureHistoryData();
-    const dateBit = window._histView === 'log'
-      ? `<label class="rd-hist-datefield">Date to review
-          <input id="history-date-filter" type="date" value="${esc(data._historyPrefs.selectedDate || historyTodayISOSafe())}" onchange="rdHistDateChanged(this.value)">
-        </label>`
-      : `<div class="rd-hist-help">${window._histView === 'record'
-          ? 'Grouped by the record each change touched — click a record to see one field&rsquo;s full history.'
-          : 'Every value one field has held on one record, newest first.'}</div>`;
-    return '<section class="rd-toolbar">'
-      + dateBit
-      + '<div class="rd-toolbar__right" style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-      + viewSwitchHtml()
-      + '<button class="rd-btn" onclick="undoPlannerChange()" id="history-undo-btn" disabled>Undo</button>'
-      + '<button class="rd-btn" onclick="redoPlannerChange()" id="history-redo-btn" disabled>Redo</button>'
-      + '<button class="rd-btn rd-btn--danger" onclick="clearPlannerHistory()">Clear history</button>'
-      + '</div></section>';
-  }
-
-  function uedHistoryShellRd() {
+  function ensureShell() {
     const panel = document.getElementById('panel-history');
     if (!panel) return;
-    panel.classList.add('ued-scope', 'history-page');
+    panel.classList.add('ued-scope', 'history-mockup');
     if (panel.dataset.uedShell === 'history-rd18b') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
-      const toolbar = panel.querySelector('.rd-toolbar');
-      if (toolbar) toolbar.outerHTML = toolbarHtml();
       return;
     }
     panel.dataset.uedShell = 'history-rd18b';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
-          <div class="rd-pagehead__eyebrow">History</div>
-          <div class="rd-pagehead__title-row">
-            <h1 class="rd-pagehead__title">Planner History</h1>
-          </div>
+          <div class="rd-pagehead__eyebrow">Reached from the top bar</div>
+          <div class="rd-pagehead__title-row"><h1 class="rd-pagehead__title">Planner History</h1></div>
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
-      <div class="rd-stats" id="history-stats" aria-label="Planner History summary">
-        <div class="rd-stat"><div class="rd-stat__label">Saved changes</div><div class="rd-stat__value" id="history-stat-total">0</div><div class="rd-stat__note">Recorded entries</div></div>
-        <div class="rd-stat"><div class="rd-stat__label">Selected day</div><div class="rd-stat__value" id="history-stat-day">0</div><div class="rd-stat__note">Changes that day</div></div>
-        <div class="rd-stat"><div class="rd-stat__label">Undo steps</div><div class="rd-stat__value" id="history-stat-undo">0</div><div class="rd-stat__note">Available</div></div>
-        <div class="rd-stat"><div class="rd-stat__label">Redo steps</div><div class="rd-stat__value" id="history-stat-redo">0</div><div class="rd-stat__note">Available</div></div>
+      <div class="rd-stats m-stats" id="history-stats" aria-label="History summary"></div>
+      <div class="rd-toolbar" id="history-toolbar"></div>
+      <div class="rd-surface">
+        <div class="rd-surface__row">
+          <div class="rd-surface__main" id="history-view-host"></div>
+        </div>
       </div>
-      ${toolbarHtml()}
-      <div class="rd-page__surface">
-        <div class="rd-page__work" id="history-surface-body"></div>
-        <div id="history-drawer-slot"></div>
-      </div>
+      <input type="date" id="history-date-filter" class="rd-hist-date-hidden" aria-hidden="true" tabindex="-1">
     </div>`;
   }
 
-  /* ── Log view ────────────────────────────────────────────────────────────── */
-
-  function renderLogViewRd(host) {
-    ensureHistoryData();
-    const selectedDate = data._historyPrefs.selectedDate || historyTodayISOSafe();
-    data._historyPrefs.selectedDate = selectedDate;
-    const rows = data._historyLog
-      .filter(item => item.date === selectedDate)
-      .filter(item => logMatchesCategory(item, window._histRailCat));
-    const dayStat = document.getElementById('history-stat-day');
-    if (dayStat) dayStat.textContent = rows.length;
-    host.innerHTML = `<div class="rd-table-wrap"><table class="rd-table">
-      <thead><tr><th>Time</th><th>Page / Source</th><th>Action</th><th>Details</th></tr></thead>
-      <tbody id="history-log-body">${rows.length ? rows.map(item => `<tr onclick="rdHistOpenLogDrawer('${esc(item.id)}')" style="cursor:pointer">
-        <td>${esc(item.time || '')}</td>
-        <td>${esc(item.source || 'Planner')}</td>
-        <td><span class="status-pill">${esc(item.action || 'Updated Planner')}</span></td>
-        <td>${esc(item.details || '')}</td>
-      </tr>`).join('') : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:28px 12px">No changes were recorded for this date${window._histRailCat !== 'all' ? ' in ' + esc(railCategory(window._histRailCat).label) : ''}.</td></tr>`}</tbody>
-    </table></div>`;
-  }
-
-  /* ── By record view ──────────────────────────────────────────────────────── */
-
-  function recordBuckets() {
-    ensureHistoryData();
-    const store = data._recordHistory;
-    return Object.keys(store).map(bucket => {
-      const idx = bucket.lastIndexOf(':');
-      const entity = idx === -1 ? bucket : bucket.slice(0, idx);
-      const id = idx === -1 ? '' : bucket.slice(idx + 1);
-      const entries = Array.isArray(store[bucket]) ? store[bucket] : [];
-      if (!entries.length) return null;
-      const record = typeof findRecordById === 'function' ? findRecordById(entity, id) : null;
-      const displayName = record
-        ? (typeof relationshipDisplay === 'function' ? relationshipDisplay(record, 'Untitled') : (record.name || id))
-        : 'Deleted record';
-      return { bucket, entity, id, entries, record, displayName, lastIso: entries[0]?.iso || '' };
-    }).filter(Boolean)
-      .filter(b => entityMatchesCategory(b.entity, window._histRailCat))
-      .sort((a, b) => new Date(b.lastIso) - new Date(a.lastIso));
-  }
-
-  function renderRecordViewRd(host) {
-    const buckets = recordBuckets();
-    if (!buckets.length) {
-      host.innerHTML = `<div class="rd-page__work" style="padding:36px 24px;text-align:center;color:var(--text-muted)">No per-record edits recorded yet${window._histRailCat !== 'all' ? ' for ' + esc(railCategory(window._histRailCat).label) : ''}. Editing a guest, task, vendor, or payment records field-level history here.</div>`;
+  function renderStats() {
+    const host = document.getElementById('history-stats');
+    if (!host) return;
+    const f = histFigures();
+    const stats = [
+      { label: 'Recorded changes', value: String(f.total) },
+      { label: 'Today', value: String(f.today) },
+      { label: 'Undo available', value: String(f.undo) },
+      { label: 'Redo available', value: String(f.redo) },
+      { label: 'Log capacity', value: f.capacity + '%' }
+    ];
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, stats);
       return;
     }
-    host.innerHTML = '<div class="rd-grouplist">' + buckets.map(b => {
-      const meta = entityMeta(b.entity);
-      const editors = 'You';
-      const rows = b.entries.map((entry, entryIndex) => ({ entry, entryIndex })).slice(0, 6).map(({ entry, entryIndex }) => {
-        const changes = entry.changes && entry.changes.length ? entry.changes : [{ field: '', label: entry.action, from: '', to: '' }];
-        return changes.slice(0, 3).map(change => {
-          const headline = change.label
-            ? `${esc(change.label)} ${entry.action === 'Created' ? 'set at creation' : 'changed'}${change.to && change.to !== '—' ? ' to ' + esc(change.to) : ''}`
-            : esc(entry.action + ' record');
-          return `<div class="rd-grouplist__row" onclick="rdHistOpenRecordDrawer('${esc(b.bucket)}',${entryIndex},'${esc(change.field || '')}')" style="cursor:pointer">
-            <div><div>${headline}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px">${esc(editors)} · ${esc(entry.date || '')} ${esc(entry.time || '')}</div></div>
-            <div style="text-align:right;font-size:12px;color:var(--text-muted)">${change.from && change.from !== '—' ? 'was ' + esc(change.from) : ''}</div>
-          </div>`;
-        }).join('');
-      }).join('');
-      return `<div class="rd-grouplist__group">
-        <div class="rd-grouplist__head">
-          <span>${esc(meta.label)} · ${esc(b.displayName)}</span>
-          <span class="rd-grouplist__count">${b.entries.length} change${b.entries.length === 1 ? '' : 's'} · last ${relTime(b.lastIso)}</span>
-          <button type="button" class="rd-btn--quiet rd-btn" style="margin-left:12px;height:24px;padding:0 8px;font-size:12px" onclick="event.stopPropagation();rdHistViewFieldDetail('${esc(b.bucket)}')">Field detail →</button>
-        </div>
-        <div class="rd-grouplist__rows">${rows}</div>
-      </div>`;
-    }).join('') + '</div>';
+    host.innerHTML = stats.map(s =>
+      `<div class="m-stat"><div class="m-stat-label">${esc(s.label)}</div><div class="m-stat-val">${esc(s.value)}</div></div>`
+    ).join('');
   }
 
-  /* ── Field detail view ───────────────────────────────────────────────────── */
-
-  function fieldsForBucket(bucket) {
-    const store = ensureHistoryData()._recordHistory;
-    const entries = Array.isArray(store[bucket]) ? store[bucket] : [];
-    const seen = new Map();
-    entries.forEach(entry => (entry.changes || []).forEach(change => {
-      if (!change.field) return;
-      if (!seen.has(change.field)) seen.set(change.field, { field: change.field, label: change.label, count: 0, lastIso: entry.iso });
-      seen.get(change.field).count++;
-    }));
-    return Array.from(seen.values());
+  function filterChip(label, field) {
+    const ui = window._histUiFilters || {};
+    const cur = ui[field] || 'all';
+    const on = cur && cur !== 'all' && !(field === 'who' && cur === 'both');
+    const display = field === 'who' && (!cur || cur === 'all') ? 'both' : cur;
+    const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg>';
+    return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="rdHistCycleFilter('${field}')">${esc(label + ': ' + display)}`
+      + (on ? `<span class="rd-chip__clear" onclick="event.stopPropagation();rdHistClearFilter('${field}')">&#10005;</span>` : chev)
+      + '</button>';
   }
 
-  function renderFieldViewRd(host) {
-    const bucket = window._histRecordBucket;
-    if (!bucket || !ensureHistoryData()._recordHistory[bucket]) {
-      const buckets = recordBuckets();
-      host.innerHTML = buckets.length
-        ? `<div class="rd-splitdetail" style="grid-template-columns:1fr">
-             <div class="rd-splitdetail__list">
-               <div class="rd-section__head">Choose a record to see one field&rsquo;s full history</div>
-               ${buckets.map(b => `<div class="rd-grouplist__row" onclick="rdHistViewFieldDetail('${esc(b.bucket)}')" style="cursor:pointer">
-                 <div>${esc(entityMeta(b.entity).label)} · ${esc(b.displayName)}</div>
-                 <div style="color:var(--text-muted);font-size:12px">${b.entries.length} change${b.entries.length === 1 ? '' : 's'} · last ${relTime(b.lastIso)}</div>
-               </div>`).join('')}
-             </div>
-           </div>`
-        : `<div style="padding:36px 24px;text-align:center;color:var(--text-muted)">No per-record history yet. Field detail needs at least one edited guest, task, vendor, or payment.</div>`;
-      return;
+  function renderToolbar() {
+    const host = document.getElementById('history-toolbar');
+    if (!host) return;
+    const mode = window._histMode || 'day';
+    host.innerHTML =
+      filterChip('Record', 'record') +
+      filterChip('Who', 'who') +
+      filterChip('Date', 'date') +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdHistToggleSort()">${window._histSortNewest ? 'Newest first' : 'Oldest first'}</button>` +
+      `<div class="rd-toolbar__right">` +
+      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('history') : '') +
+      `<div class="rd-viewswitch" role="group" aria-label="History view">` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'day' ? ' is-active' : ''}" onclick="rdSetHistoryView('day')">By day</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'record' ? ' is-active' : ''}" onclick="rdSetHistoryView('record')">By record</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'fields' ? ' is-active' : ''}" onclick="rdSetHistoryView('fields')">Field detail</button>` +
+      `</div></div>`;
+  }
+
+  function filteredEntries() {
+    const d = ensureData();
+    markUndoability();
+    const ui = window._histUiFilters || {};
+    const rail = window._histRailFilter || 'all';
+    const jump = window._histJump || 'all';
+    const today = todayISO();
+    const yest = (() => {
+      const dt = parseISODate(today);
+      if (!dt) return '';
+      dt.setDate(dt.getDate() - 1);
+      return dt.toISOString().slice(0, 10);
+    })();
+    const weekStart = (() => {
+      const dt = parseISODate(today);
+      if (!dt) return '';
+      const day = dt.getDay();
+      dt.setDate(dt.getDate() - day);
+      return dt.toISOString().slice(0, 10);
+    })();
+    let rows = d._historyLog.map((row, index) => ({ row, index }));
+    if (rail !== 'all') rows = rows.filter(x => recordBucket(x.row) === rail);
+    if (ui.record && ui.record !== 'all') rows = rows.filter(x => recordBucket(x.row) === ui.record);
+    if (ui.who && ui.who !== 'all' && ui.who !== 'both') {
+      rows = rows.filter(x => entryWho(x.row).toLowerCase() === String(ui.who).toLowerCase());
     }
-    const idx = bucket.lastIndexOf(':');
-    const entity = idx === -1 ? bucket : bucket.slice(0, idx);
-    const id = idx === -1 ? '' : bucket.slice(idx + 1);
-    const meta = entityMeta(entity);
-    const record = typeof findRecordById === 'function' ? findRecordById(entity, id) : null;
-    const displayName = record
-      ? (typeof relationshipDisplay === 'function' ? relationshipDisplay(record, 'Untitled') : id)
-      : 'Deleted record';
-    const fields = fieldsForBucket(bucket);
-    if (!fields.length) {
-      host.innerHTML = `<div style="padding:36px 24px;text-align:center;color:var(--text-muted)">No field-level changes recorded for ${esc(displayName)} yet.</div>`;
-      return;
+    if (ui.date && ui.date !== 'all') rows = rows.filter(x => x.row.date === ui.date);
+    if (jump === 'today') rows = rows.filter(x => x.row.date === today);
+    else if (jump === 'yesterday') rows = rows.filter(x => x.row.date === yest);
+    else if (jump === 'week') rows = rows.filter(x => String(x.row.date || '') >= weekStart);
+    else if (jump && jump !== 'all' && /^\d{4}-\d{2}-\d{2}$/.test(jump)) {
+      rows = rows.filter(x => x.row.date === jump);
     }
-    if (!window._histFieldKey || !fields.some(f => f.field === window._histFieldKey)) {
-      window._histFieldKey = fields.slice().sort((a, b) => new Date(b.lastIso) - new Date(a.lastIso))[0].field;
-    }
-    const fieldKey = window._histFieldKey;
-    const entries = data._recordHistory[bucket] || [];
-    const transitions = [];
-    entries.forEach((entry, entryIndex) => {
-      const change = (entry.changes || []).find(c => c.field === fieldKey);
-      if (change) transitions.push({ entry, entryIndex, change });
+    rows.sort((a, b) => {
+      const cmp = String(a.row.iso || a.row.date || '').localeCompare(String(b.row.iso || b.row.date || ''));
+      return window._histSortNewest ? -cmp : cmp;
     });
-
-    const listHtml = fields.map(f => `<button type="button" class="rd-rail__item${f.field === fieldKey ? ' is-active' : ''}" style="display:flex;width:100%;text-align:left" onclick="rdHistSetField('${esc(f.field)}')">${esc(f.label)}<span class="rd-rail__count">${f.count}</span></button>`).join('');
-
-    const detailRows = transitions.map((t, i) => {
-      const isCurrent = i === 0;
-      return `<div style="display:flex;gap:16px;padding:13px 20px;border-bottom:1px solid var(--border-hairline);cursor:pointer" onclick="rdHistOpenRecordDrawer('${esc(bucket)}',${t.entryIndex},'${esc(fieldKey)}')" role="button" tabindex="0">
-        <div style="flex:0 0 130px;font:600 15px/1.3 var(--font-ui);color:${isCurrent ? 'var(--forest)' : 'var(--text-heading)'}">${esc(t.change.to)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px;color:var(--text-muted)">${esc(t.entry.date || '')} ${esc(t.entry.time || '')} · You</div>
-          <div style="font-size:13px;color:var(--text-body);margin-top:3px">${isCurrent ? 'Current value' : ''}${t.change.from && t.change.from !== '—' ? (isCurrent ? ' · ' : '') + 'was ' + esc(t.change.from) : (isCurrent ? '' : 'Set at creation')}</div>
-        </div>
-      </div>`;
-    }).join('');
-
-    host.innerHTML = `<div class="rd-splitdetail">
-      <div class="rd-splitdetail__list">
-        <div class="rd-section__head" style="flex-direction:column;align-items:flex-start;gap:4px">
-          <span>${esc(meta.label)} · ${esc(displayName)}</span>
-          <button type="button" class="rd-btn--quiet rd-btn" style="height:22px;padding:0" onclick="rdHistBackToRecords()">← All records</button>
-        </div>
-        <div class="rd-rail__list">${listHtml}</div>
-      </div>
-      <div class="rd-splitdetail__detail" style="padding:0">
-        <div style="display:flex;align-items:baseline;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border-subtle)">
-          <div class="rd-panel__eyebrow">Field · ${esc(meta.label)} · ${esc(displayName)} · ${esc((fields.find(f => f.field === fieldKey) || {}).label || fieldKey)}</div>
-          <div style="margin-left:auto;font-size:12px;color:var(--text-muted)">Every value this field has held, newest first</div>
-        </div>
-        ${detailRows || '<div style="padding:20px;color:var(--text-muted)">No history for this field.</div>'}
-      </div>
-    </div>`;
+    return rows;
   }
 
-  /* ── drawer: Change · Record · Snapshot ─────────────────────────────────── */
-
-  const DRAWER_TABS = ['Change', 'Record', 'Snapshot'];
-
-  function drawerFrame(eyebrow, title, body) {
-    return `<aside class="rd-drawer rd-hist-drawer" aria-label="History entry">
-      <div class="rd-drawer__head">
-        <div class="rd-drawer__eyebrow">${esc(eyebrow)}</div>
-        <h2 class="rd-drawer__title">${esc(title)}</h2>
-        <button type="button" class="rd-drawer__close" onclick="rdHistCloseDrawer()" aria-label="Close">×</button>
-        <div class="rd-drawer__tabs" role="tablist">
-          ${DRAWER_TABS.map((label, i) => `<button type="button" class="rd-drawer__tab${i === window._histDrawerTab ? ' is-active' : ''}" onclick="rdHistSetDrawerTab(${i})">${esc(label)}</button>`).join('')}
-        </div>
-      </div>
-      <div class="rd-drawer__body">${body}</div>
-      <div class="rd-drawer__foot">
-        <button type="button" class="rd-btn" onclick="rdHistCloseDrawer()">Close</button>
-      </div>
-    </aside>`;
-  }
-
-  function renderLogDrawer(id) {
-    ensureHistoryData();
-    const index = data._historyLog.findIndex(e => e.id === id);
-    const entry = index !== -1 ? data._historyLog[index] : null;
-    if (!entry) { window._histDrawer = null; return ''; }
-    const tab = window._histDrawerTab;
-    let body = '';
-    if (tab === 0) {
-      const parts = String(entry.details || '').split('; ').filter(Boolean);
-      body = `<div class="rd-drawer__field"><span>Action</span><strong>${esc(entry.action || 'Updated Planner')}</strong></div>`
-        + `<div class="rd-drawer__field"><span>When</span><strong>${esc(entry.date || '')} · ${esc(entry.time || '')}</strong></div>`
-        + `<div class="rd-drawer__field"><span>Actor</span><strong>You</strong></div>`
-        + `<div class="rd-drawer__section-title">What changed${parts.length > 1 ? ' (' + parts.length + ' items)' : ''}</div>`
-        + (parts.length ? parts.map(p => `<div class="rd-drawer__field"><span>·</span><strong>${esc(p)}</strong></div>`).join('') : '<p class="rd-drawer__note">No further detail was recorded for this change.</p>');
-    } else if (tab === 1) {
-      const panelId = SOURCE_LABEL_TO_PANEL[entry.source];
-      body = `<div class="rd-drawer__field"><span>Page / source</span><strong>${esc(entry.source || 'Planner')}</strong></div>`
-        + `<p class="rd-drawer__note">Planner History logs changes at the page level, not by individual record — this entry may cover more than one field on ${esc(entry.source || 'this page')}.</p>`
-        + (panelId ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHistCloseDrawer();showPanel('${esc(panelId)}',true)">Open ${esc(entry.source)} →</button>` : '');
-    } else {
-      const undoCount = data._undoSnapshots.length;
-      const redoCount = data._redoSnapshots.length;
-      body = index === 0
-        ? `<div class="rd-drawer__field"><span>Undo consequence</span><strong>Restores the planner to just before this change</strong></div>`
-          + `<p class="rd-drawer__note">This is the most recent saved change — pressing Undo once reverses it.</p>`
-        : `<div class="rd-drawer__field"><span>Undo consequence</span><strong>${index + 1} steps back</strong></div>`
-          + `<p class="rd-drawer__note">Undo moves backward one saved change at a time. Reaching the moment before this change takes ${index + 1} presses of Undo, reversing every change made after it too.</p>`;
-      body += `<div class="rd-drawer__field"><span>Undo steps available</span><strong>${undoCount}</strong></div>`
-        + `<div class="rd-drawer__field"><span>Redo steps available</span><strong>${redoCount}</strong></div>`;
-    }
-    return drawerFrame('Change · ' + (entry.source || 'Planner').toLowerCase(), entry.action || 'Planner change', body);
-  }
-
-  function renderRecordDrawer(bucket, entryIndex, field) {
-    const store = ensureHistoryData()._recordHistory;
-    const entries = store[bucket] || [];
-    const entry = entries[entryIndex];
-    if (!entry) { window._histDrawer = null; return ''; }
-    const idx = bucket.lastIndexOf(':');
-    const entity = idx === -1 ? bucket : bucket.slice(0, idx);
-    const id = idx === -1 ? '' : bucket.slice(idx + 1);
-    const meta = entityMeta(entity);
-    const record = typeof findRecordById === 'function' ? findRecordById(entity, id) : null;
-    const displayName = record
-      ? (typeof relationshipDisplay === 'function' ? relationshipDisplay(record, 'Untitled') : id)
-      : 'Deleted record';
-    const change = field ? (entry.changes || []).find(c => c.field === field) : null;
-    const tab = window._histDrawerTab;
-    let body = '';
-    if (tab === 0) {
-      if (change) {
-        body = `<div class="rd-drawer__field"><span>Field</span><strong>${esc(change.label)}</strong></div>`
-          + `<div class="rd-drawer__field"><span>Changed to</span><strong>${esc(change.to)}</strong></div>`
-          + `<div class="rd-drawer__field"><span>Previous value</span><strong>${esc(change.from)}</strong></div>`
-          + `<div class="rd-drawer__field"><span>When</span><strong>${esc(entry.date || '')} · ${esc(entry.time || '')}</strong></div>`
-          + `<div class="rd-drawer__field"><span>Actor</span><strong>You</strong></div>`;
-      } else {
-        const changes = entry.changes || [];
-        body = `<div class="rd-drawer__field"><span>Action</span><strong>${esc(entry.action)}</strong></div>`
-          + `<div class="rd-drawer__field"><span>When</span><strong>${esc(entry.date || '')} · ${esc(entry.time || '')}</strong></div>`
-          + `<div class="rd-drawer__section-title">Fields touched (${changes.length})</div>`
-          + (changes.length ? changes.map(c => `<div class="rd-drawer__field"><span>${esc(c.label)}</span><strong>${esc(c.from)} → ${esc(c.to)}</strong></div>`).join('') : '<p class="rd-drawer__note">This created the record — nothing existed to compare against.</p>');
+  function fieldDiffHtml(fields) {
+    if (!fields || !fields.length) return '';
+    return `<div class="rd-hist-diffs">` + fields.slice(0, 4).map(f => {
+      if (f.from || f.to) {
+        return `<span class="rd-hist-diff"><span class="rd-hist-diff__k">${esc(f.label)}</span>` +
+          `<span class="rd-hist-diff__from">${esc(f.from || '—')}</span><span class="rd-hist-diff__arrow">→</span>` +
+          `<span class="rd-hist-diff__to">${esc(f.to || '—')}</span></span>`;
       }
-    } else if (tab === 1) {
-      const openIdx = record && Array.isArray(data[entity]) ? data[entity].findIndex(r => String((typeof recordIdentity === 'function' ? recordIdentity(r) : r._id || r.id)) === String(id)) : -1;
-      body = `<div class="rd-drawer__field"><span>Record type</span><strong>${esc(meta.label)}</strong></div>`
-        + `<div class="rd-drawer__field"><span>Record</span><strong>${esc(displayName)}</strong></div>`
-        + (openIdx > -1
-          ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHistCloseDrawer();showPanel('${esc(meta.panel)}',true);if(typeof openRecordEditor==='function')openRecordEditor('${esc(entity)}',${openIdx});">Open this ${esc(meta.label.toLowerCase())} →</button>`
-          : `<p class="rd-drawer__note">This record has since been deleted or moved — its field history is kept here for reference only.</p>`);
+      return `<span class="rd-hist-diff"><span class="rd-hist-diff__k">${esc(f.label)}</span><span class="rd-hist-diff__to">${esc(f.to || '')}</span></span>`;
+    }).join('') + `</div>`;
+  }
+
+  function undoCellHtml(item, index) {
+    if (item.undoable) {
+      return `<button type="button" class="rd-hist-undo" onclick="rdHistUndoEntry(${index})">Undo this</button>`;
+    }
+    if (item.hasSnapshot) {
+      return `<span class="rd-hist-aged">Snapshot aged out</span>`;
+    }
+    return `<span class="rd-hist-aged">Nothing to undo</span>`;
+  }
+
+  function retentionCalloutHtml(f) {
+    if (!f.warn) return '';
+    return `<div class="rd-callout rd-callout--warn" id="history-retention-warning">` +
+      `<div><strong>Log is ${f.capacity}% full</strong>` +
+      `<p>At ${f.logLimit} entries the oldest are dropped, oldest first. That removes the readable record only — it never touches a planner record. Export the log before it fills if you want to keep a copy.</p></div>` +
+      `<button type="button" class="rd-btn" onclick="rdHistExport()">Export now</button></div>`;
+  }
+
+  function explainerHtml() {
+    const f = histFigures();
+    return `<div class="rd-section__head">` +
+      `<div><div class="rd-pagehead__eyebrow">Why some rows cannot be undone</div>` +
+      `<p class="rd-help">Two different things are kept, and they run out at different speeds.</p></div>` +
+      `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="typeof showPanel==='function'&&showPanel('instructions',true)">Read about backups</button>` +
+      `</div>` +
+      `<div class="rd-grid-3 rd-hist-explainer" id="history-explainer">` +
+      `<article><h3>The log · ${f.logLimit}</h3><p>Every change is written here as a readable line. When the log fills, the oldest lines drop — the planner itself is untouched.</p></article>` +
+      `<article><h3>Snapshots · ${f.snapLimit}</h3><p>Undo restores a whole planner snapshot. Only the last ${f.snapLimit} are kept, so older rows read “snapshot aged out.”</p></article>` +
+      `<article><h3>Neither is a backup</h3><p>Clearing history or losing the browser profile still needs a downloaded backup from Get Started or the top bar.</p></article>` +
+      `</div>` +
+      `<p class="rd-help rd-hist-clear-note">Clearing the log lives on <b>Wedding Setup</b>, in the danger zone with the other irreversible actions — not here, where it would sit one click from the thing it destroys. ` +
+      `<button type="button" class="rd-linkbtn" onclick="typeof showPanel==='function'&&showPanel('setup',true)">Open Wedding Setup →</button></p>`;
+  }
+
+  function rowHtml(x) {
+    const r = x.row;
+    const id = r.id || ('h' + x.index);
+    const sel = window._histSel.has(id);
+    const fields = entryFields(r);
+    return `<tr class="${sel ? 'is-selected' : ''}" data-hist-id="${esc(id)}" onclick="rdHistOpenEntry('${esc(id)}')">` +
+      `<td><input type="checkbox" ${sel ? 'checked' : ''} onclick="event.stopPropagation()" onchange="rdHistToggleSel('${esc(id)}')"></td>` +
+      `<td><div class="rd-hist-change">${esc(entryChange(r))}</div>${fieldDiffHtml(fields)}</td>` +
+      `<td>${esc(entryRecord(r))}</td>` +
+      `<td>${esc(entryWho(r))}</td>` +
+      `<td>${esc(r.time || '')}</td>` +
+      `<td onclick="event.stopPropagation()">${undoCellHtml(r, x.index)}</td>` +
+      `</tr>`;
+  }
+
+  function renderByDay() {
+    const host = document.getElementById('history-view-host');
+    if (!host) return;
+    const f = histFigures();
+    const all = filteredEntries();
+    const visible = all.slice(0, window._histVisible || 50);
+    const groups = [];
+    const map = {};
+    visible.forEach(x => {
+      const key = x.row.date || 'unknown';
+      if (!map[key]) {
+        map[key] = { date: key, rows: [] };
+        groups.push(map[key]);
+      }
+      map[key].rows.push(x);
+    });
+    let html = retentionCalloutHtml(f);
+    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hist-table"><thead><tr>` +
+      `<th style="width:34px"></th><th>Change</th><th>Record</th><th>Who</th><th>Time</th><th>Undo</th>` +
+      `</tr></thead><tbody>`;
+    if (!visible.length) {
+      html += `<tr><td colspan="6" class="rd-empty">No changes were recorded for this view.</td></tr>`;
     } else {
-      body = `<div class="rd-drawer__field"><span>Reversible?</span><strong>Not directly</strong></div>`
-        + `<p class="rd-drawer__note">Field history is a read-only note, separate from Undo/Redo. Undo reverses the whole planner one saved change at a time; it does not target a single field.</p>`
-        + (change ? `<p class="rd-drawer__note">Setting ${esc(change.label.toLowerCase())} back to <strong>${esc(change.from)}</strong> would change only this one field on this ${esc(meta.label.toLowerCase())} — nothing else in the planner is affected.</p>`
-          + `<button type="button" class="rd-btn" onclick="rdHistCopyValue('${esc(String(change.from == null ? '' : change.from).replace(/'/g, "\\'"))}')">Copy previous value</button>` : '');
+      groups.forEach(g => {
+        const label = (g.date === todayISO() ? 'Today · ' : (g.date === (() => {
+          const dt = parseISODate(todayISO());
+          if (!dt) return '';
+          dt.setDate(dt.getDate() - 1);
+          return dt.toISOString().slice(0, 10);
+        })() ? 'Yesterday · ' : '')) + fmtDayLong(g.date) + ' · ' + g.rows.length + ' change' + (g.rows.length === 1 ? '' : 's');
+        const oldestSnap = g.rows.find(x => x.row.undoable && !g.rows.some(y => y.row.undoable && y.row.undoRank > x.row.undoRank));
+        let band = label;
+        const undoables = g.rows.filter(x => x.row.undoable);
+        if (undoables.length) {
+          const oldest = undoables.reduce((a, b) => (a.row.undoRank > b.row.undoRank ? a : b));
+          if (oldest.row.undoRank === (f.undo - 1)) {
+            band += ' · ' + (oldest.row.time || '') + ' is the oldest snapshot still kept';
+          }
+        }
+        html += `<tr class="rd-group-row rd-hist-group"><td colspan="6">${esc(band)}</td></tr>`;
+        g.rows.forEach(x => { html += rowHtml(x); });
+      });
     }
-    const eyebrow = 'Change · ' + meta.label.toLowerCase();
-    const title = change ? change.label : (entry.action + ' · ' + displayName);
-    return drawerFrame(eyebrow, title, body);
-  }
-
-  function renderHistoryDrawerRd() {
-    const slot = document.getElementById('history-drawer-slot');
-    if (!slot) return;
-    const d = window._histDrawer;
-    if (!d) { slot.innerHTML = ''; slot.classList.remove('is-open'); return; }
-    let html = '';
-    if (d.kind === 'log') html = renderLogDrawer(d.id);
-    else if (d.kind === 'record') html = renderRecordDrawer(d.bucket, d.entryIndex, d.field);
-    if (!html) { slot.innerHTML = ''; slot.classList.remove('is-open'); return; }
-    slot.classList.add('is-open');
-    slot.innerHTML = html;
-  }
-
-  /* ── actions ─────────────────────────────────────────────────────────────── */
-
-  function rdHistSetView(view) {
-    window._histView = view;
-    window._histDrawer = null;
-    renderHistoryRd();
-  }
-  function rdHistDateChanged(v) {
-    ensureHistoryData();
-    data._historyPrefs.selectedDate = v;
-    renderHistoryRd();
-  }
-  function rdHistOpenLogDrawer(id) {
-    window._histDrawer = { kind: 'log', id };
-    window._histDrawerTab = 0;
-    renderHistoryDrawerRd();
-  }
-  function rdHistOpenRecordDrawer(bucket, entryIndex, field) {
-    window._histDrawer = { kind: 'record', bucket, entryIndex, field: field || null };
-    window._histDrawerTab = 0;
-    renderHistoryDrawerRd();
-  }
-  function rdHistCloseDrawer() {
-    window._histDrawer = null;
-    renderHistoryDrawerRd();
-  }
-  function rdHistSetDrawerTab(i) {
-    window._histDrawerTab = i;
-    renderHistoryDrawerRd();
-  }
-  function rdHistViewFieldDetail(bucket) {
-    window._histRecordBucket = bucket;
-    window._histFieldKey = null;
-    window._histView = 'field';
-    renderHistoryRd();
-  }
-  function rdHistSetField(field) {
-    window._histFieldKey = field;
-    renderHistoryRd();
-  }
-  function rdHistBackToRecords() {
-    window._histRecordBucket = null;
-    window._histFieldKey = null;
-    window._histView = 'record';
-    renderHistoryRd();
-  }
-  function rdHistCopyValue(value) {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(value || '');
-      if (typeof showToast === 'function') showToast('Value copied.', 'ok');
-    } catch (e) { /* soft */ }
-  }
-  function rdHistPrint() {
-    if (typeof printCurrentPage === 'function') printCurrentPage();
-    else window.print();
-  }
-  function rdHistExport() {
-    ensureHistoryData();
-    if (typeof exportSectionCSV === 'function') {
-      exportSectionCSV('Planner History', data._historyLog, ['date', 'time', 'source', 'action', 'details']);
-    } else if (typeof showToast === 'function') {
-      showToast('Export is unavailable right now.', 'warn');
+    html += `</tbody></table></div>`;
+    if (all.length > visible.length) {
+      html += `<button type="button" class="rd-hist-loadmore" onclick="rdHistLoadMore()">+ Load 50 older entries · ${f.total} recorded, ${all.length - visible.length} before this page</button>`;
     }
-  }
-  function applyHistoryRailFilter(catId) {
-    window._histRailCat = catId || 'all';
-    window._histDrawer = null;
-    renderHistoryRd();
-    if (typeof renderContextSidebar === 'function') renderContextSidebar('history');
+    html += explainerHtml();
+    host.innerHTML = html;
   }
 
-  /* ── main ────────────────────────────────────────────────────────────────── */
-
-  function renderHistoryRd() {
-    ensureHistoryData();
-    uedHistoryShellRd();
-    if (typeof renderPageUxChrome === 'function') renderPageUxChrome('history');
-
-    const host = document.getElementById('history-surface-body');
-    if (host) {
-      if (window._histView === 'record') renderRecordViewRd(host);
-      else if (window._histView === 'field') renderFieldViewRd(host);
-      else renderLogViewRd(host);
+  function renderByRecord() {
+    const host = document.getElementById('history-view-host');
+    if (!host) return;
+    const f = histFigures();
+    const all = filteredEntries().slice(0, window._histVisible || 50);
+    const map = {};
+    all.forEach(x => {
+      const key = entryRecord(x.row);
+      if (!map[key]) map[key] = [];
+      map[key].push(x);
+    });
+    let html = retentionCalloutHtml(f);
+    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hist-table"><thead><tr>` +
+      `<th style="width:34px"></th><th>Change</th><th>Record</th><th>Who</th><th>Time</th><th>Undo</th>` +
+      `</tr></thead><tbody>`;
+    const keys = Object.keys(map).sort((a, b) => map[b].length - map[a].length);
+    if (!keys.length) {
+      html += `<tr><td colspan="6" class="rd-empty">No changes were recorded for this view.</td></tr>`;
+    } else {
+      keys.forEach(key => {
+        const rows = map[key];
+        const last = rows[0];
+        const lastLabel = last.row.date === todayISO() ? 'last today' : ('last ' + fmtDayShort(last.row.date));
+        html += `<tr class="rd-group-row rd-hist-group"><td colspan="6">${esc(key)} · ${rows.length} change${rows.length === 1 ? '' : 's'} · ${esc(lastLabel)}</td></tr>`;
+        rows.forEach(x => { html += rowHtml(x); });
+      });
     }
-    renderHistoryDrawerRd();
-    if (typeof updateHistoryControls === 'function') updateHistoryControls();
+    html += `</tbody></table></div>` + explainerHtml();
+    host.innerHTML = html;
+  }
 
+  function renderFieldDetail() {
+    const host = document.getElementById('history-view-host');
+    if (!host) return;
+    const f = histFigures();
+    const all = filteredEntries().slice(0, window._histVisible || 50);
+    let html = retentionCalloutHtml(f);
+    html += `<div class="rd-hist-fields">`;
+    if (!all.length) {
+      html += `<p class="rd-empty">No field-level changes in this view.</p>`;
+    } else {
+      all.forEach(x => {
+        const fields = entryFields(x.row);
+        html += `<article class="rd-hist-fieldcard">` +
+          `<header><div class="rd-hist-fieldcard__title">${esc(entryChange(x.row))}</div>` +
+          `<div class="rd-hist-fieldcard__meta">${esc(entryRecord(x.row))} · ${esc(entryWho(x.row))} · ${esc(x.row.time || '')}</div></header>` +
+          (fields.length ? `<ul>${fields.map(fld =>
+            `<li><span>${esc(fld.label)}</span><span>${esc(fld.from || '—')}</span><span>→</span><span>${esc(fld.to || '—')}</span>` +
+            (x.row.undoable ? `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdHistUndoEntry(${x.index})">Restore</button>` : `<span class="rd-hist-aged">Unavailable</span>`) +
+            `</li>`
+          ).join('')}</ul>` : `<p class="rd-help">No field diffs were captured for this change. Restore acts on one field when diffs are present — never a whole record from this view.</p>`) +
+          `</article>`;
+      });
+    }
+    html += `</div>` + explainerHtml();
+    host.innerHTML = html;
+  }
+
+  function renderView() {
+    const mode = window._histMode || 'day';
+    if (mode === 'record') renderByRecord();
+    else if (mode === 'fields') renderFieldDetail();
+    else renderByDay();
+  }
+
+  function rdSetHistoryView(mode) {
+    window._histMode = (mode === 'record' || mode === 'fields') ? mode : 'day';
+    if (typeof setSavedView === 'function') setSavedView('history', window._histMode);
+    renderToolbar();
+    renderView();
+    refreshRail();
+  }
+  function applyHistoryRailFilter(id) {
+    window._histRailFilter = RECORD_FILTERS.some(f => f.id === id) ? id : 'all';
+    window._histVisible = 50;
+    renderView();
+    refreshRail();
+  }
+  function applyHistoryJump(id) {
+    window._histJump = id || 'all';
+    window._histVisible = 50;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(window._histJump)) {
+      window._histUiFilters.date = window._histJump;
+      const input = document.getElementById('history-date-filter');
+      if (input) input.value = window._histJump;
+    }
+    renderToolbar();
+    renderView();
+    refreshRail();
+  }
+  function refreshRail() {
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'history'
       && document.body.classList.contains('context-sidebar-mode')) {
       renderContextSidebar('history');
     }
+  }
+
+  function rdHistCycleFilter(field) {
+    const d = ensureData();
+    const opts = { all: true };
+    if (field === 'record') RECORD_FILTERS.forEach(f => { if (f.id !== 'all') opts[f.id] = true; });
+    if (field === 'who') {
+      opts.both = true;
+      d._historyLog.forEach(r => { opts[entryWho(r)] = true; });
+    }
+    if (field === 'date') d._historyLog.forEach(r => { if (r.date) opts[r.date] = true; });
+    const list = Object.keys(opts);
+    const cur = (window._histUiFilters || {})[field] || (field === 'who' ? 'both' : 'all');
+    const i = Math.max(0, list.indexOf(cur));
+    window._histUiFilters[field] = list[(i + 1) % list.length];
+    window._histVisible = 50;
+    renderToolbar();
+    renderView();
+  }
+  function rdHistClearFilter(field) {
+    window._histUiFilters[field] = field === 'who' ? 'both' : 'all';
+    renderToolbar();
+    renderView();
+  }
+  function rdHistToggleSort() {
+    window._histSortNewest = !window._histSortNewest;
+    renderToolbar();
+    renderView();
+  }
+  function rdHistLoadMore() {
+    window._histVisible = (window._histVisible || 50) + 50;
+    renderView();
+  }
+  function rdHistToggleSel(id) {
+    if (window._histSel.has(id)) window._histSel.delete(id);
+    else window._histSel.add(id);
+    renderView();
+  }
+  function rdHistJumpDate() {
+    const input = document.getElementById('history-date-filter');
+    if (!input) return;
+    const picked = window.prompt('Jump to a date (YYYY-MM-DD)', input.value || todayISO());
+    if (!picked) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(picked)) {
+      if (typeof showToast === 'function') showToast('Use YYYY-MM-DD.');
+      return;
+    }
+    input.value = picked;
+    applyHistoryJump(picked);
+  }
+  function rdHistPrint() {
+    if (typeof printCurrentPage === 'function') printCurrentPage();
+    else window.print();
+  }
+  function rdHistFullEditor() {
+    if (typeof openHistoryDrawer === 'function') openHistoryDrawer();
+    else if (typeof showToast === 'function') showToast('Open a change row for details.');
+  }
+  function rdHistExport() {
+    const d = ensureData();
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      logLimit: logLimit(),
+      snapshotLimit: snapLimit(),
+      entries: d._historyLog
+    };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+    a.download = 'planner-history-log.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    if (typeof showToast === 'function') showToast('History log exported.');
+  }
+  function rdHistUndoLast() {
+    if (typeof undoPlannerChange === 'function') undoPlannerChange();
+    else if (typeof undoLastChange === 'function') undoLastChange();
+  }
+  async function rdHistUndoEntry(index) {
+    const d = ensureData();
+    markUndoability();
+    const item = d._historyLog[index];
+    if (!item || !item.undoable) {
+      if (typeof showToast === 'function') showToast('That snapshot has aged out.');
+      return;
+    }
+    const depth = (item.undoRank || 0) + 1;
+    if (depth > 1) {
+      const ok = typeof covConfirm === 'function'
+        ? await covConfirm('Undo this and the ' + (depth - 1) + ' newer change' + (depth - 1 === 1 ? '' : 's') + '? Undo restores whole planner snapshots.', { title: 'Undo to this change?', okText: 'Undo' })
+        : window.confirm('Undo this and newer changes?');
+      if (!ok) return;
+    }
+    for (let i = 0; i < depth; i++) {
+      if (typeof undoPlannerChange === 'function') undoPlannerChange();
+      else break;
+    }
+  }
+  function rdHistOpenEntry(id) {
+    const d = ensureData();
+    const item = d._historyLog.find(r => r.id === id);
+    if (!item) return;
+    const slot = document.getElementById('history-drawer-body') || document.getElementById('record-drawer-body');
+    if (typeof openHistoryDrawer === 'function') {
+      openHistoryDrawer();
+      const body = document.getElementById('history-drawer-body');
+      if (body) {
+        const fields = entryFields(item);
+        body.innerHTML =
+          `<div class="rd-hist-drawer">` +
+          `<div class="rd-pagehead__eyebrow">Change</div>` +
+          `<h3>${esc(entryChange(item))}</h3>` +
+          `<p class="rd-help">${esc(entryRecord(item))} · ${esc(entryWho(item))} · ${esc(item.date || '')} ${esc(item.time || '')}</p>` +
+          (fields.length ? `<ul class="rd-hist-drawer__fields">${fields.map(f =>
+            `<li><b>${esc(f.label)}</b> ${esc(f.from || '—')} → ${esc(f.to || '—')}</li>`).join('')}</ul>` : `<p>${esc(item.details || '')}</p>`) +
+          `<p class="rd-help">Undo restores the whole planner, not this row alone.</p>` +
+          (item.undoable
+            ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHistUndoEntry(${d._historyLog.indexOf(item)})">Undo this change</button>`
+            : `<span class="rd-hist-aged">${item.hasSnapshot ? 'Snapshot aged out' : 'Nothing to undo'}</span>`) +
+          `</div>`;
+      }
+      return;
+    }
+    if (slot) {
+      /* fallback */
+    }
+  }
+
+  function renderHistoryRd() {
+    ensureData();
+    if (typeof getSavedView === 'function') {
+      const saved = getSavedView('history', window._histMode || 'day');
+      window._histMode = (saved === 'record' || saved === 'fields') ? saved : 'day';
+    }
+    ensureShell();
+    if (typeof renderPageUxChrome === 'function') renderPageUxChrome('history');
+    markUndoability();
+    renderStats();
+    renderToolbar();
+    renderView();
+    refreshRail();
+    if (typeof updateHistoryControls === 'function') updateHistoryControls();
     if (typeof uxRevealPanel === 'function') uxRevealPanel('history');
   }
 
-  window.uedHistoryShell = uedHistoryShellRd;
-  window.renderHistoryRd = renderHistoryRd;
+  window.uedHistoryShell = ensureShell;
   window.renderHistoryPage = renderHistoryRd;
-  window.rdHistSetView = rdHistSetView;
-  window.rdHistDateChanged = rdHistDateChanged;
-  window.rdHistOpenLogDrawer = rdHistOpenLogDrawer;
-  window.rdHistOpenRecordDrawer = rdHistOpenRecordDrawer;
-  window.rdHistCloseDrawer = rdHistCloseDrawer;
-  window.rdHistSetDrawerTab = rdHistSetDrawerTab;
-  window.rdHistViewFieldDetail = rdHistViewFieldDetail;
-  window.rdHistSetField = rdHistSetField;
-  window.rdHistBackToRecords = rdHistBackToRecords;
-  window.rdHistCopyValue = rdHistCopyValue;
-  window.rdHistPrint = rdHistPrint;
-  window.rdHistExport = rdHistExport;
+  window.renderHistoryRd = renderHistoryRd;
+  window.rdSetHistoryView = rdSetHistoryView;
   window.applyHistoryRailFilter = applyHistoryRailFilter;
-  window.histRailCategories = RAIL_CATEGORIES;
-  window.histEntityMeta = entityMeta;
-  window.histLogMatchesCategory = logMatchesCategory;
-  window.histEntityMatchesCategory = entityMatchesCategory;
+  window.applyHistoryJump = applyHistoryJump;
+  window.histFigures = histFigures;
+  window.histRailCounts = histRailCounts;
+  window.rdHistCycleFilter = rdHistCycleFilter;
+  window.rdHistClearFilter = rdHistClearFilter;
+  window.rdHistToggleSort = rdHistToggleSort;
+  window.rdHistLoadMore = rdHistLoadMore;
+  window.rdHistToggleSel = rdHistToggleSel;
+  window.rdHistJumpDate = rdHistJumpDate;
+  window.rdHistPrint = rdHistPrint;
+  window.rdHistFullEditor = rdHistFullEditor;
+  window.rdHistExport = rdHistExport;
+  window.rdHistUndoLast = rdHistUndoLast;
+  window.rdHistUndoEntry = rdHistUndoEntry;
+  window.rdHistOpenEntry = rdHistOpenEntry;
+  window.openHistoryDatePicker = rdHistJumpDate;
+  window.exportHistoryLog = rdHistExport;
 
   function hookHistoryPanelRenderer() {
-    if (window.SYSTEM_PANEL_RENDERERS) {
-      window.SYSTEM_PANEL_RENDERERS.history = function () { renderHistoryRd(); };
-    }
+    if (window.SYSTEM_PANEL_RENDERERS) window.SYSTEM_PANEL_RENDERERS.history = function () { renderHistoryRd(); };
   }
   hookHistoryPanelRenderer();
-  var _showPanelHistory = window.showPanel;
-  if (typeof _showPanelHistory === 'function') {
+  var _showPanelHist = window.showPanel;
+  if (typeof _showPanelHist === 'function') {
     window.showPanel = function (id, forceOpen) {
-      var out = _showPanelHistory.call(window, id, forceOpen);
+      var out = _showPanelHist.call(window, id, forceOpen);
       hookHistoryPanelRenderer();
       return out;
     };

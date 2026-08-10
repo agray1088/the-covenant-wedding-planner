@@ -2644,6 +2644,61 @@
     return '<div class="rd-rail__stack" data-page-rail="firstmonth">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
+  /* All.dc #18b — Planner History. Filter by record · Retention · Jump to. */
+  function buildHistoryContext() {
+    var figures = typeof window.histFigures === 'function' ? window.histFigures() : {
+      total: 0, today: 0, undo: 0, redo: 0, capacity: 0, logLimit: 200, snapLimit: 15,
+      oldestShort: '—', oldestUndoShort: '—', counts: { all: 0, guests: 0, budget: 0, tasks: 0, vendors: 0, tables: 0, other: 0 }
+    };
+    var counts = figures.counts || {};
+    var activeFilter = window._histRailFilter || 'all';
+    var activeJump = window._histJump || 'all';
+    function filterItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeFilter === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHistoryRailFilter(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + (count || 0) + '</span></button>';
+    }
+    var filterHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Filter by record</div><div class="rd-rail__list" role="list">' +
+      filterItem('all', 'Everything', counts.all || figures.total || 0) +
+      filterItem('guests', 'Guests', counts.guests || 0) +
+      filterItem('budget', 'Budget &amp; payments', counts.budget || 0) +
+      filterItem('tasks', 'Tasks', counts.tasks || 0) +
+      filterItem('vendors', 'Vendors', counts.vendors || 0) +
+      filterItem('tables', 'Table layout', counts.tables || 0) +
+      filterItem('other', 'Everything else', counts.other || 0) +
+      '</div></div>';
+    var logPct = figures.logLimit ? Math.min(100, Math.round(((figures.total || 0) / figures.logLimit) * 100)) : 0;
+    var snapPct = figures.snapLimit ? Math.min(100, Math.round(((figures.undo || 0) / figures.snapLimit) * 100)) : 0;
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Retention</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Log entries</span><span class="rd-rail__count">' +
+      (figures.total || 0) + ' of ' + (figures.logLimit || 200) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + logPct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Undo snapshots</span><span class="rd-rail__count">' +
+      (figures.undo || 0) + ' of ' + (figures.snapLimit || 15) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + snapPct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Oldest entry</span><span class="rd-rail__count">' + esc(figures.oldestShort || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Oldest undo</span><span class="rd-rail__count">' + esc(figures.oldestUndoShort || '—') + '</span></div>' +
+      '</div></div>';
+    function jumpItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeJump === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHistoryJump(\'' + id + '\')">' + esc(label) +
+        (count != null && count !== '' ? '<span class="rd-rail__count">' + count + '</span>' : '') +
+        '</button>';
+    }
+    var jumpHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Jump to</div><div class="rd-rail__list" role="list">' +
+      jumpItem('today', 'Today', figures.today || 0) +
+      jumpItem('yesterday', 'Yesterday', '') +
+      jumpItem('week', 'This week', '') +
+      jumpItem('all', 'Everything', figures.total || 0) +
+      '<button type="button" class="rd-rail__item" onclick="rdHistJumpDate()">Pick a date…</button>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Undo and redo restore whole snapshots. This log is the readable record of what changed — it keeps going after a snapshot has aged out.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="history">' + filterHtml + metersHtml + jumpHtml + noteHtml + '</div>';
+  }
+
   /* All.dc #18a — Newlywed Homecoming. Sections · Progress (+ bars) · Group by. */
   function buildHomecomingContext() {
     var activeView = 'settling';
@@ -2927,6 +2982,7 @@
     ceremony: buildCeremonyContext,
     honeymoon: buildHoneymoonContext,
     homecoming: buildHomecomingContext,
+    history: buildHistoryContext,
     vision: buildVisionContext,
     prayer: buildPrayerContext,
     counseling: buildCounselingContext,

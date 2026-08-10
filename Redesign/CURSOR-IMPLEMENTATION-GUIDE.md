@@ -110,8 +110,9 @@ Every view is one of these. Class names in `redesign/class-map.md`.
 | People | Guest List · Households · Contacts · Wedding Party · Table Layout · Gifts |
 | Money | Budget · Payments · Contracts & Invoices |
 | Vendors | Venue & Vendors · **Venue Comparison** · Catering & Menu · Entertainment · Shot Lists |
-| The Day | Wedding Day Timeline · Ceremony & Reception · Weekend Logistics · Honeymoon · Planner History |
+| The Day | Wedding Day Timeline · Ceremony & Reception · Weekend Logistics · Honeymoon |
 | Covenant | Vision & Foundation · Prayer Journal · Premarital Counseling · First-Month Rhythms · Newlywed Homecoming |
+| No tab | Planner History (top-bar undo/redo · prefs) · Wedding Setup · Get Started · FAQ · Guide |
 | Documents | Share Packets · Email Templates · Print Centre · Vision Board |
 
 ### `Planner Screens Views.dc.html` — organised in batches, newest first
@@ -541,6 +542,12 @@ every page already shipped.
 | ✓ | Premarital Counseling | `counseling` | All **13c** · Views `#32e`/`#32f` · `js/counseling-redesign.js` |
 | ✓ | First-Month Rhythms | `firstmonth` | All **13d** · Views **32** · `js/firstmonth-redesign.js` |
 | ✓ | Newlywed Homecoming | `homecoming` | All **18a** · `js/homecoming-redesign.js` |
+
+**No tab** (reached from top bar / prefs):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| ✓ | Planner History | `history` | All **18b** · `js/history-redesign.js` · log **200** · undo snapshots **15** |
 
 **Documents** (live nav order):
 
