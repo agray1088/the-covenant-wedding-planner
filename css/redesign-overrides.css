@@ -205,22 +205,117 @@ body.dark-mode #topbar#topbar, body[data-theme="dark"] #topbar#topbar {
 }
 #main#main .cwp-table tbody td > * { vertical-align: middle !important; }
 
-/* Group row ? screen 9a / 2a: sunken fill #F9F5EF, 10px/700/.14em uppercase. */
-#main#main .cwp-table tbody tr.cwp-group-row td,
-#main#main .cwp-table tbody tr > td:only-child {
+/* Group / category band — All.dc sunken fill #F9F5EF everywhere.
+   Mock: uppercase 10px/700/.14em · #8a7e6b on --surface-sunken.
+   Covers CWP (is-group / cwp-group-row) and every redesign group-row class.
+   Residual / danger / risk / over keep page-local exception fills. */
+#main#main .cwp-table tbody tr.is-group:not(.is-group--residual) > td,
+#main#main .cwp-table tbody tr.cwp-group-row > td,
+#main#main .cwp-table tbody tr.cwp-group > td,
+#main#main .rd-table tbody tr.is-group:not(.is-group--residual) > td,
+#main#main .rd-table tbody tr.cwp-group-row > td,
+#main#main table tbody tr.rd-group-row > td,
+#main#main table tbody tr.rd-ent-group > td,
+#main#main table tbody tr.rd-shot-group:not(.is-risk) > td,
+#main#main table tbody tr.rd-vnd-group:not(.is-danger) > td,
+#main#main table tbody tr.rd-cat-group > td,
+#main#main table tbody tr.rd-wday-group > td,
+#main#main table tbody tr.rd-hm-group > td,
+#main#main table tbody tr.rd-cou-group > td,
+#main#main table tbody tr.rd-ess-group > td,
+#main#main table tbody tr.rd-pkt-group > td,
+#main#main table tbody tr.rd-et-group > td,
+#main#main table tbody tr.rd-dh-group > td,
+#main#main table tbody tr.rd-notes-group > td,
+#main#main table tbody tr.rd-pc-group > td,
+#main#main table tbody tr.rd-pay-grouprow > td,
+#main#main table tbody tr.rd-bgt-grouprow:not(.is-over):not(.is-residual) > td,
+#main#main table tbody tr.rd-con-grouprow > td,
+body.rd-scope .cwp-table tbody tr.is-group:not(.is-group--residual) > td,
+body.rd-scope .cwp-table tbody tr.cwp-group-row > td,
+body.rd-scope .rd-table tbody tr.is-group:not(.is-group--residual) > td,
+body.rd-scope table tbody tr.rd-group-row > td,
+body.rd-scope table tbody tr.rd-ent-group > td,
+body.rd-scope table tbody tr.rd-shot-group:not(.is-risk) > td,
+body.rd-scope table tbody tr.rd-vnd-group:not(.is-danger) > td,
+body.rd-scope table tbody tr.rd-cat-group > td,
+body.rd-scope table tbody tr.rd-wday-group > td,
+body.rd-scope table tbody tr.rd-hm-group > td,
+body.rd-scope table tbody tr.rd-cou-group > td,
+body.rd-scope table tbody tr.rd-ess-group > td,
+body.rd-scope table tbody tr.rd-pkt-group > td,
+body.rd-scope table tbody tr.rd-et-group > td,
+body.rd-scope table tbody tr.rd-dh-group > td,
+body.rd-scope table tbody tr.rd-notes-group > td,
+body.rd-scope table tbody tr.rd-pc-group > td,
+body.rd-scope table tbody tr.rd-pay-grouprow > td,
+body.rd-scope table tbody tr.rd-bgt-grouprow:not(.is-over):not(.is-residual) > td,
+body.rd-scope table tbody tr.rd-con-grouprow > td {
   padding: 7px 12px !important;
-  font-size: var(--type-section) !important;
+  height: auto !important;
+  font-family: var(--font-ui) !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
   letter-spacing: .14em !important;
   text-transform: uppercase !important;
-  color: var(--text-subtle) !important;
-  background-color: var(--surface-sunken) !important;
-  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-subtle, #8a7e6b) !important;
+  background-color: var(--surface-sunken, #f9f5ef) !important;
+  background: var(--surface-sunken, #f9f5ef) !important;
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4) !important;
+  border-radius: 0 !important;
+  vertical-align: middle !important;
+}
+/* Hover must not bleach category bands back to white/raised.
+   Residual / danger / risk / over bands keep their own fills. */
+#main#main .cwp-table tbody tr.is-group:not(.is-group--residual):hover > td,
+#main#main .cwp-table tbody tr.cwp-group-row:hover > td,
+#main#main .rd-table tbody tr.is-group:not(.is-group--residual):hover > td,
+#main#main table tbody tr.rd-group-row:hover > td,
+#main#main table tbody tr.rd-ent-group:hover > td,
+#main#main table tbody tr.rd-shot-group:not(.is-risk):hover > td,
+#main#main table tbody tr.rd-vnd-group:not(.is-danger):hover > td,
+#main#main table tbody tr.rd-cat-group:hover > td,
+#main#main table tbody tr.rd-wday-group:hover > td,
+#main#main table tbody tr.rd-hm-group:hover > td,
+#main#main table tbody tr.rd-cou-group:hover > td,
+#main#main table tbody tr.rd-ess-group:hover > td,
+#main#main table tbody tr.rd-pkt-group:hover > td,
+#main#main table tbody tr.rd-et-group:hover > td,
+#main#main table tbody tr.rd-dh-group:hover > td,
+#main#main table tbody tr.rd-notes-group:hover > td,
+#main#main table tbody tr.rd-pc-group:hover > td,
+#main#main table tbody tr.rd-pay-grouprow:hover > td,
+#main#main table tbody tr.rd-bgt-grouprow:not(.is-over):not(.is-residual):hover > td,
+#main#main table tbody tr.rd-con-grouprow:hover > td,
+body.rd-scope .cwp-table tbody tr.is-group:not(.is-group--residual):hover > td,
+body.rd-scope .cwp-table tbody tr.cwp-group-row:hover > td,
+body.rd-scope .rd-table tbody tr.is-group:not(.is-group--residual):hover > td,
+body.rd-scope table tbody tr.rd-group-row:hover > td,
+body.rd-scope table tbody tr.rd-ent-group:hover > td,
+body.rd-scope table tbody tr.rd-shot-group:not(.is-risk):hover > td,
+body.rd-scope table tbody tr.rd-vnd-group:not(.is-danger):hover > td,
+body.rd-scope table tbody tr.rd-cat-group:hover > td,
+body.rd-scope table tbody tr.rd-wday-group:hover > td,
+body.rd-scope table tbody tr.rd-hm-group:hover > td,
+body.rd-scope table tbody tr.rd-cou-group:hover > td,
+body.rd-scope table tbody tr.rd-ess-group:hover > td,
+body.rd-scope table tbody tr.rd-pkt-group:hover > td,
+body.rd-scope table tbody tr.rd-et-group:hover > td,
+body.rd-scope table tbody tr.rd-dh-group:hover > td,
+body.rd-scope table tbody tr.rd-notes-group:hover > td,
+body.rd-scope table tbody tr.rd-pc-group:hover > td,
+body.rd-scope table tbody tr.rd-pay-grouprow:hover > td,
+body.rd-scope table tbody tr.rd-bgt-grouprow:not(.is-over):not(.is-residual):hover > td,
+body.rd-scope table tbody tr.rd-con-grouprow:hover > td {
+  background-color: var(--surface-sunken, #f9f5ef) !important;
+  background: var(--surface-sunken, #f9f5ef) !important;
 }
 #main#main .cwp-table tbody tr,
 #main#main .rd-table tbody tr { background-color: var(--surface-content) !important; }
-#main#main .cwp-table tbody tr:hover td,
-#main#main .rd-table tbody tr:hover td { background-color: var(--surface-raised) !important; }
+#main#main .cwp-table tbody tr:hover:not(.is-group):not(.cwp-group-row):not(.cwp-group) td,
+#main#main .rd-table tbody tr:hover:not(.is-group):not(.cwp-group-row) td {
+  background-color: var(--surface-raised) !important;
+}
 /* ?08 ? selected (#F4F7FB) and focused (#FDFAF4) row fills (screen 9a). */
 body.rd-scope #panel-tasks .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
   background-color: var(--surface-selected) !important;
@@ -11689,8 +11784,8 @@ body.rd-scope #panel-budget .rd-bgt-grouprow td {
 }
 body.rd-scope #panel-budget .rd-bgt-grouprow.is-over td,
 body.rd-scope #panel-budget .rd-bgt-grouprow.is-residual td {
-  background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 55%, #f9f5ef);
-  color: var(--status-red-text, #9c3b34);
+  background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 55%, #f9f5ef) !important;
+  color: var(--status-red-text, #9c3b34) !important;
   box-shadow: inset 3px 0 0 var(--status-red-text, #a33b28);
 }
 body.rd-scope #panel-budget .rd-bgt-pledgerow.is-residual td {
@@ -13642,8 +13737,8 @@ body.rd-scope #panel-vendors .rd-vnd-group td {
   color: #8a7e6b;
 }
 body.rd-scope #panel-vendors .rd-vnd-group.is-danger td {
-  color: #a33b28;
-  background: #fff7f5;
+  color: #a33b28 !important;
+  background: #fff7f5 !important;
 }
 body.rd-scope #panel-vendors .rd-vnd-name__primary { font-weight: 500; }
 body.rd-scope #panel-vendors .rd-vnd-name__sub {
@@ -15050,13 +15145,16 @@ body.rd-scope #panel-shotlist .rd-shot-table td {
   vertical-align: top;
 }
 body.rd-scope #panel-shotlist .rd-shot-group td {
-  background: #f7f3ea;
+  background: var(--surface-sunken, #f9f5ef);
   color: #6b645d;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: .02em;
 }
-body.rd-scope #panel-shotlist .rd-shot-group.is-risk td { color: #a33b28; }
+body.rd-scope #panel-shotlist .rd-shot-group.is-risk td {
+  color: #a33b28 !important;
+  background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 40%, #f9f5ef) !important;
+}
 body.rd-scope #panel-shotlist .rd-shot-row { cursor: pointer; }
 body.rd-scope #panel-shotlist .rd-shot-row:hover td,
 body.rd-scope #panel-shotlist .rd-shot-row.is-selected td { background: #fdfaf4; }
@@ -15414,7 +15512,7 @@ body.rd-scope #panel-timeline .rd-wday-table td {
   vertical-align: top;
 }
 body.rd-scope #panel-timeline .rd-wday-group td {
-  background: #f7f3ea;
+  background: var(--surface-sunken, #f9f5ef);
   color: #6b645d;
   font-size: 12px;
   font-weight: 600;
@@ -16161,7 +16259,7 @@ body.rd-scope #panel-honeymoon .rd-hm-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-honeymoon .rd-hm-group td {
-  background: #f7f3ea;
+  background: var(--surface-sunken, #f9f5ef);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -16845,7 +16943,7 @@ body.rd-scope #panel-counseling .rd-cou-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-counseling .rd-cou-group td {
-  background: #f7f3ea;
+  background: var(--surface-sunken, #f9f5ef);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -17738,7 +17836,7 @@ body.rd-scope #panel-essentials .rd-ess-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-essentials .rd-ess-group td {
-  background: #f7f3ea;
+  background: var(--surface-sunken, #f9f5ef);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -18077,7 +18175,7 @@ body.rd-scope #panel-packets .rd-pkt-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-packets .rd-pkt-group td {
-  background: #f7f3ea;
+  background: var(--surface-sunken, #f9f5ef);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -18461,7 +18559,7 @@ body.rd-scope #panel-emails .rd-et-table td {
   vertical-align: middle;
 }
 body.rd-scope #panel-emails .rd-et-group td {
-  background: #f7f3ea;
+  background: var(--surface-sunken, #f9f5ef);
   font-size: 12px;
   font-weight: 600;
   color: #6b645d;
@@ -18802,7 +18900,7 @@ body.rd-scope #panel-data-hub .rd-dh-group td {
   text-transform: uppercase;
   font-weight: 700;
   color: #8a7e6b;
-  background: #faf7f0;
+  background: var(--surface-sunken, #f9f5ef);
   padding: 12px;
 }
 body.rd-scope #panel-data-hub .rd-dh-row { cursor: pointer; }
