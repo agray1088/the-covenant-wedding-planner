@@ -212,7 +212,7 @@
     rows.forEach(x => {
       const r = x.row;
       html += `<tr>
-        <td><input value="${esc(r.item || '')}" placeholder="Task" oninput="rdHcSaveTask(${x.index},'item',this.value)"></td>
+        <td><input class="no-currency" data-currency="false" value="${esc(r.item || '')}" placeholder="Task" oninput="rdHcSaveTask(${x.index},'item',this.value)"></td>
         <td><select onchange="rdHcSaveTask(${x.index},'cat',this.value)">${selectHtml(cats(), r.cat || 'Other')}</select></td>
         <td><select onchange="rdHcSaveTask(${x.index},'owner',this.value)">${selectHtml(owners(), r.owner || 'Both')}</select></td>
         <td><select onchange="rdHcSaveTask(${x.index},'status',this.value)">${selectHtml(statuses(), r.status || 'Not Started')}</select></td>
@@ -232,7 +232,7 @@
     if (!d.nameChange.length) html += '<tr><td colspan="6" class="rd-empty">No name-change tasks yet.</td></tr>';
     d.nameChange.forEach((r, i) => {
       html += `<tr>
-        <td><input value="${esc(r.task || '')}" placeholder="Task" oninput="rdHcSaveName(${i},'task',this.value)"></td>
+        <td><input class="no-currency" data-currency="false" value="${esc(r.task || '')}" placeholder="Task" oninput="rdHcSaveName(${i},'task',this.value)"></td>
         <td><select onchange="rdHcSaveName(${i},'category',this.value)">${selectHtml(nameCats(), r.category || 'Legal')}</select></td>
         <td><input type="date" value="${esc(r.due || '')}" onchange="rdHcSaveName(${i},'due',this.value)"></td>
         <td><select onchange="rdHcSaveName(${i},'status',this.value)">${selectHtml(nameStatuses(), r.status || 'Not Started')}</select></td>
