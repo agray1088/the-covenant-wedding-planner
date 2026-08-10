@@ -22547,3 +22547,10 @@ body.editorial-v4 #backup-banner .backup-banner-dismiss {
   top: 50% !important;
   transform: translateY(-50%) !important;
 }
+
+/* Retired Auto-fit columns | Auto-fit rows pair — keep rd-chip Auto-fit + Row height */
+#main#main .planner-autofit-btn,
+#main#main .planner-autofit-bar,
+#main#main .cwp-toolbar--autofit {
+  display: none !important;
+}

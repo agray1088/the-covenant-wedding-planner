@@ -4367,7 +4367,9 @@ function renderDataHubToolbar(category, tableId){
   const exportRows = dataHubActiveTableExportRows(category, tableId);
   const exportLabel = tab ? tab.label : 'Table';
   const exportBtn = exportRows ? `<button type="button" class="ued-btn" onclick="exportSectionCSV(${JSON.stringify(exportLabel)}, dataHubActiveTableExportRows('${category}','${tableId}'))">Export CSV</button>` : '';
-  return `<div class="data-hub-toolbar ued-actions"><button type="button" class="ued-btn" onclick="autoFitDataHubTables()" title="Size all columns to fit their contents">Auto-fit columns</button><button type="button" class="ued-btn" onclick="autoFitDataHubTableRows()" title="Size all rows to fit their contents">Auto-fit rows</button>${exportBtn}${renderDataHubPrimaryAction(category, tableId)}</div>`;
+  /* Legacy Auto-fit columns | Auto-fit rows pair removed — table chip toolbars
+     already expose Auto-fit columns + Row height. */
+  return `<div class="data-hub-toolbar ued-actions">${exportBtn}${renderDataHubPrimaryAction(category, tableId)}</div>`;
 }
 function autoFitDataHubTables(){
   const hub = document.getElementById('panel-data-hub');
@@ -18980,7 +18982,7 @@ function uedVendorShell(){
       <section class="ued-table-card vendors-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportVendorCSV()">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('vendors','vendors')">Edit in Vendors Hub</button></div></div><div id="cwp-vendors" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet editing and bulk actions live in the Vendors Hub.</span></div></section>
       <section class="ued-table-card vendor-cards-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor cards</div></div><div class="hub-record-card-grid" id="vendor-card-grid"></div><div class="hub-record-card-pager"><span class="ued-soft" id="vendor-card-foot"></span><span id="vendor-card-pager"></span></div>${hubPreviewFoot('vendors','vendors')}</section>
     </div>
-    <div data-vnd-tab="shortlist" style="display:none"><section class="ued-panel vendors-compare-panel"><div class="ued-table-head"><div class="ued-table-title">Vendor Comparisons</div><div class="ued-actions"><button type="button" class="cwp-btn" onclick="vcmpAutoFitCols()" title="Size all columns to fit their contents">Auto-fit columns</button><button type="button" class="cwp-btn" onclick="vcmpAutoFitRows()" title="Size all rows to fit their contents">Auto-fit rows</button></div></div><p class="v4-help-note">Compare up to 3 vendors side by side — full compare table in Database Hub.</p><div id="vendor-compare-preview"></div>${hubPreviewFoot('vendors','vendorCompare')}</section></div>
+    <div data-vnd-tab="shortlist" style="display:none"><section class="ued-panel vendors-compare-panel"><div class="ued-table-head"><div class="ued-table-title">Vendor Comparisons</div></div><p class="v4-help-note">Compare up to 3 vendors side by side — full compare table in Database Hub.</p><div id="vendor-compare-preview"></div>${hubPreviewFoot('vendors','vendorCompare')}</section></div>
   </div>`;
 }
 
@@ -33820,7 +33822,7 @@ function persistColumnWidths(table, key, colgroup) {
   store[key] = widths;
   saveTableWidthsStore(store);
 }
-const TABLE_COL_TIP_TEXT = 'Tip: Drag the right edge of a column header to resize it. Double-click that edge to auto-fit one column. Use Auto-fit columns to resize every column at once. Use Auto-fit rows to expand every row to fit wrapped content.';
+const TABLE_COL_TIP_TEXT = 'Tip: Drag the right edge of a column header to resize it. Double-click that edge to auto-fit one column. Use Auto-fit columns to resize every column at once. Use Row height to set a shared row size.';
 function isPlannerAutofitRowSkipped(tr) {
   if (!tr || tr.closest('thead')) return true;
   if (tr.classList.contains('cwp-empty') || tr.classList.contains('bulk-table-row') || tr.classList.contains('plan-sub-row')) return true;
@@ -34082,59 +34084,33 @@ function autoFitActivePanelTables() {
   if (typeof showToast === 'function' && count) showToast('Auto-fitted columns on ' + count + ' table' + (count === 1 ? '' : 's'), 'ok');
   return count;
 }
-function ensureAutoFitTableButton(table, tableIndex) {
-  if (!table || isRecordEditorMiniTable(table) || table.closest('.cwp-mount, .cwp-modal, #cwp-modal')) return;
-  const uid = table.dataset.plannerAutofitUid || (table.dataset.tableKey || table.tBodies?.[0]?.id || 'tbl-' + (tableIndex ?? 0));
-  table.dataset.plannerAutofitUid = uid;
-  const makeColBtn = (className) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = className + ' planner-autofit-btn planner-autofit-cols-btn';
-    btn.dataset.plannerAutofitColsFor = uid;
-    btn.textContent = 'Auto-fit columns';
-    btn.title = 'Size all columns to fit their contents';
-    btn.addEventListener('click', () => autoFitOneTable(table, tableIndex));
-    return btn;
-  };
-  const makeRowBtn = (className) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = className + ' planner-autofit-btn planner-autofit-rows-btn';
-    btn.dataset.plannerAutofitRowsFor = uid;
-    btn.textContent = 'Auto-fit rows';
-    btn.title = 'Size all rows to fit their contents';
-    btn.addEventListener('click', () => autoFitOneTableRows(table, tableIndex));
-    return btn;
-  };
-  const addAutofitButtons = (container, prepend) => {
-    if (!document.querySelector('[data-planner-autofit-cols-for="' + uid + '"]')) {
-      const colBtn = makeColBtn(prepend ? 'btn btn-outline btn-sm' : 'm-btn');
-      if (prepend) container.insertBefore(colBtn, container.firstChild);
-      else container.appendChild(colBtn);
+function removeLegacyAutofitPairButtons(root) {
+  /* Strip the old Auto-fit columns | Auto-fit rows pair. Keep rd-chip
+     "Auto-fit columns" and the Row height control in the standard toolbar. */
+  const scope = root && root.querySelectorAll ? root : document;
+  scope.querySelectorAll('.planner-autofit-btn, .planner-autofit-bar, .cwp-toolbar--autofit, [data-planner-autofit-cols-for], [data-planner-autofit-rows-for]').forEach(el => {
+    if (el.classList && el.classList.contains('rd-chip')) return;
+    if (el.parentNode) el.parentNode.removeChild(el);
+  });
+  scope.querySelectorAll('button, .ued-btn, .cwp-btn, .m-btn, .btn').forEach(btn => {
+    if (btn.classList && btn.classList.contains('rd-chip')) return;
+    if (btn.closest && btn.closest('.rd-toolbar, .rd-cwp-toolbar, .rd-toolbar-right, .rd-page > .rd-toolbar')) return;
+    const t = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+    const on = btn.getAttribute('onclick') || '';
+    const isRows = /^Auto-fit rows$/i.test(t) || /autoFitDataHubTableRows|vcmpAutoFitRows|cwpAutoFitTableRows/.test(on);
+    const isLegacyCols = /^Auto-fit columns$/i.test(t) && /autoFitDataHubTables|vcmpAutoFitCols|cwpAutoFitTableColumns/.test(on);
+    if (isRows || isLegacyCols) {
+      if (btn.parentNode) btn.parentNode.removeChild(btn);
     }
-    if (!document.querySelector('[data-planner-autofit-rows-for="' + uid + '"]')) {
-      const rowBtn = makeRowBtn(prepend ? 'btn btn-outline btn-sm' : 'm-btn');
-      if (prepend) container.insertBefore(rowBtn, container.firstChild);
-      else container.appendChild(rowBtn);
-    }
-  };
-  const planActions = table.closest('.payment-plan-card')?.querySelector('.payment-plan-actions');
-  if (planActions) { addAutofitButtons(planActions, true); return; }
-  const block = table.closest('.m-block, .payments-table-card, .guest-table-card, .tasks-table-card, .budget-selected-wrap, #budget-reconciliation-wrap, .ued-table-card');
-  const head = block?.querySelector(':scope > .m-head, :scope > .payments-table-head, :scope > .ued-table-head, :scope > .payments-table-head');
-  if (head) { addAutofitButtons(head, false); return; }
-  const wrap = table.closest('.budget-table-wrap, .payments-table-wrap, .payment-plan-table-wrap, .guest-table-wrap, .app-table-wrap') || table.parentElement;
-  if (!wrap) return;
-  let bar = wrap.parentNode?.querySelector(':scope > .planner-autofit-bar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.className = 'planner-autofit-bar';
-    wrap.parentNode.insertBefore(bar, wrap);
-  }
-  addAutofitButtons(bar, false);
+  });
+}
+function ensureAutoFitTableButton(/* table, tableIndex */) {
+  /* Legacy Auto-fit columns | Auto-fit rows injector retired. Standard
+     toolbars already include the Auto-fit columns chip + Row height bar. */
 }
 function makeColumnsResizable(root) {
   const scope = root && root.querySelectorAll ? root : document;
+  removeLegacyAutofitPairButtons(scope);
   const tables = [...scope.querySelectorAll('#main table, table')].filter(table => table.closest('#main') && !table.closest('.cwp-mount') && !table.classList.contains('cwp-table') && !isRecordEditorMiniTable(table));
   tables.forEach((table, tableIndex) => {
     standardizeTableTrashButtons(table);
@@ -45247,13 +45223,12 @@ function mountAllTabs(root){
       tools+='<select class="cwp-filter" onchange="cwpFilter(\''+key+'\',\''+fk+'\',this.value)"><option value="">All '+esc(col.label)+'</option>'+list.map(([val,lab])=>'<option value="'+attr(val)+'"'+(String(s.filters[fk]||'')===String(val)?' selected':'')+'>'+esc(lab)+'</option>').join('')+'</select>';
     });
     if(d.search||(d.filters&&d.filters.length)) tools+='<button class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="cwpClear(\''+key+'\')">Clear</button>';
-    const autofitBtn='<button class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="cwpAutoFitTableColumns(\''+key+'\')" title="Size all columns to fit their contents">Auto-fit columns</button>';
-    const autofitRowsBtn='<button class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="cwpAutoFitTableRows(\''+key+'\')" title="Size all rows to fit their contents">Auto-fit rows</button>';
+    /* Do not inject the legacy Auto-fit columns | Auto-fit rows pair.
+       Chip toolbars already own Auto-fit columns + Row height. */
     if(readOnlyPreview) {
-      tools+=autofitBtn+autofitRowsBtn;
+      /* Preview mounts keep search/filters only — no autofit pair. */
     } else if(d.hideToolbar && bulk && !hubFullToolbar) bulkTools=bulkTools;
     else if(!injectRdToolbar) {
-      tools+=autofitBtn+autofitRowsBtn;
       tools+='<button class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="cwpAdd(\''+key+'\')">'+esc(d.addLabel||'+ Add')+'</button>';
       tools+=bulkTools;
     } else {
