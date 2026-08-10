@@ -110,8 +110,8 @@ Every view is one of these. Class names in `redesign/class-map.md`.
 | People | Guest List · Households · Contacts · Wedding Party · Table Layout · Gifts |
 | Money | Budget · Payments · Contracts & Invoices |
 | Vendors | Venue & Vendors · **Venue Comparison** · Catering & Menu · Entertainment · Shot Lists |
-| The Day | Wedding Day Timeline · Ceremony & Reception · Weekend Logistics · Newlywed Homecoming · Planner History |
-| Covenant | Vision & Foundation · Prayer Journal · Premarital Counseling · First-Month Rhythms |
+| The Day | Wedding Day Timeline · Ceremony & Reception · Weekend Logistics · Honeymoon · Planner History |
+| Covenant | Vision & Foundation · Prayer Journal · Premarital Counseling · First-Month Rhythms · Newlywed Homecoming |
 | Documents | Share Packets · Email Templates · Print Centre · Vision Board |
 
 ### `Planner Screens Views.dc.html` — organised in batches, newest first
@@ -530,8 +530,7 @@ every page already shipped.
 | ✓ | Wedding Day Timeline | `timeline` | All **6b** · Views `#31a`/`#31b` · `js/timeline-redesign.js` |
 | ✓ | Ceremony & Reception | `ceremony` | All **11a** · Views `#31c`/`#31d` · `js/ceremony-redesign.js` |
 | ✓ | Weekend Logistics | `logistics` | Moved under The Day per §3 IA |
-| ✓ | Newlywed Homecoming | `homecoming` | Views **31** · `js/homecoming-redesign.js` |
-| ✓ | Honeymoon & After | `honeymoon` | All **17b** · Dark rail · `js/honeymoon-redesign.js` |
+| ✓ | Honeymoon | `honeymoon` | All **17b** · Dark rail · `js/honeymoon-redesign.js` |
 
 **Covenant** (live nav order):
 
@@ -541,6 +540,7 @@ every page already shipped.
 | ✓ | Prayer Journal | `prayer` | All **13b** · Views `#32c`/`#32d` · `js/prayer-redesign.js` |
 | ✓ | Premarital Counseling | `counseling` | All **13c** · Views `#32e`/`#32f` · `js/counseling-redesign.js` |
 | ✓ | First-Month Rhythms | `firstmonth` | All **13d** · Views **32** · `js/firstmonth-redesign.js` |
+| ✓ | Newlywed Homecoming | `homecoming` | All **18a** · `js/homecoming-redesign.js` |
 
 **Documents** (live nav order):
 

@@ -21581,6 +21581,12 @@ body.rd-scope #panel-firstmonth .rd-fm-drawer__prose {
   color: #20362D;
 }
 
+body.rd-scope #panel-homecoming .rd-hc-block {
+  margin: 0 0 36px;
+}
+body.rd-scope #panel-homecoming .rd-hc-block:last-child {
+  margin-bottom: 12px;
+}
 body.rd-scope #panel-homecoming .rd-hc-table {
   width: 100%;
   border-collapse: collapse;
@@ -21591,6 +21597,32 @@ body.rd-scope #panel-homecoming .rd-hc-table td {
   text-align: left;
   padding: 8px 10px;
   border-bottom: 1px solid #f0ebe0;
+}
+body.rd-scope #panel-homecoming .rd-hc-table input,
+body.rd-scope #panel-homecoming .rd-hc-table select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+body.rd-scope #panel-homecoming .rd-hc-table tr.rd-hc-group > td,
+body.rd-scope #panel-homecoming .rd-hc-table tr.rd-group-row > td {
+  background: #ebe4d6;
+  color: #3d3830;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: none;
+  padding: 9px 12px;
+  border-bottom: 1px solid #ddd4c2;
+}
+body.rd-scope #panel-homecoming .rd-hc-table tr.rd-hc-total > td {
+  background: #f7f3ea;
+  font-weight: 600;
+  color: #2a2620;
+  border-top: 1px solid #e0d7c6;
 }
 body.rd-scope #panel-homecoming .rd-hc-budget {
   padding: 20px 8px 40px;
@@ -21612,12 +21644,79 @@ body.rd-scope #panel-homecoming .rd-hm-addbtn {
   font: inherit;
   cursor: pointer;
 }
-body.rd-scope #panel-homecoming .rd-hc-after-row { cursor: pointer; }
+body.rd-scope #panel-homecoming .rd-hc-addbtn span,
+body.rd-scope #panel-homecoming .rd-hm-addbtn span {
+  font-weight: 600;
+  color: #b89968;
+}
 body.rd-scope #panel-homecoming .rd-section__head {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin: 0 0 14px;
+  margin: 8px 0 14px;
+  flex-wrap: wrap;
+}
+body.rd-scope #panel-homecoming .rd-section__head .rd-pagehead__eyebrow {
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+}
+body.rd-scope #panel-homecoming .rd-section__head .rd-help {
+  margin: 4px 0 0;
+  color: #6b645d;
+  font-size: 13px;
+  line-height: 1.45;
+  max-width: 42rem;
+}
+body.rd-scope #panel-homecoming .rd-hc-keepsake,
+body.rd-scope #panel-homecoming .rd-keepsake {
+  max-width: 44rem;
+  margin: 4px 0 28px;
+  padding: 8px 4px 20px;
+}
+body.rd-scope #panel-homecoming .rd-hc-keepsake__lead {
+  margin: 0 0 22px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 20px;
+  line-height: 1.45;
+  color: #2a2620;
+}
+body.rd-scope #panel-homecoming .rd-hc-keepsake__q {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px 0;
+  border-top: 1px solid #e7ce80;
+}
+body.rd-scope #panel-homecoming .rd-hc-keepsake__q:last-child {
+  border-bottom: 1px solid #e7ce80;
+}
+body.rd-scope #panel-homecoming .rd-hc-keepsake__n {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 22px;
+  color: #b89968;
+  line-height: 1.2;
+}
+body.rd-scope #panel-homecoming .rd-hc-keepsake__body h3 {
+  margin: 0 0 8px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: #2a2620;
+}
+body.rd-scope #panel-homecoming .rd-hc-keepsake__body textarea {
+  width: 100%;
+  min-height: 72px;
+  border: 1px solid #e7e1d4;
+  background: #fdfcfa;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #23211c;
+  resize: vertical;
 }
 
 @media (max-width: 900px) {
