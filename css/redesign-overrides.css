@@ -13620,65 +13620,147 @@ body.rd-scope #panel-payments .rd-bulkbar__clear {
 }
 body.rd-scope #panel-payments .rd-bulkbar__clear--danger { color: var(--status-red-text, #a33b28); }
 
-/* ── calendar read of the same rows ─────────────────────────── */
-body.rd-scope #panel-payments .rd-pay-cal {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  padding: 18px 20px;
+/* ── calendar cash-flow (30c) ───────────────────────────────── */
+body.rd-scope #panel-payments .rd-pay-sect[hidden],
+body.rd-scope #panel-payments .rd-pay-insight[hidden] { display: none !important; }
+body.rd-scope #panel-payments .rd-pay-toolbar__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 0 8px;
 }
-body.rd-scope #panel-payments .rd-pay-cal__month {
-  border: 1px solid var(--border-subtle);
+body.rd-scope #panel-payments .rd-pay-cal {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  background: var(--surface-content);
 }
 body.rd-scope #panel-payments .rd-pay-cal__head {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 9px 12px;
+  gap: 12px;
+  padding: 13px 20px;
   border-bottom: 1px solid var(--border-subtle);
-  background: var(--surface-sunken, #f9f5ef);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-heading);
 }
-body.rd-scope #panel-payments .rd-pay-cal__total {
-  margin-left: auto;
+body.rd-scope #panel-payments .rd-pay-cal__title {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 700;
+}
+body.rd-scope #panel-payments .rd-pay-cal__hint {
+  font-size: 12px;
   color: var(--text-muted);
-  font-weight: 400;
+}
+body.rd-scope #panel-payments .rd-pay-cal__today { margin-left: auto; }
+body.rd-scope #panel-payments .rd-pay-cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  padding: 8px 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+body.rd-scope #panel-payments .rd-pay-cal__legend span { display: inline-flex; align-items: center; gap: 6px; }
+body.rd-scope #panel-payments .rd-pay-cal__legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-left: 2px solid transparent;
+}
+body.rd-scope #panel-payments .rd-pay-cal__legend i.is-red {
+  background: var(--status-red-bg, #fbeeec);
+  border-left-color: var(--status-red-text, #9c3b34);
+}
+body.rd-scope #panel-payments .rd-pay-cal__legend i.is-amber {
+  background: var(--status-gold-bg, #fff7df);
+  border-left-color: var(--status-gold-text, #8a640f);
+}
+body.rd-scope #panel-payments .rd-pay-cal__legend i.is-blue {
+  background: var(--status-blue-bg, #e9eef8);
+  border-left-color: var(--status-blue-text, #4a5691);
+}
+body.rd-scope #panel-payments .rd-pay-calgrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--surface-sunken, #f9f5ef);
+}
+body.rd-scope #panel-payments .rd-pay-calgrid__dow {
+  padding: 8px 10px;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 700;
+  border-right: 1px solid var(--border-hairline, #f0ebe0);
+  border-bottom: 1px solid var(--border-subtle);
+}
+body.rd-scope #panel-payments .rd-pay-calgrid__cell {
+  min-height: 92px;
+  padding: 7px 8px;
+  border-right: 1px solid var(--border-hairline, #f0ebe0);
+  border-bottom: 1px solid var(--border-hairline, #f0ebe0);
+  background: var(--surface-content);
+  cursor: pointer;
+}
+body.rd-scope #panel-payments .rd-pay-calgrid__cell.is-pad {
+  background: var(--surface-raised, #fdfcfa);
+}
+body.rd-scope #panel-payments .rd-pay-calgrid__num {
+  font-size: 11px;
+  color: var(--text-body);
   font-variant-numeric: tabular-nums;
 }
-body.rd-scope #panel-payments .rd-pay-cal__item {
+body.rd-scope #panel-payments .rd-pay-calgrid__cell.is-pad .rd-pay-calgrid__num { color: var(--text-faint, #b0a794); }
+body.rd-scope #panel-payments .rd-pay-calgrid__chips {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px 12px;
-  border: 0;
-  border-bottom: 1px solid var(--border-hairline, #f0ebe0);
-  border-left: 3px solid transparent;
-  background: none;
-  font: inherit;
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
-  color: var(--text-body);
-}
-body.rd-scope #panel-payments .rd-pay-cal__item.is-red { border-left-color: var(--status-red-text, #a33b28); background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 35%, transparent); }
-body.rd-scope #panel-payments .rd-pay-cal__item.is-gold { border-left-color: var(--gold, #B89968); background: color-mix(in srgb, var(--status-gold-bg, #fff7df) 40%, transparent); }
-body.rd-scope #panel-payments .rd-pay-cal__item.is-green { border-left-color: var(--status-green-text, #2f6b45); }
-body.rd-scope #panel-payments .rd-pay-cal__item.is-gray { border-left-color: var(--border-control, #d9cfba); }
-body.rd-scope #panel-payments .rd-pay-cal__item:hover { background: var(--surface-focused, #fdfaf4); }
-body.rd-scope #panel-payments .rd-pay-cal__day { flex: 0 0 52px; color: var(--text-muted); }
-body.rd-scope #panel-payments .rd-pay-cal__name {
-  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 3px;
   min-width: 0;
+}
+body.rd-scope #panel-payments .rd-pay-calchip {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  height: 20px;
+  padding: 2px 5px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: var(--surface-sunken, #f9f5ef);
+  font: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: left;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  cursor: grab;
 }
-body.rd-scope #panel-payments .rd-pay-cal__amt { font-variant-numeric: tabular-nums; }
+body.rd-scope #panel-payments .rd-pay-calchip.is-red {
+  background: var(--status-red-bg, #fbeeec);
+  color: var(--status-red-text, #9c3b34);
+  border-left-color: var(--status-red-text, #9c3b34);
+}
+body.rd-scope #panel-payments .rd-pay-calchip.is-amber {
+  background: var(--status-gold-bg, #fff7df);
+  color: var(--status-gold-text, #8a640f);
+  border-left-color: var(--status-gold-text, #8a640f);
+}
+body.rd-scope #panel-payments .rd-pay-calchip.is-blue {
+  background: var(--status-blue-bg, #e9eef8);
+  color: var(--status-blue-text, #4a5691);
+  border-left-color: var(--status-blue-text, #4a5691);
+}
+body.rd-scope #panel-payments .rd-pay-calchip.is-gray {
+  background: var(--status-gray-bg, #eef1f2);
+  color: var(--status-gray-text, #626d74);
+  border-left-color: var(--border-control, #d9cfba);
+}
+body.rd-scope #panel-payments .rd-pay-num.is-paid { color: var(--status-green-text, #2f6b45); }
+body.rd-scope #panel-payments .rd-pay-cat { color: var(--text-link, #946f33); }
 
 /* ── the 360px payment drawer ───────────────────────────────── */
 body.rd-scope #panel-payments #payments-drawer-slot { display: none; }
@@ -13882,6 +13964,63 @@ body.rd-scope #panel-payments .rd-pay-drawer .rd-drawer-kv {
 }
 body.rd-scope #panel-payments .rd-pay-drawer .rd-drawer-kv .is-over { color: var(--status-red-text, #9c3b34); }
 body.rd-scope #panel-payments .rd-pay-drawer .rd-drawer-kv .is-paid { color: var(--status-green-text, #2f6b45); }
+body.rd-scope #panel-payments .rd-pay-drawer .rd-drawer-kv .is-warn { color: var(--status-gold-text, #8a640f); }
+body.rd-scope #panel-payments .rd-pay-drawer .rd-drawer-callout {
+  margin: 0;
+  padding: 10px 11px;
+  border: 1px solid var(--border-field, #e0dbd1);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+body.rd-scope #panel-payments .rd-pay-drawer .rd-drawer-callout.is-warn {
+  border-color: var(--status-gold-border, #e7ce80);
+  background: var(--status-gold-bg, #fff7df);
+  color: var(--status-gold-text, #8a640f);
+}
+body.rd-scope #panel-payments .rd-pay-drawer .rd-drawer-callout.is-ok {
+  border-color: var(--status-green-border, #cfe1d5);
+  background: var(--status-green-bg, #e9f2ec);
+  color: var(--status-green-text, #2f6b45);
+}
+body.rd-scope #panel-payments .rd-pay-sched {
+  border: 1px solid var(--border-subtle);
+}
+body.rd-scope #panel-payments .rd-pay-sched__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: var(--text-body);
+  border-top: 1px solid var(--border-hairline, #f0ebe0);
+}
+body.rd-scope #panel-payments .rd-pay-sched__row:first-child { border-top: 0; }
+body.rd-scope #panel-payments .rd-pay-sched__row.is-this { background: var(--surface-raised, #fdfcfa); }
+body.rd-scope #panel-payments .rd-pay-sched__row span:first-child { flex: 1; min-width: 0; }
+body.rd-scope #panel-payments .rd-pay-sched__row em { color: var(--text-subtle); font-style: normal; }
+body.rd-scope #panel-payments .rd-pay-sched__row .is-paid { color: var(--status-green-text, #2f6b45); font-variant-numeric: tabular-nums; font-size: 12px; }
+body.rd-scope #panel-payments .rd-pay-sched__row .is-warn { color: var(--status-gold-text, #8a640f); font-variant-numeric: tabular-nums; font-size: 12px; }
+body.rd-scope #panel-payments .rd-pay-histline {
+  display: flex;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border-hairline, #f0ebe0);
+}
+body.rd-scope #panel-payments .rd-pay-histline:first-child { border-top: 0; }
+body.rd-scope #panel-payments .rd-pay-histline > i {
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--gold, #b89968);
+}
+body.rd-scope #panel-payments .rd-pay-histline > i.is-green { background: var(--status-green-text, #2f6b45); }
+body.rd-scope #panel-payments .rd-pay-histline > i.is-gold { background: var(--status-gold-text, #8a640f); }
+body.rd-scope #panel-payments .rd-pay-histline__what { font-size: 12.5px; color: var(--text-body); line-height: 1.5; }
+body.rd-scope #panel-payments .rd-pay-histline__derived { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; }
+body.rd-scope #panel-payments .rd-pay-histline__meta { font-size: 11px; color: var(--text-subtle); margin-top: 2px; }
 body.rd-scope #panel-payments .rd-pay-drawer .rd-drawer-note {
   border: 1px solid var(--border-field, #e0dbd1);
   padding: 9px;
