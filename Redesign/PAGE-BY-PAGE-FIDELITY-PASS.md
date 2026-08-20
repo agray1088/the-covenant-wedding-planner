@@ -1195,7 +1195,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s10` · slug `contracts-invoices`
 - **Header counts:** 6 screens · 1 record drawer
-- **Status:** next product section — wait for “next”
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §11
 - **Screen ids:** `10c`, `30d`, `30e`
 
 ### Five parts on this page
