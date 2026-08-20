@@ -31,10 +31,14 @@ body.editorial-v4 .record-editor-overlay * {
 #main#main [class*="floorplan"] [class*="table-shape"],
 #main#main .table-node.circle,
 #main#main #table-map .table-node.circle,
-#main#main .table-chair,
-#main#main .table-chair::after,
 #main#main input[type="radio"] {
   border-radius: var(--radius-round, 999px) !important;
+}
+/* Floor-plan chairs keep their seat silhouette (soft top, rounder bottom) —
+   not the full-circle radius used for round tables. */
+#main#main .table-chair,
+#main#main #table-map .table-chair {
+  border-radius: 4px 4px 7px 7px !important;
 }
 /* Banquet / rect tables keep a soft corner — not the hard square reset. */
 #main#main .table-node.rect,
@@ -11363,6 +11367,9 @@ body.rd-scope #panel-tables #table-map .table-node.rect {
 }
 body.rd-scope #panel-tables #table-map .table-node.head-table {
   border-radius: 9px !important;
+}
+body.rd-scope #panel-tables #table-map .table-chair {
+  border-radius: 4px 4px 7px 7px !important;
 }
 body.rd-scope #panel-tables .rd-tables-floor-legend {
   display: flex;
