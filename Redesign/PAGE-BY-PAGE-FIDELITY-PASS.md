@@ -2042,6 +2042,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §18
 - **Screen ids:** `10d`, `30j`, `30k`, `19c`
 
+### Five parts on this page
+
 | Part | Applies | What to build |
 |---|---|---|
 | Full page | yes | `10d` |
