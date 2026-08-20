@@ -2,6 +2,7 @@
 
 **Page-by-page fidelity pass (Legend + sections 01–42):** `PAGE-BY-PAGE-FIDELITY-PASS.md`.
 That is the follow-along contract for the Master. Implement **one section at a time**; do not batch 1–42.
+Do not stop at the main gaps: every missing, unimplemented, uncreated, or unre-designed surface in that section ships before you call it done.
 
 You have already built **Planning, People and Money** from an earlier handoff. Since then four
 documents changed or appeared. This file explains what each one is, what to take from it, and —

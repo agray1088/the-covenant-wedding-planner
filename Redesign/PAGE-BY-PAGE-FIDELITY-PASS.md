@@ -6,6 +6,8 @@ Follow-along spec for Cursor. Implement **one section at a time**. Finish the se
 
 This file is the written pass of that Master: the Legend, then every section’s five parts, build notes, view names, drawers, rails, stats, and honesty rules. Where this file and the Master drawing disagree, **the Master drawing wins**.
 
+**Completeness, not a gap list.** Each section is a full rebuild to the Master, not a punch-list of the most obvious misses. When the user says **next**, inventory the live page against every drawing and build note in that section, then implement **all** of it: everything missing, not implemented, not created, not wired, or not yet redesigned. Do not stop at the headline views, the drawer tab labels, or “the main gaps.” A section is not finished while any Master surface, column, chip, group row, empty state, rail view, stat, primary action, or drawer tab still ships as the old planner, a stub, or a missing control.
+
 ## Legend
 
 Every section uses the **same five parts** wherever they apply. A part that is absent from a section is not missing work — it does not exist on that page. Do not invent a tab strip, extra view, or extra drawer to fill the slot.
@@ -22,14 +24,17 @@ Every section uses the **same five parts** wherever they apply. A part that is a
 
 1. Read the Legend, then that section’s **Five parts** table.
 2. Open the matching section in `Planner Screens Master.dc.html` and read **Build notes before the picture**.
-3. Implement only the parts that apply. Match columns, chips, group rows, empty states, and drawer tabs exactly.
-4. Follow spec §07 page anatomy: top bar → tabs → sub-nav → rail + header / stats / toolbar / table + drawer.
-5. Any figure shown is derived from the owning record — never typed twice.
-6. Cache-bust touched CSS/JS in `index.html`. Commit, push, update the PR.
-7. Stop. Give the three git commands. Wait for review before the next section.
+3. Diff the live page against **every** drawing in the section — full page, each view-switcher view, section tabs if drawn, every drawer tab, empty states, rails, stats, toolbars. List what is missing, not implemented, not created, or still on the old design.
+4. Implement the **whole** list, not only the largest gaps. Match columns, chips, group rows, empty states, and drawer tabs exactly. Create what does not exist; redesign what still looks like the previous planner.
+5. Follow spec §07 page anatomy: top bar → tabs → sub-nav → rail + header / stats / toolbar / table + drawer.
+6. Any figure shown is derived from the owning record — never typed twice.
+7. Cache-bust touched CSS/JS in `index.html`. Commit, push, update the PR.
+8. Stop. Give the three git commands. Wait for review before the next section.
 
 ### Standing rules
 
+- A section is complete only when every Master surface in it exists in the product and matches the drawing. “Fixed the main gaps” is not done.
+- Missing, not implemented, not created, and not redesigned all count as remaining work. Stubs, hidden placeholders, and leftover legacy chrome count too.
 - Match Master drawings exactly. Do not invent UX, extra buttons, extra tabs, or extra stats.
 - Screen ids stay as drawn (`21a`, `6b`, `31a`, `49a`, …).
 - View-switcher options live in the view menu, not a second tab strip, unless Section tabs is drawn.
@@ -143,7 +148,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -262,7 +267,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -410,7 +415,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -531,7 +536,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -652,7 +657,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -774,7 +779,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -878,7 +883,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1001,7 +1006,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1115,7 +1120,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1220,7 +1225,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1333,7 +1338,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1457,7 +1462,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1580,7 +1585,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1701,7 +1706,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1825,7 +1830,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -1942,7 +1947,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2064,7 +2069,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2182,7 +2187,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2303,7 +2308,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2421,7 +2426,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2544,7 +2549,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2643,7 +2648,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2741,7 +2746,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2851,7 +2856,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -2970,7 +2975,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -3093,7 +3098,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -3205,7 +3210,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -3324,7 +3329,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -3435,7 +3440,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -3550,7 +3555,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -3660,7 +3665,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -3775,7 +3780,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -3891,7 +3896,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4001,7 +4006,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4112,7 +4117,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4214,7 +4219,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4348,7 +4353,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4462,7 +4467,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4577,7 +4582,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4692,7 +4697,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4757,7 +4762,7 @@ Named screens (no numeric id in the Master):
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
@@ -4849,7 +4854,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 ### Build notes, part by part
 
-Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice.
+Match the Master drawings. Do not invent UX. Figures come from the owning record — never typed twice. Implement **everything** this section draws — missing, not implemented, not created, and not redesigned — not only the headline gaps.
 
 #### Part · Full page
 
