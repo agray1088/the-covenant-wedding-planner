@@ -13698,6 +13698,7 @@ function recordEditorDefault(key){
   if (key === 'ceremonyOrder') return { _id:nextRecordId('ceremonyOrder'), step:'', moment:'', length:'', person:'', cue:'', notes:'' };
   if (key === 'ceremonyProcessional') return { _id:nextRecordId('ceremonyProcessional'), num:'', name:'', role:'', notes:'' };
   if (key === 'ceremonyRecessional') return { _id:nextRecordId('ceremonyRecessional'), num:'', name:'', role:'', notes:'' };
+  if (key === 'ceremonyVows') return { _id:nextRecordId('ceremonyVows'), detail:'', wording:'' };
   if (key === 'ceremonyChecklist') return { _id:nextRecordId('ceremonyChecklist'), done:false, item:'', notes:'' };
   if (key === 'ceremonyReceptionDetails') return { _id:nextRecordId('ceremonyReceptionDetails'), moment:'', category:'Reception Detail', person:'', timing:'', notes:'' };
   if (key === 'ceremonyTraditions') return { _id:nextRecordId('ceremonyTraditions'), moment:'', part:'Ceremony', context:'Family Tradition', meaning:'', people:'', items:'', timing:'', script:'', instructions:'', notes:'' };
@@ -16591,6 +16592,7 @@ function saveRecordEditor(addAnother=false, options={}){
   if (isNew) { rows.push(row); savedIndex = rows.length - 1; }
   else rows[index] = row;
   recordHistoryLog(key, historyBefore, row);
+  if (key === 'ceremonyVows' && typeof syncCeremonyVowsToCeremony === 'function') syncCeremonyVowsToCeremony();
   if (key === 'guests') {
     if (recordEditorState.newEventIds?.length) {
       const ids = new Set(recordEditorState.newEventIds);

@@ -58,7 +58,8 @@
     : String(s == null ? '' : s));
 
   function ensureArrays() {
-    if (!window.data) window.data = {};
+    /* Do not assign window.data — planner.js uses a top-level `let data` that
+       is not the same object as window.data. Mutate the live `data` store. */
     ['ceremonyOrder', 'ceremonyReceptionDetails', 'ceremonyProcessional', 'ceremonyRecessional',
       'scriptures', 'ceremonyVows', 'ceremonyChecklist', 'ceremonyTraditions', 'speeches'].forEach(k => {
       if (!Array.isArray(data[k])) data[k] = [];
@@ -1172,8 +1173,40 @@
     }
   }
   function rdCerWriteVows() {
-    if (typeof openRecordEditor === 'function') openRecordEditor('ceremonyVows');
-    else if (typeof addCeremonyVowRow === 'function') addCeremonyVowRow();
+    if (typeof ensureCeremonyArrays === 'function') ensureCeremonyArrays();
+    if (typeof ensureCeremonyVowsMigrated === 'function') ensureCeremonyVowsMigrated();
+    /* Use the planner `data` binding (let), not window.data — ensureArrays()
+       may create an empty window.data object that is not the live store. */
+    const rows = (typeof data !== 'undefined' && Array.isArray(data.ceremonyVows))
+      ? data.ceremonyVows
+      : [];
+    /* Prefer the seeded "Vow Style" / personal-vows row so Write the vows
+       opens editable Detail + Wording fields, not an empty _id-only draft. */
+    let idx = rows.findIndex(v => /vow style/i.test(String(v.detail || '')));
+    if (idx < 0) idx = rows.findIndex(v => /vow/i.test(String(v.detail || '')));
+    if (idx < 0) {
+      idx = rows.findIndex(v => /personal vows/i.test(String(v.wording || '')));
+    }
+    if (typeof openRecordEditor !== 'function') {
+      if (typeof addCeremonyVowRow === 'function') addCeremonyVowRow();
+      return;
+    }
+    if (idx >= 0) openRecordEditor('ceremonyVows', idx);
+    else openRecordEditor('ceremonyVows', null, { detail: 'Personal Vows', wording: '' });
+    requestAnimationFrame(function () {
+      const body = document.getElementById('record-editor-body');
+      if (!body) return;
+      const fields = body.querySelectorAll('.record-editor-field');
+      for (let i = 0; i < fields.length; i++) {
+        const label = (fields[i].querySelector('label') || {}).textContent || '';
+        if (!/wording/i.test(label)) continue;
+        const input = fields[i].querySelector('textarea, input');
+        if (input) {
+          try { input.focus(); if (input.select) input.select(); } catch (e) { /* focus optional */ }
+        }
+        break;
+      }
+    });
   }
   function rdCerSendOfficiant() {
     if (typeof openCeremonyProgram === 'function') openCeremonyProgram();
