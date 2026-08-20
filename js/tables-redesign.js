@@ -3,7 +3,7 @@
   'use strict';
 
   const TABLES_DRAWER_TABS = ['Table', 'Seats', 'Notes', 'History'];
-  const RD_TABLES_COL_KEYS = ['guest', 'table', 'seat', 'side', 'group', 'rsvp', 'meal'];
+  const RD_TABLES_COL_KEYS = ['guest', 'table', 'seat', 'side', 'group', 'rsvp', 'meal', 'diet'];
   const RD_TABLES_COLUMNS = [
     { key: 'guest', label: 'Guest', width: '190px', type: 'person' },
     { key: 'table', label: 'Table', width: '110px', type: 'link' },
@@ -11,7 +11,17 @@
     { key: 'side', label: 'Side', width: '120px', type: 'select' },
     { key: 'group', label: 'Group', width: '170px', type: 'select' },
     { key: 'rsvp', label: 'RSVP', width: '120px', type: 'select' },
-    { key: 'meal', label: 'Meal', width: '150px', type: 'select' }
+    { key: 'meal', label: 'Meal', width: '150px', type: 'select' },
+    { key: 'diet', label: 'Diet', width: '88px', type: 'marks' }
+  ];
+  const RD_TABLES_BYGUEST_COLUMNS = [
+    { key: 'guest', label: 'Guest', width: '200px', type: 'person' },
+    { key: 'table', label: 'Table', width: '90px', type: 'link' },
+    { key: 'seat', label: 'Seat', width: '64px', type: 'text' },
+    { key: 'meal', label: 'Meal', width: '130px', type: 'select' },
+    { key: 'diet', label: 'Diet', width: '88px', type: 'marks' },
+    { key: 'rsvp', label: 'RSVP', width: '110px', type: 'select' },
+    { key: 'side', label: 'Side', width: '100px', type: 'select' }
   ];
 
   /* The table engine builds the header, group rows and select gutter from
@@ -24,6 +34,7 @@
     });
   }
   function tablesVisibleColumns() {
+    if (rdGetTablesView() === 'byguest') return RD_TABLES_BYGUEST_COLUMNS;
     return window.rdColumns ? window.rdColumns.visible(TABLES_COL_SCOPE) : RD_TABLES_COLUMNS;
   }
   /* The three views each mount the same table definition in a different host. */
@@ -86,6 +97,29 @@
       const k = typeof tableMatchKey === 'function' ? tableMatchKey(g && g.table) : String(g && g.table || '').trim();
       return !k;
     });
+  }
+
+  /* List · Not seated: accepted guests with no table (failure group, not a filter). */
+  function notSeatedGuests() {
+    return unseatedGuests().filter(g => {
+      const r = String(g && g.rsvp || '').toLowerCase();
+      return /accept|yes|attending/.test(r);
+    });
+  }
+
+  function dietaryMarks(row) {
+    const raw = String((row && (row.dietary || row.mealNote || row.restriction)) || '').toLowerCase();
+    const marks = [];
+    if (/gluten|gf\b|coeliac|celiac/.test(raw)) marks.push({ key: 'gf', title: 'Gluten-free' });
+    if (/nut|peanut|tree nut/.test(raw)) marks.push({ key: 'nut', title: 'Nut allergy' });
+    if (/dairy|lactose|milk/.test(raw)) marks.push({ key: 'dairy', title: 'Dairy-free' });
+    if (/veggie|vegetarian/.test(raw) && !/vegan/.test(raw)) marks.push({ key: 'veg', title: 'Vegetarian' });
+    if (/vegan/.test(raw)) marks.push({ key: 'vegan', title: 'Vegan' });
+    if (/shellfish|seafood|fish allergy/.test(raw)) marks.push({ key: 'shell', title: 'Shellfish' });
+    if (/halal/.test(raw)) marks.push({ key: 'halal', title: 'Halal' });
+    if (/kosher/.test(raw)) marks.push({ key: 'kosher', title: 'Kosher' });
+    if (!marks.length && raw.trim()) marks.push({ key: 'other', title: raw.trim() });
+    return marks;
   }
 
   function tablesStatsData() {
@@ -171,7 +205,8 @@
         side: g.side || '—',
         group: g.group || '—',
         rsvp: g.rsvp || 'Pending',
-        meal: g.meal || g.dietary || '—',
+        meal: g.meal || '—',
+        dietary: g.dietary || '',
         tableKey: meta ? meta.key : '',
         tableMeta: meta || null,
         sideGroup: String(g.side || 'Mixed').trim() || 'Mixed'
@@ -190,6 +225,7 @@
         group: '—',
         rsvp: '—',
         meal: '—',
+        dietary: '',
         tableKey: meta.key,
         tableMeta: meta,
         sideGroup: '—',
@@ -198,7 +234,6 @@
     }
 
     if (groupMode === 'guest') {
-      const seated = [];
       tables.forEach((t, ti) => {
         const cap = tableCapacity(t);
         const seatedN = tableSeatedCount(t);
@@ -212,6 +247,7 @@
         };
         guestsAtTable(t.name).forEach(({ g, i }) => pushGuest(g, i, meta));
       });
+      /* Caterer export includes every guest — unseated sit after seated tables. */
       unseatedGuests().forEach((g, i) => {
         const gi = data.guests.indexOf(g);
         pushGuest(g, gi >= 0 ? gi : i, null);
@@ -239,7 +275,8 @@
       }
     });
 
-    unseatedGuests().forEach((g, i) => {
+    /* List · Not seated last — accepted guests with no table only. */
+    notSeatedGuests().forEach((g, i) => {
       const gi = data.guests.indexOf(g);
       pushGuest(g, gi >= 0 ? gi : i, null);
     });
@@ -251,6 +288,14 @@
   function tablesAssignmentRowGroupMeta(row) {
     const mode = window._tablesListGroupBy || 'table';
     if (mode === 'guest') {
+      if (!row.tableMeta) {
+        return {
+          key: '__unseated__',
+          title: 'Not seated',
+          sort: '\uffff',
+          residual: true
+        };
+      }
       const side = row.sideGroup || row.side || 'Mixed';
       const title = /bride/i.test(side) ? "Bride's side"
         : /groom/i.test(side) ? "Groom's side"
@@ -263,11 +308,11 @@
       };
     }
     if (!row.tableMeta) {
-      const n = unseatedGuests().length;
+      const n = notSeatedGuests().length;
       const free = tablesStatsData().free;
       return {
         key: '__unseated__',
-        title: 'Unseated',
+        title: 'Not seated',
         sort: '\uffff',
         residual: true,
         unseatedN: n,
@@ -290,7 +335,7 @@
     if (meta && meta.key === '__unseated__') {
       const n = rows.length;
       const free = tablesStatsData().free;
-      return 'Unseated · ' + n + ' guests · only ' + free + ' free seats on the plan';
+      return 'Not seated · ' + n + ' accepted · only ' + free + ' free seats on the plan';
     }
     const m = (meta && meta.meta) || (rows[0] && rows[0].tableMeta);
     if (!m) return (meta && meta.title) || 'Group';
@@ -401,8 +446,8 @@
     const empty = r._isEmpty || r._rowKind === 'empty';
     switch (key) {
       case 'guest': return empty
-        ? '<td><span class="rd-tables-empty-seat">' + escapeHtml(r.displayName) + '</span></td>'
-        : '<td class="rd-party-td--name"><strong>' + escapeHtml(r.displayName) + '</strong></td>';
+        ? '<td class="rd-tables-sticky"><span class="rd-tables-empty-seat">' + escapeHtml(r.displayName) + '</span></td>'
+        : '<td class="rd-party-td--name rd-tables-sticky"><strong>' + escapeHtml(r.displayName) + '</strong></td>';
       case 'table': return !r.tableMeta
         ? '<td class="rd-tables-unseated">—</td>'
         : '<td>' + escapeHtml(r.tableLabel || '—') + '</td>';
@@ -412,6 +457,16 @@
       case 'group': return '<td class="rd-guest-td--muted">' + escapeHtml(r.group || '—') + '</td>';
       case 'rsvp': return '<td>' + (empty || r.rsvp === '—' ? '<span class="rd-guest-td--muted">—</span>' : guestRsvpCell(r.rsvp)) + '</td>';
       case 'meal': return '<td class="rd-guest-td--muted">' + escapeHtml(r.meal || '—') + '</td>';
+      case 'diet': {
+        if (empty) return '<td class="rd-guest-td--muted">—</td>';
+        const marks = dietaryMarks(r);
+        if (!marks.length) return '<td class="rd-guest-td--muted">—</td>';
+        return '<td class="rd-tables-diet">' + marks.map(m =>
+          '<span class="rd-tables-diet__mark" title="' + escapeHtml(m.title) + '" data-diet="' + escapeHtml(m.key) + '">' +
+          escapeHtml(m.key === 'other' ? '!' : m.key.toUpperCase().slice(0, 2)) +
+          '</span>'
+        ).join('') + '</td>';
+      }
       default: return '';
     }
   }
@@ -1001,6 +1056,11 @@
     rdApplyTablesDrawerRowFocus();
     rdApplyTablesRowHeight();
     appendTablesAssignmentAddRow(mountId);
+    if (wrap) {
+      wrap.classList.toggle('rd-tables-byguest', mountId === 'cwp-tables-byguest');
+      const table = wrap.querySelector('table');
+      if (table) table.classList.toggle('rd-tables-sticky-guest', mountId === 'cwp-tables-byguest');
+    }
     if (wrap && wrap.dataset.rdBulkBound !== '1') {
       wrap.dataset.rdBulkBound = '1';
       wrap.addEventListener('change', ev => {

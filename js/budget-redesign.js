@@ -64,6 +64,10 @@
   window._budgetDrawerRef = window._budgetDrawerRef || null;
   window._budgetDrawerTab = window._budgetDrawerTab || 0;
   window._budgetPledgeSel = window._budgetPledgeSel || new Set();
+  /* Views 30a/30b: the page-level surface the toolbar switcher shows.
+     'category' = By category + Itemized (default) · 'pledged' = Pledged &
+     paid only · 'scroll' = every section, the original single-scroll page. */
+  window._bgtMode = window._bgtMode || 'category';
 
   const esc = s => (typeof escapeHtml === 'function' ? escapeHtml(s == null ? '' : String(s)) : String(s == null ? '' : s));
 
@@ -237,25 +241,45 @@
 
   function pageheadActionsHtml() {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
-    return `<button type="button" class="rd-btn rd-btn--quiet" onclick="printCurrentPage()">Print page</button>
+    /* All.dc Budget pagehead leads with quiet "Import checklist" (same tertiary as Tasks). */
+    return `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdBudgetImportChecklist()">Import checklist</button>
+      <button type="button" class="rd-btn rd-btn--quiet" onclick="printCurrentPage()">Print page</button>
       <button type="button" class="rd-btn" onclick="exportSectionCSV('Budget',budgetExportRows())">Export CSV</button>
       <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
       <button type="button" class="rd-btn" data-rd-full-editor onclick="rdBudgetFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
       <button type="button" class="rd-btn rd-btn--primary" onclick="addBudgetCategory()">+ Add category</button>`;
   }
 
+  async function rdBudgetImportChecklist() {
+    if (typeof rdChoose !== 'function') {
+      if (typeof loadBudgetPreset === 'function') return loadBudgetPreset();
+      return;
+    }
+    const choice = await rdChoose('Import checklist', ['Full categories', 'Full itemized budget']);
+    if (choice === 'Full categories' && typeof loadBudgetPreset === 'function') {
+      await loadBudgetPreset();
+    } else if (choice === 'Full itemized budget' && typeof loadFullItemizedBudget === 'function') {
+      await loadFullItemizedBudget();
+    }
+    if (typeof renderBudget === 'function') renderBudget();
+    else renderBudgetRd();
+  }
+  window.rdBudgetImportChecklist = rdBudgetImportChecklist;
+
   function uedBudgetShellRd() {
     const panel = document.getElementById('panel-budget');
     if (!panel) return;
     panel.classList.add('ued-scope', 'budget-mockup');
-    /* 4a draws one continuous scroll — bump the shell key when the anatomy
-       changes so an already-mounted panel rebuilds instead of keeping tabs. */
-    if (panel.dataset.uedShell === 'budget-rd4a-scroll') {
+    /* Views 30a/30b added a toolbar switcher above the used bar — bump the
+       shell key when the anatomy changes so an already-mounted panel rebuilds
+       instead of keeping the older markup. */
+    if (panel.dataset.uedShell === 'budget-rd4b-views2') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
+      renderBudgetViewSwitch();
       return;
     }
-    panel.dataset.uedShell = 'budget-rd4a-scroll';
+    panel.dataset.uedShell = 'budget-rd4b-views2';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -266,6 +290,12 @@
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
+      <div class="rd-bgt-viewbar" id="budget-viewbar">
+        <span class="rd-bgt-eyebrow">Layout</span>
+        <div class="rd-viewswitch" id="budget-viewswitch" role="group" aria-label="Budget view"></div>
+        <span class="rd-bgt-viewbar__note" id="budget-viewbar-note"></span>
+      </div>
+      <div class="rd-toolbar" id="budget-toolbar"></div>
       <div class="rd-stats m-stats" id="budget-stats"></div>
       <div class="rd-bgt-usedbar" id="budget-used-bar"></div>
       <div class="rd-surface">
@@ -280,6 +310,7 @@
               </div>
               <section class="rd-bgt-sect" id="bgt-sect-tipping"></section>
               <section class="rd-bgt-sect" id="bgt-sect-itemized"></section>
+              <section class="rd-bgt-sect" id="bgt-sect-pledged"></section>
             </div>
           </div>
           <div id="budget-drawer-slot"></div>
@@ -287,6 +318,7 @@
       </div>
       <datalist id="budget-cat-options"></datalist>
     </div>`;
+    renderBudgetViewSwitch();
   }
 
   /* Jump targets for the rail — mock 4a lists these under "Jump to". */
@@ -296,16 +328,56 @@
     { id: 'bgt-sect-truetotal', label: 'True Total' },
     { id: 'bgt-sect-logic', label: 'Budget Logic' },
     { id: 'bgt-sect-tipping', label: 'Tipping Etiquette' },
-    { id: 'bgt-sect-itemized', label: 'Itemized' }
+    { id: 'bgt-sect-itemized', label: 'Itemized' },
+    { id: 'bgt-sect-pledged', label: 'Pledged & paid' }
   ];
 
-  function budgetView() {
-    /* Kept for rail callers that still ask which "view" is active. On the
-       single-scroll page the answer is always the full reading order. */
-    return 'all';
+  /* The section ids every layout mode shows or hides together (Views 30a/30b).
+     'scroll' is the original single-scroll page — every section, in order. */
+  const BGT_SECTION_IDS = ['bgt-sect-categories', 'bgt-sect-recon', 'bgt-sect-truetotal', 'bgt-sect-tipping', 'bgt-sect-itemized', 'bgt-sect-pledged'];
+  function bgtSectionVisible(id) {
+    const m = window._bgtMode || 'category';
+    if (m === 'scroll') return true;
+    if (m === 'pledged') return id === 'bgt-sect-pledged';
+    return id === 'bgt-sect-categories' || id === 'bgt-sect-itemized';
   }
-  function rdBudgetSetView() {
-    /* No-op: 4a is one scroll, not tabbed views. */
+  function applyBudgetSectionVisibility() {
+    BGT_SECTION_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.hidden = !bgtSectionVisible(id);
+    });
+  }
+
+  function budgetView() {
+    /* Kept for rail callers that ask which "view" is active. */
+    return window._bgtMode || 'category';
+  }
+  function bgtModeNote(m) {
+    if (m === 'pledged') return 'Showing Pledged & paid only.';
+    if (m === 'scroll') return 'Showing every section, one continuous scroll.';
+    return 'Showing By category + Itemized.';
+  }
+  function renderBudgetViewSwitch() {
+    const host = document.getElementById('budget-viewswitch');
+    if (!host) return;
+    const m = window._bgtMode || 'category';
+    const item = (id, label) => `<button type="button" class="rd-viewswitch__item${m === id ? ' is-active' : ''}" onclick="rdBudgetSetView('${id}')">${esc(label)}</button>`;
+    host.innerHTML = item('category', 'By category') + item('pledged', 'Pledged & paid') + item('scroll', 'All sections');
+    const note = document.getElementById('budget-viewbar-note');
+    if (note) note.textContent = bgtModeNote(m);
+  }
+  /* Views 30a/30b: the toolbar switcher jumps between showing primarily the
+     By category surface, primarily Pledged & paid, or the full single-scroll
+     page — Load full categories and Import checklist stay reachable in every
+     mode that keeps the categories section on screen. */
+  function rdBudgetSetView(mode) {
+    window._bgtMode = (mode === 'pledged' || mode === 'scroll') ? mode : 'category';
+    rerender();
+    requestAnimationFrame(() => {
+      const target = window._bgtMode === 'pledged' ? 'bgt-sect-pledged' : 'bgt-sect-categories';
+      const el = document.getElementById(target);
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   /* ── stat strip (7 cells) ────────────────────────────────────────────── */
@@ -782,7 +854,11 @@
     const paid = groupRefs.reduce((s, r) => s + itemPaidAmount(r.it), 0);
     const target = catTargetOf(c);
     const n = groupRefs.length;
-    return `${esc(c.cat || 'Category')} · ${n} item${n === 1 ? '' : 's'} · ${money0(spent)} committed · ${money0(paid)} paid · target ${money0(target)}`;
+    const over = target > 0 && spent > target;
+    return {
+      html: `${esc(c.cat || 'Category')} · ${n} item${n === 1 ? '' : 's'} · ${money0(spent)} committed · ${money0(paid)} paid · target ${money0(target)}`,
+      over: over
+    };
   }
 
   function itemRowHtml(ref) {
@@ -873,10 +949,11 @@
     const restSpan = Math.max(1, fullSpan - 1);
 
     const bodyRows = groups.length
-      ? groups.map(g =>
-        `<tr class="rd-bgt-grouprow"><td colspan="${fullSpan}">${itemGroupHeader(g.c, g.refs)}</td></tr>`
-        + g.refs.map(itemRowHtml).join('')
-      ).join('') + `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">Add a line item…</td></tr>`
+      ? groups.map(g => {
+        const gh = itemGroupHeader(g.c, g.refs);
+        return `<tr class="rd-bgt-grouprow${gh.over ? ' is-over' : ''}"><td colspan="${fullSpan}">${gh.html}</td></tr>`
+          + g.refs.map(itemRowHtml).join('');
+      }).join('') + `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">Add a line item…</td></tr>`
       : `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">No line items match these filters — add a line item…</td></tr>`;
 
     const head = `<div class="rd-bgt-sect__head is-stacked">
@@ -917,12 +994,19 @@
           <tbody>${bodyRows}</tbody>
         </table>
       </div>`
-      + pledgeBlockHtml()
       + `<div class="rd-bgt-sect__foot">
         <span>The 360px drawer is the full editor — the Line item tab edits the row, the Category tab edits the group&rsquo;s name, target %, budget and note, History shows every change. Same component as the Guest List and Payments drawers.</span>
         <button type="button" class="rd-btn rd-btn--danger" onclick="rdBudgetDeleteCategory()">Delete category</button>
       </div>`;
     renderBudgetBulkBar();
+  }
+
+  /* ── §7b Pledged & paid, as its own jumpable/hideable surface (View 30b) ── */
+
+  function renderBudgetPledgeSection() {
+    const host = document.getElementById('bgt-sect-pledged');
+    if (!host) return;
+    host.innerHTML = pledgeBlockHtml();
   }
 
   function rowHeightKey() {
@@ -1034,6 +1118,23 @@
         }).join('');
     }).join('');
 
+    /* Not pledged — money committed with no source behind it (group, not footnote). */
+    const figs = budgetFigures();
+    const shortfall = Math.max(0, (figs.committed || figs.planned || 0) - pledged);
+    const notPledgedRow = shortfall > 0
+      ? `<tr class="rd-bgt-grouprow is-residual"><td colspan="8">Not pledged · ${money0(shortfall)} committed with no source behind it</td></tr>
+         <tr class="rd-bgt-pledgerow is-residual">
+           <td class="rd-bgt-tick"></td>
+           <td><b>Shortfall</b></td>
+           <td class="rd-bgt-td--muted">Budget · unfunded</td>
+           <td class="rd-bgt-num">—</td>
+           <td class="rd-bgt-num"><span class="rd-bgt-nil">$0</span></td>
+           <td class="rd-bgt-num is-over">${money0(shortfall)}</td>
+           <td class="rd-bgt-td--muted">—</td>
+           <td>${pillHtml({ label: 'Not pledged', scheme: 'red' })}</td>
+         </tr>`
+      : '';
+
     return `<div class="rd-bgt-pledge">
       ${sectHead('Pledged & paid',
       `Who promised what, and what has actually landed — ${money0(pledged)} pledged, ${money0(received)} received, ${money0(outstanding)} outstanding`,
@@ -1043,7 +1144,7 @@
         ${stat('Received', money0(received), pct + '% of pledges')}
         ${stat('Outstanding', money0(outstanding), nOut + ' contributor' + (nOut === 1 ? '' : 's'), outstanding ? 'over' : '')}
         ${stat('Applied to budget', money0(received), 'Offsets committed spend')}
-        ${stat('Unallocated', money0(0), 'Everything is earmarked')}
+        ${stat('Not pledged', money0(shortfall), shortfall ? 'Committed without a source' : 'Covered', shortfall ? 'over' : '')}
       </div>
       <div class="rd-bgt-pledge__bar">
         <span class="rd-bgt-eyebrow">Pledges collected</span>
@@ -1065,7 +1166,7 @@
           <th style="width:130px">Promised by</th>
           <th style="width:140px">Status</th>
         </tr></thead>
-        <tbody>${body}
+        <tbody>${body}${notPledgedRow}
           <tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="7">Record a pledge — name, amount, and what it is toward</td></tr>
         </tbody>
       </table>
@@ -1308,8 +1409,18 @@
   }
   function rdBudgetJumpTo(sectionId) {
     window._budgetJumpSection = sectionId || '';
-    const el = document.getElementById(sectionId);
-    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    /* A rail jump must always land somewhere visible — if the current layout
+       mode (Views 30a/30b) is hiding this section, drop to 'scroll' first so
+       jumping never lands on a zero-height, hidden section. */
+    if (sectionId && !bgtSectionVisible(sectionId)) {
+      window._bgtMode = 'scroll';
+      rerender();
+    }
+    requestAnimationFrame(() => {
+      const el = document.getElementById(sectionId);
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      renderBudgetViewSwitch();
+    });
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'budget') {
       renderContextSidebar('budget');
@@ -1516,14 +1627,34 @@
     const ci = typeof activeBudgetCategoryIndex !== 'undefined' ? activeBudgetCategoryIndex : 0;
     const c = cats()[ci];
     if (!c) { if (typeof addBudgetCategory === 'function') addBudgetCategory(); return; }
-    if (!Array.isArray(c.items)) c.items = [];
-    const item = { name: '', budgeted: 0, actual: 0, status: 'Pending', paid: false, due: '', notes: '' };
-    if (typeof ensureNestedRowId === 'function') ensureNestedRowId(item, 'budgetItems');
-    c.items.push(item);
-    persist();
-    window._budgetDrawerRef = { id: String(item._id) };
-    window._budgetDrawerTab = 0;
-    rerender();
+    const finish = (shape) => {
+      if (!Array.isArray(c.items)) c.items = [];
+      const item = { name: '', budgeted: 0, actual: 0, status: 'Pending', paid: false, due: '', notes: '', template: shape || 'blank' };
+      if (shape === 'instalments') {
+        item.name = '';
+        item.schedule = [{ label: 'Deposit', amount: '' }, { label: 'Balance', amount: '' }];
+      } else if (shape === 'single') {
+        item.schedule = [{ label: 'Due on delivery', amount: '' }];
+      } else if (shape === 'percover') {
+        item.qty = '';
+        item.unitPrice = '';
+        item.perCover = true;
+      }
+      if (typeof ensureNestedRowId === 'function') ensureNestedRowId(item, 'budgetItems');
+      c.items.push(item);
+      persist();
+      window._budgetDrawerRef = { id: String(item._id) };
+      window._budgetDrawerTab = 0;
+      rerender();
+    };
+    if (typeof RdFurniture !== 'undefined' && RdFurniture.openTemplatePicker) {
+      RdFurniture.openTemplatePicker({
+        title: 'New from template · budget line',
+        onPick: function (id) { finish(id); }
+      });
+      return;
+    }
+    finish('blank');
   }
 
   function rdBudgetOpenItemDrawer(id) {
@@ -1618,6 +1749,23 @@
 
   /* ── main render ─────────────────────────────────────────────────────── */
 
+  function renderBudgetPageToolbar() {
+    const host = document.getElementById('budget-toolbar');
+    if (!host) return;
+    host.innerHTML =
+      itemFilterChip('Category', 'category') +
+      itemFilterChip('Vendor', 'vendor') +
+      itemFilterChip('Status', 'status') +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdBudgetOpenItemSort(this)">${esc(itemSortLabel())}</button>` +
+      (typeof rdStandardRightHtml === 'function'
+        ? rdStandardRightHtml(typeof BGT_ITEM_SCOPE !== 'undefined' ? BGT_ITEM_SCOPE : 'budget-items', {
+            openColumns: 'rdBudgetOpenColumns(this)',
+            autofit: 'rdBudgetAutoFitColumns(this)',
+            rowHeight: 'rdBudgetCycleRowHeight()'
+          })
+        : '');
+  }
+
   function renderBudgetRd() {
     if (typeof migrateBudget === 'function') migrateBudget();
     if (typeof ensureSuggestedGratuityLine === 'function') ensureSuggestedGratuityLine();
@@ -1633,6 +1781,7 @@
     if (typeof refreshBudgetCatOptions === 'function') refreshBudgetCatOptions();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('budget');
 
+    renderBudgetPageToolbar();
     renderBudgetStatsRd();
     renderBudgetUsedBar();
     renderBudgetCategorySection();
@@ -1641,7 +1790,9 @@
     renderBudgetLogicSection();
     renderBudgetTippingSection();
     renderBudgetItemizedSection();
+    renderBudgetPledgeSection();
     renderBudgetDrawer();
+    applyBudgetSectionVisibility();
 
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'budget'
@@ -1650,6 +1801,14 @@
     }
     requestAnimationFrame(() => {
       if (typeof makeColumnsResizable === 'function') makeColumnsResizable(document.getElementById('panel-budget'));
+      /* Every itemized/category re-render rebuilds these <table> nodes from a
+         fresh HTML string, so the depth pass (§7.1 type glyphs, summary bar,
+         frozen first column) has to be re-applied here — not only on the
+         initial showPanel() mount — or it disappears the moment a filter,
+         sort or category click redraws the table. */
+      if (typeof RdDepth !== 'undefined' && RdDepth.scheduleDecorate) {
+        RdDepth.scheduleDecorate(document.getElementById('panel-budget'));
+      }
     });
   }
 

@@ -98,7 +98,8 @@
 
   --component-table-row-height: 36px;
   --component-input-height:     32px;
-  --component-button-height:    32px;
+  /* Action buttons match filter-bar chips (Auto-fit columns): 28px / 12px */
+  --component-button-height:    28px;
   --component-chip-height:      28px;
   --component-icon-button-size: 28px;
   --component-card-padding:     var(--space-5);
@@ -114,8 +115,8 @@
   --radius-round: 50%;   /* avatars and floor-plan tables only */
 
   /* ---- buttons ----------------------------------------------------------- */
-  --btn-pad-y: 0;         --btn-pad-x: 16px;
-  --btn-font-size: 13px;  --btn-font-weight: 600;
+  --btn-pad-y: 0;         --btn-pad-x: 11px;
+  --btn-font-size: 12px;  --btn-font-weight: 400;
   --btn-toolbar-pad-y: 0; --btn-toolbar-pad-x: 11px;
   --btn-toolbar-font-size: 12px;
 
