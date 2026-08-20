@@ -18205,6 +18205,19 @@ body.rd-scope #panel-ceremony .rd-cer-name {
   font-weight: 500;
   position: relative;
 }
+body.rd-scope #panel-ceremony .rd-cer-trow .rd-cer-row__actions {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  gap: 6px;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, #fdfaf4 18%);
+  padding-left: 18px;
+}
+body.rd-scope #panel-ceremony .rd-cer-trow:hover .rd-cer-row__actions,
+body.rd-scope #panel-ceremony .rd-cer-trow:focus-within .rd-cer-row__actions { opacity: 1; }
 body.rd-scope #panel-ceremony .rd-cer-checkcol { width: 28px; }
 body.rd-scope #panel-ceremony .rd-cer-empty-row td {
   color: #8a7e6b;
