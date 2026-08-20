@@ -1556,8 +1556,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s13` · slug `table-layout`
 - **Header counts:** 6 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
-- **Screen ids:** `8a`, `29c`, `29d`
+- **Status:** not started — do not implement until §12 is reviewed and you say “next”
 
 ### Five parts on this page
 
