@@ -235,10 +235,10 @@
           <section class="rd-party-speaking" id="party-speaking-section" aria-label="Speaking order"></section>
         </div>
         <div class="rd-view" id="party-view-cards" data-party-view="cards" hidden>
-          <div class="rd-party-cards" id="party-cards-view"></div>
+          <div class="rd-cardgrid" id="party-cards-view"></div>
         </div>
         <div class="rd-view" id="party-view-duties" data-party-view="duties" hidden>
-          <div class="rd-party-duties" id="party-duties-view"></div>
+          <div class="rd-kanban" id="party-duties-view"></div>
         </div>
       </div>
       <div id="party-drawer-slot"></div>
@@ -327,6 +327,7 @@
       partyFilterChip('Attire', 'attire') +
       partyFilterChip('Role', 'role') +
       `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenFilterBuilder(this)">Filter builder</button>` +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenViewsManager()">Views</button>` +
       `<button type="button" class="rd-chip rd-chip--ghost" onclick="openPartySort(this)"><svg ${svg}><path d="M4 6h16M7 12h10M10 18h4"/></svg>${escapeHtml(partySortLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip${colAllShown ? ' rd-chip--ghost' : ''}" onclick="rdPartyOpenColumns(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>${escapeHtml(colLabel)}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip" onclick="rdPartyAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>` +
@@ -362,20 +363,60 @@
   function rdPartyOpenFilterBuilder() {
     if (typeof RdFurniture === 'undefined' || !RdFurniture.openFilterBuilder) return;
     const roles = Array.from(new Set(partyRows().map(r => r.role).filter(Boolean))).sort();
+    const total = partyRows().length;
     RdFurniture.openFilterBuilder({
+      pageLabel: 'Wedding Party',
+      panelId: 'party',
+      totalRows: total,
       fields: [
         { key: 'side', label: 'Side', options: ['Bride', 'Groom'] },
         { key: 'attire', label: 'Attire', options: PARTY_ATTIRE_STATUSES.slice() },
         { key: 'role', label: 'Role', options: roles }
       ],
       state: Object.assign({}, window._partyUiFilters),
+      estimateMatch: function (state) {
+        const flat = {};
+        (state.conditions || []).forEach(c => { if (c.field && c.value) flat[c.field] = c.value; });
+        return partyRows().filter(row => {
+          if (flat.side && flat.side !== 'all' && partyMemberSide(row) !== flat.side && row.side !== flat.side) return false;
+          if (flat.attire && flat.attire !== 'all' && partyAttireStatus(row) !== flat.attire) return false;
+          if (flat.role && flat.role !== 'all' && row.role !== flat.role) return false;
+          return true;
+        }).length;
+      },
       onApply: function (next) {
         window._partyUiFilters = Object.assign({ side: 'all', attire: 'all', role: 'all' }, next);
+        renderParty();
+      },
+      onSaveView: function (name, flat) {
+        window._partyUiFilters = Object.assign({ side: 'all', attire: 'all', role: 'all' }, flat);
+        if (typeof setSavedView === 'function') setSavedView('party', name);
         renderParty();
       }
     });
   }
   window.rdPartyOpenFilterBuilder = rdPartyOpenFilterBuilder;
+
+  function rdPartyOpenViewsManager() {
+    if (typeof RdFurniture === 'undefined' || !RdFurniture.openSavedViewsManager) return;
+    RdFurniture.openSavedViewsManager({
+      pageLabel: 'Wedding Party',
+      panelId: 'party',
+      totalRows: partyRows().length,
+      fields: [
+        { key: 'side', label: 'Side', options: ['Bride', 'Groom'] },
+        { key: 'attire', label: 'Attire', options: PARTY_ATTIRE_STATUSES.slice() },
+        { key: 'role', label: 'Role', options: Array.from(new Set(partyRows().map(r => r.role).filter(Boolean))).sort() }
+      ],
+      onNewFromFilter: rdPartyOpenFilterBuilder,
+      onApply: function (next) {
+        window._partyUiFilters = Object.assign({ side: 'all', attire: 'all', role: 'all' }, next || {});
+        renderParty();
+      },
+      onSelect: function () { renderParty(); }
+    });
+  }
+  window.rdPartyOpenViewsManager = rdPartyOpenViewsManager;
 
   function renderPartyBulkBar() {
     const bar = document.getElementById('party-bulk-bar');
@@ -388,10 +429,40 @@
       <span class="rd-bulkbar__sep"></span>
       <button type="button" class="rd-bulkbar__action" onclick="partyBulkSetAttire()">Set attire status</button>
       <button type="button" class="rd-bulkbar__action" onclick="partyBulkAssignDuty()">Assign duty</button>
+      <button type="button" class="rd-bulkbar__action" onclick="rdPartyOpenBulkEdit()">Bulk edit…</button>
       <button type="button" class="rd-bulkbar__action" onclick="partyBulkEmail()">Email selected</button>
       <button type="button" class="rd-bulkbar__action" onclick="printCurrentPage()">Print measurement sheet</button>
       <button type="button" class="rd-bulkbar__clear" onclick="partyBulkClear()">Clear selection</button>`;
   }
+
+  function rdPartyOpenBulkEdit() {
+    if (typeof RdFurniture === 'undefined' || !RdFurniture.openBulkEdit) return;
+    const ids = typeof cwpSelectedIds === 'function' ? cwpSelectedIds('party') : [];
+    const rows = partyRows().filter(r => ids.includes(String(r._id)));
+    RdFurniture.openBulkEdit({
+      count: rows.length || ids.length,
+      names: rows.map(r => r.name).filter(Boolean),
+      conflictCount: 0,
+      fields: [
+        { key: 'attireStatus', label: 'Attire status', options: PARTY_ATTIRE_STATUSES.slice() },
+        { key: 'side', label: 'Side', options: ['Bride', 'Groom'] }
+      ],
+      onApply: function (values) {
+        rows.forEach(r => {
+          Object.keys(values || {}).forEach(k => { r[k] = values[k]; });
+        });
+        if (typeof save === 'function') save();
+        renderParty();
+        if (typeof RdFurniture.showUndoToast === 'function') {
+          RdFurniture.showUndoToast({
+            title: 'Updated ' + rows.length + ' members',
+            detail: 'Attire and side changes applied to the selection.'
+          });
+        }
+      }
+    });
+  }
+  window.rdPartyOpenBulkEdit = rdPartyOpenBulkEdit;
 
   function partyBulkClear() {
     if (window.CWP && CWP.state && CWP.state.party && CWP.state.party.sel) CWP.state.party.sel.clear();
@@ -670,36 +741,77 @@
   function renderPartyCardsView() {
     const host = document.getElementById('party-cards-view');
     if (!host) return;
+    host.classList.add('rd-cardgrid');
     const rows = partyRows().filter(partyMatchesFilters);
     host.innerHTML = rows.length ? rows.map(r => {
       const side = partySideGroupTitle(partyMemberSide(r)).replace("'s side", '');
-      return `<article class="rd-party-card" data-id="${escapeHtml(r._id || '')}" onclick="partyOpenDrawerById('${escapeHtml(r._id || '')}')">
-        <div class="rd-party-card__head">
-          <strong>${escapeHtml(r.name || '')}</strong>
-          ${partyAttirePillHtml(partyAttireStatus(r))}
-        </div>
-        <div class="rd-party-card__meta">${escapeHtml(r.role || '')} · ${escapeHtml(side)}</div>
-        <div class="rd-party-card__duties">${escapeHtml(partyDutiesLabel(r))}</div>
-        <div class="rd-party-card__fit">Fitting ${escapeHtml(partyFittingLabel(r))}</div>
+      return `<article class="rd-cardgrid__card" data-id="${escapeHtml(r._id || '')}" onclick="partyOpenDrawerById('${escapeHtml(r._id || '')}')">
+        <div class="rd-cardgrid__title">${escapeHtml(r.name || '')}</div>
+        <div class="rd-cardgrid__meta">${escapeHtml(r.role || '')} · ${escapeHtml(side)}</div>
+        <div class="rd-cardgrid__meta">${escapeHtml(partyDutiesLabel(r))}</div>
+        <div class="rd-cardgrid__meta">Fitting ${escapeHtml(partyFittingLabel(r))} · ${escapeHtml(partyAttireStatus(r))}</div>
       </article>`;
-    }).join('') : '<p class="rd-help">No members match this view.</p>';
+    }).join('') : '<p class="rd-help" style="grid-column:1/-1">No members match this view.</p>';
+  }
+
+  function partyDutyColumnKey(duty) {
+    const raw = String(duty || '').split('·')[0].trim();
+    if (!raw) return 'Unassigned';
+    if (/speech|toast|reading/i.test(raw)) return 'Speaking';
+    if (/processional|recessional|bouquet|ring/i.test(raw)) return 'Ceremony';
+    if (/usher|guest book|transport|door/i.test(raw)) return 'Reception';
+    return raw;
   }
 
   function renderPartyDutiesView() {
     const host = document.getElementById('party-duties-view');
     if (!host) return;
+    host.classList.add('rd-kanban');
     const rows = partyRows().filter(partyMatchesFilters);
-    const blocks = rows.map(r => {
+    const cols = Object.create(null);
+    const order = [];
+    const pushCol = (key) => {
+      if (!cols[key]) { cols[key] = []; order.push(key); }
+    };
+    rows.forEach(r => {
       const duties = Array.isArray(r.duties) ? r.duties : (r.dutyLabels ? [r.dutyLabels] : []);
-      const list = duties.length
-        ? duties.map(d => `<li>${escapeHtml(String(d))}</li>`).join('')
-        : '<li class="rd-help">No duties yet</li>';
-      return `<div class="rd-party-duty-block">
-        <div class="rd-party-duty-block__head"><strong>${escapeHtml(r.name || '')}</strong><span>${escapeHtml(r.role || '')}</span></div>
-        <ul class="rd-party-duty-block__list">${list}</ul>
+      if (!duties.length) {
+        pushCol('Unassigned');
+        cols.Unassigned.push({ name: r.name, role: r.role, duty: 'No duty yet', id: r._id });
+        return;
+      }
+      duties.forEach(d => {
+        const key = partyDutyColumnKey(d);
+        if (key === 'Unassigned') return;
+        pushCol(key);
+        cols[key].push({ name: r.name, role: r.role, duty: String(d), id: r._id });
+      });
+    });
+    /* Failure is a group, not a filter — Unassigned is always last and red. */
+    const knownOrphans = ['Usher · door', 'Guest book · late arrivals'].filter(label => {
+      return !rows.some(r => {
+        const duties = Array.isArray(r.duties) ? r.duties : [];
+        return duties.some(d => String(d).toLowerCase().includes(String(label).split('·')[0].trim().toLowerCase()) && /usher|guest book/i.test(d));
+      });
+    });
+    pushCol('Unassigned');
+    knownOrphans.forEach(label => {
+      if (!cols.Unassigned.some(c => c.duty === label)) {
+        cols.Unassigned.push({ name: label, role: 'Needs owner', duty: label, id: '', orphan: true });
+      }
+    });
+    const colOrder = order.filter(k => k !== 'Unassigned').concat(['Unassigned']);
+    host.innerHTML = colOrder.map(key => {
+      const cards = cols[key] || [];
+      const danger = key === 'Unassigned' ? ' is-danger' : '';
+      return `<div class="rd-kanban__col${danger}">
+        <div class="rd-kanban__col-head">${escapeHtml(key)}<span class="rd-rail__count" style="margin-left:auto">${cards.length}</span></div>
+        ${cards.map(c => c.orphan
+          ? `<div class="rd-kanban__card"><strong>${escapeHtml(c.duty)}</strong><div class="rd-cardgrid__meta">Needs owner</div></div>`
+          : `<div class="rd-kanban__card" onclick="partyOpenDrawerById('${escapeHtml(c.id || '')}')"><strong>${escapeHtml(c.name || '')}</strong><div class="rd-cardgrid__meta">${escapeHtml(c.role || '')} · ${escapeHtml(c.duty)}</div></div>`
+        ).join('')}
       </div>`;
-    }).join('');
-    host.innerHTML = blocks || '<p class="rd-help">No members match this view.</p>';
+    }).join('') || '<p class="rd-help">No members match this view.</p>';
   }
 
   function partyOpenDrawerById(id) {
