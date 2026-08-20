@@ -12498,6 +12498,154 @@ body.rd-scope #panel-gifts .rd-gifts-regcat__bar > span {
   height: 100%;
   background: #2D4A3E;
 }
+body.rd-scope #panel-gifts .rd-gifts-regcat {
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat:hover {
+  border-color: #d9d1c0;
+  background: #fdfcfa;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat:focus-visible {
+  outline: 2px solid #2D4A3E;
+  outline-offset: 2px;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat.is-open {
+  border-color: #c9b896;
+  background: #fffdf8;
+  box-shadow: 0 1px 0 rgba(45, 74, 62, .04);
+  grid-column: span 1;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__top .rd-gifts-regcat__name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__chev {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  position: relative;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__chev::before {
+  content: "";
+  position: absolute;
+  inset: 5px 4px auto 4px;
+  height: 7px;
+  border-right: 1.5px solid #8a7e6b;
+  border-bottom: 1.5px solid #8a7e6b;
+  transform: rotate(45deg);
+  transition: transform .15s ease;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat.is-open .rd-gifts-regcat__chev::before {
+  inset: 7px 4px auto 4px;
+  transform: rotate(225deg);
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__detail {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #efe8da;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__detail-store {
+  font-size: 12px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__rows--detail {
+  gap: 5px;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__list-label {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #efe8da;
+  background: #fff;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f3eee4;
+  font-size: 12px;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__list-item:last-child { border-bottom: 0; }
+body.rd-scope #panel-gifts .rd-gifts-regcat__list-item[role="button"] { cursor: pointer; }
+body.rd-scope #panel-gifts .rd-gifts-regcat__list-item[role="button"]:hover { background: #fdfcfa; }
+body.rd-scope #panel-gifts .rd-gifts-regcat__list-main {
+  color: #20362D;
+  font-weight: 500;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__list-meta {
+  color: #8a7e6b;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__list-val {
+  color: #3f3b34;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__item-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  border: 1px solid #dde3e4;
+  background: #eef1f2;
+  color: #626d74;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__item-pill--claimed {
+  background: #eef6f0;
+  color: #2f6b45;
+  border-color: #cfe3d5;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__item-pill--open {
+  background: #fff7df;
+  color: #8a640f;
+  border-color: #e7ce80;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 2px;
+}
+body.rd-scope #panel-gifts .rd-gifts-regcat__actions .rd-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+@media (min-width: 1100px) {
+  body.rd-scope #panel-gifts .rd-gifts-regcat.is-open {
+    grid-column: span 2;
+  }
+}
 body.rd-scope #panel-gifts .rd-gifts-notes-view {
   padding: 0;
   overflow: auto;

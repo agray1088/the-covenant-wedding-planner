@@ -44,14 +44,87 @@
     }
     /* Registry view (29e) categories — item cards vs contribution cards (honesty rule). */
     data.giftRegistryCategories = [
-      { name: 'Kitchen & dining', items: 18, claimed: 11, valueClaimed: 1240, pace: 'On track' },
-      { name: 'Bedroom & linen', items: 12, claimed: 4, valueClaimed: 380, pace: 'Slow' },
-      { name: 'Home & decor', items: 9, claimed: 7, valueClaimed: 690, pace: 'On track' },
-      { name: 'Honeymoon fund', kind: 'fund', raised: 1150, goal: 2000, contributors: 9, average: 128 },
-      { name: 'Experiences', items: 6, claimed: 2, valueClaimed: 300, pace: 'Slow' },
-      { name: 'Charity in lieu', kind: 'charity', causes: 2, raised: 420, donors: 7, average: 60 }
+      {
+        name: 'Kitchen & dining', items: 18, claimed: 11, valueClaimed: 1240, openValue: 860, pace: 'On track',
+        store: 'Homestore Ghana · Kitchen list',
+        openItems: [
+          { name: 'Dutch oven, 5 qt', value: 95 },
+          { name: 'Chef knife set', value: 140 },
+          { name: 'Serving bowls, set of 3', value: 68 }
+        ]
+      },
+      {
+        name: 'Bedroom & linen', items: 12, claimed: 4, valueClaimed: 380, openValue: 720, pace: 'Slow',
+        store: 'Homestore Ghana · Linen',
+        openItems: [
+          { name: 'Percale sheet set, queen', value: 160 },
+          { name: 'Duvet insert', value: 190 },
+          { name: 'Bath towel pair', value: 48 }
+        ]
+      },
+      {
+        name: 'Home & decor', items: 9, claimed: 7, valueClaimed: 690, openValue: 210, pace: 'On track',
+        store: 'Kitchen & Table',
+        openItems: [
+          { name: 'Ceramic vase', value: 55 },
+          { name: 'Wall mirror, round', value: 120 }
+        ]
+      },
+      {
+        name: 'Honeymoon fund', kind: 'fund', raised: 1150, goal: 2000, contributors: 9, average: 128,
+        store: 'Honeymoon · open contributions',
+        contributions: [
+          { from: 'Mr & Mrs Owusu', amount: 400, date: '2026-07-14' },
+          { from: 'Auntie Akua', amount: 200, date: '2026-07-21' },
+          { from: 'Church friends', amount: 150, date: '2026-07-18' }
+        ]
+      },
+      {
+        name: 'Experiences', items: 6, claimed: 2, valueClaimed: 300, openValue: 480, pace: 'Slow',
+        store: 'Experiences registry',
+        openItems: [
+          { name: 'Cooking class for two', value: 160 },
+          { name: 'Weekend stay voucher', value: 220 }
+        ]
+      },
+      {
+        name: 'Charity in lieu', kind: 'charity', causes: 2, raised: 420, donors: 7, average: 60,
+        store: 'Charity in lieu · two causes',
+        contributions: [
+          { from: 'Darko family', amount: 100, date: '2026-07-02' },
+          { from: 'Office colleagues', amount: 80, date: '2026-07-16' }
+        ]
+      }
     ];
     return data.giftRegistryCategories;
+  }
+
+  function giftRegistryCategoryHints(name) {
+    const n = String(name || '').toLowerCase();
+    if (/kitchen|dining/.test(n)) return /cast iron|dinner|mixer|kitchen|plate|cook|service|dutch|knife|bowl/i;
+    if (/bedroom|linen/.test(n)) return /linen|bedding|sheet|pillow|towel|duvet|percale/i;
+    if (/home|decor/.test(n)) return /decor|frame|lamp|vase|mirror|scripture/i;
+    if (/experience/.test(n)) return /experience|voucher|class|stay/i;
+    if (/honeymoon/.test(n)) return /honeymoon|fund/i;
+    if (/charity/.test(n)) return /charity|cause|donate|lieu/i;
+    return null;
+  }
+
+  function giftMatchesRegistryCategory(row, catName) {
+    const re = giftRegistryCategoryHints(catName);
+    if (!re) return false;
+    return re.test(String((row && row.desc) || '') + ' ' + String((row && row.from) || ''));
+  }
+
+  function registryCategoryRelatedGifts(cat) {
+    const name = cat && cat.name;
+    if (!name) return [];
+    return giftRows().filter(r => {
+      if (cat.kind === 'fund' || cat.kind === 'charity') {
+        return giftMatchesRegistryCategory(r, name) || (giftType(r) === 'Cash' && giftMatchesRegistryCategory(r, name));
+      }
+      return giftType(r) === 'Registry' && giftMatchesRegistryCategory(r, name);
+    });
   }
 
   function moneyFmt(n) {
@@ -184,6 +257,9 @@
     if (ui.household && ui.household !== 'all') {
       const hh = giftHouseholdLabel(row);
       if (hh !== ui.household) return false;
+    }
+    if (ui.registryFocus && ui.registryFocus !== 'all') {
+      if (!giftMatchesRegistryCategory(row, ui.registryFocus)) return false;
     }
     return true;
   }
@@ -915,6 +991,103 @@
     return Math.min(100, Math.round((claimed / items) * 100));
   }
 
+  function registryCategoryExpandedHtml(cat) {
+    const related = registryCategoryRelatedGifts(cat);
+    const store = cat.store ? `<div class="rd-gifts-regcat__detail-store">${escapeHtml(cat.store)}</div>` : '';
+    let summaryRows = '';
+    let listHtml = '';
+
+    if (cat.kind === 'fund' || cat.kind === 'charity') {
+      const raised = parseFloat(cat.raised) || 0;
+      const goal = parseFloat(cat.goal) || 0;
+      const remaining = goal ? Math.max(0, goal - raised) : 0;
+      const pct = goal ? Math.min(100, Math.round((raised / goal) * 100)) : null;
+      summaryRows =
+        `<div class="rd-gifts-regcat__row"><span>Raised</span><span>${moneyFmt(raised)}${goal ? (' of ' + moneyFmt(goal)) : ''}</span></div>` +
+        (goal ? `<div class="rd-gifts-regcat__row"><span>Still needed</span><span>${moneyFmt(remaining)}</span></div>` : '') +
+        (pct != null ? `<div class="rd-gifts-regcat__row"><span>Progress</span><span>${pct}%</span></div>` : '') +
+        `<div class="rd-gifts-regcat__row"><span>${cat.kind === 'fund' ? 'Contributors' : 'Donors'}</span><span>${cat.kind === 'fund' ? (cat.contributors || 0) : (cat.donors || 0)}</span></div>` +
+        `<div class="rd-gifts-regcat__row"><span>Average gift</span><span>${moneyFmt(cat.average || 0)}</span></div>` +
+        (cat.causes ? `<div class="rd-gifts-regcat__row"><span>Causes</span><span>${cat.causes}</span></div>` : '');
+
+      const contribs = Array.isArray(cat.contributions) && cat.contributions.length
+        ? cat.contributions
+        : related.map(r => ({ from: giftHouseholdLabel(r), amount: r.value, date: r.date, _id: r._id }));
+      if (contribs.length) {
+        listHtml = `<div class="rd-gifts-regcat__list-label">Recent contributions</div>
+          <ul class="rd-gifts-regcat__list">${contribs.slice(0, 6).map(c => {
+            const id = c._id ? String(c._id) : '';
+            const open = id
+              ? `onclick="event.stopPropagation();giftsOpenDrawerById('${escapeHtml(id)}')"`
+              : '';
+            return `<li class="rd-gifts-regcat__list-item"${open ? ' role="button" tabindex="0" ' + open : ''}>
+              <span class="rd-gifts-regcat__list-main">${escapeHtml(c.from || 'Contributor')}</span>
+              <span class="rd-gifts-regcat__list-meta">${escapeHtml(giftShortDate(c.date))}</span>
+              <span class="rd-gifts-regcat__list-val">${moneyFmt(c.amount)}</span>
+            </li>`;
+          }).join('')}</ul>`;
+      }
+    } else {
+      const items = parseInt(cat.items, 10) || 0;
+      const claimed = parseInt(cat.claimed, 10) || 0;
+      const open = Math.max(0, items - claimed);
+      const pace = cat.pace || (giftClaimRate(cat) >= 50 ? 'On track' : 'Slow');
+      const pct = giftClaimRate(cat);
+      summaryRows =
+        `<div class="rd-gifts-regcat__row"><span>Listed</span><span>${items} items</span></div>` +
+        `<div class="rd-gifts-regcat__row"><span>Claimed</span><span>${claimed} of ${items} · ${pct}%</span></div>` +
+        `<div class="rd-gifts-regcat__row"><span>Still open</span><span>${open}</span></div>` +
+        `<div class="rd-gifts-regcat__row"><span>Value claimed</span><span>${moneyFmt(cat.valueClaimed)}</span></div>` +
+        (cat.openValue != null ? `<div class="rd-gifts-regcat__row"><span>Value still open</span><span>${moneyFmt(cat.openValue)}</span></div>` : '') +
+        `<div class="rd-gifts-regcat__row"><span>Pace</span><span>${escapeHtml(pace)}</span></div>`;
+
+      const claimedLines = related.map(r => ({
+        name: r.desc || 'Registry item',
+        by: giftHouseholdLabel(r),
+        value: r.value,
+        status: 'claimed',
+        _id: r._id
+      }));
+      const openLines = Array.isArray(cat.openItems) ? cat.openItems.map(it => ({
+        name: it.name,
+        value: it.value,
+        status: 'open'
+      })) : [];
+      const lines = claimedLines.concat(openLines).slice(0, 8);
+      if (lines.length) {
+        listHtml = `<div class="rd-gifts-regcat__list-label">Items in this category</div>
+          <ul class="rd-gifts-regcat__list">${lines.map(it => {
+            const id = it._id ? String(it._id) : '';
+            const openAttr = id
+              ? ` role="button" tabindex="0" onclick="event.stopPropagation();giftsOpenDrawerById('${escapeHtml(id)}')"`
+              : '';
+            const meta = it.status === 'claimed'
+              ? ('Claimed · ' + (it.by || 'Guest'))
+              : 'Still open';
+            const pill = it.status === 'claimed'
+              ? '<span class="rd-gifts-regcat__item-pill rd-gifts-regcat__item-pill--claimed">Claimed</span>'
+              : '<span class="rd-gifts-regcat__item-pill rd-gifts-regcat__item-pill--open">Open</span>';
+            return `<li class="rd-gifts-regcat__list-item"${openAttr}>
+              <span class="rd-gifts-regcat__list-main">${escapeHtml(it.name)}${pill}</span>
+              <span class="rd-gifts-regcat__list-meta">${escapeHtml(meta)}</span>
+              <span class="rd-gifts-regcat__list-val">${moneyFmt(it.value)}</span>
+            </li>`;
+          }).join('')}</ul>`;
+      }
+    }
+
+    const catKey = encodeURIComponent(cat.name || '');
+    return `<div class="rd-gifts-regcat__detail" id="gifts-regcat-detail">
+      ${store}
+      <div class="rd-gifts-regcat__rows rd-gifts-regcat__rows--detail">${summaryRows}</div>
+      ${listHtml}
+      <div class="rd-gifts-regcat__actions">
+        <button type="button" class="rd-btn rd-btn--primary" onclick="event.stopPropagation();rdGiftsFullEditorForCategory(decodeURIComponent('${catKey}'))">Open full editor</button>
+        <button type="button" class="rd-btn" onclick="event.stopPropagation();rdFilterGiftsByRegistryCategory(decodeURIComponent('${catKey}'))">View in table</button>
+      </div>
+    </div>`;
+  }
+
   function renderGiftsRegistryView() {
     const host = document.getElementById('gifts-registry-view');
     if (!host) return;
@@ -935,7 +1108,14 @@
       return String(a.name).localeCompare(String(b.name));
     });
 
-    host.innerHTML = `<div class="rd-gifts-regcat-grid">${cats.map(c => {
+    const expanded = window._giftsExpandedRegistryCat || null;
+
+    host.innerHTML = `<div class="rd-gifts-regcat-grid">${cats.map((c, idx) => {
+      const isOpen = expanded === c.name;
+      const keyAttr = escapeHtml(c.name);
+      const openAttr = isOpen ? ' is-open' : '';
+      const aria = isOpen ? 'true' : 'false';
+      const toggle = `rdToggleRegistryCategoryByIndex(${idx})`;
       if (c.kind === 'fund' || c.kind === 'charity') {
         const raised = parseFloat(c.raised) || 0;
         const goal = parseFloat(c.goal) || 0;
@@ -949,12 +1129,16 @@
              <div class="rd-gifts-regcat__row"><span>Average</span><span>${moneyFmt(c.average || 0)}</span></div>`
           : `<div class="rd-gifts-regcat__row"><span>Donors</span><span>${c.donors || 0}</span></div>
              <div class="rd-gifts-regcat__row"><span>Average</span><span>${moneyFmt(c.average || 0)}</span></div>`;
-        return `<article class="rd-gifts-regcat" data-kind="${escapeHtml(c.kind)}">
-          <div class="rd-gifts-regcat__name">${escapeHtml(c.name)}</div>
+        return `<article class="rd-gifts-regcat${openAttr}" data-kind="${escapeHtml(c.kind)}" data-cat="${keyAttr}" data-cat-idx="${idx}" role="button" tabindex="0" aria-expanded="${aria}" onclick="${toggle}" onkeydown="rdRegistryCategoryKey(event,${idx})">
+          <div class="rd-gifts-regcat__top">
+            <div class="rd-gifts-regcat__name">${escapeHtml(c.name)}</div>
+            <span class="rd-gifts-regcat__chev" aria-hidden="true"></span>
+          </div>
           <div class="rd-gifts-regcat__meta">${escapeHtml(sub)}</div>
           <div class="rd-gifts-regcat__pills">${pill}</div>
           <div class="rd-gifts-regcat__rows">${rowA}</div>
           <div class="rd-gifts-regcat__bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+          ${isOpen ? registryCategoryExpandedHtml(c) : ''}
         </article>`;
       }
       const items = parseInt(c.items, 10) || 0;
@@ -962,8 +1146,11 @@
       const pace = c.pace || (giftClaimRate(c) >= 50 ? 'On track' : 'Slow');
       const paceCls = pace === 'On track' ? 'ok' : 'slow';
       const pct = giftClaimRate(c);
-      return `<article class="rd-gifts-regcat">
-        <div class="rd-gifts-regcat__name">${escapeHtml(c.name)}</div>
+      return `<article class="rd-gifts-regcat${openAttr}" data-cat="${keyAttr}" data-cat-idx="${idx}" role="button" tabindex="0" aria-expanded="${aria}" onclick="${toggle}" onkeydown="rdRegistryCategoryKey(event,${idx})">
+        <div class="rd-gifts-regcat__top">
+          <div class="rd-gifts-regcat__name">${escapeHtml(c.name)}</div>
+          <span class="rd-gifts-regcat__chev" aria-hidden="true"></span>
+        </div>
         <div class="rd-gifts-regcat__meta">${items} items · ${claimed} claimed</div>
         <div class="rd-gifts-regcat__pills"><span class="rd-gifts-regcat__pill rd-gifts-regcat__pill--${paceCls}">${escapeHtml(pace)}</span></div>
         <div class="rd-gifts-regcat__rows">
@@ -971,8 +1158,72 @@
           <div class="rd-gifts-regcat__row"><span>Value claimed</span><span>${moneyFmt(c.valueClaimed)}</span></div>
         </div>
         <div class="rd-gifts-regcat__bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+        ${isOpen ? registryCategoryExpandedHtml(c) : ''}
       </article>`;
     }).join('')}</div>`;
+
+    /* Keep a render-order map so index toggles match the sorted list. */
+    window._giftsRegistryCatRenderOrder = cats.map(c => c.name);
+  }
+
+  function rdToggleRegistryCategoryByIndex(idx) {
+    const order = window._giftsRegistryCatRenderOrder || [];
+    const name = order[idx];
+    if (!name) return;
+    rdToggleRegistryCategory(name);
+  }
+
+  function rdToggleRegistryCategory(name) {
+    const next = window._giftsExpandedRegistryCat === name ? null : name;
+    window._giftsExpandedRegistryCat = next;
+    renderGiftsRegistryView();
+  }
+
+  function rdRegistryCategoryKey(ev, idx) {
+    if (!ev) return;
+    const k = ev.key || ev.code;
+    if (k === 'Enter' || k === ' ' || k === 'Spacebar' || k === 'Space') {
+      ev.preventDefault();
+      rdToggleRegistryCategoryByIndex(idx);
+    }
+  }
+
+  function rdGiftsFullEditorForCategory(name) {
+    const cats = ensureGiftRegistryCategories();
+    const cat = cats.find(c => c.name === name) || { name: name };
+    const related = registryCategoryRelatedGifts(cat);
+    window._giftsUiFilters = window._giftsUiFilters || {};
+    if (cat.kind === 'fund' || cat.kind === 'charity') {
+      window._giftsUiFilters.type = 'Cash';
+      window._giftsUiFilters.registryFocus = 'all';
+    } else {
+      window._giftsUiFilters.type = 'Registry';
+      window._giftsUiFilters.registryFocus = name;
+    }
+    if (related.length) {
+      const idx = giftRows().findIndex(r => String(r._id) === String(related[0]._id));
+      if (idx >= 0 && typeof openRecordEditor === 'function') {
+        openRecordEditor('gifts', idx);
+        return;
+      }
+    }
+    rdGiftsFullEditor();
+  }
+
+  function rdFilterGiftsByRegistryCategory(name) {
+    window._giftsUiFilters = window._giftsUiFilters || {};
+    const cats = ensureGiftRegistryCategories();
+    const cat = cats.find(c => c.name === name);
+    if (cat && (cat.kind === 'fund' || cat.kind === 'charity')) {
+      window._giftsUiFilters.type = 'Cash';
+      window._giftsUiFilters.registryFocus = 'all';
+    } else {
+      window._giftsUiFilters.type = 'Registry';
+      window._giftsUiFilters.registryFocus = name;
+    }
+    window._giftsExpandedRegistryCat = null;
+    rdSetGiftsView('table');
+    if (typeof showToast === 'function') showToast('Showing gifts for ' + name);
   }
 
   function giftDaysOwed(row) {
@@ -1340,6 +1591,11 @@
   window.openGiftsRegistrySort = openGiftsRegistrySort;
   window.openGiftsNotesSort = openGiftsNotesSort;
   window.addGiftRegistryItem = addGiftRegistryItem;
+  window.rdToggleRegistryCategory = rdToggleRegistryCategory;
+  window.rdToggleRegistryCategoryByIndex = rdToggleRegistryCategoryByIndex;
+  window.rdRegistryCategoryKey = rdRegistryCategoryKey;
+  window.rdGiftsFullEditorForCategory = rdGiftsFullEditorForCategory;
+  window.rdFilterGiftsByRegistryCategory = rdFilterGiftsByRegistryCategory;
   window.giftsOpenHouseholdFromGift = giftsOpenHouseholdFromGift;
   window.giftHouseholdLabel = giftHouseholdLabel;
   window.giftsBulkClear = giftsBulkClear;
