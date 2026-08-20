@@ -27,32 +27,210 @@
     return window.rdColumns ? window.rdColumns.visible(PARTY_COL_SCOPE) : RD_PARTY_COLUMNS;
   }
 
-  window._partyUiFilters = window._partyUiFilters || { side: 'all', attire: 'all', role: 'all' };
+  window._partyUiFilters = window._partyUiFilters || {
+    side: 'all', attire: 'all', role: 'all', phase: 'all', owner: 'all', hideDone: false
+  };
   window._partySort = window._partySort || 'side';
   window._partyRailView = window._partyRailView || 'all';
   window._partyRailGroupBy = window._partyRailGroupBy || 'side';
 
+  const PARTY_DUTY_PHASES = ['Before the day', 'Morning of', 'Ceremony', 'Reception'];
+  const PARTY_DUTY_COLUMNS = PARTY_DUTY_PHASES.concat(['Unassigned']);
+
   function partyRows() { return safeArray(data.party); }
+  function partyDutyRows() {
+    if (!data.partyDuties) data.partyDuties = [];
+    return safeArray(data.partyDuties);
+  }
+
+  function partyInitials(name) {
+    if (typeof RdDepth !== 'undefined' && RdDepth.initials) return RdDepth.initials(name || '');
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function partyCallTime(row) {
+    if (row && row.callTime) return row.callTime;
+    const role = String(row && row.role || '').toLowerCase();
+    if (/maid|honour|honor|bride/.test(role)) return '7:30am';
+    if (/flower/.test(role)) return '8:00am';
+    if (/best man|groom/.test(role)) return '9:00am';
+    return '9:00am';
+  }
+
+  function partyAttireKind(row) {
+    if (row && row.attireKind) return row.attireKind;
+    return partyMemberSide(row) === 'Groom' ? 'Suit' : 'Dress';
+  }
+
+  function partyAttireDetail(row) {
+    if (row && row.attireDetail) return row.attireDetail;
+    const st = partyAttireStatus(row);
+    if (st === 'Fitted & paid') {
+      const f = partyFittingLabel(row);
+      return f !== '—' ? ('Collected ' + f) : 'Fitted';
+    }
+    if (st === 'Deposit only') return 'Deposit paid';
+    return 'Not ordered';
+  }
+
+  function partyCardAttirePill(row) {
+    const st = partyAttireStatus(row);
+    if (st === 'Fitted & paid') return { label: 'Attire ready', tone: 'ok' };
+    if (st === 'Deposit only') return { label: 'Deposit only', tone: 'warn' };
+    return { label: 'Measurements due', tone: 'warn' };
+  }
+
+  function partyReadinessPct(row) {
+    const st = partyAttireStatus(row);
+    if (st === 'Fitted & paid') return 100;
+    if (st === 'Deposit only') return 55;
+    return 35;
+  }
+
+  function partyDutyOwnerName(duty) {
+    if (!duty) return '';
+    if (duty.ownerName) return String(duty.ownerName);
+    if (duty.ownerId) {
+      const m = partyRows().find(r => String(r._id) === String(duty.ownerId));
+      if (m) return m.name || '';
+    }
+    return '';
+  }
+
+  function partyDutyHasOwner(duty) {
+    return !!(partyDutyOwnerName(duty) && partyDutyOwnerName(duty) !== 'Nobody');
+  }
+
+  function partyDutyPhase(duty) {
+    const p = String(duty && duty.phase || '').trim();
+    if (PARTY_DUTY_PHASES.indexOf(p) >= 0) return p;
+    return 'Before the day';
+  }
+
+  function partyDutyColumn(duty) {
+    if (!partyDutyHasOwner(duty)) return 'Unassigned';
+    return partyDutyPhase(duty);
+  }
+
+  function partyDutyStatusLabel(duty) {
+    if (!duty) return '';
+    if (duty.status === 'done' || duty.status === 'Done') return 'Done';
+    if (duty.when) return String(duty.when);
+    return '';
+  }
+
+  function partyDutyIsDone(duty) {
+    const s = String(duty && duty.status || '').toLowerCase();
+    return s === 'done';
+  }
+
+  function partyDutyIsBlocked(duty) {
+    return !!(duty && (duty.blocked || /blocked/i.test(String(duty.note || ''))));
+  }
+
+  function partyDutiesForMember(row) {
+    const name = String(row && row.name || '').trim().toLowerCase();
+    const id = row && row._id != null ? String(row._id) : '';
+    const fromBoard = partyDutyRows().filter(d => {
+      if (id && String(d.ownerId || '') === id) return true;
+      return name && String(d.ownerName || '').trim().toLowerCase() === name;
+    });
+    if (fromBoard.length) return fromBoard;
+    const legacy = Array.isArray(row && row.duties) ? row.duties : [];
+    return legacy.map((title, i) => ({
+      _id: 'legacy-' + id + '-' + i,
+      title: String(title).split('·')[0].trim() || String(title),
+      phase: /speech|toast/i.test(String(title)) ? 'Reception' : 'Ceremony',
+      ownerId: id,
+      ownerName: row.name,
+      when: '',
+      status: '',
+      legacy: true
+    }));
+  }
+
+  function partyDutyCount(row) {
+    return partyDutiesForMember(row).length;
+  }
 
   function ensurePartyDemoSeed() {
-    if (partyRows().length) return;
-    const seed = [
-      { name: 'Efua Mensah', role: 'Maid of honour', side: 'Bride', attireStatus: 'Fitted & paid', duties: ['Speech · 5 min', 'Processional', 'Hold the bouquet'], dutyLabels: 'Speech · toast', fitting: '12 Aug', fittingDetail: '12 Aug · Adjeley Bridal', relationship: 'Cousin', cost: 340, sizeNote: 'Hem shortened 1in', arrives: 'Friday evening', room: 'Grace Hall block', notes: 'Arriving Friday evening — needs a seat at the rehearsal dinner and a room in the Grace Hall block.', speechOrder: 2, speechMinutes: 5, speechTitle: 'Reading + toast' },
-      { name: 'Akosua Owusu', role: 'Bridesmaid', side: 'Bride', attireStatus: 'Fitted & paid', dutyLabels: 'Processional', fitting: '12 Aug', duties: ['Processional'] },
-      { name: 'Nana Ama Boateng', role: 'Bridesmaid', side: 'Bride', attireStatus: 'Deposit only', dutyLabels: 'Processional', fitting: '19 Aug', duties: ['Processional'] },
-      { name: 'Adjoa Sarpong', role: 'Bridesmaid', side: 'Bride', attireStatus: 'Not measured', dutyLabels: 'Guest book', duties: ['Guest book'] },
-      { name: 'Serwaa Mensah', role: 'Flower girl', side: 'Bride', attireStatus: 'Fitted & paid', dutyLabels: 'Processional', fitting: '5 Aug', duties: ['Processional'] },
-      { name: 'Yaw Darko', role: 'Best man', side: 'Groom', attireStatus: 'Fitted & paid', dutyLabels: 'Speech · rings', fitting: '9 Aug', duties: ['Speech · 6 min', 'Ushering', 'Ring bearer walk'], speechOrder: 1, speechMinutes: 6, speechTitle: 'Toast to the couple' },
-      { name: 'Kofi Asante', role: 'Groomsman', side: 'Groom', attireStatus: 'Fitted & paid', dutyLabels: 'Ushering', fitting: '9 Aug', duties: ['Ushering'] },
-      { name: 'Kwabena Osei', role: 'Groomsman', side: 'Groom', attireStatus: 'Fitted & paid', dutyLabels: 'Ushering', fitting: '9 Aug', duties: ['Ushering'] },
-      { name: 'Michael Tetteh', role: 'Groomsman', side: 'Groom', attireStatus: 'Deposit only', dutyLabels: 'Transport', fitting: '26 Aug', duties: ['Transport'] },
-      { name: 'Kojo Amoah', role: 'Ring bearer', side: 'Groom', attireStatus: 'Not measured', dutyLabels: 'Recessional', duties: ['Recessional'] }
-    ];
-    seed.forEach(row => {
+    if (!partyRows().length) {
+      const seed = [
+        { name: 'Efua Mensah', role: 'Maid of honour', side: 'Bride', attireStatus: 'Fitted & paid', duties: ['Speech · 5 min', 'Processional', 'Hold the bouquet'], dutyLabels: 'Speech · toast', fitting: '12 Aug', fittingDetail: '12 Aug · Adjeley Bridal', relationship: 'Cousin', cost: 340, sizeNote: 'Hem shortened 1in', arrives: 'Friday evening', room: 'Grace Hall block', notes: 'Arriving Friday evening — needs a seat at the rehearsal dinner and a room in the Grace Hall block.', speechOrder: 2, speechMinutes: 5, speechTitle: 'Reading + toast', callTime: '7:30am', attireKind: 'Dress', attireDetail: 'Fitted, 2nd fitting done' },
+        { name: 'Akosua Owusu', role: 'Bridesmaid', side: 'Bride', attireStatus: 'Fitted & paid', dutyLabels: 'Processional', fitting: '12 Aug', duties: ['Processional'], callTime: '8:00am', attireKind: 'Dress', attireDetail: 'Collected 12 Aug' },
+        { name: 'Nana Ama Boateng', role: 'Bridesmaid', side: 'Bride', attireStatus: 'Deposit only', dutyLabels: 'Processional', fitting: '19 Aug', duties: ['Processional'], callTime: '8:00am', attireKind: 'Dress', attireDetail: 'Deposit paid' },
+        { name: 'Adjoa Sarpong', role: 'Bridesmaid', side: 'Bride', attireStatus: 'Not measured', dutyLabels: 'Guest book', duties: ['Guest book'], callTime: '8:30am', attireKind: 'Dress', attireDetail: 'Not ordered' },
+        { name: 'Serwaa Mensah', role: 'Flower girl', side: 'Bride', attireStatus: 'Fitted & paid', dutyLabels: 'Processional', fitting: '5 Aug', duties: ['Processional'], callTime: '8:00am', attireKind: 'Dress', attireDetail: 'Collected 5 Aug' },
+        { name: 'Yaw Darko', role: 'Best man', side: 'Groom', attireStatus: 'Fitted & paid', dutyLabels: 'Speech · rings', fitting: '9 Aug', duties: ['Speech · 6 min', 'Ushering', 'Ring bearer walk'], speechOrder: 1, speechMinutes: 6, speechTitle: 'Toast to the couple', callTime: '9:00am', attireKind: 'Suit', attireDetail: 'Collected 9 Aug' },
+        { name: 'Kofi Asante', role: 'Groomsman', side: 'Groom', attireStatus: 'Fitted & paid', dutyLabels: 'Ushering', fitting: '9 Aug', duties: ['Ushering'], callTime: '9:00am', attireKind: 'Suit', attireDetail: 'Collected 9 Aug' },
+        { name: 'Kwabena Osei', role: 'Groomsman', side: 'Groom', attireStatus: 'Fitted & paid', dutyLabels: 'Ushering', fitting: '9 Aug', duties: ['Ushering'], callTime: '9:00am', attireKind: 'Suit', attireDetail: 'Collected 9 Aug' },
+        { name: 'Michael Tetteh', role: 'Groomsman', side: 'Groom', attireStatus: 'Deposit only', dutyLabels: 'Transport', fitting: '26 Aug', duties: ['Transport'], callTime: '9:00am', attireKind: 'Suit', attireDetail: 'Deposit paid', speechOrder: 0 },
+        { name: 'Kojo Amoah', role: 'Ring bearer', side: 'Groom', attireStatus: 'Not measured', dutyLabels: 'Recessional', duties: ['Recessional'], callTime: '9:30am', attireKind: 'Suit', attireDetail: 'Not ordered' }
+      ];
+      seed.forEach(row => {
+        ensureRowId(row, 'party');
+        if (!row.phone) row.phone = '';
+        if (!row.email) row.email = '';
+        data.party.push(row);
+      });
+    }
+    partyRows().forEach(row => {
       ensureRowId(row, 'party');
-      if (!row.phone) row.phone = '';
-      if (!row.email) row.email = '';
-      data.party.push(row);
+      if (!row.callTime) row.callTime = partyCallTime(row);
+      if (!row.attireKind) row.attireKind = partyAttireKind(row);
+      if (!row.attireDetail) row.attireDetail = partyAttireDetail(row);
+    });
+    ensurePartyDutiesSeed();
+  }
+
+  function ensurePartyDutiesSeed() {
+    if (partyDutyRows().length) return;
+    const byName = name => partyRows().find(r => String(r.name || '').toLowerCase() === String(name).toLowerCase());
+    const seed = [
+      { title: 'Collect suits from Kingsway', phase: 'Before the day', ownerName: 'Michael Tetteh', when: 'Due 2 Oct', blocked: true, note: 'Blocked · measurements' },
+      { title: 'Confirm shuttle driver', phase: 'Before the day', ownerName: 'Michael Tetteh', when: 'Due 12 Oct' },
+      { title: 'Buy flower girl basket', phase: 'Before the day', ownerName: 'Akosua Owusu', status: 'Done', when: 'Done' },
+      { title: 'Rehearsal reminder to party', phase: 'Before the day', ownerName: 'Efua Mensah', when: 'Due 4 Nov' },
+      { title: 'Processional walk-through', phase: 'Before the day', ownerName: 'Efua Mensah', when: 'Due 5 Nov' },
+      { title: 'Usher briefing sheet', phase: 'Before the day', ownerName: 'Kofi Asante', when: 'Due 6 Nov' },
+      { title: 'Measure ring bearer', phase: 'Before the day', ownerName: 'Yaw Darko', when: 'Due 20 Aug' },
+      { title: 'Hair & makeup timing sheet', phase: 'Morning of', ownerName: 'Efua Mensah', when: '7:30am' },
+      { title: 'Get rings from safe', phase: 'Morning of', ownerName: 'Michael Tetteh', when: '9:00am', critical: true },
+      { title: 'Breakfast for bridal suite', phase: 'Morning of', ownerName: 'Akosua Owusu', when: '8:00am' },
+      { title: 'Boutonniere pickup', phase: 'Morning of', ownerName: 'Kofi Asante', when: '8:30am' },
+      { title: 'Flower girl arrival', phase: 'Morning of', ownerName: 'Serwaa Mensah', when: '8:00am' },
+      { title: 'Groomsmen roll call', phase: 'Morning of', ownerName: 'Yaw Darko', when: '9:00am' },
+      { title: 'Line up processional', phase: 'Ceremony', ownerName: 'Efua Mensah', when: '3:20pm' },
+      { title: 'Hold rings until vows', phase: 'Ceremony', ownerName: 'Michael Tetteh', when: '3:33pm' },
+      { title: 'Hold the bouquet', phase: 'Ceremony', ownerName: 'Efua Mensah', when: '3:04pm' },
+      { title: 'Ushering · doors', phase: 'Ceremony', ownerName: 'Kofi Asante', when: '2:45pm' },
+      { title: 'Ring bearer walk', phase: 'Ceremony', ownerName: 'Kojo Amoah', when: '3:10pm' },
+      { title: 'Best man speech', phase: 'Reception', ownerName: 'Yaw Darko', when: '7:40pm' },
+      { title: 'Maid of honour speech', phase: 'Reception', ownerName: 'Efua Mensah', when: '8:40pm' },
+      { title: 'Collect gifts to car', phase: 'Reception', ownerName: 'Yaw Darko', when: '10:30pm' },
+      { title: 'Transport to venue', phase: 'Reception', ownerName: 'Michael Tetteh', when: '6:00pm' },
+      { title: 'Return hired suits', phase: 'Before the day', ownerName: '', when: 'Due 10 Nov' },
+      { title: 'Day-after brunch host', phase: 'Before the day', ownerName: '', when: '9 Nov' },
+      { title: 'Guest book steward', phase: 'Ceremony', ownerName: '', when: 'Day-of critical', critical: true }
+    ];
+    seed.forEach(d => {
+      const m = d.ownerName ? byName(d.ownerName) : null;
+      const row = {
+        title: d.title,
+        phase: d.phase,
+        ownerName: d.ownerName || '',
+        ownerId: m ? m._id : '',
+        when: d.when || '',
+        status: d.status || '',
+        blocked: !!d.blocked,
+        note: d.note || '',
+        critical: !!d.critical
+      };
+      ensureRowId(row, 'partyDuty');
+      data.partyDuties.push(row);
     });
     if (typeof save === 'function') save();
   }
@@ -110,6 +288,10 @@
   }
 
   function partyDutiesLabel(row) {
+    const board = typeof partyDutiesForMember === 'function' ? partyDutiesForMember(row) : [];
+    if (board.length && !board[0].legacy) {
+      return board.map(d => String(d.title || '').split('·')[0].trim()).filter(Boolean).slice(0, 2).join(' · ') || '—';
+    }
     if (row && row.dutyLabels) return row.dutyLabels;
     if (Array.isArray(row && row.duties) && row.duties.length) {
       return row.duties.map(d => String(d).split('·')[0].trim()).slice(0, 2).join(' · ');
@@ -193,7 +375,18 @@
     const groom = rows.filter(r => partyMemberSide(r) === 'Groom').length;
     const attireReady = rows.filter(partyAttireReady).length;
     const speaking = rows.filter(partyHasSpeakingDuty).length;
-    return { total: rows.length, bride, groom, attireReady, speaking, shown: filtered.length };
+    const duties = partyDutyRows();
+    const unassigned = duties.filter(d => !partyDutyHasOwner(d));
+    const assigned = duties.filter(partyDutyHasOwner);
+    const blocked = duties.filter(partyDutyIsBlocked);
+    const done = duties.filter(partyDutyIsDone);
+    const unassignedCritical = unassigned.filter(d => d.critical || /critical/i.test(String(d.when || ''))).length;
+    const measurementsDue = rows.filter(r => partyAttireStatus(r) === 'Not measured').length;
+    return {
+      total: rows.length, bride, groom, attireReady, speaking, shown: filtered.length,
+      duties: duties.length, assigned: assigned.length, unassigned: unassigned.length,
+      blocked: blocked.length, done: done.length, unassignedCritical, measurementsDue
+    };
   }
 
   function rdGetPartyView() {
@@ -219,11 +412,22 @@
 
   function partyPageheadActionsHtml() {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
-    return `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeddingParty()">Send group email</button>
-      <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
+    const view = rdGetPartyView();
+    const printLabel = view === 'duties' ? 'Print duty sheets' : 'Print section';
+    const primary = view === 'duties'
+      ? `<button type="button" class="rd-btn rd-btn--primary" onclick="addPartyDuty()">Add duty</button>`
+      : `<button type="button" class="rd-btn rd-btn--primary" onclick="addPartyRow()">Add member</button>`;
+    const email = view === 'table'
+      ? `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeddingParty()">Send group email</button>`
+      : '';
+    const exportBtn = view === 'duties'
+      ? ''
+      : `<button type="button" class="rd-btn" onclick="exportSectionCSV('Wedding Party',data.party)">Export</button>`;
+    return `${email}
+      <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>${printLabel}</button>
       <button type="button" class="rd-btn" data-rd-full-editor onclick="rdPartyFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
-      <button type="button" class="rd-btn" onclick="exportSectionCSV('Wedding Party',data.party)">Export</button>
-      <button type="button" class="rd-btn rd-btn--primary" onclick="addPartyRow()">Add member</button>`;
+      ${exportBtn}
+      ${primary}`;
   }
 
   function partySurfaceRowHtml() {
@@ -249,13 +453,13 @@
     const panel = document.getElementById('panel-party');
     if (!panel) return;
     panel.classList.add('ued-scope', 'party-mockup');
-    if (panel.dataset.uedShell === 'party-rd10a') {
+    if (panel.dataset.uedShell === 'party-rd10a-v2') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = partyPageheadActionsHtml();
       if (typeof window.covenantShell !== 'undefined' && window.covenantShell.drawer) window.covenantShell.drawer();
       return;
     }
-    panel.dataset.uedShell = 'party-rd10a';
+    panel.dataset.uedShell = 'party-rd10a-v2';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -278,30 +482,92 @@
     const host = document.getElementById('party-stats');
     if (!host) return;
     const s = partyStatsData();
+    const view = rdGetPartyView();
+    const resetMemberFilters = () => {
+      window._partyUiFilters = Object.assign({}, window._partyUiFilters, {
+        side: 'all', attire: 'all', role: 'all', phase: 'all', owner: 'all'
+      });
+    };
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, [
-        { label: 'Members', value: s.total, filter: 'Show all', onFilter: () => { window._partyUiFilters = { side: 'all', attire: 'all', role: 'all' }; renderParty(); } },
-        { label: "Bride's side", value: s.bride, filter: "Filter · Bride's side", onFilter: () => { window._partyUiFilters.side = 'Bride'; renderParty(); } },
-        { label: "Groom's side", value: s.groom, filter: "Filter · Groom's side", onFilter: () => { window._partyUiFilters.side = 'Groom'; renderParty(); } },
-        { label: 'Attire ready', value: s.attireReady, filter: 'Filter · Fitted & paid', onFilter: () => { window._partyUiFilters.attire = 'Fitted & paid'; renderParty(); } },
-        {
-          label: 'Speaking',
-          value: s.speaking,
-          filter: 'Show speakers',
-          attention: s.total && s.attireReady < s.total ? (s.total - s.attireReady) + ' still need fittings' : undefined
-        }
-      ]);
+      let items;
+      if (view === 'cards') {
+        items = [
+          { label: 'Members', value: String(s.total), delta: s.total ? '↑1 since Monday' : undefined, filter: 'Show all', onFilter: () => { resetMemberFilters(); renderParty(); } },
+          {
+            label: 'Attire ready',
+            value: s.attireReady + ' of ' + s.total,
+            target: { pct: s.total ? Math.round((s.attireReady / s.total) * 100) : 0, tick: 100 },
+            filter: 'Filter · Fitted & paid',
+            onFilter: () => { window._partyUiFilters.attire = 'Fitted & paid'; renderParty(); }
+          },
+          { label: 'Speeches', value: String(s.speaking), filter: 'Show speakers', onFilter: () => { applyPartyRailView('speaking'); } },
+          {
+            label: 'Duties unassigned',
+            value: String(s.unassigned),
+            attention: s.unassignedCritical ? (s.unassignedCritical + ' are day-of critical') : (s.unassigned ? 'need an owner' : undefined),
+            filter: 'Open Duties',
+            onFilter: () => { rdSetPartyView('duties'); }
+          },
+          {
+            label: 'Measurements due',
+            value: String(s.measurementsDue),
+            attention: s.measurementsDue ? 'deadline 30 Aug' : undefined,
+            filter: 'Filter · Not measured',
+            onFilter: () => { window._partyUiFilters.attire = 'Not measured'; renderParty(); }
+          }
+        ];
+      } else if (view === 'duties') {
+        items = [
+          { label: 'Duties', value: String(s.duties), filter: 'Show all', onFilter: () => { window._partyUiFilters.phase = 'all'; window._partyUiFilters.owner = 'all'; window._partyUiFilters.hideDone = false; renderParty(); } },
+          {
+            label: 'Assigned',
+            value: String(s.assigned),
+            target: { pct: s.duties ? Math.round((s.assigned / s.duties) * 100) : 0, tick: 100 }
+          },
+          {
+            label: 'Unassigned',
+            value: String(s.unassigned),
+            attention: s.unassignedCritical ? (s.unassignedCritical + ' is day-of critical') : undefined,
+            filter: 'Filter · Unassigned',
+            onFilter: () => { window._partyUiFilters.owner = 'unassigned'; renderParty(); }
+          },
+          {
+            label: 'Blocked',
+            value: String(s.blocked),
+            attention: s.blocked ? 'suits · measurements' : undefined
+          },
+          {
+            label: 'Done',
+            value: String(s.done),
+            delta: s.done ? '↑4 this week' : undefined
+          }
+        ];
+      } else {
+        items = [
+          { label: 'Members', value: s.total, filter: 'Show all', onFilter: () => { resetMemberFilters(); renderParty(); } },
+          { label: "Bride's side", value: s.bride, filter: "Filter · Bride's side", onFilter: () => { window._partyUiFilters.side = 'Bride'; renderParty(); } },
+          { label: "Groom's side", value: s.groom, filter: "Filter · Groom's side", onFilter: () => { window._partyUiFilters.side = 'Groom'; renderParty(); } },
+          { label: 'Attire ready', value: s.attireReady, filter: 'Filter · Fitted & paid', onFilter: () => { window._partyUiFilters.attire = 'Fitted & paid'; renderParty(); } },
+          {
+            label: 'Speaking',
+            value: s.speaking,
+            filter: 'Show speakers',
+            attention: s.total && s.attireReady < s.total ? (s.total - s.attireReady) + ' still need fittings' : undefined
+          }
+        ];
+      }
+      RdDepth.renderStats(host, items);
       return;
     }
-    const cell = (label, val, tone) =>
-      `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
-    host.innerHTML = [
-      cell('Members', s.total),
-      cell("Bride's side", s.bride),
-      cell("Groom's side", s.groom),
-      cell('Attire ready', s.attireReady),
-      cell('Speaking', s.speaking)
-    ].join('');
+    const cell = (label, val) =>
+      `<div class="m-stat"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
+    if (view === 'duties') {
+      host.innerHTML = [cell('Duties', s.duties), cell('Assigned', s.assigned), cell('Unassigned', s.unassigned), cell('Blocked', s.blocked), cell('Done', s.done)].join('');
+    } else if (view === 'cards') {
+      host.innerHTML = [cell('Members', s.total), cell('Attire ready', s.attireReady + ' of ' + s.total), cell('Speeches', s.speaking), cell('Duties unassigned', s.unassigned), cell('Measurements due', s.measurementsDue)].join('');
+    } else {
+      host.innerHTML = [cell('Members', s.total), cell("Bride's side", s.bride), cell("Groom's side", s.groom), cell('Attire ready', s.attireReady), cell('Speaking', s.speaking)].join('');
+    }
   }
 
   function partyFilterChip(label, field) {
@@ -315,29 +581,66 @@
       + `</button>`;
   }
 
+  function partyDutyFilterChip(label, field) {
+    const ui = window._partyUiFilters || {};
+    const cur = ui[field];
+    const on = cur && cur !== 'all';
+    const text = on ? (label + ': ' + cur) : (label + ': all');
+    return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="openPartyDutyFilter('${field}',this)">${escapeHtml(text)}`
+      + (on ? `<span class="rd-chip__clear" onclick="event.stopPropagation();clearPartyDutyFilter('${field}')">&#10005;</span>`
+        : `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg>`)
+      + `</button>`;
+  }
+
   function renderPartyToolbar() {
     const host = document.getElementById('party-toolbar');
     if (!host) return;
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';
     const view = rdGetPartyView();
-    const colLabel = window.rdColumns ? window.rdColumns.chipLabel(PARTY_COL_SCOPE) : 'Columns';
-    const colAllShown = window.rdColumns ? window.rdColumns.allShown(PARTY_COL_SCOPE) : true;
-    host.innerHTML =
-      partyFilterChip('Side', 'side') +
-      partyFilterChip('Attire', 'attire') +
-      partyFilterChip('Role', 'role') +
-      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenFilterBuilder(this)">Filter builder</button>` +
-      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenViewsManager()">Views</button>` +
-      `<button type="button" class="rd-chip rd-chip--ghost" onclick="openPartySort(this)"><svg ${svg}><path d="M4 6h16M7 12h10M10 18h4"/></svg>${escapeHtml(partySortLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
-      `<button type="button" class="rd-chip${colAllShown ? ' rd-chip--ghost' : ''}" onclick="rdPartyOpenColumns(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>${escapeHtml(colLabel)}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
-      `<button type="button" class="rd-chip" onclick="rdPartyAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>` +
-      `<button type="button" class="rd-chip" onclick="rdCyclePartyRowHeight()"><svg ${svg}><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · ${escapeHtml(rdPartyRowHeightLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
+    const switcher =
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Party view">` +
       `<button type="button" class="rd-viewswitch__item${view === 'table' ? ' is-active' : ''}" onclick="rdSetPartyView('table')">Table</button>` +
       `<button type="button" class="rd-viewswitch__item${view === 'cards' ? ' is-active' : ''}" onclick="rdSetPartyView('cards')">Cards</button>` +
       `<button type="button" class="rd-viewswitch__item${view === 'duties' ? ' is-active' : ''}" onclick="rdSetPartyView('duties')">Duties</button>` +
       `</div></div>`;
+
+    if (view === 'duties') {
+      const hideDone = !!(window._partyUiFilters && window._partyUiFilters.hideDone);
+      host.innerHTML =
+        partyDutyFilterChip('Phase', 'phase') +
+        partyDutyFilterChip('Owner', 'owner') +
+        `<button type="button" class="rd-chip${hideDone ? ' is-active' : ''}" onclick="togglePartyHideDone()">Hide done${hideDone ? '<span class="rd-chip__clear">&#10005;</span>' : ''}</button>` +
+        `<span class="rd-party-drag-hint">Drag a card to reassign the phase</span>` +
+        switcher;
+      return;
+    }
+
+    /* Cards: filter chips stay; column and row-height controls drop out (29a). */
+    const filters =
+      partyFilterChip('Side', 'side') +
+      partyFilterChip('Attire', 'attire') +
+      partyFilterChip('Role', 'role');
+
+    if (view === 'cards') {
+      host.innerHTML =
+        filters +
+        `<button type="button" class="rd-chip rd-chip--ghost" onclick="openPartySort(this)"><svg ${svg}><path d="M4 6h16M7 12h10M10 18h4"/></svg>${escapeHtml(partySortLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
+        switcher;
+      return;
+    }
+
+    const colLabel = window.rdColumns ? window.rdColumns.chipLabel(PARTY_COL_SCOPE) : 'Columns';
+    const colAllShown = window.rdColumns ? window.rdColumns.allShown(PARTY_COL_SCOPE) : true;
+    host.innerHTML =
+      filters +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenFilterBuilder(this)">Filter builder</button>` +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdPartyOpenViewsManager()">Views</button>` +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="openPartySort(this)"><svg ${svg}><path d="M4 6h16M7 12h10M10 18h4"/></svg>${escapeHtml(partySortLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
+      `<button type="button" class="rd-chip${colAllShown ? ' rd-chip--ghost' : ''}" onclick="rdPartyOpenColumns(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>${escapeHtml(colLabel)}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
+      `<button type="button" class="rd-chip" onclick="rdPartyAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>` +
+      `<button type="button" class="rd-chip" onclick="rdCyclePartyRowHeight()"><svg ${svg}><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · ${escapeHtml(rdPartyRowHeightLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
+      switcher;
   }
 
   function openPartyFilter(field, btn) {
@@ -741,77 +1044,170 @@
   function renderPartyCardsView() {
     const host = document.getElementById('party-cards-view');
     if (!host) return;
-    host.classList.add('rd-cardgrid');
-    const rows = partyRows().filter(partyMatchesFilters);
-    host.innerHTML = rows.length ? rows.map(r => {
-      const side = partySideGroupTitle(partyMemberSide(r)).replace("'s side", '');
-      return `<article class="rd-cardgrid__card" data-id="${escapeHtml(r._id || '')}" onclick="partyOpenDrawerById('${escapeHtml(r._id || '')}')">
-        <div class="rd-cardgrid__title">${escapeHtml(r.name || '')}</div>
-        <div class="rd-cardgrid__meta">${escapeHtml(r.role || '')} · ${escapeHtml(side)}</div>
-        <div class="rd-cardgrid__meta">${escapeHtml(partyDutiesLabel(r))}</div>
-        <div class="rd-cardgrid__meta">Fitting ${escapeHtml(partyFittingLabel(r))} · ${escapeHtml(partyAttireStatus(r))}</div>
+    host.className = 'rd-cardgrid rd-party-cards';
+    const rows = partyRows().filter(partyMatchesFilters).slice().sort(partySortRows);
+    if (!rows.length) {
+      host.innerHTML = '<p class="rd-help" style="grid-column:1/-1">No members match this view.</p>';
+      return;
+    }
+    host.innerHTML = rows.map(r => {
+      const sideTitle = partySideGroupTitle(partyMemberSide(r));
+      const attirePill = partyCardAttirePill(r);
+      const speaking = partyHasSpeakingDuty(r);
+      const dutyN = partyDutyCount(r);
+      const outstanding = !partyAttireReady(r);
+      const pct = partyReadinessPct(r);
+      const id = escapeHtml(r._id || '');
+      const pills =
+        `<span class="rd-party-card__pill rd-party-card__pill--${attirePill.tone}">${escapeHtml(attirePill.label)}</span>` +
+        (speaking ? `<span class="rd-party-card__pill rd-party-card__pill--speech">Speech</span>` : '');
+      const bar = outstanding
+        ? `<div class="rd-party-card__ready" aria-hidden="true"><span style="width:${pct}%"></span></div>`
+        : '';
+      return `<article class="rd-party-card" data-id="${id}" onclick="partyOpenDrawerById('${id}')">
+        <div class="rd-party-card__identity">
+          <span class="rd-party-card__avatar">${escapeHtml(partyInitials(r.name))}</span>
+          <div class="rd-party-card__who">
+            <div class="rd-party-card__name">${escapeHtml(r.name || 'Member')}</div>
+            <div class="rd-party-card__role">${escapeHtml(r.role || '')} · ${escapeHtml(sideTitle)}</div>
+          </div>
+        </div>
+        <div class="rd-party-card__pills">${pills}</div>
+        <div class="rd-party-card__rows">
+          <div class="rd-party-card__row"><span>${escapeHtml(partyAttireKind(r))}</span><span>${escapeHtml(partyAttireDetail(r))}</span></div>
+          <div class="rd-party-card__row"><span>Duties</span><span>${dutyN} assigned</span></div>
+          <div class="rd-party-card__row"><span>Day-of call</span><span>${escapeHtml(partyCallTime(r))}</span></div>
+        </div>
+        ${bar}
       </article>`;
-    }).join('') : '<p class="rd-help" style="grid-column:1/-1">No members match this view.</p>';
+    }).join('');
   }
 
-  function partyDutyColumnKey(duty) {
-    const raw = String(duty || '').split('·')[0].trim();
-    if (!raw) return 'Unassigned';
-    if (/speech|toast|reading/i.test(raw)) return 'Speaking';
-    if (/processional|recessional|bouquet|ring/i.test(raw)) return 'Ceremony';
-    if (/usher|guest book|transport|door/i.test(raw)) return 'Reception';
-    return raw;
+  function partyDutyMatchesFilters(duty) {
+    const ui = window._partyUiFilters || {};
+    if (ui.hideDone && partyDutyIsDone(duty)) return false;
+    if (ui.phase && ui.phase !== 'all') {
+      if (ui.phase === 'Unassigned') {
+        if (partyDutyHasOwner(duty)) return false;
+      } else if (partyDutyPhase(duty) !== ui.phase) return false;
+    }
+    if (ui.owner && ui.owner !== 'all') {
+      if (ui.owner === 'unassigned' || ui.owner === 'Nobody') {
+        if (partyDutyHasOwner(duty)) return false;
+      } else if (partyDutyOwnerName(duty) !== ui.owner) return false;
+    }
+    return true;
   }
 
   function renderPartyDutiesView() {
     const host = document.getElementById('party-duties-view');
     if (!host) return;
-    host.classList.add('rd-kanban');
-    const rows = partyRows().filter(partyMatchesFilters);
-    const cols = Object.create(null);
-    const order = [];
-    const pushCol = (key) => {
-      if (!cols[key]) { cols[key] = []; order.push(key); }
-    };
-    rows.forEach(r => {
-      const duties = Array.isArray(r.duties) ? r.duties : (r.dutyLabels ? [r.dutyLabels] : []);
-      if (!duties.length) {
-        pushCol('Unassigned');
-        cols.Unassigned.push({ name: r.name, role: r.role, duty: 'No duty yet', id: r._id });
-        return;
-      }
-      duties.forEach(d => {
-        const key = partyDutyColumnKey(d);
-        if (key === 'Unassigned') return;
-        pushCol(key);
-        cols[key].push({ name: r.name, role: r.role, duty: String(d), id: r._id });
-      });
+    host.className = 'rd-kanban rd-party-duties';
+    const duties = partyDutyRows().filter(partyDutyMatchesFilters);
+    const cols = {};
+    PARTY_DUTY_COLUMNS.forEach(k => { cols[k] = []; });
+    duties.forEach(d => {
+      const key = partyDutyColumn(d);
+      if (!cols[key]) cols[key] = [];
+      cols[key].push(d);
     });
-    /* Failure is a group, not a filter — Unassigned is always last and red. */
-    const knownOrphans = ['Usher · door', 'Guest book · late arrivals'].filter(label => {
-      return !rows.some(r => {
-        const duties = Array.isArray(r.duties) ? r.duties : [];
-        return duties.some(d => String(d).toLowerCase().includes(String(label).split('·')[0].trim().toLowerCase()) && /usher|guest book/i.test(d));
-      });
-    });
-    pushCol('Unassigned');
-    knownOrphans.forEach(label => {
-      if (!cols.Unassigned.some(c => c.duty === label)) {
-        cols.Unassigned.push({ name: label, role: 'Needs owner', duty: label, id: '', orphan: true });
-      }
-    });
-    const colOrder = order.filter(k => k !== 'Unassigned').concat(['Unassigned']);
-    host.innerHTML = colOrder.map(key => {
+    host.innerHTML = PARTY_DUTY_COLUMNS.map(key => {
       const cards = cols[key] || [];
       const danger = key === 'Unassigned' ? ' is-danger' : '';
-      return `<div class="rd-kanban__col${danger}">
-        <div class="rd-kanban__col-head">${escapeHtml(key)}<span class="rd-rail__count" style="margin-left:auto">${cards.length}</span></div>
-        ${cards.map(c => c.orphan
-          ? `<div class="rd-kanban__card"><strong>${escapeHtml(c.duty)}</strong><div class="rd-cardgrid__meta">Needs owner</div></div>`
-          : `<div class="rd-kanban__card" onclick="partyOpenDrawerById('${escapeHtml(c.id || '')}')"><strong>${escapeHtml(c.name || '')}</strong><div class="rd-cardgrid__meta">${escapeHtml(c.role || '')} · ${escapeHtml(c.duty)}</div></div>`
-        ).join('')}
+      return `<div class="rd-kanban__col rd-party-duty-col${danger}" data-party-phase="${escapeHtml(key)}"
+        ondragover="event.preventDefault()" ondrop="partyDutyDrop(event,'${escapeHtml(key)}')">
+        <div class="rd-kanban__col-head"><span>${escapeHtml(key)}</span><span class="rd-rail__count">${cards.length}</span></div>
+        ${cards.map(d => {
+          const id = escapeHtml(d._id || '');
+          const owner = partyDutyHasOwner(d) ? partyDutyOwnerName(d) : 'Nobody';
+          const status = partyDutyStatusLabel(d);
+          const statusCls = partyDutyIsDone(d) ? ' is-done' : (d.critical || /critical/i.test(status) ? ' is-critical' : (partyDutyIsBlocked(d) ? ' is-blocked' : ''));
+          const note = d.note ? `<div class="rd-party-duty-card__note">${escapeHtml(d.note)}</div>` : (d.critical && !/critical/i.test(status) ? '<div class="rd-party-duty-card__note">Critical</div>' : '');
+          const member = partyRows().find(r => String(r._id) === String(d.ownerId) || String(r.name || '').toLowerCase() === String(d.ownerName || '').toLowerCase());
+          const open = member ? `partyOpenDrawerById('${escapeHtml(member._id)}')` : `addPartyDuty('${id}')`;
+          return `<div class="rd-kanban__card rd-party-duty-card" draggable="true" data-duty-id="${id}"
+            ondragstart="partyDutyDragStart(event,'${id}')" onclick="${open}">
+            <div class="rd-party-duty-card__title">${escapeHtml(d.title || 'Duty')}</div>
+            <div class="rd-party-duty-card__owner">${escapeHtml(owner)}</div>
+            ${status ? `<span class="rd-party-duty-card__when${statusCls}">${escapeHtml(status)}</span>` : ''}
+            ${note}
+          </div>`;
+        }).join('')}
+        <button type="button" class="rd-party-duty-add" onclick="addPartyDuty(null,'${escapeHtml(key)}')">+ Add</button>
       </div>`;
-    }).join('') || '<p class="rd-help">No members match this view.</p>';
+    }).join('');
+  }
+
+  function partyDutyDragStart(ev, id) {
+    if (ev && ev.dataTransfer) {
+      ev.dataTransfer.setData('text/party-duty-id', id);
+      ev.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  function partyDutyDrop(ev, column) {
+    if (ev) ev.preventDefault();
+    const id = ev && ev.dataTransfer ? ev.dataTransfer.getData('text/party-duty-id') : '';
+    if (!id) return;
+    const duty = partyDutyRows().find(d => String(d._id) === String(id));
+    if (!duty) return;
+    if (column === 'Unassigned') {
+      duty.ownerName = '';
+      duty.ownerId = '';
+    } else if (PARTY_DUTY_PHASES.indexOf(column) >= 0) {
+      duty.phase = column;
+    }
+    if (typeof save === 'function') save();
+    renderParty();
+  }
+
+  async function addPartyDuty(existingId, phaseHint) {
+    if (existingId) {
+      const duty = partyDutyRows().find(d => String(d._id) === String(existingId));
+      if (duty && typeof showToast === 'function') showToast(duty.title + ' — assign an owner in Full editor');
+      return;
+    }
+    const title = typeof rdPrompt === 'function'
+      ? await rdPrompt('New duty', 'Duty title')
+      : window.prompt('Duty title');
+    if (!title) return;
+    const phase = phaseHint && PARTY_DUTY_PHASES.indexOf(phaseHint) >= 0 ? phaseHint : 'Before the day';
+    const unassigned = phaseHint === 'Unassigned';
+    const row = {
+      title: String(title).trim(),
+      phase: unassigned ? 'Before the day' : phase,
+      ownerName: '',
+      ownerId: '',
+      when: '',
+      status: '',
+      note: '',
+      critical: false
+    };
+    ensureRowId(row, 'partyDuty');
+    partyDutyRows().push(row);
+    if (typeof save === 'function') save();
+    renderParty();
+  }
+
+  function openPartyDutyFilter(field, btn) {
+    const opts = field === 'phase'
+      ? [{ value: 'all', label: 'All phases' }].concat(PARTY_DUTY_COLUMNS.map(p => ({ value: p, label: p })))
+      : [{ value: 'all', label: 'All owners' }, { value: 'unassigned', label: 'Nobody' }]
+          .concat([...new Set(partyDutyRows().map(partyDutyOwnerName).filter(Boolean))].sort().map(n => ({ value: n, label: n })));
+    if (typeof rdOpenPicker === 'function') {
+      rdOpenPicker(btn, opts, window._partyUiFilters[field] || 'all', val => {
+        window._partyUiFilters[field] = val || 'all';
+        renderParty();
+      });
+    }
+  }
+  function clearPartyDutyFilter(field) {
+    window._partyUiFilters[field] = 'all';
+    renderParty();
+  }
+  function togglePartyHideDone() {
+    window._partyUiFilters.hideDone = !window._partyUiFilters.hideDone;
+    renderParty();
   }
 
   function partyOpenDrawerById(id) {
@@ -880,23 +1276,26 @@
   }
 
   function partyDrawerDutiesTab(d) {
-    const duties = Array.isArray(d.duties) ? d.duties : [];
-    const dutyRows = duties.length
-      ? duties.map(duty => {
-          const parts = String(duty).split('·');
-          const left = parts[0].trim();
-          const ev = parts[1] ? parts[1].trim() : (/speech/i.test(left) ? 'Reception' : 'Ceremony');
+    const structured = partyDutiesForMember(d);
+    const dutyRows = structured.length
+      ? structured.map(duty => {
+          const left = duty.title || '';
+          const ev = duty.when
+            ? (partyDutyPhase(duty) + (duty.when ? ' ' + duty.when : ''))
+            : partyDutyPhase(duty);
           return `<div class="rd-drawer-kv"><span>${escapeHtml(left)}</span><span class="rd-link-quiet">${escapeHtml(ev)}</span></div>`;
         }).join('')
       : `<div class="rd-drawer-kv"><span>${escapeHtml(partyDutiesLabel(d))}</span><span>Ceremony</span></div>`;
+    const duties = structured;
     const speakers = partyRows().filter(partyHasSpeakingDuty).sort((a, b) => (a.speechOrder || 99) - (b.speechOrder || 99));
     const speakRows = speakers.map((s, i) =>
       `<div class="rd-drawer-kv"><span>${i + 1} · ${escapeHtml(s.name || '')}</span><span>${parseInt(s.speechMinutes, 10) || '—'} min</span></div>`
     ).join('');
-    return '<div class="rd-drawer-section-title">Duties · ' + (duties.length || 1) + '</div>' + dutyRows
+    const dutyCount = duties.length || (partyDutiesLabel(d) !== '—' ? 1 : 0);
+    return '<div class="rd-drawer-section-title">Duties · ' + dutyCount + '</div>' + dutyRows
       + '<p class="rd-drawer-callout">Each duty with a time appears on the Wedding Day Timeline and in the Ceremony order of service. Removing one here removes it from both.</p>'
       + '<div class="rd-drawer-section-title">Speaking order</div>' + speakRows
-      + '<button type="button" class="rd-link-quiet" onclick="showToast(\'Add duty in full editor\')">+ Add a duty</button>';
+      + '<button type="button" class="rd-link-quiet" onclick="addPartyDuty()">+ Add a duty</button>';
   }
 
   function partyDrawerContactTab(d) {
@@ -1046,6 +1445,12 @@
   window.partyRowGroupMeta = partyRowGroupMeta;
   window.partyMatchesFilters = partyMatchesFilters;
   window.partyOpenDrawerById = partyOpenDrawerById;
+  window.addPartyDuty = addPartyDuty;
+  window.partyDutyDragStart = partyDutyDragStart;
+  window.partyDutyDrop = partyDutyDrop;
+  window.openPartyDutyFilter = openPartyDutyFilter;
+  window.clearPartyDutyFilter = clearPartyDutyFilter;
+  window.togglePartyHideDone = togglePartyHideDone;
   window.openPartyFilter = openPartyFilter;
   window.clearPartyFilter = clearPartyFilter;
   window.partyBulkClear = partyBulkClear;
