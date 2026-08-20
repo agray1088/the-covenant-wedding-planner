@@ -1156,13 +1156,14 @@
   /* Smart Calendar rail — mock 6x: VIEWS · ALL DATES · SOURCES · NEEDS A DATE.
      224px Tasks-pattern (.rd-rail). Live counts from buildSmartCalendarEvents. */
   var CAL_RAIL_SOURCE_ORDER = [
-    'Tasks', 'Appointments', 'Payments', 'Timeline', 'Vendors', 'Weekend',
+    'Tasks', 'Appointments', 'Counseling', 'Payments', 'Timeline', 'Vendors', 'Weekend',
     'Budget', 'Planning', 'Honeymoon', 'Rentals', 'Gifts', 'Manual'
   ];
   /* Mock swatches (square, soft radius) — independent of chip hex so rail matches visual direction. */
   var CAL_RAIL_SOURCE_SWATCH = {
     Tasks: '#2F4F3E',
     Appointments: '#3F5F8A',
+    Counseling: '#6B5478',
     Payments: '#C4A06A',
     Timeline: '#3D8A82',
     Vendors: '#6B7A8A',

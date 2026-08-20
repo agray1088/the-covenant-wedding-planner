@@ -38,7 +38,7 @@
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=stats-left1">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=cal-source-45b">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -948,12 +948,13 @@
           <input id="smart-search" type="search" hidden aria-hidden="true" tabindex="-1">
           <div class="rd-toolbar__right">
             <button type="button" class="rd-chip" id="smart-columns-chip" title="Calendar columns follow the 7-day week grid" onclick="void 0"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · 7<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-            <button type="button" class="rd-chip" onclick="smartCalendarAutoFit(this)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>
+            <button type="button" class="rd-chip" id="smart-autofit-chip" onclick="smartCalendarAutoFit(this)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>
             <button type="button" class="rd-chip" id="smart-row-height-chip" onclick="smartCalendarCycleDensity()" aria-label="Row height · default" title="Row height · default (click to cycle)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · default<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
             <div class="rd-viewswitch" role="group" aria-label="Calendar view">
               <button type="button" id="smart-mode-month" class="rd-viewswitch__item is-active active" onclick="setSmartCalendarMode('month')">Month</button>
               <button type="button" id="smart-mode-week" class="rd-viewswitch__item" onclick="setSmartCalendarMode('week')">Week</button>
               <button type="button" id="smart-mode-agenda" class="rd-viewswitch__item" onclick="setSmartCalendarMode('agenda')">Agenda</button>
+              <button type="button" id="smart-mode-source" class="rd-viewswitch__item" onclick="setSmartCalendarMode('source')">By source</button>
             </div>
           </div>
         </div>
@@ -1756,7 +1757,7 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=hc-after1"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=fm-13d1"></script>
+<script src="js/planner-context-sidebar.js?v=cal-source-45b"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
@@ -1764,7 +1765,7 @@
 <!-- Defines rdOpenPicker() / rdAnchorToButton() used by planner filter pops and
      every redesign toolbar. Must load before planner.js and page modules. -->
 <script src="js/rd-table-controls.js?v=table-design1"></script>
-<script src="js/planner.js?v=appt-agenda-print-20b"></script>
+<script src="js/planner.js?v=cal-source-45b"></script>
 <script src="js/rd-depth.js?v=redesign-depth3"></script>
 <script src="js/rd-states.js?v=redesign-furniture3"></script>
 <script src="js/rd-furniture.js?v=redesign-furniture3"></script>

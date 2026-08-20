@@ -5917,7 +5917,7 @@ function showPanel(id, forceOpen = false) {
   const mainForCal = document.getElementById('main');
   if (mainForCal) {
     if (id === 'calendar') {
-      const mode = (typeof smartCalendarMode !== 'undefined' && (smartCalendarMode === 'week' || smartCalendarMode === 'agenda'))
+      const mode = (typeof smartCalendarMode !== 'undefined' && (smartCalendarMode === 'week' || smartCalendarMode === 'agenda' || smartCalendarMode === 'source'))
         ? smartCalendarMode : 'month';
       mainForCal.setAttribute('data-cal-mode', mode);
     } else {
@@ -13006,7 +13006,7 @@ const SMART_SOURCE_DATA_KEY = {
   vendorArrival:'vtimeline', payment:'payments', contract:'contracts', budgetItem:'budget',
   paymentInstallment:'payments', weekendTimeline:'weekendTimeline', travelAccommodations:'travelAccommodations',
   hotelBlocks:'hotelBlocks', transportation:'transportation', note:'notesDetails', gift:'gifts',
-  rental:'rentals', honeyTransport:'honeyTransport'
+  rental:'rentals', honeyTransport:'honeyTransport', counseling:'counseling'
 };
 function smartSourceDataKey(source){ return SMART_SOURCE_DATA_KEY[source] || source || ''; }
 function recordIdentity(row){ return row ? String(row._id || row.id || row.guestId || '') : ''; }
@@ -25062,19 +25062,19 @@ function deleteRow(key, i) {
 ════════════════════════════════════════════════ */
 const APPOINTMENT_STATUS = ['Unconfirmed','Pending','Confirmed','Completed','Cancelled'];
 const APPOINTMENT_CATEGORIES = ['Venue','Catering','Attire','Florals','Photography','Cake','Beauty','Music','Officiant','Planner','Rentals','Transportation','Other'];
-const SMART_SOURCES = ['Tasks','Appointments','Budget','Payments','Vendors','Timeline','Planning','Weekend','Honeymoon','Rentals','Gifts','Manual'];
+const SMART_SOURCES = ['Tasks','Appointments','Counseling','Budget','Payments','Vendors','Timeline','Planning','Weekend','Honeymoon','Rentals','Gifts','Manual'];
 let smartCalendarMode = 'month';
 let smartCalendarMonth = null;
 let smartSelectedDate = null;
 const smartAppointmentFilters = { category:'All Categories', status:'All Statuses', range:'All Dates', q:'', month:'all', vendor:'all' };
-let smartCalendarSources = { Tasks:true, Appointments:true, Budget:true, Payments:true, Vendors:true, Timeline:true, Planning:true, Weekend:true, Honeymoon:true, Rentals:true, Gifts:true, Manual:true };
+let smartCalendarSources = { Tasks:true, Appointments:true, Counseling:true, Budget:true, Payments:true, Vendors:true, Timeline:true, Planning:true, Weekend:true, Honeymoon:true, Rentals:true, Gifts:true, Manual:true };
 /* Month edge-fill + filled chips + day drawer + row height
    (step8s: 360px drawer; step8t/u: roomy default week-row; default no longer fit-clamped). */
 let smartCalDensity = 'default'; /* compact | default | tall — mirrored from localStorage */
 let smartCalDrawerOpen = false;
-let smartCalDrawerTab = 0; /* 0 Day · 1 Entry · 2 Reminders */
+let smartCalDrawerTab = 0; /* 0 Entry · 1 Source · 2 People · 3 History */
 let smartCalDrawerEntryId = null;
-/* null = review (Day|Entry|Reminders); appointment|task|event = create form in drawer */
+/* null = review (Entry|Source|People|History); appointment|task|event = create form in drawer */
 let smartCalDrawerCreateType = null;
 const smartCalKeptConflicts = new Set(); /* dates user chose “Keep both” */
 /* Preferred week-row tracks (px). compact < default < tall; tall remains tallest.
@@ -26944,7 +26944,8 @@ function smartEventSourceHex(source){
   const s = String(source || '').toLowerCase();
   if (s === 'payments') return '#C96B55';
   if (s === 'budget') return '#6B8BB0';
-  if (s === 'appointments' || s === 'counseling') return '#B38549';
+  if (s === 'appointments') return '#B38549';
+  if (s === 'counseling') return '#6B5478';
   if (s === 'tasks') return '#2D4A3E';
   if (s === 'vendors') return '#9B7A9E';
   if (s === 'timeline') return '#7A8A98';
@@ -26956,8 +26957,8 @@ function smartEventSourceHex(source){
   return '#4A6B5C';
 }
 function smartEventInlineStyle(e, strength=30){
-  const custom = String(e?.color || '').trim();
-  const color = /^#[0-9a-f]{6}$/i.test(custom) ? custom : smartEventSourceHex(e?.source);
+  /* 45a: colour is the owning page, never status or a per-record tint. */
+  const color = smartEventSourceHex(e?.source);
   /* Always paint solid tinted fills — CSS !important reads --smart-event-color;
      inline background beats pale legacy washes that still target button.smart-event-chip. */
   return `--smart-event-color:${color};--smart-chip-bar:${color};background:color-mix(in srgb, ${color} ${strength}%, #fff);background-color:color-mix(in srgb, ${color} ${strength}%, #fff);border-top-color:color-mix(in srgb, ${color} 34%, #fff);border-right-color:color-mix(in srgb, ${color} 34%, #fff);border-bottom-color:color-mix(in srgb, ${color} 34%, #fff);border-left-color:${color};`;
@@ -27019,6 +27020,19 @@ function buildSmartCalendarEvents(){
   }
   safeArray(data.appointments).forEach((a,i)=>{
     if (a.date) add({id:`appt-${i}`, title:a.title || 'Appointment', source:'Appointments', category:a.category || 'Appointment', date:a.date, time:a.time||a.startTime||'', endTime:a.endTime||'', allDay:a.allDay, status:a.status || 'Pending', notes:a.description||[a.vendor,a.location,a.notes].filter(Boolean).join(' • '), description:a.description||a.notes||'', guests:a.guests||'', location:a.location||'', owner:a.contact||a.vendor||a.owner||'', color:a.color||'', icon:a.icon||'calendar', reminder:a.reminder||'', timezone:a.timezone||'', sourcePage:'appointments', ...smartSourceMeta('appointment',i)});
+  });
+  safeArray(data.counseling).forEach((c,i)=>{
+    if (c.date) add({
+      id:`counsel-${i}`,
+      title: c.topic || ('Counseling session ' + (c.num || (i + 1))),
+      source:'Counseling', category:'Counseling', date:c.date, time:c.time||'',
+      status:c.status || 'Scheduled',
+      notes:[c.homework, c.takeaway, c.notes].filter(Boolean).join(' • '),
+      guests: c.guests || 'Both',
+      owner: c.counselor || c.pastor || '',
+      sourcePage:'counseling',
+      ...smartSourceMeta('counseling', i)
+    });
   });
   safeArray(data.budget).forEach((cat,ci)=>{
     safeArray(cat.items).forEach((it,ii)=>{
@@ -27248,7 +27262,8 @@ function smartCalSyncRowHeightChip(){
 }
 function smartCalApplyDensity(){
   smartCalDensity = smartCalDensityLabel();
-  const mode = (smartCalendarMode === 'week' || smartCalendarMode === 'agenda') ? smartCalendarMode : 'month';
+  const mode = (smartCalendarMode === 'week' || smartCalendarMode === 'agenda' || smartCalendarMode === 'source')
+    ? smartCalendarMode : 'month';
   const panel = document.getElementById('panel-calendar');
   if (panel) {
     panel.setAttribute('data-cal-density', smartCalDensity);
@@ -27265,6 +27280,14 @@ function smartCalApplyDensity(){
     else mainEl.removeAttribute('data-cal-mode');
   }
   smartCalSyncRowHeightChip();
+  smartCalSyncToolbarTools();
+}
+function smartCalSyncToolbarTools(){
+  const monthTools = smartCalendarMode === 'month';
+  ['smart-columns-chip','smart-row-height-chip','smart-autofit-chip'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.hidden = !monthTools;
+  });
 }
 /* step8w: fixed --cal-week-row from density preferred for all densities
    (compact 220 · default 260 · tall 350). Page may scroll for full month. */
@@ -27771,8 +27794,8 @@ function renderSmartStats(events, all){
     });
     entriesLab = `Entries · ${monthName}`;
     apptLab = `Appointments · ${monthShort}`;
-    payLab = `Payments Due · ${monthShort}`;
-    taskLab = `Tasks Due · ${monthShort}`;
+    payLab = `Payments due · ${monthShort}`;
+    taskLab = `Tasks due · ${monthShort}`;
   }
   const appts = scopeEvents.filter(e => e.source === 'Appointments');
   const pays = scopeEvents.filter(e => e.source === 'Payments' || e.source === 'Budget');
@@ -28000,8 +28023,10 @@ function toggleSmartSource(src){
 }
 function setSmartCalendarMode(mode){
   if (mode === 'appointments') { showPanel('appointments'); return; }
+  if (mode === 'bysource' || mode === 'cards') mode = 'source';
+  if (!['month','week','agenda','source'].includes(mode)) mode = 'month';
   smartCalendarMode = mode;
-  ['month','week','agenda'].forEach(m=>{
+  ['month','week','agenda','source'].forEach(m=>{
     const btn = document.getElementById('smart-mode-'+m);
     if (btn) {
       const on = m===mode;
@@ -28011,7 +28036,7 @@ function setSmartCalendarMode(mode){
   });
   const layout = document.querySelector('#panel-calendar .smart-layout');
   if(layout){
-    if(mode === 'agenda') layout.style.gridTemplateColumns = '1fr';
+    if(mode === 'agenda' || mode === 'source') layout.style.gridTemplateColumns = '1fr';
     else layout.style.gridTemplateColumns = '';
   }
   renderSmartCalendar();
@@ -28086,7 +28111,7 @@ function selectSmartEntry(id){
   if (ev && ev.date) smartSelectedDate = ev.date;
   else if (!smartSelectedDate) smartSelectedDate = typeof todayISO === 'function' ? todayISO() : '';
   smartCalDrawerOpen = true;
-  smartCalDrawerTab = 1;
+  smartCalDrawerTab = 0;
   smartCalDrawerEntryId = ev ? String(ev.id) : (sid || null);
   smartCalDrawerCreateType = null;
   renderSmartCalendar();
@@ -28099,7 +28124,7 @@ function closeCalendarDayDrawer(){
 }
 function setCalendarDrawerTab(tab){
   smartCalDrawerCreateType = null;
-  smartCalDrawerTab = Math.max(0, Math.min(2, Number(tab) || 0));
+  smartCalDrawerTab = Math.max(0, Math.min(3, Number(tab) || 0));
   renderCalendarDayDrawer(smartFilteredEvents());
 }
 /* Open 360px calendar drawer in create mode (appointment default). */
@@ -28179,7 +28204,7 @@ function saveCalendarDrawerCreate(){
   if (d) smartCalendarMonth = new Date(d.getFullYear(), d.getMonth(), 1);
   smartCalDrawerCreateType = null;
   smartCalDrawerEntryId = newId;
-  smartCalDrawerTab = 1;
+  smartCalDrawerTab = 0;
   smartCalDrawerOpen = true;
   save();
   renderSmartCalendar();
@@ -28229,8 +28254,7 @@ function smartEventChipInnerHtml(e){
   return `<span class="smart-event-chip__text">${escapeHtml(title)}</span>`;
 }
 function smartMonthChipBarColor(e){
-  if (e.color && /^#[0-9a-f]{6}$/i.test(e.color)) return e.color;
-  return smartEventSourceHex(e.source);
+  return smartEventSourceHex(e && e.source);
 }
 function renderSmartMain(events){
   const host = document.getElementById('smart-calendar-main');
@@ -28258,13 +28282,124 @@ function renderSmartMain(events){
       label.textContent = sameYear
         ? `${humanDate(isoFromDate(start), { month: 'short', day: 'numeric' })} – ${humanDate(isoFromDate(end), { month: 'short', day: 'numeric', year: 'numeric' })}`
         : `${humanDate(isoFromDate(start), { month: 'short', day: 'numeric', year: 'numeric' })} – ${humanDate(isoFromDate(end), { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    } else if (smartCalendarMode === 'source') {
+      const monthName = smartCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const pages = new Set((events || []).map(e => e.source).filter(Boolean));
+      label.textContent = `${monthName} · ${(events || []).length} entries · ${pages.size} page${pages.size === 1 ? '' : 's'}`;
     } else {
       label.textContent = smartCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     }
   }
   if (smartCalendarMode === 'week') return renderSmartWeekView(host, events);
   if (smartCalendarMode === 'agenda') return renderSmartAgendaView(host, events);
+  if (smartCalendarMode === 'source') return renderSmartBySourceView(host, events);
   renderSmartMonthView(host, events);
+}
+function renderSmartBySourceView(host, events){
+  const monthStart = new Date(smartCalendarMonth.getFullYear(), smartCalendarMonth.getMonth(), 1);
+  const monthEnd = new Date(smartCalendarMonth.getFullYear(), smartCalendarMonth.getMonth() + 1, 0);
+  const monthItems = (events || []).filter(e => {
+    const d = dateFromISO(e.date);
+    return d && d >= monthStart && d <= monthEnd;
+  }).sort((a,b)=> ((a.date||'')+' '+(a.time||'')).localeCompare((b.date||'')+' '+(b.time||'')));
+  const order = [];
+  const seen = new Set();
+  (typeof SMART_SOURCES !== 'undefined' ? SMART_SOURCES : []).forEach(s => {
+    if (!seen.has(s)) { order.push(s); seen.add(s); }
+  });
+  monthItems.forEach(e => {
+    if (e.source && !seen.has(e.source)) { order.push(e.source); seen.add(e.source); }
+  });
+  const groups = order.map(src => ({
+    source: src,
+    items: monthItems.filter(e => e.source === src)
+  })).filter(g => g.items.length);
+  const monthName = smartCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  if (!groups.length) {
+    host.innerHTML = `<div class="rd-cal-source" data-mode="source-45b">
+      <div class="rd-cal-source__banner">
+        <div class="rd-cal-source__kicker">${escapeHtml(monthName)}</div>
+        <div class="rd-cal-source__copy">Nothing dated this month from the pages currently shown.</div>
+      </div>
+      <div class="rd-cal-source__empty">Turn on a source in the rail, or pick another month.</div>
+    </div>`;
+    return;
+  }
+  const groupsHtml = groups.map(g => {
+    const hex = typeof smartEventSourceHex === 'function' ? smartEventSourceHex(g.source) : '#4A6B5C';
+    const blurb = smartSourceOwningBlurb(g.source);
+    const n = g.items.length;
+    const rows = g.items.map(e => {
+      const when = [
+        e.date ? (typeof humanDate === 'function' ? humanDate(e.date, { day:'numeric', month:'short' }) : e.date) : '',
+        e.allDay ? 'All day' : (e.time ? (typeof humanTime === 'function' ? humanTime(e.time) : e.time) : ''),
+        (e.source === 'Payments' || e.source === 'Budget') && e.amount
+          ? (typeof fmt === 'function' ? fmt(e.amount) : ('$' + Number(e.amount).toLocaleString()))
+          : ''
+      ].filter(Boolean).join(' · ');
+      const statusHtml = (typeof smartStatusPill === 'function')
+        ? smartStatusPill(e.status || '')
+        : escapeHtml(e.status || '');
+      const active = String(smartCalDrawerEntryId) === String(e.id);
+      return `<button type="button" class="rd-cal-source__row${active ? ' is-active' : ''}" onclick="selectSmartEntry('${String(e.id).replace(/'/g,"\\'")}')">
+        <span class="rd-cal-source__title">${escapeHtml(e.title || 'Untitled')}</span>
+        <span class="rd-cal-source__when">${escapeHtml(when)}</span>
+        <span class="rd-cal-source__status">${statusHtml}</span>
+      </button>`;
+    }).join('');
+    return `<section class="rd-cal-source__group">
+      <div class="rd-cal-source__head">
+        <span class="rd-cal-source__swatch" style="background:${escapeHtml(hex)}" aria-hidden="true"></span>
+        <div>
+          <div class="rd-cal-source__name">${escapeHtml(smartSourcePageTitle(g.source))} · ${n} ${n === 1 ? 'entry' : 'entries'}</div>
+          <div class="rd-cal-source__blurb">${escapeHtml(blurb)}</div>
+        </div>
+      </div>
+      <div class="rd-cal-source__rows">${rows}</div>
+    </section>`;
+  }).join('');
+  host.innerHTML = `<div class="rd-cal-source" data-mode="source-45b">
+    <div class="rd-cal-source__banner">
+      <div class="rd-cal-source__kicker">${escapeHtml(monthName)}</div>
+      <div class="rd-cal-source__copy">${monthItems.length} ${monthItems.length === 1 ? 'entry' : 'entries'} · ${groups.length} ${groups.length === 1 ? 'page' : 'pages'} · counts are of entries, not records</div>
+    </div>
+    <div class="rd-cal-source__list">${groupsHtml}</div>
+  </div>`;
+}
+function smartSourcePageTitle(source){
+  const map = {
+    Tasks: 'Planning Timeline & Tasks',
+    Appointments: 'Appointments',
+    Counseling: 'Premarital Counseling',
+    Payments: 'Payments',
+    Budget: 'Budget',
+    Vendors: 'Vendors',
+    Timeline: 'Wedding Day Timeline',
+    Planning: 'Planning',
+    Weekend: 'Weekend Logistics',
+    Honeymoon: 'Honeymoon',
+    Rentals: 'Rentals',
+    Gifts: 'Gifts',
+    Manual: 'Manual events',
+    Notes: 'Notes'
+  };
+  return map[source] || source || 'Planner';
+}
+function smartSourceOwningBlurb(source){
+  const map = {
+    Appointments: 'Owned by the Appointments page',
+    Payments: 'Due dates, not appointments',
+    Budget: 'Budget due dates, not appointments',
+    Tasks: 'Task due dates',
+    Counseling: 'Sessions owned by Premarital Counseling',
+    Vendors: 'Vendor arrivals and dated vendor records',
+    Timeline: 'Wedding-day timeline rows',
+    Weekend: 'Weekend logistics movements',
+    Honeymoon: 'Travel owned by Honeymoon',
+    Manual: 'Manual events saved on this calendar',
+    Notes: 'Dated notes'
+  };
+  return map[source] || ('Owned by the ' + smartSourcePageTitle(source) + ' page');
 }
 function renderSmartMonthView(host, events){
   const year = smartCalendarMonth.getFullYear();
@@ -28274,8 +28409,8 @@ function renderSmartMonthView(host, events){
   const today = todayISO();
   const byDate = events.reduce((acc,e)=>{ (acc[e.date] ||= []).push(e); return acc; }, {});
   const conflictDates = getConflictDates(events);
-  /* step8n: maxChips ladder tracks density (track px does the heavy lift) */
-  const maxChips = smartCalDensity === 'tall' ? 8 : smartCalDensity === 'default' ? 7 : 6;
+  /* 45a: up to three items a day, then a count. Colour is the owning page. */
+  const maxChips = 3;
   let html = '<div class="smart-calendar-grid" data-mode="month">';
   ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(d=>html += `<div class="smart-weekday">${d}</div>`);
   for (let i=0; i<42; i++) {
@@ -28333,7 +28468,7 @@ function ensureCalendarDayDrawer(){
     d = document.createElement('aside');
     d.id = 'calendar-day-drawer';
     d.className = 'rd-drawer cal-day-drawer';
-    d.setAttribute('aria-label', 'Day details');
+    d.setAttribute('aria-label', 'Calendar entry');
     d.hidden = true;
     slot.appendChild(d);
   } else if (d.parentElement !== slot) {
@@ -28344,12 +28479,73 @@ function ensureCalendarDayDrawer(){
 function calendarSourceNavLabel(e){
   const page = e.sourcePage || '';
   if (page === 'tasks' || e.source === 'Tasks') return 'Task';
-  if (page === 'appointments' || e.source === 'Appointments') return 'Appointment';
+  if (page === 'counseling' || e.source === 'Counseling') return 'Counseling';
   if (page === 'payments' || e.source === 'Payments') return 'Payment';
   if (page === 'budget' || e.source === 'Budget') return 'Budget';
   if (page === 'vendors' || e.source === 'Vendors') return 'Vendor';
   if (page === 'timeline') return 'Timeline';
   return e.source || 'Entry';
+}
+function calendarEntryHistoryEntity(e){
+  if (!e) return '';
+  if (e.sourcePage === 'tasks') return 'tasks';
+  if (e.sourcePage === 'appointments') return 'appointments';
+  if (e.sourcePage === 'payments') return 'payments';
+  if (e.sourcePage === 'counseling') return 'counseling';
+  if (e.sourcePage === 'vendors') return 'vendors';
+  if (e.sourcePage === 'timeline') return 'timeline';
+  if (e.sourcePage === 'budget') return 'budget';
+  if (e.sourcePage === 'gifts') return 'gifts';
+  if (e.sourcePage === 'notes') return 'notesDetails';
+  if (e.sourcePage === 'logistics') return e.sourceType || 'weekendTimeline';
+  if (e.sourcePage === 'honeymoon') return 'honeyTransport';
+  if (e.sourcePage === 'calendar') return 'calendarEvents';
+  if (e.sourcePage === 'contracts') return 'contracts';
+  return (typeof smartSourceDataKey === 'function' && e.sourceType) ? smartSourceDataKey(e.sourceType) : '';
+}
+function calendarDrawerHistoryHtml(entry){
+  const entity = calendarEntryHistoryEntity(entry);
+  const id = entry && (entry.sourceId || '');
+  const rows = (entity && id && typeof recordHistoryFor === 'function') ? recordHistoryFor(entity, id) : [];
+  if (!rows.length) {
+    return `<div class="cal-day-empty">No changes recorded for this entry yet. Edits on ${escapeHtml(smartSourcePageTitle(entry.source))} appear here.</div>`;
+  }
+  return `<div class="re-history-list">${rows.slice(0, 12).map(h => {
+    const change = (h.changes || []).map(c => `${escapeHtml(c.label)}: ${escapeHtml(c.from)} → ${escapeHtml(c.to)}`).join('; ');
+    return `<div class="re-history-row"><span class="re-history-when">${escapeHtml(h.date || '')} · ${escapeHtml(h.time || '')}</span><span class="re-history-what">${escapeHtml(h.action || 'Updated')}${change ? ' — ' + change : ''}</span></div>`;
+  }).join('')}</div>`;
+}
+function calendarDrawerPeopleHtml(entry){
+  const names = String(entry.guests || '')
+    .split(/\s*(?:,|&|\+|\/| and )\s*/i)
+    .map(s => s.trim())
+    .filter(Boolean);
+  const owner = String(entry.owner || '').trim();
+  if (!names.length && !owner) {
+    return `<div class="cal-day-empty">No one named on this entry. Who attends is stored on ${escapeHtml(smartSourcePageTitle(entry.source))}.</div>`;
+  }
+  const list = names.length
+    ? names.map(n => `<div class="cal-people-row"><span>${escapeHtml(n)}</span><span class="cal-people-row__meta">Expected</span></div>`).join('')
+    : '';
+  const ownerRow = owner
+    ? `<div class="cal-people-row"><span>${escapeHtml(owner)}</span><span class="cal-people-row__meta">Owner / contact</span></div>`
+    : '';
+  return `<p class="record-editor-note">Who is expected. Replies and RSVPs live on the owning page — a tasting slips because one person never replied.</p>
+    <div class="cal-people-list">${ownerRow}${list}</div>`;
+}
+function calendarDrawerSourceHtml(entry){
+  const page = smartSourcePageTitle(entry.source);
+  const nav = calendarSourceNavLabel(entry);
+  return `<div class="cal-entry-detail">
+    <p class="record-editor-note">The Smart Calendar owns no records. Editing writes to <strong>${escapeHtml(page)}</strong>.</p>
+    <div class="rd-field-row"><span class="rd-field-row__label">Owning page</span><span class="rd-field-row__value">${escapeHtml(page)}</span></div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Kind</span><span class="rd-field-row__value">${escapeHtml(nav)}</span></div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Source</span><span class="rd-field-row__value">${escapeHtml(entry.source || '—')}</span></div>
+    <div class="cal-entry-detail__actions">
+      <button type="button" class="rd-btn rd-btn--primary" onclick="openSmartCalendarEventFullEditor('${String(entry.id).replace(/'/g,"\\'")}')">Edit on ${escapeHtml(nav)}</button>
+      <button type="button" class="rd-btn" onclick="openCalendarSource({sourcePage:'${escapeHtml(entry.sourcePage||'')}',id:'${String(entry.id).replace(/'/g,"\\'")}',source:'${escapeHtml(entry.source||'')}'})">Open ${escapeHtml(page)}</button>
+    </div>
+  </div>`;
 }
 function openCalendarSource(e){
   const page = e && e.sourcePage;
@@ -28468,8 +28664,16 @@ function renderCalendarDayDrawer(events){
     return;
   }
 
+  const focused = (events || smartFilteredEvents()).find(e => String(e.id) === String(smartCalDrawerEntryId));
+  const entry = focused || (dayEvents.length === 1 ? dayEvents[0] : null);
+  if (entry && !smartCalDrawerEntryId) smartCalDrawerEntryId = entry.id;
+
   let title = 'Day summary';
-  if (hasConflict && dayConflicts[0]) {
+  let eyebrowKind = 'DAY';
+  if (entry) {
+    title = entry.title || 'Entry';
+    eyebrowKind = 'ENTRY';
+  } else if (hasConflict && dayConflicts[0]) {
     title = dayEvents.length === 2 ? 'Two commitments overlap' : 'Schedule overlap';
   } else if (!dayEvents.length) {
     title = 'No entries yet';
@@ -28481,20 +28685,41 @@ function renderCalendarDayDrawer(events){
 
   const pills = [];
   if (hasConflict) pills.push(`<span class="status-pill" data-pillscheme="red">Conflict</span>`);
-  if (dayEvents.length) pills.push(`<span class="status-pill" data-pillscheme="blue">${dayEvents.length} entr${dayEvents.length===1?'y':'ies'}</span>`);
+  if (entry) pills.push(`<span class="status-pill" data-pillscheme="blue">${escapeHtml(calendarSourceNavLabel(entry))}</span>`);
+  else if (dayEvents.length) pills.push(`<span class="status-pill" data-pillscheme="blue">${dayEvents.length} entr${dayEvents.length===1?'y':'ies'}</span>`);
 
-  const tabs = ['Day','Entry','Reminders'].map((lab,i)=>
+  const tabs = ['Entry','Source','People','History'].map((lab,i)=>
     `<button type="button" class="${i===smartCalDrawerTab?'is-active':''}" onclick="setCalendarDrawerTab(${i})">${lab}</button>`
   ).join('');
 
-  let body = '';
-  if (smartCalDrawerTab === 0) {
+  const entryDetailHtml = (row) => {
+    const time = row.allDay || !row.time
+      ? 'All day'
+      : `${humanTime(row.time)}${row.endTime ? ' – ' + humanTime(row.endTime) : ''}`;
+    return `<div class="cal-entry-detail">
+        <div class="cal-entry-detail__title">${escapeHtml(row.title||'Untitled')}</div>
+        <p class="record-editor-note">One dated thing, owned by ${escapeHtml(smartSourcePageTitle(row.source))} — the calendar does not keep its own copy.</p>
+        <div class="rd-field-row"><span class="rd-field-row__label">When</span><span class="rd-field-row__value">${escapeHtml(time)}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Source</span><span class="rd-field-row__value">${escapeHtml(row.source||'—')}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Status</span><span class="rd-field-row__value">${escapeHtml(row.status||'—')}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Location</span><span class="rd-field-row__value">${escapeHtml(row.location||'—')}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Who</span><span class="rd-field-row__value">${escapeHtml(row.guests||row.owner||'—')}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Notes</span><span class="rd-field-row__value">${escapeHtml(row.notes||'—')}</span></div>
+        <div class="cal-entry-detail__actions">
+          <button type="button" class="rd-btn rd-btn--primary" onclick="openSmartCalendarEventFullEditor('${String(row.id).replace(/'/g,"\\'")}')">Edit in source</button>
+          <button type="button" class="rd-btn" onclick="openCalendarSource({sourcePage:'${escapeHtml(row.sourcePage||'')}',id:'${String(row.id).replace(/'/g,"\\'")}',source:'${escapeHtml(row.source||'')}'})">Open ${escapeHtml(calendarSourceNavLabel(row))}</button>
+        </div>
+      </div>`;
+  };
+
+  const dayListHtml = () => {
+    let html = '';
     if (hasConflict && dayConflicts[0]) {
       const c = dayConflicts[0];
       const mins = conflictOverlapMinutes(c.a, c.b) || 30;
       const aLabel = (c.a.title || 'Entry').replace(/\s+/g,' ').slice(0, 40);
       const bLabel = (c.b.title || 'Entry').replace(/\s+/g,' ').slice(0, 40);
-      body += `<div class="cal-conflict-box" role="alert">
+      html += `<div class="cal-conflict-box" role="alert">
         <div class="cal-conflict-box__text"><strong>${mins}-minute overlap</strong> — ${escapeHtml(aLabel)} and ${escapeHtml(bLabel)} share time on this day.</div>
         <div class="cal-conflict-box__actions">
           <button type="button" class="rd-btn rd-btn--primary" onclick="smartCalendarReschedule('${String(c.a.id).replace(/'/g,"\\'")}')">Reschedule ${escapeHtml((c.a.title||'entry').split(' ').slice(0,2).join(' ').slice(0,18))}</button>
@@ -28503,9 +28728,9 @@ function renderCalendarDayDrawer(events){
       </div>`;
     }
     if (!dayEvents.length) {
-      body += `<div class="cal-day-empty">Nothing scheduled. Add an appointment, task, or payment for this day.</div>`;
+      html += `<div class="cal-day-empty">Nothing scheduled. Add an appointment, task, or payment for this day.</div>`;
     } else {
-      body += `<div class="cal-day-entries">${dayEvents.map(e => {
+      html += `<div class="cal-day-entries">${dayEvents.map(e => {
         const time = e.allDay || !e.time
           ? 'All day'
           : `${humanTime(e.time)}${e.endTime ? ' – ' + humanTime(e.endTime) : ''}`;
@@ -28522,38 +28747,20 @@ function renderCalendarDayDrawer(events){
         </article>`;
       }).join('')}</div>`;
     }
+    return html;
+  };
+
+  let body = '';
+  if (smartCalDrawerTab === 0) {
+    body = entry ? entryDetailHtml(entry) : dayListHtml();
+  } else if (!entry) {
+    body = `<div class="cal-day-empty">Select an entry to see ${['source','people','history'][smartCalDrawerTab-1] || 'details'}.</div>`;
   } else if (smartCalDrawerTab === 1) {
-    const entry = dayEvents.find(e => String(e.id) === String(smartCalDrawerEntryId)) || dayEvents[0];
-    if (!entry) {
-      body += `<div class="cal-day-empty">Select a day entry to inspect details.</div>`;
-    } else {
-      smartCalDrawerEntryId = entry.id;
-      const time = entry.allDay || !entry.time
-        ? 'All day'
-        : `${humanTime(entry.time)}${entry.endTime ? ' – ' + humanTime(entry.endTime) : ''}`;
-      body += `<div class="cal-entry-detail">
-        <div class="cal-entry-detail__title">${escapeHtml(entry.title||'Untitled')}</div>
-        <div class="rd-field-row"><span class="rd-field-row__label">When</span><span class="rd-field-row__value">${escapeHtml(time)}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Source</span><span class="rd-field-row__value">${escapeHtml(entry.source||'—')}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Status</span><span class="rd-field-row__value">${escapeHtml(entry.status||'—')}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Location</span><span class="rd-field-row__value">${escapeHtml(entry.location||'—')}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Owner</span><span class="rd-field-row__value">${escapeHtml(entry.owner||'—')}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Notes</span><span class="rd-field-row__value">${escapeHtml(entry.notes||'—')}</span></div>
-        <div class="cal-entry-detail__actions">
-          <button type="button" class="rd-btn rd-btn--primary" onclick="openSmartCalendarEventFullEditor('${String(entry.id).replace(/'/g,"\\'")}')">Edit in source</button>
-          <button type="button" class="rd-btn" onclick="openCalendarSource({sourcePage:'${escapeHtml(entry.sourcePage||'')}',id:'${String(entry.id).replace(/'/g,"\\'")}',source:'${escapeHtml(entry.source||'')}'})">Open ${escapeHtml(calendarSourceNavLabel(entry))}</button>
-        </div>
-      </div>`;
-    }
+    body = calendarDrawerSourceHtml(entry);
+  } else if (smartCalDrawerTab === 2) {
+    body = calendarDrawerPeopleHtml(entry);
   } else {
-    const rems = dayEvents.filter(e => e.reminder || !/complete|paid|confirmed/i.test(e.status||''));
-    if (!rems.length) {
-      body += `<div class="cal-day-empty">No follow-ups flagged for this day.</div>`;
-    } else {
-      body += `<div class="cal-day-reminders">${rems.map(e =>
-        `<div class="cal-rem-row"><strong>${escapeHtml(e.title||'')}</strong><span>${escapeHtml(e.reminder || e.status || e.source || '')}</span></div>`
-      ).join('')}</div>`;
-    }
+    body = calendarDrawerHistoryHtml(entry);
   }
 
   d.hidden = false;
@@ -28565,7 +28772,7 @@ function renderCalendarDayDrawer(events){
       <div class="rd-drawer__actions-row">
         <button type="button" class="rd-drawer__close" aria-label="Close" onclick="closeCalendarDayDrawer()">✕</button>
       </div>
-      <div class="rd-drawer__eyebrowrow"><span class="rd-drawer__eyebrow">DAY · ${escapeHtml(eyebrowDate)}</span></div>
+      <div class="rd-drawer__eyebrowrow"><span class="rd-drawer__eyebrow">${eyebrowKind} · ${escapeHtml(eyebrowDate)}</span></div>
       <div class="rd-drawer__title">${escapeHtml(title)}</div>
       <div class="rd-drawer__pills">${pills.join('')}</div>
       <div class="rd-drawer__tabs">${tabs}</div>
@@ -29351,7 +29558,7 @@ function openSmartCalendarEditor(id){
     smartSelectedDate = event.date || smartSelectedDate;
     smartCalDrawerOpen = true;
     smartCalDrawerEntryId = event.id;
-    smartCalDrawerTab = 1;
+    smartCalDrawerTab = 0;
     if (typeof renderSmartCalendar === 'function') renderSmartCalendar();
   }
 }
