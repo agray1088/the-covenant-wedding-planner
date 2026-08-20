@@ -593,6 +593,24 @@ const COVENANT_PRINT_CSS = `
 #cvp-root .cvp-phasehead .pn{color:var(--forest-d);font:400 16px Georgia,"Times New Roman",serif}
 #cvp-root .cvp-phasehead .pc{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
 #cvp-root .cvp-phaserule{height:3px;margin:6px 0 8px;background:linear-gradient(to right,var(--forest),var(--gold-s),transparent)}
+/* Appointments print target = Agenda (20b), not the table. */
+#cvp-root .cvp-agenda{margin:2px 0 8px}
+#cvp-root .cvp-agenda-month{margin:0 0 12px}
+#cvp-root .cvp-agenda-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:14px 0 4px;padding-bottom:5px;border-bottom:1px solid var(--line);break-after:avoid}
+#cvp-root .cvp-agenda-head .pn{color:var(--forest-d);font:400 16px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-agenda-head .pc{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+#cvp-root .cvp-agenda-head.held{border-bottom-color:var(--gold)}
+#cvp-root .cvp-agenda-row{display:grid;grid-template-columns:1.2in 1fr .95in .8in;gap:8px;align-items:start;padding:7px 2px;border-bottom:1px solid var(--line);break-inside:avoid}
+#cvp-root .cvp-agenda-row.clash{background:var(--burg-pale)}
+#cvp-root .cvp-agenda-when{color:var(--forest);font-size:10px;line-height:1.35}
+#cvp-root .cvp-agenda-when .d{font-weight:700;display:block}
+#cvp-root .cvp-agenda-when .t{color:var(--muted)}
+#cvp-root .cvp-agenda-title{color:var(--forest-d);font:700 11.5px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-agenda-sub{margin-top:1px;color:var(--muted);font-size:9.5px;line-height:1.35}
+#cvp-root .cvp-agenda-who{color:var(--charcoal);font-size:10px}
+#cvp-root .cvp-agenda-gap{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;padding:4px 2px 4px 1.2in;color:var(--muted);font-size:9px;font-style:italic;break-inside:avoid}
+#cvp-root .cvp-agenda-gap.clash{color:var(--burg);font-style:normal;background:var(--burg-pale)}
+#cvp-root .cvp-agenda-gap .pill{display:inline-block;padding:1px 6px;border:1px solid currentColor;border-radius:10px;font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;font-style:normal}
 #cvp-root .cvp-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:2px 0 8px}
 #cvp-root .cvp-card{position:relative;padding:16px 14px 14px;background:#fff;border:1px solid var(--line);border-radius:4px;break-inside:avoid}
 #cvp-root .cvp-card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--forest)}
@@ -1558,31 +1576,51 @@ function buildTimelinePrintSheets(){
     + '</section>' + _cvpFoot('To every thing there is a season.', 'Wedding Day Timeline') + '</main>';
 }
 
-/* Builder — Appointments (Planning). */
+/* Builder — Appointments (Planning). Print target is Agenda 20b, not the table. */
 function buildAppointmentsPrintSheets(){
-  const appts = safeArray(data && data.appointments);
+  if (typeof ensureAppointmentData === 'function') ensureAppointmentData();
+  const items = typeof appointmentAgendaPrintItems === 'function'
+    ? appointmentAgendaPrintItems()
+    : safeArray(data && data.appointments).map((row, i) => ({ row, i }));
+  const model = typeof appointmentAgendaModel === 'function'
+    ? appointmentAgendaModel(items)
+    : { months: [], held: [], totalN: items.length, clashMap: new Map() };
+  const appts = items.map(it => it.row);
   const confirmed = appts.filter(a => _cvpStatusClass(a.status) === 'done').length;
   const todayISO = new Date().toISOString().slice(0, 10);
   const upcoming = appts.filter(a => _cvpStr(a.date) >= todayISO).length;
-  const rows = appts.slice().sort((a, b) => (_cvpStr(a.date) + _cvpStr(a.time)).localeCompare(_cvpStr(b.date) + _cvpStr(b.time))).map(a =>
-    '<tr><td class="date">' + _cvpShortDate(a.date) + '</td>'
-    + '<td>' + escapeHtml(_cvpStr(a.time)) + '</td>'
-    + '<td class="strong">' + escapeHtml(_cvpStr(a.title)) + '</td>'
-    + '<td>' + escapeHtml(_cvpStr(a.vendor)) + '</td>'
-    + '<td>' + escapeHtml(_cvpStr(a.location)) + '</td>'
-    + '<td>' + (_cvpStr(a.status) ? _cvpPill(a.status) : '') + '</td></tr>'
-  ).join('') || '<tr><td colspan="6" class="cvp-empty">No appointments yet.</td></tr>';
+  const clashN = items.reduce((n, it) => {
+    const key = it.row && it.row._id != null ? String(it.row._id) : ('idx:' + it.i);
+    return n + ((model.clashMap && (model.clashMap.has(key) || model.clashMap.has('idx:' + it.i))) ? 1 : 0);
+  }, 0);
+  const agendaBody = typeof appointmentAgendaPrintHtml === 'function'
+    ? appointmentAgendaPrintHtml(model)
+    : '<p class="cvp-empty">No appointments yet.</p>';
   return '<main class="cvp-page">'
-    + _cvpMast('The Covenant Wedding Planner &middot; Planning', 'Appointments', 'Fittings, tastings, and meetings')
+    + _cvpMast('The Covenant Wedding Planner &middot; Planning', 'Appointments', 'Agenda — fittings, tastings, and meetings')
     + '<section class="cvp-body">'
     + '<span class="cvp-sec">Overview</span><div class="cvp-info">'
     + _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
-    + _cvpInfoCell('Appointments', appts.length) + _cvpInfoCell('Upcoming', upcoming) + '</div>'
+    + _cvpInfoCell('Appointments', model.totalN) + _cvpInfoCell('Upcoming', upcoming) + '</div>'
     + '<span class="cvp-sec">At a glance</span><div class="cvp-stats">'
-    + _cvpStat('Total', appts.length) + _cvpStat('Confirmed', confirmed, 'gold') + _cvpStat('Upcoming', upcoming, 'mauve') + '</div>'
-    + '<span class="cvp-sec">Schedule</span>'
-    + '<table class="cvp-table"><thead><tr><th>Date</th><th>Time</th><th>Appointment</th><th>With</th><th>Location</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + _cvpStat('Total', model.totalN) + _cvpStat('Confirmed', confirmed, 'gold')
+    + _cvpStat('Upcoming', upcoming, 'mauve') + _cvpStat('Clashes', clashN, clashN ? 'burg' : '') + '</div>'
+    + '<span class="cvp-sec">Agenda</span>'
+    + '<p class="cvp-p">This page prints as the itinerary: month headers, travel as a gap between entries, Held last with the reason a date is missing.</p>'
+    + agendaBody
+    + (typeof _cvpAppointmentDetails === 'function' ? _cvpAppointmentDetails(appts) : '')
     + '</section>' + _cvpFoot('Prepare thy work, and make it fit.', 'Appointments') + '</main>';
+}
+function _cvpAppointmentDetails(appts){
+  const cards = (appts || []).map(a => _cvpRecord(_cvpStr(a.title) || 'Appointment', [
+    _cvpField('Vendor', a.vendor), _cvpField('Contact', a.contact),
+    _cvpField('Date', a.date ? _cvpShortDate(a.date) : 'Held — no date'),
+    _cvpField('Time', a.time), _cvpField('Location', a.location),
+    _cvpField('Travel', a.travel), _cvpField('Who', a.guests || a.contact),
+    _cvpField('Status', a.status),
+    _cvpField('Notes', a.notes, { full: true })
+  ])).filter(Boolean).join('');
+  return cards ? (_cvpDetailSec('Full appointment details') + cards) : '';
 }
 
 /* Small shared builders for the remaining single-sheet table templates. */
@@ -5426,6 +5464,10 @@ function printSelectedSection(){
     setTimeout(() => openWdayTimelinePrint(), 120);
     return;
   }
+  if (printTarget === 'appointments') {
+    setTimeout(() => openAppointmentsAgendaPrint(), 120);
+    return;
+  }
   setTimeout(() => printSharedPage(printTarget), 160);
 }
 function printCurrentPage(){
@@ -5434,8 +5476,19 @@ function printCurrentPage(){
     setTimeout(() => openWdayTimelinePrint(), 120);
     return;
   }
+  if (active === 'appointments') {
+    setTimeout(() => openAppointmentsAgendaPrint(), 120);
+    return;
+  }
   setTimeout(() => printSharedPage(active), 160);
 }
+/* 20b: Print section produces the Agenda itinerary, never the table clone. */
+function openAppointmentsAgendaPrint(){
+  if (typeof tryCovenantPrintTemplate === 'function' && tryCovenantPrintTemplate('appointments')) return;
+  if (typeof printSharedPage === 'function') { printSharedPage('appointments'); return; }
+  window.print();
+}
+window.openAppointmentsAgendaPrint = openAppointmentsAgendaPrint;
 function openPlannerHelp(){
   showPanel('instructions', true);
   requestAnimationFrame(() => window.scrollTo({top:0, behavior:'smooth'}));
@@ -15967,6 +16020,7 @@ function renderAppointmentRecordEditor(){
     ${recordDatalist('Vendor / Company','vendor',vendors)}
     ${recordDatalist('Contact Person','contact',contacts)}
     ${recordInput('Date','date','date')}
+    ${!d.date ? '<p class="record-editor-note">No date — this appointment sits in Held on the agenda, with Notes as the reason.</p>' : ''}
     ${recordInput('Start time','time','time')}
     ${recordInput('End time','endTime','time')}
     ${recordDatalist('Location','location',locations,true)}
@@ -26102,11 +26156,25 @@ function apptTimeLabel(row){
   }
   return start;
 }
+function appointmentIsHeld(row){
+  return !(row && row.date && typeof dateFromISO === 'function' && dateFromISO(row.date));
+}
+function apptHeldReason(row){
+  const custom = String(row && (row.heldReason || row.reason) || '').trim();
+  if (custom) return custom.replace(/\s+/g, ' ');
+  const note = String(row && row.notes || '').trim().replace(/\s+/g, ' ');
+  if (note) return note;
+  return 'no date set';
+}
 function apptAgendaLocationLine(row){
   const bits = [];
   if (row && row.vendor) bits.push(String(row.vendor).trim());
   if (row && row.location) bits.push(String(row.location).trim());
-  if (row && row.notes && !row.location) {
+  if (appointmentIsHeld(row)) {
+    const reason = apptHeldReason(row);
+    if (reason && reason !== 'no date set') bits.push(reason);
+    else if (!bits.length) bits.push('no date set');
+  } else if (row && row.notes && !row.location) {
     const note = String(row.notes).trim();
     if (note.length && note.length < 48) bits.push(note);
   }
@@ -26296,6 +26364,127 @@ function apptCalFirstClashExplain(byDate, clashMap){
   }
   return null;
 }
+function appointmentAgendaPrintItems(){
+  const onPage = typeof document !== 'undefined'
+    && document.body
+    && document.body.getAttribute('data-active-panel') === 'appointments';
+  if (onPage && typeof smartAppointmentFilteredIndexes === 'function') {
+    return smartAppointmentFilteredIndexes();
+  }
+  if (typeof ensureAppointmentData === 'function') ensureAppointmentData();
+  return (data.appointments || []).map((row, i) => ({ row, i }));
+}
+/**
+ * Shared Agenda 20b model: month groups with travel/clash gap rows, Held last.
+ */
+function appointmentAgendaModel(items){
+  const clashMap = typeof appointmentClashLabels === 'function' ? appointmentClashLabels() : new Map();
+  items = items || [];
+  const held = items.filter(({ row }) => appointmentIsHeld(row));
+  const dated = items
+    .filter(({ row }) => !appointmentIsHeld(row))
+    .sort((a, b) => ((a.row.date || '') + ' ' + (a.row.time || '')).localeCompare((b.row.date || '') + ' ' + (b.row.time || '')));
+  const monthMap = new Map();
+  dated.forEach(it => {
+    const d = dateFromISO(it.row.date);
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (!monthMap.has(key)) {
+      monthMap.set(key, {
+        key,
+        label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        items: []
+      });
+    }
+    monthMap.get(key).items.push(it);
+  });
+  const months = [...monthMap.values()].sort((a, b) => a.key.localeCompare(b.key)).map(group => {
+    const clashN = group.items.reduce((n, it) => {
+      const key = it.row._id != null ? String(it.row._id) : ('idx:' + it.i);
+      return n + ((clashMap.has(key) || clashMap.has('idx:' + it.i)) ? 1 : 0);
+    }, 0);
+    const rows = [];
+    const ordered = group.items.slice().sort((a, b) =>
+      ((a.row.date || '') + ' ' + (a.row.time || '')).localeCompare((b.row.date || '') + ' ' + (b.row.time || '')));
+    let prevTimed = null;
+    ordered.forEach(it => {
+      const start = apptRowStartMins(it.row);
+      const end = apptRowEndMins(it.row);
+      const travel = apptRowTravelMins(it.row);
+      const cur = start == null ? null : {
+        it, start, end: end == null ? start : end, travel,
+        travelStart: start - travel
+      };
+      if (prevTimed && cur && prevTimed.it.row.date === it.row.date) {
+        const gap = apptCalGapBetween(prevTimed, cur);
+        if (gap) rows.push({ type: 'gap', gap });
+      }
+      rows.push({ type: 'item', it });
+      prevTimed = cur || null;
+    });
+    return {
+      key: group.key,
+      label: group.label,
+      clashN,
+      countLab: group.items.length + ' appointment' + (group.items.length === 1 ? '' : 's')
+        + (clashN ? (' · ' + clashN + ' clash' + (clashN === 1 ? '' : 'es')) : ''),
+      rows
+    };
+  });
+  return { items, held, months, clashMap, totalN: items.length };
+}
+function appointmentAgendaPrintHtml(model){
+  model = model || appointmentAgendaModel(appointmentAgendaPrintItems());
+  const esc = (typeof escapeHtml === 'function') ? escapeHtml : (s => String(s == null ? '' : s));
+  const pill = (st) => (typeof _cvpPill === 'function' && st) ? _cvpPill(st) : esc(st || '');
+  const rowHtml = (it) => {
+    const row = it.row;
+    const key = row._id != null ? String(row._id) : ('idx:' + it.i);
+    const clash = model.clashMap.has(key) || model.clashMap.has('idx:' + it.i);
+    const who = String(row.guests || row.contact || '').trim();
+    const sub = apptAgendaLocationLine(row);
+    const held = appointmentIsHeld(row);
+    const when = held
+      ? '<span class="d">Held</span><span class="t">—</span>'
+      : ('<span class="d">' + esc(apptCalShortDate(row.date)) + '</span><span class="t">'
+        + esc(row.allDay ? 'All day' : (row.time ? (typeof humanTime === 'function' ? humanTime(row.time) : row.time) : '—'))
+        + '</span>');
+    return '<div class="cvp-agenda-row' + (clash ? ' clash' : '') + '">'
+      + '<div class="cvp-agenda-when">' + when + '</div>'
+      + '<div><div class="cvp-agenda-title">' + esc(row.title || 'Appointment') + '</div>'
+      + (sub ? ('<div class="cvp-agenda-sub">' + esc(sub) + '</div>') : '') + '</div>'
+      + '<div class="cvp-agenda-who">' + esc(who) + '</div>'
+      + '<div>' + pill(row.status || (held ? 'Held' : 'Pending')) + '</div>'
+      + '</div>';
+  };
+  const gapHtml = (gap) => {
+    if (!gap) return '';
+    if (gap.kind === 'clash') {
+      return '<div class="cvp-agenda-gap clash"><span>↓</span><strong>'
+        + esc(gap.label) + '</strong><span>·</span><span>'
+        + esc(gap.detail || '') + '</span><span class="pill">Clash</span></div>';
+    }
+    return '<div class="cvp-agenda-gap"><span>↓</span><span>' + esc(gap.label) + '</span></div>';
+  };
+  if (!model.totalN) return '<p class="cvp-empty">No appointments yet.</p>';
+  let html = '<div class="cvp-agenda">';
+  model.months.forEach(group => {
+    html += '<div class="cvp-agenda-month"><div class="cvp-agenda-head"><span class="pn">'
+      + esc(group.label) + '</span><span class="pc">' + esc(group.countLab) + '</span></div>';
+    group.rows.forEach(entry => {
+      if (entry.type === 'gap') html += gapHtml(entry.gap);
+      else html += rowHtml(entry.it);
+    });
+    html += '</div>';
+  });
+  if (model.held.length) {
+    const n = model.held.length;
+    html += '<div class="cvp-agenda-month"><div class="cvp-agenda-head held"><span class="pn">Held</span><span class="pc">'
+      + n + ' appointment' + (n === 1 ? '' : 's') + ' · no date set</span></div>'
+      + model.held.map(rowHtml).join('') + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
 /**
  * Agenda 20b — reading / print itinerary (mock #20b).
  * Month group headers, row = date·time | title·place | who | status,
@@ -26306,11 +26495,8 @@ function renderAppointmentAgendaView(){
   const host = document.getElementById('appt-agenda-view');
   if (!host) return;
   const items = smartAppointmentFilteredIndexes();
-  const clashMap = typeof appointmentClashLabels === 'function' ? appointmentClashLabels() : new Map();
-  const held = items.filter(({row}) => !row.date || !dateFromISO(row.date));
-  const dated = items
-    .filter(({row}) => row.date && dateFromISO(row.date))
-    .sort((a, b) => ((a.row.date || '') + ' ' + (a.row.time || '')).localeCompare((b.row.date || '') + ' ' + (b.row.time || '')));
+  const model = appointmentAgendaModel(items);
+  const clashMap = model.clashMap;
 
   if (!items.length) {
     host.innerHTML = `<div class="rd-appt-agenda" data-mode="agenda-20b">
@@ -26319,11 +26505,11 @@ function renderAppointmentAgendaView(){
     return;
   }
 
-  const totalN = items.length;
+  const totalN = model.totalN;
   const head = `<div class="rd-appt-agenda__banner">
     <div class="rd-appt-agenda__banner-kicker">Agenda · ${totalN} appointment${totalN === 1 ? '' : 's'}</div>
     <div class="rd-appt-agenda__banner-copy">The print target for this page · Class A working document</div>
-    <button type="button" class="rd-appt-agenda__banner-action" onclick="typeof printCurrentPage==='function'&&printCurrentPage()">Print the agenda</button>
+    <button type="button" class="rd-appt-agenda__banner-action" onclick="typeof openAppointmentsAgendaPrint==='function'?openAppointmentsAgendaPrint():printCurrentPage()">Print the agenda</button>
   </div>`;
 
   const rowHtml = (it) => {
@@ -26367,64 +26553,28 @@ function renderAppointmentAgendaView(){
     </div>`;
   };
 
-  /* Partition by month (year) for dated, then Held residual. */
-  const monthMap = new Map();
-  dated.forEach(it => {
-    const d = dateFromISO(it.row.date);
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    if (!monthMap.has(key)) {
-      monthMap.set(key, {
-        key,
-        label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-        items: []
-      });
-    }
-    monthMap.get(key).items.push(it);
-  });
-  const months = [...monthMap.values()].sort((a, b) => a.key.localeCompare(b.key));
-
   let body = '';
-  months.forEach(group => {
-    const clashN = group.items.reduce((n, it) => {
-      const key = it.row._id != null ? String(it.row._id) : ('idx:' + it.i);
-      return n + ((clashMap.has(key) || clashMap.has('idx:' + it.i)) ? 1 : 0);
-    }, 0);
-    const countLab = group.items.length + ' appointment' + (group.items.length === 1 ? '' : 's')
-      + (clashN ? (' · ' + clashN + ' clash' + (clashN === 1 ? '' : 'es')) : '');
+  model.months.forEach(group => {
     body += `<div class="rd-appt-agenda__month">
       <div class="rd-appt-agenda__monthhead">
         <span class="rd-appt-agenda__month-title">${escapeHtml(group.label)}</span>
-        <span class="rd-appt-agenda__month-meta${clashN ? ' is-clash' : ''}">${escapeHtml(countLab)}</span>
+        <span class="rd-appt-agenda__month-meta${group.clashN ? ' is-clash' : ''}">${escapeHtml(group.countLab)}</span>
       </div>`;
-    /* Within month, walk chronologically and insert gap rows between consecutive same-day (and free multi-hour). */
-    const ordered = group.items.slice().sort((a, b) =>
-      ((a.row.date || '') + ' ' + (a.row.time || '')).localeCompare((b.row.date || '') + ' ' + (b.row.time || '')));
-    let prevTimed = null;
-    ordered.forEach(it => {
-      const start = apptRowStartMins(it.row);
-      const end = apptRowEndMins(it.row);
-      const travel = apptRowTravelMins(it.row);
-      const cur = start == null ? null : {
-        it, start, end: end == null ? start : end, travel,
-        travelStart: start - travel
-      };
-      if (prevTimed && cur && prevTimed.it.row.date === it.row.date) {
-        body += gapHtml(apptCalGapBetween(prevTimed, cur));
-      }
-      body += rowHtml(it);
-      if (cur) prevTimed = cur;
-      else prevTimed = null;
+    group.rows.forEach(entry => {
+      if (entry.type === 'gap') body += gapHtml(entry.gap);
+      else body += rowHtml(entry.it);
     });
     body += `</div>`;
   });
 
-  if (held.length) {
+  if (model.held.length) {
+    const heldN = model.held.length;
     body += `<div class="rd-appt-agenda__month is-held">
       <div class="rd-appt-agenda__monthhead">
         <span class="rd-appt-agenda__month-title">Held</span>
-        <span class="rd-appt-agenda__month-meta">${held.length} appointment${held.length === 1 ? '' : 's'} · no date set</span>
+        <span class="rd-appt-agenda__month-meta">${heldN} appointment${heldN === 1 ? '' : 's'} · no date set</span>
       </div>
-      ${held.map(it => rowHtml(it)).join('')}
+      ${model.held.map(it => rowHtml(it)).join('')}
     </div>`;
   }
 
