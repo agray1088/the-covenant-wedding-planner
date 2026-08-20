@@ -38,55 +38,126 @@
 
   function giftRows() { return safeArray(data.gifts); }
 
+  /* Starter catalog — claim/fund numbers are recomputed from gifts at render time. */
+  const DEFAULT_GIFT_REGISTRY_CATEGORIES = [
+    {
+      name: 'Kitchen & dining', items: 18,
+      store: 'Homestore Ghana · Kitchen list',
+      openItems: [
+        { name: 'Dutch oven, 5 qt', value: 95 },
+        { name: 'Chef knife set', value: 140 },
+        { name: 'Serving bowls, set of 3', value: 68 }
+      ]
+    },
+    {
+      name: 'Bedroom & linen', items: 12,
+      store: 'Homestore Ghana · Linen',
+      openItems: [
+        { name: 'Percale sheet set, queen', value: 160 },
+        { name: 'Duvet insert', value: 190 },
+        { name: 'Bath towel pair', value: 48 }
+      ]
+    },
+    {
+      name: 'Home & decor', items: 9,
+      store: 'Kitchen & Table',
+      openItems: [
+        { name: 'Ceramic vase', value: 55 },
+        { name: 'Wall mirror, round', value: 120 }
+      ]
+    },
+    {
+      name: 'Bath', items: 8,
+      store: 'Bath & spa list',
+      openItems: [
+        { name: 'Bath towel set', value: 72 },
+        { name: 'Robe pair', value: 110 }
+      ]
+    },
+    {
+      name: 'Outdoor & garden', items: 6,
+      store: 'Outdoor living list',
+      openItems: [
+        { name: 'Patio lantern set', value: 85 },
+        { name: 'Herb planter kit', value: 45 }
+      ]
+    },
+    {
+      name: 'Apparel & accessories', items: 5,
+      store: 'Apparel & keepsakes',
+      openItems: [
+        { name: 'His & hers watches', value: 240 }
+      ]
+    },
+    {
+      name: 'Baby & future home', items: 4,
+      store: 'Future home · optional',
+      openItems: [
+        { name: 'Starter nursery set', value: 150 }
+      ]
+    },
+    {
+      name: 'Experiences', items: 6,
+      store: 'Experiences registry',
+      openItems: [
+        { name: 'Cooking class for two', value: 160 },
+        { name: 'Weekend stay voucher', value: 220 }
+      ]
+    },
+    {
+      name: 'Honeymoon fund', kind: 'fund', goal: 2000,
+      store: 'Honeymoon · open contributions'
+    },
+    {
+      name: 'Charity in lieu', kind: 'charity', causes: 2,
+      store: 'Charity in lieu · two causes'
+    },
+    {
+      name: 'Other', items: 0,
+      store: 'Uncategorized registry items'
+    }
+  ];
+
+  const REG_CAT_ADD_VALUE = '__add_registry_category__';
+
+  function cloneDefaultGiftRegistryCategories() {
+    return DEFAULT_GIFT_REGISTRY_CATEGORIES.map(c => {
+      const copy = Object.assign({}, c);
+      if (Array.isArray(c.openItems)) {
+        copy.openItems = c.openItems.map(it => Object.assign({}, it));
+      }
+      return copy;
+    });
+  }
+
+  function giftRegistryCategoryKind(cat) {
+    const k = cat && cat.kind;
+    if (k === 'fund' || k === 'charity') return k;
+    return 'item';
+  }
+
+  function giftRegistryCategoryIsItem(cat) {
+    return giftRegistryCategoryKind(cat) === 'item';
+  }
+
   function ensureGiftRegistryCategories() {
-    if (Array.isArray(data.giftRegistryCategories) && data.giftRegistryCategories.length) {
+    /* Merge missing defaults into an existing catalog — never wipe customs or goals. */
+    if (!Array.isArray(data.giftRegistryCategories) || !data.giftRegistryCategories.length) {
+      data.giftRegistryCategories = cloneDefaultGiftRegistryCategories();
       return data.giftRegistryCategories;
     }
-    /* Catalog only — claim/fund numbers are recomputed from gifts at render time. */
-    data.giftRegistryCategories = [
-      {
-        name: 'Kitchen & dining', items: 18,
-        store: 'Homestore Ghana · Kitchen list',
-        openItems: [
-          { name: 'Dutch oven, 5 qt', value: 95 },
-          { name: 'Chef knife set', value: 140 },
-          { name: 'Serving bowls, set of 3', value: 68 }
-        ]
-      },
-      {
-        name: 'Bedroom & linen', items: 12,
-        store: 'Homestore Ghana · Linen',
-        openItems: [
-          { name: 'Percale sheet set, queen', value: 160 },
-          { name: 'Duvet insert', value: 190 },
-          { name: 'Bath towel pair', value: 48 }
-        ]
-      },
-      {
-        name: 'Home & decor', items: 9,
-        store: 'Kitchen & Table',
-        openItems: [
-          { name: 'Ceramic vase', value: 55 },
-          { name: 'Wall mirror, round', value: 120 }
-        ]
-      },
-      {
-        name: 'Honeymoon fund', kind: 'fund', goal: 2000,
-        store: 'Honeymoon · open contributions'
-      },
-      {
-        name: 'Experiences', items: 6,
-        store: 'Experiences registry',
-        openItems: [
-          { name: 'Cooking class for two', value: 160 },
-          { name: 'Weekend stay voucher', value: 220 }
-        ]
-      },
-      {
-        name: 'Charity in lieu', kind: 'charity', causes: 2,
-        store: 'Charity in lieu · two causes'
-      }
-    ];
+    const existing = data.giftRegistryCategories;
+    const seen = {};
+    existing.forEach(c => {
+      const key = String((c && c.name) || '').trim().toLowerCase();
+      if (key) seen[key] = true;
+    });
+    cloneDefaultGiftRegistryCategories().forEach(def => {
+      const key = String(def.name || '').trim().toLowerCase();
+      if (!key || seen[key]) return;
+      existing.push(def);
+      seen[key] = true;
+    });
     return data.giftRegistryCategories;
   }
 
@@ -96,9 +167,14 @@
     if (/kitchen|dining/.test(n)) return /cast iron|dinner|mixer|kitchen|plate|cook|service|dutch|knife|bowl/i;
     if (/bedroom|linen/.test(n)) return /linen|bedding|sheet|pillow|towel|duvet|percale/i;
     if (/home|decor/.test(n)) return /decor|frame|lamp|vase|mirror|scripture/i;
+    if (/^bath|bath &/.test(n) || n === 'bath') return /bath|towel|robe|spa|soap/i;
+    if (/outdoor|garden/.test(n)) return /outdoor|garden|patio|lantern|planter|grill/i;
+    if (/apparel|accessor/.test(n)) return /apparel|watch|accessory|keepsake|cloth/i;
+    if (/baby|future home/.test(n)) return /baby|nursery|future home/i;
     if (/experience/.test(n)) return /experience|voucher|class|stay/i;
     if (/honeymoon/.test(n)) return /honeymoon|fund/i;
     if (/charity/.test(n)) return /charity|cause|donate|lieu/i;
+    if (/^other|uncategor/.test(n)) return null;
     return null;
   }
 
@@ -122,7 +198,127 @@
     if (type === 'Cash') {
       return cats.filter(c => c.kind === 'fund' || c.kind === 'charity').map(c => c.name);
     }
-    return cats.filter(c => !c.kind).map(c => c.name);
+    return cats.filter(c => giftRegistryCategoryIsItem(c)).map(c => c.name);
+  }
+
+  function giftRegistryCategoryExists(name) {
+    const key = String(name || '').trim().toLowerCase();
+    if (!key) return false;
+    return ensureGiftRegistryCategories().some(c => String(c.name || '').trim().toLowerCase() === key);
+  }
+
+  function defaultKindForNewRegistryCategory() {
+    const d = recordEditorState && recordEditorState.draft;
+    return giftType(d) === 'Cash' ? 'fund' : 'item';
+  }
+
+  function beginCreateGiftRegistryCategory() {
+    window._giftsCreatingRegistryCat = true;
+    window._giftsNewRegistryCatKind = defaultKindForNewRegistryCategory();
+    if (typeof renderRecordEditor === 'function') renderRecordEditor();
+  }
+
+  function cancelCreateGiftRegistryCategory() {
+    window._giftsCreatingRegistryCat = false;
+    if (typeof renderRecordEditor === 'function') renderRecordEditor();
+  }
+
+  function confirmCreateGiftRegistryCategory(nameInput, kindSelect) {
+    const nameEl = nameInput || document.getElementById('gifts-regcat-new-name');
+    const kindEl = kindSelect || document.getElementById('gifts-regcat-new-kind');
+    const name = String((nameEl && nameEl.value) || '').trim();
+    let kind = String((kindEl && kindEl.value) || window._giftsNewRegistryCatKind || 'item').trim().toLowerCase();
+    if (kind !== 'fund' && kind !== 'charity') kind = 'item';
+
+    if (!name) {
+      if (typeof showToast === 'function') showToast('Enter a category name', 'warn');
+      if (nameEl && nameEl.focus) nameEl.focus();
+      return false;
+    }
+    if (giftRegistryCategoryExists(name)) {
+      if (typeof showToast === 'function') showToast('That category already exists', 'warn');
+      if (nameEl && nameEl.focus) nameEl.focus();
+      return false;
+    }
+
+    const cats = ensureGiftRegistryCategories();
+    const row = { name: name, store: name };
+    if (kind === 'fund') {
+      row.kind = 'fund';
+      row.goal = 0;
+    } else if (kind === 'charity') {
+      row.kind = 'charity';
+      row.causes = 1;
+    } else {
+      row.items = 0;
+      row.openItems = [];
+    }
+    cats.push(row);
+    if (typeof save === 'function') save();
+
+    window._giftsCreatingRegistryCat = false;
+    if (recordEditorState && recordEditorState.key === 'gifts' && recordEditorState.draft) {
+      recordEditorState.draft.registryCategory = name;
+    }
+    if (typeof showToast === 'function') showToast('Category “' + name + '” added');
+    if (typeof renderRecordEditor === 'function') renderRecordEditor();
+    if (typeof renderGifts === 'function') renderGifts();
+    return true;
+  }
+
+  function onGiftRegistryCategorySelectChange(selectEl) {
+    if (!selectEl) return;
+    const val = selectEl.value;
+    if (val === REG_CAT_ADD_VALUE) {
+      selectEl.value = giftRegistryCategoryName(recordEditorState && recordEditorState.draft) || '';
+      beginCreateGiftRegistryCategory();
+      return;
+    }
+    if (typeof recordEditorSet === 'function') recordEditorSet('registryCategory', val);
+  }
+
+  function giftsRegistryCategoryCreateFormHtml(compact) {
+    const defKind = window._giftsNewRegistryCatKind || defaultKindForNewRegistryCategory();
+    const kindOpts = [
+      { value: 'item', label: 'Items' },
+      { value: 'fund', label: 'Fund' },
+      { value: 'charity', label: 'Charity' }
+    ].map(o => `<option value="${o.value}"${o.value === defKind ? ' selected' : ''}>${o.label}</option>`).join('');
+    const nameAttrs = 'id="gifts-regcat-new-name" type="text" placeholder="Category name" autocomplete="off" aria-label="New registry category name" onkeydown="if(event.key===\'Enter\'){event.preventDefault();confirmCreateGiftRegistryCategory();}"';
+    if (compact) {
+      return `<div class="rd-gifts-regcat-create" data-gifts-regcat-create="1">
+        <div class="rd-gifts-regcat-create__row">
+          <input class="rd-field-row__value" ${nameAttrs}>
+          <select id="gifts-regcat-new-kind" class="rd-field-row__value rd-gifts-regcat-create__kind" aria-label="Category kind">${kindOpts}</select>
+        </div>
+        <div class="rd-gifts-regcat-create__actions">
+          <button type="button" class="rd-btn rd-btn--primary" onclick="confirmCreateGiftRegistryCategory()">Add category</button>
+          <button type="button" class="rd-btn" onclick="cancelCreateGiftRegistryCategory()">Cancel</button>
+        </div>
+      </div>`;
+    }
+    return `<div class="record-editor-field span2 rd-gifts-regcat-create" data-gifts-regcat-create="1">
+      <label>New registry category</label>
+      <div class="rd-gifts-regcat-create__row">
+        <input ${nameAttrs}>
+        <select id="gifts-regcat-new-kind" aria-label="Category kind">${kindOpts}</select>
+      </div>
+      <div class="rd-gifts-regcat-create__actions">
+        <button type="button" class="rd-btn rd-btn--primary" onclick="confirmCreateGiftRegistryCategory()">Add category</button>
+        <button type="button" class="rd-btn" onclick="cancelCreateGiftRegistryCategory()">Cancel</button>
+      </div>
+    </div>`;
+  }
+
+  function giftsRegistryCategoryOptionsHtml(opts, selected) {
+    const v = String(selected || '');
+    const list = (opts || []).slice();
+    if (v && list.indexOf(v) < 0 && v !== REG_CAT_ADD_VALUE) list.unshift(v);
+    const parts = ['<option value="">None</option>'].concat(
+      list.map(n => `<option value="${escapeHtml(n)}"${n === v ? ' selected' : ''}>${escapeHtml(n)}</option>`)
+    );
+    parts.push(`<option value="${REG_CAT_ADD_VALUE}">Create your own…</option>`);
+    return parts.join('');
   }
 
   function registryCategoryRelatedGifts(cat) {
@@ -184,7 +380,7 @@
     const rows = giftRows();
     if (!rows.length) return;
     let changed = false;
-    const cats = ensureGiftRegistryCategories().filter(c => !c.kind);
+    const cats = ensureGiftRegistryCategories().filter(c => giftRegistryCategoryIsItem(c));
     rows.forEach(row => {
       if (giftRegistryCategoryName(row)) return;
       if (giftType(row) !== 'Registry') return;
@@ -412,7 +608,7 @@
     const drafted = rows.filter(r => giftThankStatus(r) === 'Drafted').length;
     const notStarted = rows.filter(r => giftThankStatus(r) === 'Not started').length;
     const cats = giftRegistryCategoriesLive();
-    const itemCats = cats.filter(c => !c.kind);
+    const itemCats = cats.filter(c => giftRegistryCategoryIsItem(c));
     const registryItems = itemCats.reduce((s, c) => s + (parseInt(c.items, 10) || 0), 0);
     const registryClaimed = itemCats.reduce((s, c) => s + (parseInt(c.claimed, 10) || 0), 0);
     const valueClaimed = itemCats.reduce((s, c) => s + (parseFloat(c.valueClaimed) || 0), 0);
@@ -1179,8 +1375,10 @@
     }
     const sortMode = window._giftsRegistrySort || 'claim';
     cats.sort((a, b) => {
-      if (a.kind && !b.kind) return 1;
-      if (!a.kind && b.kind) return -1;
+      const aItem = giftRegistryCategoryIsItem(a);
+      const bItem = giftRegistryCategoryIsItem(b);
+      if (!aItem && bItem) return 1;
+      if (aItem && !bItem) return -1;
       if (sortMode === 'claim') return giftClaimRate(b) - giftClaimRate(a);
       return String(a.name).localeCompare(String(b.name));
     });
@@ -1478,16 +1676,13 @@
   function giftsDrawerRegistryCategoryRow(d) {
     const type = giftType(d);
     if (!giftNeedsRegistryCategory(type)) return '';
-    const opts = registryCategoryOptionNames(type);
-    if (typeof rdDrawerSelectRow === 'function') {
-      return rdDrawerSelectRow('Registry category', 'registryCategory', opts, 'None');
+    if (window._giftsCreatingRegistryCat) {
+      return giftsDrawerFieldRow('Registry category', giftsRegistryCategoryCreateFormHtml(true));
     }
+    const opts = registryCategoryOptionNames(type);
     const v = giftRegistryCategoryName(d);
-    const options = ['<option value="">None</option>'].concat(
-      opts.map(n => `<option value="${escapeHtml(n)}"${n === v ? ' selected' : ''}>${escapeHtml(n)}</option>`)
-    ).join('');
-    return giftsDrawerFieldRow('Registry category',
-      `<select class="rd-field-row__value" onchange="recordEditorSet('registryCategory',this.value)">${options}</select>`);
+    const select = `<select class="rd-field-row__value" onchange="onGiftRegistryCategorySelectChange(this)">${giftsRegistryCategoryOptionsHtml(opts, v)}</select>`;
+    return giftsDrawerFieldRow('Registry category', select);
   }
 
   function giftsDrawerGiftTab(d) {
@@ -1581,9 +1776,16 @@
   function renderGiftsRecordEditorFull() {
     const d = recordEditorState && recordEditorState.draft;
     const type = giftType(d);
-    const regCatField = giftNeedsRegistryCategory(type)
-      ? recordSelect('Registry category', 'registryCategory', registryCategoryOptionNames(type), false, 'None')
-      : '';
+    let regCatField = '';
+    if (giftNeedsRegistryCategory(type)) {
+      if (window._giftsCreatingRegistryCat) {
+        regCatField = giftsRegistryCategoryCreateFormHtml(false);
+      } else {
+        const opts = registryCategoryOptionNames(type);
+        const v = giftRegistryCategoryName(d);
+        regCatField = `<div class="record-editor-field"><label>Registry category</label><select onchange="onGiftRegistryCategorySelectChange(this)">${giftsRegistryCategoryOptionsHtml(opts, v)}</select></div>`;
+      }
+    }
     return `<section class="record-editor-section"><h4>Gift</h4><div class="record-editor-grid">
       ${recordInput('Gift', 'desc', 'text', true)}
       ${recordInput('From', 'from', 'text', true)}
@@ -1713,6 +1915,13 @@
   window.rdGiftsAutoFitColumns = rdGiftsAutoFitColumns;
   window.rdGiftsOpenColumns = rdGiftsOpenColumns;
   window.rdApplyGiftsDrawerRowFocus = rdApplyGiftsDrawerRowFocus;
+  window.ensureGiftRegistryCategories = ensureGiftRegistryCategories;
+  window.giftRegistryCategoriesLive = giftRegistryCategoriesLive;
+  window.beginCreateGiftRegistryCategory = beginCreateGiftRegistryCategory;
+  window.cancelCreateGiftRegistryCategory = cancelCreateGiftRegistryCategory;
+  window.confirmCreateGiftRegistryCategory = confirmCreateGiftRegistryCategory;
+  window.onGiftRegistryCategorySelectChange = onGiftRegistryCategorySelectChange;
+  window.giftRegistryCategoryExists = giftRegistryCategoryExists;
 
   /* Re-render gift editors when Type changes so Registry category appears/clears. */
   (function wrapGiftsRecordEditorSet() {
@@ -1722,6 +1931,7 @@
       prev(key, value);
       if (!recordEditorState || recordEditorState.key !== 'gifts') return;
       if (key !== 'category') return;
+      window._giftsCreatingRegistryCat = false;
       const t = String(value || '');
       if (!giftNeedsRegistryCategory(t)) {
         recordEditorState.draft.registryCategory = '';

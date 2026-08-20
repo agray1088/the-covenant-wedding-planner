@@ -12646,6 +12646,51 @@ body.rd-scope #panel-gifts .rd-gifts-regcat__actions .rd-btn {
   font-size: 12px;
   padding: 6px 10px;
 }
+body.rd-scope #record-drawer .rd-gifts-regcat-create,
+body.rd-scope .record-editor-section .rd-gifts-regcat-create,
+#main#main #record-drawer .rd-gifts-regcat-create {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+body.rd-scope #record-drawer .rd-gifts-regcat-create__row,
+body.rd-scope .record-editor-section .rd-gifts-regcat-create__row,
+#main#main #record-drawer .rd-gifts-regcat-create__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+body.rd-scope #record-drawer .rd-gifts-regcat-create__row input,
+body.rd-scope #record-drawer .rd-gifts-regcat-create__row select,
+body.rd-scope .record-editor-section .rd-gifts-regcat-create__row input,
+body.rd-scope .record-editor-section .rd-gifts-regcat-create__row select,
+#main#main #record-drawer .rd-gifts-regcat-create__row input,
+#main#main #record-drawer .rd-gifts-regcat-create__row select {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+body.rd-scope #record-drawer .rd-gifts-regcat-create__kind,
+body.rd-scope .record-editor-section .rd-gifts-regcat-create__kind,
+#main#main #record-drawer .rd-gifts-regcat-create__kind {
+  flex: 0 1 120px;
+}
+body.rd-scope #record-drawer .rd-gifts-regcat-create__actions,
+body.rd-scope .record-editor-section .rd-gifts-regcat-create__actions,
+#main#main #record-drawer .rd-gifts-regcat-create__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+body.rd-scope #record-drawer .rd-gifts-regcat-create__actions .rd-btn,
+body.rd-scope .record-editor-section .rd-gifts-regcat-create__actions .rd-btn,
+#main#main #record-drawer .rd-gifts-regcat-create__actions .rd-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+}
 @media (min-width: 1100px) {
   body.rd-scope #panel-gifts .rd-gifts-regcat.is-open {
     grid-column: span 2;
