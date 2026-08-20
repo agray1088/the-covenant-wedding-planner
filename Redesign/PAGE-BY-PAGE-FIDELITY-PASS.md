@@ -1309,7 +1309,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s11` · slug `venue-vendors`
 - **Header counts:** 7 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** not started — do not implement until §10 is reviewed and you say “next”
 - **Screen ids:** `4c`, `30f`, `30g`, `19f`
 
 ### Five parts on this page
