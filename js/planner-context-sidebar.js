@@ -1502,7 +1502,7 @@
     return '<div class="rd-rail__stack" data-page-rail="venue">' + viewsHtml + metersHtml + noteHtml + '</div>';
   }
 
-  /* All.dc #10d rail — Views + Coverage + Group by. */
+  /* All.dc #10d / #19c rail — Views + Sections + Coverage + Group by. */
   function buildEntertainmentContext() {
     var activeView = 'full';
     if (typeof getSavedView === 'function') activeView = getSavedView('entertainment', 'full');
@@ -1513,9 +1513,11 @@
       full: 0, must: 0, dnp: 0, unplaced: 0, ceremony: 0
     };
     var figures = typeof window.entertainmentFigures === 'function' ? window.entertainmentFigures() : {
-      momentsFilled: 0, momentsTarget: 13, spend: 0
+      momentsFilled: 0, momentsTarget: 13, spend: 0, must: 0, dnp: 0, guestRequests: 0,
+      performers: 0, cues: 0, speeches: 0, songs: 0
     };
     var groupBy = window._entGroupBy || 'moment';
+    var activeSection = (typeof window._entSection === 'string' && window._entSection) || 'overview';
 
     function viewItem(id, label, count, warn) {
       return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
@@ -1534,15 +1536,41 @@
       viewItem('ceremony', 'Ceremony music', counts.ceremony) +
       '</div></div>';
 
+    var sectionDefs = [
+      ['overview', 'Overview', ''],
+      ['vendors', 'Vendors', figures.performers || 0],
+      ['cues', 'Reception Cues', figures.cues || 0],
+      ['speeches', 'Speeches', figures.speeches || 0],
+      ['playlist', 'Playlist', figures.songs || 0]
+    ];
+    var sectionHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Sections</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      sectionDefs.map(function (row) {
+        var id = row[0];
+        var label = row[1];
+        var count = row[2];
+        var countHtml = count === '' || count == null
+          ? '<span class="rd-rail__count"></span>'
+          : '<span class="rd-rail__count">' + count + '</span>';
+        return '<button type="button" class="rd-rail__item' + (activeSection === id ? ' is-active' : '') + '"' +
+          ' onclick="rdSetEntertainmentSection(\'' + id + '\')">' + esc(label) + countHtml + '</button>';
+      }).join('') +
+      '</div></div>';
+
     var coverageHtml =
       '<div class="rd-rail__section">' +
       '<div class="rd-rail__title">Coverage</div>' +
       '<div class="rd-rail__meters">' +
       '<div class="rd-rail__meter-top"><span>Moments filled</span><span class="rd-rail__count">' +
       (figures.momentsFilled || 0) + ' of ' + (figures.momentsTarget || 13) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Music spend</span><span class="rd-rail__count">$' +
-      Math.round(figures.spend || 0).toLocaleString() + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Guest requests</span><span class="rd-rail__count">—</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Must play</span><span class="rd-rail__count">' +
+      (figures.must || counts.must || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Do not play</span><span class="rd-rail__count">' +
+      (figures.dnp || counts.dnp || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Requests from guests</span><span class="rd-rail__count">' +
+      (figures.guestRequests || 0) + '</span></div>' +
       '</div></div>';
 
     function groupItem(id, label) {
@@ -1561,7 +1589,7 @@
     var noteHtml =
       '<p class="rd-rail__note">Performers are vendor records. Their fees appear on the Budget under Music.</p>';
 
-    return '<div class="rd-rail__stack" data-page-rail="entertainment">' + viewsHtml + coverageHtml + groupHtml + noteHtml + '</div>';
+    return '<div class="rd-rail__stack" data-page-rail="entertainment">' + viewsHtml + sectionHtml + coverageHtml + groupHtml + noteHtml + '</div>';
   }
 
   /* All.dc #11b rail — Views + By window meters + Group by. */

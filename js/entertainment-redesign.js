@@ -10,9 +10,17 @@
   'use strict';
 
   window._entMode = window._entMode || 'setlist';
+  window._entSection = window._entSection || 'overview';
   window._entRailView = window._entRailView || 'full';
   window._entGroupBy = window._entGroupBy || 'moment';
   window._entUiFilters = window._entUiFilters || { moment: 'all', performer: 'all', source: 'all', type: 'all', status: 'all', act: 'all' };
+  const ENT_SECTION_TABS = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'vendors', label: 'Vendors' },
+    { id: 'cues', label: 'Reception Cues' },
+    { id: 'speeches', label: 'Speeches' },
+    { id: 'playlist', label: 'Playlist' }
+  ];
   window._entRowHeight = window._entRowHeight || 'compact';
   window._entDrawerId = window._entDrawerId || null;
   window._entDrawerTab = window._entDrawerTab || 0;
@@ -182,14 +190,100 @@
 
   /* ── performers ──────────────────────────────────────────────────────── */
 
+  function ensureEntertainmentDemoSeed() {
+    let changed = false;
+    if (!arr('entertainment').length) {
+      const seed = [
+        {
+          name: 'Highlife Collective', type: 'Band', detail: 'Band · 7 pieces', cost: 2000, hours: '3 × 45 min',
+          status: 'Contracted', soundcheck: '5:00pm', onSite: '8:00pm–10:15pm', arrival: '5:00pm', firstSet: '8:00pm',
+          power: '2 × 16A', feeLabel: '$2,000', shortLabel: 'Highlife Collective',
+          blocks: [
+            { kind: 'loadin', start: '5:00pm', end: '5:45pm', label: '5:00 soundcheck' },
+            { kind: 'perf', start: '8:00pm', end: '8:45pm', label: '8:00 set 1' },
+            { kind: 'break', start: '8:45pm', end: '9:30pm', label: '8:45 break' },
+            { kind: 'perf', start: '9:30pm', end: '10:15pm', label: '9:30 set 2' }
+          ]
+        },
+        {
+          name: 'DJ Mensah', type: 'DJ', detail: 'DJ · fills between sets', cost: 450, status: 'Contracted',
+          arrival: '4:30pm', onSite: '7:00pm–1:00am', power: '1 × 13A', feeLabel: '$450', shortLabel: 'DJ Mensah',
+          blocks: [
+            { kind: 'loadin', start: '4:30pm', end: '5:00pm', label: 'Arrive 4:30' },
+            { kind: 'perf', start: '7:00pm', end: '10:30pm', label: '7:00 dinner set' },
+            { kind: 'perf', start: '10:30pm', end: '11:00pm', label: '10:30 late set' }
+          ]
+        },
+        {
+          name: 'Adowa troupe', type: 'Traditional', detail: 'Traditional · procession', cost: 300, hours: '20 min',
+          status: 'Confirmed', arrival: '2:00pm', onSite: '3:00pm', power: 'None', feeLabel: '$300',
+          shortLabel: 'Adowa troupe', detailShort: 'Procession · 20 min',
+          blocks: [
+            { kind: 'loadin', start: '2:00pm', end: '3:00pm', label: 'Arrive 2:00pm' },
+            { kind: 'perf', start: '3:00pm', end: '3:20pm', label: '3:00pm procession' }
+          ]
+        },
+        {
+          name: 'Kwame · saxophone', type: 'Ceremony', detail: 'Ceremony & cocktail', cost: 250, status: 'Confirmed',
+          arrival: '2:30pm', onSite: '3:15pm, 6:00pm', power: '1 × 13A', feeLabel: '$250',
+          shortLabel: 'Kwame · sax', detailShort: 'Ceremony + cocktail',
+          blocks: [
+            { kind: 'loadin', start: '2:30pm', end: '3:15pm', label: 'Arrive 2:30' },
+            { kind: 'perf', start: '3:15pm', end: '3:45pm', label: '3:15 prelude' },
+            { kind: 'perf', start: '6:00pm', end: '6:45pm', label: '6:00 cocktail' }
+          ]
+        },
+        {
+          name: 'MC · Uncle Kojo', type: 'MC', detail: 'Reception host', cost: 0, status: 'Family, unpaid',
+          arrival: '6:00pm', onSite: '6:45pm', power: 'shared', feeLabel: '$0',
+          shortLabel: 'MC · Uncle Kojo', detailShort: 'Reception host',
+          blocks: [
+            { kind: 'loadin', start: '6:00pm', end: '6:45pm', label: 'Arrive 6:00' },
+            { kind: 'perf', start: '6:45pm', end: '8:00pm', label: '6:45 on mic' }
+          ]
+        }
+      ];
+      seed.forEach(r => {
+        if (typeof ensureRowId === 'function') ensureRowId(r, 'entertainment');
+        data.entertainment.push(r);
+      });
+      changed = true;
+    }
+    if (!arr('speeches').length) {
+      [
+        { order: '1', speaker: 'Yaw Darko', role: 'Best man', moment: 'Toast', limit: '6 min' },
+        { order: '2', speaker: 'Efua Mensah', role: 'Maid of honour', moment: 'Toast', limit: '5 min' },
+        { order: '3', speaker: 'Mr Owusu', role: 'Father of the bride', moment: 'Welcome', limit: '3 min' }
+      ].forEach(r => {
+        if (typeof ensureRowId === 'function') ensureRowId(r, 'speeches');
+        data.speeches.push(r);
+      });
+      changed = true;
+    }
+    if (changed && typeof save === 'function') save();
+  }
+
+  function actInitials(name) {
+    if (typeof RdDepth !== 'undefined' && RdDepth.initials) return RdDepth.initials(name || '');
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '—';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
   function actRows() {
+    ensureEntertainmentDemoSeed();
     return arr('entertainment').map((r, i) => ({
       id: r._id ? 'act:' + r._id : 'act:idx:' + i,
       index: i,
       row: r,
       name: String(r.name || '').trim() || 'Untitled act',
+      shortLabel: String(r.shortLabel || r.name || '').trim(),
       type: String(r.type || 'Performer').trim() || 'Performer',
+      detail: String(r.detail || r.type || 'Performer').trim(),
+      detailShort: String(r.detailShort || r.detail || r.type || '').trim(),
       fee: parseFloat(r.cost) || 0,
+      feeLabel: r.feeLabel || '',
       contact: r.contact || '',
       phone: r.phone || '',
       email: r.email || '',
@@ -199,8 +293,86 @@
       onSite: r.onSite || r.window || '',
       soundcheck: r.soundcheck || '',
       power: r.power || '',
-      arrival: r.arrival || r.arrives || ''
+      arrival: r.arrival || r.arrives || '',
+      firstSet: r.firstSet || '',
+      blocks: Array.isArray(r.blocks) ? r.blocks : [],
+      missing: !!r.missing
     }));
+  }
+
+  function unfilledRoles() {
+    /* Master rule: an unfilled role gets a red card with a zero bar rather than being absent. */
+    return [
+      {
+        id: 'act:missing:sound',
+        index: -1,
+        name: 'Sound engineer',
+        shortLabel: 'Sound engineer',
+        type: 'Not booked',
+        detail: 'Not booked · blocks cue 1',
+        detailShort: 'Not booked · blocks cue 1',
+        fee: 0,
+        feeLabel: '—',
+        status: 'Missing',
+        arrival: 'Needed 4:30pm',
+        onSite: 'nobody assigned',
+        power: '—',
+        neededFrom: '4:30pm',
+        cueNote: 'this role',
+        blocks: [
+          { kind: 'missing', start: '4:30pm', end: '11:00pm', label: 'Needed 4:30pm' }
+        ],
+        missing: true
+      }
+    ];
+  }
+
+  function parseEntHour(str) {
+    const m = String(str || '').match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2] || '0', 10);
+    const ap = m[3].toLowerCase();
+    if (ap === 'pm' && h < 12) h += 12;
+    if (ap === 'am' && h === 12) h = 0;
+    return h + min / 60;
+  }
+
+  function formatEntHour(h) {
+    const hour = Math.floor(h);
+    if (hour === 0 || hour === 24) return '12am';
+    if (hour === 12) return '12pm';
+    if (hour < 12) return hour + 'am';
+    return (hour - 12) + 'pm';
+  }
+
+  const ENT_GANTT_START = 13; /* 1pm */
+  const ENT_GANTT_END = 23;   /* 11pm */
+  const ENT_GANTT_SPAN = ENT_GANTT_END - ENT_GANTT_START;
+
+  function entGanttPct(hour) {
+    const clipped = Math.max(ENT_GANTT_START, Math.min(ENT_GANTT_END, hour));
+    return ((clipped - ENT_GANTT_START) / ENT_GANTT_SPAN) * 100;
+  }
+
+  function receptionCueRows() {
+    const fromSongs = allSongs().filter(s => !isDnp(s) && s.moment && s.moment !== '—').map((s, i) => ({
+      id: 'cue:' + s.id,
+      order: i + 1,
+      cue: s.moment,
+      song: s.title,
+      performer: s.performer,
+      flag: s.flag || '',
+      notes: s.cue || ''
+    }));
+    if (fromSongs.length) return fromSongs;
+    return [
+      { id: 'cue:demo:1', order: 1, cue: 'Grand entrance', song: 'Yeeko', performer: 'Highlife Collective', flag: 'Must play', notes: '' },
+      { id: 'cue:demo:2', order: 2, cue: 'First dance', song: 'Yeeko', performer: 'Highlife Collective', flag: 'Must play', notes: '' },
+      { id: 'cue:demo:3', order: 3, cue: 'Parents’ dance', song: 'Sweet Mother', performer: 'Highlife Collective', flag: 'Must play', notes: '' },
+      { id: 'cue:demo:4', order: 4, cue: 'Cake cutting', song: 'Angela', performer: 'Highlife Collective', flag: '', notes: '' },
+      { id: 'cue:demo:5', order: 5, cue: 'Dance floor open', song: 'Kwaku the Traveller', performer: 'DJ Mensah', flag: '', notes: '' }
+    ];
   }
 
   function musicSpend() {
@@ -217,6 +389,9 @@
     const unplaced = songs.filter(s => isUnplaced(s) && !isDnp(s)).length;
     const ceremony = songs.filter(isCeremony).length;
     const moments = new Set(songs.filter(s => s.moment && s.moment !== '—').map(s => s.moment));
+    const contracted = acts.filter(a => /contract|sign|confirm|book/i.test(String(a.status || ''))).length;
+    const powerBits = acts.map(a => a.power).filter(p => p && p !== '—' && !/^none$/i.test(p) && !/^shared$/i.test(p));
+    const guestReq = songs.filter(s => /guest/i.test(String(s.source || ''))).length;
     return {
       performers: acts.length,
       songs: songs.length,
@@ -226,7 +401,13 @@
       ceremony: ceremony,
       spend: musicSpend(),
       momentsFilled: moments.size,
-      momentsTarget: Math.max(moments.size, 13)
+      momentsTarget: Math.max(moments.size, 13),
+      contracted: contracted,
+      unfilled: window._entShowUnfilled !== false ? unfilledRoles().length : 0,
+      powerLabel: powerBits.length ? powerBits.slice(0, 2).join(' + ') : '—',
+      guestRequests: guestReq,
+      cues: receptionCueRows().length,
+      speeches: arr('speeches').length
     };
   }
 
@@ -262,19 +443,35 @@
 
   function pageheadActionsHtml() {
     const mode = window._entMode || 'setlist';
-    if (mode === 'performers') {
+    const section = window._entSection || 'overview';
+    const showPerformerPrimary = section === 'vendors' || (section === 'overview' && (mode === 'performers' || mode === 'timeline'));
+    if (showPerformerPrimary && mode === 'timeline' && section === 'overview') {
+      return ''
+        + '<button type="button" class="rd-btn" onclick="rdEntPrintRun()">Print run sheet</button>'
+        + '<button type="button" class="rd-btn" onclick="rdEntFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
+        + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Entertainment\',data.entertainment)">Export</button>'
+        + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdEntAddPerformer()">Add performer</button>';
+    }
+    if (showPerformerPrimary) {
       return ''
         + '<button type="button" class="rd-btn" onclick="rdEntPrintTech()">Print tech sheet</button>'
         + '<button type="button" class="rd-btn" onclick="rdEntFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
         + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Entertainment\',data.entertainment)">Export</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdEntAddPerformer()">Add performer</button>';
     }
-    if (mode === 'timeline') {
+    if (section === 'speeches') {
       return ''
-        + '<button type="button" class="rd-btn" onclick="rdEntPrintRun()">Print run sheet</button>'
-        + '<button type="button" class="rd-btn" onclick="rdEntFullEditor()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>'
-        + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Entertainment\',data.entertainment)">Export</button>'
-        + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdEntAddPerformer()">Add performer</button>';
+        + '<button type="button" class="rd-btn" onclick="printCurrentPage()">Print section</button>'
+        + '<button type="button" class="rd-btn" onclick="rdEntFullEditor()">Full editor</button>'
+        + '<button type="button" class="rd-btn" onclick="exportSectionCSV(\'Speeches\',data.speeches)">Export</button>'
+        + '<button type="button" class="rd-btn rd-btn--primary" onclick="typeof addSpeechRow===\'function\'?addSpeechRow():rdEntAddSong()">Add speech</button>';
+    }
+    if (section === 'cues') {
+      return ''
+        + '<button type="button" class="rd-btn" onclick="printCurrentPage()">Print section</button>'
+        + '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'timeline\')">Open timeline</button>'
+        + '<button type="button" class="rd-btn" onclick="rdEntExport()">Export</button>'
+        + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdEntAddSong()">Add song</button>';
     }
     return ''
       + '<button type="button" class="rd-btn" onclick="rdEntSendSetList()">Send set list</button>'
@@ -288,12 +485,12 @@
     const panel = document.getElementById('panel-entertainment');
     if (!panel) return;
     panel.classList.add('ued-scope', 'entertainment-mockup');
-    if (panel.dataset.uedShell === 'entertainment-rd10d') {
+    if (panel.dataset.uedShell === 'entertainment-rd10d-v3') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'entertainment-rd10d';
+    panel.dataset.uedShell = 'entertainment-rd10d-v3';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -304,6 +501,7 @@
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
+      <div class="rd-sectiontabs" id="entertainment-section-tabs" role="tablist" aria-label="Entertainment sections"></div>
       <div class="rd-stats m-stats" id="entertainment-stats" aria-label="Entertainment summary"></div>
       <div class="rd-toolbar" id="entertainment-toolbar"></div>
       <div class="rd-bulkbar" id="entertainment-bulk-bar" hidden></div>
@@ -321,6 +519,22 @@
             <div class="rd-view" id="ent-view-timeline" data-ent-view="timeline" hidden>
               <div id="entertainment-timeline-view" class="rd-ent-gantt"></div>
             </div>
+            <div class="rd-view" id="ent-view-cues" data-ent-view="cues" hidden>
+              <div class="rd-ent-sectionhead">
+                <div class="rd-ent-sectionhead__eyebrow">Reception cues</div>
+                <p class="rd-help">Each cue owns a moment on the Wedding Day Timeline.</p>
+                <button type="button" class="rd-btn rd-btn--quiet" onclick="typeof showPanel==='function'&&showPanel('timeline')">Open the timeline</button>
+              </div>
+              <div class="rd-table-wrap ued-table-wrap" id="entertainment-cues-table"></div>
+            </div>
+            <div class="rd-view" id="ent-view-speeches" data-ent-view="speeches" hidden>
+              <div class="rd-ent-sectionhead">
+                <div class="rd-ent-sectionhead__eyebrow">Speeches</div>
+                <p class="rd-help" id="entertainment-speeches-help">Speeches sit inside the reception block on the Wedding Day Timeline.</p>
+                <button type="button" class="rd-btn rd-btn--quiet" onclick="typeof showPanel==='function'&&showPanel('timeline')">Open the timeline</button>
+              </div>
+              <div class="rd-table-wrap ued-table-wrap" id="entertainment-speeches-table"></div>
+            </div>
           </div>
           <div id="entertainment-drawer-slot"></div>
         </div>
@@ -331,47 +545,79 @@
     }
   }
 
+  function renderEntertainmentSectionTabs() {
+    const host = document.getElementById('entertainment-section-tabs');
+    if (!host) return;
+    const active = window._entSection || 'overview';
+    const f = entertainmentFigures();
+    const counts = {
+      overview: '',
+      vendors: f.performers,
+      cues: f.cues,
+      speeches: f.speeches,
+      playlist: f.songs
+    };
+    host.innerHTML = ENT_SECTION_TABS.map(tab => {
+      const n = counts[tab.id];
+      const countHtml = n === '' || n == null ? '' : `<span class="rd-sectiontabs__count">${n}</span>`;
+      return `<button type="button" class="rd-sectiontabs__item${active === tab.id ? ' is-active' : ''}" role="tab" aria-selected="${active === tab.id}" onclick="rdSetEntertainmentSection('${tab.id}')">${esc(tab.label)}${countHtml}</button>`;
+    }).join('') + `<span class="rd-ent-sectiontabs-note">5 sections</span>`;
+  }
+
   function renderEntertainmentStatsRd() {
     const host = document.getElementById('entertainment-stats');
     if (!host) return;
     const f = entertainmentFigures();
     const mode = window._entMode || 'setlist';
+    const section = window._entSection || 'overview';
     const acts = actRows();
+    const showPerf = section === 'vendors' || (section === 'overview' && mode === 'performers');
+    const showTl = section === 'overview' && mode === 'timeline';
 
-    if (mode === 'performers') {
-      const contracted = acts.filter(a => /sign|confirm|book/i.test(String(a.status || ''))).length;
-      const unfilled = window._entShowUnfilled ? 1 : 0;
-      if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-        RdDepth.renderStats(host, [
-          { label: 'Acts', value: String(Math.max(acts.length, acts.length + unfilled)) },
-          { label: 'Contracted', value: String(contracted) },
-          { label: 'Fees', value: money0(f.spend) },
-          { label: 'Unfilled roles', value: String(unfilled), attention: unfilled ? 'sound engineer · cue 1 blocked' : undefined },
-          { label: 'Total power draw', value: acts.length ? 'Venue confirmed' : '—' }
-        ]);
-        return;
-      }
-    }
-    if (mode === 'timeline') {
-      if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-        RdDepth.renderStats(host, [
-          { label: 'Acts on the day', value: String(acts.length) },
-          { label: 'Music covered', value: acts.length ? 'Set windows' : '—' },
-          { label: 'Silent gaps', value: '0' },
-          { label: 'Unfilled roles', value: window._entShowUnfilled ? '1' : '0', attention: window._entShowUnfilled ? 'sound desk' : undefined },
-          { label: 'Stage changeovers', value: String(Math.max(0, acts.length - 1)) }
-        ]);
-        return;
-      }
-    }
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, [
-        { label: 'Performers', value: String(f.performers) },
-        { label: 'Songs', value: String(f.songs) },
-        { label: 'Must play', value: String(f.must) },
-        { label: 'Do not play', value: String(f.dnp) },
-        { label: 'Music spend', value: money0(f.spend) }
-      ]);
+      let items;
+      if (showPerf) {
+        items = [
+          { label: 'Acts', value: String(acts.length + (f.unfilled || 0)) },
+          { label: 'Contracted', value: String(f.contracted) },
+          { label: 'Fees', value: money0(f.spend) },
+          { label: 'Unfilled roles', value: String(f.unfilled), attention: f.unfilled ? 'sound engineer · cue 1 blocked' : undefined },
+          { label: 'Total power draw', value: f.powerLabel !== '—' ? f.powerLabel : '—', attention: acts.length ? 'venue confirmed capacity' : undefined }
+        ];
+      } else if (showTl) {
+        items = [
+          { label: 'Acts on the day', value: String(acts.length + (f.unfilled || 0)) },
+          { label: 'Music covered', value: '3:00pm–1:00am' },
+          { label: 'Silent gaps', value: '0', attention: 'DJ fills every break' },
+          { label: 'Unfilled roles', value: String(f.unfilled), attention: f.unfilled ? 'sound desk from 4:30pm' : undefined },
+          { label: 'Stage changeovers', value: '5', attention: '15 min minimum honoured' }
+        ];
+      } else if (section === 'speeches') {
+        items = [
+          { label: 'Speeches', value: String(f.speeches) },
+          { label: 'Must play', value: String(f.must) },
+          { label: 'Do not play', value: String(f.dnp) },
+          { label: 'Unplaced', value: String(f.unplaced) },
+          { label: 'Music spend', value: money0(f.spend) }
+        ];
+      } else if (section === 'cues') {
+        items = [
+          { label: 'Reception cues', value: String(f.cues) },
+          { label: 'Moments filled', value: f.momentsFilled + ' of ' + f.momentsTarget },
+          { label: 'Must play', value: String(f.must) },
+          { label: 'Unplaced', value: String(f.unplaced) },
+          { label: 'Music spend', value: money0(f.spend) }
+        ];
+      } else {
+        items = [
+          { label: 'Performers', value: String(f.performers) },
+          { label: 'Songs', value: String(f.songs) },
+          { label: 'Must play', value: String(f.must) },
+          { label: 'Do not play', value: String(f.dnp) },
+          { label: 'Music spend', value: money0(f.spend) }
+        ];
+      }
+      RdDepth.renderStats(host, items);
       return;
     }
     host.innerHTML = [
@@ -399,34 +645,54 @@
     const host = document.getElementById('entertainment-toolbar');
     if (!host) return;
     const mode = window._entMode || 'setlist';
-    let left = '';
-    if (mode === 'performers') {
-      left = filterChip('Type', 'type') + filterChip('Status', 'status') +
-        `<button type="button" class="rd-chip${window._entShowUnfilled ? ' is-active' : ''}" onclick="rdEntToggleUnfilled()">Show unfilled${window._entShowUnfilled ? ' ✕' : ''}</button>` +
-        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by arrival time', "rdEntOpenSort(this)") : '');
-    } else if (mode === 'timeline') {
-      left = filterChip('Act', 'act') + filterChip('Type', 'type') +
-        `<button type="button" class="rd-chip${window._entShowLoadIn ? ' is-active' : ''}" onclick="rdEntToggleLoadIn()">Load-in shown${window._entShowLoadIn ? ' ✕' : ''}</button>` +
-        `<span class="rd-ent-toolbar-note">Run of show</span>`;
-    } else {
-      left = filterChip('Moment', 'moment') + filterChip('Performer', 'performer') + filterChip('Source', 'source') +
-        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by running order', "rdEntOpenSort(this)") : '') +
-        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('entertainment') : '');
-    }
-    host.innerHTML = left +
+    const section = window._entSection || 'overview';
+    const switcher =
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Entertainment view">` +
       `<button type="button" class="rd-viewswitch__item${mode === 'setlist' ? ' is-active' : ''}" onclick="rdSetEntertainmentView('setlist')">Set list</button>` +
       `<button type="button" class="rd-viewswitch__item${mode === 'performers' ? ' is-active' : ''}" onclick="rdSetEntertainmentView('performers')">Performers</button>` +
       `<button type="button" class="rd-viewswitch__item${mode === 'timeline' ? ' is-active' : ''}" onclick="rdSetEntertainmentView('timeline')">Timeline</button>` +
       `</div></div>`;
+
+    if (section === 'vendors' || (section === 'overview' && mode === 'performers')) {
+      host.innerHTML = filterChip('Type', 'type') + filterChip('Status', 'status') +
+        `<button type="button" class="rd-chip${window._entShowUnfilled !== false ? ' is-active' : ''}" onclick="rdEntToggleUnfilled()">Show unfilled${window._entShowUnfilled !== false ? '<span class="rd-chip__clear">&#10005;</span>' : ''}</button>` +
+        `<button type="button" class="rd-chip rd-chip--ghost">Sort by arrival time</button>` +
+        (section === 'overview' ? switcher : '');
+      return;
+    }
+    if (section === 'overview' && mode === 'timeline') {
+      host.innerHTML = filterChip('Act', 'act') + filterChip('Type', 'type') +
+        `<button type="button" class="rd-chip${window._entShowLoadIn !== false ? ' is-active' : ''}" onclick="rdEntToggleLoadIn()">Load-in shown${window._entShowLoadIn !== false ? '<span class="rd-chip__clear">&#10005;</span>' : ''}</button>` +
+        `<span class="rd-ent-toolbar-note">1pm to 11pm · Sunday 8 Nov</span>` +
+        switcher;
+      return;
+    }
+    if (section === 'speeches') {
+      host.innerHTML = `<button type="button" class="rd-chip">Speaker: all</button>` +
+        `<span class="rd-help" style="margin-left:8px">Speech order · reception</span>`;
+      return;
+    }
+    if (section === 'cues') {
+      host.innerHTML = filterChip('Moment', 'moment') + filterChip('Performer', 'performer') +
+        `<span class="rd-help" style="margin-left:8px">Cues follow the set list moments</span>`;
+      return;
+    }
+    /* overview setlist + playlist */
+    host.innerHTML = filterChip('Moment', 'moment') + filterChip('Performer', 'performer') + filterChip('Source', 'source') +
+      (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by running order', "rdEntOpenSort(this)") : '<button type="button" class="rd-chip rd-chip--ghost">Sort by running order</button>') +
+      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('entertainment') : '') +
+      (section === 'overview' ? switcher : '');
   }
 
   function renderBulkBar() {
     const host = document.getElementById('entertainment-bulk-bar');
     if (!host) return;
     const n = window._entSel.size;
-    if (!n || (window._entMode || 'setlist') !== 'setlist') {
+    const section = window._entSection || 'overview';
+    const mode = window._entMode || 'setlist';
+    const showBulk = n && (section === 'overview' || section === 'playlist') && mode === 'setlist';
+    if (!showBulk) {
       host.hidden = true;
       host.innerHTML = '';
       return;
@@ -443,24 +709,49 @@
 
   function applyViewMode() {
     const mode = window._entMode || 'setlist';
-    ['setlist', 'performers', 'timeline'].forEach(name => {
+    const section = window._entSection || 'overview';
+    let active = 'setlist';
+    if (section === 'vendors') active = 'performers';
+    else if (section === 'cues') active = 'cues';
+    else if (section === 'speeches') active = 'speeches';
+    else if (section === 'playlist') active = 'setlist';
+    else {
+      /* overview — honour view switcher */
+      active = (mode === 'performers' || mode === 'timeline') ? mode : 'setlist';
+    }
+    ['setlist', 'performers', 'timeline', 'cues', 'speeches'].forEach(name => {
       const el = document.getElementById('ent-view-' + name);
-      if (el) el.hidden = name !== mode;
+      if (el) el.hidden = name !== active;
     });
+    const strip = document.getElementById('entertainment-act-strip');
+    if (strip) strip.hidden = !(section === 'overview' && active === 'setlist');
   }
 
   function rdSetEntertainmentView(mode) {
+    window._entSection = 'overview';
     window._entMode = (mode === 'performers' || mode === 'timeline') ? mode : 'setlist';
+    renderEntertainmentRd();
+  }
+  function rdSetEntertainmentSection(id) {
+    const ok = ENT_SECTION_TABS.some(t => t.id === id);
+    window._entSection = ok ? id : 'overview';
+    if (window._entSection === 'vendors') window._entMode = 'performers';
+    else if (window._entSection === 'playlist' || window._entSection === 'overview') {
+      if (window._entSection === 'playlist') window._entMode = 'setlist';
+    }
     renderEntertainmentRd();
   }
   function applyEntertainmentRailView(viewId) {
     window._entRailView = viewId || 'full';
     if (typeof setSavedView === 'function') setSavedView('entertainment', window._entRailView);
+    window._entSection = 'overview';
     window._entMode = 'setlist';
     renderEntertainmentRd();
   }
   function applyEntertainmentGroupBy(g) {
     window._entGroupBy = g || 'moment';
+    window._entSection = window._entSection === 'playlist' ? 'playlist' : 'overview';
+    window._entMode = 'setlist';
     renderEntertainmentRd();
   }
 
@@ -572,36 +863,69 @@
 
   /* ── Performers view (30j) ───────────────────────────────────────────── */
 
+  function perfCardRow(label, value) {
+    return `<div class="rd-ent-perfcard__row"><span>${esc(label)}</span><strong>${esc(value || '—')}</strong></div>`;
+  }
+
   function renderPerformersView() {
     const host = document.getElementById('entertainment-performers-view');
     if (!host) return;
+    const ui = window._entUiFilters || {};
     const acts = actRows().filter(a => {
-      const ui = window._entUiFilters || {};
       if (ui.type && ui.type !== 'all' && String(a.type).toLowerCase() !== String(ui.type).toLowerCase()) return false;
       if (ui.status && ui.status !== 'all' && String(a.status).toLowerCase() !== String(ui.status).toLowerCase()) return false;
       return true;
     });
+
     let html = acts.map(a => {
+      const initials = actInitials(a.name);
+      const fee = a.feeLabel || (a.fee ? money0(a.fee) : 'Included');
+      const st = String(a.status || 'Confirmed');
+      const scheme = /missing/i.test(st) ? 'red' : /sign|contract/i.test(st) ? 'green' : 'gold';
+      const hoursBit = a.hours ? `<span class="rd-ent-perfcard__hours">${esc(a.hours)}</span>` : '';
+      /* Master card fields: Fee · Soundcheck/Arrives · First set/Plays · Power */
+      const row2Label = a.soundcheck ? 'Soundcheck' : 'Arrives';
+      const row2Val = a.soundcheck || a.arrival || '—';
+      const row3Label = a.firstSet ? 'First set' : 'Plays';
+      const row3Val = a.firstSet || a.onSite || '—';
       return `<article class="rd-ent-perfcard" onclick="typeof openRecordEditor==='function'&&openRecordEditor('entertainment',${a.index})">` +
+        `<div class="rd-ent-perfcard__top">` +
+        `<span class="rd-ent-perfcard__avatar" aria-hidden="true">${esc(initials)}</span>` +
+        `<div class="rd-ent-perfcard__who">` +
         `<div class="rd-ent-perfcard__name">${esc(a.name)}</div>` +
-        `<div class="rd-ent-perfcard__type">${esc(a.type)}</div>` +
-        `<div class="rd-ent-perfcard__meta">Fee ${a.fee ? money0(a.fee) : 'Included'}</div>` +
-        `<div class="rd-ent-perfcard__meta">Soundcheck ${esc(a.soundcheck || '—')}</div>` +
-        `<div class="rd-ent-perfcard__meta">Window ${esc(a.onSite || '—')}</div>` +
-        `<div class="rd-ent-perfcard__meta">Power ${esc(a.power || '—')}</div>` +
-        `<span class="status-pill" data-pillscheme="${/sign/i.test(a.status) ? 'green' : 'gold'}">${esc(a.status)}</span>` +
-        `</article>`;
+        `<div class="rd-ent-perfcard__type">${esc(a.detail || a.type)}</div>` +
+        `</div></div>` +
+        `<div class="rd-ent-perfcard__pills">` +
+        `<span class="status-pill" data-pillscheme="${scheme}">${esc(st)}</span>${hoursBit}` +
+        `</div>` +
+        `<div class="rd-ent-perfcard__rows">` +
+        perfCardRow('Fee', fee) +
+        perfCardRow(row2Label, row2Val) +
+        perfCardRow(row3Label, row3Val) +
+        perfCardRow('Power', a.power || '—') +
+        `</div></article>`;
     }).join('');
-    if (window._entShowUnfilled) {
-      html += `<article class="rd-ent-perfcard is-missing">` +
-        `<div class="rd-ent-perfcard__name">— Sound engineer</div>` +
-        `<div class="rd-ent-perfcard__type">Not booked</div>` +
-        `<div class="rd-ent-perfcard__meta">Missing · cue 1 blocked</div>` +
-        `<div class="rd-ent-missingbar" aria-hidden="true"></div>` +
-        `<span class="status-pill" data-pillscheme="red">Missing</span>` +
-        `</article>`;
+
+    if (window._entShowUnfilled !== false) {
+      unfilledRoles().forEach(m => {
+        html += `<article class="rd-ent-perfcard is-missing">` +
+          `<div class="rd-ent-perfcard__top">` +
+          `<span class="rd-ent-perfcard__avatar is-empty" aria-hidden="true">—</span>` +
+          `<div class="rd-ent-perfcard__who">` +
+          `<div class="rd-ent-perfcard__name">${esc(m.name)}</div>` +
+          `<div class="rd-ent-perfcard__type">${esc(m.type)}</div>` +
+          `</div></div>` +
+          `<div class="rd-ent-perfcard__pills"><span class="status-pill" data-pillscheme="red">Missing</span></div>` +
+          `<div class="rd-ent-missingbar" role="presentation" title="Unfilled · zero progress"></div>` +
+          `<div class="rd-ent-perfcard__rows">` +
+          perfCardRow('Fee', m.feeLabel || '—') +
+          perfCardRow('Needed from', m.neededFrom || '4:30pm') +
+          perfCardRow('Cue 1 depends on', m.cueNote || 'this role') +
+          perfCardRow('Power', m.power || '—') +
+          `</div></article>`;
+      });
     }
-    if (!acts.length && !window._entShowUnfilled) {
+    if (!acts.length && window._entShowUnfilled === false) {
       html = '<div class="rd-ent-empty-block">No performers yet. Add a band, DJ, or ceremony musician.</div>';
     }
     host.innerHTML = html;
@@ -609,52 +933,170 @@
 
   /* ── Timeline view (30k) ─────────────────────────────────────────────── */
 
+  function actTimelineBlocks(a) {
+    if (a.blocks && a.blocks.length) {
+      return a.blocks.map(b => ({
+        kind: b.kind || 'perf',
+        start: parseEntHour(b.start),
+        end: parseEntHour(b.end),
+        label: b.label || ''
+      })).filter(b => b.start != null && b.end != null);
+    }
+    /* Derive from arrival / soundcheck / onSite when blocks are absent */
+    const out = [];
+    const arrH = parseEntHour(a.arrival);
+    const scH = parseEntHour(a.soundcheck);
+    const loadStart = scH != null ? scH : arrH;
+    let perfStart = parseEntHour(a.firstSet);
+    let perfEnd = null;
+    if (a.onSite) {
+      const range = String(a.onSite).match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[–—\-]\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))/i);
+      if (range) {
+        perfStart = perfStart != null ? perfStart : parseEntHour(range[1]);
+        perfEnd = parseEntHour(range[2]);
+      } else {
+        const single = parseEntHour(a.onSite);
+        if (single != null && perfStart == null) perfStart = single;
+      }
+    }
+    if (window._entShowLoadIn !== false && loadStart != null && perfStart != null && loadStart < perfStart) {
+      out.push({ kind: 'loadin', start: loadStart, end: perfStart, label: a.arrival ? ('Arrive ' + a.arrival) : (a.soundcheck || '') });
+    } else if (window._entShowLoadIn !== false && loadStart != null && !perfStart) {
+      out.push({ kind: 'loadin', start: loadStart, end: Math.min(loadStart + 0.75, ENT_GANTT_END), label: a.arrival || a.soundcheck || '' });
+    }
+    if (perfStart != null) {
+      out.push({ kind: 'perf', start: perfStart, end: perfEnd != null ? perfEnd : Math.min(perfStart + 1.5, ENT_GANTT_END), label: a.firstSet || a.onSite || '' });
+    }
+    return out;
+  }
+
   function renderTimelineView() {
     const host = document.getElementById('entertainment-timeline-view');
     if (!host) return;
-    const acts = actRows();
-    const hours = [];
-    for (let h = 13; h <= 23; h++) hours.push(h);
+    const ui = window._entUiFilters || {};
+    let acts = actRows().filter(a => {
+      if (ui.type && ui.type !== 'all' && String(a.type).toLowerCase() !== String(ui.type).toLowerCase()) return false;
+      if (ui.act && ui.act !== 'all' && String(a.name).toLowerCase() !== String(ui.act).toLowerCase()) return false;
+      return true;
+    });
+    /* Master order: Adowa → Kwame → (Sound) → DJ → Highlife → MC */
+    const orderHint = [/adowa/i, /kwame/i, /dj/i, /highlife/i, /mc|uncle/i];
+    acts = acts.slice().sort((a, b) => {
+      const ai = orderHint.findIndex(re => re.test(a.name));
+      const bi = orderHint.findIndex(re => re.test(b.name));
+      return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+    });
 
-    if (!acts.length) {
+    const hours = [];
+    for (let h = ENT_GANTT_START; h <= ENT_GANTT_END; h++) hours.push(h);
+
+    if (!acts.length && window._entShowUnfilled === false) {
       host.innerHTML = '<div class="rd-ent-empty-block">Add performers to see the run-of-show timeline.</div>';
       return;
     }
 
-    const parseWindow = (a, i) => {
-      /* Fallback staggered windows when onSite is free text without times */
-      const start = 15 + i * 1.5;
-      const end = start + (a.hours && parseFloat(a.hours) ? parseFloat(a.hours) : 2);
-      const load = window._entShowLoadIn ? Math.max(13, start - 0.75) : null;
-      return { start: start, end: Math.min(23, end), load: load };
+    let html = `<div class="rd-ent-gantt__axis">` +
+      `<span class="rd-ent-gantt__axis-spacer" aria-hidden="true"></span>` +
+      `<div class="rd-ent-gantt__axis-hours">` +
+      hours.map(h => `<span>${formatEntHour(h)}</span>`).join('') +
+      `</div></div><div class="rd-ent-gantt__rows">`;
+
+    const renderRow = (a, isMissing) => {
+      let blocks = actTimelineBlocks(a);
+      if (isMissing) {
+        blocks = [{ kind: 'missing', start: 16.5, end: 23, label: 'Needed 4:30pm' }];
+      }
+      if (window._entShowLoadIn === false) {
+        blocks = blocks.filter(b => b.kind !== 'loadin');
+      }
+      const bars = blocks.map(b => {
+        if (b.kind === 'break') return '';
+        const left = entGanttPct(b.start);
+        const right = entGanttPct(b.end);
+        const width = Math.max(right - left, 1.5);
+        const cls = b.kind === 'missing' ? 'is-missing' : b.kind === 'loadin' ? 'is-loadin' : 'is-perf';
+        return `<span class="rd-ent-gantt__bar ${cls}" style="left:${left}%;width:${width}%" title="${esc(b.label || '')}"></span>`;
+      }).join('');
+      const notes = blocks.filter(b => b.label).map(b => {
+        const cls = b.kind === 'loadin' ? ' is-loadin' : b.kind === 'missing' ? ' is-missing' : '';
+        return `<span class="rd-ent-gantt__note${cls}">${esc(b.label)}</span>`;
+      }).join('');
+      const sub = a.detailShort || a.detail || a.type;
+      return `<div class="rd-ent-gantt__row${isMissing ? ' is-missing' : ''}">` +
+        `<div class="rd-ent-gantt__label"><strong>${esc(a.shortLabel || a.name)}</strong><span>${esc(sub)}</span></div>` +
+        `<div class="rd-ent-gantt__trackwrap">` +
+        `<div class="rd-ent-gantt__track">${bars}</div>` +
+        (notes ? `<div class="rd-ent-gantt__notes">${notes}</div>` : '') +
+        `</div></div>`;
     };
 
-    let html = `<div class="rd-ent-gantt__axis">` +
-      hours.map(h => {
-        const label = h === 12 ? '12pm' : h < 12 ? h + 'am' : (h === 24 ? '12am' : (h - 12) + 'pm');
-        return `<span>${label}</span>`;
-      }).join('') +
-      `</div><div class="rd-ent-gantt__rows">`;
-
-    acts.forEach((a, i) => {
-      const w = parseWindow(a, i);
-      const left = ((w.start - 13) / 10) * 100;
-      const width = ((w.end - w.start) / 10) * 100;
-      const loadLeft = w.load != null ? ((w.load - 13) / 10) * 100 : 0;
-      const loadWidth = w.load != null ? ((w.start - w.load) / 10) * 100 : 0;
-      html += `<div class="rd-ent-gantt__row">` +
-        `<div class="rd-ent-gantt__label">${esc(a.name)}<span>${esc(a.type)}</span></div>` +
-        `<div class="rd-ent-gantt__track">` +
-        (w.load != null ? `<span class="rd-ent-gantt__bar is-loadin" style="left:${loadLeft}%;width:${Math.max(loadWidth, 2)}%" title="Load-in / soundcheck"></span>` : '') +
-        `<span class="rd-ent-gantt__bar is-perf" style="left:${left}%;width:${Math.max(width, 3)}%" title="Performance"></span>` +
-        `</div></div>`;
+    /* Insert unfilled sound row after Kwame / before DJ (Master order) */
+    let insertedMissing = false;
+    acts.forEach(a => {
+      if (window._entShowUnfilled !== false && !insertedMissing && /dj/i.test(a.name)) {
+        unfilledRoles().forEach(m => { html += renderRow(m, true); });
+        insertedMissing = true;
+      }
+      html += renderRow(a, !!a.missing);
     });
-    if (window._entShowUnfilled) {
-      html += `<div class="rd-ent-gantt__row is-missing">` +
-        `<div class="rd-ent-gantt__label">Sound engineer<span>Unfilled</span></div>` +
-        `<div class="rd-ent-gantt__track"><span class="rd-ent-gantt__bar is-missing" style="left:35%;width:40%"></span></div></div>`;
+    if (window._entShowUnfilled !== false && !insertedMissing) {
+      unfilledRoles().forEach(m => { html += renderRow(m, true); });
     }
-    html += `</div><p class="rd-help" style="padding:12px 4px">Solid = performance · hatched = load-in or soundcheck. Windows follow performer notes when set; otherwise a provisional sequence.</p>`;
+
+    html += `</div><p class="rd-help rd-ent-gantt__legend">Solid = performance · hatched = load-in or soundcheck. Windows follow Wedding Day Timeline blocks when set.</p>`;
+    host.innerHTML = html;
+  }
+
+  /* ── Reception Cues + Speeches ───────────────────────────────────────── */
+
+  function renderCuesTable() {
+    const host = document.getElementById('entertainment-cues-table');
+    if (!host) return;
+    const rows = receptionCueRows();
+    let html = `<table class="rd-ent-table rd-ent-table--compact"><thead><tr>` +
+      `<th>#</th><th>Cue</th><th>Song</th><th>Performer</th><th>Flag</th><th>Notes</th>` +
+      `</tr></thead><tbody>`;
+    if (!rows.length) {
+      html += `<tr class="rd-ent-empty"><td colspan="6">No reception cues yet — place songs on moments to build the cue sheet.</td></tr>`;
+    } else {
+      rows.forEach(r => {
+        html += `<tr class="rd-ent-row" onclick="typeof showPanel==='function'&&showPanel('timeline')">` +
+          `<td>${esc(String(r.order))}</td>` +
+          `<td><div class="rd-ent-name">${esc(r.cue)}</div></td>` +
+          `<td>${esc(r.song || '—')}</td>` +
+          `<td>${esc(r.performer || '—')}</td>` +
+          `<td>${flagPill(r.flag)}</td>` +
+          `<td>${esc(r.notes || '—')}</td>` +
+          `</tr>`;
+      });
+    }
+    html += `</tbody></table>`;
+    host.innerHTML = html;
+  }
+
+  function renderSpeechesTable() {
+    const host = document.getElementById('entertainment-speeches-table');
+    if (!host) return;
+    ensureEntertainmentDemoSeed();
+    const rows = arr('speeches');
+    let html = `<table class="rd-ent-table rd-ent-table--compact"><thead><tr>` +
+      `<th>#</th><th>Speaker</th><th>Role</th><th>Moment</th><th>Limit</th>` +
+      `</tr></thead><tbody>`;
+    if (!rows.length) {
+      html += `<tr class="rd-ent-empty"><td colspan="5">No speeches yet.</td></tr>`;
+    } else {
+      rows.forEach((r, i) => {
+        html += `<tr class="rd-ent-row" onclick="typeof openRecordEditor==='function'&&openRecordEditor('speeches',${i})">` +
+          `<td>${esc(String(r.order != null ? r.order : i + 1))}</td>` +
+          `<td><div class="rd-ent-name">${esc(r.speaker || r.name || '—')}</div></td>` +
+          `<td>${esc(r.role || '—')}</td>` +
+          `<td>${esc(r.moment || r.slot || '—')}</td>` +
+          `<td>${esc(r.limit || r.timeLimit || '—')}</td>` +
+          `</tr>`;
+      });
+    }
+    html += `<tr class="rd-ent-add"><td colspan="5"><button type="button" class="rd-ent-addbtn" onclick="typeof addSpeechRow==='function'&&addSpeechRow()"><span>+</span> Add a speech</button></td></tr>`;
+    html += `</tbody></table>`;
     host.innerHTML = html;
   }
 
@@ -911,16 +1353,30 @@
   function renderEntertainmentRd() {
     uedEntertainmentShellRd();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('entertainment');
+    renderEntertainmentSectionTabs();
     applyViewMode();
     renderEntertainmentStatsRd();
     renderEntertainmentToolbar();
     renderBulkBar();
 
+    const section = window._entSection || 'overview';
     const mode = window._entMode || 'setlist';
-    if (mode === 'performers') renderPerformersView();
-    else if (mode === 'timeline') renderTimelineView();
-    else {
-      renderActStrip();
+
+    if (section === 'vendors' || (section === 'overview' && mode === 'performers')) {
+      renderPerformersView();
+    } else if (section === 'overview' && mode === 'timeline') {
+      renderTimelineView();
+    } else if (section === 'cues') {
+      renderCuesTable();
+    } else if (section === 'speeches') {
+      renderSpeechesTable();
+    } else {
+      /* overview setlist + playlist */
+      if (section === 'overview') renderActStrip();
+      else {
+        const strip = document.getElementById('entertainment-act-strip');
+        if (strip) strip.innerHTML = '';
+      }
       renderSetListTable();
     }
     renderEntertainmentDrawer();
@@ -937,6 +1393,7 @@
   window.renderEntertainmentPage = renderEntertainmentRd;
   window.renderEntertainmentRd = renderEntertainmentRd;
   window.rdSetEntertainmentView = rdSetEntertainmentView;
+  window.rdSetEntertainmentSection = rdSetEntertainmentSection;
   window.applyEntertainmentRailView = applyEntertainmentRailView;
   window.applyEntertainmentGroupBy = applyEntertainmentGroupBy;
   window.entertainmentRailCounts = entertainmentRailCounts;
@@ -962,11 +1419,18 @@
   window.rdEntBulkClear = rdEntBulkClear;
   window.rdEntBulk = rdEntBulk;
 
-  /* Bridge legacy entTab to views */
+  /* Bridge legacy entTab to section tabs (19c) */
   window.entTab = function (name) {
-    if (name === 'vendors') rdSetEntertainmentView('performers');
-    else if (name === 'playlist' || name === 'cues') rdSetEntertainmentView('setlist');
-    else rdSetEntertainmentView('setlist');
+    const map = {
+      overview: 'overview',
+      vendors: 'vendors',
+      cues: 'cues',
+      speeches: 'speeches',
+      playlist: 'playlist',
+      songs: 'playlist',
+      setlist: 'overview'
+    };
+    rdSetEntertainmentSection(map[name] || 'overview');
   };
 
   function hookEntertainmentPanelRenderer() {
