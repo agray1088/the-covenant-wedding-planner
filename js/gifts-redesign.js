@@ -9,6 +9,7 @@
     { key: 'desc', label: 'Gift', width: '190px' },
     { key: 'from', label: 'From', width: '170px' },
     { key: 'category', label: 'Type', width: '110px' },
+    { key: 'registryCategory', label: 'Registry category', width: '150px' },
     { key: 'value', label: 'Value', width: '100px' },
     { key: 'date', label: 'Received', width: '110px' },
     { key: 'thankyou', label: 'Thank-you', width: '130px' }
@@ -1052,6 +1053,10 @@
     }
     if (key === 'from') return '<td>' + escapeHtml(r.from || '—') + '</td>';
     if (key === 'category') return '<td class="rd-guest-td--muted">' + escapeHtml(giftType(r)) + '</td>';
+    if (key === 'registryCategory') {
+      const cat = giftRegistryCategoryName(r);
+      return '<td class="rd-guest-td--muted">' + escapeHtml(cat || '—') + '</td>';
+    }
     if (key === 'value') {
       const v = parseFloat(r.value) || 0;
       return '<td style="text-align:right;font-variant-numeric:tabular-nums">' + (v ? moneyFmt(v) : '—') + '</td>';
