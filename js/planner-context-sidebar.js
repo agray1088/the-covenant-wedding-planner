@@ -1914,7 +1914,7 @@
     return '<div class="rd-rail__stack" data-page-rail="timeline">' + viewsHtml + blocksHtml + checksHtml + noteHtml + '</div>';
   }
 
-  /* All.dc #11a rail — Views + Running time + Group by. */
+  /* All.dc #11a / #19a rail — Views + Sections + Running time + Group by. */
   function buildCeremonyContext() {
     var activeView = 'both';
     if (typeof getSavedView === 'function') activeView = getSavedView('ceremony', 'both');
@@ -1922,12 +1922,14 @@
     window._cerRailView = activeView;
 
     var counts = typeof window.ceremonyRailCounts === 'function' ? window.ceremonyRailCounts() : {
-      both: 0, ceremony: 0, reception: 0, needs: 0, scripture: 0
+      both: 0, ceremony: 0, reception: 0, needs: 0, scripture: 0, sections: {}
     };
     var figures = typeof window.ceremonyFigures === 'function' ? window.ceremonyFigures() : {
-      ceremonyMins: 0, receptionMins: 0, cocktailMins: 60, turnoverMins: 45
+      ceremonyMins: 0, receptionMins: 0, cocktailMins: 60, turnoverMins: 45, unassigned: 0, sectionCounts: {}
     };
     var groupBy = window._cerGroupBy || 'service';
+    var activeSection = (typeof window._cerSection === 'string' && window._cerSection) || 'overview';
+    var sectionCounts = counts.sections || figures.sectionCounts || {};
 
     function fmtRailMins(n) {
       if (n == null) return '—';
@@ -1939,7 +1941,7 @@
     }
 
     function viewItem(id, label, count, warn) {
-      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+      return '<button type="button" class="rd-rail__item' + (activeView === id && activeSection === 'overview' ? ' is-active' : '') + '"' +
         ' onclick="applyCeremonyRailView(\'' + id + '\')">' + esc(label) +
         '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
     }
@@ -1955,6 +1957,33 @@
       viewItem('scripture', 'Scripture & vows', counts.scripture || 0) +
       '</div></div>';
 
+    var sectionDefs = [
+      ['overview', 'Overview', ''],
+      ['worship', 'Order of Worship', sectionCounts.worship || 0],
+      ['processional', 'Processional', sectionCounts.processional || 0],
+      ['recessional', 'Recessional', sectionCounts.recessional || 0],
+      ['scripture', 'Scripture & Prayer', sectionCounts.scripture || 0],
+      ['vows', 'Vows & Rings', sectionCounts.vows || 0],
+      ['legal', 'Officiant & Legal', sectionCounts.legal || 0],
+      ['reception', 'Reception Details', sectionCounts.reception || 0],
+      ['traditions', 'Traditions', sectionCounts.traditions || 0]
+    ];
+    var sectionHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Sections</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      sectionDefs.map(function (row) {
+        var id = row[0];
+        var label = row[1];
+        var count = row[2];
+        var countHtml = count === '' || count == null
+          ? '<span class="rd-rail__count"></span>'
+          : '<span class="rd-rail__count">' + count + '</span>';
+        return '<button type="button" class="rd-rail__item' + (activeSection === id ? ' is-active' : '') + '"' +
+          ' onclick="rdSetCeremonySection(\'' + id + '\')">' + esc(label) + countHtml + '</button>';
+      }).join('') +
+      '</div></div>';
+
     var metersHtml =
       '<div class="rd-rail__section">' +
       '<div class="rd-rail__title">Running time</div>' +
@@ -1963,6 +1992,7 @@
       '<div class="rd-rail__meter-top"><span>Cocktail hour</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.cocktailMins)) + '</span></div>' +
       '<div class="rd-rail__meter-top"><span>Reception</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.receptionMins)) + '</span></div>' +
       '<div class="rd-rail__meter-top"><span>Room turnover</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.turnoverMins)) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Unassigned</span><span class="rd-rail__count">' + (figures.unassigned || counts.needs || 0) + '</span></div>' +
       '</div></div>';
 
     function groupItem(id, label) {
@@ -1979,9 +2009,9 @@
       '</div></div>';
 
     var noteHtml =
-      '<p class="rd-rail__note">Elements with a time appear on the Wedding Day Timeline. Editing a duration here moves the timeline block.</p>';
+      '<p class="rd-rail__note">The rail lists the same nine sections as the tab strip. Elements with a time appear on the Wedding Day Timeline — editing a duration here moves the timeline block.</p>';
 
-    return '<div class="rd-rail__stack" data-page-rail="ceremony">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+    return '<div class="rd-rail__stack" data-page-rail="ceremony">' + viewsHtml + sectionHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
   /* All.dc #17b / Dark.dc #17b rail — Sections + Readiness (After the day moved to Homecoming). */

@@ -79,7 +79,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [15 · Wedding Party](#section-15) — done — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [16 · Gifts](#section-16) — done — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [17 · Entertainment](#section-17) — done on `cursor/dashboard-views-017e` — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
-- [18 · Ceremony & Reception](#section-18) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
+- [18 · Ceremony & Reception](#section-18) — done on `cursor/dashboard-views-017e` — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [19 · Shot Lists](#section-19) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [20 · Weekend Logistics](#section-20) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [21 · Households](#section-21) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
@@ -2161,7 +2161,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s18` · slug `ceremony-reception`
 - **Header counts:** 7 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §19
 - **Screen ids:** `11a`, `31c`, `31d`, `19a`
 
 ### Five parts on this page
