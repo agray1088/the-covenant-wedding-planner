@@ -2246,6 +2246,38 @@ body.rd-scope #record-drawer .record-editor-section[data-drawer-group="notes"],
   margin-top: 4px !important;
 }
 
+body.rd-scope #record-drawer .rd-task-dep-block,
+#main#main #record-drawer .rd-task-dep-block { margin: 8px 0 12px; }
+body.rd-scope #record-drawer .rd-task-dep-row,
+#main#main #record-drawer .rd-task-dep-row {
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid #efe9dc; padding: 6px 0;
+}
+body.rd-scope #record-drawer .rd-task-dep-row__main,
+#main#main #record-drawer .rd-task-dep-row__main {
+  flex: 1; display: flex; flex-direction: column; gap: 2px;
+  border: 0; background: none; text-align: left; font: inherit; cursor: pointer; padding: 0; color: inherit;
+}
+body.rd-scope #record-drawer .rd-task-dep-row__main strong,
+#main#main #record-drawer .rd-task-dep-row__main strong { font-size: 13px; font-weight: 500; }
+body.rd-scope #record-drawer .rd-task-dep-row__main span,
+#main#main #record-drawer .rd-task-dep-row__main span { font-size: 11px; color: #8a7e6b; }
+body.rd-scope #record-drawer .rd-task-dep-row__del,
+#main#main #record-drawer .rd-task-dep-row__del {
+  border: 0; background: none; cursor: pointer; color: #8a7e6b; font-size: 16px;
+}
+body.rd-scope #record-drawer .rd-task-watchers,
+#main#main #record-drawer .rd-task-watchers { display: flex; flex-wrap: wrap; gap: 6px; }
+body.rd-scope #record-drawer .rd-task-watcher,
+#main#main #record-drawer .rd-task-watcher {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1px solid #e7e1d4; background: #f7f3ea; padding: 2px 8px; font-size: 12px;
+}
+body.rd-scope #record-drawer .rd-task-watcher button,
+#main#main #record-drawer .rd-task-watcher button {
+  border: 0; background: none; cursor: pointer; color: #8a7e6b; padding: 0;
+}
+
 /* Screen 9a ? notes as a bordered block, not a grid field row */
 body.rd-scope #record-drawer .rd-drawer-notes textarea,
 #main#main #record-drawer .rd-drawer-notes textarea {
@@ -9736,6 +9768,18 @@ body.rd-scope #panel-tasks .rd-task-timeline__bar.is-complete {
 body.rd-scope #panel-tasks .rd-task-timeline__bar.is-dragging {
   opacity: 0.55;
   cursor: grabbing;
+}
+body.rd-scope #panel-tasks .rd-task-timeline__dep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -16px;
+  font-size: 11px;
+  color: #9c3b34;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 body.rd-scope #panel-tasks .rd-task-timeline__empty-open {
   padding: 12px 24px 8px;

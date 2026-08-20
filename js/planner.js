@@ -15766,9 +15766,7 @@ function guestDrawerHistoryPaneHtml(d){
 function renderTaskDrawerEditor(){
   const d = recordEditorState.draft;
   const overdue = typeof taskIsOverdue === 'function' && taskIsOverdue(d);
-  /* Full-editor parity — Task / Schedule / Links / Subtasks / Notes.
-     Tabs (redesign-shell): Task shows Task+Schedule+Notes; dedicated tabs for
-     Subtasks, Links, History. */
+  /* Master 9a drawer: Task · Depends on · People · History */
   return `
     <section class="record-editor-section rd-drawer-fields" data-drawer-group="task"><h4>Task</h4>
       ${rdDrawerInputRow('Task name','task','text')}
@@ -15779,16 +15777,144 @@ function renderTaskDrawerEditor(){
       ${rdDrawerInputRow('Due date','date','date', overdue ? 'is-overdue' : '')}
       ${rdDrawerInputRow('Suggested date','suggestedDue','date')}
       ${rdDrawerSelectRow('Priority','priority',PRIORITY || [])}
-      ${rdDrawerDatalistRow('Owner','assigned',recordAssigneeOptionValues(), true)}
       ${rdDrawerSelectRow('Status','status',TASK_STATUS || [])}
     </section>
-    <section class="record-editor-section rd-drawer-fields" data-drawer-group="links"><h4>Links</h4>
-      ${rdDrawerLinkSelect('Vendor','vendorId',data?.vendors,'name')}
-      ${rdDrawerLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat')}
-    </section>
+    ${renderTaskDrawerDepends()}
+    ${renderTaskDrawerPeople()}
     ${renderTaskDrawerSubtasks()}
     ${renderTaskDrawerNotes()}`;
 }
+function taskDependsOnIds(row){
+  const raw = row && row.dependsOn;
+  if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
+  if (raw) return [String(raw)];
+  return [];
+}
+function taskWatchersList(row){
+  const raw = row && row.watchers;
+  if (Array.isArray(raw)) return raw.map(s => String(s).trim()).filter(Boolean);
+  if (typeof raw === 'string' && raw.trim()) return raw.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
+}
+function taskFindById(id){
+  return safeArray(data.tasks).find(t => String(t._id) === String(id)) || null;
+}
+function taskDownstreamOf(id){
+  const sid = String(id || '');
+  if (!sid) return [];
+  return safeArray(data.tasks).filter(t => taskDependsOnIds(t).includes(sid));
+}
+function renderTaskDrawerDepends(){
+  const d = recordEditorState.draft || {};
+  const ids = taskDependsOnIds(d);
+  const up = ids.map(id => {
+    const t = taskFindById(id);
+    const name = t ? (t.task || 'Task') : ('Missing task');
+    const st = t ? (t.status || '') : '';
+    return `<div class="rd-task-dep-row">
+      <button type="button" class="rd-task-dep-row__main" onclick="rdTaskOpenDepend('${escapeHtml(String(id))}')">
+        <strong>${escapeHtml(name)}</strong>
+        <span>${escapeHtml(st || '—')}</span>
+      </button>
+      <button type="button" class="rd-task-dep-row__del" aria-label="Remove dependency" onclick="rdTaskRemoveDepend('${escapeHtml(String(id))}')">×</button>
+    </div>`;
+  }).join('');
+  const blockedNote = String(d.blockedBy || '').trim();
+  const down = taskDownstreamOf(d._id);
+  const downHtml = down.map(t => {
+    const idx = data.tasks.indexOf(t);
+    return `<button type="button" class="rd-task-dep-row__main" onclick="if(typeof rdOpenDrawer==='function')rdOpenDrawer('tasks',${idx})">
+      <strong>${escapeHtml(t.task || 'Task')}</strong>
+      <span>${escapeHtml(t.status || '—')}</span>
+    </button>`;
+  }).join('');
+  return `<section class="record-editor-section rd-drawer-fields" data-drawer-group="depends"><h4>Depends on</h4>
+    <p class="rd-drawer-callout">What must happen first, and what is waiting on this — the reason a due date is not a wish.</p>
+    <div class="rd-task-dep-block">
+      <div class="rd-drawer-section-title">Blocked by · ${ids.length}</div>
+      ${up || '<p class="rd-help">No upstream tasks yet.</p>'}
+      <button type="button" class="rd-btn rd-btn--quiet" onclick="rdTaskAddDepend()">+ Add dependency</button>
+    </div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Blocker note</span>
+      <input class="rd-field-row__value" type="text" value="${escapeHtml(blockedNote)}" placeholder="Unsigned contract, RSVP deadline…" oninput="recordEditorSet('blockedBy',this.value)">
+    </div>
+    <div class="rd-task-dep-block">
+      <div class="rd-drawer-section-title">Blocks · ${down.length}</div>
+      ${downHtml || '<p class="rd-help">Nothing is waiting on this task.</p>'}
+    </div>
+  </section>`;
+}
+function renderTaskDrawerPeople(){
+  const d = recordEditorState.draft || {};
+  const watchers = taskWatchersList(d);
+  const chips = watchers.map((w, i) =>
+    `<span class="rd-task-watcher">${escapeHtml(w)}<button type="button" aria-label="Remove watcher" onclick="rdTaskRemoveWatcher(${i})">×</button></span>`
+  ).join('');
+  return `<section class="record-editor-section rd-drawer-fields" data-drawer-group="people"><h4>People</h4>
+    <p class="rd-drawer-callout">Owner, watchers and the vendor on the other end. Everyone who gets a notification when this moves.</p>
+    ${rdDrawerDatalistRow('Owner','assigned',recordAssigneeOptionValues(), true)}
+    <div class="rd-field-row"><span class="rd-field-row__label">Watching · ${watchers.length}</span>
+      <div class="rd-task-watchers">${chips || '<span class="rd-help">No watchers</span>'}</div>
+    </div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Add watcher</span>
+      <input class="rd-field-row__value" type="text" placeholder="Name, then Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();rdTaskAddWatcher(this.value);this.value='';}">
+    </div>
+    ${rdDrawerLinkSelect('Vendor','vendorId',data?.vendors,'name')}
+    ${rdDrawerLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat')}
+  </section>`;
+}
+async function rdTaskAddDepend(){
+  const d = recordEditorState && recordEditorState.draft;
+  if (!d) return;
+  const current = new Set(taskDependsOnIds(d).concat([String(d._id || '')]));
+  const others = safeArray(data.tasks).filter(t => t._id && !current.has(String(t._id)));
+  if (!others.length) {
+    if (typeof showToast === 'function') showToast('No other tasks to depend on.');
+    return;
+  }
+  const labels = others.map(t => t.task || 'Untitled task');
+  let picked = null;
+  if (typeof window.covChoose === 'function') picked = await window.covChoose('', labels, { title: 'Depends on' });
+  else if (typeof prompt === 'function') picked = prompt('Depends on which task?');
+  if (!picked) return;
+  const hit = others.find(t => (t.task || 'Untitled task') === picked) || others[labels.indexOf(picked)];
+  if (!hit) return;
+  d.dependsOn = taskDependsOnIds(d).concat([String(hit._id)]);
+  if (typeof renderRecordEditor === 'function') renderRecordEditor();
+}
+function rdTaskRemoveDepend(id){
+  const d = recordEditorState && recordEditorState.draft;
+  if (!d) return;
+  d.dependsOn = taskDependsOnIds(d).filter(x => String(x) !== String(id));
+  if (typeof renderRecordEditor === 'function') renderRecordEditor();
+}
+function rdTaskOpenDepend(id){
+  const idx = safeArray(data.tasks).findIndex(t => String(t._id) === String(id));
+  if (idx > -1 && typeof rdOpenDrawer === 'function') rdOpenDrawer('tasks', idx);
+}
+function rdTaskAddWatcher(name){
+  const d = recordEditorState && recordEditorState.draft;
+  const n = String(name || '').trim();
+  if (!d || !n) return;
+  const list = taskWatchersList(d);
+  if (!list.includes(n)) list.push(n);
+  d.watchers = list;
+  if (typeof renderRecordEditor === 'function') renderRecordEditor();
+}
+function rdTaskRemoveWatcher(i){
+  const d = recordEditorState && recordEditorState.draft;
+  if (!d) return;
+  const list = taskWatchersList(d);
+  list.splice(i, 1);
+  d.watchers = list;
+  if (typeof renderRecordEditor === 'function') renderRecordEditor();
+}
+window.rdTaskAddDepend = rdTaskAddDepend;
+window.rdTaskRemoveDepend = rdTaskRemoveDepend;
+window.rdTaskOpenDepend = rdTaskOpenDepend;
+window.rdTaskAddWatcher = rdTaskAddWatcher;
+window.rdTaskRemoveWatcher = rdTaskRemoveWatcher;
+window.taskDependsOnIds = taskDependsOnIds;
 function renderTaskDrawerSubtasks(){
   const d = recordEditorState.draft;
   if (!Array.isArray(d.subtasks)) d.subtasks = [];
@@ -21134,6 +21260,27 @@ function renderTaskToolbar(){
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';
   const { shown, total } = rdTaskColCounts();
   const view = rdGetTaskView();
+  const viewswitch = `<div class="rd-viewswitch">`
+    +     `<button type="button" class="rd-viewswitch__item${view==='table'?' is-active':''}" onclick="rdSetTaskView('table')">Table</button>`
+    +     `<button type="button" class="rd-viewswitch__item${view==='board'?' is-active':''}" onclick="rdSetTaskView('board')">Board</button>`
+    +     `<button type="button" class="rd-viewswitch__item${view==='timeline'?' is-active':''}" onclick="rdSetTaskView('timeline')">Timeline</button>`
+    +   `</div>`;
+  if (view === 'board') {
+    el.innerHTML = taskFilterChip('phase','Phase')
+      + taskFilterChip('assigned','Owner')
+      + taskFilterChip('status','Status')
+      + `<div class="rd-toolbar__right">${viewswitch}</div>`;
+    return;
+  }
+  if (view === 'timeline') {
+    const depsOn = window._rdTaskShowDeps !== false;
+    el.innerHTML = taskFilterChip('phase','Phase')
+      + taskFilterChip('assigned','Owner')
+      + taskFilterChip('status','Status')
+      + `<button type="button" class="rd-chip${depsOn ? ' is-active' : ''}" onclick="rdTaskToggleDepsShown()">Dependencies shown</button>`
+      + `<div class="rd-toolbar__right">${viewswitch}</div>`;
+    return;
+  }
   el.innerHTML =
       taskFilterChip('phase','Phase')
     + taskFilterChip('assigned','Owner')
@@ -21143,13 +21290,15 @@ function renderTaskToolbar(){
     +   `<button type="button" class="rd-chip" data-rd-task-cols onclick="openTaskColVisibility(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · ${shown} of ${total}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>`
     +   `<button type="button" class="rd-chip" onclick="rdTaskAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>`
     +   `<button type="button" class="rd-chip" onclick="rdCycleRowHeight()"><svg ${svg}><path d="M4 8h16M4 12h16M4 16h16"/></svg>Row height · ${escapeHtml(rdRowHeightLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>`
-    +   `<div class="rd-viewswitch">`
-    +     `<button type="button" class="rd-viewswitch__item${view==='table'?' is-active':''}" onclick="rdSetTaskView('table')">Table</button>`
-    +     `<button type="button" class="rd-viewswitch__item${view==='board'?' is-active':''}" onclick="rdSetTaskView('board')">Board</button>`
-    +     `<button type="button" class="rd-viewswitch__item${view==='timeline'?' is-active':''}" onclick="rdSetTaskView('timeline')">Timeline</button>`
-    +   `</div>`
+    +   viewswitch
     + `</div>`;
 }
+function rdTaskToggleDepsShown(){
+  window._rdTaskShowDeps = window._rdTaskShowDeps === false;
+  if (typeof renderTaskTimelineView === 'function') renderTaskTimelineView();
+  renderTaskToolbar();
+}
+window.rdTaskToggleDepsShown = rdTaskToggleDepsShown;
 
 function rdTaskViewKey(){ return 'rdTaskView:' + (typeof activeProfile !== 'undefined' ? activeProfile : 'default'); }
 function rdGetTaskView(){
@@ -21690,6 +21839,15 @@ function taskTimelineOpenTaskRows(entries, rangeStart, rangeEnd){
     const geom = taskTimelineBarGeom(row, rangeStart, rangeEnd);
     const label = taskTimelineStatusLabel(row.status);
     const idx = (typeof i === 'number' && i >= 0) ? i : (data.tasks || []).indexOf(row);
+    const depIds = taskDependsOnIds(row);
+    const depNames = depIds.map(id => {
+      const t = safeArray(data.tasks).find(x => String(x._id) === String(id));
+      return t ? (t.task || 'Task') : '';
+    }).filter(Boolean);
+    const showDeps = window._rdTaskShowDeps !== false;
+    const depHtml = (showDeps && (depNames.length || String(row.blockedBy || '').trim()))
+      ? `<div class="rd-task-timeline__dep">${escapeHtml(depNames.length ? ('Blocked by · ' + depNames.join(', ')) : ('Blocked by · ' + String(row.blockedBy || row.notes || 'dependency')))}</div>`
+      : '';
     return `<div class="rd-task-timeline__taskrow" data-task-index="${idx}">
       <button type="button" class="rd-task-timeline__tasklab"${idx >= 0 ? ` onclick="if(typeof rdOpenDrawer==='function')rdOpenDrawer('tasks',${idx})"` : ''}>
         <span class="rd-task-timeline__taskname">${escapeHtml(row.task || 'Untitled task')}</span>
@@ -21706,6 +21864,7 @@ function taskTimelineOpenTaskRows(entries, rangeStart, rangeEnd){
           onclick="event.stopPropagation();if(typeof rdOpenDrawer==='function'&&${idx}>=0)rdOpenDrawer('tasks',${idx})">
           <span>${escapeHtml(label)}</span>
         </div>
+        ${depHtml}
       </div>
     </div>`;
   }).join('');
@@ -22406,19 +22565,20 @@ function renderTaskStats() {
   let daysToGo = '—', weddingLabel = 'Not set';
   if (wedding) { const w=new Date(wedding+'T00:00:00'); if(!isNaN(w)){ const diff=Math.ceil((w-today)/86400000); daysToGo = diff>0? diff : (diff===0?'Today':'—'); weddingLabel = w.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); } }
   if (typeof RdDepth !== 'undefined' && RdDepth.renderStats && el.classList.contains('rd-stats')) {
+    const open = Math.max(0, total - done);
+    const unassigned = data.tasks.filter(t => !String(t.assigned || '').trim() && t.status !== 'Complete').length;
     RdDepth.renderStats(el, [
-      { label: 'Total tasks', value: total, filter: 'Show all' },
-      { label: 'Complete', value: done, filter: 'Filter · Complete', delta: total ? pct + '% of total' : undefined, deltaTone: 'flat' },
-      { label: 'In progress', value: inprog, filter: 'Filter · In Progress' },
-      { label: 'Upcoming', value: upcoming, filter: 'Dated & open' },
+      { label: 'Open', value: open, filter: 'Show open', onFilter: () => { if (typeof applyTaskRailView === 'function') applyTaskRailView('all'); } },
+      { label: 'Complete', value: done, filter: 'Filter · Complete', onFilter: () => { if (typeof applyTaskRailView === 'function') applyTaskRailView('complete'); } },
       {
         label: 'Overdue',
         value: overdue,
         filter: 'Filter · Overdue',
-        attention: overdue ? 'Past due — needs attention' : undefined
+        attention: overdue ? 'Past due — needs attention' : undefined,
+        onFilter: () => { if (typeof applyTaskRailView === 'function') applyTaskRailView('overdue'); }
       },
-      { label: 'Wedding date', value: weddingLabel, filter: 'Open Wedding Setup', onFilter: () => { if (typeof showPanel === 'function') showPanel('setup', true); } },
-      { label: 'Days to go', value: daysToGo, filter: 'Countdown' }
+      { label: 'Unassigned', value: unassigned, filter: 'Filter · Unassigned', onFilter: () => { if (typeof applyTaskRailView === 'function') applyTaskRailView('unassigned'); } },
+      { label: 'Days to wedding', value: daysToGo, filter: 'Countdown', onFilter: () => { if (typeof showPanel === 'function') showPanel('setup', true); } }
     ]);
     return;
   }

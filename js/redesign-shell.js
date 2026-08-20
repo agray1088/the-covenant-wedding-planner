@@ -1070,13 +1070,11 @@
   }
 
   /* ─────────────────────────────────────────────────────────────────────
-     §16: the drawer tabs by FIELD GROUP. Task editor emits Task / Schedule /
-     Links / Subtasks / Notes with data-drawer-group. History is synthetic.
-     Task tab stacks Task+Schedule+Notes (too many short tabs for 360px);
-     Subtasks / Links / History keep dedicated tabs — every field reachable.
+     §16 / Master 9a: Task drawer tabs Task · Depends on · People · History.
+     Task tab stacks Task+Schedule+Notes+Subtasks; other groups get a tab.
      ───────────────────────────────────────────────────────────────────── */
   var DECORATING = false;
-  var TASK_DRAWER_TABS = ['Task', 'Subtasks', 'Links', 'History'];
+  var TASK_DRAWER_TABS = ['Task', 'Depends on', 'People', 'History'];
   var TASK_DRAWER_TAB_MAX = TASK_DRAWER_TABS.length - 1;
   /* 14a: Appointment · Travel · Who · History */
   var APPT_DRAWER_TABS = ['Appointment', 'Travel', 'Who', 'History'];
@@ -1097,6 +1095,8 @@
     if (g === 'schedule') return 'Schedule';
     if (g === 'notes') return 'Notes';
     if (g === 'links') return 'Links';
+    if (g === 'people') return 'People';
+    if (g === 'depends') return 'Depends on';
     if (g === 'history') return 'History';
     if (g === 'subtasks') return 'Subtasks';
     if (g === 'task') return 'Task';
@@ -1124,14 +1124,14 @@
     section.classList.toggle('is-drawer-tab-hidden', !show);
   }
 
-  /* Task tab: Task + Schedule + Notes. Dedicated tabs for the rest. */
+  /* Task tab: Task + Schedule + Notes + Subtasks. Dedicated tabs for Depends on / People / History. */
   function showTaskDrawerSections(sections, tabIndex) {
     sections.forEach(function (s) {
       var g = taskDrawerSectionGroup(s);
       var show = false;
-      if (tabIndex === 0) show = (g === 'task' || g === 'schedule' || g === 'notes');
-      else if (tabIndex === 1) show = (g === 'subtasks');
-      else if (tabIndex === 2) show = (g === 'links');
+      if (tabIndex === 0) show = (g === 'task' || g === 'schedule' || g === 'notes' || g === 'subtasks');
+      else if (tabIndex === 1) show = (g === 'depends');
+      else if (tabIndex === 2) show = (g === 'people');
       else if (tabIndex === 3) show = (g === 'history');
       setDrawerSectionVisible(s, show);
     });
@@ -1539,7 +1539,7 @@
                Links/History titles live in the tab strip. Subtasks keep the
                count eyebrow. */
             var label = taskDrawerTabLabel(section);
-            var keepH4 = (label === 'Task' || label === 'Schedule' || label === 'Notes' || label === 'Subtasks');
+            var keepH4 = (label === 'Task' || label === 'Schedule' || label === 'Notes' || label === 'Subtasks' || label === 'Depends on' || label === 'People');
             h4.style.display = keepH4 ? '' : 'none';
           });
           writeDrawerTab(d, activeTab);
