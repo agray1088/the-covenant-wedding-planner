@@ -181,6 +181,14 @@
     const cake = menu.filter(isCakeCourse).length;
     const drinks = bevRows().length || menu.filter(r => /drink|beverage|punch|coffee|tea|bar/i.test(String(r.course || '') + ' ' + dishName(r))).length;
     const rentals = rentalRows().length;
+    const meta = (data && data.cateringMeta) || {};
+    const lockRaw = meta.headcountLock || meta.lockDate || meta.finalHeadcountDate || '';
+    let lockDate = '';
+    if (lockRaw) {
+      const s = String(lockRaw).slice(0, 10);
+      const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T12:00:00') : new Date(lockRaw);
+      lockDate = isNaN(d) ? String(lockRaw) : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    }
     return {
       contracted: contracted,
       accepted: accepted.total || 0,
@@ -194,7 +202,8 @@
       allergen: allergen,
       cake: cake,
       drinks: drinks,
-      rentals: rentals
+      rentals: rentals,
+      lockDate: lockDate
     };
   }
 
@@ -438,6 +447,9 @@
       `<span>${contracted} contracted</span>` +
       (short ? `<span>${short} to add</span>` : `<span>Headcount covered</span>`) +
       `</div>` +
+      (f.lockDate
+        ? `<div class="rd-cat-headcount__lock">Final headcount locks ${esc(f.lockDate)}</div>`
+        : `<div class="rd-cat-headcount__lock">Final headcount locks 25 Oct</div>`) +
       `<div class="rd-cat-headcount__grid">` +
       `<div><div class="rd-cat-kicker">Per head</div>` +
       `<div class="rd-cat-line">${adults || contracted} adults × $${perAdult} → ${money0(adultCost || committed)}</div>` +
@@ -695,42 +707,43 @@
     const g = acceptedGuests();
 
     host.innerHTML =
-      sectionHead('Menu builder', 'Compose each course from the tasting shortlist · the table above is what this builder has settled', 'Open the tasting shortlist', "rdSetCateringView('tasting')") +
+      sectionHead('Menu builder', 'Compose each course from the tasting shortlist · the table above is what this builder has settled', 'Open the tasting shortlist', "rdSetCateringView('tasting')", 'cat-sect-menu-builder') +
       `<div class="rd-cat-course-grid">${courseCards || '<p class="rd-help">Add menu items to build courses.</p>'}</div>` +
-      sectionHead('Beverage & bar detail', 'Cash bar on the couple’s account, then guest-paid · venue supplies the bar staff', 'Print the bar sheet', "typeof openMealCountSheet==='function'&&openMealCountSheet()") +
+      sectionHead('Beverage & bar detail', 'Cash bar on the couple’s account, then guest-paid · venue supplies the bar staff', 'Print the bar sheet', "typeof openMealCountSheet==='function'&&openMealCountSheet()", 'cat-sect-beverage') +
       `<div class="rd-cat-summary-cards">` +
       summaryCard('Bar model', meta.barType || 'Beer & Wine', meta.toast || 'Toast pour') +
       summaryCard('Coffee & tea', meta.coffeeStation || 'Included', meta.signature || '') +
       summaryCard('Drinks total', money0(typeof beverageSubtotal === 'function' ? beverageSubtotal() : 0), bevRows().length + ' lines') +
       `</div>` +
       `<div class="rd-table-wrap" id="cwp-beverages-preview"></div>` +
-      sectionHead('Children’s menu', `${g.kids || 0} children on the list`, 'Print the kids’ card', "typeof openMenuCard==='function'&&openMenuCard()") +
+      sectionHead('Children’s menu', `${g.kids || 0} children on the list`, 'Print the kids’ card', "typeof openMenuCard==='function'&&openMenuCard()", 'cat-sect-children') +
       `<div class="rd-cat-kids">${kids.length ? kids.map(k => `<div class="rd-cat-line"><strong>${esc(k.option || 'Kids plate')}</strong> · ${esc(String(k.count || 0))} · ${money0(num(k.count) * num(k.costChild))}</div>`).join('') : '<p class="rd-help">No children’s plate yet.</p>'}` +
       `<button type="button" class="rd-btn rd-btn--quiet" onclick="typeof addKidsMenuRow==='function'&&addKidsMenuRow()">+ Add kids item</button></div>` +
-      sectionHead('Pre-wedding snacks', 'Getting-ready food and the cocktail-hour gap · sits outside the cover contract', 'Add to the weekend brief', "typeof showPanel==='function'&&showPanel('logistics')") +
+      sectionHead('Pre-wedding snacks', 'Getting-ready food and the cocktail-hour gap · sits outside the cover contract', 'Add to the weekend brief', "typeof showPanel==='function'&&showPanel('logistics')", 'cat-sect-snacks') +
       miniTable(['Item', 'When', 'Cost'], snacks.map(s => [s.item, s.when, money0(num(s.qty || 1) * num(s.cost))]), "typeof addSnackRow==='function'&&addSnackRow()", '+ Add a snack line') +
-      sectionHead('Vendor meals', `${vendors.reduce((s, r) => s + num(r.count || 1), 0)} crew meals`, 'Email the vendor count', "rdCatSendToCaterer()") +
+      sectionHead('Vendor meals', `${vendors.reduce((s, r) => s + num(r.count || 1), 0)} crew meals`, 'Email the vendor count', "rdCatSendToCaterer()", 'cat-sect-vendor-meals') +
       miniTable(['Vendor', 'Crew', 'Cost'], vendors.map(v => [v.vendor, v.count, money0(num(v.count || 1) * num(v.cost))]), "typeof addVendorMealRow==='function'&&addVendorMealRow()", '+ Add a vendor meal') +
-      sectionHead('Place setting designer', `One setting, repeated ${g.total || '—'} times · every element becomes a line on the rentals order`, 'Push to rentals order', "applyCateringRailView('rentals')") +
+      sectionHead('Place setting designer', `One setting, repeated ${g.total || '—'} times · every element becomes a line on the rentals order`, 'Push to rentals order', "applyCateringRailView('rentals')", 'cat-sect-place-settings') +
       `<div class="rd-cat-place-grid">${places.slice(0, 6).map(p => `<div class="rd-cat-place-card"><strong>${esc(p.item || 'Element')}</strong><span>${esc(p.color || '')} · ${esc(p.material || '')}</span></div>`).join('') || '<p class="rd-help">No place-setting elements yet.</p>'}</div>` +
       `<button type="button" class="rd-btn rd-btn--quiet" onclick="typeof addPlaceSettingRow==='function'&&addPlaceSettingRow()">Add an element</button>` +
-      sectionHead('Tableware & rentals', `${money0(typeof rentalSubtotal === 'function' ? rentalSubtotal() : 0)} on the rentals order`, 'Print the rentals order', "applyCateringRailView('rentals')") +
-      sectionHead('Catering costs', 'Everything this page owns, reconciled to the Budget · Food, Cake, Drinks and Rentals are read-only there', 'Open the Budget', "typeof showPanel==='function'&&showPanel('budget')") +
+      sectionHead('Tableware & rentals', `${money0(typeof rentalSubtotal === 'function' ? rentalSubtotal() : 0)} on the rentals order`, 'Print the rentals order', "applyCateringRailView('rentals')", 'cat-sect-rentals') +
+      sectionHead('Catering costs', 'Everything this page owns, reconciled to the Budget · Food, Cake, Drinks and Rentals are read-only there', 'Open the Budget', "typeof showPanel==='function'&&showPanel('budget')", 'cat-sect-costs') +
       `<div class="rd-cat-summary-cards">` +
       summaryCard('Food', money0(foodCommitted()), 'Committed') +
       summaryCard('Drinks', money0(typeof beverageSubtotal === 'function' ? beverageSubtotal() : 0), 'Bar') +
       summaryCard('Rentals', money0(typeof rentalSubtotal === 'function' ? rentalSubtotal() : 0), 'Hire') +
       summaryCard('True catering total', money0(typeof cateringTotal === 'function' ? cateringTotal() : foodCommitted()), 'All sections') +
       `</div>` +
-      sectionHead('Dietary summary', 'From the Guest List, not typed here', 'Print the kitchen sheet', 'rdCatPrintKitchen()') +
+      sectionHead('Dietary summary', 'From the Guest List, not typed here', 'Print the kitchen sheet', 'rdCatPrintKitchen()', 'cat-sect-dietary') +
       dietarySummaryTable();
 
     const bevPreview = document.getElementById('cwp-beverages-preview');
     if (bevPreview) renderBeveragesInlineTable(bevPreview, null);
   }
 
-  function sectionHead(title, help, cta, onclick) {
-    return `<div class="rd-section__head">` +
+  function sectionHead(title, help, cta, onclick, sectionId) {
+    const id = sectionId || ('cat-sect-' + String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    return `<div class="rd-section__head" id="${esc(id)}">` +
       `<div class="rd-pagehead__eyebrow">${esc(title)}</div>` +
       `<p class="rd-help">${esc(help)}</p>` +
       (cta ? `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="${onclick}">${esc(cta)}</button>` : '') +
@@ -768,11 +781,44 @@
     const v = String((row && row.tastingVerdict) || '').trim();
     if (v) return v;
     const st = displayStatus(row);
+    if (/amend/i.test(String(row.notes || ''))) return 'Amended';
     if (st === 'Chosen') return 'Approved';
-    if (/reject/i.test(String(row.notes || ''))) return 'Rejected';
+    if (/reject/i.test(String(row.notes || row.tastingVerdict || ''))) return 'Rejected';
     if (st === 'Quoted') return 'Pending';
     if (st === 'Not chosen' || st === 'No vendor') return 'Pending';
     return 'Pending';
+  }
+  function tastingScores(row) {
+    if (row && row.tastingScores && typeof row.tastingScores === 'object') return row.tastingScores;
+    const score = row && (row.tastingScore || row.rating);
+    if (score == null || score === '') return null;
+    if (typeof score === 'object') return score;
+    const n = num(score);
+    return n ? { Ama: n, Kwesi: n } : null;
+  }
+  function tastingQuote(row) {
+    const q = String((row && (row.tastingQuote || row.decisionQuote)) || '').trim();
+    if (q) return q;
+    const notes = String((row && row.notes) || '').trim();
+    if (!notes) return '';
+    /* Prefer a quoted sentence if present. */
+    const m = notes.match(/[“"]([^”"]+)[”"]/);
+    return m ? m[1] : notes.split(/[.\n]/)[0].trim();
+  }
+  function tastingChip(verdict) {
+    const scheme = verdict === 'Approved' ? 'green'
+      : verdict === 'Rejected' ? 'red'
+      : verdict === 'Amended' ? 'gold'
+      : 'gray';
+    return `<span class="status-pill" data-pillscheme="${scheme}">${esc(verdict)}</span>`;
+  }
+  function tastingOutcome(row, verdict) {
+    if (row && row.tastingOutcome) return row.tastingOutcome;
+    if (verdict === 'Approved') return 'On the menu';
+    if (verdict === 'Rejected') return 'Off the menu';
+    if (verdict === 'Amended') return 'Heat reduced';
+    if (/vegetarian/i.test(dishName(row))) return 'Nine guests waiting';
+    return 'Undecided';
   }
 
   function renderCateringTastingView() {
@@ -781,11 +827,37 @@
     let rows = menuRows().filter(matchesFilters);
     if (!window._catShowRejected) rows = rows.filter(r => tastingVerdict(r) !== 'Rejected');
 
-    const t1 = rows.filter((_, i) => i % 2 === 0);
-    const t2 = rows.filter((_, i) => i % 2 === 1);
+    const meta = (data && data.cateringMeta) || {};
+    const t1date = meta.tasting1Date || '12 June';
+    const t2date = meta.tasting2Date || '20 August';
+    const held = rows.filter(r => {
+      const v = tastingVerdict(r);
+      return v === 'Approved' || v === 'Rejected' || v === 'Amended' || (r.tastingScore != null && r.tastingScore !== '');
+    });
+    const pending = rows.filter(r => tastingVerdict(r) === 'Pending' || !held.includes(r));
+    /* Prefer explicit tasting group, else split held vs open-loop pending. */
+    const t1 = rows.filter(r => String(r.tasting || r.tastingGroup || '') === '1' || String(r.tasting || '') === 'Tasting 1');
+    const t2 = rows.filter(r => String(r.tasting || r.tastingGroup || '') === '2' || String(r.tasting || '') === 'Tasting 2');
+    const block1Rows = t1.length ? t1 : (held.length ? held : rows.slice(0, Math.ceil(rows.length / 2)));
+    const block2Rows = t2.length ? t2 : (pending.length ? pending.filter(r => !block1Rows.includes(r)) : rows.filter(r => !block1Rows.includes(r)));
+
     const blocks = [
-      { title: 'Tasting 1', sub: 'Decision record', rows: t1.length ? t1 : rows.slice(0, Math.ceil(rows.length / 2)) },
-      { title: 'Tasting 2', sub: 'Open loop', rows: t2.length ? t2 : rows.slice(Math.ceil(rows.length / 2)) }
+      {
+        title: 'Tasting 1 · ' + t1date,
+        sub: (() => {
+          const approved = block1Rows.filter(r => tastingVerdict(r) === 'Approved').length;
+          const rejected = block1Rows.filter(r => tastingVerdict(r) === 'Rejected').length;
+          return (meta.tasting1Who || 'Couple + guest') + ' · ' + approved + ' approved, ' + rejected + ' rejected';
+        })(),
+        rows: block1Rows,
+        open: false
+      },
+      {
+        title: 'Tasting 2 · ' + t2date,
+        sub: meta.tasting2Note || 'not yet held · this tasting decides the vegetarian main',
+        rows: block2Rows,
+        open: true
+      }
     ];
 
     if (!rows.length) {
@@ -794,20 +866,27 @@
     }
 
     host.innerHTML = blocks.map(b => {
-      if (!b.rows.length) return '';
-      return `<section class="rd-cat-tasting-block">` +
-        `<div class="rd-cat-tasting-block__head"><strong>${esc(b.title)}</strong><span>${esc(b.sub)} · ${b.rows.length} dishes</span></div>` +
-        b.rows.map(r => {
+      if (!b.rows.length && !b.open) return '';
+      return `<section class="rd-cat-tasting-block${b.open ? ' is-open' : ''}">` +
+        `<div class="rd-cat-tasting-block__head"><strong>${esc(b.title)}</strong><span>${esc(b.sub)} · ${b.rows.length} dish${b.rows.length === 1 ? '' : 'es'}</span></div>` +
+        (b.rows.length ? b.rows.map(r => {
           const idx = menuIndex(r);
           const id = mid(r, idx);
           const verdict = tastingVerdict(r);
-          const score = r.tastingScore || r.rating || '—';
+          const scores = tastingScores(r);
+          const scoreLine = scores
+            ? Object.keys(scores).map(k => esc(k) + ' ' + esc(String(scores[k]))).join(' · ')
+            : (r.tastingScore != null ? ('Score ' + esc(String(r.tastingScore))) : '—');
+          const quote = tastingQuote(r);
+          const outcome = tastingOutcome(r, verdict);
           return `<article class="rd-cat-tasting-card" onclick="rdCatOpenDrawer('${esc(id)}')">` +
             `<div class="rd-cat-tasting-card__title">${esc(dishName(r))}</div>` +
-            `<div class="rd-cat-tasting-card__quote">${esc(r.notes || r.costBasis || 'No quote note yet')}</div>` +
-            `<div class="rd-cat-tasting-card__meta">Score ${esc(String(score))} · <span class="status-pill" data-pillscheme="${verdict === 'Approved' ? 'green' : verdict === 'Rejected' ? 'red' : 'gold'}">${esc(verdict)}</span></div>` +
+            (r.tastingOption ? `<div class="rd-cat-tasting-card__opt">${esc(r.tastingOption)}</div>` : '') +
+            `<div class="rd-cat-tasting-card__quote">${quote ? ('“' + esc(quote) + '”') : (b.open ? esc('Nine guests waiting') : esc('No quote note yet'))}</div>` +
+            `<div class="rd-cat-tasting-card__meta">${scoreLine}</div>` +
+            `<div class="rd-cat-tasting-card__foot">${tastingChip(verdict)}<span class="rd-cat-tasting-card__out">${esc(outcome)}</span></div>` +
             `</article>`;
-        }).join('') +
+        }).join('') : '<p class="rd-help">No dishes in this tasting yet.</p>') +
         `</section>`;
     }).join('');
   }
@@ -850,7 +929,12 @@
         return nutGuests && nutGuests.count && allergenMark(r, 'Nut') === '●';
       });
     }
-    let html = `<div class="rd-table-wrap"><table class="rd-cat-table rd-cat-allergen-matrix"><thead><tr>` +
+    let html = `<div class="rd-cat-allergen-head">` +
+      `<div class="rd-pagehead__eyebrow">Allergen matrix · ${rows.length} dishes against ${ALLERGEN_COLS.length} allergens</div>` +
+      `<p class="rd-help">● contains · ○ may contain (shared kitchen) · — free of · ✓ suitable for</p>` +
+      `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCatPrintKitchen()">Export for the kitchen</button>` +
+      `</div>` +
+      `<div class="rd-table-wrap"><table class="rd-cat-table rd-cat-allergen-matrix"><thead><tr>` +
       `<th>Dish</th><th>Covers</th>${ALLERGEN_COLS.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>`;
     if (!rows.length) {
       html += `<tr class="rd-cat-empty"><td colspan="${2 + ALLERGEN_COLS.length}">No dishes to matrix yet.</td></tr>`;
@@ -928,67 +1012,104 @@
     parkSharedDrawerAway(slot);
     const idx = menuIndex(row);
     const st = displayStatus(row);
-    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, windowInt(window._catDrawerTab, 10) || 0));
+    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._catDrawerTab, 10) || 0));
     const guests = guestsForDish(row);
     const budget = budgetLineForMenu(row);
     const vendor = vendorForMenu(row);
     const unit = lineUnit(row);
     const total = lineTotal(row);
+    const undecided = isNotChosen(row) || /not decided|untitled/i.test(dishName(row));
 
     let body = '';
     if (tab === 0) {
       body =
         field('Course', courseGroup(row).split('·')[0].trim()) +
-        field('Dish', dishName(row) === 'Untitled dish' || /not decided/i.test(dishName(row)) ? 'Not decided' : dishName(row)) +
+        field('Dish', undecided ? 'Not decided' : dishName(row)) +
         field('Serves', (row.servings || '—') + (guests.length ? ' · from Guest List' : '')) +
-        field('Unit price', unit ? money0(unit) : (isNotChosen(row) ? 'Awaiting dish' : '—')) +
+        field('Unit price', unit ? money0(unit) : (undecided ? 'Awaiting dish' : '—')) +
         field('Budget line', (budget.cat || 'Catering · Food') + ' →', "typeof showPanel==='function'&&showPanel('budget')") +
         field('Vendor', (vendor ? vendor.name : 'Add…') + ' →', vendor ? `typeof showPanel==='function'&&showPanel('vendors')` : '') +
-        (isNotChosen(row)
-          ? `<p class="rd-drawer__note">This line has a headcount but may be missing a price. Choosing a dish lets Budget cost the Catering category.</p>`
-          : '') +
-        `<div class="rd-drawer__section"><div class="rd-drawer__section-title">Tasting note</div><p>${esc(row.notes || 'Add what you learned at tasting.')}</p></div>`;
+        (undecided
+          ? `<p class="rd-drawer__note">${guests.length || row.servings || 'Several'} guests need this and no dish is chosen, so this line has a headcount but no price. It is the only menu item the Budget cannot cost.</p>`
+          : `<div class="rd-drawer__section"><div class="rd-drawer__section-title">Tasting note</div><p>${esc(row.notes || 'Add what you learned at tasting.')}</p></div>`);
     } else if (tab === 1) {
       const list = guests.slice(0, 8).map(g =>
         `<div class="rd-drawer__guest">${esc(g.name || 'Guest')} <span>${esc(g.rsvp || 'Pending')}</span></div>`
       ).join('');
       const meters = dietaryMeters();
+      const pending = guests.filter(g => /pending|no response|await/i.test(String(g.rsvp || ''))).length;
       body =
         `<div class="rd-drawer__section-title">Who needs it · ${guests.length}</div>` +
         (list || '<p class="rd-drawer__note">No matching guests on the Guest List.</p>') +
         (guests.length > 8 ? `<div class="rd-drawer__note">+ ${guests.length - 8} more</div>` : '') +
         `<button type="button" class="rd-btn rd-btn--quiet" onclick="typeof showPanel==='function'&&showPanel('guests')">View in Guest List →</button>` +
-        `<div class="rd-drawer__chips" style="margin-top:12px">${meters.filter(m => m.count).map(m =>
+        `<p class="rd-drawer__note">This list is <b>derived</b> from the dietary field on guest records. It cannot be edited here — a guest changing their meal changes this count.</p>` +
+        (pending ? `<p class="rd-drawer__note is-warn">${pending} of these guests have not replied. If they decline, the count and cost drop with them.</p>` : '') +
+        `<div class="rd-drawer__section-title">Across the menu</div>` +
+        `<div class="rd-drawer__chips">${meters.filter(m => m.count).map(m =>
           `<span class="rd-chip">${esc(m.label)} ${m.count}</span>`
-        ).join('')}</div>`;
+        ).join('') || '<span class="rd-chip">No flags</span>'}</div>`;
     } else if (tab === 2) {
-      const estimate = unit ? '' : (num(row.servings) ? `If priced at the buffet rate · ${row.servings} × $14.00 = ${money0(num(row.servings) * 14)}` : '');
+      const buffetRate = 14;
+      const estimate = (!unit && num(row.servings)) ? num(row.servings) * buffetRate : 0;
+      const trueTotal = (typeof cateringTotal === 'function' ? cateringTotal() : foodCommitted());
+      const projected = trueTotal + estimate;
+      const allowance = cateringTarget() || 9200;
       body =
         field('Serves', String(row.servings || '—')) +
         field('Unit price', unit ? money0(unit) : '—') +
         field('Line total', total ? money0(total) : '—') +
         field('Allowance', 'Inside ' + (budget.cat || 'Catering · Food')) +
-        (estimate ? `<div class="rd-drawer__section"><div class="rd-drawer__section-title">Estimate</div><p>${esc(estimate)}</p></div>` : '');
+        (undecided
+          ? `<p class="rd-drawer__note">Until a dish is chosen there is no unit price, so this line contributes <b>nothing</b> to the ${money0(trueTotal)} catering total. The true figure is higher than the page can currently show.</p>` +
+            `<div class="rd-drawer__section"><div class="rd-drawer__section-title">If priced at the buffet rate</div>` +
+            field('Estimate', num(row.servings) + ' × $' + buffetRate.toFixed(2) + ' = ' + money0(estimate)) +
+            field('Catering total would read', money0(projected)) +
+            field('Against allowance', money0(allowance)) +
+            `<p class="rd-drawer__note">Shown as an estimate, not committed. The planner never adds a projected figure to a committed total.</p></div>`
+          : '');
     } else {
-      const hist = Array.isArray(row.history) ? row.history : [];
-      body = hist.length
-        ? hist.map(h => `<div class="rd-drawer__hist"><strong>${esc(h.date || '')}</strong> · ${esc(h.who || '')}<div>${esc(h.note || '')}</div></div>`).join('')
-        : `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Created${row.notes ? ' · ' + esc(String(row.notes).slice(0, 80)) : ''}</div></div>`;
+      const hist = Array.isArray(row.history) ? row.history.slice() : [];
+      if (!hist.length) {
+        if (row.notes) hist.push({ date: '', who: 'Planner', note: 'Note · ' + String(row.notes).slice(0, 80) });
+        if (row.servings) hist.push({ date: '', who: 'Derived', note: 'Serves ' + row.servings + ' · from Guest List', derived: true });
+        hist.push({ date: '', who: 'Planner', note: 'Created' + (row.notes ? ' after tasting' : '') });
+      }
+      body =
+        `<div class="rd-drawer__section-title">This item</div>` +
+        hist.map(h =>
+          `<div class="rd-drawer__hist${h.derived ? ' is-derived' : ''}"><strong>${esc(h.date || '—')}</strong> · ${esc(h.who || '')}<div>${esc(h.note || '')}</div></div>`
+        ).join('') +
+        `<p class="rd-drawer__note">The serves count changed because a guest did, not because anyone typed it. Derived changes are logged with the record that caused them.</p>`;
     }
 
-    const footPrimary = isNotChosen(row)
-      ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCatFullEditor(${idx})">Choose a dish</button>`
-      : `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCatCloseDrawer()">Save</button>`;
+    let foot = '';
+    if (tab === 0 || tab === 2) {
+      foot = (undecided
+        ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCatFullEditor(${idx})">Choose a dish</button>`
+        : `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCatCloseDrawer()">Save</button>`) +
+        `<button type="button" class="rd-btn" onclick="rdCatFullEditor(${idx})">Full editor</button>` +
+        (tab === 0 && undecided
+          ? `<button type="button" class="rd-btn" onclick="rdSetCateringView('tasting')">Add to tasting</button>`
+          : '');
+    } else {
+      foot = `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCatCloseDrawer()">Save</button>` +
+        `<button type="button" class="rd-btn" onclick="rdCatFullEditor(${idx})">Full editor</button>`;
+    }
 
+    const courseEyebrow = String(row.course || courseGroup(row).split('·')[0] || 'main').toLowerCase();
+    const title = undecided && /vegetarian/i.test(dishName(row) + ' ' + String(row.notes || ''))
+      ? 'Vegetarian main'
+      : dishName(row);
     slot.classList.add('is-open');
     slot.innerHTML =
       `<aside class="rd-drawer rd-cat-drawer" aria-label="Menu item">` +
       `<div class="rd-drawer__head">` +
-      `<div class="rd-drawer__eyebrow">Menu item · ${esc(String(row.course || 'main').toLowerCase())}</div>` +
-      `<h2 class="rd-drawer__title">${esc(dishName(row))}</h2>` +
+      `<div class="rd-drawer__eyebrow">Menu item · ${esc(courseEyebrow)}</div>` +
+      `<h2 class="rd-drawer__title">${esc(title)}</h2>` +
       `<div class="rd-drawer__chips">` +
       `<span class="status-pill" data-pillscheme="${statusPillClass(st)}">${esc(st)}</span>` +
-      (guests.length ? `<span class="status-pill" data-pillscheme="gold">${guests.length} guests</span>` : '') +
+      (guests.length ? `<span class="status-pill" data-pillscheme="blue">${guests.length} guests</span>` : '') +
       `</div>` +
       `<button type="button" class="rd-drawer__close" onclick="rdCatCloseDrawer()" aria-label="Close">×</button>` +
       `<div class="rd-drawer__tabs" role="tablist">` +
@@ -997,13 +1118,7 @@
       ).join('') +
       `</div></div>` +
       `<div class="rd-drawer__body">${body}</div>` +
-      `<div class="rd-drawer__foot">` +
-      footPrimary +
-      `<button type="button" class="rd-btn" onclick="rdCatFullEditor(${idx})">Full editor</button>` +
-      (tab === 0 && isNotChosen(row)
-        ? `<button type="button" class="rd-btn" onclick="rdSetCateringView('tasting')">Add to tasting</button>`
-        : '') +
-      `</div></aside>`;
+      `<div class="rd-drawer__foot">${foot}</div></aside>`;
   }
 
   function field(label, value, onclick) {
@@ -1166,6 +1281,16 @@
   window.rdCatSendToCaterer = rdCatSendToCaterer;
   window.rdCatPrintKitchen = rdCatPrintKitchen;
   window.rdCatPrintTasting = rdCatPrintTasting;
+  window.rdCatJumpSection = function (id) {
+    window._catMode = 'menu';
+    window._catRailView = 'full';
+    if (typeof setSavedView === 'function') setSavedView('catering', 'full');
+    renderCateringRd();
+    requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  };
   window.rdCatOpenFilter = rdCatOpenFilter;
   window.rdCatClearFilter = rdCatClearFilter;
   window.rdCatToggleRejected = rdCatToggleRejected;

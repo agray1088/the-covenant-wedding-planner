@@ -1675,7 +1675,29 @@
       '<p class="rd-rail__note">Counts read live from the Guest List — they are never typed here.</p>' +
       '<p class="rd-rail__note">This page owns Food, Cake, Drinks and Rentals in the Budget. Editing a price here updates the Catering category there.</p>';
 
-    return '<div class="rd-rail__stack" data-page-rail="catering">' + viewsHtml + dietHtml + noteHtml + '</div>';
+    /* 19p — nine sections deliberately NOT tabbed: rail jumps; stacking is the point. */
+    var sections = [
+      ['cat-sect-menu-builder', 'Menu builder', counts.full || 0],
+      ['cat-sect-beverage', 'Beverage & bar', counts.drinks || 0],
+      ['cat-sect-children', 'Children’s menu', 0],
+      ['cat-sect-place-settings', 'Place settings', 0],
+      ['cat-sect-rentals', 'Tableware & rentals', counts.rentals || 0],
+      ['cat-sect-snacks', 'Pre-wedding snacks', 0],
+      ['cat-sect-vendor-meals', 'Vendor meals', 0],
+      ['cat-sect-costs', 'Catering costs', 0],
+      ['cat-sect-dietary', 'Dietary summary', 0]
+    ];
+    var jumpHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Sections · jump</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      sections.map(function (s) {
+        return '<button type="button" class="rd-rail__item" onclick="rdCatJumpSection(\'' + s[0] + '\')">' +
+          esc(s[1]) + '<span class="rd-rail__count">' + (s[2] || '') + '</span></button>';
+      }).join('') +
+      '</div></div>';
+
+    return '<div class="rd-rail__stack" data-page-rail="catering">' + viewsHtml + dietHtml + jumpHtml + noteHtml + '</div>';
   }
 
   function buildDataHubContext() {

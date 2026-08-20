@@ -1433,7 +1433,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s12` · slug `catering-menu`
 - **Header counts:** 7 screens · 1 record drawer
-- **Status:** not started — do not implement until §11 is reviewed and you say “next”
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §13
+- **Screen ids:** `7a`, `30h`, `30i`, `19p`
 
 ### Five parts on this page
 
@@ -1441,8 +1442,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 |---|---|---|
 | Full page | yes | `7a` |
 | View switcher views | yes | `30h`, `30i` |
-| Section tabs | yes | `19p` |
-| Record drawer tabs | yes | Menu item · 7a: Item · Guests · Costing · History |
+| Section tabs | yes · deliberately not tabbed | `19p` — nine sections stacked; rail **Sections · jump** scrolls; do not add a tab strip |
+| Record drawer tabs | yes | Menu item · Item · Guests · Costing · History |
 | Night theme | yes | `7a` |
 
 **View switcher options (exact labels):** Catering & Menu · Tasting notes view · Catering & Menu · Allergens view
@@ -1520,7 +1521,7 @@ Drawings:
 
 ##### `19p` — Catering & Menu · nine sections, deliberately NOT tabbed
 
-
+Tabs would hide eight of nine consequences of a headcount change. Shipping UI stacks Menu builder · Beverage & bar · Children’s menu · Place settings · Tableware & rentals · Pre-wedding snacks · Vendor meals · Catering costs · Dietary summary under the Menu table, and the rail **Sections · jump** scrolls to them. Do not introduce a section tab strip.
 #### Part · Record drawer tabs
 
 *one drawing per tab of every record this page opens*

@@ -15691,6 +15691,42 @@ body.rd-scope #panel-catering .rd-cat-tasting-card__quote {
   margin: 6px 0;
 }
 body.rd-scope #panel-catering .rd-cat-tasting-card__meta { font-size: 12px; color: #8a7e6b; }
+body.rd-scope #panel-catering .rd-cat-tasting-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+body.rd-scope #panel-catering .rd-cat-tasting-card__out {
+  font-size: 12px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-catering .rd-cat-tasting-card__opt {
+  font-size: 12px;
+  color: #8a7e6b;
+  margin-top: 2px;
+}
+body.rd-scope #panel-catering .rd-cat-tasting-block.is-open {
+  border: 1px dashed #e7ce80;
+  padding: 10px 12px;
+  background: #fffcf5;
+}
+body.rd-scope #panel-catering .rd-cat-allergen-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 16px;
+  padding: 8px 4px 14px;
+}
+body.rd-scope #panel-catering .rd-cat-allergen-head .rd-help { margin: 0; flex: 1; }
+body.rd-scope #panel-catering .rd-cat-headcount__lock {
+  font-size: 12px;
+  color: #8a7e6b;
+  margin: 6px 0 10px;
+}
+body.rd-scope #panel-catering .rd-cat-drawer .rd-drawer__note.is-warn { color: #8a640f; }
+body.rd-scope #panel-catering .rd-cat-drawer .rd-drawer__hist.is-derived { color: #8a7e6b; }
 
 body.rd-scope #panel-catering .rd-cat-allergen-matrix .rd-cat-mark {
   text-align: center;
