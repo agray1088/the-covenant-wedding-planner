@@ -31843,6 +31843,8 @@ function renderTableMap() {
     node.style.setProperty('height', dims.h + 'px', 'important');
     node.style.setProperty('--tn-w', dims.w + 'px');
     node.style.setProperty('--tn-h', dims.h + 'px');
+    /* Redesign zeros every border-radius inside #main; restore circle/rect here. */
+    node.style.setProperty('border-radius', isRect ? (type === 'head' ? '9px' : '8px') : '999px', 'important');
     const chairs = tableChairHtml(cap, isRect, !!t.vert, type, t.facing || 'down', t.preset || '', cap);
     node.innerHTML = `${chairs}<div class="tn-controls"><button class="tn-shape" title="Switch circle / rectangle" onclick="toggleTableShape(${idx})">↺</button>${rotateBtn}${faceBtn}</div>${vip ? `<div class="tn-crown" title="VIP table">${tableCrownSvg()}</div>` : ''}<div class="tn-label">${escapeHtml(compact)}</div><div class="tn-count">${count}/${cap || '?'}</div>`;
     node.addEventListener('pointerdown', e => startTableDrag(e, idx, node, map));
