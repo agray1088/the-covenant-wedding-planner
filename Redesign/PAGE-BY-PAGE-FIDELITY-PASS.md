@@ -74,7 +74,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [10 · Contracts & Invoices](#section-10) — next — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [11 · Venue & Vendors](#section-11) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [12 · Catering & Menu](#section-12) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
-- [13 · Table Layout](#section-13) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
+- [13 · Table Layout](#section-13) — done — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [14 · Vision Board](#section-14) — queued — 8 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [15 · Wedding Party](#section-15) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [16 · Gifts](#section-16) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
@@ -1556,7 +1556,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s13` · slug `table-layout`
 - **Header counts:** 6 screens · 1 record drawer
-- **Status:** not started — do not implement until §12 is reviewed and you say “next”
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §14
+- **Screen ids:** `8a`, `29c`, `29d`
 
 ### Five parts on this page
 

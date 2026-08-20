@@ -11391,6 +11391,125 @@ body.rd-scope #panel-tables .rd-tables-diet__mark {
   background: var(--status-gold-bg, #fff7df);
   color: var(--status-gold-text, #8a640f);
 }
+body.rd-scope #panel-tables .rd-tables-mark {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted, #6f6a60);
+}
+body.rd-scope #panel-tables .rd-tables-mark[data-mark-state="confirmed"] .rd-tables-mark__glyph,
+body.rd-scope #panel-tables .rd-tables-mark[data-mark-state="ready"] .rd-tables-mark__glyph {
+  color: var(--forest-deep, #2f4a3c);
+  font-weight: 700;
+}
+body.rd-scope #panel-tables .rd-tables-mark[data-mark-state="suspected"] .rd-tables-mark__glyph {
+  color: var(--status-gold-text, #8a640f);
+  font-weight: 700;
+}
+body.rd-scope #panel-tables .rd-tables-mark__glyph {
+  font-size: 14px;
+  line-height: 1;
+}
+body.rd-scope #panel-tables .rd-tables-byguest-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: baseline;
+  padding: 0 0 10px;
+  font: 500 12px/1.35 var(--font-ui);
+  color: var(--ink-muted, #6f6a60);
+}
+body.rd-scope #panel-tables .rd-tables-byguest-legend__marks b {
+  font-weight: 700;
+  color: var(--ink, #2a2620);
+}
+body.rd-scope #panel-tables .rd-tables-legend-note {
+  font: 500 12px/1.35 var(--font-ui);
+  color: var(--ink-muted, #6f6a60);
+  padding: 0 4px;
+}
+body.rd-scope #panel-tables .rd-tables-audit {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 28px;
+}
+body.rd-scope #panel-tables .rd-tables-audit-group__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+  padding: 0 2px 8px;
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4);
+  font: 700 11px/1.2 var(--font-ui);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-muted, #8a7e6b);
+}
+body.rd-scope #panel-tables .rd-tables-audit-group__roll {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 12px;
+  color: var(--ink-muted, #6f6a60);
+}
+body.rd-scope #panel-tables .rd-tables-audit-group.is-residual .rd-tables-audit-group__head {
+  color: #a33b28;
+}
+body.rd-scope #panel-tables .rd-tables-audit-group__body {
+  display: flex;
+  flex-direction: column;
+}
+body.rd-scope #panel-tables .rd-tables-audit-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.4fr) minmax(140px, 1.2fr) minmax(110px, 1fr) 110px;
+  gap: 10px 16px;
+  align-items: baseline;
+  width: 100%;
+  padding: 10px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle, #efe9dc);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+body.rd-scope #panel-tables .rd-tables-audit-row:hover {
+  background: #faf7f1;
+}
+body.rd-scope #panel-tables .rd-tables-audit-row__name {
+  font: 600 14px/1.3 var(--font-ui);
+  color: var(--ink, #2a2620);
+}
+body.rd-scope #panel-tables .rd-tables-audit-row__meta,
+body.rd-scope #panel-tables .rd-tables-audit-row__diet {
+  font: 500 12px/1.35 var(--font-ui);
+  color: var(--ink-muted, #6f6a60);
+}
+body.rd-scope #panel-tables .rd-tables-audit-row__status {
+  font: 600 12px/1.35 var(--font-ui);
+  color: var(--forest-deep, #2f4a3c);
+  text-align: right;
+}
+body.rd-scope #panel-tables .rd-tables-audit-row.is-free .rd-tables-audit-row__status {
+  color: var(--status-gold-text, #8a640f);
+}
+body.rd-scope #panel-tables .rd-tables-audit-row.is-unseated .rd-tables-audit-row__status,
+body.rd-scope #panel-tables .rd-tables-audit-row.is-unseated .rd-tables-audit-row__name {
+  color: #a33b28;
+}
+@media (max-width: 720px) {
+  body.rd-scope #panel-tables .rd-tables-audit-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "name status"
+      "meta diet";
+  }
+  body.rd-scope #panel-tables .rd-tables-audit-row__name { grid-area: name; }
+  body.rd-scope #panel-tables .rd-tables-audit-row__status { grid-area: status; }
+  body.rd-scope #panel-tables .rd-tables-audit-row__meta { grid-area: meta; }
+  body.rd-scope #panel-tables .rd-tables-audit-row__diet { grid-area: diet; }
+}
 body.rd-scope #panel-tables .rd-tables-byguest table.rd-tables-sticky-guest,
 body.rd-scope #panel-tables #cwp-tables-byguest table {
   border-collapse: separate;

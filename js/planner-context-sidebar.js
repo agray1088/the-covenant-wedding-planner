@@ -372,13 +372,15 @@
       viewItem('unseated', 'Unseated guests', s.unseated, { warn: true }) +
       '</div></div>';
 
+    var why = (s.reasons && typeof s.reasons === 'object') ? s.reasons
+      : ((typeof tablesUnseatedReasons === 'function') ? tablesUnseatedReasons() : { notInvited: 0, noAddress: 0, unnamedPlus: 0, unseated: s.unseated || 0 });
     var whyHtml =
       '<div class="rd-rail__section">' +
-      '<div class="rd-rail__title">Why ' + s.unseated + ' are unseated</div>' +
+      '<div class="rd-rail__title">Why ' + (why.unseated != null ? why.unseated : s.unseated) + ' are unseated</div>' +
       '<div class="rd-rail__meters">' +
-      '<div class="rd-rail__meter-top"><span>Not invited yet</span><span class="rd-rail__count">12</span></div>' +
-      '<div class="rd-rail__meter-top"><span>No address on file</span><span class="rd-rail__count">9</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Unnamed plus-ones</span><span class="rd-rail__count">3</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Not invited yet</span><span class="rd-rail__count">' + (why.notInvited || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>No address on file</span><span class="rd-rail__count">' + (why.noAddress || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Unnamed plus-ones</span><span class="rd-rail__count">' + (why.unnamedPlus || 0) + '</span></div>' +
       '<p class="rd-rail__note">A guest can\u2019t take a seat until they have a name and an invitation.</p>' +
       '</div></div>';
 

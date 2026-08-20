@@ -3,7 +3,7 @@
   'use strict';
 
   const TABLES_DRAWER_TABS = ['Table', 'Seats', 'Notes', 'History'];
-  const RD_TABLES_COL_KEYS = ['guest', 'table', 'seat', 'side', 'group', 'rsvp', 'meal', 'diet'];
+  /* Plan · 8a columns — Diet lives on By guest as Nut · GF · Veg marks, not here. */
   const RD_TABLES_COLUMNS = [
     { key: 'guest', label: 'Guest', width: '190px', type: 'person' },
     { key: 'table', label: 'Table', width: '110px', type: 'link' },
@@ -11,17 +11,20 @@
     { key: 'side', label: 'Side', width: '120px', type: 'select' },
     { key: 'group', label: 'Group', width: '170px', type: 'select' },
     { key: 'rsvp', label: 'RSVP', width: '120px', type: 'select' },
-    { key: 'meal', label: 'Meal', width: '150px', type: 'select' },
-    { key: 'diet', label: 'Diet', width: '88px', type: 'marks' }
+    { key: 'meal', label: 'Meal', width: '150px', type: 'select' }
   ];
+  /* By guest · 29d — caterer / place-card sheet. Marks, not text. */
   const RD_TABLES_BYGUEST_COLUMNS = [
     { key: 'guest', label: 'Guest', width: '200px', type: 'person' },
-    { key: 'table', label: 'Table', width: '90px', type: 'link' },
-    { key: 'seat', label: 'Seat', width: '64px', type: 'text' },
-    { key: 'meal', label: 'Meal', width: '130px', type: 'select' },
-    { key: 'diet', label: 'Diet', width: '88px', type: 'marks' },
-    { key: 'rsvp', label: 'RSVP', width: '110px', type: 'select' },
-    { key: 'side', label: 'Side', width: '100px', type: 'select' }
+    { key: 'table', label: 'Table', width: '72px', type: 'link' },
+    { key: 'seat', label: 'Seat', width: '56px', type: 'text' },
+    { key: 'side', label: 'Side', width: '90px', type: 'select' },
+    { key: 'rsvp', label: 'Reply', width: '110px', type: 'select' },
+    { key: 'meal', label: 'Meal', width: '120px', type: 'select' },
+    { key: 'nut', label: 'Nut', width: '48px', type: 'mark' },
+    { key: 'gf', label: 'GF', width: '48px', type: 'mark' },
+    { key: 'veg', label: 'Veg', width: '48px', type: 'mark' },
+    { key: 'placeCard', label: 'Place card', width: '88px', type: 'mark' }
   ];
 
   /* The table engine builds the header, group rows and select gutter from
@@ -40,7 +43,6 @@
   /* The three views each mount the same table definition in a different host. */
   function currentTablesMountId() {
     const view = rdGetTablesView();
-    if (view === 'list') return 'cwp-tables-list';
     if (view === 'byguest') return 'cwp-tables-byguest';
     return 'cwp-tables-assignments';
   }
@@ -109,12 +111,15 @@
 
   function dietaryMarks(row) {
     const raw = String((row && (row.dietary || row.mealNote || row.restriction)) || '').toLowerCase();
+    const meal = String((row && row.meal) || '').toLowerCase();
     const marks = [];
     if (/gluten|gf\b|coeliac|celiac/.test(raw)) marks.push({ key: 'gf', title: 'Gluten-free' });
     if (/nut|peanut|tree nut/.test(raw)) marks.push({ key: 'nut', title: 'Nut allergy' });
     if (/dairy|lactose|milk/.test(raw)) marks.push({ key: 'dairy', title: 'Dairy-free' });
-    if (/veggie|vegetarian/.test(raw) && !/vegan/.test(raw)) marks.push({ key: 'veg', title: 'Vegetarian' });
-    if (/vegan/.test(raw)) marks.push({ key: 'vegan', title: 'Vegan' });
+    if ((/veggie|vegetarian/.test(raw) && !/vegan/.test(raw)) || /veg main|vegetarian/.test(meal)) {
+      marks.push({ key: 'veg', title: 'Vegetarian' });
+    }
+    if (/vegan/.test(raw) || /vegan/.test(meal)) marks.push({ key: 'vegan', title: 'Vegan' });
     if (/shellfish|seafood|fish allergy/.test(raw)) marks.push({ key: 'shell', title: 'Shellfish' });
     if (/halal/.test(raw)) marks.push({ key: 'halal', title: 'Halal' });
     if (/kosher/.test(raw)) marks.push({ key: 'kosher', title: 'Kosher' });
@@ -122,8 +127,113 @@
     return marks;
   }
 
+  /* ● confirmed · ○ suspected · — none. A blank is never “no restriction”. */
+  function dietaryRestrictionState(row, kind) {
+    const raw = String((row && (row.dietary || row.mealNote || row.restriction)) || '');
+    const meal = String((row && row.meal) || '');
+    const blob = (raw + ' ' + meal).toLowerCase();
+    const status = String((row && (row.dietaryStatus || row.restrictionStatus)) || '').toLowerCase();
+    let hit = false;
+    if (kind === 'nut') hit = /nut|peanut/.test(blob);
+    else if (kind === 'gf') hit = /gluten|gf\b|coeliac|celiac/.test(blob);
+    else if (kind === 'veg') hit = /veggie|vegetarian|vegan|veg main/.test(blob);
+    if (!hit) return 'none';
+    if (row && row.dietaryConfirmed === false) return 'suspected';
+    if (/suspect|await|unconfirm|\?/.test(status + ' ' + raw.toLowerCase())) return 'suspected';
+    return 'confirmed';
+  }
+
+  function dietaryMarkGlyph(state) {
+    if (state === 'confirmed') return '●';
+    if (state === 'suspected') return '○';
+    return '—';
+  }
+
+  function dietaryMarkCellHtml(row, kind, title) {
+    if (row && (row._isEmpty || row._rowKind === 'empty')) {
+      return '<td class="rd-tables-mark rd-guest-td--muted">—</td>';
+    }
+    const state = dietaryRestrictionState(row, kind);
+    const glyph = dietaryMarkGlyph(state);
+    const tip = state === 'confirmed' ? ('Confirmed · ' + title)
+      : state === 'suspected' ? ('Suspected · ' + title + ' · awaiting confirmation')
+      : 'None on file';
+    return '<td class="rd-tables-mark" data-mark-state="' + state + '" title="' + escapeHtml(tip) + '">'
+      + '<span class="rd-tables-mark__glyph" aria-label="' + escapeHtml(tip) + '">' + glyph + '</span></td>';
+  }
+
+  function guestHasAddressLocal(g) {
+    if (typeof guestHasAddress === 'function') return guestHasAddress(g);
+    return !!(String(g && (g.address1 || g.address) || '').trim()
+      || String(g && g.city || '').trim()
+      || String(g && g.zip || '').trim());
+  }
+
+  function guestIsInvitedLocal(g) {
+    if (typeof guestIsInvited === 'function') return guestIsInvited(g);
+    return !!(g && g.invited);
+  }
+
+  function guestPlaceCardReady(g, seated) {
+    if (!seated) return false;
+    const name = String(g && g.name || '').trim();
+    if (!name || /^\(unnamed/i.test(name) || /^plus.?one$/i.test(name) || name === '—') return false;
+    if (g && g.placeCard === false) return false;
+    return true;
+  }
+
+  function tablesDietaryFlagCounts(guests) {
+    let veg = 0, gf = 0, nut = 0;
+    (guests || []).forEach(g => {
+      const marks = dietaryMarks(g);
+      if (marks.some(m => m.key === 'veg' || m.key === 'vegan')) veg += 1;
+      if (marks.some(m => m.key === 'gf')) gf += 1;
+      if (marks.some(m => m.key === 'nut')) nut += 1;
+    });
+    return { veg, gf, nut, total: veg + gf + nut };
+  }
+
+  /* Why N are unseated — derived from guest records, never hardcoded. */
+  function tablesUnseatedReasons() {
+    const unseated = unseatedGuests();
+    let notInvited = 0;
+    let noAddress = 0;
+    let unnamedPlus = 0;
+    let other = 0;
+    unseated.forEach(g => {
+      const name = String(g && g.name || '').trim();
+      const isUnnamed = !name || /^\(unnamed/i.test(name) || /^plus.?one$/i.test(name) || /^guest\s*\+/i.test(name);
+      const plusSlot = !!(g && (g.plusone || g.isPlusOne || /plus.?one/i.test(String(g.role || ''))));
+      if (isUnnamed || plusSlot && isUnnamed) {
+        unnamedPlus += 1;
+        return;
+      }
+      if (!guestIsInvitedLocal(g)) {
+        notInvited += 1;
+        return;
+      }
+      if (!guestHasAddressLocal(g)) {
+        noAddress += 1;
+        return;
+      }
+      other += 1;
+    });
+    /* Master draws three meters that sum to the unseated count. Guests who
+       are invited and addressed but still unseated fold into “No address”
+       only when that is the gap; otherwise into “Not invited yet” as the
+       remaining readiness blocker the rail names. */
+    if (other) notInvited += other;
+    return {
+      unseated: unseated.length,
+      notInvited,
+      noAddress,
+      unnamedPlus
+    };
+  }
+
   function tablesStatsData() {
     const rows = tableRows();
+    const guests = safeArray(data.guests);
     const cap = rows.reduce((s, t) => s + tableCapacity(t), 0);
     const assigned = rows.reduce((s, t) => s + tableSeatedCount(t), 0);
     const free = Math.max(0, cap - assigned);
@@ -138,6 +248,17 @@
       const s = tableSeatedCount(t);
       return c > 0 && s < c;
     }).length;
+    const acceptedUnseated = notSeatedGuests().length;
+    const mealChosen = guests.filter(g => String(g.meal || '').trim()).length;
+    const mealOutstanding = Math.max(0, guests.length - mealChosen);
+    const flags = tablesDietaryFlagCounts(guests);
+    const placeReady = guests.filter(g => {
+      const seated = !!(typeof tableMatchKey === 'function'
+        ? tableMatchKey(g.table)
+        : String(g.table || '').trim());
+      return guestPlaceCardReady(g, seated);
+    }).length;
+    const reasons = tablesUnseatedReasons();
     return {
       tables: rows.length,
       seats: cap,
@@ -148,7 +269,17 @@
       full,
       hasFree,
       venueMax: 160,
-      roomFor: Math.max(0, 160 - cap)
+      roomFor: Math.max(0, 160 - cap),
+      guestCount: guests.length,
+      acceptedUnseated,
+      mealChosen,
+      mealOutstanding,
+      dietaryFlags: flags.total,
+      dietaryVeg: flags.veg,
+      dietaryGf: flags.gf,
+      dietaryNut: flags.nut,
+      placeCardsReady: placeReady,
+      reasons
     };
   }
 
@@ -195,6 +326,7 @@
     const tables = tableRows();
 
     function pushGuest(g, gi, meta) {
+      const seated = !!meta;
       rows.push({
         _id: 'tar-g-' + String(g._id || gi),
         _rowKind: 'guest',
@@ -204,9 +336,14 @@
         seat: g.seat || g.seatNo || '—',
         side: g.side || '—',
         group: g.group || '—',
+        role: g.role || '',
+        household: g.household || '',
         rsvp: g.rsvp || 'Pending',
         meal: g.meal || '—',
         dietary: g.dietary || '',
+        dietaryStatus: g.dietaryStatus || g.restrictionStatus || '',
+        dietaryConfirmed: g.dietaryConfirmed,
+        placeCardReady: guestPlaceCardReady(g, seated),
         tableKey: meta ? meta.key : '',
         tableMeta: meta || null,
         sideGroup: String(g.side || 'Mixed').trim() || 'Mixed'
@@ -287,25 +424,9 @@
 
   function tablesAssignmentRowGroupMeta(row) {
     const mode = window._tablesListGroupBy || 'table';
+    /* By guest · 29d is a flat caterer sheet — no side groups. */
     if (mode === 'guest') {
-      if (!row.tableMeta) {
-        return {
-          key: '__unseated__',
-          title: 'Not seated',
-          sort: '\uffff',
-          residual: true
-        };
-      }
-      const side = row.sideGroup || row.side || 'Mixed';
-      const title = /bride/i.test(side) ? "Bride's side"
-        : /groom/i.test(side) ? "Groom's side"
-        : (side === 'Both' ? 'Both sides' : side);
-      return {
-        key: 'side:' + side.toLowerCase(),
-        title: title,
-        sort: /bride/i.test(side) ? 'a' : /groom/i.test(side) ? 'b' : 'c',
-        residual: false
-      };
+      return null;
     }
     if (!row.tableMeta) {
       const n = notSeatedGuests().length;
@@ -340,8 +461,15 @@
     const m = (meta && meta.meta) || (rows[0] && rows[0].tableMeta);
     if (!m) return (meta && meta.title) || 'Group';
     const seated = m.seated != null ? m.seated : rows.filter(r => r._rowKind === 'guest').length;
-    if (m.free > 0) return m.code + ' · ' + m.name + ' · ' + seated + ' of ' + m.capacity + ' seated · ' + m.free + ' free';
-    return m.code + ' · ' + m.name + ' · ' + seated + ' of ' + m.capacity + ' seated';
+    const guests = rows.filter(r => r._rowKind === 'guest');
+    const flags = tablesDietaryFlagCounts(guests);
+    const dietBit = flags.total
+      ? (flags.veg + flags.gf + flags.nut) + ' dietary'
+      : 'no dietary conflicts';
+    if (m.free > 0) {
+      return m.code + ' · ' + m.name + ' · ' + seated + ' of ' + m.capacity + ' seated · ' + m.free + ' free · ' + dietBit;
+    }
+    return m.code + ' · ' + m.name + ' · ' + seated + ' of ' + m.capacity + ' seated · ' + dietBit;
   }
 
   function tablesMatchesRailView(row) {
@@ -457,15 +585,15 @@
       case 'group': return '<td class="rd-guest-td--muted">' + escapeHtml(r.group || '—') + '</td>';
       case 'rsvp': return '<td>' + (empty || r.rsvp === '—' ? '<span class="rd-guest-td--muted">—</span>' : guestRsvpCell(r.rsvp)) + '</td>';
       case 'meal': return '<td class="rd-guest-td--muted">' + escapeHtml(r.meal || '—') + '</td>';
-      case 'diet': {
-        if (empty) return '<td class="rd-guest-td--muted">—</td>';
-        const marks = dietaryMarks(r);
-        if (!marks.length) return '<td class="rd-guest-td--muted">—</td>';
-        return '<td class="rd-tables-diet">' + marks.map(m =>
-          '<span class="rd-tables-diet__mark" title="' + escapeHtml(m.title) + '" data-diet="' + escapeHtml(m.key) + '">' +
-          escapeHtml(m.key === 'other' ? '!' : m.key.toUpperCase().slice(0, 2)) +
-          '</span>'
-        ).join('') + '</td>';
+      case 'nut': return dietaryMarkCellHtml(r, 'nut', 'Nut allergy');
+      case 'gf': return dietaryMarkCellHtml(r, 'gf', 'Gluten-free');
+      case 'veg': return dietaryMarkCellHtml(r, 'veg', 'Vegetarian');
+      case 'placeCard': {
+        if (empty) return '<td class="rd-tables-mark rd-guest-td--muted">—</td>';
+        const ready = !!r.placeCardReady;
+        return '<td class="rd-tables-mark" data-mark-state="' + (ready ? 'ready' : 'none') + '" title="'
+          + (ready ? 'Place card ready' : 'Place card not ready') + '">'
+          + '<span class="rd-tables-mark__glyph">' + (ready ? '✓' : '—') + '</span></td>';
       }
       default: return '';
     }
@@ -490,11 +618,35 @@
 
   function tablesPageheadActionsHtml() {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
+    const view = rdGetTablesView();
+    const fullEd = `<button type="button" class="rd-btn" data-rd-full-editor onclick="rdTablesFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>`;
+    if (view === 'list') {
+      return `<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print place cards</button>
+        ${fullEd}
+        <button type="button" class="rd-btn" onclick="tablesExportAssignments('list')">Export</button>
+        <button type="button" class="rd-btn rd-btn--primary" onclick="tablesAddTable()">Add table</button>`;
+    }
+    if (view === 'byguest') {
+      return `<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print place cards</button>
+        ${fullEd}
+        <button type="button" class="rd-btn" onclick="tablesExportAssignments('caterer')">Export for caterer</button>
+        <button type="button" class="rd-btn rd-btn--primary" onclick="tablesAddTable()">Add table</button>`;
+    }
     return `<button type="button" class="rd-btn rd-btn--quiet" onclick="typeof autoSeatHouseholds==='function'&&autoSeatHouseholds()||showToast('Auto-seat households')">Auto-seat households</button>
       <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
-      <button type="button" class="rd-btn" data-rd-full-editor onclick="rdTablesFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
+      ${fullEd}
       <button type="button" class="rd-btn" onclick="showToast('Place cards — print run')">Place cards</button>
       <button type="button" class="rd-btn rd-btn--primary" onclick="tablesAddTable()">+ New table</button>`;
+  }
+
+  function tablesExportAssignments(kind) {
+    const rows = refreshTableAssignmentRows() || [];
+    const guests = rows.filter(r => r._rowKind === 'guest');
+    if (typeof showToast === 'function') {
+      showToast(kind === 'caterer'
+        ? ('Export for caterer · ' + guests.length + ' guest rows')
+        : ('Export · ' + guests.length + ' assignment rows'));
+    }
   }
 
   function tablesSurfaceRowHtml() {
@@ -542,17 +694,18 @@
         <div class="rd-view" id="tables-view-list" data-tables-view="list" hidden>
           <div class="rd-tables-section-head">
             <div class="rd-tables-section-head__title">Table assignments</div>
-            <div class="rd-tables-section-head__sub" id="tables-list-assign-sub"></div>
+            <div class="rd-tables-section-head__sub" id="tables-list-assign-sub">Auditing seat assignments, dietary spread and the unseated tail</div>
           </div>
-          <div class="rd-toolbar rd-tables-assign-toolbar" id="tables-list-assign-toolbar" aria-label="Table assignments filters"></div>
           <div class="rd-bulkbar" id="tables-list-bulk" hidden></div>
-          <div class="rd-table-wrap ued-table-wrap" id="cwp-tables-list"></div>
+          <div class="rd-tables-audit" id="tables-list-audit" aria-label="Table layout list audit"></div>
         </div>
         <div class="rd-view" id="tables-view-byguest" data-tables-view="byguest" hidden>
           <div class="rd-tables-section-head">
             <div class="rd-tables-section-head__title">By guest</div>
-            <div class="rd-tables-section-head__sub">Grouped by side — every row is still a guest record</div>
+            <div class="rd-tables-section-head__sub" id="tables-byguest-sub">The caterer’s sheet — seat, meal and restriction on one line</div>
+            <button type="button" class="rd-link-quiet" onclick="tablesExportAssignments('caterer')">Export for the caterer</button>
           </div>
+          <div class="rd-tables-byguest-legend" id="tables-byguest-legend"></div>
           <div class="rd-bulkbar" id="tables-byguest-bulk" hidden></div>
           <div class="rd-table-wrap ued-table-wrap" id="cwp-tables-byguest"></div>
         </div>
@@ -565,13 +718,13 @@
     const panel = document.getElementById('panel-tables');
     if (!panel) return;
     panel.classList.add('ued-scope', 'tables-mockup');
-    if (panel.dataset.uedShell === 'tables-rd8a-v2') {
+    if (panel.dataset.uedShell === 'tables-rd8a-v3') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = tablesPageheadActionsHtml();
       if (typeof window.covenantShell !== 'undefined' && window.covenantShell.drawer) window.covenantShell.drawer();
       return;
     }
-    panel.dataset.uedShell = 'tables-rd8a-v2';
+    panel.dataset.uedShell = 'tables-rd8a-v3';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -594,8 +747,52 @@
     const host = document.getElementById('tables-stats');
     if (!host) return;
     const s = tablesStatsData();
-    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, [
+    const view = rdGetTablesView();
+    let cells;
+    if (view === 'list') {
+      cells = [
+        { label: 'Tables', value: s.tables, filter: 'Show all tables' },
+        { label: 'Seats used', value: s.assigned + ' of ' + s.guestCount, filter: 'Show seating' },
+        { label: 'Free seats', value: s.free, filter: 'Filter · Free seats' },
+        {
+          label: 'Accepted, unseated',
+          value: s.acceptedUnseated,
+          filter: 'Not seated',
+          attention: s.acceptedUnseated > 0 ? 'seat before place cards print' : undefined,
+          onFilter: () => {
+            window._tablesUiFilters = window._tablesUiFilters || {};
+            window._tablesUiFilters.table = 'unseated';
+            if (typeof renderTables === 'function') renderTables();
+          }
+        },
+        {
+          label: 'Dietary flags',
+          value: s.dietaryFlags,
+          filter: 'Dietary shown',
+          attention: s.dietaryFlags
+            ? (s.dietaryVeg + ' vegetarian · ' + s.dietaryGf + ' GF · ' + s.dietaryNut + ' nut')
+            : undefined
+        }
+      ];
+    } else if (view === 'byguest') {
+      cells = [
+        { label: 'Guests', value: s.guestCount, filter: 'Show all guests' },
+        { label: 'Seated', value: s.assigned, filter: 'Filter · Assigned' },
+        {
+          label: 'Meal chosen',
+          value: s.mealChosen,
+          filter: 'Meal outstanding',
+          attention: s.mealOutstanding > 0 ? (s.mealOutstanding + ' outstanding') : undefined
+        },
+        { label: 'Dietary flags', value: s.dietaryFlags, filter: 'Dietary shown' },
+        {
+          label: 'Place cards ready',
+          value: s.placeCardsReady + ' of ' + s.assigned,
+          filter: 'Place cards'
+        }
+      ];
+    } else {
+      cells = [
         { label: 'Tables', value: s.tables, filter: 'Show all tables' },
         { label: 'Seats', value: s.seats, filter: 'Show seating' },
         { label: 'Assigned', value: s.assigned, filter: 'Filter · Assigned' },
@@ -612,18 +809,15 @@
             else if (typeof window.__tablesRenderRd === 'function') window.__tablesRenderRd();
           }
         }
-      ]);
+      ];
+    }
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, cells);
       return;
     }
     const cell = (label, val, tone) =>
       `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
-    host.innerHTML = [
-      cell('Tables', s.tables),
-      cell('Seats', s.seats),
-      cell('Assigned', s.assigned),
-      cell('Free seats', s.free),
-      cell('Short by', s.shortBy, 'warn')
-    ].join('');
+    host.innerHTML = cells.map(c => cell(c.label, c.value, c.attention ? 'warn' : '')).join('');
   }
 
   function tablesFilterChip(label, field) {
@@ -653,19 +847,47 @@
     if (!host) return;
     const view = rdGetTablesView();
     const seatSize = 8;
-    host.innerHTML =
-      tablesFilterChip('Side', 'side') +
-      tablesFilterChip('Group', 'group') +
-      `<span class="rd-chip rd-chip--ghost">Seat size · ${seatSize}</span>` +
-      `<span class="rd-tables-legend"><span class="rd-tables-legend__sq is-filled"></span>Assigned</span>` +
-      `<span class="rd-tables-legend"><span class="rd-tables-legend__sq"></span>Free</span>` +
+    const switcher =
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Table layout view">` +
       `<button type="button" class="rd-viewswitch__item${view === 'plan' ? ' is-active' : ''}" onclick="rdSetTablesView('plan')">Plan</button>` +
       `<button type="button" class="rd-viewswitch__item${view === 'list' ? ' is-active' : ''}" onclick="rdSetTablesView('list')">List</button>` +
       `<button type="button" class="rd-viewswitch__item${view === 'byguest' ? ' is-active' : ''}" onclick="rdSetTablesView('byguest')">By guest</button>` +
       `</div></div>`;
+    if (view === 'list') {
+      const dietOn = !!(window._tablesUiFilters && window._tablesUiFilters.dietary === 'shown');
+      host.innerHTML =
+        tablesFilterChip('Table', 'table') +
+        tablesFilterChip('Side', 'side') +
+        `<button type="button" class="rd-chip${dietOn ? ' is-active' : ''}" onclick="tablesToggleDietaryShown()">Dietary shown${dietOn ? '<span class="rd-chip__clear" onclick="event.stopPropagation();tablesToggleDietaryShown(false)">&#10005;</span>' : ''}</button>` +
+        `<button type="button" class="rd-chip rd-chip--ghost" onclick="openTablesSort(this)">${escapeHtml(tablesSortLabel())}</button>` +
+        switcher;
+      return;
+    }
+    if (view === 'byguest') {
+      const s = tablesStatsData();
+      host.innerHTML =
+        tablesFilterChip('Table', 'table') +
+        `<span class="rd-tables-legend-note">${s.guestCount} rows · sticky first column · ● confirmed restriction, ○ suspected, — none</span>` +
+        switcher;
+      return;
+    }
+    host.innerHTML =
+      tablesFilterChip('Side', 'side') +
+      tablesFilterChip('Group', 'group') +
+      `<span class="rd-chip rd-chip--ghost">Seat size · ${seatSize}</span>` +
+      `<span class="rd-tables-legend"><span class="rd-tables-legend__sq is-filled"></span>Assigned</span>` +
+      `<span class="rd-tables-legend"><span class="rd-tables-legend__sq"></span>Free</span>` +
+      switcher;
     renderTablesAssignToolbar();
+  }
+
+  function tablesToggleDietaryShown(force) {
+    window._tablesUiFilters = window._tablesUiFilters || {};
+    if (force === false) window._tablesUiFilters.dietary = 'all';
+    else if (force === true) window._tablesUiFilters.dietary = 'shown';
+    else window._tablesUiFilters.dietary = window._tablesUiFilters.dietary === 'shown' ? 'all' : 'shown';
+    renderTables();
   }
 
   function renderTablesAssignToolbar() {
@@ -680,7 +902,7 @@
       `<button type="button" class="rd-chip${colAllShown ? ' rd-chip--ghost' : ''}" onclick="rdTablesOpenColumns(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>${escapeHtml(colLabel)}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>` +
       `<button type="button" class="rd-chip" onclick="rdTablesAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>` +
       `<button type="button" class="rd-chip" onclick="rdCycleTablesRowHeight()"><svg ${svg}><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · ${escapeHtml(rdTablesRowHeightLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>`;
-    ['tables-assign-toolbar', 'tables-list-assign-toolbar'].forEach(id => {
+    ['tables-assign-toolbar'].forEach(id => {
       const host = document.getElementById(id);
       if (host) host.innerHTML = html;
     });
@@ -783,6 +1005,220 @@
       CWP.state.tableAssignments.sel.clear();
     }
     renderTablesBulkBar();
+  }
+
+  function tablesDietLabelForGuest(g) {
+    const marks = dietaryMarks(g);
+    if (!marks.length) return 'No restriction';
+    if (marks.some(m => m.key === 'nut')) return 'Nut allergy';
+    if (marks.some(m => m.key === 'gf')) return 'Gluten-free';
+    if (marks.some(m => m.key === 'veg' || m.key === 'vegan')) {
+      const n = marks.filter(m => m.key === 'veg' || m.key === 'vegan').length;
+      return n > 1 ? n + ' vegetarian' : (marks[0].key === 'vegan' ? 'Vegan' : '1 vegetarian');
+    }
+    return marks[0].title || 'Restriction on file';
+  }
+
+  function tablesDietLabelForHousehold(guests) {
+    const flags = tablesDietaryFlagCounts(guests);
+    if (!flags.total) return 'No restriction';
+    const bits = [];
+    if (flags.nut) bits.push(flags.nut === 1 ? 'Nut allergy' : flags.nut + ' nut');
+    if (flags.gf) bits.push(flags.gf === 1 ? '1 gluten-free' : flags.gf + ' gluten-free');
+    if (flags.veg) bits.push(flags.veg === 1 ? '1 vegetarian' : flags.veg + ' vegetarian');
+    return bits.join(' · ') || 'Restriction on file';
+  }
+
+  function tablesAuditMetaForGuest(g, seat) {
+    const role = String(g.role || '').trim();
+    const side = String(g.side || '').trim();
+    const seatTxt = seat != null && seat !== '—' ? ('seat ' + seat) : 'no seat yet';
+    if (role) return role + ' · ' + seatTxt;
+    if (side && side !== '—') return side + ' · ' + seatTxt;
+    return seatTxt;
+  }
+
+  function tablesListAuditGroupHeader(t, ti, atTable, free) {
+    const cap = tableCapacity(t);
+    const seated = atTable.length;
+    const code = tableCode(t, ti);
+    const name = tableDisplayName(t);
+    const flags = tablesDietaryFlagCounts(atTable.map(x => x.g));
+    const pending = atTable.filter(({ g }) => /pending|no response|await/i.test(String(g.rsvp || ''))).length;
+    let roll;
+    if (free > 0) roll = seated + ' of ' + cap + ' seated · ' + free + ' seat' + (free === 1 ? '' : 's') + ' free';
+    else if (pending) roll = seated + ' of ' + cap + ' seated · ' + pending + ' unreplied';
+    else if (flags.total) roll = seated + ' of ' + cap + ' seated · ' + flags.total + ' dietary';
+    else roll = seated + ' of ' + cap + ' seated · no dietary conflicts';
+    if (ti === 0 || /head|top/i.test(name + ' ' + code)) {
+      return escapeHtml((/head|top/i.test(name) ? 'Top table' : (code + ' · ' + name))) + '<span class="rd-tables-audit-group__roll">' + escapeHtml(roll) + '</span>';
+    }
+    return escapeHtml(code + ' · ' + name) + '<span class="rd-tables-audit-group__roll">' + escapeHtml(roll) + '</span>';
+  }
+
+  function tablesListAuditRowsHtml(entries) {
+    return entries.map(entry => {
+      const statusClass = entry.status === 'Free' ? 'is-free'
+        : entry.status === 'Unseated' || entry.status === 'Needs a table' || entry.status === 'Waiting' ? 'is-unseated'
+        : 'is-seated';
+      const open = entry.guestIndex != null
+        ? ` onclick="typeof covInlineLoad==='function'&&covInlineLoad('guests',${entry.guestIndex},'record-drawer-body',null,{scroll:false})"`
+        : (entry.tableIndex != null ? ` onclick="tablesOpenTableDrawer(${entry.tableIndex})"` : '');
+      return `<button type="button" class="rd-tables-audit-row ${statusClass}"${open}>
+        <span class="rd-tables-audit-row__name">${escapeHtml(entry.name)}</span>
+        <span class="rd-tables-audit-row__meta">${escapeHtml(entry.meta)}</span>
+        <span class="rd-tables-audit-row__diet">${escapeHtml(entry.diet)}</span>
+        <span class="rd-tables-audit-row__status">${escapeHtml(entry.status)}</span>
+      </button>`;
+    }).join('');
+  }
+
+  function renderTablesListAudit() {
+    const host = document.getElementById('tables-list-audit');
+    if (!host) return;
+    const ui = window._tablesUiFilters || {};
+    const dietOnly = ui.dietary === 'shown';
+    const tables = tableRows();
+    const parts = [];
+
+    tables.forEach((t, ti) => {
+      const key = typeof tableMatchKey === 'function' ? tableMatchKey(t.name) : String(t.name || '');
+      if (ui.table && ui.table !== 'all' && ui.table !== 'unseated' && key !== String(ui.table)) return;
+      if (ui.table === 'unseated') return;
+      const atTable = guestsAtTable(t.name).filter(({ g }) => {
+        if (ui.side && ui.side !== 'all' && String(g.side || '') !== ui.side) return false;
+        if (dietOnly && !dietaryMarks(g).length) return false;
+        return true;
+      });
+      const cap = tableCapacity(t);
+      const seatedN = tableSeatedCount(t);
+      const free = Math.max(0, cap - seatedN);
+      const byHousehold = {};
+      atTable.forEach(({ g, i }) => {
+        const hk = String(g.household || g.name || i);
+        if (!byHousehold[hk]) byHousehold[hk] = [];
+        byHousehold[hk].push({ g, i });
+      });
+      const entries = [];
+      Object.keys(byHousehold).forEach(hk => {
+        const group = byHousehold[hk];
+        if (group.length === 1) {
+          const { g, i } = group[0];
+          entries.push({
+            name: g.name || '(unnamed guest)',
+            meta: tablesAuditMetaForGuest(g, g.seat || g.seatNo || '—'),
+            diet: /officiant/i.test(String(g.role || '') + ' ' + String(g.notes || ''))
+              ? 'Not a catering cover'
+              : tablesDietLabelForGuest(g),
+            status: 'Seated',
+            guestIndex: i,
+            tableIndex: ti
+          });
+          return;
+        }
+        const seats = group.map(({ g }) => g.seat || g.seatNo).filter(Boolean);
+        const seatSpan = seats.length
+          ? ('seats ' + seats[0] + (seats.length > 1 ? '–' + seats[seats.length - 1] : ''))
+          : (group.length + ' seated');
+        const roleHint = group[0].g.role || (group[0].g.household ? (group[0].g.household + ' household') : 'Household');
+        entries.push({
+          name: (group[0].g.household || group[0].g.name || 'Household') + ' · ' + group.length,
+          meta: String(roleHint).replace(/household/i, '').trim()
+            ? (String(group[0].g.notes || group[0].g.role || 'household').slice(0, 40) + ' · ' + seatSpan)
+            : seatSpan,
+          diet: tablesDietLabelForHousehold(group.map(x => x.g)),
+          status: 'Seated',
+          guestIndex: group[0].i,
+          tableIndex: ti
+        });
+      });
+      for (let s = seatedN + 1; s <= cap; s++) {
+        entries.push({
+          name: '—',
+          meta: 'seat ' + s + ' · empty',
+          diet: 'Held for late reply',
+          status: 'Free',
+          tableIndex: ti
+        });
+      }
+      if (!entries.length && dietOnly) return;
+      parts.push(`<section class="rd-tables-audit-group">
+        <header class="rd-tables-audit-group__head">${tablesListAuditGroupHeader(t, ti, atTable, free)}</header>
+        <div class="rd-tables-audit-group__body">${tablesListAuditRowsHtml(entries)}</div>
+      </section>`);
+    });
+
+    /* Not seated is a group, not a filter — accepted-but-unseated cannot fall out of view. */
+    if (ui.table !== 'unseated') {
+      /* table groups already pushed above */
+    } else {
+      parts.length = 0;
+    }
+    {
+      let unseatedAccepted = notSeatedGuests();
+      let unreplied = unseatedGuests().filter(g => {
+        const r = String(g.rsvp || '').toLowerCase();
+        return !/accept|yes|attending|declin|no\b|regret/.test(r);
+      });
+      if (ui.side && ui.side !== 'all') {
+        unseatedAccepted = unseatedAccepted.filter(g => String(g.side || '') === ui.side);
+        unreplied = unreplied.filter(g => String(g.side || '') === ui.side);
+      }
+      if (dietOnly) {
+        unseatedAccepted = unseatedAccepted.filter(g => dietaryMarks(g).length);
+        unreplied = unreplied.filter(g => dietaryMarks(g).length);
+      }
+      const byHh = {};
+      unseatedAccepted.forEach(g => {
+        const gi = data.guests.indexOf(g);
+        const hk = String(g.household || g.name || gi);
+        if (!byHh[hk]) byHh[hk] = [];
+        byHh[hk].push({ g, i: gi });
+      });
+      const entries = [];
+      Object.keys(byHh).forEach(hk => {
+        const group = byHh[hk];
+        const label = group.length > 1
+          ? ((group[0].g.household || group[0].g.name || 'Household') + ' · ' + group.length)
+          : (group[0].g.name || '(unnamed guest)');
+        entries.push({
+          name: label,
+          meta: /accept/i.test(String(group[0].g.rsvp || '')) ? 'Accepted' : String(group[0].g.rsvp || 'Pending'),
+          diet: tablesDietLabelForHousehold(group.map(x => x.g)),
+          status: 'Needs a table',
+          guestIndex: group[0].i
+        });
+      });
+      if (unreplied.length) {
+        entries.push({
+          name: unreplied.length + ' guest' + (unreplied.length === 1 ? '' : 's'),
+          meta: 'No reply',
+          diet: '—',
+          status: 'Waiting'
+        });
+      }
+      const nAcc = unseatedAccepted.length;
+      const nWait = unreplied.length;
+      const head = 'Not seated<span class="rd-tables-audit-group__roll">'
+        + escapeHtml((nAcc + nWait) + ' guests · ' + nWait + ' unreplied, ' + nAcc + ' accepted with no table')
+        + '</span>';
+      if (ui.table === 'unseated' || nAcc || nWait || !parts.length) {
+        parts.push(`<section class="rd-tables-audit-group is-residual">
+          <header class="rd-tables-audit-group__head">${head}</header>
+          <div class="rd-tables-audit-group__body">${tablesListAuditRowsHtml(entries)}</div>
+        </section>`);
+      }
+    }
+
+    host.innerHTML = parts.join('') || '<p class="rd-help">No tables to audit yet.</p>';
+  }
+
+  function renderTablesByGuestLegend() {
+    const host = document.getElementById('tables-byguest-legend');
+    if (!host) return;
+    const s = tablesStatsData();
+    host.innerHTML = `<span>${s.guestCount} rows · sticky first column</span>
+      <span class="rd-tables-byguest-legend__marks"><b>●</b> confirmed restriction · <b>○</b> suspected, awaiting confirmation · <b>—</b> none on file</span>`;
   }
 
   function renderTablesSeatGrid() {
@@ -959,6 +1395,20 @@
   }
 
   function tablesUpdateField(i, key, val) {
+    if (key === 'capacity' && data.tables[i]) {
+      const seated = tableSeatedCount(data.tables[i]);
+      const next = Math.max(1, parseInt(val, 10) || 1);
+      if (next < seated) {
+        const at = guestsAtTable(data.tables[i].name);
+        const displaced = at.slice(next).map(({ g }) => g.name || '(unnamed)').filter(Boolean);
+        const msg = 'Capacity cannot drop below ' + seated + ' — that would unseat '
+          + (displaced.length ? displaced.join(', ') : (seated - next) + ' guests') + '.';
+        if (typeof covAlert === 'function') covAlert(msg);
+        else if (typeof showToast === 'function') showToast(msg);
+        renderTablesDetailGrid();
+        return;
+      }
+    }
     if (typeof updateTable === 'function') {
       updateTable(i, key, val);
       /* Soft refresh — don't rebuild while typing name/note */
@@ -970,6 +1420,8 @@
         refreshTableAssignmentRows();
         const view = rdGetTablesView();
         if (view === 'plan') renderTablesAssignmentTable('cwp-tables-assignments');
+        if (view === 'list') renderTablesListAudit();
+        if (view === 'byguest') renderTablesAssignmentTable('cwp-tables-byguest');
         renderTablesDetailGrid();
       } else {
         renderTablesSeatGrid();
@@ -1017,6 +1469,14 @@
     d.pageSize = 0;
     /* Re-read on every render so the chooser takes effect immediately. */
     d.columns = tablesVisibleColumns().map(c => ({ key: c.key, label: c.label, width: c.width, type: c.type || undefined }));
+    /* By guest is a flat caterer sheet; Plan assignments keep table groups. */
+    if (rdGetTablesView() === 'byguest') {
+      d.rowGroup = null;
+      d.groupHeader = null;
+    } else {
+      d.rowGroup = r => tablesAssignmentRowGroupMeta(r);
+      d.groupHeader = (meta, groupRows) => tablesAssignmentGroupHeader(meta, groupRows);
+    }
     d._rdActive = true;
   }
 
@@ -1080,7 +1540,7 @@
   }
 
   function bindTablesAssignmentRows() {
-    ['cwp-tables-assignments', 'cwp-tables-list', 'cwp-tables-byguest'].forEach(mountId => {
+    ['cwp-tables-assignments', 'cwp-tables-byguest'].forEach(mountId => {
       const preview = document.getElementById(mountId);
       if (!preview) return;
       preview.querySelectorAll('tr[data-id]').forEach(tr => {
@@ -1134,7 +1594,7 @@
     renderTablesAssignToolbar();
   }
   function rdApplyTablesRowHeight() {
-    ['cwp-tables-assignments', 'cwp-tables-list', 'cwp-tables-byguest'].forEach(id => {
+    ['cwp-tables-assignments', 'cwp-tables-byguest'].forEach(id => {
       const wrap = document.getElementById(id);
       if (!wrap) return;
       const h = rdTablesRowHeightLabel();
@@ -1162,7 +1622,7 @@
   function rdApplyTablesDrawerRowFocus() {
     const st = recordEditorState;
     if (!st || st.inlineMount !== 'record-drawer-body') return;
-    document.querySelectorAll('#cwp-tables-assignments tbody tr[data-id],#cwp-tables-list tbody tr[data-id]').forEach(tr => tr.classList.remove('is-drawer-focus'));
+    document.querySelectorAll('#cwp-tables-assignments tbody tr[data-id],#cwp-tables-byguest tbody tr[data-id]').forEach(tr => tr.classList.remove('is-drawer-focus'));
     if (st.key === 'guests' && st.draft && st.draft._id) {
       document.querySelectorAll('tr[data-id="tar-g-' + st.draft._id + '"]').forEach(tr => tr.classList.add('is-drawer-focus'));
     }
@@ -1252,6 +1712,26 @@
       + '<p class="rd-drawer-callout">Capacity is a property of the table, not of the room. Reducing it below ' + seated + ' would unseat someone, so the field refuses and names who.</p>';
   }
 
+  function tablesSuggestForFreeSeat(d) {
+    const atTable = guestsAtTable(d.name);
+    const households = new Set(atTable.map(({ g }) => String(g.household || '').trim()).filter(Boolean));
+    const unseated = unseatedGuests();
+    const sameHh = unseated.find(g => g.household && households.has(String(g.household).trim()));
+    if (sameHh) {
+      return { g: sameHh, reason: 'same household →' };
+    }
+    const plus = unseated.find(g => {
+      const name = String(g.name || '');
+      return /plus.?one/i.test(name) || g.isPlusOne || /plus.?one/i.test(String(g.role || ''));
+    });
+    if (plus) {
+      const hostName = atTable[0] && atTable[0].g ? atTable[0].g.name : 'a seated guest';
+      return { g: plus, reason: 'plus-one of ' + hostName + ' →' };
+    }
+    if (unseated[0]) return { g: unseated[0], reason: 'next unseated guest →' };
+    return null;
+  }
+
   function tablesDrawerSeatsTab(d) {
     const atTable = guestsAtTable(d.name);
     const cap = tableCapacity(d);
@@ -1261,13 +1741,14 @@
       const scheme = /accept|yes/i.test(rsvp) ? 'green' : /pending/i.test(rsvp) ? 'amber' : '';
       return `<div class="rd-drawer-kv"><span>${escapeHtml(g.name || '')}</span><span class="${scheme === 'green' ? 'rd-link-quiet' : (scheme === 'amber' ? 'rd-tables-pending' : '')}">${escapeHtml(rsvp)}</span></div>`;
     }).join('');
-    const unseated = unseatedGuests().slice(0, 1);
     let suggest = '';
-    if (seated < cap && unseated.length) {
-      const g = unseated[0];
-      suggest = `<div class="rd-drawer-section-title">Suggested for the free seat</div>
-        <div class="rd-drawer-callout"><strong>${escapeHtml(g.name || '')}</strong> · same household →<br>
-        Currently unseated — seating here fills the table and clears one of the ${tablesStatsData().unseated}.</div>`;
+    if (seated < cap) {
+      const pick = tablesSuggestForFreeSeat(d);
+      if (pick && pick.g) {
+        suggest = `<div class="rd-drawer-section-title">Suggested for the free seat</div>
+          <div class="rd-drawer-callout"><strong>${escapeHtml(pick.g.name || '(unnamed)')}</strong> · ${escapeHtml(pick.reason)}<br>
+          Currently unseated — seating here fills the table and clears one of the ${tablesStatsData().unseated}.</div>`;
+      }
     }
     const pending = atTable.some(({ g }) => /pending/i.test(g.rsvp || ''));
     const warn = pending ? '<div class="rd-drawer-callout is-warn">One seated guest is still Pending. If they decline, this table drops and the suggestion changes.</div>' : '';
@@ -1286,11 +1767,13 @@
   }
 
   function tablesDrawerHistoryTab(d) {
+    const cap = tableCapacity(d);
+    const unseated = tablesStatsData().unseated;
     return `<div class="rd-drawer-section-title">This table</div>
       <div class="rd-drawer-kv"><span>Today · Ama</span><span>Seated guests updated</span></div>
-      <div class="rd-drawer-kv"><span>26 Jul · Ama</span><span>Capacity ${tableCapacity(d) + 2} → ${tableCapacity(d)}</span></div>
+      <div class="rd-drawer-kv"><span>26 Jul · Ama</span><span>Capacity ${cap + 2} → ${cap}</span></div>
       <div class="rd-drawer-kv"><span>19 Jul · Ama</span><span>Created</span></div>
-      <p class="rd-drawer-callout">A capacity reduction always names who it displaces — it does not silently drop them.</p>`;
+      <p class="rd-drawer-callout">The 26 July capacity change unseated two guests, who are still among the ${unseated} unseated. A capacity reduction always names who it displaces — it does not silently drop them.</p>`;
   }
 
   function renderTablesDrawerEditor() {
@@ -1371,9 +1854,10 @@
       renderTablesDetailGrid();
     } else if (view === 'list') {
       window._tablesListGroupBy = 'table';
-      renderTablesAssignmentTable('cwp-tables-list');
+      renderTablesListAudit();
     } else if (view === 'byguest') {
       window._tablesListGroupBy = 'guest';
+      renderTablesByGuestLegend();
       renderTablesAssignmentTable('cwp-tables-byguest');
     }
 
@@ -1415,6 +1899,9 @@
   window.rdTablesOpenColumns = rdTablesOpenColumns;
   window.renderTablesAssignToolbar = renderTablesAssignToolbar;
   window.tablesStatsData = tablesStatsData;
+  window.tablesUnseatedReasons = tablesUnseatedReasons;
+  window.tablesExportAssignments = tablesExportAssignments;
+  window.tablesToggleDietaryShown = tablesToggleDietaryShown;
   window.tableCode = tableCode;
   window.tableDisplayName = tableDisplayName;
   window.tableSeatedCount = tableSeatedCount;
