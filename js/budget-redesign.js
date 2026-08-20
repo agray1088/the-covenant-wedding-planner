@@ -250,12 +250,12 @@
     panel.classList.add('ued-scope', 'budget-mockup');
     /* 4a draws one continuous scroll — bump the shell key when the anatomy
        changes so an already-mounted panel rebuilds instead of keeping tabs. */
-    if (panel.dataset.uedShell === 'budget-rd4a-scroll') {
+    if (panel.dataset.uedShell === 'budget-rd4a-toolbar1') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'budget-rd4a-scroll';
+    panel.dataset.uedShell = 'budget-rd4a-toolbar1';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -266,6 +266,7 @@
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
+      <div class="rd-toolbar" id="budget-toolbar"></div>
       <div class="rd-stats m-stats" id="budget-stats"></div>
       <div class="rd-bgt-usedbar" id="budget-used-bar"></div>
       <div class="rd-surface">
@@ -782,7 +783,11 @@
     const paid = groupRefs.reduce((s, r) => s + itemPaidAmount(r.it), 0);
     const target = catTargetOf(c);
     const n = groupRefs.length;
-    return `${esc(c.cat || 'Category')} · ${n} item${n === 1 ? '' : 's'} · ${money0(spent)} committed · ${money0(paid)} paid · target ${money0(target)}`;
+    const over = target > 0 && spent > target;
+    return {
+      html: `${esc(c.cat || 'Category')} · ${n} item${n === 1 ? '' : 's'} · ${money0(spent)} committed · ${money0(paid)} paid · target ${money0(target)}`,
+      over: over
+    };
   }
 
   function itemRowHtml(ref) {
@@ -873,10 +878,11 @@
     const restSpan = Math.max(1, fullSpan - 1);
 
     const bodyRows = groups.length
-      ? groups.map(g =>
-        `<tr class="rd-bgt-grouprow"><td colspan="${fullSpan}">${itemGroupHeader(g.c, g.refs)}</td></tr>`
-        + g.refs.map(itemRowHtml).join('')
-      ).join('') + `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">Add a line item…</td></tr>`
+      ? groups.map(g => {
+        const gh = itemGroupHeader(g.c, g.refs);
+        return `<tr class="rd-bgt-grouprow${gh.over ? ' is-over' : ''}"><td colspan="${fullSpan}">${gh.html}</td></tr>`
+          + g.refs.map(itemRowHtml).join('');
+      }).join('') + `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">Add a line item…</td></tr>`
       : `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">No line items match these filters — add a line item…</td></tr>`;
 
     const head = `<div class="rd-bgt-sect__head is-stacked">
@@ -1034,6 +1040,23 @@
         }).join('');
     }).join('');
 
+    /* Not pledged — money committed with no source behind it (group, not footnote). */
+    const figs = budgetFigures();
+    const shortfall = Math.max(0, (figs.committed || figs.planned || 0) - pledged);
+    const notPledgedRow = shortfall > 0
+      ? `<tr class="rd-bgt-grouprow is-residual"><td colspan="8">Not pledged · ${money0(shortfall)} committed with no source behind it</td></tr>
+         <tr class="rd-bgt-pledgerow is-residual">
+           <td class="rd-bgt-tick"></td>
+           <td><b>Shortfall</b></td>
+           <td class="rd-bgt-td--muted">Budget · unfunded</td>
+           <td class="rd-bgt-num">—</td>
+           <td class="rd-bgt-num"><span class="rd-bgt-nil">$0</span></td>
+           <td class="rd-bgt-num is-over">${money0(shortfall)}</td>
+           <td class="rd-bgt-td--muted">—</td>
+           <td>${pillHtml({ label: 'Not pledged', scheme: 'red' })}</td>
+         </tr>`
+      : '';
+
     return `<div class="rd-bgt-pledge">
       ${sectHead('Pledged & paid',
       `Who promised what, and what has actually landed — ${money0(pledged)} pledged, ${money0(received)} received, ${money0(outstanding)} outstanding`,
@@ -1043,7 +1066,7 @@
         ${stat('Received', money0(received), pct + '% of pledges')}
         ${stat('Outstanding', money0(outstanding), nOut + ' contributor' + (nOut === 1 ? '' : 's'), outstanding ? 'over' : '')}
         ${stat('Applied to budget', money0(received), 'Offsets committed spend')}
-        ${stat('Unallocated', money0(0), 'Everything is earmarked')}
+        ${stat('Not pledged', money0(shortfall), shortfall ? 'Committed without a source' : 'Covered', shortfall ? 'over' : '')}
       </div>
       <div class="rd-bgt-pledge__bar">
         <span class="rd-bgt-eyebrow">Pledges collected</span>
@@ -1065,7 +1088,7 @@
           <th style="width:130px">Promised by</th>
           <th style="width:140px">Status</th>
         </tr></thead>
-        <tbody>${body}
+        <tbody>${body}${notPledgedRow}
           <tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="7">Record a pledge — name, amount, and what it is toward</td></tr>
         </tbody>
       </table>
@@ -1516,14 +1539,34 @@
     const ci = typeof activeBudgetCategoryIndex !== 'undefined' ? activeBudgetCategoryIndex : 0;
     const c = cats()[ci];
     if (!c) { if (typeof addBudgetCategory === 'function') addBudgetCategory(); return; }
-    if (!Array.isArray(c.items)) c.items = [];
-    const item = { name: '', budgeted: 0, actual: 0, status: 'Pending', paid: false, due: '', notes: '' };
-    if (typeof ensureNestedRowId === 'function') ensureNestedRowId(item, 'budgetItems');
-    c.items.push(item);
-    persist();
-    window._budgetDrawerRef = { id: String(item._id) };
-    window._budgetDrawerTab = 0;
-    rerender();
+    const finish = (shape) => {
+      if (!Array.isArray(c.items)) c.items = [];
+      const item = { name: '', budgeted: 0, actual: 0, status: 'Pending', paid: false, due: '', notes: '', template: shape || 'blank' };
+      if (shape === 'instalments') {
+        item.name = '';
+        item.schedule = [{ label: 'Deposit', amount: '' }, { label: 'Balance', amount: '' }];
+      } else if (shape === 'single') {
+        item.schedule = [{ label: 'Due on delivery', amount: '' }];
+      } else if (shape === 'percover') {
+        item.qty = '';
+        item.unitPrice = '';
+        item.perCover = true;
+      }
+      if (typeof ensureNestedRowId === 'function') ensureNestedRowId(item, 'budgetItems');
+      c.items.push(item);
+      persist();
+      window._budgetDrawerRef = { id: String(item._id) };
+      window._budgetDrawerTab = 0;
+      rerender();
+    };
+    if (typeof RdFurniture !== 'undefined' && RdFurniture.openTemplatePicker) {
+      RdFurniture.openTemplatePicker({
+        title: 'New from template · budget line',
+        onPick: function (id) { finish(id); }
+      });
+      return;
+    }
+    finish('blank');
   }
 
   function rdBudgetOpenItemDrawer(id) {
@@ -1618,6 +1661,23 @@
 
   /* ── main render ─────────────────────────────────────────────────────── */
 
+  function renderBudgetPageToolbar() {
+    const host = document.getElementById('budget-toolbar');
+    if (!host) return;
+    host.innerHTML =
+      itemFilterChip('Category', 'category') +
+      itemFilterChip('Vendor', 'vendor') +
+      itemFilterChip('Status', 'status') +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdBudgetOpenItemSort(this)">${esc(itemSortLabel())}</button>` +
+      (typeof rdStandardRightHtml === 'function'
+        ? rdStandardRightHtml(typeof BGT_ITEM_SCOPE !== 'undefined' ? BGT_ITEM_SCOPE : 'budget-items', {
+            openColumns: 'rdBudgetOpenColumns(this)',
+            autofit: 'rdBudgetAutoFitColumns(this)',
+            rowHeight: 'rdBudgetCycleRowHeight()'
+          })
+        : '');
+  }
+
   function renderBudgetRd() {
     if (typeof migrateBudget === 'function') migrateBudget();
     if (typeof ensureSuggestedGratuityLine === 'function') ensureSuggestedGratuityLine();
@@ -1633,6 +1693,7 @@
     if (typeof refreshBudgetCatOptions === 'function') refreshBudgetCatOptions();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('budget');
 
+    renderBudgetPageToolbar();
     renderBudgetStatsRd();
     renderBudgetUsedBar();
     renderBudgetCategorySection();
