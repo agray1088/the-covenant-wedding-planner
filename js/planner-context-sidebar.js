@@ -617,9 +617,6 @@
 
   /* Venue & Vendors rail — All.dc 4c / Views 30f */
   function buildVendorsContext() {
-    var money = function (v) {
-      return '$' + Math.round(parseFloat(v) || 0).toLocaleString();
-    };
     var activeView = 'all';
     if (typeof getSavedView === 'function') activeView = getSavedView('vendors', 'all');
     else if (typeof window._vndRailView === 'string' && window._vndRailView) activeView = window._vndRailView;
@@ -627,9 +624,6 @@
 
     var counts = typeof window.vendorRailCounts === 'function' ? window.vendorRailCounts() : {
       all: 0, booked: 0, shortlist: 0, nocontract: 0, balance: 0
-    };
-    var figures = typeof window.vendorFigures === 'function' ? window.vendorFigures() : {
-      bookedValue: 0, paid: 0
     };
 
     function viewItem(id, label, count, warn) {
@@ -650,34 +644,23 @@
       '</div></div>';
 
     var mode = window._vndMode || 'table';
+    var coverage = typeof window.vendorCoverageMeters === 'function' ? (window.vendorCoverageMeters() || []) : [];
+    var coverageHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Coverage</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      coverage.map(function (c) {
+        return '<div class="rd-rail__item rd-rail__item--static"><span>' + esc(c.label) +
+          '</span><span class="rd-rail__count">' + esc(c.status) + '</span></div>';
+      }).join('') +
+      '</div></div>';
+
     var metersHtml = '';
-    if (mode === 'compare' && typeof window.vendorCoverageMeters === 'function') {
-      var coverage = window.vendorCoverageMeters() || [];
-      metersHtml =
-        '<div class="rd-rail__section">' +
-        '<div class="rd-rail__title">Coverage</div>' +
-        '<div class="rd-rail__list" role="list">' +
-        coverage.map(function (c) {
-          return '<div class="rd-rail__item rd-rail__item--static"><span>' + esc(c.label) +
-            '</span><span class="rd-rail__count">' + esc(c.status) + '</span></div>';
-        }).join('') +
-        '</div></div>';
+    if (mode === 'compare') {
+      metersHtml = coverageHtml;
     } else {
-      var bookedValue = figures.bookedValue || 0;
-      var paid = figures.paid || 0;
-      var outstanding = Math.max(0, bookedValue - paid);
-      var pct = bookedValue > 0 ? Math.max(0, Math.min(100, Math.round((paid / bookedValue) * 100))) : 0;
-      metersHtml =
-        '<div class="rd-rail__section">' +
-        '<div class="rd-rail__title">Booked</div>' +
-        '<div class="rd-rail__meters">' +
-        '<div class="rd-rail__meter">' +
-        '<div class="rd-rail__meter-top"><span>Booked value</span><span class="rd-rail__count">' + money(bookedValue) + '</span></div>' +
-        '<div class="rd-track"><div class="rd-fill" style="width:' + pct + '%"></div></div></div>' +
-        '<div class="rd-rail__meter-top"><span>Paid to date</span><span class="rd-rail__count">' + money(paid) + '</span></div>' +
-        '<div class="rd-rail__meter-top"><span>Outstanding</span><span class="rd-rail__count">' + money(outstanding) + '</span></div>' +
-        '<div class="rd-rail__meter-top"><span>No contract</span><span class="rd-rail__count">' + (counts.nocontract || 0) + '</span></div>' +
-        '</div></div>';
+      /* 4c ships Coverage on the rail (not a Booked meter strip). Keep Coverage always. */
+      metersHtml = coverageHtml;
     }
 
     var noteHtml =

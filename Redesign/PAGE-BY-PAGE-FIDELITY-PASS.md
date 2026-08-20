@@ -1309,7 +1309,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s11` · slug `venue-vendors`
 - **Header counts:** 7 screens · 1 record drawer
-- **Status:** not started — do not implement until §10 is reviewed and you say “next”
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §12
 - **Screen ids:** `4c`, `30f`, `30g`, `19f`
 
 ### Five parts on this page
@@ -1318,7 +1318,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 |---|---|---|
 | Full page | yes | `4c` |
 | View switcher views | yes | `30f`, `30g` |
-| Section tabs | yes | `19f` |
+| Section tabs | yes · resolved by `4c` | `19f` — Master purpose on `4c` replaces Tracker / Shortlist tabs with **Table · Compare · Contacts** view switcher; do not re-add the two-tab strip |
 | Record drawer tabs | yes | Vendor drawer · 5 tabs: Vendor · Contract · Schedule · Contacts · History |
 | Night theme | yes | `4c` |
 
@@ -1397,7 +1397,7 @@ Drawings:
 
 ##### `19f` — Venue & Vendors · two tabs
 
-
+`4c` purpose: one table with a Compare view **rather than two tabs**. Shipping UI uses the view switcher (**Table · Compare · Contacts**). Table is the record surface; Compare is the decision surface; Contacts is the day-of reachability surface. Do not reintroduce Vendor Tracker / Shortlist & Compare section tabs on top of that.
 #### Part · Record drawer tabs
 
 *one drawing per tab of every record this page opens*
@@ -1433,8 +1433,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s12` · slug `catering-menu`
 - **Header counts:** 7 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
-- **Screen ids:** `7a`, `30h`, `30i`, `19p`
+- **Status:** not started — do not implement until §11 is reviewed and you say “next”
 
 ### Five parts on this page
 

@@ -16,7 +16,9 @@
   window._vndCompareCat = window._vndCompareCat || '';
   window._vndShowPassed = window._vndShowPassed !== false;
   window._vndDrawerId = window._vndDrawerId || null;
+  window._vndDrawerTab = window._vndDrawerTab || 0;
 
+  const VND_DRAWER_TABS = ['Vendor', 'Contract', 'Schedule', 'Contacts', 'History'];
   const VND_COL_SCOPE = 'vendors-4c';
   const VND_COLUMNS = [
     { key: 'tick', label: '', width: '36px', fixed: true },
@@ -889,10 +891,308 @@
     return money0(dep) + ' on signing';
   }
 
+  function shortDate(v, withYear) {
+    if (!v) return '—';
+    const s = String(v).slice(0, 10);
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T12:00:00') : new Date(v);
+    if (isNaN(d)) return String(v);
+    return d.toLocaleDateString(undefined, withYear
+      ? { day: 'numeric', month: 'short', year: 'numeric' }
+      : { day: 'numeric', month: 'short' });
+  }
+
+  function linkedContract(v) {
+    if (!v) return null;
+    const list = typeof safeArray === 'function' ? safeArray(data.contracts) : (data.contracts || []);
+    if (v.contractId) {
+      const byId = list.find(c => String(c._id || c.id || '') === String(v.contractId));
+      if (byId) return byId;
+    }
+    const name = String(v.name || '').trim().toLowerCase();
+    if (!name) return null;
+    return list.find(c => {
+      const vn = String(c.vendor || c.name || '').trim().toLowerCase();
+      return vn === name || vn.includes(name) || name.includes(vn);
+    }) || null;
+  }
+
+  function vendorDocs(v) {
+    const docs = [];
+    const c = linkedContract(v);
+    if (c) {
+      if (c.contractFile) docs.push({ name: typeof c.contractFile === 'string' ? c.contractFile : (c.contractFile.name || 'Signed contract'), status: 'On file' });
+      if (c.invoiceFile) docs.push({ name: typeof c.invoiceFile === 'string' ? c.invoiceFile : (c.invoiceFile.name || 'Invoice'), status: 'On file' });
+      if (Array.isArray(c.docs)) c.docs.forEach(d => docs.push({ name: d.name || d.label || 'Document', status: d.status || 'On file' }));
+      if (Array.isArray(c.missingDocs)) c.missingDocs.forEach(m => docs.push({ name: m.label || m.name || m, status: 'Missing' }));
+    }
+    if (Array.isArray(v.docs)) v.docs.forEach(d => docs.push({ name: d.name || d.label || 'Document', status: d.status || 'On file' }));
+    if (Array.isArray(v.missingDocs)) v.missingDocs.forEach(m => docs.push({ name: m.label || m.name || m, status: 'Missing' }));
+    if (!docs.length && hasContract(v)) docs.push({ name: 'Signed contract', status: 'On file' });
+    if (!docs.length && isBooked(v) && !hasContract(v)) {
+      docs.push({ name: 'Signed contract', status: 'Missing' });
+      docs.push({ name: 'Public liability cert', status: 'Missing' });
+    }
+    return docs;
+  }
+
+  function vendorScheduleBlocks(v) {
+    if (Array.isArray(v.schedule) && v.schedule.length) return v.schedule;
+    if (Array.isArray(v.dayBlocks) && v.dayBlocks.length) return v.dayBlocks;
+    if (Array.isArray(v.onSiteBlocks) && v.onSiteBlocks.length) return v.onSiteBlocks;
+    const blocks = [];
+    const arrive = vendorArrival(v);
+    const cue = vendorServiceCue(v);
+    if (arrive) blocks.push({ time: arrive, label: 'On site / access', duration: v.setupDuration || '' });
+    if (cue) blocks.push({ time: cue, label: 'Service / cue', duration: '' });
+    /* Wedding Day Timeline items that name this vendor. */
+    const wday = typeof safeArray === 'function' ? safeArray(data.weddingDay || data.wday || data.timeline) : (data.weddingDay || data.timeline || []);
+    const name = String(v.name || '').trim().toLowerCase();
+    if (name && Array.isArray(wday)) {
+      wday.forEach(row => {
+        const who = String(row.vendor || row.who || row.owner || '').toLowerCase();
+        const label = String(row.item || row.event || row.label || row.task || '');
+        if (who.includes(name.split(' ')[0]) || label.toLowerCase().includes(name.split(' ')[0])) {
+          blocks.push({
+            time: row.time || row.start || '',
+            label: label || 'Run-sheet block',
+            duration: row.duration || row.len || ''
+          });
+        }
+      });
+    }
+    return blocks;
+  }
+
+  function vendorContactPeople(v) {
+    if (Array.isArray(v.contacts) && v.contacts.length) return v.contacts;
+    const out = [];
+    if (v.contact || v.phone || v.email) {
+      out.push({
+        name: v.contact || v.name || 'Primary',
+        role: v.contactRole || 'Day-of contact',
+        phone: v.phone || '',
+        email: v.email || '',
+        hours: v.reachable || v.hours || '',
+        primary: true
+      });
+    }
+    if (Array.isArray(v.otherContacts)) v.otherContacts.forEach(c => out.push(Object.assign({ primary: false }, c)));
+    return out;
+  }
+
+  function drawerField(label, control) {
+    return `<div class="rd-drawer-field"><span class="rd-drawer-label">${esc(label)}</span>${control}</div>`;
+  }
+  function drawerInput(key, value, opts) {
+    const o = opts || {};
+    const type = o.type || 'text';
+    const ro = o.readonly ? ' readonly' : '';
+    return `<input type="${type}" data-vndf="${esc(key)}" value="${esc(value == null ? '' : value)}"${ro}${o.step ? ' step="' + o.step + '"' : ''}>`;
+  }
+  function drawerSection(t) {
+    return `<div class="rd-con-eyebrow rd-drawer-sect">${esc(t)}</div>`;
+  }
+  function drawerRow(left, right, opts) {
+    const o = opts || {};
+    return `<div class="rd-vnd-histrow${o.missing ? ' is-missing' : ''}"><span>${esc(left)}</span><span>${esc(right)}</span></div>`;
+  }
+
+  function drawerVendorTab(v, id) {
+    const c = linkedContract(v);
+    const total = c ? (parseFloat(c.total || c.amount) || parseFloat(v.quote) || 0) : (parseFloat(v.quote) || 0);
+    const paid = c && typeof window.contractFigures === 'function'
+      ? paidOf(v)
+      : paidOf(v);
+    const next = (c && (c.nextDue || c.balanceDue)) || v.nextDue || '';
+    const nextAmt = v.nextDueAmount || (c && c.nextDueAmount) || balanceOf(v);
+    const docs = vendorDocs(v);
+    const missingN = docs.filter(d => /missing/i.test(d.status || '')).length;
+    let html = drawerSection('Supplies')
+      + drawerField('Category', drawerInput('cat', v.cat || ''))
+      + drawerField('Service', drawerInput('service', v.service || v.notes || vendorSubline(v) || ''))
+      + drawerField('Capacity', drawerInput('capacity', v.capacity || v.covers || ''))
+      + drawerField('Status', drawerInput('status', statusLabel(v)))
+      + drawerField('Booked on', drawerInput('bookedOn', v.bookedOn || v.bookedDate || (isBooked(v) ? (v.date || '') : ''), { type: 'date' }));
+    html += drawerSection('Money')
+      + drawerField('Contract total', drawerInput('quote', total, { type: 'number', step: '0.01' }))
+      + drawerField('Paid', `<input type="text" readonly value="${esc(money0(paid))}">`)
+      + drawerField('Outstanding', `<input type="text" readonly value="${esc(money0(Math.max(0, total - paid)))}">`)
+      + drawerField('Next due', `<input type="text" readonly value="${esc(next ? (shortDate(next) + (nextAmt ? ' · ' + money0(nextAmt) : '')) : '—')}">`);
+    if (missingN) {
+      html += `<div class="rd-vnd-callout">${missingN} document${missingN === 1 ? '' : 's'} outstanding: ${esc(docs.filter(d => /missing/i.test(d.status || '')).map(d => d.name).join(' and ') || 'required paperwork')}. Both are required before setup.</div>`;
+    } else {
+      html += `<div class="rd-drawer-note">Pros and cons live here when you are deciding; once booked, the money and paperwork above are the source of truth.</div>`;
+    }
+    html += drawerSection('Portal access')
+      + drawerRow('Portal', v.portalActive === false ? 'Off' : (v.portal || 'Active'))
+      + drawerRow('Last seen in portal', v.portalSeen ? shortDate(v.portalSeen, true) : '—')
+      + drawerRow('Found via', v.foundVia || v.source || '—');
+    html += drawerSchemaFieldsHtml(v, id);
+    html += drawerSection('Pros') + `<p class="rd-drawer-note">${esc(v.pros || 'Add what works about this vendor.')}</p>`
+      + drawerSection('Cons') + `<p class="rd-drawer-note">${esc(v.cons || 'Add what gives you pause.')}</p>`;
+    return html;
+  }
+
+  function drawerContractTab(v) {
+    const c = linkedContract(v);
+    const total = c ? (parseFloat(c.total || c.amount) || parseFloat(v.quote) || 0) : (parseFloat(v.quote) || 0);
+    const dep = c ? (parseFloat(c.deposit) || parseFloat(v.deposit) || 0) : (parseFloat(v.deposit) || 0);
+    const signed = (c && (c.date || c.signed)) || v.contractDate || '';
+    const instN = c && Array.isArray(c.installments) ? c.installments.length
+      : (Array.isArray(v.installments) ? v.installments.length : (dep ? 2 : 0));
+    const docs = vendorDocs(v);
+    const onFile = docs.filter(d => !/missing/i.test(d.status || '')).length;
+    let html = '';
+    if (hasContract(v) || c) {
+      html += `<div class="rd-drawer-note">Signed ${esc(signed ? shortDate(signed, true) : '—')}</div>`;
+    } else {
+      html += `<div class="rd-vnd-callout">No contract on file yet. The quote is still a number on the vendor — booking writes the Budget line and opens the Contract.</div>`;
+    }
+    html += drawerRow('Total', money0(total))
+      + drawerRow('Deposit', dep ? (money0(dep) + (paidOf(v) >= dep ? ' · paid' : '')) : '—')
+      + drawerRow('Instalments', String(instN || '—'))
+      + drawerRow('Balance on the day', money0(balanceOf(v)));
+
+    const clauses = [
+      { label: 'Cancellation window', value: (c && (c.cancelBy || c.cancellation)) || v.cancelBy || v.cancellation || '' },
+      { label: 'Date release after miss', value: v.dateRelease || (c && c.dateRelease) || '' },
+      { label: 'Amplified music curfew', value: v.curfew || (c && c.curfew) || '' },
+      { label: 'Own-caterer surcharge', value: v.surcharge || (c && c.surcharge) || '' }
+    ].filter(x => x.value);
+    html += drawerSection('Clauses that bite');
+    if (clauses.length) {
+      html += clauses.map(x => drawerRow(x.label, typeof x.value === 'number' || /^[\d$]/.test(String(x.value)) ? String(x.value) : (String(x.value).match(/^\d{4}-/) ? shortDate(x.value, true) : String(x.value)))).join('');
+    } else {
+      html += `<div class="rd-drawer-note">The clauses that decide what happens when something goes wrong — edit them on the linked contract.</div>`;
+    }
+    html += drawerSection('Documents · ' + onFile + ' of ' + Math.max(docs.length, onFile));
+    if (docs.length) {
+      html += docs.map(d => drawerRow(d.name, d.status || 'On file', { missing: /missing/i.test(d.status || '') })).join('');
+    } else {
+      html += `<div class="rd-drawer-note">No documents attached yet.</div>`;
+    }
+    return html;
+  }
+
+  function drawerScheduleTab(v) {
+    const blocks = vendorScheduleBlocks(v);
+    let html = drawerSection('On the day');
+    if (blocks.length) {
+      html += blocks.map(b => {
+        const left = (b.time ? String(b.time) : '—') + ' · ' + (b.label || b.event || 'Block');
+        return drawerRow(left, b.duration || b.len || '—');
+      }).join('');
+    } else {
+      html += `<div class="rd-drawer-note">When they are on site, and the run-sheet blocks that belong to them. This is what the vendor sees in their portal.</div>`;
+    }
+    if (v.turnaroundNote || blocks.some(b => /turnaround/i.test(String(b.label || '')))) {
+      html += `<div class="rd-vnd-callout">${esc(v.turnaroundNote || 'The tightest block on the day is flagged on the Wedding Day Timeline when Catering and Entertainment both need the room.')}</div>`;
+    }
+    html += drawerSection('Site visits')
+      + drawerRow('Site visits so far', String(v.siteVisits != null ? v.siteVisits : (blocks.length ? '—' : '0')))
+      + drawerRow('Next visit', v.nextVisit ? shortDate(v.nextVisit, true) + (v.nextVisitTime ? ' · ' + v.nextVisitTime : '') : '—')
+      + drawerRow('Shared with vendor', v.sharedSchedule === false ? 'No' : 'Yes');
+    return html;
+  }
+
+  function drawerContactsTab(v) {
+    const people = vendorContactPeople(v);
+    const primary = people.find(p => p.primary) || people[0];
+    const others = people.filter(p => p !== primary);
+    let html = drawerSection('Day-of contact');
+    if (primary) {
+      html += drawerField('Name', drawerInput('contact', primary.name || ''))
+        + drawerField('Role', drawerInput('contactRole', primary.role || ''))
+        + drawerField('Mobile', drawerInput('phone', primary.phone || ''))
+        + drawerField('Reachable', drawerInput('reachable', primary.hours || v.reachable || ''));
+    } else {
+      html += drawerField('Name', drawerInput('contact', ''))
+        + drawerField('Role', drawerInput('contactRole', ''))
+        + drawerField('Mobile', drawerInput('phone', ''))
+        + drawerField('Reachable', drawerInput('reachable', ''));
+    }
+    html += drawerSection('Other contacts · ' + others.length);
+    if (others.length) {
+      html += others.map(p => {
+        const bit = [p.role, p.hours, p.email].filter(Boolean).join(' · ') || (p.phone || '—');
+        return drawerRow(p.name || 'Contact', bit);
+      }).join('');
+    } else {
+      html += `<div class="rd-drawer-note">A business is not a contact — the person who answers on a Saturday is.</div>`;
+    }
+    if (!String((primary && primary.phone) || v.phone || '').trim()) {
+      html += `<div class="rd-vnd-callout">No day-of number on file. If nobody answers there is no escalation — worth asking for one before the week of.</div>`;
+    }
+    html += drawerSection('On the printed sheet')
+      + drawerRow('Day-of contacts sheet', isDayOf(v) && String(v.phone || '').trim() ? 'Included' : 'Not included')
+      + drawerRow('Emergency card', v.emergencyCard === false ? 'Off' : 'Included')
+      + drawerRow('Portal shows', v.portalShows || 'Schedule only');
+    return html;
+  }
+
+  function drawerHistoryTab(v) {
+    const events = [];
+    if (typeof recordHistoryFor === 'function') {
+      const log = recordHistoryFor('vendors', vid(v) || v._id) || [];
+      log.forEach(e => events.push({
+        what: e.label || e.what || e.summary || e.action || 'Updated',
+        who: e.who || e.by || e.actor || 'System',
+        when: e.when || e.date || '',
+        time: e.time || '',
+        derived: !!e.derived
+      }));
+    }
+    if (Array.isArray(v.history)) {
+      v.history.forEach(e => events.push({
+        what: e.label || e.what || e.summary || 'Updated',
+        who: e.who || e.by || 'System',
+        when: e.when || e.date || '',
+        time: e.time || '',
+        derived: !!e.derived
+      }));
+    }
+    if (!events.length) {
+      if (isBooked(v)) events.push({ what: 'Status → Booked', who: 'System', when: v.bookedOn || v.date || '', time: '' });
+      if (hasContract(v)) events.push({ what: 'Contract on file', who: 'System', when: v.contractDate || '', time: '' });
+      if (v.quote) events.push({ what: 'Quote ' + money0(v.quote), who: 'System', when: '', time: '' });
+      if (v.portal) events.push({ what: 'Portal access granted', who: 'System', when: '', time: '' });
+    }
+    events.sort((a, b) => String(b.when || '').localeCompare(String(a.when || '')));
+    return drawerSection('Activity')
+      + (events.length
+        ? events.map(e => {
+          const when = [e.who, e.when ? shortDate(e.when) : '', e.time].filter(Boolean).join(' · ');
+          return `<div class="rd-vnd-histrow"><span>${e.derived ? '→ ' : ''}${esc(e.what)}</span><span class="rd-vnd-muted">${esc(when || '—')}</span></div>`;
+        }).join('')
+        : '<div class="rd-vnd-empty">No dated activity on this vendor yet.</div>')
+      + `<div class="rd-drawer-note">Booking, price changes, document chases — the record you read when a vendor says “that was always the price”.</div>`;
+  }
+
+  function drawerFootHtml(tabIdx, v, id) {
+    const idx = vendorRows().indexOf(v);
+    if (tabIdx === 0) {
+      return `<button type="button" class="rd-btn rd-btn--primary" onclick="rdVndFullEditor(${idx >= 0 ? idx : 'null'})">Open full editor</button>
+        <button type="button" class="rd-btn" onclick="rdVndMessageVendor('${esc(id)}')">Message vendor</button>`;
+    }
+    if (tabIdx === 1) {
+      return `<button type="button" class="rd-btn rd-btn--primary" onclick="rdVndOpenContract('${esc(id)}')">Open contract</button>
+        <button type="button" class="rd-btn" onclick="rdVndRequestDocs('${esc(id)}')">Request documents</button>`;
+    }
+    if (tabIdx === 2) {
+      return `<button type="button" class="rd-btn rd-btn--primary" onclick="rdVndDrawerSave()">Save</button>
+        <button type="button" class="rd-btn" onclick="typeof showPanel==='function'&&showPanel('timeline')">Open day timeline</button>`;
+    }
+    if (tabIdx === 3) {
+      return `<button type="button" class="rd-btn rd-btn--primary" onclick="rdVndDrawerSave()">Save</button>
+        <button type="button" class="rd-btn" onclick="rdVndAddContact('${esc(id)}')">Add a contact</button>`;
+    }
+    return `<button type="button" class="rd-btn rd-btn--primary" onclick="rdVndCloseDrawer()">Close</button>
+      <button type="button" class="rd-btn" onclick="rdVndExportRecord('${esc(id)}')">Export record</button>`;
+  }
+
   function renderVendorsDrawer() {
     const slot = document.getElementById('vendors-drawer-slot');
     if (!slot) return;
-    /* If the shared §16 drawer is parked here and open, don't paint over it. */
     const shared = document.getElementById('record-drawer');
     if (shared && slot.contains(shared) && !shared.hasAttribute('hidden')) {
       slot.classList.add('is-open');
@@ -908,47 +1208,36 @@
       return;
     }
     slot.classList.add('is-open');
-    const st = statusLabel(v);
-    const overdue = /shortlist/i.test(st) && !isBooked(v);
-    const budget = budgetLineForVendor(v);
-    const task = linkedTaskForVendor(v);
-    const taskOverdue = task && task.date && !/complete|done/i.test(String(task.status || ''))
-      && (new Date(task.date).getTime() < Date.now());
-    const idx = vendorRows().indexOf(v);
-    const budgetClick = budget
-      ? `onclick="event.stopPropagation();typeof showPanel==='function'&&showPanel('budget')"`
-      : '';
-    const taskClick = task
-      ? `onclick="event.stopPropagation();typeof showPanel==='function'&&showPanel('tasks')"`
-      : '';
+    const tabIdx = Math.min(Math.max(0, window._vndDrawerTab | 0), VND_DRAWER_TABS.length - 1);
+    const docs = vendorDocs(v);
+    const missingN = docs.filter(d => /missing/i.test(d.status || '')).length;
+    const pills = [statusPillHtml(v)];
+    const total = parseFloat(v.quote) || 0;
+    if (total) pills.push(`<span class="status-pill" data-pillscheme="blue">${money0(total)}</span>`);
+    if (missingN) pills.push(`<span class="status-pill" data-pillscheme="gold">${missingN} doc${missingN === 1 ? '' : 's'} outstanding</span>`);
+
+    let body;
+    if (tabIdx === 0) body = drawerVendorTab(v, id);
+    else if (tabIdx === 1) body = drawerContractTab(v);
+    else if (tabIdx === 2) body = drawerScheduleTab(v);
+    else if (tabIdx === 3) body = drawerContactsTab(v);
+    else body = drawerHistoryTab(v);
+
+    const eyebrow = 'Vendor · ' + (isBooked(v) ? 'booked' : String(v.cat || 'vendor').toLowerCase());
+
     slot.innerHTML = `<aside class="rd-drawer rd-vnd-drawer" aria-label="Vendor record">
       <div class="rd-drawer__head">
-        <div class="rd-drawer__eyebrow">Vendor · ${esc(String(v.cat || 'vendor').toLowerCase())}</div>
-        <h2 class="rd-drawer__title">${esc(v.name || 'Untitled')}</h2>
-        <div class="rd-drawer__chips">
-          ${statusPillHtml(v)}
-          ${overdue ? '<span class="status-pill" data-pillscheme="red">Decision overdue</span>' : ''}
+        <div class="rd-drawer__eyebrowrow">
+          <span class="rd-drawer__eyebrow">${esc(eyebrow)}</span>
+          <button type="button" class="rd-drawer__close" onclick="rdVndCloseDrawer()" aria-label="Close">×</button>
         </div>
-        <button type="button" class="rd-drawer__close" onclick="rdVndCloseDrawer()" aria-label="Close">×</button>
+        <h2 class="rd-drawer__title">${esc(v.name || 'Untitled')}</h2>
+        <div class="rd-drawer__pills rd-drawer__chips">${pills.join('')}</div>
+        <div class="rd-drawer__tabs is-guest-tabs">${VND_DRAWER_TABS.map((t, i) =>
+      `<button type="button" class="rd-drawer__tab${i === tabIdx ? ' is-active' : ''}" onclick="rdVndDrawerTab(${i})">${esc(t)}</button>`).join('')}</div>
       </div>
-      <div class="rd-drawer__body">
-        <div class="rd-drawer__field"><span>Contact</span><strong>${esc(v.contact || '—')}</strong></div>
-        <div class="rd-drawer__field"><span>Quote</span><strong>${moneyOrDash(v.quote)}</strong></div>
-        <div class="rd-drawer__field"><span>Deposit</span><strong>${esc(depositLabel(v))}</strong></div>
-        <div class="rd-drawer__field"><span>Budget line</span><strong class="rd-drawer__link"${budgetClick}>${esc(budget ? (budget.cat + ' →') : 'Add…')}</strong></div>
-        <div class="rd-drawer__field"><span>Linked task</span><strong class="rd-drawer__link${taskOverdue ? ' is-overdue' : ''}"${taskClick}>${esc(task ? ((taskOverdue ? 'Overdue · ' : '') + (task.task || 'Task') + ' →') : 'Add…')}</strong></div>
-        <div class="rd-drawer__field"><span>Rating</span><strong>${ratingSquares(ratingOf(v))}</strong></div>
-        <div class="rd-drawer__field"><span>Contract</span><strong>${esc(contractLabel(v))}</strong></div>
-        <div class="rd-drawer__section"><div class="rd-drawer__section-title">Pros</div><p>${esc(v.pros || 'Add what works about this vendor.')}</p></div>
-        <div class="rd-drawer__section"><div class="rd-drawer__section-title">Cons</div><p>${esc(v.cons || 'Add what gives you pause.')}</p></div>
-        ${drawerSchemaFieldsHtml(v, id)}
-        <div class="rd-drawer__section"><div class="rd-drawer__section-title">Notes</div><p>${esc(v.notes || '—')}</p></div>
-      </div>
-      <div class="rd-drawer__foot">
-        <button type="button" class="rd-btn rd-btn--primary" onclick="rdVndBookVendor('${esc(id)}')">Book vendor</button>
-        <button type="button" class="rd-btn" onclick="rdSetVendorsView('compare')">Compare</button>
-        <button type="button" class="rd-btn" onclick="rdVndFullEditor(${idx >= 0 ? idx : 'null'})">Full editor</button>
-      </div>
+      <div class="rd-drawer__body rd-drawer-fields">${body}</div>
+      <div class="rd-drawer__foot">${drawerFootHtml(tabIdx, v, id)}</div>
     </aside>`;
   }
 
@@ -1049,13 +1338,81 @@
   }
   function rdVndOpenDrawer(id) {
     window._vndDrawerId = id;
-    /* Prefer the 4c decision drawer (Budget line / Linked task / Pros·Cons).
-       Shared record-drawer remains available via Full editor. */
+    window._vndDrawerTab = 0;
     const shared = document.getElementById('record-drawer');
     if (shared && !shared.hasAttribute('hidden') && typeof rdCloseDrawer === 'function') {
       try { rdCloseDrawer(); } catch (e) { /* soft */ }
     }
     renderVendorsDrawer();
+  }
+  function rdVndDrawerTab(i) {
+    window._vndDrawerTab = i | 0;
+    renderVendorsDrawer();
+  }
+  function rdVndDrawerSave() {
+    const v = window._vndDrawerId ? findVendorById(window._vndDrawerId) : null;
+    const slot = document.getElementById('vendors-drawer-slot');
+    if (!v || !slot) return;
+    const read = key => {
+      const el = slot.querySelector('[data-vndf="' + key + '"]');
+      return el ? el.value : null;
+    };
+    ['cat', 'service', 'capacity', 'status', 'contact', 'contactRole', 'phone', 'reachable'].forEach(k => {
+      const val = read(k);
+      if (val == null) return;
+      if (k === 'cat') v.cat = val;
+      else if (k === 'service') v.service = val;
+      else if (k === 'capacity') v.capacity = val;
+      else if (k === 'status') v.status = val;
+      else if (k === 'contact') v.contact = val;
+      else if (k === 'contactRole') v.contactRole = val;
+      else if (k === 'phone') v.phone = val;
+      else if (k === 'reachable') v.reachable = val;
+    });
+    const bookedOn = read('bookedOn');
+    if (bookedOn != null) v.bookedOn = bookedOn;
+    const quote = read('quote');
+    if (quote != null && quote !== '') v.quote = parseFloat(String(quote).replace(/[^0-9.]/g, '')) || 0;
+    if (typeof save === 'function') save();
+    renderVendorsRd();
+    if (typeof toast === 'function') toast('Vendor saved');
+    else if (typeof showToast === 'function') showToast('Vendor saved');
+  }
+  function rdVndMessageVendor(id) {
+    const v = findVendorById(id);
+    if (typeof toast === 'function') toast(v && v.email ? ('Message drafted to ' + v.email) : 'Open the vendor portal or email from the full editor');
+    else if (typeof showToast === 'function') showToast('Message vendor from the portal');
+  }
+  function rdVndOpenContract(id) {
+    const v = findVendorById(id);
+    const c = linkedContract(v);
+    if (typeof showPanel === 'function') showPanel('contracts');
+    if (c && typeof window.rdConOpenDrawer === 'function') {
+      setTimeout(() => window.rdConOpenDrawer(String(c._id || c.id || '')), 80);
+    } else if (typeof toast === 'function') toast(hasContract(v) ? 'Opened Contracts' : 'No contract linked yet — add one on Contracts');
+  }
+  function rdVndRequestDocs(id) {
+    window._vndDrawerTab = 1;
+    renderVendorsDrawer();
+    if (typeof toast === 'function') toast('Document request flagged for ' + ((findVendorById(id) || {}).name || 'vendor'));
+  }
+  function rdVndAddContact(id) {
+    const v = findVendorById(id);
+    if (!v) return;
+    if (!Array.isArray(v.otherContacts)) v.otherContacts = [];
+    v.otherContacts.push({ name: 'New contact', role: '', phone: '', email: '', hours: '' });
+    if (typeof save === 'function') save();
+    window._vndDrawerTab = 3;
+    renderVendorsDrawer();
+  }
+  function rdVndExportRecord(id) {
+    const v = findVendorById(id);
+    if (!v) return;
+    if (typeof exportSectionCSV === 'function') {
+      exportSectionCSV('Vendor', [{
+        Vendor: v.name, Category: v.cat, Quote: v.quote, Balance: balanceOf(v), Status: statusLabel(v), Contract: contractLabel(v)
+      }]);
+    } else if (typeof toast === 'function') toast('Exported ' + (v.name || 'vendor'));
   }
   function rdVndCloseDrawer() {
     window._vndDrawerId = null;
@@ -1241,6 +1598,13 @@
   window.rdVndSetCompareCat = rdVndSetCompareCat;
   window.rdVndOpenDrawer = rdVndOpenDrawer;
   window.rdVndCloseDrawer = rdVndCloseDrawer;
+  window.rdVndDrawerTab = rdVndDrawerTab;
+  window.rdVndDrawerSave = rdVndDrawerSave;
+  window.rdVndMessageVendor = rdVndMessageVendor;
+  window.rdVndOpenContract = rdVndOpenContract;
+  window.rdVndRequestDocs = rdVndRequestDocs;
+  window.rdVndAddContact = rdVndAddContact;
+  window.rdVndExportRecord = rdVndExportRecord;
   window.rdVndBookVendor = rdVndBookVendor;
   window.rdVndSetAttr = rdVndSetAttr;
   window.rdVndSetAttrQuiet = rdVndSetAttrQuiet;

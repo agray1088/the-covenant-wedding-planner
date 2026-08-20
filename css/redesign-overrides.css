@@ -23033,6 +23033,89 @@ body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__tabs > button.is-active 
   background: #2D4A3E;
   color: #F4EFE6;
 }
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__eyebrowrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-label {
+  width: 110px;
+  flex: 0 0 auto;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-fields input,
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-fields select {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid #e0dbd1;
+  background: #fff;
+  color: #20362D;
+  font: inherit;
+  font-size: 13px;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-sect,
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-con-eyebrow {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #e7e1d4;
+  margin: 6px 0 2px;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-vnd-histrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-vnd-histrow > span:last-child {
+  text-align: right;
+  color: #3f3b34;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-vnd-histrow.is-missing > span:last-child {
+  color: #9c3b34;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-vnd-muted { color: #8a7e6b; }
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-vnd-callout {
+  padding: 9px 10px;
+  border: 1px solid #e7ce80;
+  background: #fff7df;
+  color: #8a640f;
+  font-size: 12px;
+  line-height: 1.55;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-note {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #8f8b83;
+  margin: 0;
+}
+body.rd-scope #panel-vendors .rd-vnd-drawer .rd-vnd-empty {
+  font-size: 13px;
+  color: #8a7e6b;
+}
 body.rd-scope #panel-vendors .rd-vnd-drawer .rd-drawer-section-title {
   font-size: 10px;
   letter-spacing: .16em;
