@@ -18,19 +18,18 @@
 (function () {
   'use strict';
 
-  /* ── §06: eight tabs. Only panels that actually exist in this build are
-     listed; pages the spec names but the app has not built yet (Households,
-     Contacts, Print Centre, Vision & Foundation) are deliberately absent
-     rather than rendered as dead nav. ─────────────────────────────────── */
+  /* ── §06: eight tabs · full planning IA (guide §3 + live shells).
+     Households / Contacts / Vision / First-Month / Print Centre / Homecoming
+     are first-class panels — derive, never store duplicates. ───────────── */
   var TABS = [
     { id: 'overview',  label: 'Overview',  pages: [['dashboard','Dashboard'], ['notes','Notes']] },
-    { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments'], ['logistics','Weekend Logistics']] },
-    { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
+    { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments'], ['data-hub','Database Hub']] },
+    { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['households','Households'], ['contacts','Contacts'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
     { id: 'money',     label: 'Money',     pages: [['budget','Budget'], ['payments','Payments'], ['contracts','Contracts & Invoices']] },
     { id: 'vendors',   label: 'Vendors',   pages: [['vendors','Venue & Vendors'], ['venue','Venue Comparison'], ['catering','Catering & Menu'], ['entertainment','Entertainment'], ['shotlist','Shot Lists']] },
-    { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['honeymoon','Honeymoon & After']] },
-    { id: 'covenant',  label: 'Covenant',  pages: [['prayer','Prayer Journal'], ['counseling','Premarital Counseling']], dot: true },
-    { id: 'documents', label: 'Documents', pages: [['mood','Vision Board'], ['essentials','Essentials Checklist'], ['packets','Share Packets'], ['emails','Email Templates'], ['data-hub','Database Hub']] }
+    { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['logistics','Weekend Logistics'], ['homecoming','Newlywed Homecoming'], ['honeymoon','Honeymoon & After']] },
+    { id: 'covenant',  label: 'Covenant',  pages: [['vision','Vision & Foundation'], ['prayer','Prayer Journal'], ['counseling','Premarital Counseling'], ['firstmonth','First-Month Rhythms']], dot: true },
+    { id: 'documents', label: 'Documents', pages: [['packets','Share Packets'], ['emails','Email Templates'], ['print-centre','Print Centre'], ['mood','Vision Board'], ['essentials','Essentials Checklist']] }
   ];
 
   /* Reached from the top bar or help, never from a tab (§06). */
@@ -152,6 +151,32 @@
       if (typeof toggleProfileDrawer === 'function') toggleProfileDrawer();
     });
 
+    /* Furniture · Trash · Views S10 — from the avatar/prefs menu */
+    if (prefs && !prefs.querySelector('[data-rd-trash]')) {
+      var trashBtn = el('<button type="button" class="rd-prefs__trash" data-rd-trash>Trash · 30 days</button>');
+      trashBtn.addEventListener('click', function () {
+        prefs.setAttribute('hidden', '');
+        var g = document.getElementById('rd-gear-btn');
+        if (g) g.setAttribute('aria-expanded', 'false');
+        if (typeof RdFurniture !== 'undefined' && RdFurniture.openTrash) {
+          var items = [];
+          try {
+            var trash = (typeof data !== 'undefined' && data && Array.isArray(data.trash)) ? data.trash : [];
+            items = trash.map(function (t, i) {
+              return {
+                id: String(t._id || i),
+                title: t.title || t.name || t.label || 'Deleted record',
+                meta: (t.type || t.entity || 'Record') + (t.deletedAt ? ' · ' + t.deletedAt : ''),
+                daysLeft: t.daysLeft != null ? t.daysLeft : 30
+              };
+            });
+          } catch (e) { items = []; }
+          RdFurniture.openTrash({ items: items });
+        }
+      });
+      prefs.insertBefore(trashBtn, prefs.firstChild);
+    }
+
     /* ─── retire the legacy chrome ────────────────────────────────────── */
     legacyBar.setAttribute('hidden', '');
     legacyBar.setAttribute('aria-hidden', 'true');
@@ -196,6 +221,10 @@
       subnav.appendChild(b);
     });
     syncDrawerSlot();
+    /* Roles · Views #43a — Covenant tab visibility / role chrome */
+    if (window.RdRoles && typeof window.RdRoles.afterSync === 'function') {
+      try { window.RdRoles.afterSync(); } catch (e) { /* soft */ }
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════════════════
@@ -228,6 +257,22 @@
     var partySlot = document.getElementById('party-drawer-slot');
     var giftsSlot = document.getElementById('gifts-drawer-slot');
     var tablesSlot = document.getElementById('tables-drawer-slot');
+    var vendorsSlot = document.getElementById('vendors-drawer-slot');
+    var venueSlot = document.getElementById('venue-drawer-slot');
+    var cateringSlot = document.getElementById('catering-drawer-slot');
+    var entertainmentSlot = document.getElementById('entertainment-drawer-slot');
+    var shotlistSlot = document.getElementById('shotlist-drawer-slot');
+    var timelineSlot = document.getElementById('timeline-drawer-slot');
+    var ceremonySlot = document.getElementById('ceremony-drawer-slot');
+    var honeymoonSlot = document.getElementById('honeymoon-drawer-slot');
+    var prayerSlot = document.getElementById('prayer-drawer-slot');
+    var counselingSlot = document.getElementById('counseling-drawer-slot');
+    var moodSlot = document.getElementById('mood-drawer-slot');
+    var essentialsSlot = document.getElementById('essentials-drawer-slot');
+    var packetsSlot = document.getElementById('packets-drawer-slot');
+    var emailsSlot = document.getElementById('emails-drawer-slot');
+    var notesSlot = document.getElementById('notes-drawer-slot');
+    var dataHubSlot = document.getElementById('data-hub-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -247,6 +292,23 @@
     else if (panel === 'party') slot = partySlot;
     else if (panel === 'gifts') slot = giftsSlot;
     else if (panel === 'tables') slot = tablesSlot;
+    else if (panel === 'vendors') slot = vendorsSlot;
+    else if (panel === 'catering') slot = cateringSlot;
+    else if (panel === 'entertainment') slot = entertainmentSlot;
+    else if (panel === 'shotlist') slot = shotlistSlot;
+    else if (panel === 'timeline') slot = timelineSlot;
+    else if (panel === 'ceremony') slot = ceremonySlot;
+    else if (panel === 'honeymoon') slot = honeymoonSlot;
+    else if (panel === 'prayer') slot = prayerSlot;
+    else if (panel === 'counseling') slot = counselingSlot;
+    else if (panel === 'mood') slot = moodSlot;
+    else if (panel === 'essentials') slot = essentialsSlot;
+    else if (panel === 'packets') slot = packetsSlot;
+    else if (panel === 'emails') slot = emailsSlot;
+    else if (panel === 'notes') slot = notesSlot;
+    else if (panel === 'data-hub') slot = dataHubSlot;
+    /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
+       park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
     if (taskSlot && d.parentElement === taskSlot) taskSlot.classList.remove('is-open');
     if (apptSlot && d.parentElement === apptSlot) apptSlot.classList.remove('is-open');
@@ -255,6 +317,21 @@
     if (partySlot && d.parentElement === partySlot) partySlot.classList.remove('is-open');
     if (giftsSlot && d.parentElement === giftsSlot) giftsSlot.classList.remove('is-open');
     if (tablesSlot && d.parentElement === tablesSlot) tablesSlot.classList.remove('is-open');
+    if (vendorsSlot && d.parentElement === vendorsSlot) vendorsSlot.classList.remove('is-open');
+    if (cateringSlot && d.parentElement === cateringSlot) cateringSlot.classList.remove('is-open');
+    if (entertainmentSlot && d.parentElement === entertainmentSlot) entertainmentSlot.classList.remove('is-open');
+    if (shotlistSlot && d.parentElement === shotlistSlot) shotlistSlot.classList.remove('is-open');
+    if (timelineSlot && d.parentElement === timelineSlot) timelineSlot.classList.remove('is-open');
+    if (ceremonySlot && d.parentElement === ceremonySlot) ceremonySlot.classList.remove('is-open');
+    if (honeymoonSlot && d.parentElement === honeymoonSlot) honeymoonSlot.classList.remove('is-open');
+    if (prayerSlot && d.parentElement === prayerSlot) prayerSlot.classList.remove('is-open');
+    if (counselingSlot && d.parentElement === counselingSlot) counselingSlot.classList.remove('is-open');
+    if (moodSlot && d.parentElement === moodSlot) moodSlot.classList.remove('is-open');
+    if (essentialsSlot && d.parentElement === essentialsSlot) essentialsSlot.classList.remove('is-open');
+    if (packetsSlot && d.parentElement === packetsSlot) packetsSlot.classList.remove('is-open');
+    if (emailsSlot && d.parentElement === emailsSlot) emailsSlot.classList.remove('is-open');
+    if (notesSlot && d.parentElement === notesSlot) notesSlot.classList.remove('is-open');
+    if (dataHubSlot && d.parentElement === dataHubSlot) dataHubSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -270,6 +347,67 @@
       if (partySlot) partySlot.classList.remove('is-open');
       if (giftsSlot) giftsSlot.classList.remove('is-open');
       if (tablesSlot) tablesSlot.classList.remove('is-open');
+      if (vendorsSlot) vendorsSlot.classList.remove('is-open');
+      if (cateringSlot) cateringSlot.classList.remove('is-open');
+      if (entertainmentSlot) entertainmentSlot.classList.remove('is-open');
+      if (shotlistSlot) shotlistSlot.classList.remove('is-open');
+      if (timelineSlot) timelineSlot.classList.remove('is-open');
+      if (ceremonySlot) ceremonySlot.classList.remove('is-open');
+      if (honeymoonSlot) honeymoonSlot.classList.remove('is-open');
+      if (prayerSlot) prayerSlot.classList.remove('is-open');
+      if (counselingSlot) counselingSlot.classList.remove('is-open');
+      if (moodSlot) moodSlot.classList.remove('is-open');
+      if (essentialsSlot) essentialsSlot.classList.remove('is-open');
+      if (packetsSlot) packetsSlot.classList.remove('is-open');
+      if (emailsSlot) emailsSlot.classList.remove('is-open');
+      if (notesSlot) notesSlot.classList.remove('is-open');
+      if (dataHubSlot) dataHubSlot.classList.remove('is-open');
+    }
+    /* Keep venue custom drawer open state intact when shared drawer parks away. */
+    if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
+      venueSlot.classList.add('is-open');
+    }
+    if (cateringSlot && cateringSlot.querySelector('.rd-cat-drawer') && !(d.parentElement === cateringSlot && open)) {
+      cateringSlot.classList.add('is-open');
+    }
+    if (entertainmentSlot && entertainmentSlot.querySelector('.rd-ent-drawer') && !(d.parentElement === entertainmentSlot && open)) {
+      entertainmentSlot.classList.add('is-open');
+    }
+    if (shotlistSlot && shotlistSlot.querySelector('.rd-shot-drawer') && !(d.parentElement === shotlistSlot && open)) {
+      shotlistSlot.classList.add('is-open');
+    }
+    if (timelineSlot && timelineSlot.querySelector('.rd-wday-drawer') && !(d.parentElement === timelineSlot && open)) {
+      timelineSlot.classList.add('is-open');
+    }
+    if (ceremonySlot && ceremonySlot.querySelector('.rd-cer-drawer') && !(d.parentElement === ceremonySlot && open)) {
+      ceremonySlot.classList.add('is-open');
+    }
+    if (honeymoonSlot && honeymoonSlot.querySelector('.rd-hm-drawer') && !(d.parentElement === honeymoonSlot && open)) {
+      honeymoonSlot.classList.add('is-open');
+    }
+    if (prayerSlot && prayerSlot.querySelector('.rd-pr-drawer') && !(d.parentElement === prayerSlot && open)) {
+      prayerSlot.classList.add('is-open');
+    }
+    if (counselingSlot && counselingSlot.querySelector('.rd-cou-drawer') && !(d.parentElement === counselingSlot && open)) {
+      counselingSlot.classList.add('is-open');
+    }
+    if (moodSlot && moodSlot.querySelector('.rd-mood-drawer') && !(d.parentElement === moodSlot && open)) {
+      moodSlot.classList.add('is-open');
+    }
+    if (essentialsSlot && essentialsSlot.querySelector('.rd-ess-drawer') && !(d.parentElement === essentialsSlot && open)) {
+      essentialsSlot.classList.add('is-open');
+    }
+    if (packetsSlot && packetsSlot.querySelector('.rd-pkt-drawer') && !(d.parentElement === packetsSlot && open)) {
+      packetsSlot.classList.add('is-open');
+    }
+    if (emailsSlot && emailsSlot.querySelector('.rd-et-drawer') && !(d.parentElement === emailsSlot && open)) {
+      emailsSlot.classList.add('is-open');
+    }
+    if (notesSlot && notesSlot.querySelector('.rd-notes-drawer') && !(d.parentElement === notesSlot && open)) {
+      notesSlot.classList.add('is-open');
+    }
+    if (dataHubSlot && dataHubSlot.querySelector('.rd-dh-drawer') && !(d.parentElement === dataHubSlot && open)) {
+      dataHubSlot.classList.add('is-open');
     }
   }
 
@@ -482,7 +620,8 @@
         var st = window.recordEditorState;
         if (!st) return;
         if (st.key === 'guests') {
-          if (typeof rdGuestFullEditor === 'function') rdGuestFullEditor();
+          if (typeof guestDrawerFooterAction === 'function') guestDrawerFooterAction();
+          else if (typeof rdGuestFullEditor === 'function') rdGuestFullEditor();
           return;
         }
         if (st.key === 'party') {
@@ -588,6 +727,8 @@
            rows.join('') + '</section>';
   }
 
+  /* Gaps 44 · History separates typed changes from derived ones. Derived lines
+     are indented, greyed, prefixed with an arrow and never editable. */
   function historySectionHtml(st) {
     var entries = (typeof recordHistoryFor === 'function' && st && st.draft)
       ? recordHistoryFor(st.key, st.draft._id) : [];
@@ -595,19 +736,36 @@
       return '<section class="record-editor-section" data-drawer-synth="History" data-drawer-group="history"><h4>History</h4>' +
              '<div class="rd-empty">No changes recorded for this record yet.</div></section>';
     }
-    var html = entries.slice(0, 20).map(function (e) {
-      var changes = (e.changes || []).map(function (c) {
-        return '<div class="rd-hist__change"><span class="rd-hist__field">' + esc(c.label) +
-               '</span><span class="rd-hist__from">' + esc(c.from) + '</span>' +
-               '<span class="rd-hist__arrow">&#8594;</span>' +
-               '<span class="rd-hist__to">' + esc(c.to) + '</span></div>';
-      }).join('');
-      return '<div class="rd-hist"><div class="rd-hist__top">' + esc(e.action) +
-             '<span class="rd-hist__when">' + esc(e.date) + ' · ' + esc(e.time) + '</span></div>' +
-             changes + '</div>';
-    }).join('');
+    var actor = (typeof drawerActorInitials === 'function') ? drawerActorInitials() : 'You';
+    var typed = 0, derived = 0;
+    var rows = [];
+    entries.slice(0, 20).forEach(function (e) {
+      var when = esc((e.date || '') + (e.time ? ' · ' + e.time : ''));
+      var changes = (e.changes || []);
+      if (!changes.length) {
+        typed++;
+        rows.push('<div class="rd-gaps-hist__row"><span class="rd-gaps-hist__when">' + esc(actor) + ' · ' + when +
+          '</span><span class="rd-gaps-hist__what">' + esc(e.action || 'Updated') + '</span></div>');
+        return;
+      }
+      changes.forEach(function (c, i) {
+        var txt = esc(c.label) + (c.to != null && c.to !== '' ? ' → ' + esc(c.to) : '');
+        var isDerived = !!c.derived || i > 0;
+        if (isDerived) {
+          derived++;
+          rows.push('<div class="rd-gaps-hist__row rd-gaps-hist__row--derived"><span class="rd-gaps-hist__when">derived · ' + when +
+            '</span><span class="rd-gaps-hist__what">&#8594; ' + txt + '</span></div>');
+        } else {
+          typed++;
+          rows.push('<div class="rd-gaps-hist__row"><span class="rd-gaps-hist__when">' + esc(actor) + ' · ' + when +
+            '</span><span class="rd-gaps-hist__what">' + txt + '</span></div>');
+        }
+      });
+    });
+    var teach = '<div class="rd-drawer-note">' + (typed + derived) + ' change' + ((typed + derived) === 1 ? '' : 's') +
+      ', ' + derived + ' derived. Derived lines are never editable and never count toward &ldquo;last touched&rdquo;.</div>';
     return '<section class="record-editor-section" data-drawer-synth="History" data-drawer-group="history"><h4>History</h4>' +
-           html + '</section>';
+           '<div class="rd-gaps-hist">' + rows.join('') + '</div>' + teach + '</section>';
   }
 
   var DRAWER_PAGE_CRUMB = {
@@ -617,6 +775,41 @@
     tables: 'Table Layout / Table',
     tasks: 'Timeline & Tasks / Task',
     appointments: 'Appointments / Appointment',
+    vendors: 'Venue & Vendors / Vendor',
+    venue: 'Venue Comparison / Venue',
+    catering: 'Catering & Menu / Menu item',
+    menu: 'Catering & Menu / Menu item',
+    entertainment: 'Entertainment / Song',
+    recSongs: 'Entertainment / Song',
+    receptionPlaylist: 'Entertainment / Song',
+    doNotPlay: 'Entertainment / Song',
+    mustPlay: 'Entertainment / Song',
+    shotlist: 'Shot Lists / Shot',
+    videoShots: 'Shot Lists / Shot',
+    videoShotlist: 'Shot Lists / Shot',
+    timeline: 'Wedding Day Timeline / Event',
+    wdayTimeline: 'Wedding Day Timeline / Event',
+    ceremonyOrder: 'Ceremony & Reception / Element',
+    ceremonyReceptionDetails: 'Ceremony & Reception / Element',
+    scriptures: 'Ceremony & Reception / Element',
+    ceremonyVows: 'Ceremony & Reception / Element',
+    speeches: 'Ceremony & Reception / Element',
+    honeyDetails: 'Honeymoon & After / Booking',
+    honeyTransport: 'Honeymoon & After / Booking',
+    honeyItinerary: 'Honeymoon & After / Itinerary',
+    packing: 'Honeymoon & After / Packing',
+    hmBudgetItems: 'Honeymoon & After / Budget line',
+    hmJournal: 'Honeymoon & After / Journal',
+    prayer: 'Prayer Journal / Entry',
+    counseling: 'Premarital Counseling / Session',
+    moodItems: 'Vision Board / Pin',
+    moodPhotos: 'Vision Board / Pin',
+    palettes: 'Vision Board / Palette',
+    essentials: 'Essentials Checklist / Item',
+    packets: 'Share Packets / Packet',
+    emailTemplates: 'Email Templates / Template',
+    notesDetails: 'Notes / Note',
+    'data-hub': 'Database Hub / Hub table',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',
@@ -844,7 +1037,8 @@
      Subtasks / Links / History keep dedicated tabs — every field reachable.
      ───────────────────────────────────────────────────────────────────── */
   var DECORATING = false;
-  var TASK_DRAWER_TABS = ['Task', 'Subtasks', 'Links', 'History'];
+  /* Gaps 44 · Task · Depends on · People · History */
+  var TASK_DRAWER_TABS = ['Task', 'Depends on', 'People', 'History'];
   var TASK_DRAWER_TAB_MAX = TASK_DRAWER_TABS.length - 1;
   /* 14a: Appointment · Travel · Who · History */
   var APPT_DRAWER_TABS = ['Appointment', 'Travel', 'Who', 'History'];
@@ -853,7 +1047,8 @@
   var LOG_DRAWER_TABS = ['Movement', 'People', 'Transport', 'History'];
   var LOG_DRAWER_TAB_MAX = LOG_DRAWER_TABS.length - 1;
   /* 3b: Identity · Response · Contact · Invitation · Party · Note · History */
-  var GUEST_DRAWER_TABS = ['Identity', 'Response', 'Contact', 'Invitation', 'Party', 'Note', 'History'];
+  /* Gaps Batch 44 — Guest · Household · Seating · RSVP · History (planner.js guestDrawerShellTabs wins). */
+  var GUEST_DRAWER_TABS = ['Guest', 'Household', 'Seating', 'RSVP', 'History'];
   var GUEST_DRAWER_TAB_MAX = GUEST_DRAWER_TABS.length - 1;
   var LOG_DRAWER_KEYS = {
     weekendTimeline: 1, hotelBlocks: 1, travelAccommodations: 1,
@@ -892,14 +1087,15 @@
     section.classList.toggle('is-drawer-tab-hidden', !show);
   }
 
-  /* Task tab: Task + Schedule + Notes. Dedicated tabs for the rest. */
+  /* Gaps 44 · Task tab stacks the work + notes; Depends on / People / History
+     have dedicated tabs. Legacy subtasks/links fold into Depends on / People. */
   function showTaskDrawerSections(sections, tabIndex) {
     sections.forEach(function (s) {
       var g = taskDrawerSectionGroup(s);
       var show = false;
       if (tabIndex === 0) show = (g === 'task' || g === 'schedule' || g === 'notes');
-      else if (tabIndex === 1) show = (g === 'subtasks');
-      else if (tabIndex === 2) show = (g === 'links');
+      else if (tabIndex === 1) show = (g === 'dependson' || g === 'subtasks');
+      else if (tabIndex === 2) show = (g === 'people' || g === 'links');
       else if (tabIndex === 3) show = (g === 'history');
       setDrawerSectionVisible(s, show);
     });
@@ -1300,15 +1496,10 @@
             });
             strip.appendChild(b);
           });
+          /* Gaps 44: section headers come from in-body uppercase titles. */
           sections.forEach(function (section) {
             var h4 = section.querySelector('h4');
-            if (!h4) return;
-            /* Task tab stacks three groups — keep their section eyebrows.
-               Links/History titles live in the tab strip. Subtasks keep the
-               count eyebrow. */
-            var label = taskDrawerTabLabel(section);
-            var keepH4 = (label === 'Task' || label === 'Schedule' || label === 'Notes' || label === 'Subtasks');
-            h4.style.display = keepH4 ? '' : 'none';
+            if (h4) h4.style.display = 'none';
           });
           writeDrawerTab(d, activeTab);
           showTaskDrawerSections(sections, activeTab);
@@ -1495,10 +1686,11 @@
           act.classList.add('rd-btn');
           if (canComplete) act.removeAttribute('hidden'); else act.setAttribute('hidden', '');
         } else if (st && st.key === 'guests') {
-          /* Batch 21 continued: Save + Full editor */
-          act.textContent = 'Full editor';
+          /* Gaps 44: secondary follows the active tab (Open household …) */
+          act.textContent = (typeof guestDrawerFooterSecondaryLabel === 'function')
+            ? guestDrawerFooterSecondaryLabel() : 'Full editor';
           act.classList.add('rd-btn');
-          if (!st.isNew) act.removeAttribute('hidden'); else act.setAttribute('hidden', '');
+          act.removeAttribute('hidden');
         } else if (st && st.key === 'party') {
           act.textContent = 'Open full editor';
           act.classList.add('rd-btn');
@@ -1528,7 +1720,7 @@
 
   /* Open a record in the drawer. scroll:false because a fixed 360px panel
      must not drag the work surface around underneath it. */
-  function openDrawer(key, index) {
+  function openDrawer(key, index, seed) {
     if (typeof covInlineLoad !== 'function') return;
     var d = ensureDrawer();
     if (!d) return;
@@ -1536,7 +1728,16 @@
     syncDrawerSlot();
     /* decorate() fills the eyebrow from the loaded record — writing it here
        would overwrite the row that holds the close button. */
-    covInlineLoad(key, index, DRAWER_BODY, null, { scroll: false });
+    covInlineLoad(key, index, DRAWER_BODY, seed || null, { scroll: false });
+  }
+
+  /* Prefer the 360px record drawer for +Add when redesign chrome is live.
+     Falls back to false so callers can open the full editor / inline mount. */
+  function openNewInDrawer(key, seed) {
+    if (!document.body.classList.contains('rd-scope')) return false;
+    if (!document.getElementById(DRAWER_BODY)) return false;
+    openDrawer(key, null, seed || null);
+    return true;
   }
 
   function closeDrawer(force) {
@@ -1729,6 +1930,7 @@
   window.rdOpenDrawer     = openDrawer;
   window.rdCloseDrawer    = closeDrawer;
   window.rdOpenFullEditor = openFullEditor;
+  window.rdOpenNewInDrawer = openNewInDrawer;
   window.covenantShell = {
     rebuild: build,
     sync: sync,
@@ -1750,7 +1952,7 @@
         var _cwpOpenEditor = window.cwpOpenEditor;
         window.cwpOpenEditor = function (entity, id) {
           var logKeys = { weekendTimeline:1, hotelBlocks:1, travelAccommodations:1, transportation:1, vipCare:1 };
-          if ((entity === 'tasks' || entity === 'appointments' || entity === 'guests' || logKeys[entity]) && document.getElementById(DRAWER_BODY)) {
+          if ((entity === 'tasks' || entity === 'appointments' || entity === 'guests' || entity === 'vendors' || logKeys[entity]) && document.getElementById(DRAWER_BODY)) {
             var rows = (typeof recordEditorRows === 'function')
               ? recordEditorRows(entity)
               : ((window.data && window.data[entity]) || []);
@@ -1758,7 +1960,14 @@
             for (var n = 0; n < rows.length; n++) {
               if (rows[n] && String(rows[n]._id) === String(id)) { i = n; break; }
             }
-            if (i > -1) { openDrawer(entity, i); return; }
+            if (i > -1) {
+              if (entity === 'vendors' && typeof rdVndOpenDrawer === 'function') {
+                rdVndOpenDrawer(String(id));
+                return;
+              }
+              openDrawer(entity, i);
+              return;
+            }
           }
           return _cwpOpenEditor(entity, id);
         };
