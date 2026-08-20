@@ -64,6 +64,58 @@
     }).filter(Boolean);
   }
 
+  /* Place any body-level popup under its trigger button.
+     Shrink-wrap first — a block div on <body> reads as full viewport width,
+     which made left-clamps pin menus to 8px (far left of the page). */
+  function anchorToButton(pop, anchor, opts) {
+    opts = opts || {};
+    if (!pop || !anchor || !anchor.getBoundingClientRect) return null;
+    var margin = opts.margin != null ? opts.margin : 8;
+    var gap = opts.gap != null ? opts.gap : 4;
+    var minW = opts.minWidth != null ? opts.minWidth : 180;
+    var mode = opts.mode === 'absolute' ? 'absolute' : 'fixed';
+    var flip = opts.flip !== false;
+
+    pop.style.boxSizing = 'border-box';
+    if (!opts.keepDisplay) pop.style.display = 'inline-block';
+    if (!opts.keepWidth) {
+      pop.style.width = 'max-content';
+      pop.style.maxWidth = 'min(320px, calc(100vw - ' + (margin * 2) + 'px))';
+    }
+    pop.style.visibility = 'hidden';
+    pop.style.left = '0';
+    pop.style.top = '0';
+    pop.style.position = mode;
+    if (!pop.parentNode) document.body.appendChild(pop);
+
+    var r = anchor.getBoundingClientRect();
+    var w = Math.max(pop.offsetWidth || 0, pop.getBoundingClientRect().width || 0, minW);
+    var h = Math.max(pop.offsetHeight || 0, pop.getBoundingClientRect().height || 0, 40);
+    var left;
+    var top;
+
+    if (mode === 'fixed') {
+      left = Math.max(margin, Math.min(r.left, window.innerWidth - w - margin));
+      if (flip && r.bottom + h + gap + 4 > window.innerHeight && r.top - h - gap > margin) {
+        top = r.top - h - gap;
+      } else {
+        top = Math.max(margin, Math.min(r.bottom + gap, window.innerHeight - h - margin));
+      }
+    } else {
+      left = window.scrollX + r.left;
+      var maxLeft = window.scrollX + document.documentElement.clientWidth - w - margin;
+      if (left > maxLeft) left = Math.max(window.scrollX + margin, maxLeft);
+      top = window.scrollY + r.bottom + gap;
+    }
+
+    pop.style.left = Math.round(left) + 'px';
+    pop.style.top = Math.round(top) + 'px';
+    if (!pop.style.zIndex) pop.style.zIndex = String(opts.zIndex || 12000);
+    pop.style.visibility = '';
+    return { left: left, top: top, width: w, height: h };
+  }
+  window.rdAnchorToButton = anchorToButton;
+
   function open(btn, opts, current, onPick, multi) {
     close();
     var list = normalise(opts);
@@ -80,16 +132,7 @@
         + '<span class="rd-picker__label">' + esc(o.label) + '</span></button>';
     }).join('');
     document.body.appendChild(el);
-
-    var r = btn.getBoundingClientRect();
-    var w = el.offsetWidth;
-    var h = el.offsetHeight;
-    el.style.position = 'fixed';
-    el.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
-    /* flip above the chip when there is no room below */
-    el.style.top = (r.bottom + h + 8 > window.innerHeight && r.top - h - 4 > 8)
-      ? (r.top - h - 4) + 'px'
-      : Math.max(8, Math.min(r.bottom + 4, window.innerHeight - h - 8)) + 'px';
+    anchorToButton(el, btn, { minWidth: 190, gap: 4, zIndex: 4000 });
 
     el.addEventListener('click', function (e) {
       var item = e.target.closest ? e.target.closest('.rd-picker__item') : null;
@@ -191,9 +234,44 @@
 
   /* Only choosable (non-fixed) columns are counted, so the label matches what
      the menu can actually change. */
-  function chipLabel(scope) {
+  var SCOPE_ALIASES = {
+    ceremony: 'ceremonyOrder', honeymoon: 'honeyItinerary', notes: 'notesDetails',
+    catering: 'menu', entertainment: 'entertainment', shotlist: 'shotlist',
+    prayer: 'prayer', counseling: 'counseling', essentials: 'essentials',
+    timeline: 'wdayTimeline', wday: 'wdayTimeline', contacts: 'contactsDirectory'
+  };
+  function resolveTableKey(scope) {
+    if (window.CWP && window.CWP.TABLES && window.CWP.TABLES[scope]) return scope;
+    var alt = SCOPE_ALIASES[scope];
+    if (alt && window.CWP && window.CWP.TABLES && window.CWP.TABLES[alt]) return alt;
+    return scope;
+  }
+  function ensureCatalog(scope) {
     var r = reg(scope);
+    if (r.columns.length) return r;
+    var tableKey = resolveTableKey(scope);
+    if (window.CWP && window.CWP.TABLES && window.CWP.TABLES[tableKey]) {
+      var cols = window.CWP.TABLES[tableKey].columns || [];
+      if (cols.length) {
+        register(scope, cols.map(function (c) {
+          return {
+            key: c.key,
+            label: c.label || c.key,
+            fixed: !c.key || String(c.key).startsWith('_') || c.type === 'index' || c.type === 'drag' || c.type === 'id'
+          };
+        }), function () {
+          if (typeof window.cwpRenderTable === 'function') window.cwpRenderTable(tableKey);
+        });
+      }
+    }
+    return reg(scope);
+  }
+  function chipLabel(scope) {
+    var r = ensureCatalog(scope);
     var choosable = r.columns.filter(function (c) { return !c.fixed; });
+    /* Always paint "Columns · N of M" so every toolbar matches the Tasks mock,
+       even before a table body has registered its catalog. */
+    if (!choosable.length) return 'Columns \u00b7 6 of 6';
     var shown = choosable.filter(function (c) { return !r.hidden.has(c.key); }).length;
     return 'Columns \u00b7 ' + shown + ' of ' + choosable.length;
   }
@@ -210,11 +288,25 @@
   }
 
   function openChooser(btn, scope) {
+    /* Ensure a catalog exists before opening — redesign chips may call this
+       before any CWP render registered the scope. */
+    chipLabel(scope);
     var r = reg(scope);
     var choosable = r.columns.filter(function (c) { return !c.fixed; });
+    if (!choosable.length && btn && btn.closest) {
+      var table = (btn.closest('.rd-page, .panel, .cwp-mount, .rd-view') || document)
+        .querySelector('table.cwp-table, table.rd-table, table');
+      if (table) enhanceTable(table, scope);
+      r = reg(scope);
+      choosable = r.columns.filter(function (c) { return !c.fixed; });
+    }
     var opts = choosable.map(function (c) {
       return { value: c.key, label: c.label || c.key, checked: !r.hidden.has(c.key) };
     });
+    if (!opts.length) {
+      open(btn, [{ value: '_none', label: 'No columns to hide', checked: true }], null, function () { return false; }, true);
+      return;
+    }
     open(btn, opts, null, function (key) {
       var h = r.hidden;
       if (h.has(key)) h.delete(key);
@@ -405,4 +497,355 @@
   }
 
   window.rdAutoFitTable = autoFit;
+
+  /* ── standard table chrome (filters · sort · columns · autofit · row height) ─
+     Every data table in the planner should expose the same chip toolbar the
+     Tasks page pioneered. Page-specific toolbars can call these helpers; the
+     CWP engine also injects a full bar for mounts that do not already own one. */
+
+  var HEIGHTS = ['compact', 'default', 'tall'];
+  var CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg>';
+  var ICO_SORT = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>';
+  var ICO_COLS = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>';
+  var ICO_FIT = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>';
+  var ICO_ROW = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+
+  function heightKey(scope) {
+    return 'rdRowHeight:' + profile() + ':' + scope;
+  }
+  function heightLabel(scope) {
+    try { return localStorage.getItem(heightKey(scope)) || 'default'; } catch (e) { return 'default'; }
+  }
+  function applyHeight(scope, root) {
+    if (!root) return heightLabel(scope);
+    var h = heightLabel(scope);
+    root.setAttribute('data-rd-row-height', h);
+    var table = root.tagName === 'TABLE' ? root : root.querySelector('table');
+    [root, table].forEach(function (el) {
+      if (!el) return;
+      el.classList.remove('rd-table--compact', 'rd-table--tall', 'rd-table--default');
+      if (h === 'compact') el.classList.add('rd-table--compact');
+      else if (h === 'tall') el.classList.add('rd-table--tall');
+      else el.classList.add('rd-table--default');
+    });
+    return h;
+  }
+  function cycleHeight(scope, root) {
+    var cur = heightLabel(scope);
+    var idx = HEIGHTS.indexOf(cur);
+    var next = HEIGHTS[(idx < 0 ? 0 : idx + 1) % HEIGHTS.length];
+    try { localStorage.setItem(heightKey(scope), next); } catch (e) { /* private mode */ }
+    applyHeight(scope, root);
+    return next;
+  }
+
+  /* Right-side chips every table must expose. `scope` keys the column registry
+     and the row-height preference; autofit resolves a table under `rootSel`. */
+  function standardRightHtml(scope, opts) {
+    opts = opts || {};
+    var colLabel = window.rdColumns ? window.rdColumns.chipLabel(scope) : 'Columns';
+    var allShown = window.rdColumns ? window.rdColumns.allShown(scope) : true;
+    var h = heightLabel(scope);
+    var openCols = opts.openColumns || ("rdOpenColumns(this,'" + esc(scope) + "')");
+    var autofit = opts.autofit || ("rdStdAutoFit(this,'" + esc(scope) + "')");
+    var rowH = opts.rowHeight || ("rdStdCycleRowHeight('" + esc(scope) + "')");
+    return ''
+      + '<button type="button" class="rd-chip' + (allShown ? ' rd-chip--ghost' : '') + '" onclick="' + openCols + '">'
+      + ICO_COLS + esc(colLabel) + CHEV + '</button>'
+      + '<button type="button" class="rd-chip" onclick="' + autofit + '">'
+      + ICO_FIT + 'Auto-fit columns</button>'
+      + '<button type="button" class="rd-chip" onclick="' + rowH + '">'
+      + ICO_ROW + 'Row height · ' + esc(h) + CHEV + '</button>';
+  }
+
+  function filterChipHtml(label, field, current, onClick, onClear) {
+    var cur = current == null || current === '' ? 'all' : String(current);
+    var on = cur !== 'all';
+    var text = on ? (label + ': ' + cur) : (label + ': all');
+    return '<button type="button" class="rd-chip' + (on ? ' is-active' : '') + '" onclick="' + onClick + '">'
+      + esc(text)
+      + (on
+        ? '<span class="rd-chip__clear" onclick="event.stopPropagation();' + onClear + '">&#10005;</span>'
+        : CHEV)
+      + '</button>';
+  }
+
+  function sortChipHtml(label, onClick) {
+    return '<button type="button" class="rd-chip rd-chip--ghost" onclick="' + onClick + '">'
+      + ICO_SORT + esc(label || 'Sort') + CHEV + '</button>';
+  }
+
+  /* Build a full Tasks-style toolbar for a CWP table key. Relies on the CWP
+     public helpers registered below (rdCwp*). */
+  function cwpToolbarHtml(key) {
+    if (typeof window.rdCwpToolbarHtml === 'function') return window.rdCwpToolbarHtml(key);
+    return '<div class="rd-toolbar rd-cwp-toolbar" data-rd-cwp-key="' + esc(key) + '">'
+      + standardRightHtml(key)
+      + '</div>';
+  }
+
+  window.rdStdHeightLabel = heightLabel;
+  window.rdStdApplyRowHeight = applyHeight;
+  window.rdStdCycleRowHeight = function (scope, rootSel) {
+    var root = null;
+    if (rootSel) root = typeof rootSel === 'string' ? document.querySelector(rootSel) : rootSel;
+    if (!root) {
+      var mount = document.getElementById('cwp-' + scope);
+      if (!mount) {
+        var bar = document.querySelector('.rd-cwp-toolbar[data-rd-cwp-key="' + scope + '"]');
+        if (bar) mount = bar.closest('.cwp-mount, .cwp-section, .rd-page, .panel, .rd-view') || bar.parentElement;
+      }
+      root = mount;
+    }
+    var next = cycleHeight(scope, root);
+    var isCwpKey = window.CWP && window.CWP.TABLES && window.CWP.TABLES[scope];
+    if (isCwpKey && typeof window.cwpRenderTable === 'function') {
+      try { window.cwpRenderTable(scope); } catch (e) { /* ignore */ }
+    } else {
+      document.querySelectorAll('.rd-cwp-toolbar[data-rd-cwp-key="' + scope + '"] .rd-chip').forEach(function (chip) {
+        if (/Row height/i.test(chip.textContent || '')) {
+          chip.innerHTML = ICO_ROW + 'Row height · ' + esc(next) + CHEV;
+        }
+      });
+    }
+    return next;
+  };
+
+  /* Generic sort picker used by redesign pages that previously showed a ghost
+     "Sort by …" chip with no handler. */
+  window.rdStdOpenSort = function (btn, scope, options, current, onPick) {
+    var opts = options || [
+      { value: 'default', label: 'Default order' },
+      { value: 'az', label: 'A–Z' },
+      { value: 'za', label: 'Z–A' }
+    ];
+    if (typeof window.rdPickOne !== 'function') return;
+    window.rdPickOne(btn, opts, current || 'default', function (val) {
+      if (typeof onPick === 'function') onPick(val);
+      else if (btn) {
+        var label = 'Sort';
+        for (var i = 0; i < opts.length; i++) if (String(opts[i].value) === String(val)) label = opts[i].label;
+        btn.innerHTML = ICO_SORT + esc(label) + CHEV;
+      }
+    });
+  };
+  /* Aliases for chips wired from redesign toolbars */
+  ['rdEssOpenSort','rdContactsOpenSort','rdHhOpenSort','rdNotesOpenSort','rdEtOpenSort',
+   'rdPktOpenSort','rdCerOpenSort','rdEntOpenSort','rdShotOpenSort','rdWdayOpenSort',
+   'rdPrayerOpenSort','rdCatOpenSort'].forEach(function (name) {
+    if (typeof window[name] !== 'function') {
+      window[name] = function (btn) { window.rdStdOpenSort(btn, name); };
+    }
+  });
+  window.rdStdAutoFit = function (btn, scope) {
+    var table = null;
+    if (btn && btn.closest) {
+      var host = btn.closest('.cwp-mount, .cwp-section, .rd-surface__main, .rd-page, .panel') || document;
+      table = host.querySelector('table.cwp-table, table.rd-table, table');
+    }
+    if (!table && scope) {
+      var mount = document.getElementById('cwp-' + scope);
+      table = mount && mount.querySelector('table');
+    }
+    if (!table) return 0;
+    if (typeof window.rdAutoFitTable === 'function') return window.rdAutoFitTable(table);
+    if (typeof window.cwpAutoFitTableColumns === 'function' && scope) {
+      window.cwpAutoFitTableColumns(scope);
+      return 1;
+    }
+    return 0;
+  };
+  window.rdStandardRightHtml = standardRightHtml;
+  window.rdFilterChipHtml = filterChipHtml;
+  window.rdSortChipHtml = sortChipHtml;
+  window.rdCwpToolbarShell = cwpToolbarHtml;
+
+  /* True when the page (not an in-mount CWP bar) already exposes
+     Columns · Auto-fit · Row height. Used to skip duplicate injection. */
+  function toolbarHasChrome(tb) {
+    if (!tb) return false;
+    var t = tb.textContent || '';
+    return /Auto-fit columns/i.test(t) && /Columns\s*·/i.test(t) && /Row height/i.test(t);
+  }
+  function panelRootFrom(el) {
+    if (!el) return null;
+    return el.closest('.panel, .rd-page') ||
+      (document.body.getAttribute('data-active-panel')
+        ? document.getElementById('panel-' + document.body.getAttribute('data-active-panel'))
+        : null);
+  }
+  function panelHasPageToolbarChrome(fromEl) {
+    var root = panelRootFrom(fromEl) || document;
+    var bars = root.querySelectorAll('.rd-toolbar, .rd-cwp-toolbar');
+    for (var i = 0; i < bars.length; i++) {
+      var bar = bars[i];
+      /* Skip auto-injected duplicates — we are looking for the page chrome. */
+      if (bar.classList.contains('rd-toolbar--enhanced')) continue;
+      if (bar.classList.contains('rd-cwp-toolbar') && bar.closest('.cwp-mount')) continue;
+      if (toolbarHasChrome(bar)) return true;
+    }
+    return false;
+  }
+  window.rdPanelHasPageToolbarChrome = panelHasPageToolbarChrome;
+  window.rdToolbarHasChrome = toolbarHasChrome;
+
+  /* Remove enhancer-injected bars (and empty CWP duplicate bars) when the
+     page toolbar already owns Columns / Auto-fit / Row height. */
+  function removeDuplicateToolbars(root) {
+    root = root || panelRootFrom(document.body) || document;
+    if (!panelHasPageToolbarChrome(root)) return 0;
+    var removed = 0;
+    root.querySelectorAll('.rd-toolbar--enhanced, .cwp-mount > .cwp-section > .rd-cwp-toolbar, .cwp-mount .rd-cwp-toolbar').forEach(function (bar) {
+      if (bar.closest && bar.closest('.rd-page > .rd-toolbar')) return;
+      /* Keep page-level bars outside mounts. */
+      if (!bar.closest('.cwp-mount') && !bar.classList.contains('rd-toolbar--enhanced')) return;
+      if (bar.parentNode) {
+        bar.parentNode.removeChild(bar);
+        removed++;
+      }
+    });
+    return removed;
+  }
+  window.rdRemoveDuplicateToolbars = removeDuplicateToolbars;
+
+  /* Catch-all ONLY for tables that have no page chrome and no CWP bar.
+     Never run on a MutationObserver — that duplicated bars under every
+     redesign page toolbar. */
+  function nearestToolbar(table) {
+    var root = table.closest('.rd-view, .rd-surface__main, .cwp-section, .panel, .rd-page') || table.parentElement;
+    if (!root) return null;
+    var existing = root.querySelector('.rd-toolbar, .rd-cwp-toolbar');
+    if (existing) return existing;
+    var prev = table.previousElementSibling;
+    while (prev) {
+      if (prev.classList && (prev.classList.contains('rd-toolbar') || prev.classList.contains('rd-cwp-toolbar'))) return prev;
+      prev = prev.previousElementSibling;
+    }
+    return null;
+  }
+  function enhanceTable(table, scopeHint) {
+    if (!table || table.dataset.rdChrome === '1') return false;
+    /* Page already has the chip bar — never add another under the table. */
+    if (panelHasPageToolbarChrome(table)) {
+      table.dataset.rdChrome = '1';
+      return false;
+    }
+    /* CWP mounts inject their own bar in renderTable. */
+    if (table.closest('.cwp-mount')) {
+      table.dataset.rdChrome = '1';
+      return false;
+    }
+    var tb = nearestToolbar(table);
+    if (toolbarHasChrome(tb)) { table.dataset.rdChrome = '1'; return false; }
+    var scope = scopeHint || table.getAttribute('data-rd-scope') || table.id || ('tbl-' + Math.abs(hashStr(table.className + (table.parentElement && table.parentElement.id || ''))));
+    var heads = table.querySelectorAll('thead th');
+    if (heads.length && window.rdColumns && !reg(scope).columns.length) {
+      var catalog = Array.prototype.map.call(heads, function (th, i) {
+        var key = th.getAttribute('data-col') || ('c' + i);
+        var label = (th.textContent || '').replace(/\s+/g, ' ').trim() || key;
+        var fixed = !label || th.classList.contains('cwp-sel') || th.querySelector('input[type=checkbox]');
+        return { key: key, label: label, fixed: !!fixed };
+      });
+      register(scope, catalog, null);
+    }
+    var bar = document.createElement('div');
+    bar.className = 'rd-toolbar rd-cwp-toolbar rd-toolbar--enhanced';
+    bar.setAttribute('data-rd-cwp-key', scope);
+    bar.innerHTML = standardRightHtml(scope, {
+      openColumns: "rdOpenColumns(this,'" + esc(scope) + "')",
+      autofit: "rdStdAutoFit(this,'" + esc(scope) + "')",
+      rowHeight: "rdStdCycleRowHeight('" + esc(scope) + "')"
+    });
+    var wrap = table.closest('.cwp-table-wrap, .rd-table-wrap') || table;
+    wrap.parentNode.insertBefore(bar, wrap);
+    applyHeight(scope, table.closest('.cwp-mount, .rd-view, .panel') || table);
+    table.dataset.rdChrome = '1';
+    table.setAttribute('data-rd-scope', scope);
+    return true;
+  }
+  function hashStr(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i) | 0;
+    return h;
+  }
+  function enhanceVisible() {
+    var activeId = document.body.getAttribute('data-active-panel');
+    var root = (activeId && document.getElementById('panel-' + activeId)) || document;
+    /* Prefer the page bar: strip any duplicate injects first. */
+    removeDuplicateToolbars(root);
+    if (panelHasPageToolbarChrome(root)) return 0;
+    var tables = root.querySelectorAll('table.cwp-table, table.rd-table, .rd-surface table, .rd-view table');
+    var n = 0;
+    Array.prototype.forEach.call(tables, function (table) {
+      if (table.offsetParent === null && getComputedStyle(table).display === 'none') return;
+      if (enhanceTable(table, activeId || undefined)) n++;
+    });
+    return n;
+  }
+  window.rdEnhanceVisibleTables = enhanceVisible;
+  window.rdEnhanceTable = enhanceTable;
+
+  /* Stamp the shared table class so every redesign/custom grid inherits the
+     All.dc forest-header + group-band recipe from redesign-overrides §3. */
+  var PLANNER_TABLE_SEL = [
+    'table.cwp-table', 'table.rd-table', 'table.ued-table',
+    'table.rd-ent-table', 'table.rd-shot-table', 'table.rd-cat-table',
+    'table.rd-wday-table', 'table.rd-hm-table', 'table.rd-vnd-table',
+    'table.rd-vnd-cmp-table', 'table.rd-cou-table', 'table.rd-cou-hwtable',
+    'table.rd-ess-table', 'table.rd-pkt-table', 'table.rd-et-table',
+    'table.rd-mood-table', 'table.rd-dh-table', 'table.rd-notes-table',
+    'table.rd-pc-table', 'table.rd-hh-table', 'table.rd-ct-table',
+    'table.rd-hc-table', 'table.rd-guest-mini-table', 'table.rd-guest-comp-table',
+    'table.rd-guest-hh-table', 'table.rd-bgt-table', 'table.rd-pay-table',
+    'table.rd-con-table', 'table.record-editor-small-table',
+    'table.budget-table', 'table.payment-plan-table'
+  ].join(',');
+
+  function canonicalizePlannerTables(root) {
+    root = root || document;
+    var tables = root.querySelectorAll(PLANNER_TABLE_SEL);
+    Array.prototype.forEach.call(tables, function (table) {
+      if (!table.classList.contains('rd-table')) table.classList.add('rd-table');
+      if (!table.classList.contains('rd-planner-table')) table.classList.add('rd-planner-table');
+    });
+    /* Catch-all: any thead table inside a panel surface that looks like a data grid. */
+    var panels = root.querySelectorAll
+      ? root.querySelectorAll('.panel .rd-surface table, .panel .rd-view table, .panel .ued-table-wrap table, .cwp-mount > table, .rd-table-wrap table')
+      : [];
+    if (root.matches && root.matches('table')) {
+      /* single table root — skip panel scan */
+    } else {
+      Array.prototype.forEach.call(panels, function (table) {
+        if (!table || !table.tHead) return;
+        if (table.closest('.rd-week, .rd-cal, .rd-gantt, .print-sheet, .pv-root')) return;
+        if (!table.classList.contains('rd-table')) table.classList.add('rd-table');
+        if (!table.classList.contains('rd-planner-table')) table.classList.add('rd-planner-table');
+      });
+    }
+    return tables.length;
+  }
+  window.rdCanonicalizePlannerTables = canonicalizePlannerTables;
+
+  /* Only after a CWP render, and only when the page does not already own chrome.
+     No MutationObserver — it re-injected bars under every redesign toolbar. */
+  if (typeof document !== 'undefined') {
+    document.addEventListener('cwp:table-rendered', function () {
+      setTimeout(function () {
+        var activeId = document.body.getAttribute('data-active-panel');
+        var root = (activeId && document.getElementById('panel-' + activeId)) || document;
+        canonicalizePlannerTables(root);
+        removeDuplicateToolbars(root);
+        if (!panelHasPageToolbarChrome(root)) enhanceVisible();
+      }, 0);
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+      canonicalizePlannerTables(document);
+    });
+    /* After panel switches — redesign pages re-render tables into custom classes. */
+    document.addEventListener('cwp:panel-shown', function (ev) {
+      var id = ev && ev.detail && ev.detail.id;
+      var root = (id && document.getElementById('panel-' + id)) || document;
+      setTimeout(function () { canonicalizePlannerTables(root); }, 0);
+    });
+  }
 })();
