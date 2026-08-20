@@ -1,5 +1,8 @@
 # Implementing the Covenant redesign — a guide for Cursor
 
+**Page-by-page fidelity pass (Legend + sections 01–42):** `PAGE-BY-PAGE-FIDELITY-PASS.md`.
+That is the follow-along contract for the Master. Implement **one section at a time**; do not batch 1–42.
+
 You have already built **Planning, People and Money** from an earlier handoff. Since then four
 documents changed or appeared. This file explains what each one is, what to take from it, and —
 most importantly — **what changed under the three categories you have already finished**.
