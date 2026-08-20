@@ -25072,7 +25072,7 @@ let smartCalendarSources = { Tasks:true, Appointments:true, Counseling:true, Bud
    (step8s: 360px drawer; step8t/u: roomy default week-row; default no longer fit-clamped). */
 let smartCalDensity = 'default'; /* compact | default | tall — mirrored from localStorage */
 let smartCalDrawerOpen = false;
-let smartCalDrawerTab = 0; /* 0 Entry · 1 Source · 2 People · 3 History */
+let smartCalDrawerTab = 0; /* Month/Agenda/Source: Entry·Source·People·History. Week: Block·Conflicts·People·History. */
 let smartCalDrawerEntryId = null;
 /* null = review (Entry|Source|People|History); appointment|task|event = create form in drawer */
 let smartCalDrawerCreateType = null;
@@ -27749,9 +27749,12 @@ function renderSmartStats(events, all){
   let taskLab = 'Tasks due';
   const isDone = e => /complete|done|paid|confirmed/i.test(e.status || '');
   if (smartCalendarMode === 'agenda') {
-    /* Mock 6d: upcoming range from today; overdue pinned separately. */
+    /* Mock 6d: upcoming range from today (~32 days); overdue pinned separately. */
     const today = typeof todayISO === 'function' ? todayISO() : '';
-    const upcoming = events.filter(e => e.date && e.date >= today);
+    const start = dateFromISO(today) || new Date();
+    const end = new Date(start); end.setDate(start.getDate() + 31);
+    const windowEnd = isoFromDate(end);
+    const upcoming = events.filter(e => e.date && e.date >= today && e.date <= windowEnd);
     const overdue = events.filter(e => e.date && e.date < today && !isDone(e));
     scopeEvents = upcoming;
     const pays = upcoming.filter(e => e.source === 'Payments' || e.source === 'Budget');
@@ -28116,6 +28119,21 @@ function selectSmartEntry(id){
   smartCalDrawerCreateType = null;
   renderSmartCalendar();
 }
+function openSmartWeekConflicts(date){
+  if (date) smartSelectedDate = date;
+  else if (!smartSelectedDate) smartSelectedDate = typeof todayISO === 'function' ? todayISO() : '';
+  smartCalDrawerOpen = true;
+  smartCalDrawerCreateType = null;
+  smartCalDrawerTab = 1;
+  if (!smartCalDrawerEntryId) {
+    const dayEvents = smartFilteredEvents().filter(e => e.date === smartSelectedDate);
+    const conflicts = typeof detectCalendarConflicts === 'function' ? detectCalendarConflicts(dayEvents) : [];
+    const first = conflicts[0] && conflicts[0].a;
+    if (first && first.id != null) smartCalDrawerEntryId = String(first.id);
+  }
+  renderSmartCalendar();
+}
+window.openSmartWeekConflicts = openSmartWeekConflicts;
 function closeCalendarDayDrawer(){
   smartCalDrawerOpen = false;
   smartCalDrawerEntryId = null;
@@ -28515,23 +28533,104 @@ function calendarDrawerHistoryHtml(entry){
     return `<div class="re-history-row"><span class="re-history-when">${escapeHtml(h.date || '')} · ${escapeHtml(h.time || '')}</span><span class="re-history-what">${escapeHtml(h.action || 'Updated')}${change ? ' — ' + change : ''}</span></div>`;
   }).join('')}</div>`;
 }
+function calendarDrawerIsTimeBlock(){
+  return smartCalendarMode === 'week';
+}
+function calendarBlockWhenLabel(row){
+  if (!row) return '—';
+  if (row.allDay) return 'All day · Due band';
+  if (!row.time) return 'Due date · Due band';
+  const start = typeof humanTime === 'function' ? humanTime(row.time) : row.time;
+  return row.endTime
+    ? `${start} – ${typeof humanTime === 'function' ? humanTime(row.endTime) : row.endTime}`
+    : start;
+}
+function calendarDrawerBlockHtml(entry, dayEvents, dayConflicts){
+  const timed = (dayEvents || []).filter(e => !smartWeekIsAllDay(e));
+  const due = (dayEvents || []).filter(e => smartWeekIsAllDay(e));
+  if (!entry) {
+    const held = timed.length
+      ? timed.map(e => `<div class="cal-people-row"><span>${escapeHtml(e.title || 'Untitled')}</span><span class="cal-people-row__meta">${escapeHtml(calendarBlockWhenLabel(e))}</span></div>`).join('')
+      : '';
+    const dueRows = due.length
+      ? due.map(e => `<div class="cal-people-row"><span>${escapeHtml(e.title || 'Untitled')}</span><span class="cal-people-row__meta">${escapeHtml(e.allDay ? 'All day' : 'Due date')}</span></div>`).join('')
+      : '';
+    if (!held && !dueRows) {
+      return `<div class="cal-day-empty">Nothing held on this day. All-day and due-date entries sit on the Due band; timed entries occupy an hour.</div>`;
+    }
+    return `<div class="cal-entry-detail">
+      <p class="record-editor-note">A span of the week rather than a single event: what is held, and what may not be booked over it.</p>
+      ${held ? `<div class="rd-field-row__label" style="margin-bottom:6px">Held on the hour grid</div><div class="cal-people-list">${held}</div>` : ''}
+      ${dueRows ? `<div class="rd-field-row__label" style="margin:12px 0 6px">Due band — no hour</div><div class="cal-people-list">${dueRows}</div>` : ''}
+    </div>`;
+  }
+  const onHour = !smartWeekIsAllDay(entry);
+  const collideN = (dayConflicts || []).filter(c =>
+    String(c.a && c.a.id) === String(entry.id) || String(c.b && c.b.id) === String(entry.id)
+  ).length;
+  return `<div class="cal-entry-detail">
+    <div class="cal-entry-detail__title">${escapeHtml(entry.title || 'Untitled')}</div>
+    <p class="record-editor-note">${onHour
+      ? 'This span is held on the week grid. Other timed entries may not be booked over it without a conflict.'
+      : 'All-day and due-date entries cannot sit on an hour, so this lives on the Due band above the grid instead of midnight.'}</p>
+    <div class="rd-field-row"><span class="rd-field-row__label">Held</span><span class="rd-field-row__value">${escapeHtml(calendarBlockWhenLabel(entry))}</span></div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Owning page</span><span class="rd-field-row__value">${escapeHtml(smartSourcePageTitle(entry.source))}</span></div>
+    <div class="rd-field-row"><span class="rd-field-row__label">May not overlay</span><span class="rd-field-row__value">${onHour ? (collideN ? collideN + ' collision' + (collideN === 1 ? '' : 's') + ' — see Conflicts' : 'No other timed entry in this span') : 'Not an hour block'}</span></div>
+    <div class="cal-entry-detail__actions">
+      <button type="button" class="rd-btn rd-btn--primary" onclick="openSmartCalendarEventFullEditor('${String(entry.id).replace(/'/g,"\\'")}')">Edit in source</button>
+      <button type="button" class="rd-btn" onclick="openCalendarSource({sourcePage:'${escapeHtml(entry.sourcePage||'')}',id:'${String(entry.id).replace(/'/g,"\\'")}',source:'${escapeHtml(entry.source||'')}'})">Open ${escapeHtml(calendarSourceNavLabel(entry))}</button>
+    </div>
+  </div>`;
+}
+function calendarDrawerConflictsHtml(entry, dayConflicts, hasConflict){
+  const list = (dayConflicts || []).filter(c => {
+    if (!entry) return true;
+    return String(c.a && c.a.id) === String(entry.id) || String(c.b && c.b.id) === String(entry.id);
+  });
+  if (!list.length) {
+    if (entry && smartWeekIsAllDay(entry)) {
+      return `<div class="cal-day-empty">Due-band entries do not collide on the hour grid. The week view draws timed overlaps; this drawer explains them.</div>`;
+    }
+    return `<div class="cal-day-empty">${hasConflict ? 'Those overlaps were kept on purpose.' : 'Nothing collides with this block.'}</div>`;
+  }
+  const cards = list.map(c => {
+    const mins = conflictOverlapMinutes(c.a, c.b) || 30;
+    const aLabel = (c.a.title || 'Entry').replace(/\s+/g,' ').slice(0, 48);
+    const bLabel = (c.b.title || 'Entry').replace(/\s+/g,' ').slice(0, 48);
+    const aWhen = calendarBlockWhenLabel(c.a);
+    const bWhen = calendarBlockWhenLabel(c.b);
+    return `<div class="cal-conflict-box" role="alert">
+      <div class="cal-conflict-box__text"><strong>${mins}-minute overlap</strong> — ${escapeHtml(aLabel)} (${escapeHtml(aWhen)}) and ${escapeHtml(bLabel)} (${escapeHtml(bWhen)}) share this span. The week view hatches the shared half-hour; this tab names it.</div>
+      <div class="cal-conflict-box__actions">
+        <button type="button" class="rd-btn rd-btn--primary" onclick="smartCalendarReschedule('${String(c.a.id).replace(/'/g,"\\'")}')">Reschedule ${escapeHtml((c.a.title||'entry').split(' ').slice(0,2).join(' ').slice(0,18))}</button>
+        <button type="button" class="rd-btn" onclick="smartCalendarReschedule('${String(c.b.id).replace(/'/g,"\\'")}')">Reschedule ${escapeHtml((c.b.title||'entry').split(' ').slice(0,2).join(' ').slice(0,18))}</button>
+        <button type="button" class="rd-btn" onclick="smartCalendarKeepBoth('${smartSelectedDate}')">Keep both</button>
+      </div>
+    </div>`;
+  }).join('');
+  return cards;
+}
 function calendarDrawerPeopleHtml(entry){
   const names = String(entry.guests || '')
     .split(/\s*(?:,|&|\+|\/| and )\s*/i)
     .map(s => s.trim())
     .filter(Boolean);
   const owner = String(entry.owner || '').trim();
+  const timeBlock = calendarDrawerIsTimeBlock();
   if (!names.length && !owner) {
-    return `<div class="cal-day-empty">No one named on this entry. Who attends is stored on ${escapeHtml(smartSourcePageTitle(entry.source))}.</div>`;
+    return `<div class="cal-day-empty">${timeBlock
+      ? 'No one is named inside this block. Who attends is stored on ' + escapeHtml(smartSourcePageTitle(entry.source)) + '.'
+      : 'No one named on this entry. Who attends is stored on ' + escapeHtml(smartSourcePageTitle(entry.source)) + '.'}</div>`;
   }
-  const list = names.length
-    ? names.map(n => `<div class="cal-people-row"><span>${escapeHtml(n)}</span><span class="cal-people-row__meta">Expected</span></div>`).join('')
-    : '';
+  const inside = names.map(n => `<div class="cal-people-row"><span>${escapeHtml(n)}</span><span class="cal-people-row__meta">${timeBlock ? 'Inside the block' : 'Expected'}</span></div>`).join('');
   const ownerRow = owner
-    ? `<div class="cal-people-row"><span>${escapeHtml(owner)}</span><span class="cal-people-row__meta">Owner / contact</span></div>`
+    ? `<div class="cal-people-row"><span>${escapeHtml(owner)}</span><span class="cal-people-row__meta">${timeBlock ? 'Needs to know' : 'Owner / contact'}</span></div>`
     : '';
-  return `<p class="record-editor-note">Who is expected. Replies and RSVPs live on the owning page — a tasting slips because one person never replied.</p>
-    <div class="cal-people-list">${ownerRow}${list}</div>`;
+  const note = timeBlock
+    ? 'Who is inside the block, and who only needs to know it exists.'
+    : 'Who is expected. Replies and RSVPs live on the owning page — a tasting slips because one person never replied.';
+  return `<p class="record-editor-note">${note}</p>
+    <div class="cal-people-list">${ownerRow}${inside}</div>`;
 }
 function calendarDrawerSourceHtml(entry){
   const page = smartSourcePageTitle(entry.source);
@@ -28670,11 +28769,14 @@ function renderCalendarDayDrawer(events){
 
   let title = 'Day summary';
   let eyebrowKind = 'DAY';
+  const timeBlock = calendarDrawerIsTimeBlock();
+  d.setAttribute('aria-label', timeBlock ? 'Time block' : 'Calendar entry');
   if (entry) {
-    title = entry.title || 'Entry';
-    eyebrowKind = 'ENTRY';
+    title = entry.title || (timeBlock ? 'Time block' : 'Entry');
+    eyebrowKind = timeBlock ? 'BLOCK' : 'ENTRY';
   } else if (hasConflict && dayConflicts[0]) {
     title = dayEvents.length === 2 ? 'Two commitments overlap' : 'Schedule overlap';
+    if (timeBlock) eyebrowKind = 'BLOCK';
   } else if (!dayEvents.length) {
     title = 'No entries yet';
   } else if (dayEvents.length === 1) {
@@ -28688,7 +28790,8 @@ function renderCalendarDayDrawer(events){
   if (entry) pills.push(`<span class="status-pill" data-pillscheme="blue">${escapeHtml(calendarSourceNavLabel(entry))}</span>`);
   else if (dayEvents.length) pills.push(`<span class="status-pill" data-pillscheme="blue">${dayEvents.length} entr${dayEvents.length===1?'y':'ies'}</span>`);
 
-  const tabs = ['Entry','Source','People','History'].map((lab,i)=>
+  const tabLabels = timeBlock ? ['Block','Conflicts','People','History'] : ['Entry','Source','People','History'];
+  const tabs = tabLabels.map((lab,i)=>
     `<button type="button" class="${i===smartCalDrawerTab?'is-active':''}" onclick="setCalendarDrawerTab(${i})">${lab}</button>`
   ).join('');
 
@@ -28751,7 +28854,19 @@ function renderCalendarDayDrawer(events){
   };
 
   let body = '';
-  if (smartCalDrawerTab === 0) {
+  if (timeBlock) {
+    if (smartCalDrawerTab === 0) {
+      body = calendarDrawerBlockHtml(entry, dayEvents, dayConflicts);
+    } else if (smartCalDrawerTab === 1) {
+      body = calendarDrawerConflictsHtml(entry, dayConflicts, hasConflict);
+    } else if (!entry) {
+      body = `<div class="cal-day-empty">Select a block to see ${smartCalDrawerTab === 2 ? 'people' : 'history'}.</div>`;
+    } else if (smartCalDrawerTab === 2) {
+      body = calendarDrawerPeopleHtml(entry);
+    } else {
+      body = calendarDrawerHistoryHtml(entry);
+    }
+  } else if (smartCalDrawerTab === 0) {
     body = entry ? entryDetailHtml(entry) : dayListHtml();
   } else if (!entry) {
     body = `<div class="cal-day-empty">Select an entry to see ${['source','people','history'][smartCalDrawerTab-1] || 'details'}.</div>`;
@@ -28917,9 +29032,10 @@ function smartWeekEventBlockHtml(e, layout, rangeStart){
 function smartWeekDueChipHtml(e){
   const eid = String(e.id == null ? '' : e.id).replace(/'/g, "\\'");
   const overdue = e.date && e.date < todayISO() && !/complete|done|paid|confirmed/i.test(e.status || '');
+  const kind = e.allDay ? 'All day' : 'Due date';
   const meta = overdue
-    ? (e.source === 'Tasks' ? 'All day · overdue task' : 'All day · overdue')
-    : (e.allDay || !e.time ? 'All day' : 'Due date');
+    ? (e.source === 'Tasks' ? `${kind} · overdue task` : `${kind} · overdue`)
+    : kind;
   /* Due chips share month/week filled source tint. */
   return `<button type="button" class="rd-week__due-chip ${smartSourceSlug(e.source)}${overdue ? ' is-overdue' : ''}" style="${smartEventInlineStyle(e, 30)}" onclick="event.stopPropagation();selectSmartEntry('${eid}')" title="${escapeHtml(e.title || '')}">
     <span class="rd-week__due-chip-title">${escapeHtml(e.title || 'Untitled')}</span>
@@ -28997,7 +29113,7 @@ function renderSmartWeekView(host, events){
     const hatch = zones.map(z => {
       const topMin = Math.max(0, z.start - rangeStart);
       const heightMin = Math.max(8, z.end - z.start);
-      return `<div class="rd-week__hatch" style="top:calc(var(--rd-week-hour) * ${topMin} / 60);height:calc(var(--rd-week-hour) * ${heightMin} / 60)" aria-hidden="true"></div>`;
+      return `<button type="button" class="rd-week__hatch" style="top:calc(var(--rd-week-hour) * ${topMin} / 60);height:calc(var(--rd-week-hour) * ${heightMin} / 60)" aria-label="Open overlapping time" onclick="event.stopPropagation();openSmartWeekConflicts('${iso}')"></button>`;
     }).join('');
     const blocks = timed.map(item => {
       const lay = layout.get(String(item.e.id));
@@ -29013,9 +29129,10 @@ function renderSmartWeekView(host, events){
 
   const weekConflicts = detectCalendarConflicts(week);
   const conflictN = weekConflicts.length;
+  const firstConflictDate = (weekConflicts[0] && weekConflicts[0].date) || '';
   const footLeft = conflictN
-    ? `<span class="rd-week__legend"><span class="rd-week__legend-swatch" aria-hidden="true"></span>Overlapping half-hour</span>
-       <span class="rd-week__foot-copy">${conflictN} schedule conflict${conflictN === 1 ? '' : 's'} this week — open the day drawer to reschedule or keep both.</span>`
+    ? `<button type="button" class="rd-week__legend" onclick="openSmartWeekConflicts('${escapeHtml(firstConflictDate)}')"><span class="rd-week__legend-swatch" aria-hidden="true"></span>Overlapping half-hour</button>
+       <span class="rd-week__foot-copy">${conflictN} schedule conflict${conflictN === 1 ? '' : 's'} this week — the grid hatches the shared span; the Conflicts tab names it.</span>`
     : week.length
       ? `<span class="rd-week__foot-copy">${week.length} entr${week.length === 1 ? 'y' : 'ies'} this week across filtered sources.</span>`
       : `<span class="rd-week__foot-copy">Quiet week — add appointments, tasks, or payments and they will land here by hour.</span>`;
@@ -29108,7 +29225,7 @@ function renderSmartAgendaView(host, events){
     .sort((a, b) => String(a.date || '').localeCompare(String(b.date || ''))
       || String(a.time || '').localeCompare(String(b.time || '')));
 
-  /* Forward list: today → ~32 days; only days with entries (today always shown). */
+  /* Forward list: today → ~32 days; only days that have entries. */
   const upcoming = list
     .filter(e => e.date && e.date >= today && e.date <= windowEnd)
     .sort((a, b) => (String(a.date) + (a.time || '')).localeCompare(String(b.date) + (b.time || '')))
@@ -29120,11 +29237,6 @@ function renderSmartAgendaView(host, events){
     if (!byDate[e.date]) { byDate[e.date] = []; order.push(e.date); }
     byDate[e.date].push(e);
   });
-  if (today && !byDate[today]) {
-    byDate[today] = [];
-    order.unshift(today);
-  }
-  order.sort((a, b) => String(a).localeCompare(String(b)));
 
   const rowHtml = (e, opts = {}) => {
     const eid = String(e.id == null ? '' : e.id).replace(/'/g, "\\'");
@@ -29172,7 +29284,7 @@ function renderSmartAgendaView(host, events){
     </div>`;
   };
 
-  if (!overdue.length && !upcoming.length && !(today && byDate[today])) {
+  if (!overdue.length && !upcoming.length) {
     host.innerHTML = `<div class="rd-agenda smart-calendar-grid" data-mode="agenda">
       <div class="rd-agenda__empty">No upcoming events yet. Add tasks, appointments, payments, or events and they will appear here automatically.</div>
     </div>`;
@@ -29193,23 +29305,9 @@ function renderSmartAgendaView(host, events){
 
   order.forEach(date => {
     const dayEvents = byDate[date] || [];
-    /* Skip empty days except today (mock always shows today). */
-    if (!dayEvents.length && date !== today) return;
-    let rows;
-    if (dayEvents.length) {
-      rows = dayEvents.map(e => rowHtml(e)).join('');
-    } else {
-      rows = `<div class="rd-agenda__empty-day">
-        <span class="rd-agenda__time">—</span>
-        <span class="rd-agenda__bar rd-agenda__bar--muted" aria-hidden="true"></span>
-        <span class="rd-agenda__main">
-          <span class="rd-agenda__title">Nothing scheduled</span>
-          <span class="rd-agenda__sub">Add a task, appointment, or payment and it will land here</span>
-        </span>
-        <span class="rd-agenda__source">—</span>
-        <span class="rd-agenda__status"><span class="status-pill" data-pillscheme="gold">Not an entry</span></span>
-      </div>`;
-    }
+    /* 6d: skip empty days entirely. */
+    if (!dayEvents.length) return;
+    const rows = dayEvents.map(e => rowHtml(e)).join('');
     body += `<div class="rd-agenda__day${date === today ? ' is-today' : ''}" data-date="${escapeHtml(date)}">
       ${dateCol(date)}
       <div class="rd-agenda__events">${rows}</div>

@@ -5113,6 +5113,11 @@ body.rd-scope #panel-calendar .rd-week__due-chip.appointments {
   --smart-event-color: #B38549; --smart-chip-bar: #8A6428; --smart-chip-fill: #f3e6d0;
   background: #f3e6d0 !important; background-color: #f3e6d0 !important; color: #20362D !important;
 }
+#main#main #panel-calendar .rd-week__due-chip.counseling,
+body.rd-scope #panel-calendar .rd-week__due-chip.counseling {
+  --smart-event-color: #6B5478; --smart-chip-bar: #4E3C58; --smart-chip-fill: #e8dfe9;
+  background: #e8dfe9 !important; background-color: #e8dfe9 !important; color: #3a2c42 !important;
+}
 #main#main #panel-calendar .rd-week__due-chip.budget,
 body.rd-scope #panel-calendar .rd-week__due-chip.budget {
   --smart-event-color: #6B8BB0; --smart-chip-bar: #4A6A90; --smart-chip-fill: #d8e5f4;
@@ -5273,13 +5278,20 @@ body.rd-scope #panel-calendar .rd-week__hatch {
   left: 2px !important;
   right: 2px !important;
   z-index: 1 !important;
-  pointer-events: none !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
   background: repeating-linear-gradient(
     135deg,
-    #fdfcfa 0 6px,
-    #f6f2e9 6px 12px
+    color-mix(in srgb, #9C3B34 16%, #fff) 0 5px,
+    color-mix(in srgb, #9C3B34 5%, #fff) 5px 10px
   ) !important;
-  opacity: .92;
+  opacity: .95;
 }
 /* Timed event bars: filled source tint + left accent (match month chips; beat cream #fdfcfa). */
 #main#main #panel-calendar .rd-week__event,
@@ -5326,6 +5338,11 @@ body.rd-scope #panel-calendar .rd-week__event.tasks {
 body.rd-scope #panel-calendar .rd-week__event.appointments {
   --smart-event-color: #B38549; --smart-chip-bar: #8A6428; --smart-chip-fill: #f3e6d0;
   background: #f3e6d0 !important; background-color: #f3e6d0 !important; color: #20362D !important;
+}
+#main#main #panel-calendar .rd-week__event.counseling,
+body.rd-scope #panel-calendar .rd-week__event.counseling {
+  --smart-event-color: #6B5478; --smart-chip-bar: #4E3C58; --smart-chip-fill: #e8dfe9;
+  background: #e8dfe9 !important; background-color: #e8dfe9 !important; color: #3a2c42 !important;
 }
 #main#main #panel-calendar .rd-week__event.budget,
 body.rd-scope #panel-calendar .rd-week__event.budget {
@@ -5424,16 +5441,23 @@ body.rd-scope #panel-calendar .rd-week__legend {
   align-items: center !important;
   gap: 7px !important;
   white-space: nowrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  font: inherit !important;
+  color: inherit !important;
+  cursor: pointer !important;
 }
 #main#main #panel-calendar .rd-week__legend-swatch,
 body.rd-scope #panel-calendar .rd-week__legend-swatch {
   width: 14px !important;
   height: 10px !important;
-  border: 1px solid var(--rd-week-line) !important;
+  border: 1px solid color-mix(in srgb, #9C3B34 35%, #e7e1d4) !important;
   background: repeating-linear-gradient(
     135deg,
-    #fdfcfa 0 5px,
-    #f6f2e9 5px 10px
+    color-mix(in srgb, #9C3B34 16%, #fff) 0 5px,
+    color-mix(in srgb, #9C3B34 5%, #fff) 5px 10px
   ) !important;
   flex: 0 0 auto !important;
 }
