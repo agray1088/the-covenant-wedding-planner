@@ -18125,39 +18125,70 @@ body.rd-scope #panel-ceremony .rd-cer-script__placeholder {
 }
 
 /* §18 · nine section tabs (#19a) — between stats and toolbar */
-body.rd-scope #panel-ceremony .rd-sectiontabs {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0;
-  margin: 4px 0 10px;
-  border-bottom: 1px solid #e7e1d4;
+/* Escape global Auto-fit chip metric (!important) so #19a stays an
+   underline strip — fixed chip height + overflow:hidden was clipping counts. */
+body.rd-scope #panel-ceremony .rd-sectiontabs,
+#main#main #panel-ceremony .rd-sectiontabs {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+  margin: 4px 0 10px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e7e1d4 !important;
+  background: transparent !important;
 }
-body.rd-scope #panel-ceremony .rd-sectiontabs__item {
+body.rd-scope #panel-ceremony .rd-sectiontabs__item,
+#main#main #panel-ceremony .rd-sectiontabs__item {
   appearance: none;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  padding: 9px 13px;
-  font-size: 13px;
-  color: #6b645d;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important;
+  padding: 8px 14px 9px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #6b645d !important;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+  display: inline-flex !important;
+  align-items: baseline !important;
+  justify-content: flex-start !important;
+  gap: 7px !important;
+  white-space: nowrap !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
 }
-body.rd-scope #panel-ceremony .rd-sectiontabs__item.is-active {
-  color: #20362D;
-  border-bottom-color: #2D4A3E;
-  font-weight: 600;
+body.rd-scope #panel-ceremony .rd-sectiontabs__item.is-active,
+#main#main #panel-ceremony .rd-sectiontabs__item.is-active {
+  background: transparent !important;
+  color: #20362D !important;
+  border-bottom-color: #2D4A3E !important;
+  font-weight: 600 !important;
 }
-body.rd-scope #panel-ceremony .rd-sectiontabs__count {
+body.rd-scope #panel-ceremony .rd-sectiontabs__count,
+#main#main #panel-ceremony .rd-sectiontabs__count {
+  position: static;
+  display: inline-block;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #8a7e6b;
+  color: #8a7e6b !important;
   font-size: 12px;
+  line-height: 1.35;
+  vertical-align: baseline;
 }
 body.rd-scope #panel-ceremony .rd-cer-sectiontabs-note {
   margin-left: auto;
