@@ -51,9 +51,9 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 
 | Range | Status |
 |---|---|
-| **01–07** | Done in product (Dashboard through Wedding Day Timeline). Keep in this file as the contract. |
-| **08 Budget** | Next when the user says next. |
-| **09–42** | Not started. |
+| **01–08** | Done in product (Dashboard through Budget). Keep in this file as the contract. |
+| **09 Payments** | Next when the user says next. |
+| **10–42** | Not started. |
 
 ## Contents
 
@@ -64,8 +64,8 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [05 · Smart Calendar](#section-05) — done — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [06 · Calendar · Week & Agenda](#section-06) — done — 4 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [07 · Wedding Day Timeline](#section-07) — done — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
-- [08 · Budget](#section-08) — next — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
-- [09 · Payments](#section-09) — queued — 4 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
+- [08 · Budget](#section-08) — done — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
+- [09 · Payments](#section-09) — next — 4 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [10 · Contracts & Invoices](#section-10) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [11 · Venue & Vendors](#section-11) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [12 · Catering & Menu](#section-12) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
@@ -971,7 +971,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s08` · slug `budget`
 - **Header counts:** 6 screens · 1 record drawer
-- **Status:** next product section — wait for “next”
+- **Status:** done — reviewed in product; keep as reference, do not reopen unless asked
 - **Screen ids:** `4a`, `30a`, `30b`
 
 ### Five parts on this page
@@ -1086,7 +1086,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s09` · slug `payments`
 - **Header counts:** 4 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** next product section — wait for “next”
 - **Screen ids:** `4b`, `30c`
 
 ### Five parts on this page

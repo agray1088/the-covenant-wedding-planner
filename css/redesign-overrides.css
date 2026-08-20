@@ -12095,28 +12095,32 @@ body.rd-scope #panel-budget .rd-pagehead__actions {
   flex-wrap: wrap;
 }
 body.rd-scope #panel-budget .rd-page > .rd-pagehead { order: 0; }
-body.rd-scope #panel-budget .rd-page > .rd-bgt-viewbar { order: 1; flex: 0 0 auto; }
-body.rd-scope #panel-budget .rd-page > .rd-stats { order: 2; flex: 0 0 auto; }
-body.rd-scope #panel-budget .rd-page > .rd-bgt-usedbar { order: 3; flex: 0 0 auto; }
+body.rd-scope #panel-budget .rd-page > .rd-stats { order: 1; flex: 0 0 auto; }
+body.rd-scope #panel-budget .rd-page > .rd-bgt-usedbar { order: 2; flex: 0 0 auto; }
+body.rd-scope #panel-budget .rd-page > .rd-toolbar { order: 3; flex: 0 0 auto; }
 body.rd-scope #panel-budget .rd-page > .rd-surface { order: 4; flex: 1 1 auto; min-height: 0; }
 
-/* Views 30a/30b: a small toolbar switcher between the pagehead and the stat
-   strip jumps the page between primarily "By category", primarily "Pledged &
-   paid", or the original single-scroll "All sections" — the sections
-   themselves stay in the DOM (§7.1 depth, printing, rail jumps) and are only
-   hidden, never removed. */
-body.rd-scope #panel-budget .rd-bgt-viewbar {
+/* Views 30a/30b live in the page toolbar view switcher (Itemized · By category ·
+   Pledged & paid). The 4a scroll stays in the DOM and is hidden, never removed. */
+body.rd-scope #panel-budget .rd-toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 24px;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 24px;
   border-bottom: 1px solid var(--border-subtle);
-  background: var(--surface-sunken, var(--surface-content));
+  background: var(--surface-content);
 }
-body.rd-scope #panel-budget .rd-bgt-viewbar__note {
-  font-size: var(--type-meta);
-  color: var(--text-muted);
+body.rd-scope #panel-budget .rd-toolbar .rd-toolbar__right {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
+body.rd-scope #panel-budget #budget-body[hidden],
+body.rd-scope #panel-budget .rd-bgt-usedbar[hidden] { display: none !important; }
+body.rd-scope #panel-budget .rd-page.is-bgt-category .rd-bgt-usedbar,
+body.rd-scope #panel-budget .rd-page.is-bgt-pledged .rd-bgt-usedbar { display: none !important; }
 body.rd-scope #panel-budget .rd-bgt-sect[hidden],
 body.rd-scope #panel-budget .rd-bgt-cols[hidden] { display: none !important; }
 
@@ -12127,6 +12131,10 @@ body.rd-scope #panel-budget .rd-bgt-view {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 0 24px;
 }
 
 /* 4a left-aligned KPI strip — seven cells, hairline dividers, no cards. */
@@ -12559,8 +12567,16 @@ body.rd-scope #panel-budget .rd-bgt-grouprow.is-residual td {
   color: var(--status-red-text, #9c3b34) !important;
   box-shadow: inset 3px 0 0 var(--status-red-text, #a33b28);
 }
+body.rd-scope #panel-budget .rd-bgt-grouprow.is-unassigned td {
+  background: color-mix(in srgb, var(--status-gold-bg, #fff7df) 55%, #f9f5ef) !important;
+  color: var(--status-gold-text, #8a640f) !important;
+  box-shadow: inset 3px 0 0 var(--status-gold-text, #8a640f);
+}
 body.rd-scope #panel-budget .rd-bgt-pledgerow.is-residual td {
   background: color-mix(in srgb, var(--status-red-bg, #fbeeec) 30%, #fff);
+}
+body.rd-scope #panel-budget .rd-bgt-pledgerow.is-unassigned td {
+  background: color-mix(in srgb, var(--status-gold-bg, #fff7df) 30%, #fff);
 }
 body.rd-scope #panel-budget .rd-bgt-tick { text-align: center; width: 36px; }
 body.rd-scope #panel-budget .rd-bgt-tick input[type="checkbox"] {
@@ -12943,6 +12959,9 @@ body.rd-scope #panel-budget .rd-bgt-drawer .rd-field-row__value.is-warn {
 }
 body.rd-scope #panel-budget .rd-bgt-drawer .rd-field-row__value.is-muted {
   color: var(--text-subtle) !important;
+}
+body.rd-scope #panel-budget .rd-bgt-drawer .rd-drawer__tabs {
+  flex-wrap: wrap;
 }
 body.rd-scope #panel-budget .rd-bgt-drawer .rd-drawer-section-title {
   font-size: 10px;
