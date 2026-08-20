@@ -11327,6 +11327,21 @@ body.rd-scope #panel-tables .table-map-viewport {
   overflow: auto;
 }
 body.rd-scope #panel-tables .table-map-viewport.is-expanded { max-height: 78vh; }
+/* Floor-plan footprints follow Size & Shape / seat count from detail cards
+   (--tn-w / --tn-h set inline). Unlock the old fixed circle/rect widths. */
+body.rd-scope #panel-tables #table-map .table-node,
+body.rd-scope #panel-tables #table-map .table-node.circle,
+body.rd-scope #panel-tables #table-map .table-node.rect,
+body.rd-scope #panel-tables #table-map .table-node.rect.vert,
+body.rd-scope #panel-tables #table-map .table-node.head-table,
+body.rd-scope #panel-tables #table-map .table-node.head-table.vert,
+body.rd-scope #panel-tables #table-map .table-node.sweetheart-table.circle,
+body.rd-scope #panel-tables #table-map .table-node.sweetheart-table.rect,
+body.rd-scope #panel-tables #table-map .table-node.parents-table {
+  width: var(--tn-w, 110px) !important;
+  height: var(--tn-h, 110px) !important;
+  box-sizing: border-box;
+}
 body.rd-scope #panel-tables .rd-tables-floor-legend {
   display: flex;
   align-items: center;

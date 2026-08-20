@@ -1358,7 +1358,7 @@
               <span class="rd-tables-vip-toggle__text">VIP Table</span>
             </span>
           </label>
-          ${guide ? `<p class="rd-tables-preset-guide">${escapeHtml(guide)}</p>` : ''}
+          ${guide ? `<p class="rd-tables-preset-guide">${escapeHtml(guide)}</p>` : '<p class="rd-tables-preset-guide">The reception floor plan uses this Size &amp; Shape for the table footprint. Seats sets how many chairs are drawn.</p>'}
           <label class="rd-tables-detail-field">
             <span>Group</span>
             <input type="text" value="${escapeHtml(t.group || '')}" placeholder="e.g. Family · bride"

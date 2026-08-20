@@ -31122,11 +31122,25 @@ function updateTable(i, key, val) {
     if (preset) {
       data.tables[i].shape = preset.shape;
       data.tables[i].capacity = preset.capacity;
+      /* Preset owns footprint orientation for banquet rectangles. */
+      if (preset.shape === 'circle') data.tables[i].vert = false;
     }
   }
   /* Shape is owned by Size & Shape (preset). A direct shape change means
      custom geometry — clear preset so normalizeTableRecord cannot fight back. */
   if (key === 'shape') data.tables[i].preset = '';
+  if (key === 'type') {
+    if (!data.tables[i].preset) {
+      if (val === 'head') data.tables[i].shape = 'rect';
+      else if (val === 'sweetheart') {
+        if (data.tables[i].shape !== 'rect' && data.tables[i].shape !== 'circle') {
+          data.tables[i].shape = 'circle';
+        }
+      } else if (val === 'parents' || val === 'guest') {
+        if (!data.tables[i].shape) data.tables[i].shape = 'circle';
+      }
+    }
+  }
   data.tables[i][key] = val;
   if (key === 'name') {
     if (!data.tables[i].type) data.tables[i].type = inferTableType(val);
@@ -31134,7 +31148,11 @@ function updateTable(i, key, val) {
   }
   save();
   if (['name','capacity','type','shape','preset','vip','facing'].includes(key)) {
-    if (typeof window.__tablesRenderRd === 'function' && document.getElementById('panel-tables')?.dataset?.uedShell === 'tables-rd8a') {
+    const shell = document.getElementById('panel-tables')?.dataset?.uedShell || '';
+    if (typeof window.__tablesRenderRd === 'function' && String(shell).indexOf('tables-rd8a') === 0) {
+      /* Redesign page owns the full refresh via tablesUpdateField; still
+         redraw the floor plan so Size & Shape changes are visible immediately
+         even when called from older card markup. */
       renderGuestTableOptions();
       if (typeof renderTableMap === 'function') renderTableMap();
       return;
@@ -31642,17 +31660,31 @@ function startFloorFixtureResize(e, key, el, map) {
   document.addEventListener('pointermove', move);
   document.addEventListener('pointerup', up);
 }
-function tableNodeDims(isRect, isVert, type, presetValue='') {
+function tableNodeDims(isRect, isVert, type, presetValue='', capacity) {
   const preset = tablePreset(presetValue);
   if (preset) {
     const w = preset.w || (isRect ? 220 : 110);
     const h = preset.h || (isRect ? 70 : 110);
-    return isVert && isRect ? {w:h, h:w} : {w,h};
+    return isVert && isRect ? { w: h, h: w } : { w, h };
   }
   if (type === 'head') return isVert ? { w: 86, h: 188 } : { w: 248, h: 72 };
   if (type === 'sweetheart') return isRect ? { w: 178, h: 72 } : { w: 136, h: 136 };
-  if (!isRect) return { w: 110, h: 110 };
-  return isVert ? { w: 92, h: 166 } : { w: 230, h: 70 };
+  /* Custom (no Size & Shape preset): scale the floor-plan footprint with seat count
+     so detail-card Seats still change the diagram. */
+  const cap = Math.max(1, parseInt(capacity, 10) || 8);
+  if (!isRect) {
+    const s = Math.round(Math.min(168, Math.max(68, 52 + cap * 7.5)));
+    return { w: s, h: s };
+  }
+  const w = Math.round(Math.min(320, Math.max(120, 70 + cap * 18)));
+  const h = Math.round(Math.min(120, Math.max(56, 48 + cap * 2.5)));
+  return isVert ? { w: h, h: w } : { w, h };
+}
+function tableDimsForRecord(t) {
+  if (!t) return { w: 110, h: 110 };
+  const type = tableType(t);
+  const isRect = (t.shape === 'rect') || (t.shape == null && (type === 'head' || tableIsVip(t)));
+  return tableNodeDims(isRect, !!t.vert, type, t.preset || '', t.capacity);
 }
 function oneSideChairsHtml(count, dims, facing, pairedOnly) {
   const n = Math.max(0, Math.min(parseInt(count) || 0, pairedOnly ? 2 : 28));
@@ -31678,10 +31710,10 @@ function oneSideChairsHtml(count, dims, facing, pairedOnly) {
   }
   return chairs.join('');
 }
-function tableChairHtml(count, isRect, isVert, type, facing, presetValue='') {
+function tableChairHtml(count, isRect, isVert, type, facing, presetValue='', capacity) {
   const n = Math.max(0, Math.min(parseInt(count) || 0, 28));
   if (!n) return '';
-  const dims = tableNodeDims(isRect, isVert, type, presetValue);
+  const dims = tableNodeDims(isRect, isVert, type, presetValue, capacity != null ? capacity : count);
   if (type === 'head') return oneSideChairsHtml(n, dims, facing, false);
   if (type === 'sweetheart') return oneSideChairsHtml(Math.min(2, n || 2), dims, facing || 'down', true);
   const s = 13;
@@ -31795,16 +31827,23 @@ function renderTableMap() {
     const statusClass = vip ? ' vip' : (count === 0 ? ' open' : (cap && count >= cap ? ' assigned' : ' partial'));
     const node = document.createElement('div');
     node.className = 'table-node seating-drop-target ' + (isRect ? 'rect' : 'circle') + (isRect && t.vert ? ' vert' : '') + (type !== 'guest' ? ' special-table ' + type + '-table' : '') + ((cap && count > cap) ? ' over' : statusClass);
+    if (t.preset) node.setAttribute('data-preset', t.preset);
+    node.setAttribute('data-shape', isRect ? 'rect' : 'circle');
+    node.setAttribute('data-capacity', String(cap || 0));
     node.setAttribute('data-table-name', tableLabel(t.name));
     node.style.left = (t.x || 0) + 'px'; node.style.top = (t.y || 0) + 'px';
     const rotateBtn = isRect ? `<button class="tn-rotate" title="Rotate table" onclick="toggleTableRotate(${idx})">⟳</button>` : '';
     const faceBtn = (type === 'head' || type === 'sweetheart') ? `<button class="tn-rotate" title="Move chair side" onclick="cycleTableFacing(${idx})">↻</button>` : '';
     const label = tableLabel(t.name);
     const compact = (!isRect && /^Table\s+\d+$/i.test(label)) ? label.replace(/Table\s+/i, '') : label;
-    const dims = tableNodeDims(isRect, !!t.vert, type, t.preset || '');
-    node.style.width = dims.w + 'px';
-    node.style.height = dims.h + 'px';
-    const chairs = tableChairHtml(cap, isRect, !!t.vert, type, t.facing || 'down', t.preset || '');
+    const dims = tableDimsForRecord(t);
+    /* Beat stylesheet locks (incl. sweetheart !important defaults) so Size & Shape
+       and seat count from the detail cards actually resize the diagram. */
+    node.style.setProperty('width', dims.w + 'px', 'important');
+    node.style.setProperty('height', dims.h + 'px', 'important');
+    node.style.setProperty('--tn-w', dims.w + 'px');
+    node.style.setProperty('--tn-h', dims.h + 'px');
+    const chairs = tableChairHtml(cap, isRect, !!t.vert, type, t.facing || 'down', t.preset || '', cap);
     node.innerHTML = `${chairs}<div class="tn-controls"><button class="tn-shape" title="Switch circle / rectangle" onclick="toggleTableShape(${idx})">↺</button>${rotateBtn}${faceBtn}</div>${vip ? `<div class="tn-crown" title="VIP table">${tableCrownSvg()}</div>` : ''}<div class="tn-label">${escapeHtml(compact)}</div><div class="tn-count">${count}/${cap || '?'}</div>`;
     node.addEventListener('pointerdown', e => startTableDrag(e, idx, node, map));
     map.appendChild(node);
