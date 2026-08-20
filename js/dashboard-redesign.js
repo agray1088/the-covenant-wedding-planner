@@ -1,5 +1,5 @@
-/* Dashboard — All.dc #3a + Dark.dc #3a rail
-   No Views.dc switcher. No Drawers.dc record drawer.
+/* Dashboard — All.dc #3a · Views.dc #44a / #44b · Attention item drawer (4 tabs)
+   Views: Overview (full page) · Attention · Week ahead.
    Surface: countdown + 3 rings · next best step · needs attention ·
    budget/guest/day trio · guided path (5) · planning/data health · section progress (18).
    Rail: On this page jump links + Foundation meters + scripture note.
@@ -38,6 +38,24 @@
     ['dash-day-preview', 'Wedding day preview']
   ];
 
+  const DASH_VIEWS = [
+    ['overview', 'Overview'],
+    ['attention', 'Attention'],
+    ['week', 'Week ahead']
+  ];
+
+  const DASH_DRAWER_TABS = ['Item', 'Why', 'Owner', 'History'];
+
+  const BAND_META = {
+    late: { label: 'Late', sub: 'Past the date the rule allows' },
+    act: { label: 'Act now', sub: 'Inside the window where delay costs money' },
+    watch: { label: 'Watch', sub: 'Worth knowing before it becomes urgent' }
+  };
+
+  window._dashView = window._dashView || 'overview';
+  window._dashAttentionRef = window._dashAttentionRef || null;
+  window._dashAttentionTab = window._dashAttentionTab || 0;
+
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
     : String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
@@ -66,6 +84,45 @@
     const d = new Date(String(iso).slice(0, 10) + 'T00:00:00');
     if (Number.isNaN(d.getTime())) return String(iso);
     return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  }
+
+  function fmtLongDay(d) {
+    if (!d || Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  function pageLabelFor(panel) {
+    const hit = SECTION_ORDER.find(row => row[0] === panel);
+    if (hit) return hit[1];
+    const labels = {
+      dashboard: 'Dashboard',
+      instructions: 'Get Started',
+      appointments: 'Appointments',
+      calendar: 'Smart Calendar',
+      logistics: 'Weekend Logistics',
+      packets: 'Share Packets',
+      'data-hub': 'Database Hub'
+    };
+    return labels[panel] || String(panel || 'Planner').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function flagId(parts) {
+    return 'flag-' + String(parts.kind || 'general') + '-' + String(parts.page || 'dashboard') + '-'
+      + String(parts.title || 'item').slice(0, 48).replace(/[^\w]+/g, '-').toLowerCase();
+  }
+
+  function dashAttentionMeta() {
+    try {
+      const ob = typeof ensureOnboardData === 'function' ? ensureOnboardData() : {};
+      if (!ob.dashAttention) ob.dashAttention = {};
+      return ob.dashAttention;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function persistDashMeta() {
+    if (typeof save === 'function') save();
   }
 
   function weddingMetaLine() {
@@ -135,82 +192,216 @@
     };
   }
 
-  function attentionRows(f) {
-    const rows = [];
+  function ruleTextForFlag(flag) {
+    if (flag.rule) return flag.rule;
+    const kind = flag.kind || '';
+    if (/overdue|payment/.test(kind)) return 'Payments stay flagged when the due date has passed and the record is not marked paid.';
+    if (/rsvp/.test(kind)) return 'RSVP flags appear when invited guests have not responded and the wedding is inside the follow-up window.';
+    if (/meal/.test(kind)) return 'Confirmed guests without a meal choice block catering counts until a selection is recorded.';
+    if (/backup/.test(kind)) return 'The planner recommends a fresh .sqlite backup when none has been downloaded recently or many edits have accumulated.';
+    if (/budget/.test(kind)) return 'Budget flags compare committed spend and projected totals against the stated wedding budget.';
+    return 'This flag is derived from planner data — it appears when the owning page\'s rule is no longer satisfied.';
+  }
+
+  function ownerForFlag(flag) {
+    if (flag.owner) return flag.owner;
+    const s = (data && data.setup) || {};
+    const bride = s.bride || s.partner1 || 'Bride';
+    const groom = s.groom || s.partner2 || 'Groom';
+    if (/guest|rsvp|meal|table|invite/i.test(flag.kind + flag.title)) return bride;
+    if (/payment|budget|contract/i.test(flag.kind + flag.title)) return groom;
+    return bride + ' & ' + groom;
+  }
+
+  function buildAllAttentionFlags(f) {
+    const flags = [];
+    const seen = new Set();
     const today = new Date(); today.setHours(0, 0, 0, 0);
+
+    function pushFlag(raw) {
+      const title = raw.title || 'Attention item';
+      const page = raw.page || 'dashboard';
+      const id = raw.id || flagId({ kind: raw.kind, page: page, title: title });
+      if (seen.has(id)) return;
+      seen.add(id);
+      const band = raw.band || (raw.isLate || /overdue|past due|past target/i.test(title + (raw.note || ''))
+        ? 'late'
+        : (raw.priority <= 2 || /due soon|approaching|outstanding|recommended|needs/i.test(title + (raw.note || ''))
+          ? 'act'
+          : 'watch'));
+      flags.push({
+        id: id,
+        band: band,
+        priority: raw.priority || 3,
+        title: title,
+        detail: raw.detail || raw.note || '',
+        page: page,
+        pageLabel: raw.pageLabel || pageLabelFor(page),
+        rule: raw.rule || ruleTextForFlag(raw),
+        owner: raw.owner || ownerForFlag(raw),
+        dueBy: raw.dueBy || raw.when || '—',
+        escalatesTo: raw.escalatesTo || groomEscalation(page),
+        action: raw.action || ("showPanel('" + page + "')"),
+        kind: raw.kind || 'general',
+        note: raw.note || '',
+        since: raw.since || null,
+        snoozed: !!raw.snoozed
+      });
+    }
+
+    function groomEscalation(page) {
+      if (/payment|budget|contract/.test(page)) return 'Both partners';
+      return pageLabelFor(page);
+    }
 
     arr(f.tasks).forEach(t => {
       if (/complete/i.test(t.status || '')) return;
       const d = t.date ? new Date(String(t.date).slice(0, 10) + 'T00:00:00') : null;
       if (d && !Number.isNaN(d.getTime()) && d < today) {
-        rows.push({
-          pill: 'Overdue',
+        const days = Math.round((today - d) / 86400000);
+        pushFlag({
+          id: 'task-overdue-' + String(t._id || t.task || t.title),
+          band: 'late',
+          priority: 1,
           title: t.task || t.title || 'Task',
+          detail: days + ' day' + (days === 1 ? '' : 's') + ' past target',
+          page: 'tasks',
+          rule: 'Tasks stay flagged when their due date has passed and the status is not Complete.',
           when: fmtShortDate(t.date),
-          panel: 'tasks',
-          kind: 'overdue'
+          dueBy: fmtShortDate(t.date),
+          since: d,
+          kind: 'overdue',
+          owner: t.owner || t.assignee || ownerForFlag({ kind: 'task', page: 'tasks' })
         });
       }
     });
 
     arr(f.payments).forEach(p => {
       if (/paid|complete/i.test(p.status || '')) return;
-      const d = p.date || p.due;
+      const d = p.date || p.due || p.dueDate;
       const dt = d ? new Date(String(d).slice(0, 10) + 'T00:00:00') : null;
-      const soon = dt && !Number.isNaN(dt.getTime()) && (dt - today) / 86400000 <= 21;
-      if (dt && (dt < today || soon)) {
-        rows.push({
-          pill: dt < today ? 'Overdue' : 'Payment',
-          title: (p.vendor || p.desc || 'Payment') + (dt < today ? '' : ' balance due'),
-          when: fmtShortDate(d),
-          panel: 'payments',
+      if (!dt || Number.isNaN(dt.getTime())) return;
+      const amt = parseFloat(p.amount || p.total || 0) || 0;
+      const label = (p.vendor || p.desc || p.payee || 'Payment');
+      if (dt < today) {
+        pushFlag({
+          id: 'pay-overdue-' + String(p._id || label),
+          band: 'late',
+          priority: 1,
+          title: label,
+          detail: 'Due ' + fmtShortDate(d),
+          page: 'payments',
+          rule: 'Payments remain flagged after the due date until marked paid or rescheduled.',
+          dueBy: fmtShortDate(d),
+          since: dt,
+          kind: 'payment',
+          note: amt ? money(amt) + ' outstanding' : ''
+        });
+      } else if ((dt - today) / 86400000 <= 21) {
+        pushFlag({
+          id: 'pay-soon-' + String(p._id || label),
+          band: 'act',
+          priority: 2,
+          title: label + (amt ? ' · ' + money(amt) : ''),
+          detail: 'Due ' + fmtShortDate(d),
+          page: 'payments',
+          rule: 'Payments inside the 21-day window are flagged so balances can be cleared before they become overdue.',
+          dueBy: fmtShortDate(d),
+          since: dt,
           kind: 'payment'
         });
       }
     });
 
+    f.alerts.forEach(a => {
+      pushFlag({
+        id: flagId({ kind: a.kind, page: a.page, title: a.title }),
+        priority: a.priority || 3,
+        title: a.title || 'Attention',
+        note: a.note || '',
+        detail: a.note || '',
+        page: a.page || 'dashboard',
+        action: a.action || ("showPanel('" + (a.page || 'dashboard') + "')"),
+        kind: a.kind || 'general'
+      });
+    });
+
     if (f.pending > 0) {
-      rows.push({
-        pill: 'RSVP',
+      pushFlag({
+        id: 'flag-rsvp-pending',
+        band: 'act',
+        priority: 2,
         title: f.pending + ' guest' + (f.pending === 1 ? '' : 's') + ' still pending',
-        when: '—',
-        panel: 'guests',
-        kind: 'rsvp'
+        detail: 'RSVP follow-up',
+        page: 'guests',
+        action: "showPanel('guests')",
+        kind: 'rsvp',
+        rule: 'Guest List flags households with no RSVP after invitations have been sent.'
       });
     }
 
     const noMeal = f.guests.filter(g => /yes|accepted/i.test(g.rsvp || '') && !String(g.meal || '').trim()).length;
     if (noMeal > 0) {
-      rows.push({
-        pill: 'Meals',
+      pushFlag({
+        id: 'flag-meals-missing',
+        band: 'watch',
+        priority: 3,
         title: noMeal + ' confirmed guest' + (noMeal === 1 ? '' : 's') + ' have no meal',
-        when: '—',
-        panel: 'guests',
-        kind: 'meals'
+        page: 'guests',
+        action: "showPanel('guests')",
+        kind: 'meals',
+        rule: 'Meal flags appear for accepted guests missing a catering selection.'
       });
     }
 
-    /* Fall back to guidance alerts for remaining slots */
-    f.alerts.forEach(a => {
-      if (rows.length >= 5) return;
-      const title = a.title || 'Attention';
-      if (rows.some(r => r.title === title)) return;
-      let pill = 'Watch';
-      if (/rsvp/i.test(a.kind || '') || /rsvp/i.test(title)) pill = 'RSVP';
-      else if (/payment|budget/i.test(a.kind || '') || /payment/i.test(title)) pill = 'Payment';
-      else if (/overdue|past/i.test(title)) pill = 'Overdue';
-      else if (/meal/i.test(title)) pill = 'Meals';
-      rows.push({
-        pill: pill,
-        title: title,
-        when: '—',
-        panel: a.page || 'dashboard',
-        action: a.action || '',
-        kind: a.kind || 'general'
-      });
-    });
+    try {
+      if (typeof uxAllRisks === 'function') {
+        uxAllRisks().filter(Boolean).forEach((r, i) => {
+          const title = r.title || 'Review planner item';
+          const note = r.note || '';
+          const pill = /overdue|missing|not sent|uninvited|behind/i.test(title + ' ' + note) ? 'act' : 'watch';
+          pushFlag({
+            id: 'risk-' + i + '-' + title.slice(0, 20).replace(/\W+/g, '-').toLowerCase(),
+            band: /overdue|past/i.test(title + note) ? 'late' : pill,
+            title: title,
+            note: note,
+            detail: note,
+            page: r.panelId || 'dashboard',
+            action: (r.action && r.action.onclick) || ("showPanel('" + (r.panelId || 'dashboard') + "')"),
+            kind: 'risk'
+          });
+        });
+      }
+    } catch (e) { /* soft */ }
 
-    return rows.slice(0, 5);
+    const meta = dashAttentionMeta();
+    const snoozed = meta.snoozed || {};
+    const muted = meta.muted || {};
+    const bandOrder = { late: 0, act: 1, watch: 2 };
+    return flags.filter(fl => {
+      if (muted[fl.id]) return false;
+      if (snoozed[fl.id] && snoozed[fl.id] > Date.now()) return false;
+      return true;
+    }).sort((a, b) => {
+      const bo = (bandOrder[a.band] || 9) - (bandOrder[b.band] || 9);
+      if (bo) return bo;
+      const ad = a.since ? a.since.getTime() : 0;
+      const bd = b.since ? b.since.getTime() : 0;
+      if (ad && bd) return ad - bd;
+      return (a.priority || 9) - (b.priority || 9);
+    });
+  }
+
+  function attentionRows(f) {
+    return buildAllAttentionFlags(f).slice(0, 5).map(fl => ({
+      pill: fl.band === 'late' ? 'Overdue' : (fl.band === 'act' ? 'Act now' : 'Watch'),
+      title: fl.title,
+      when: fl.dueBy || '—',
+      panel: fl.page,
+      action: 'rdDashOpenAttention(' + JSON.stringify(fl.id) + ')',
+      kind: fl.kind === 'overdue' ? 'overdue' : (fl.band === 'act' ? 'act' : (fl.kind || 'watch')),
+      flagId: fl.id
+    }));
   }
 
   function nextBestStep(f) {
@@ -401,12 +592,12 @@
     const bannerHtml = banner ? banner.outerHTML : '';
 
     panel.classList.add('ued-scope', 'dashboard-mockup', 'dashboard-v4');
-    if (panel.dataset.uedShell === 'dash-rd3a') {
+    if (panel.dataset.uedShell === 'dash-rd3a-views1') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'dash-rd3a';
+    panel.dataset.uedShell = 'dash-rd3a-views1';
     panel.innerHTML = heroHtml + `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -418,21 +609,44 @@
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
       <div class="rd-stats m-stats" id="dashboard-stats" aria-label="Dashboard summary"></div>
-      <div class="rd-surface" id="dashboard-surface"></div>
+      <div class="rd-toolbar" id="dashboard-toolbar"></div>
+      <div class="rd-surface">
+        <div class="rd-surface__row" id="dashboard-surface-row">
+          <div class="rd-surface__main" id="dashboard-surface"></div>
+          <div id="dashboard-drawer-slot"></div>
+        </div>
+      </div>
       <div class="rd-dash-banner-park" id="dash-banner-park">${bannerHtml}</div>
     </div>`;
+  }
+
+  function renderDashToolbar() {
+    const host = document.getElementById('dashboard-toolbar');
+    if (!host) return;
+    const mode = window._dashView || 'overview';
+    const switcher = `<div class="rd-viewswitch" role="group" aria-label="Dashboard view">
+      ${DASH_VIEWS.map(v => `<button type="button" class="rd-viewswitch__item${mode === v[0] ? ' is-active' : ''}" onclick="rdSetDashView('${v[0]}')">${esc(v[1])}</button>`).join('')}
+    </div>`;
+    if (mode === 'attention') {
+      host.innerHTML = `<div class="rd-toolbar__left"><p class="rd-dash-viewlead">Everything the file is worried about, ordered by how late it is rather than by which page it lives on.</p></div><div class="rd-toolbar__right">${switcher}</div>`;
+    } else if (mode === 'week') {
+      host.innerHTML = `<div class="rd-toolbar__left"><p class="rd-dash-viewlead">The next seven days as a plan for the week, not a list of everything outstanding.</p></div><div class="rd-toolbar__right">${switcher}</div>`;
+    } else {
+      host.innerHTML = `<div class="rd-toolbar__right">${switcher}</div>`;
+    }
   }
 
   function renderDashStats() {
     const host = document.getElementById('dashboard-stats');
     if (!host) return;
     const f = dashFigures();
+    const attn = buildAllAttentionFlags(f).length;
     const stats = [
       { label: 'Days left', value: String(f.daysLeft) },
       { label: 'Budget committed', value: f.commitPct + '%' },
       { label: 'Guests yes', value: String(f.yes) },
       { label: 'Tasks done', value: f.done + '/' + f.tasks.length },
-      { label: 'Needs attention', value: String(f.attentionCount), attention: f.attentionCount ? 'review' : undefined }
+      { label: 'Needs attention', value: String(attn || f.attentionCount), attention: attn ? 'review' : undefined }
     ];
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
       RdDepth.renderStats(host, stats);
@@ -502,6 +716,7 @@
     return `<section class="rd-dash-card" id="dash-needs" data-dash-card="needs">
       <div class="rd-dash-card__head">
         <h3>Needs attention · ${rows.length || f.attentionCount}</h3>
+        <button type="button" class="rd-dash-link" onclick="rdSetDashView('attention')">See all →</button>
       </div>
       ${rows.length ? `<ul class="rd-dash-needs">${rows.map(r => {
         const go = r.action || ("showPanel('" + r.panel + "')");
@@ -677,17 +892,249 @@
     </section>`;
   }
 
-  function renderDashSurface() {
-    const host = document.getElementById('dashboard-surface');
-    if (!host) return;
+  function attentionViewBlock(f) {
+    const flags = buildAllAttentionFlags(f);
+    const bands = ['late', 'act', 'watch'];
+    const sections = bands.map(band => {
+      const items = flags.filter(fl => fl.band === band);
+      const meta = BAND_META[band];
+      return `<section class="rd-dash-attn-band" data-band="${band}">
+        <div class="rd-dash-attn-band__head">
+          <h3>${esc(meta.label)}</h3>
+          <span>${esc(meta.sub)}</span>
+        </div>
+        ${items.length ? `<ul class="rd-dash-attn-list">${items.map(fl => `<li>
+          <button type="button" class="rd-dash-attn-row" onclick="rdDashOpenAttention(${JSON.stringify(fl.id)})">
+            <span class="rd-dash-attn-row__page">${esc(fl.pageLabel)}</span>
+            <span class="rd-dash-attn-row__main">
+              <strong>${esc(fl.title)}</strong>
+              ${fl.detail ? '<em>' + esc(fl.detail) + '</em>' : ''}
+            </span>
+            <span class="rd-dash-pill rd-dash-pill--${fl.band === 'late' ? 'act' : (fl.band === 'act' ? 'act' : 'watch')}">${esc(meta.label)}</span>
+          </button>
+        </li>`).join('')}</ul>` : '<p class="rd-help rd-dash-attn-empty">Nothing in this band right now.</p>'}
+      </section>`;
+    }).join('');
+    return `<div class="rd-dash-attn">${sections || '<p class="rd-help">No flags — your planner looks calm this morning.</p>'}</div>`;
+  }
+
+  function weekDaysForView() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const monday = new Date(today);
+    const dow = monday.getDay();
+    monday.setDate(monday.getDate() - (dow === 0 ? 6 : dow - 1));
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  function isoDay(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function weekAheadEntries(dayIso) {
+    const entries = [];
+    const add = (time, label, kind, panel, action) => {
+      entries.push({ time: time || '—', label: label || 'Item', kind: kind || 'event', panel: panel || '', action: action || '' });
+    };
+
+    arr(data && data.appointments).forEach(a => {
+      const d = String(a.date || '').slice(0, 10);
+      if (d !== dayIso) return;
+      add(a.time || '', 'Appointment · ' + (a.title || a.vendor || 'Meeting'), 'appointment', 'calendar');
+    });
+
+    arr(data && data.tasks).forEach(t => {
+      if (/complete/i.test(t.status || '')) return;
+      const d = String(t.date || '').slice(0, 10);
+      if (d !== dayIso) return;
+      const who = t.owner || t.assignee || ((data.setup && data.setup.bride) || 'Planner');
+      add('Due', 'Task · ' + who + ' · ' + (t.task || t.title || 'Task'), 'task', 'tasks', "showPanel('tasks')");
+    });
+
+    arr(data && data.payments).forEach(p => {
+      if (/paid|complete/i.test(p.status || '')) return;
+      const d = String(p.date || p.due || p.dueDate || '').slice(0, 10);
+      if (d !== dayIso) return;
+      const amt = parseFloat(p.amount || 0) || 0;
+      add('Due', 'Payment · ' + (p.vendor || p.desc || 'Payment') + (amt ? ' · ' + money(amt) : ''), 'payment', 'payments');
+    });
+
+    try {
+      if (typeof buildSmartCalendarEvents === 'function') {
+        buildSmartCalendarEvents().forEach(e => {
+          const d = String(e.date || '').slice(0, 10);
+          if (d !== dayIso) return;
+          if (/complete|paid|confirmed/i.test(e.status || '')) return;
+          add(e.time || '', (e.title || e.label || 'Calendar') + (e.source ? ' · ' + e.source : ''), 'calendar', e.panel || 'calendar');
+        });
+      }
+    } catch (e) { /* soft */ }
+
+    entries.sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    return entries;
+  }
+
+  function weekAheadBlock() {
+    const days = weekDaysForView();
+    const todayIso = isoDay(new Date());
+    const cards = days.map(d => {
+      const iso = isoDay(d);
+      const items = weekAheadEntries(iso);
+      const isToday = iso === todayIso;
+      return `<article class="rd-dash-weekday${isToday ? ' is-today' : ''}">
+        <header class="rd-dash-weekday__head">
+          <h3>${esc(fmtLongDay(d))}</h3>
+          ${isToday ? '<span class="rd-dash-weekday__tag">Today</span>' : ''}
+        </header>
+        ${items.length
+        ? `<ul class="rd-dash-weekday__list">${items.map(it => `<li>
+            <button type="button" class="rd-dash-weekday__row" onclick="${it.action || (it.panel ? "showPanel('" + it.panel + "')" : 'void(0)')}">
+              <span>${esc(it.time)}</span>
+              <strong>${esc(it.label)}</strong>
+            </button>
+          </li>`).join('')}</ul>`
+        : '<p class="rd-dash-weekday__empty">No appointments, no due dates</p>'}
+      </article>`;
+    }).join('');
+    return `<div class="rd-dash-week">
+      <div class="rd-dash-week__title">This week</div>
+      <div class="rd-dash-week__grid">${cards}</div>
+    </div>`;
+  }
+
+  function findAttentionFlag(id) {
     const f = dashFigures();
-    host.innerHTML =
-      `<div class="rd-dash-row rd-dash-row--top">${countdownBlock(f)}${ringsBlock(f)}</div>` +
+    return buildAllAttentionFlags(f).find(fl => fl.id === id) || null;
+  }
+
+  function recordAttentionHistory(id, event) {
+    const meta = dashAttentionMeta();
+    if (!meta.history) meta.history = {};
+    if (!meta.history[id]) meta.history[id] = [];
+    meta.history[id].unshift({
+      at: new Date().toISOString(),
+      event: event
+    });
+    meta.history[id] = meta.history[id].slice(0, 12);
+    persistDashMeta();
+  }
+
+  function dashDrawerFieldRow(label, value, opts) {
+    opts = opts || {};
+    const cls = ['rd-field-row__value'];
+    if (opts.link) cls.push('rd-field-row__value--link');
+    if (opts.warn) cls.push('is-warn');
+    if (opts.muted) cls.push('is-muted');
+    return `<div class="rd-field-row"><span class="rd-field-row__label">${esc(label)}</span><span class="${cls.join(' ')}">${value}</span></div>`;
+  }
+
+  function dashDrawerSectionTitle(t) {
+    return `<div class="rd-drawer-section-title">${esc(t)}</div>`;
+  }
+
+  function dashDrawerKv(label, value, tone) {
+    return `<div class="rd-drawer-kv"><span>${label}</span><span${tone ? ' class="is-' + tone + '"' : ''}>${value}</span></div>`;
+  }
+
+  function dashDrawerItemTab(flag) {
+    const bandLabel = (BAND_META[flag.band] || BAND_META.watch).label;
+    return dashDrawerFieldRow('Attention', esc(bandLabel) + ' · needs action', { warn: flag.band !== 'watch' })
+      + dashDrawerFieldRow('Owner', esc(flag.owner))
+      + dashDrawerFieldRow('Due by', esc(flag.dueBy), { muted: flag.dueBy === '—' })
+      + `<p class="rd-drawer-callout">${esc(flag.title)}${flag.detail ? ' — ' + esc(flag.detail) : ''}</p>`
+      + `<div class="rd-drawer__actions-row">
+          <button type="button" class="rd-btn rd-btn--primary" onclick="rdDashAttentionGo()">Open ${esc(flag.pageLabel)}</button>
+          <button type="button" class="rd-btn rd-btn--quiet" onclick="rdDashAttentionSnooze()">Snooze a week</button>
+        </div>`;
+  }
+
+  function dashDrawerWhyTab(flag) {
+    return dashDrawerSectionTitle('The rule')
+      + `<p class="rd-drawer-callout">${esc(flag.rule)}</p>`
+      + dashDrawerKv('Owning page', esc(flag.pageLabel), 'link')
+      + dashDrawerKv('Band', esc((BAND_META[flag.band] || BAND_META.watch).label))
+      + `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdDashAttentionMute()">Mute this rule</button>`;
+  }
+
+  function dashDrawerOwnerTab(flag) {
+    return dashDrawerSectionTitle('Who clears it')
+      + dashDrawerFieldRow('Owner', esc(flag.owner))
+      + dashDrawerFieldRow('Due by', esc(flag.dueBy))
+      + dashDrawerFieldRow('Escalates to', esc(flag.escalatesTo || 'Both partners'))
+      + dashDrawerSectionTitle('Linked tasks')
+      + dashDrawerKv('Open on', esc(flag.pageLabel) + ' →', 'link')
+      + `<button type="button" class="rd-btn" onclick="rdDashAttentionGo()">Open task</button>`;
+  }
+
+  function dashDrawerHistoryTab(flag) {
+    const meta = dashAttentionMeta();
+    const hist = (meta.history && meta.history[flag.id]) || [];
+    const rows = hist.length
+      ? hist.map(h => dashDrawerKv(fmtShortDate(h.at), esc(h.event))).join('')
+      : dashDrawerKv('Today', 'Flag raised on Dashboard', 'gold')
+        + dashDrawerKv('Source', esc(flag.pageLabel) + ' · derived rule', 'muted');
+    return dashDrawerSectionTitle('Activity')
+      + rows
+      + `<p class="rd-drawer-callout">Gold dots are derived entries: they come from the rule, not from a person, and cannot be edited here.</p>`;
+  }
+
+  function renderDashAttentionDrawer() {
+    const slot = document.getElementById('dashboard-drawer-slot');
+    if (!slot) return;
+    const id = window._dashAttentionRef;
+    const flag = id ? findAttentionFlag(id) : null;
+    if (!flag) {
+      slot.classList.remove('is-open');
+      slot.innerHTML = '';
+      return;
+    }
+    const tabIdx = Math.min(Math.max(0, window._dashAttentionTab | 0), DASH_DRAWER_TABS.length - 1);
+    let body = '';
+    if (tabIdx === 0) body = dashDrawerItemTab(flag);
+    else if (tabIdx === 1) body = dashDrawerWhyTab(flag);
+    else if (tabIdx === 2) body = dashDrawerOwnerTab(flag);
+    else body = dashDrawerHistoryTab(flag);
+
+    const band = BAND_META[flag.band] || BAND_META.watch;
+    slot.classList.add('is-open');
+    slot.innerHTML = `<aside class="rd-drawer rd-dash-drawer" aria-label="Attention item">
+      <div class="rd-drawer__head">
+        <div class="rd-drawer__eyebrowrow">
+          <span class="rd-drawer__eyebrow">Attention item · ${esc(flag.pageLabel)}</span>
+          <button type="button" class="rd-drawer__close" aria-label="Close" onclick="rdDashCloseAttention()">&#10005;</button>
+        </div>
+        <div class="rd-drawer__title">${esc(flag.title)}</div>
+        <div class="rd-drawer__pills"><span class="status-pill" data-pillscheme="${flag.band === 'late' ? 'red' : (flag.band === 'act' ? 'gold' : 'gray')}">${esc(band.label)}</span></div>
+        <div class="rd-drawer__tabs is-guest-tabs">${DASH_DRAWER_TABS.map((t, i) =>
+      `<button type="button" class="rd-drawer__tab${i === tabIdx ? ' is-active' : ''}" onclick="rdDashAttentionTab(${i})">${esc(t)}</button>`).join('')}</div>
+      </div>
+      <div class="rd-drawer__body rd-drawer-fields">${body}</div>
+    </aside>`;
+  }
+
+  function renderOverviewSurface(f) {
+    return `<div class="rd-dash-row rd-dash-row--top">${countdownBlock(f)}${ringsBlock(f)}</div>` +
       `<div class="rd-dash-row rd-dash-row--next">${nextStepBlock(f)}${needsBlock(f)}</div>` +
       healthTrio(f) +
       guidedBlock(f) +
       `<div class="rd-dash-row rd-dash-row--health">${planningHealthBlock()}${dataHealthBlock()}</div>` +
       sectionProgressBlock();
+  }
+
+  function renderDashSurface() {
+    const host = document.getElementById('dashboard-surface');
+    if (!host) return;
+    const f = dashFigures();
+    const mode = window._dashView || 'overview';
+    if (mode === 'attention') host.innerHTML = attentionViewBlock(f);
+    else if (mode === 'week') host.innerHTML = weekAheadBlock();
+    else host.innerHTML = renderOverviewSurface(f);
+    renderDashAttentionDrawer();
   }
 
   /* ── actions ─────────────────────────────────────────────────────────── */
@@ -724,6 +1171,80 @@
     else if (typeof exportJSON === 'function') exportJSON();
   }
 
+  function rdSetDashView(mode) {
+    window._dashView = mode || 'overview';
+    if (mode !== 'attention') {
+      window._dashAttentionRef = null;
+    }
+    renderDashToolbar();
+    renderDashStats();
+    renderDashSurface();
+    if (typeof renderContextSidebar === 'function'
+      && document.body.getAttribute('data-active-panel') === 'dashboard') {
+      renderContextSidebar('dashboard');
+    }
+  }
+
+  function rdDashOpenAttention(id) {
+    window._dashAttentionRef = id;
+    window._dashAttentionTab = 0;
+    if (window._dashView !== 'attention') window._dashView = 'overview';
+    recordAttentionHistory(id, 'Opened from Dashboard');
+    renderDashAttentionDrawer();
+  }
+
+  function rdDashCloseAttention() {
+    window._dashAttentionRef = null;
+    renderDashAttentionDrawer();
+  }
+
+  function rdDashAttentionTab(i) {
+    window._dashAttentionTab = i | 0;
+    renderDashAttentionDrawer();
+  }
+
+  function rdDashAttentionGo() {
+    const flag = window._dashAttentionRef ? findAttentionFlag(window._dashAttentionRef) : null;
+    if (!flag) return;
+    recordAttentionHistory(flag.id, 'Opened owning page');
+    try {
+      if (flag.action) {
+        /* eslint-disable no-eval */
+        (0, eval)(flag.action);
+        return;
+      }
+    } catch (e) { /* fall through */ }
+    if (typeof showPanel === 'function') showPanel(flag.page);
+  }
+
+  function rdDashAttentionSnooze() {
+    const id = window._dashAttentionRef;
+    if (!id) return;
+    const meta = dashAttentionMeta();
+    if (!meta.snoozed) meta.snoozed = {};
+    meta.snoozed[id] = Date.now() + 7 * 86400000;
+    recordAttentionHistory(id, 'Snoozed one week');
+    persistDashMeta();
+    window._dashAttentionRef = null;
+    if (typeof showToast === 'function') showToast('Snoozed for a week.', 'ok');
+    renderDashStats();
+    renderDashSurface();
+  }
+
+  function rdDashAttentionMute() {
+    const id = window._dashAttentionRef;
+    if (!id) return;
+    const meta = dashAttentionMeta();
+    if (!meta.muted) meta.muted = {};
+    meta.muted[id] = true;
+    recordAttentionHistory(id, 'Rule muted on Dashboard');
+    persistDashMeta();
+    window._dashAttentionRef = null;
+    if (typeof showToast === 'function') showToast('This rule is muted until you clear planner preferences.', 'ok');
+    renderDashStats();
+    renderDashSurface();
+  }
+
   function dashboardFoundationMeters() {
     return foundationMeters();
   }
@@ -741,6 +1262,7 @@
 
     uedDashboardShellRd();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('dashboard');
+    renderDashToolbar();
     renderDashStats();
     renderDashSurface();
 
@@ -768,6 +1290,13 @@
   window.rdDashShare = rdDashShare;
   window.rdDashSnooze = rdDashSnooze;
   window.rdDashBackup = rdDashBackup;
+  window.rdSetDashView = rdSetDashView;
+  window.rdDashOpenAttention = rdDashOpenAttention;
+  window.rdDashCloseAttention = rdDashCloseAttention;
+  window.rdDashAttentionTab = rdDashAttentionTab;
+  window.rdDashAttentionGo = rdDashAttentionGo;
+  window.rdDashAttentionSnooze = rdDashAttentionSnooze;
+  window.rdDashAttentionMute = rdDashAttentionMute;
   window.dashboardFoundationMeters = dashboardFoundationMeters;
   window.dashboardRailJumps = dashboardRailJumps;
   window.dashFigures = dashFigures;
