@@ -28,7 +28,7 @@
   const WDAY_COLUMNS = [
     { key: 'time', label: 'Time', width: '90px' },
     { key: 'length', label: 'Length', width: '90px' },
-    { key: 'event', label: 'Event', width: '260px' },
+    { key: 'event', label: 'Event', width: '400px' },
     { key: 'vendor', label: 'Vendor', width: '140px' },
     { key: 'status', label: 'Status', width: '120px' }
   ];
@@ -91,14 +91,60 @@
     return h + ' hr ' + m + ' min';
   }
 
+  function contactRows() {
+    if (typeof masterContactRows === 'function') {
+      try { return masterContactRows() || []; } catch (err) { /* fall through */ }
+    }
+    const out = [];
+    if (Array.isArray(data && data.contacts)) out.push.apply(out, data.contacts);
+    if (Array.isArray(data && data.contactsDirectory)) out.push.apply(out, data.contactsDirectory);
+    return out;
+  }
+  function namesEqual(a, b) {
+    const na = String(a || '').trim().toLowerCase();
+    const nb = String(b || '').trim().toLowerCase();
+    return !!(na && nb && na === nb);
+  }
   function matchVendor(name) {
     const n = String(name || '').trim().toLowerCase();
     if (!n) return null;
     const vendors = Array.isArray(data.vendors) ? data.vendors : [];
+    const exactVendor = vendors.find(v =>
+      namesEqual(v.name, n) || namesEqual(v.company, n) || namesEqual(v.contact, n)
+    );
+    if (exactVendor) return exactVendor;
+    const exactContact = contactRows().find(c =>
+      namesEqual(c.name, n) || namesEqual(c.company, n) || namesEqual(c.contact, n)
+    );
+    if (exactContact) return exactContact;
     return vendors.find(v => {
       const hay = [v.name, v.company, v.contact, v.cat, v.type].join(' ').toLowerCase();
       return hay.includes(n) || n.includes(String(v.name || '').toLowerCase());
     }) || null;
+  }
+  function minsToHHMM(mins) {
+    if (mins == null || !isFinite(mins)) return '';
+    let m = Math.round(mins);
+    while (m < 0) m += 24 * 60;
+    m = m % (24 * 60);
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    return String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+  }
+  function cascadeLaterEvents(anchor, deltaMins) {
+    if (!anchor || !deltaMins || anchor.startMins == null) return 0;
+    if (!Array.isArray(data.timeline)) return 0;
+    let n = 0;
+    allEvents().forEach(other => {
+      if (other.id === anchor.id) return;
+      if (other.src !== 'timeline' || other.index == null) return;
+      if (other.startMins == null || other.startMins <= anchor.startMins) return;
+      const row = data.timeline[other.index];
+      if (!row) return;
+      row.time = minsToHHMM(other.startMins + deltaMins);
+      n += 1;
+    });
+    return n;
   }
 
   function eventBlockKey(row) {
@@ -193,7 +239,7 @@
       isVendorCall: isVendorCall(row),
       isCouple: isCoupleOnly(row),
       isParty: isWeddingParty(row),
-      sub: [row.location, row.notes].filter(Boolean).join(' · ') || owner
+      sub: '' /* owner + location live in the drawer so the event name keeps 400px */
     };
   }
 
@@ -233,6 +279,16 @@
     const suffix = h >= 12 ? 'pm' : 'am';
     h = h % 12 || 12;
     return h + ':' + String(min).padStart(2, '0') + ' ' + suffix;
+  }
+  function blockHasNoSlack(key, rows, endMins) {
+    if (key === 'close' && endMins != null && endMins >= 24 * 60) return true;
+    const timed = (rows || []).filter(e => e.startMins != null).slice().sort((a, b) => a.startMins - b.startMins);
+    if (timed.length < 2) return false;
+    for (let i = 0; i < timed.length - 1; i++) {
+      const aEnd = timed[i].endMins != null ? timed[i].endMins : timed[i].startMins;
+      if (timed[i + 1].startMins - aEnd >= 8) return false;
+    }
+    return true;
   }
 
   /* ── figures / rail ──────────────────────────────────────────────────── */
@@ -464,7 +520,6 @@
         `<button type="button" class="rd-chip${window._wdayShowSlack ? ' is-active' : ''}" onclick="rdWdayToggleSlack()">Slack shown${window._wdayShowSlack ? ' ✕' : ''}</button>`;
     } else if (mode === 'vendor') {
       left = filterChip('Vendor', 'vendor') + filterChip('Block', 'block') +
-        `<button type="button" class="rd-chip${window._wdayShowUnowned ? ' is-active' : ''}" onclick="rdWdayToggleUnowned()">Show unowned${window._wdayShowUnowned ? ' ✕' : ''}</button>` +
         (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by arrival', "rdWdayOpenSort(this)") : '');
     } else {
       left = filterChip('Block', 'block') + filterChip('Owner', 'owner') + filterChip('Vendor', 'vendor') +
@@ -565,7 +620,9 @@
     const groups = groupedByBlock(events);
     const dens = window._wdayRowHeight || 'compact';
 
-    let html = `<table class="rd-wday-table rd-wday-table--${esc(dens)}"><thead><tr>` +
+    let html = `<table class="rd-wday-table rd-wday-table--${esc(dens)}"><colgroup>` +
+      WDAY_COLUMNS.map(c => `<col style="width:${esc(c.width)}">`).join('') +
+      `</colgroup><thead><tr>` +
       WDAY_COLUMNS.map(c => `<th>${esc(c.label)}</th>`).join('') +
       `</tr></thead><tbody>`;
 
@@ -580,7 +637,6 @@
             `<td>${esc(e.timeLabel)}</td>` +
             `<td>${esc(e.length)}</td>` +
             `<td><div class="rd-wday-name">${esc(e.title)}` +
-            (e.sub ? `<div class="rd-wday-sub">${esc(e.sub)}</div>` : '') +
             `<span class="rd-wday-row__actions">` +
             `<button type="button" onclick="event.stopPropagation();rdWdayOpenDrawer('${esc(e.id)}')">Open</button>` +
             `<button type="button" onclick="event.stopPropagation();rdWdayFullEditor('${esc(e.id)}')">Full editor</button>` +
@@ -631,7 +687,7 @@
       const end = Math.max(...ends);
       const left = ((Math.max(start, dayStart) - dayStart) / span) * 100;
       const width = Math.max(2.5, ((Math.min(end, dayEnd) - Math.max(start, dayStart)) / span) * 100);
-      const tight = k === 'portraits' || (k === 'close');
+      const tight = blockHasNoSlack(k, rows, end);
       const sample = rows.slice(0, 3).map(e => e.title).join(' · ');
       return `<button type="button" class="rd-wday-ribbon__bar${tight ? ' is-tight' : ''}" style="left:${left}%;width:${width}%" onclick="applyTimelineRailView('full');rdSetTimelineView('table')">` +
         `<strong>${esc(blockLabel(k))}</strong>` +
@@ -652,7 +708,7 @@
     host.innerHTML =
       `<div class="rd-wday-ribbon__axis">${axis}</div>` +
       `<div class="rd-wday-ribbon__track">${gapsHtml}${blocks}</div>` +
-      `<p class="rd-help">Amber marks a block with no slack. Block start times follow the durations inside them.</p>`;
+      `<p class="rd-help">Amber marks a block with no slack — formals packed tight, or carriages against the venue’s 1:00am curfew. Block start times follow the durations inside them; adding minutes to a block moves everything to its right.</p>`;
   }
 
   /* ── By vendor (#31b) ────────────────────────────────────────────────── */
@@ -676,16 +732,18 @@
       const windowLabel = start
         ? ('on site ' + start.timeLabel + (end ? ' – ' + (end.endMins != null ? fmtTimeFromMins(end.endMins) : end.timeLabel) : ''))
         : 'window TBD';
+      const n = rows.length;
+      const countLabel = n + ' obligation' + (n === 1 ? '' : 's');
       return {
         key: k,
         title: k === '__none__' ? 'No vendor attached' : k,
         risk: k === '__none__',
         meta: k === '__none__'
-          ? (rows.length + ' obligation' + (rows.length === 1 ? '' : 's') + ' nobody owns')
-          : (windowLabel + ' · ' + rows.length + ' obligation' + (rows.length === 1 ? '' : 's')),
+          ? (windowLabel + ' · ' + countLabel + ' nobody owns')
+          : (windowLabel + ' · ' + countLabel),
         rows: rows
       };
-    }).filter(g => window._wdayShowUnowned || !g.risk);
+    });
   }
 
   function renderVendorView() {
@@ -700,8 +758,7 @@
     host.innerHTML = groups.map(g =>
       `<section class="rd-wday-vgroup${g.risk ? ' is-risk' : ''}">` +
       `<div class="rd-wday-vgroup__head">` +
-      `<div class="rd-wday-vgroup__title">${esc(g.title)}</div>` +
-      `<div class="rd-wday-vgroup__meta">${esc(g.meta)}</div>` +
+      `<div class="rd-wday-vgroup__title">${esc(g.title)} · ${esc(g.meta)}</div>` +
       `</div>` +
       g.rows.map(e =>
         `<button type="button" class="rd-wday-vrow" onclick="rdWdayOpenDrawer('${esc(e.id)}')">` +
@@ -780,12 +837,13 @@
     if (tab === 0) {
       body =
         field('Start', e.timeLabel) +
-        field('Length', e.length) +
+        `<label class="rd-drawer__field rd-drawer__field--edit"><span>Length</span>` +
+        `<input id="wday-drawer-length" type="text" value="${esc(e.row.duration || e.length)}" placeholder="45 min"></label>` +
         field('Ends', endLabel) +
         field('Location', e.location || '—') +
         field('Owner', e.owner || 'Needs an owner') +
         field('Vendor', e.vendor !== '—' ? e.vendor + ' →' : '—', "typeof showPanel==='function'&&showPanel('vendors')") +
-        `<p class="rd-drawer__note">A day event is a block, not a list of cues. The cues live on the Run sheet tab, which is what the coordinator prints.</p>`;
+        `<p class="rd-drawer__note">Owner and location live here so the event name keeps the table. Length is a real field — changing it shifts every later event to the right.</p>`;
     } else if (tab === 1) {
       const people = [];
       if (e.owner) people.push({ name: e.owner, role: 'Owner' });
@@ -810,10 +868,16 @@
           ? `<p class="rd-drawer__note">Confirm who presses play / owns the cue before the day.</p>`
           : '');
     } else {
-      body =
-        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Created · ${esc(e.title)}</div></div>` +
-        (e.lengthMins ? `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Length · ${esc(e.length)}</div></div>` : '') +
-        `<p class="rd-drawer__note">History is provisional until change tracking lands for timeline rows. Length edits should shift later events as one change.</p>`;
+      const histId = e.row && e.row._id;
+      const hist = (histId && typeof recordHistoryFor === 'function') ? recordHistoryFor('timeline', histId) : [];
+      if (!hist.length) {
+        body = `<p class="rd-drawer__note">No changes recorded yet. Length edits that shift later events appear here as one change.</p>`;
+      } else {
+        body = hist.slice(0, 12).map(h => {
+          const change = (h.changes || []).map(c => `${esc(c.label)}: ${esc(c.from)} → ${esc(c.to)}`).join('; ');
+          return `<div class="rd-drawer__hist"><strong>${esc(h.date || '')} · ${esc(h.time || '')}</strong> · ${esc(h.action || 'Updated')}${change ? `<div>${change}</div>` : ''}</div>`;
+        }).join('');
+      }
     }
 
     slot.classList.add('is-open');
@@ -834,7 +898,7 @@
       `</div></div>` +
       `<div class="rd-drawer__body">${body}</div>` +
       `<div class="rd-drawer__foot">` +
-      `<button type="button" class="rd-btn rd-btn--primary" onclick="rdWdayCloseDrawer()">Save</button>` +
+      `<button type="button" class="rd-btn rd-btn--primary" onclick="rdWdaySaveDrawer()">Save</button>` +
       `<button type="button" class="rd-btn" onclick="rdWdayFullEditor('${esc(e.id)}')">Full editor</button>` +
       (tab === 0 ? `<button type="button" class="rd-btn" onclick="rdWdayShiftLater('${esc(e.id)}')">Shift later events</button>` : '') +
       `</div></aside>`;
@@ -905,15 +969,38 @@
   function rdWdayFillGap(afterId) {
     rdWdayOpenDrawer(afterId);
   }
+  function rdWdaySaveDrawer() {
+    const e = findEventById(window._wdayDrawerId);
+    const input = document.getElementById('wday-drawer-length');
+    if (e && e.src === 'timeline' && e.index != null && input && Array.isArray(data.timeline) && data.timeline[e.index]) {
+      const raw = String(input.value || '').trim();
+      const newMins = parseDurationMins(raw);
+      const oldMins = e.lengthMins;
+      data.timeline[e.index].duration = raw;
+      if (newMins != null && oldMins != null && newMins !== oldMins) {
+        const moved = cascadeLaterEvents(e, newMins - oldMins);
+        if (moved && typeof showToast === 'function') {
+          showToast('Length saved. ' + moved + ' later event' + (moved === 1 ? '' : 's') + ' moved.', 'ok');
+        }
+      }
+      if (typeof save === 'function') save();
+    }
+    renderTimelineRd();
+  }
   function rdWdayShiftLater(id) {
     const e = findEventById(id);
     if (!e || e.lengthMins == null) {
       if (typeof covAlert === 'function') covAlert('Set a length on this event before shifting later blocks.');
       return;
     }
-    /* Soft note — real cascade lives with duration editing in Full editor */
-    if (typeof showToast === 'function') showToast('Length changes shift later events when saved from the Full editor.', 'ok');
-    rdWdayFullEditor(id);
+    const moved = cascadeLaterEvents(e, e.lengthMins);
+    if (typeof save === 'function') save();
+    if (typeof showToast === 'function') {
+      showToast(moved
+        ? ('Moved ' + moved + ' later event' + (moved === 1 ? '' : 's') + ' by ' + e.length + '.')
+        : 'Nothing later on the day to move.', 'ok');
+    }
+    renderTimelineRd();
   }
   function rdWdayCycleFilter(field) {
     const events = allEvents();
@@ -1028,6 +1115,7 @@
   window.rdWdayVendorPacket = rdWdayVendorPacket;
   window.rdWdaySendVendors = rdWdaySendVendors;
   window.rdWdayFillGap = rdWdayFillGap;
+  window.rdWdaySaveDrawer = rdWdaySaveDrawer;
   window.rdWdayShiftLater = rdWdayShiftLater;
   window.rdWdayCycleFilter = rdWdayCycleFilter;
   window.rdWdayClearFilter = rdWdayClearFilter;
@@ -1042,7 +1130,7 @@
   /* Bridge legacy helpers */
   window.wdayTab = function (name) {
     if (name === 'details' || name === 'table') rdSetTimelineView('table');
-    else if (name === 'ribbon') rdSetTimelineView('ribbon');
+    else if (name === 'vertical' || name === 'ribbon') rdSetTimelineView('ribbon');
     else if (name === 'vendor' || name === 'byvendor') rdSetTimelineView('vendor');
     else rdSetTimelineView('table');
   };

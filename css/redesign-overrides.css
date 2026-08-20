@@ -16264,6 +16264,20 @@ body.rd-scope #panel-timeline .rd-wday-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: fixed;
+}
+body.rd-scope #panel-timeline .rd-wday-table th:nth-child(3),
+body.rd-scope #panel-timeline .rd-wday-table td:nth-child(3) {
+  width: 400px;
+  min-width: 280px;
+}
+body.rd-scope #panel-timeline .rd-wday-name {
+  font-weight: 500;
+  position: relative;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 body.rd-scope #panel-timeline .rd-wday-table thead th {
   text-align: left;
@@ -16292,7 +16306,6 @@ body.rd-scope #panel-timeline .rd-wday-row { cursor: pointer; }
 body.rd-scope #panel-timeline .rd-wday-row:hover td,
 body.rd-scope #panel-timeline .rd-wday-row.is-selected td { background: #fdfaf4; }
 body.rd-scope #panel-timeline .rd-wday-row.is-unowned td { background: #fbf4f2; }
-body.rd-scope #panel-timeline .rd-wday-name { font-weight: 500; position: relative; }
 body.rd-scope #panel-timeline .rd-wday-sub {
   font-size: 12px;
   color: #8a7e6b;
@@ -16503,6 +16516,16 @@ body.rd-scope #panel-timeline .rd-wday-drawer .rd-drawer__field {
 }
 body.rd-scope #panel-timeline .rd-wday-drawer .rd-drawer__field span { width: 96px; flex: 0 0 auto; color: #8a7e6b; }
 body.rd-scope #panel-timeline .rd-wday-drawer .rd-drawer__field strong { color: #23211c; font-weight: 600; }
+body.rd-scope #panel-timeline .rd-wday-drawer .rd-drawer__field input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--component-input-height, 32px);
+  padding: 4px 8px;
+  border: 1px solid var(--border-field, #d9cfba);
+  background: var(--surface-content, #fff);
+  color: var(--text-primary, #23211c);
+  font: 600 13px/1.3 var(--font-ui);
+}
 body.rd-scope #panel-timeline .rd-wday-drawer .rd-drawer__link { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: #946f33; }
 body.rd-scope #panel-timeline .rd-wday-drawer .rd-drawer__note { font-size: 12px; color: #6b645d; line-height: 1.45; margin: 0; }
 body.rd-scope #panel-timeline .rd-wday-drawer .rd-drawer__section-title {
