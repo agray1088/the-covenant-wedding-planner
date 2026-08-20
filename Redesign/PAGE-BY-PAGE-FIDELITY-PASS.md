@@ -77,7 +77,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [13 · Table Layout](#section-13) — done — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [14 · Vision Board](#section-14) — done — 8 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [15 · Wedding Party](#section-15) — done — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
-- [16 · Gifts](#section-16) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
+- [16 · Gifts](#section-16) — done — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [17 · Entertainment](#section-17) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [18 · Ceremony & Reception](#section-18) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [19 · Shot Lists](#section-19) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
@@ -1800,7 +1800,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s15` · slug `wedding-party`
 - **Header counts:** 6 screens · 1 record drawer
-- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §16
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §17
 - **Screen ids:** `10a`, `29a`, `29b`
 
 ### Five parts on this page
@@ -1915,7 +1915,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s16` · slug `gifts`
 - **Header counts:** 7 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §17
 - **Screen ids:** `10b`, `29e`, `29f`, `19j`
 
 ### Five parts on this page
