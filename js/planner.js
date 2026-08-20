@@ -41090,20 +41090,101 @@ function guestSeatingAssignOptions(selected){
   }
   return opts;
 }
-function guestAssignTableFromSeating(guestId, tableVal){
+function guestsSeatedAtTable(tableName){
+  const name = String(tableName || '').trim();
+  if (!name) return [];
+  return safeArray(data.guests).filter(g => {
+    if (typeof guestIsDeclined === 'function' && guestIsDeclined(g)) return false;
+    return String(g.table || '').trim() === name;
+  });
+}
+function guestSeatNumber(g){
+  if (!g) return '';
+  const seat = g.seat != null && g.seat !== '' ? g.seat : (g.seatNo != null ? g.seatNo : g.seatNumber);
+  return String(seat == null ? '' : seat).trim();
+}
+function guestNextFreeSeat(tableName, cap, exceptId){
+  const taken = new Set(guestsSeatedAtTable(tableName)
+    .filter(g => String(g._id) !== String(exceptId || ''))
+    .map(guestSeatNumber).filter(Boolean));
+  const max = Math.max(parseInt(cap, 10) || 0, taken.size + 1, 1);
+  for (let i = 1; i <= max + 2; i++) {
+    if (!taken.has(String(i))) return i;
+  }
+  return '';
+}
+function guestAssignTableFromSeating(guestId, tableVal, seatVal){
   const g = safeArray(data.guests).find(x => String(x._id) === String(guestId));
   if (!g) return;
+  const prevTable = String(g.table || '').trim();
   g.table = tableVal || '';
+  if (!tableVal) {
+    g.seat = '';
+    g.seatNo = '';
+    g.seatNumber = '';
+  } else if (seatVal != null && seatVal !== '') {
+    g.seat = seatVal;
+  } else if (prevTable !== String(tableVal) || !guestSeatNumber(g)) {
+    const t = safeArray(data.tables).find(x => String(x.name || '') === String(tableVal));
+    const cap = t ? (parseInt(t.capacity, 10) || 0) : 0;
+    const next = guestNextFreeSeat(tableVal, cap, g._id);
+    if (next) g.seat = next;
+  }
   if (typeof save === 'function') save();
   if (typeof renderGuests === 'function') renderGuests();
   if (typeof renderTables === 'function') renderTables();
   if (typeof showToast === 'function') {
+    const seatBit = guestSeatNumber(g) ? (' · seat ' + guestSeatNumber(g)) : '';
     showToast(tableVal
-      ? ((g.name || 'Guest') + ' → ' + (typeof tableLabel === 'function' ? tableLabel(tableVal) : tableVal))
+      ? ((g.name || 'Guest') + ' → ' + (typeof tableLabel === 'function' ? tableLabel(tableVal) : tableVal) + seatBit)
       : ((g.name || 'Guest') + ' unseated'));
   }
 }
 window.guestAssignTableFromSeating = guestAssignTableFromSeating;
+function guestSeatingDragStart(ev, guestId){
+  if (!ev || !ev.dataTransfer) return;
+  ev.dataTransfer.setData('text/plain', String(guestId || ''));
+  ev.dataTransfer.effectAllowed = 'move';
+  if (ev.currentTarget && ev.currentTarget.classList) ev.currentTarget.classList.add('is-dragging');
+}
+function guestSeatingDragEnd(ev){
+  if (ev && ev.currentTarget && ev.currentTarget.classList) ev.currentTarget.classList.remove('is-dragging');
+  document.querySelectorAll('#guest-seating-view .is-drop').forEach(el => el.classList.remove('is-drop'));
+}
+function guestSeatingAllowDrop(ev){
+  if (!ev) return;
+  ev.preventDefault();
+  if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+  const target = ev.currentTarget;
+  if (target && target.classList) target.classList.add('is-drop');
+}
+function guestSeatingDragLeave(ev){
+  const target = ev && ev.currentTarget;
+  if (!target || !target.classList) return;
+  if (target.contains(ev.relatedTarget)) return;
+  target.classList.remove('is-drop');
+}
+function guestSeatingDropOnTable(ev, tableName){
+  if (ev) ev.preventDefault();
+  const id = ev && ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
+  if (!id) return;
+  guestAssignTableFromSeating(id, tableName);
+}
+function guestSeatingDropOnSeat(ev, tableName, seatNo){
+  if (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+  const id = ev && ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
+  if (!id) return;
+  guestAssignTableFromSeating(id, tableName, seatNo);
+}
+window.guestSeatingDragStart = guestSeatingDragStart;
+window.guestSeatingDragEnd = guestSeatingDragEnd;
+window.guestSeatingAllowDrop = guestSeatingAllowDrop;
+window.guestSeatingDragLeave = guestSeatingDragLeave;
+window.guestSeatingDropOnTable = guestSeatingDropOnTable;
+window.guestSeatingDropOnSeat = guestSeatingDropOnSeat;
 function guestSeatingWorklistMode(){
   const ui = window._guestUiFilters || {};
   const mode = ui.seated || 'unseated-first';
@@ -41160,7 +41241,8 @@ function guestSeatingTableSubtitle(t){
 }
 function guestSeatingTableCardHtml(t, info){
   const cap = info.capacity || parseInt(t.capacity, 10) || 0;
-  const seated = info.seated || 0;
+  const seatedGuests = guestsSeatedAtTable(t.name);
+  const seated = info.seated || seatedGuests.length;
   const free = cap ? Math.max(0, cap - seated) : 0;
   const shortCode = typeof guestTableLabelShort === 'function' ? guestTableLabelShort(t.name) : (t.name || 'Table');
   const title = t.label || t.displayName || (typeof tableLabel === 'function' ? tableLabel(t.name) : (t.name || 'Table'));
@@ -41169,18 +41251,43 @@ function guestSeatingTableCardHtml(t, info){
   const isFull = cap > 0 && free === 0;
   const countCls = hasFree ? 'is-open' : '';
   const cardCls = 'rd-seat-table-card' + (hasFree ? ' is-open' : '') + (isFull && cap ? ' is-full' : '');
+  const tableAttr = escapeHtml(String(t.name || ''));
+  const bySeat = {};
+  seatedGuests.forEach(g => {
+    const n = parseInt(guestSeatNumber(g), 10);
+    if (n > 0) bySeat[n] = g;
+  });
+  let unseatedAtTable = seatedGuests.filter(g => !parseInt(guestSeatNumber(g), 10));
   let dots = '';
   const totalDots = cap || Math.max(seated, 8);
   for (let i = 0; i < totalDots; i++) {
-    dots += '<span class="rd-seat-dot' + (i < seated ? ' is-filled' : ' is-empty') + '"></span>';
+    const seatNo = i + 1;
+    const occupant = bySeat[seatNo] || unseatedAtTable.shift();
+    const filled = !!occupant;
+    const titleAttr = occupant
+      ? escapeHtml((occupant.name || 'Guest') + ' · seat ' + seatNo)
+      : ('Drop here · seat ' + seatNo);
+    dots += '<span class="rd-seat-dot' + (filled ? ' is-filled' : ' is-empty') + '"'
+      + ' title="' + titleAttr + '"'
+      + ' ondragover="guestSeatingAllowDrop(event)" ondragleave="guestSeatingDragLeave(event)"'
+      + ' ondrop="guestSeatingDropOnSeat(event,\'' + tableAttr.replace(/'/g, "\\'") + '\',' + seatNo + ')">'
+      + '</span>';
   }
-  return '<div class="' + cardCls + '">'
+  const shownNames = seatedGuests.slice(0, 4).map(g => escapeHtml(g.name || 'Guest')).join(', ');
+  const extra = seatedGuests.length > 4 ? (' +' + (seatedGuests.length - 4)) : '';
+  const people = seatedGuests.length
+    ? '<div class="rd-seat-table-card__people">' + shownNames + extra + '</div>'
+    : '';
+  return '<div class="' + cardCls + '" data-table-name="' + tableAttr + '"'
+    + ' ondragover="guestSeatingAllowDrop(event)" ondragleave="guestSeatingDragLeave(event)"'
+    + ' ondrop="guestSeatingDropOnTable(event,\'' + tableAttr.replace(/'/g, "\\'") + '\')">'
     + '<div class="rd-seat-table-card__head">'
     + '<b>' + escapeHtml(shortCode) + '</b>'
     + '<span class="rd-seat-table-card__name">' + escapeHtml(displayTitle) + '</span>'
     + '<span class="rd-seat-table-card__count' + (countCls ? ' ' + countCls : '') + '">' + seated + (cap ? '/' + cap : '') + '</span>'
     + '</div>'
     + (guestSeatingTableSubtitle(t) ? '<div class="rd-seat-table-card__sub">' + escapeHtml(guestSeatingTableSubtitle(t)) + '</div>' : '')
+    + people
     + '<div class="rd-seat-table-card__dots">' + dots + '</div>'
     + '</div>';
 }
@@ -41194,7 +41301,7 @@ function guestSeatingTeachHtml(){
     + '<div class="rd-guest-events-under__panels">'
     + '<div class="rd-guest-events-under__panel">'
     + '<div class="rd-guest-events-under__panel-kicker">This view seats people</div>'
-    + '<p>You are working through a list of guests and putting each one somewhere. Pick a table from the dropdown on each row — the unseated column is the worklist and it empties as you go.</p>'
+    + '<p>You are working through a list of guests and putting each one somewhere. Drag a name onto a table or an empty seat — the unseated column is the worklist and it empties as you go.</p>'
     + '</div>'
     + '<div class="rd-guest-events-under__panel">'
     + '<div class="rd-guest-events-under__panel-kicker">Table Layout arranges tables</div>'
@@ -41254,8 +41361,11 @@ function renderGuestSeatingView(){
     const open = gi > -1
       ? `onclick="if(!event.target.closest('select,button,input,a')){if(typeof rdOpenDrawer==='function')rdOpenDrawer('guests',${gi});}"`
       : '';
-    return '<div class="rd-seat-worklist-item" ' + open + '>'
+    return '<div class="rd-seat-worklist-item" draggable="true" data-guest-id="' + id + '" '
+      + 'ondragstart="guestSeatingDragStart(event,\'' + id + '\')" ondragend="guestSeatingDragEnd(event)" '
+      + open + '>'
       + '<div class="rd-seat-worklist-item__main">'
+      + '<span class="rd-seat-worklist-item__handle" aria-hidden="true">⋮⋮</span>'
       + '<span class="rd-seat-worklist-item__name">' + escapeHtml(g.name || 'Guest') + '</span>'
       + '</div>'
       + '<div class="rd-seat-worklist-item__sub' + (subCls ? ' ' + subCls : '') + '">' + escapeHtml(sub) + '</div>'
@@ -41285,7 +41395,7 @@ function renderGuestSeatingView(){
 
   host.innerHTML = '<div class="rd-guest-surface-head">'
     + '<div class="rd-guest-surface-head__kicker">Seating · ' + totalSeatedAll + ' of ' + totalGuests + ' seated</div>'
-    + '<div class="rd-guest-surface-head__help">The same guests against the ' + tables.length + ' table' + (tables.length === 1 ? '' : 's') + ' from Table Layout · choose a table from each row</div>'
+    + '<div class="rd-guest-surface-head__help">The same guests against the ' + tables.length + ' table' + (tables.length === 1 ? '' : 's') + ' from Table Layout · drag a name onto a seat</div>'
     + '<button type="button" class="rd-link-quiet rd-guest-surface-head__action" onclick="showPanel(\'tables\')">Open Table Layout</button>'
     + '</div>'
     + '<div class="rd-seat-split">'

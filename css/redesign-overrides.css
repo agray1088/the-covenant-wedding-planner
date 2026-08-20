@@ -9231,7 +9231,11 @@ body.rd-scope #panel-guests .rd-seat-worklist-item {
   position: relative;
   padding: 9px 16px 32px;
   border-bottom: 1px solid var(--border-faint, #f0ebe0);
-  cursor: pointer;
+  cursor: grab;
+}
+body.rd-scope #panel-guests .rd-seat-worklist-item.is-dragging {
+  opacity: .45;
+  cursor: grabbing;
 }
 body.rd-scope #panel-guests .rd-seat-worklist-item:hover {
   background: color-mix(in srgb, var(--forest, #2D4A3E) 4%, transparent);
@@ -9365,6 +9369,17 @@ body.rd-scope #panel-guests .rd-seat-dot {
   border: 1px solid #cfdcd5;
   background: #eef4f1;
   flex: 0 0 auto;
+}
+body.rd-scope #panel-guests .rd-seat-table-card.is-drop,
+body.rd-scope #panel-guests .rd-seat-dot.is-drop {
+  outline: 2px solid #b89968;
+  outline-offset: 1px;
+}
+body.rd-scope #panel-guests .rd-seat-table-card__people {
+  padding: 0 11px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-muted, #6b645d);
 }
 body.rd-scope #panel-guests .rd-seat-table-card.is-open .rd-seat-dot.is-empty {
   border-color: #e7ce80;
