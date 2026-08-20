@@ -399,34 +399,53 @@
   }
 
   function buildDashboardContext() {
-    var d = plannerData() || {};
-    var days = '—';
-    if (d.setup && d.setup.date && typeof todayISO === 'function' && typeof dateDiffDays === 'function') {
-      days = String(Math.max(0, dateDiffDays(todayISO(), d.setup.date)));
-    } else if (d.setup && d.setup.date) {
-      var weddingDate = new Date(d.setup.date);
-      var t = new Date();
-      days = String(Math.max(0, Math.ceil((weddingDate - t) / 86400000)));
-    }
-    var tasks = typeof safeArray === 'function' ? safeArray(d.tasks) : [];
-    var done = tasks.filter(function (t) { return t.status === 'Complete'; }).length;
-    var guests = typeof safeArray === 'function' ? safeArray(d.guests) : [];
-    var yes = guests.filter(function (g) { return /yes|accepted/i.test(g.rsvp || ''); }).length;
-    var spent = typeof budgetTotalActual === 'function' ? budgetTotalActual() : 0;
-    var total = parseFloat(d.setup && d.setup.budget) || 0;
-    var pct = total > 0 ? Math.round((spent / total) * 100) + '%' : '—';
+    /* All.dc #3a / Dark.dc — jump links (not saved views) + Foundation meters + scripture */
+    var activeJump = window._dashJump || 'dash-next-step';
+    var jumps = typeof window.dashboardRailJumps === 'function'
+      ? window.dashboardRailJumps()
+      : [
+        ['dash-next-step', 'Next best step'],
+        ['dash-needs', 'Needs attention'],
+        ['dash-budget-health', 'Budget health'],
+        ['dash-guest-response', 'Guest response'],
+        ['dash-day-preview', 'Wedding day preview']
+      ];
+    var meters = typeof window.dashboardFoundationMeters === 'function'
+      ? window.dashboardFoundationMeters()
+      : { visionPct: 0, counselingDone: 0, counselingTotal: 8, setupDone: 0, setupTotal: 7 };
 
-    return pcsHead('Dashboard', 'This page') +
-      pcsStats([
-        { val: String(days), lbl: 'Days left' },
-        { val: pct, lbl: 'Budget used' },
-        { val: String(yes), lbl: 'Guests yes' },
-        { val: done + '/' + tasks.length, lbl: 'Tasks done' }
-      ]) +
-      '<div class="pcs-block"><div class="pcs-block__title">Quick links</div><div class="pcs-actions">' +
-      '<button type="button" class="ued-btn" onclick="showPanel(\'setup\')">Wedding Setup</button>' +
-      '<button type="button" class="ued-btn" onclick="showPanel(\'tasks\')">Timeline</button>' +
-      '<button type="button" class="ued-btn" onclick="showPanel(\'calendar\')">Calendar</button></div></div>';
+    var jumpHtml = jumps.map(function (j) {
+      var id = j[0];
+      var label = j[1];
+      return '<button type="button" class="rd-rail__item' + (activeJump === id ? ' is-active' : '') + '"' +
+        ' onclick="rdDashJumpTo(\'' + id + '\')">' + esc(label) + '</button>';
+    }).join('');
+
+    var verseEl = document.getElementById('banner-verse');
+    var refEl = document.getElementById('banner-ref');
+    var verse = (verseEl && verseEl.value && verseEl.value.trim())
+      ? verseEl.value.trim()
+      : 'And a threefold cord is not quickly broken.';
+    var ref = (refEl && refEl.value && refEl.value.trim())
+      ? refEl.value.trim()
+      : 'Ecclesiastes 4:12';
+
+    return '<div class="rd-rail__stack" data-page-rail="dashboard">' +
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">On this page</div>' +
+      '<div class="rd-rail__list" role="list">' + jumpHtml + '</div></div>' +
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Foundation</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Vision &amp; foundation</span><span class="rd-rail__count">' +
+      (meters.visionPct || 0) + '%</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Counseling</span><span class="rd-rail__count">' +
+      (meters.counselingDone || 0) + '/' + (meters.counselingTotal || 8) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Setup complete</span><span class="rd-rail__count">' +
+      (meters.setupDone || 0) + '/' + (meters.setupTotal || 7) + '</span></div>' +
+      '</div></div>' +
+      '<p class="rd-rail__note">“' + esc(verse) + '”<br><b>' + esc(ref) + '</b></p>' +
+      '</div>';
   }
 
   /* Budget rail — mock 4a: saved views, in-page jump list, and a "where it
@@ -594,6 +613,77 @@
        pagehead for this panel, and 4b's rail is Views + Cash out by month. */
     return '<div class="rd-rail__stack" data-page-rail="payments">' +
       viewsHtml + monthsHtml + jumpHtml + '</div>';
+  }
+
+  /* Venue & Vendors rail — All.dc 4c / Views 30f */
+  function buildVendorsContext() {
+    var money = function (v) {
+      return '$' + Math.round(parseFloat(v) || 0).toLocaleString();
+    };
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('vendors', 'all');
+    else if (typeof window._vndRailView === 'string' && window._vndRailView) activeView = window._vndRailView;
+    window._vndRailView = activeView;
+
+    var counts = typeof window.vendorRailCounts === 'function' ? window.vendorRailCounts() : {
+      all: 0, booked: 0, shortlist: 0, nocontract: 0, balance: 0
+    };
+    var figures = typeof window.vendorFigures === 'function' ? window.vendorFigures() : {
+      bookedValue: 0, paid: 0
+    };
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyVendorsRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" onclick="typeof saveVendorView===\'function\'&&saveVendorView()" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All vendors', counts.all) +
+      viewItem('booked', 'Booked', counts.booked) +
+      viewItem('shortlist', 'Shortlist', counts.shortlist) +
+      viewItem('nocontract', 'No contract on file', counts.nocontract, true) +
+      viewItem('balance', 'Balance outstanding', counts.balance) +
+      '</div></div>';
+
+    var mode = window._vndMode || 'table';
+    var metersHtml = '';
+    if (mode === 'compare' && typeof window.vendorCoverageMeters === 'function') {
+      var coverage = window.vendorCoverageMeters() || [];
+      metersHtml =
+        '<div class="rd-rail__section">' +
+        '<div class="rd-rail__title">Coverage</div>' +
+        '<div class="rd-rail__list" role="list">' +
+        coverage.map(function (c) {
+          return '<div class="rd-rail__item rd-rail__item--static"><span>' + esc(c.label) +
+            '</span><span class="rd-rail__count">' + esc(c.status) + '</span></div>';
+        }).join('') +
+        '</div></div>';
+    } else {
+      var bookedValue = figures.bookedValue || 0;
+      var paid = figures.paid || 0;
+      var outstanding = Math.max(0, bookedValue - paid);
+      var pct = bookedValue > 0 ? Math.max(0, Math.min(100, Math.round((paid / bookedValue) * 100))) : 0;
+      metersHtml =
+        '<div class="rd-rail__section">' +
+        '<div class="rd-rail__title">Booked</div>' +
+        '<div class="rd-rail__meters">' +
+        '<div class="rd-rail__meter">' +
+        '<div class="rd-rail__meter-top"><span>Booked value</span><span class="rd-rail__count">' + money(bookedValue) + '</span></div>' +
+        '<div class="rd-track"><div class="rd-fill" style="width:' + pct + '%"></div></div></div>' +
+        '<div class="rd-rail__meter-top"><span>Paid to date</span><span class="rd-rail__count">' + money(paid) + '</span></div>' +
+        '<div class="rd-rail__meter-top"><span>Outstanding</span><span class="rd-rail__count">' + money(outstanding) + '</span></div>' +
+        '<div class="rd-rail__meter-top"><span>No contract</span><span class="rd-rail__count">' + (counts.nocontract || 0) + '</span></div>' +
+        '</div></div>';
+    }
+
+    var noteHtml =
+      '<p class="rd-rail__note">Quote, deposit, balance and rating are columns; pros and cons live in the drawer. Booked value counts booked vendors only.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="vendors">' + viewsHtml + metersHtml + noteHtml + '</div>';
   }
 
   /* Screen 10c Rail · 224px — Views + Committed meters + Group by. */
@@ -1377,40 +1467,303 @@
     }
   }
 
-  function buildCateringContext() {
-    var d = plannerData() || {};
-    var target = parseInt(d.setup && d.setup.guests, 10) || 0;
-    var guests = typeof safeArray === 'function' ? safeArray(d.guests) : [];
-    var yes = guests.filter(function (g) { return /yes|accepted/i.test(g.rsvp || ''); }).length;
-    var mealsMissing = guests.filter(function (g) { return /yes|accepted/i.test(g.rsvp || '') && !String(g.meal || '').trim(); }).length;
+  /* Venue Comparison rail — All / Ceremony / Reception / Shortlist / Incomplete */
+  function buildVenueContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('venue', 'all');
+    else if (typeof window._venRailView === 'string' && window._venRailView) activeView = window._venRailView;
+    window._venRailView = activeView;
 
-    return pcsHead('Catering & Menu', 'This page') +
-      pcsStats([
-        { val: String(target || yes), lbl: 'Target' },
-        { val: String(yes), lbl: 'Confirmed' },
-        { val: String(mealsMissing), lbl: 'Meals TBD' }
-      ]) +
-      pcsLinks([{ panel: 'guests', label: 'Guest list' }, { action: "openDataHub('catering','menu')", label: 'Menu tables' }]);
+    var counts = typeof window.venueRailCounts === 'function' ? window.venueRailCounts() : {
+      all: 0, ceremony: 1, reception: 1, shortlist: 0, incomplete: 0
+    };
+    var figures = typeof window.venueFigures === 'function' ? window.venueFigures() : {
+      costSummary: '—', maxCap: null, incomplete: 0
+    };
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyVenueRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All venues', counts.all) +
+      viewItem('ceremony', 'Ceremony', counts.ceremony) +
+      viewItem('reception', 'Reception', counts.reception) +
+      viewItem('shortlist', 'Shortlist', counts.shortlist) +
+      viewItem('incomplete', 'Incomplete details', counts.incomplete, true) +
+      '</div></div>';
+
+    var metersHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Spaces</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Capacity</span><span class="rd-rail__count">' +
+      esc(figures.maxCap ? String(figures.maxCap) : '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Cost / deposit</span><span class="rd-rail__count">' +
+      esc(figures.costSummary || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Gaps left</span><span class="rd-rail__count">' +
+      (figures.incomplete || counts.incomplete || 0) + '</span></div>' +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Ceremony and reception are fixed columns; shortlist venues are for comparison only. Room details and reminders live under Details and Notes.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="venue">' + viewsHtml + metersHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #10d rail — Views + Coverage + Group by. */
+  function buildEntertainmentContext() {
+    var activeView = 'full';
+    if (typeof getSavedView === 'function') activeView = getSavedView('entertainment', 'full');
+    else if (typeof window._entRailView === 'string' && window._entRailView) activeView = window._entRailView;
+    window._entRailView = activeView;
+
+    var counts = typeof window.entertainmentRailCounts === 'function' ? window.entertainmentRailCounts() : {
+      full: 0, must: 0, dnp: 0, unplaced: 0, ceremony: 0
+    };
+    var figures = typeof window.entertainmentFigures === 'function' ? window.entertainmentFigures() : {
+      momentsFilled: 0, momentsTarget: 13, spend: 0
+    };
+    var groupBy = window._entGroupBy || 'moment';
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEntertainmentRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('full', 'Full set list', counts.full) +
+      viewItem('must', 'Must play', counts.must) +
+      viewItem('dnp', 'Do not play', counts.dnp) +
+      viewItem('unplaced', 'Unplaced', counts.unplaced, true) +
+      viewItem('ceremony', 'Ceremony music', counts.ceremony) +
+      '</div></div>';
+
+    var coverageHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Coverage</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Moments filled</span><span class="rd-rail__count">' +
+      (figures.momentsFilled || 0) + ' of ' + (figures.momentsTarget || 13) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Music spend</span><span class="rd-rail__count">$' +
+      Math.round(figures.spend || 0).toLocaleString() + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Guest requests</span><span class="rd-rail__count">—</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEntertainmentGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('moment', 'Moment') +
+      groupItem('performer', 'Performer') +
+      groupItem('source', 'Source') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Performers are vendor records. Their fees appear on the Budget under Music.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="entertainment">' + viewsHtml + coverageHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #11b rail — Views + By window meters + Group by. */
+  function buildShotlistContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('shotlist', 'all');
+    else if (typeof window._shotRailView === 'string' && window._shotRailView) activeView = window._shotRailView;
+    window._shotRailView = activeView;
+
+    var counts = typeof window.shotlistRailCounts === 'function' ? window.shotlistRailCounts() : {
+      all: 0, must: 0, groups: 0, risk: 0, video: 0
+    };
+    var figures = typeof window.shotlistFigures === 'function' ? window.shotlistFigures() : {
+      byWin: { getting: 0, ceremony: 0, golden: 0, reception: 0 }
+    };
+    var byWin = figures.byWin || {};
+    var groupBy = window._shotGroupBy || 'list';
+    var total = counts.all || 1;
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyShotlistRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All shots', counts.all) +
+      viewItem('must', 'Must have', counts.must) +
+      viewItem('groups', 'Group shots', counts.groups) +
+      viewItem('risk', 'At risk', counts.risk, true) +
+      viewItem('video', 'Video only', counts.video) +
+      '</div></div>';
+
+    function meter(label, n) {
+      var pct = Math.min(100, Math.round((n / total) * 100));
+      return '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>' + esc(label) + '</span><span class="rd-rail__count">' +
+        n + ' shot' + (n === 1 ? '' : 's') + '</span></div>' +
+        '<div class="rd-progress"><div class="rd-progress__fill" style="width:' + pct + '%"></div></div></div>';
+    }
+
+    var metersHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">By window</div>' +
+      '<div class="rd-rail__meters">' +
+      meter('Getting ready', byWin.getting || 0) +
+      '<div class="rd-rail__meter-top"><span>Ceremony</span><span class="rd-rail__count">' + (byWin.ceremony || 0) + ' shots</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Golden hour</span><span class="rd-rail__count">' + (byWin.golden || 0) + ' shots</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Reception</span><span class="rd-rail__count">' + (byWin.reception || 0) + ' shots</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyShotlistGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('list', 'List') +
+      groupItem('window', 'Window') +
+      groupItem('supplier', 'Supplier') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Group shots pull their people from guest records, so a declined RSVP shows here before the day.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="shotlist">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #7a rail — Views + Dietary needs (live from Guest List). */
+  function buildCateringContext() {
+    var activeView = 'full';
+    if (typeof getSavedView === 'function') activeView = getSavedView('catering', 'full');
+    else if (typeof window._catRailView === 'string' && window._catRailView) activeView = window._catRailView;
+    window._catRailView = activeView;
+
+    var counts = typeof window.cateringRailCounts === 'function' ? window.cateringRailCounts() : {
+      full: 0, notchosen: 0, allergen: 0, cake: 0, drinks: 0, rentals: 0
+    };
+    var meters = typeof window.cateringDietaryMeters === 'function' ? window.cateringDietaryMeters() : [];
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCateringRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('full', 'Full menu', counts.full) +
+      viewItem('notchosen', 'Not yet chosen', counts.notchosen) +
+      viewItem('allergen', 'Allergen-relevant', counts.allergen) +
+      viewItem('cake', 'Cake & dessert', counts.cake, true) +
+      viewItem('drinks', 'Drinks', counts.drinks) +
+      viewItem('rentals', 'Rentals', counts.rentals) +
+      '</div></div>';
+
+    var dietHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Dietary needs</div>' +
+      '<div class="rd-rail__meters">' +
+      (meters.length ? meters.map(function (m) {
+        return '<div class="rd-rail__meter-top"><span>' + esc(m.label) + '</span><span class="rd-rail__count">' + m.count + '</span></div>';
+      }).join('') : '<div class="rd-rail__meter-top"><span>No flags yet</span><span class="rd-rail__count">0</span></div>') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Counts read live from the Guest List — they are never typed here.</p>' +
+      '<p class="rd-rail__note">This page owns Food, Cake, Drinks and Rentals in the Budget. Editing a price here updates the Catering category there.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="catering">' + viewsHtml + dietHtml + noteHtml + '</div>';
   }
 
   function buildDataHubContext() {
-    var cat = typeof _dataHub !== 'undefined' && _dataHub.category ? _dataHub.category : 'people';
-    var tabId = typeof _dataHub !== 'undefined' && _dataHub.table ? _dataHub.table : '';
-    var reg = typeof DATA_HUB_REGISTRY !== 'undefined' ? DATA_HUB_REGISTRY : {};
-    var catsHtml = Object.keys(reg).map(function (id) {
-      var c = reg[id];
-      return '<button type="button" class="pcs-chip' + (id === cat ? ' is-active' : '') + '" onclick="openDataHub(\'' + id + '\')">' + esc(c.label) + '</button>';
-    }).join('');
-    var tables = reg[cat] && reg[cat].tables ? reg[cat].tables : [];
-    var tabsHtml = tables.map(function (t) {
-      var k = t.key;
-      return '<button type="button" class="pcs-chip' + (k === tabId ? ' is-active' : '') + '" onclick="setDataHubContext(\'' + cat + '\',\'' + k + '\');renderDataHub();if(typeof renderContextSidebar===\'function\')renderContextSidebar(\'data-hub\');">' + esc(t.label) + '</button>';
-    }).join('');
+    var mode = window._dhMode || 'overview';
+    var counts = typeof window.dhRailCounts === 'function' ? window.dhRailCounts() : {
+      all: 24, with: 0, empty: 0, attention: 0, edited: 0, records: 0, dbMb: '—', tables: []
+    };
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('data-hub', 'all');
+    else if (typeof window._dhRailView === 'string' && window._dhRailView) activeView = window._dhRailView;
+    window._dhRailView = activeView;
 
-    return pcsHead('Database Hub', 'This page') +
-      '<div class="pcs-block"><div class="pcs-block__title">Category</div><div class="pcs-chip-row">' + catsHtml + '</div></div>' +
-      (tabsHtml ? '<div class="pcs-block"><div class="pcs-block__title">Table</div><div class="pcs-chip-row">' + tabsHtml + '</div></div>' : '') +
-      '<div class="pcs-block"><div class="pcs-actions"><button type="button" class="ued-btn" onclick="autoFitDataHubTables()">Auto-fit columns</button></div></div>';
+    if (mode === 'table') {
+      var activeId = window._dhTableId || 'guests';
+      var tables = counts.tables || [];
+      var shown = tables.slice().sort(function (a, b) { return b.count - a.count; });
+      var listHtml = shown.slice(0, 16).map(function (t) {
+        return '<button type="button" class="rd-rail__item' + (t.id === activeId ? ' is-active' : '') + '"' +
+          ' onclick="rdDhSelectRailTable(\'' + String(t.id).replace(/'/g, "\\'") + '\')">' +
+          esc(t.id) + ' · ' + t.count + '<span class="rd-rail__count"></span></button>';
+      }).join('');
+      if (shown.length > 16) {
+        listHtml += '<button type="button" class="rd-rail__item" onclick="rdDhBackOverview()">+ ' +
+          (shown.length - 16) + ' more<span class="rd-rail__count"></span></button>';
+      }
+      var cur = shown.find(function (t) { return t.id === activeId; }) || shown[0] || { count: 0, cols: 0, sizeKb: 0, status: { warn: false } };
+      var orphans = (cur.id === 'guests' && cur.status && cur.status.warn) ? String(cur.status.label).replace(/\D/g, '') || '0' : '0';
+      return '<div class="rd-rail__stack" data-page-rail="data-hub">' +
+        '<div class="rd-rail__section">' +
+        '<div class="rd-rail__title">Tables · ' + (counts.all || 24) + '</div>' +
+        '<div class="rd-rail__list" role="list">' +
+        '<button type="button" class="rd-rail__item" onclick="rdDhBackOverview()">← Overview<span class="rd-rail__count"></span></button>' +
+        listHtml +
+        '</div></div>' +
+        '<div class="rd-rail__section">' +
+        '<div class="rd-rail__title">' + esc(activeId) + '</div>' +
+        '<div class="rd-rail__meters">' +
+        '<div class="rd-rail__meter-top"><span>Rows</span><span class="rd-rail__count">' + (cur.count || 0) + '</span></div>' +
+        '<div class="rd-rail__meter-top"><span>Columns</span><span class="rd-rail__count">' + (cur.cols || 0) + '</span></div>' +
+        '<div class="rd-rail__meter-top"><span>Size</span><span class="rd-rail__count">' + (cur.sizeKb || 0) + ' KB</span></div>' +
+        '<div class="rd-rail__meter-top"><span>Orphaned links</span><span class="rd-rail__count' +
+        (Number(orphans) > 0 ? ' rd-rail__count--warn' : '') + '">' + orphans + '</span></div>' +
+        '</div></div>' +
+        '<p class="rd-rail__note">This view writes to the same records the owning page writes to. There is no separate copy — an edit here is an edit there.</p>' +
+        '</div>';
+    }
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="rdDhSetRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+    return '<div class="rd-rail__stack" data-page-rail="data-hub">' +
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All tables', counts.all || 0) +
+      viewItem('with', 'With records', counts.with || 0) +
+      viewItem('empty', 'Empty', counts.empty || 0) +
+      viewItem('attention', 'Needs attention', counts.attention || 0, true) +
+      viewItem('edited', 'Edited this week', counts.edited || 0) +
+      '</div></div>' +
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Storage</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Records</span><span class="rd-rail__count">' + (counts.records || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Database file</span><span class="rd-rail__count">' + esc(String(counts.dbMb || '—')) + ' MB</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Images</span><span class="rd-rail__count">—</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Browser limit</span><span class="rd-rail__count">~50 MB</span></div>' +
+      '</div></div>' +
+      '<p class="rd-rail__note">Everything is stored on this device. A downloaded <b>.sqlite</b> file is the only copy that survives clearing your browser.</p>' +
+      '</div>';
   }
 
   function buildGenericContext(panelId) {
@@ -1463,20 +1816,1026 @@
     if (typeof renderContextSidebar === 'function') renderContextSidebar('tasks');
   }
 
+  /* Wedding Day Timeline rail — Whole day / blocks / Needs an owner */
+  /* All.dc #6b rail — Full day / Vendor calls / Couple / Party / Unassigned + Blocks + Checks. */
+  function buildTimelineContext() {
+    var activeView = 'full';
+    if (typeof getSavedView === 'function') activeView = getSavedView('timeline', 'full');
+    else if (typeof window._wdayRailView === 'string' && window._wdayRailView) activeView = window._wdayRailView;
+    if (activeView === 'all') activeView = 'full';
+    if (activeView === 'unowned') activeView = 'unassigned';
+    window._wdayRailView = activeView;
+
+    var counts = typeof window.timelineRailCounts === 'function' ? window.timelineRailCounts() : {
+      full: 0, vendorCalls: 0, couple: 0, party: 0, unassigned: 0
+    };
+    var figures = typeof window.timelineFigures === 'function' ? window.timelineFigures() : {
+      first: '—', gaps: 0, unassigned: 0, blockCounts: {}, gapList: []
+    };
+    var bc = figures.blockCounts || {};
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyTimelineRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('full', 'Full day', counts.full || counts.all || 0) +
+      viewItem('vendorCalls', 'Vendor calls', counts.vendorCalls || 0) +
+      viewItem('couple', 'Couple only', counts.couple || 0) +
+      viewItem('party', 'Wedding party', counts.party || 0) +
+      viewItem('unassigned', 'Unassigned', counts.unassigned || counts.unowned || 0, true) +
+      '</div></div>';
+
+    var blocksHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Blocks</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Morning prep</span><span class="rd-rail__count">' + (bc.morning || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Portraits</span><span class="rd-rail__count">' + (bc.portraits || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Ceremony</span><span class="rd-rail__count">' + (bc.ceremony || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Reception</span><span class="rd-rail__count">' + ((bc.reception || 0) + (bc.close || 0)) + '</span></div>' +
+      '</div></div>';
+
+    var gapN = figures.gaps || 0;
+    var unownedN = figures.unassigned || counts.unassigned || 0;
+    var checksHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Checks</div>' +
+      '<div class="rd-rail__list">' +
+      '<div class="rd-rail__item" style="cursor:default">' + (gapN ? '▲ ' + gapN + '-minute gap(s) in the day' : '✓ No large gaps') + '</div>' +
+      '<div class="rd-rail__item" style="cursor:default">✓ Vendor arrivals when listed</div>' +
+      '<div class="rd-rail__item" style="cursor:default">' + (unownedN ? '▲ ' + unownedN + ' event' + (unownedN === 1 ? '' : 's') + ' have no owner' : '✓ Every event has an owner') + '</div>' +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Duration is a real field — gaps between events show as rows, not notes.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="timeline">' + viewsHtml + blocksHtml + checksHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #11a rail — Views + Running time + Group by. */
+  function buildCeremonyContext() {
+    var activeView = 'both';
+    if (typeof getSavedView === 'function') activeView = getSavedView('ceremony', 'both');
+    else if (typeof window._cerRailView === 'string' && window._cerRailView) activeView = window._cerRailView;
+    window._cerRailView = activeView;
+
+    var counts = typeof window.ceremonyRailCounts === 'function' ? window.ceremonyRailCounts() : {
+      both: 0, ceremony: 0, reception: 0, needs: 0, scripture: 0
+    };
+    var figures = typeof window.ceremonyFigures === 'function' ? window.ceremonyFigures() : {
+      ceremonyMins: 0, receptionMins: 0, cocktailMins: 60, turnoverMins: 45
+    };
+    var groupBy = window._cerGroupBy || 'service';
+
+    function fmtRailMins(n) {
+      if (n == null) return '—';
+      n = Math.max(0, Math.round(Number(n) || 0));
+      if (n < 60) return n + ' min';
+      var h = Math.floor(n / 60);
+      var r = n % 60;
+      return r ? (h + 'h ' + r + 'm') : (h + 'h');
+    }
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCeremonyRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('both', 'Both services', counts.both || 0) +
+      viewItem('ceremony', 'Ceremony only', counts.ceremony || 0) +
+      viewItem('reception', 'Reception only', counts.reception || 0) +
+      viewItem('needs', 'Needs a person', counts.needs || 0, true) +
+      viewItem('scripture', 'Scripture & vows', counts.scripture || 0) +
+      '</div></div>';
+
+    var metersHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Running time</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Ceremony</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.ceremonyMins)) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Cocktail hour</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.cocktailMins)) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Reception</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.receptionMins)) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Room turnover</span><span class="rd-rail__count">' + esc(fmtRailMins(figures.turnoverMins)) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCeremonyGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('service', 'Service') +
+      groupItem('person', 'Person') +
+      groupItem('type', 'Element type') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Elements with a time appear on the Wedding Day Timeline. Editing a duration here moves the timeline block.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="ceremony">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #17b / Dark.dc #17b rail — Sections + Readiness (After the day moved to Homecoming). */
+  function buildHoneymoonContext() {
+    var active = 'bookings';
+    if (typeof getSavedView === 'function') active = getSavedView('honeymoon', 'bookings');
+    else if (typeof window._hmSection === 'string' && window._hmSection) active = window._hmSection;
+    if (active === 'after') active = 'bookings';
+    window._hmSection = active;
+
+    var counts = typeof window.honeymoonRailCounts === 'function' ? window.honeymoonRailCounts() : {
+      bookings: 0, itinerary: 0, packing: 0, budget: 0, journal: 0
+    };
+    var figures = typeof window.honeymoonFigures === 'function' ? window.honeymoonFigures() : {
+      bookingsComplete: 0, bookingsTotal: 0, packed: 0, packingTotal: 0,
+      itineraryPlanned: 0, itineraryTotal: 0, budgetCommitted: 0
+    };
+
+    function money0(n) {
+      n = Math.round(Number(n) || 0);
+      return '$' + n.toLocaleString();
+    }
+
+    function sectionItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (active === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHoneymoonSection(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+
+    var sectionsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Sections<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      sectionItem('bookings', 'Details & bookings', counts.bookings || 0) +
+      sectionItem('itinerary', 'Itinerary', counts.itinerary || 0) +
+      sectionItem('packing', 'Packing', counts.packing || 0) +
+      sectionItem('budget', 'Budget', counts.budget || 0) +
+      sectionItem('journal', 'Daily journal', counts.journal || 0) +
+      '</div></div>';
+
+    var readinessHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Readiness</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Bookings complete</span><span class="rd-rail__count">' +
+      (figures.bookingsComplete || 0) + ' of ' + (figures.bookingsTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Packed</span><span class="rd-rail__count">' +
+      (figures.packed || 0) + ' of ' + (figures.packingTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Itinerary days</span><span class="rd-rail__count">' +
+      (figures.itineraryPlanned || 0) + ' of ' + (figures.itineraryTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Budget committed</span><span class="rd-rail__count">' +
+      esc(money0(figures.budgetCommitted || 0)) + '</span></div>' +
+      '</div></div>';
+
+    var homecomingHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">After the wedding</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item" onclick="typeof showPanel===\'function\'&&showPanel(\'homecoming\')">Newlywed Homecoming</button>' +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">The honeymoon budget is its own target — it is not part of the wedding budget and never appears on the Budget page. Post-wedding tasks live on Newlywed Homecoming.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="honeymoon">' + sectionsHtml + readinessHtml + homecomingHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #13b / Dark.dc #13b rail — Views + Rhythm + Group by. */
+  function buildPrayerContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('prayer', 'all');
+    else if (typeof window._prRailView === 'string' && window._prRailView) activeView = window._prRailView;
+    window._prRailView = activeView;
+
+    var counts = typeof window.prayerRailCounts === 'function' ? window.prayerRailCounts() : {
+      all: 0, answered: 0, open: 0, laid: 0, together: 0
+    };
+    var figures = typeof window.prayerFigures === 'function' ? window.prayerFigures() : {
+      weeksWithEntry: 0, weeksWindow: 20, streak: 0, lastEntry: '—', answered: 0, entries: 0
+    };
+    var groupBy = window._prGroupBy || 'status';
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPrayerRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All entries', counts.all || 0) +
+      viewItem('answered', 'Answered', counts.answered || 0) +
+      viewItem('open', 'Still praying', counts.open || 0) +
+      viewItem('laid', 'Laid down', counts.laid || 0) +
+      viewItem('together', 'Written together', counts.together || 0) +
+      '</div></div>';
+
+    var rhythmHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Rhythm</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Weeks with an entry</span><span class="rd-rail__count">' +
+      (figures.weeksWithEntry || 0) + ' of ' + (figures.weeksWindow || 20) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Longest streak</span><span class="rd-rail__count">' +
+      (figures.streak || 0) + ' weeks</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last entry</span><span class="rd-rail__count">' +
+      esc(figures.lastEntry || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Answered</span><span class="rd-rail__count">' +
+      (figures.answered || 0) + ' of ' + (figures.entries || 0) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPrayerGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('status', 'Status') +
+      groupItem('author', 'Author') +
+      groupItem('month', 'Month') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Entries are private by default. A prayer is never included in a share packet, whatever sections you pick.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="prayer">' + viewsHtml + rhythmHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #13c / Dark.dc #13c rail — Views + Progress + Group by. */
+  function buildCounselingContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('counseling', 'all');
+    else if (typeof window._couRailView === 'string' && window._couRailView) activeView = window._couRailView;
+    window._couRailView = activeView;
+
+    var counts = typeof window.counselingRailCounts === 'function' ? window.counselingRailCounts() : {
+      all: 0, complete: 0, scheduled: 0, notbooked: 0, homework: 0
+    };
+    var figures = typeof window.counselingFigures === 'function' ? window.counselingFigures() : {
+      complete: 0, sessions: 0, hwDone: 0, hwTotal: 0, nextLabel: '—', finishes: '—'
+    };
+    var groupBy = window._couGroupBy || 'status';
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCounselingRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All sessions', counts.all || 0) +
+      viewItem('complete', 'Completed', counts.complete || 0) +
+      viewItem('scheduled', 'Scheduled', counts.scheduled || 0) +
+      viewItem('notbooked', 'Not booked', counts.notbooked || 0) +
+      viewItem('homework', 'Homework due', counts.homework || 0, true) +
+      '</div></div>';
+
+    var progressHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Progress</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Sessions done</span><span class="rd-rail__count">' +
+      (figures.complete || 0) + ' of ' + (figures.sessions || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Homework done</span><span class="rd-rail__count">' +
+      (figures.hwDone || 0) + ' of ' + (figures.hwTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Next session</span><span class="rd-rail__count">' +
+      esc(figures.nextLabel || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Finishes</span><span class="rd-rail__count">' +
+      esc(figures.finishes || '—') + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyCounselingGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('status', 'Status') +
+      groupItem('topic', 'Topic') +
+      groupItem('month', 'Month') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Sessions appear on the Smart Calendar. Homework rows are child records — the session bar is derived from them.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="counseling">' + viewsHtml + progressHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #8b / Dark.dc #8b rail — Views + Categories + Ecclesiastes note. */
+  function buildMoodContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('mood', 'all');
+    else if (typeof window._moodRailView === 'string' && window._moodRailView) activeView = window._moodRailView;
+    window._moodRailView = activeView;
+
+    var counts = typeof window.moodRailCounts === 'function' ? window.moodRailCounts() : {
+      all: 0, vendor: 0, budget: 0, uncategorised: 0, shared: 0
+    };
+    var figures = typeof window.moodFigures === 'function' ? window.moodFigures() : { byCat: {} };
+    var byCat = figures.byCat || {};
+
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyMoodRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All pins', counts.all || 0) +
+      viewItem('vendor', 'Linked to a vendor', counts.vendor || 0) +
+      viewItem('budget', 'Linked to budget', counts.budget || 0) +
+      viewItem('uncategorised', 'Not categorised', counts.uncategorised || 0, true) +
+      viewItem('shared', 'Shared with vendors', counts.shared || 0) +
+      '</div></div>';
+
+    var catOrder = ['Ceremony', 'Reception', 'Florals', 'Attire', 'Stationery', 'Uncategorised'];
+    Object.keys(byCat).forEach(function (k) {
+      if (catOrder.indexOf(k) < 0) catOrder.push(k);
+    });
+    var meters = '';
+    catOrder.forEach(function (cat) {
+      var n = byCat[cat] || 0;
+      if (!n && cat !== 'Uncategorised') return;
+      if (!n && cat === 'Uncategorised' && !(counts.uncategorised > 0)) return;
+      meters +=
+        '<div class="rd-rail__meter-top"><span>' + esc(cat) + '</span>' +
+        '<span class="rd-rail__count' + (cat === 'Uncategorised' && n > 0 ? ' rd-rail__count--warn' : '') + '">' +
+        n + '</span></div>';
+    });
+    if (!meters) {
+      meters = '<div class="rd-rail__meter-top"><span>No pins yet</span><span class="rd-rail__count">0</span></div>';
+    }
+
+    var categoriesHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Categories</div>' +
+      '<div class="rd-rail__meters">' + meters + '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">&ldquo;He hath made every thing beautiful in his time.&rdquo; Ecclesiastes 3:11</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="mood">' + viewsHtml + categoriesHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #17a / Dark.dc #17a rail — Kits + Packed meters + Group by. */
+  function buildEssentialsContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('essentials', 'all');
+    else if (typeof window._essRailView === 'string' && window._essRailView) activeView = window._essRailView;
+    window._essRailView = activeView;
+
+    var counts = typeof window.essRailCounts === 'function' ? window.essRailCounts() : { all: 0 };
+    var figures = typeof window.essFigures === 'function' ? window.essFigures() : {
+      packed: 0, items: 0, bought: 0, notBought: 0, unassigned: 0
+    };
+    var groupBy = window._essGroupBy || 'kit';
+
+    var kits = [
+      ['all', 'Everything'],
+      ['Bride essentials', 'Bride essentials'],
+      ['Groom essentials', 'Groom essentials'],
+      ['Emergency kit', 'Emergency kit'],
+      ['Ceremony documents', 'Ceremony documents'],
+      ['Reception bag', 'Reception bag'],
+      ['Beauty & medicine', 'Beauty & medicine'],
+      ['Exit / send-off', 'Exit / send-off'],
+      ['Tech kit', 'Tech kit']
+    ];
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEssentialsRailView(\'' + id.replace(/'/g, "\\'") + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+
+    var kitsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Kits<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      kits.map(function (k) {
+        return viewItem(k[0], k[1], k[0] === 'all' ? (counts.all || 0) : (counts[k[0]] || 0));
+      }).join('') +
+      '</div></div>';
+
+    var packedHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Packed</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>In the bag</span><span class="rd-rail__count">' +
+      (figures.packed || 0) + ' of ' + (figures.items || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Bought, not packed</span><span class="rd-rail__count">' +
+      (figures.bought || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Not bought</span><span class="rd-rail__count">' +
+      (figures.notBought || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Unassigned</span><span class="rd-rail__count' +
+      ((figures.unassigned || 0) > 0 ? ' rd-rail__count--warn' : '') + '">' +
+      (figures.unassigned || 0) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEssentialsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('kit', 'Kit') +
+      groupItem('person', 'Person') +
+      groupItem('where', 'Where it lives') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Presets load a starter list you then edit. Nothing here syncs — this is the one table the planner does not derive from anything else.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="essentials">' + kitsHtml + packedHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #12b / Dark.dc #12b rail — Views + Activity meters + Group by. */
+  function buildPacketsContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('packets', 'all');
+    else if (typeof window._pktRailView === 'string' && window._pktRailView) activeView = window._pktRailView;
+    window._pktRailView = activeView;
+
+    var counts = typeof window.pktRailCounts === 'function' ? window.pktRailCounts() : {
+      all: 0, live: 0, expired: 0, draft: 0, week: 0
+    };
+    var figures = typeof window.pktFigures === 'function' ? window.pktFigures() : {
+      opened: 0, packets: 0, totalOpens: 0, lastOpen: '—', never: 0
+    };
+    var groupBy = window._pktGroupBy || 'recipient';
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPacketsRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All packets', counts.all || 0) +
+      viewItem('live', 'Live', counts.live || 0) +
+      viewItem('expired', 'Expired', counts.expired || 0) +
+      viewItem('draft', 'Draft', counts.draft || 0) +
+      viewItem('week', 'Opened this week', counts.week || 0) +
+      '</div></div>';
+
+    var activityHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Activity</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Opened at least once</span><span class="rd-rail__count">' +
+      (figures.opened || 0) + ' of ' + (figures.packets || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Total opens</span><span class="rd-rail__count">' +
+      (figures.totalOpens || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last open</span><span class="rd-rail__count">' +
+      esc(figures.lastOpen || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Default expiry</span><span class="rd-rail__count">30 days</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPacketsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('recipient', 'Recipient type') +
+      groupItem('status', 'Status') +
+      groupItem('created', 'Created') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Packets are snapshots by default. A live packet updates as you edit; both states are shown on the row.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="packets">' + viewsHtml + activityHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #12c / Dark.dc #12c rail — Views + Use meters + Group by. */
+  function buildNotesContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('notes', 'all');
+    else if (typeof window._notesRailView === 'string' && window._notesRailView) activeView = window._notesRailView;
+    window._notesRailView = activeView;
+
+    var counts = typeof window.notesRailCounts === 'function' ? window.notesRailCounts() : {
+      all: 0, unpinned: 0, flagged: 0, mine: 0, shared: 0, bySubject: {}
+    };
+    var bySubject = counts.bySubject || {};
+    var groupBy = window._notesGroupBy || 'pinnedTo';
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyNotesRailView(\'' + id.replace(/'/g, "\\'") + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (id === 'flagged' && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All notes', counts.all || 0) +
+      viewItem('unpinned', 'Unpinned', counts.unpinned || 0) +
+      viewItem('flagged', 'Flagged', counts.flagged || 0) +
+      viewItem('mine', 'Mine', counts.mine || 0) +
+      viewItem('shared', 'Shared', counts.shared || 0) +
+      '</div></div>';
+
+    var subjectHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">By subject</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Vendors</span><span class="rd-rail__count">' + (bySubject.Vendors || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Guests</span><span class="rd-rail__count">' + (bySubject.Guests || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Money</span><span class="rd-rail__count">' + (bySubject.Money || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>The day</span><span class="rd-rail__count">' + (bySubject['The day'] || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Loose</span><span class="rd-rail__count">' + (bySubject.Loose || 0) + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyNotesGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('pinnedTo', 'Pinned to') +
+      groupItem('author', 'Author') +
+      groupItem('date', 'Date') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">A note is never in a share packet. Pin it to a record so it shows up where the work is.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="notes">' + viewsHtml + subjectHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  function buildEmailsContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('emails', 'all');
+    else if (typeof window._etRailView === 'string' && window._etRailView) activeView = window._etRailView;
+    window._etRailView = activeView;
+
+    var counts = typeof window.etRailCounts === 'function' ? window.etRailCounts() : {
+      all: 0, Guests: 0, Vendors: 0, 'Wedding party': 0, blanks: 0
+    };
+    var figures = typeof window.etFigures === 'function' ? window.etFigures() : {
+      sentTotal: 0, mostTitle: '—', mostSent: 0, never: 0, lastSent: '—'
+    };
+    var groupBy = window._etGroupBy || 'audience';
+
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEmailsRailView(\'' + id.replace(/'/g, "\\'") + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (id === 'blanks' && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All templates', counts.all || 0) +
+      viewItem('Guests', 'Guests', counts.Guests || 0) +
+      viewItem('Vendors', 'Vendors', counts.Vendors || 0) +
+      viewItem('Wedding party', 'Wedding party', counts['Wedding party'] || 0) +
+      viewItem('blanks', 'With blank fields', counts.blanks || 0) +
+      '</div></div>';
+
+    var useHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Use</div>' +
+      '<div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Sent from a template</span><span class="rd-rail__count">' +
+      (figures.sentTotal || 0) + ' emails</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Most used</span><span class="rd-rail__count">' +
+      esc((figures.mostTitle || '—') + (figures.mostSent ? (' · ' + figures.mostSent) : '')) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Never used</span><span class="rd-rail__count">' +
+      (figures.never || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last sent</span><span class="rd-rail__count">' +
+      esc(figures.lastSent || '—') + '</span></div>' +
+      '</div></div>';
+
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyEmailsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Group by</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      groupItem('audience', 'Audience') +
+      groupItem('last', 'Last used') +
+      groupItem('author', 'Author') +
+      '</div></div>';
+
+    var noteHtml =
+      '<p class="rd-rail__note">Merge fields read live records. A template with an unresolved field cannot be sent until it is fixed.</p>';
+
+    return '<div class="rd-rail__stack" data-page-rail="emails">' + viewsHtml + useHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #14b / Views #28 — derived households over guests. */
+  function buildHouseholdsContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('households', 'all');
+    else if (typeof window._hhRailView === 'string' && window._hhRailView) activeView = window._hhRailView;
+    window._hhRailView = activeView;
+    var counts = typeof window.hhRailCounts === 'function' ? window.hhRailCounts() : {
+      all: 0, invited: 0, fully: 0, partly: 0, none: 0
+    };
+    var figures = typeof window.hhFigures === 'function' ? window.hhFigures() : {
+      invited: 0, households: 0, fully: 0, seats: 0, confirmed: 0
+    };
+    var groupBy = window._hhGroupBy || 'side';
+    function viewItem(id, label, count, warn) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHouseholdsRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All households', counts.all || 0) +
+      viewItem('invited', 'Invited', counts.invited || 0) +
+      viewItem('fully', 'Fully replied', counts.fully || 0) +
+      viewItem('partly', 'Partly replied', counts.partly || 0, true) +
+      viewItem('none', 'No reply', counts.none || 0, true) +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Invitations</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Sent</span><span class="rd-rail__count">' + (figures.invited || 0) + ' of ' + (figures.households || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Replied</span><span class="rd-rail__count">' + (figures.fully || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Seats requested</span><span class="rd-rail__count">' + (figures.seats || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Seats confirmed</span><span class="rd-rail__count">' + (figures.confirmed || 0) + '</span></div>' +
+      '</div></div>';
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHouseholdsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
+      groupItem('side', 'Side') + groupItem('city', 'City') + groupItem('reply', 'Reply status') +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note"><b>A derived view.</b> Households are grouped guest records — editing an address here edits it on every guest in that household.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="households">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #14c / Views #28 — master contact directory. */
+  function buildContactsContext() {
+    var activeView = 'everyone';
+    if (typeof getSavedView === 'function') activeView = getSavedView('contacts', 'everyone');
+    else if (typeof window._ctRailView === 'string' && window._ctRailView) activeView = window._ctRailView;
+    window._ctRailView = activeView;
+    var counts = typeof window.ctRailCounts === 'function' ? window.ctRailCounts() : {
+      everyone: 0, vendors: 0, party: 0, family: 0, dayof: 0
+    };
+    var figures = typeof window.ctFigures === 'function' ? window.ctFigures() : {
+      withPhone: 0, contacts: 0, withEmail: 0, neither: 0, dayof: 0
+    };
+    var groupBy = window._ctGroupBy || 'role';
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyContactsRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
+      '<div class="rd-rail__list" role="list">' +
+      viewItem('everyone', 'Everyone', counts.everyone || 0) +
+      viewItem('vendors', 'Vendors', counts.vendors || 0) +
+      viewItem('party', 'Wedding party', counts.party || 0) +
+      viewItem('family', 'Family', counts.family || 0) +
+      viewItem('dayof', 'Day-of only', counts.dayof || 0) +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Reachable</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>With a phone number</span><span class="rd-rail__count">' + (figures.withPhone || 0) + ' of ' + (figures.contacts || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>With an email</span><span class="rd-rail__count">' + (figures.withEmail || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Neither</span><span class="rd-rail__count">' + (figures.neither || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>On the day-of sheet</span><span class="rd-rail__count">' + (figures.dayof || 0) + '</span></div>' +
+      '</div></div>';
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyContactsGroupBy(\'' + id + '\')">' + esc(label) + '</button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
+      groupItem('role', 'Role') + groupItem('side', 'Side') + groupItem('company', 'Company') +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note"><b>A derived view.</b> Contacts are vendors and guests seen through one lens — the phone number lives on the original record.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="contacts">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #13a — Vision & Foundation. */
+  function buildVisionContext() {
+    var activeView = 'vision';
+    if (typeof getSavedView === 'function') activeView = getSavedView('vision', 'vision');
+    else if (typeof window._visRailView === 'string' && window._visRailView) activeView = window._visRailView;
+    window._visRailView = activeView;
+    var counts = typeof window.visRailCounts === 'function' ? window.visRailCounts() : {
+      vision: 0, values: 0, scriptures: 0, promises: 0, building: 0
+    };
+    var figures = typeof window.visFigures === 'function' ? window.visFigures() : {
+      sectionsComplete: 0, sectionsTotal: 5, words: 0, lastWritten: '—'
+    };
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyVisionRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + (count || '') + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Sections</div><div class="rd-rail__list" role="list">' +
+      viewItem('vision', 'Our vision', '') +
+      viewItem('values', 'Values', counts.values || 0) +
+      viewItem('scriptures', 'Scriptures', counts.scriptures || 0) +
+      viewItem('promises', 'Promises', counts.promises || 0) +
+      viewItem('building', 'What we are building', '') +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Written</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Sections complete</span><span class="rd-rail__count">' + (figures.sectionsComplete || 0) + ' of ' + (figures.sectionsTotal || 5) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Words</span><span class="rd-rail__count">' + (figures.words || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last written</span><span class="rd-rail__count">' + esc(figures.lastWritten || '—') + '</span></div>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Prints as a <b>Class B keepsake</b>: Cormorant returns, margins open, one gold hairline per page.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="vision">' + viewsHtml + metersHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #13d — First-Month Rhythms. Views · Since the wedding · Group by. */
+  function buildFirstmonthContext() {
+    var activeView = 'all';
+    if (typeof getSavedView === 'function') activeView = getSavedView('firstmonth', 'all');
+    else if (typeof window._fmRailView === 'string' && window._fmRailView) activeView = window._fmRailView;
+    window._fmRailView = activeView;
+    var counts = typeof window.fmRailCounts === 'function' ? window.fmRailCounts() : {
+      all: 0, daily: 0, weekly: 0, monthly: 0, yearly: 0
+    };
+    var figures = typeof window.fmFigures === 'function' ? window.fmFigures() : {
+      keptThisMonth: 0, rhythms: 0, longestStreak: '—', startsLong: '—', review: 'Every anniversary'
+    };
+    var groupBy = window._fmGroupBy || 'cadence';
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyFirstmonthRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Views<button type="button" class="rd-rail__add" onclick="rdFmAdd()" aria-label="Add rhythm">+</button></div><div class="rd-rail__list" role="list">' +
+      viewItem('all', 'All rhythms', counts.all || 0) +
+      viewItem('daily', 'Daily', counts.daily || 0) +
+      viewItem('weekly', 'Weekly', counts.weekly || 0) +
+      viewItem('monthly', 'Monthly', counts.monthly || 0) +
+      viewItem('yearly', 'Yearly', counts.yearly || 0) +
+      '</div></div>';
+    var keptPct = (figures.rhythms || 0) > 0
+      ? Math.round(((figures.keptThisMonth || 0) / figures.rhythms) * 100)
+      : 0;
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Since the wedding</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Kept this month</span><span class="rd-rail__count">' +
+      (figures.keptThisMonth || 0) + ' of ' + (figures.rhythms || 0) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + keptPct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Longest streak</span><span class="rd-rail__count">' +
+      esc(figures.longestStreak || figures.streaks || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Starts</span><span class="rd-rail__count">' +
+      esc(figures.startsLong || figures.beginsLong || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Review</span><span class="rd-rail__count">' +
+      esc(figures.review || 'Every anniversary') + '</span></div>' +
+      '</div></div>';
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyFirstmonthGroupBy(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count"></span></button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
+      groupItem('cadence', 'Cadence') + groupItem('owner', 'Owner') + groupItem('area', 'Area') +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Rhythms begin the day after the wedding. Nothing here appears on the Timeline — it is not wedding work.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="firstmonth">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #18b — Planner History. Filter by record · Retention · Jump to. */
+  function buildHistoryContext() {
+    var figures = typeof window.histFigures === 'function' ? window.histFigures() : {
+      total: 0, today: 0, undo: 0, redo: 0, capacity: 0, logLimit: 200, snapLimit: 15,
+      oldestShort: '—', oldestUndoShort: '—', counts: { all: 0, guests: 0, budget: 0, tasks: 0, vendors: 0, tables: 0, other: 0 }
+    };
+    var counts = figures.counts || {};
+    var activeFilter = window._histRailFilter || 'all';
+    var activeJump = window._histJump || 'all';
+    function filterItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeFilter === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHistoryRailFilter(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + (count || 0) + '</span></button>';
+    }
+    var filterHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Filter by record</div><div class="rd-rail__list" role="list">' +
+      filterItem('all', 'Everything', counts.all || figures.total || 0) +
+      filterItem('guests', 'Guests', counts.guests || 0) +
+      filterItem('budget', 'Budget &amp; payments', counts.budget || 0) +
+      filterItem('tasks', 'Tasks', counts.tasks || 0) +
+      filterItem('vendors', 'Vendors', counts.vendors || 0) +
+      filterItem('tables', 'Table layout', counts.tables || 0) +
+      filterItem('other', 'Everything else', counts.other || 0) +
+      '</div></div>';
+    var logPct = figures.logLimit ? Math.min(100, Math.round(((figures.total || 0) / figures.logLimit) * 100)) : 0;
+    var snapPct = figures.snapLimit ? Math.min(100, Math.round(((figures.undo || 0) / figures.snapLimit) * 100)) : 0;
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Retention</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Log entries</span><span class="rd-rail__count">' +
+      (figures.total || 0) + ' of ' + (figures.logLimit || 200) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + logPct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Undo snapshots</span><span class="rd-rail__count">' +
+      (figures.undo || 0) + ' of ' + (figures.snapLimit || 15) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + snapPct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Oldest entry</span><span class="rd-rail__count">' + esc(figures.oldestShort || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Oldest undo</span><span class="rd-rail__count">' + esc(figures.oldestUndoShort || '—') + '</span></div>' +
+      '</div></div>';
+    function jumpItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeJump === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHistoryJump(\'' + id + '\')">' + esc(label) +
+        (count != null && count !== '' ? '<span class="rd-rail__count">' + count + '</span>' : '') +
+        '</button>';
+    }
+    var jumpHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Jump to</div><div class="rd-rail__list" role="list">' +
+      jumpItem('today', 'Today', figures.today || 0) +
+      jumpItem('yesterday', 'Yesterday', '') +
+      jumpItem('week', 'This week', '') +
+      jumpItem('all', 'Everything', figures.total || 0) +
+      '<button type="button" class="rd-rail__item" onclick="rdHistJumpDate()">Pick a date…</button>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Undo and redo restore whole snapshots. This log is the readable record of what changed — it keeps going after a snapshot has aged out.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="history">' + filterHtml + metersHtml + jumpHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #18a — Newlywed Homecoming. Sections · Progress (+ bars) · Group by. */
+  function buildHomecomingContext() {
+    var activeView = 'settling';
+    if (typeof getSavedView === 'function') activeView = getSavedView('homecoming', 'settling');
+    else if (typeof window._hcRailView === 'string' && window._hcRailView) activeView = window._hcRailView;
+    if (activeView === 'after') activeView = 'settling';
+    window._hcRailView = activeView;
+    var counts = typeof window.hcRailCounts === 'function' ? window.hcRailCounts() : {
+      settling: 0, namechange: 0, budget: 0, noticed: ''
+    };
+    var figures = typeof window.hcFigures === 'function' ? window.hcFigures() : {
+      homeDone: 0, homecoming: 0, nameDone: 0, nameChange: 0,
+      firstMonthStatus: 'Not started', beginsShort: '—'
+    };
+    var groupBy = window._hcGroupBy || 'area';
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHomecomingRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + (count === '' || count == null ? '' : count) + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Sections<button type="button" class="rd-rail__add" onclick="rdHcAddTask()" aria-label="Add">+</button></div><div class="rd-rail__list" role="list">' +
+      viewItem('settling', 'Settling in', counts.settling || 0) +
+      viewItem('namechange', 'Name change', counts.namechange || 0) +
+      viewItem('budget', 'First month budget', counts.budget || 0) +
+      viewItem('noticed', 'What we noticed', '') +
+      '</div></div>';
+    function pct(done, total) {
+      return total > 0 ? Math.round((done / total) * 100) : 0;
+    }
+    var settlePct = pct(figures.homeDone || 0, figures.homecoming || 0);
+    var namePct = pct(figures.nameDone || 0, figures.nameChange || 0);
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Progress</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Settling in</span><span class="rd-rail__count">' +
+      (figures.homeDone || 0) + ' of ' + (figures.homecoming || 0) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + settlePct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Name change</span><span class="rd-rail__count">' +
+      (figures.nameDone || 0) + ' of ' + (figures.nameChange || 0) + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + namePct + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>First month</span><span class="rd-rail__count">' +
+      esc(figures.firstMonthStatus || 'Not started') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Begins</span><span class="rd-rail__count">' +
+      esc(figures.beginsShort || '—') + '</span></div>' +
+      '</div></div>';
+    function groupItem(id, label) {
+      return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
+        ' onclick="applyHomecomingGroupBy(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count"></span></button>';
+    }
+    var groupHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
+      groupItem('area', 'Area') + groupItem('owner', 'Owner') + groupItem('due', 'Due') +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">Nothing here can be ticked before ' +
+      esc(figures.beginsShort && figures.beginsShort !== '—' ? figures.beginsShort : 'the day after the wedding') +
+      '. It is written now so the first month is not spent deciding what to do.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="homecoming">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
+  }
+
+  /* All.dc #12d — Print Centre. */
+  function buildPrintCentreContext() {
+    var activeView = 'everything';
+    if (typeof getSavedView === 'function') activeView = getSavedView('print-centre', 'everything');
+    else if (typeof window._pcRailView === 'string' && window._pcRailView) activeView = window._pcRailView;
+    window._pcRailView = activeView;
+    var counts = typeof window.pcRailCounts === 'function' ? window.pcRailCounts() : {
+      everything: 0, classA: 0, classB: 0, printed: 0, dayof: 0
+    };
+    var figures = typeof window.pcFigures === 'function' ? window.pcFigures() : {
+      dayOfReady: 0, dayOfTotal: 0, packBlocked: 0, paper: 'Letter'
+    };
+    function viewItem(id, label, count) {
+      return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
+        ' onclick="applyPrintCentreRailView(\'' + id + '\')">' + esc(label) +
+        '<span class="rd-rail__count">' + count + '</span></button>';
+    }
+    var viewsHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div><div class="rd-rail__list" role="list">' +
+      viewItem('everything', 'Everything', counts.everything || 0) +
+      viewItem('classA', 'Class A · working', counts.classA || 0) +
+      viewItem('classB', 'Class B · keepsakes', counts.classB || 0) +
+      viewItem('printed', 'Printed already', counts.printed || 0) +
+      viewItem('dayof', 'Day-of pack', counts.dayof || 0) +
+      '</div></div>';
+    var metersHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Day-of pack</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Ready to print</span><span class="rd-rail__count">' + (figures.dayOfReady || 0) + ' of ' + (figures.dayOfTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Blocked</span><span class="rd-rail__count">' + (figures.packBlocked || 0) + '</span></div>' +
+      '</div></div>';
+    var paperHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Paper</div><div class="rd-rail__list" role="list">' +
+      '<button type="button" class="rd-rail__item' + ((figures.paper || 'Letter') === 'Letter' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'Letter\')">Letter</button>' +
+      '<button type="button" class="rd-rail__item' + ((figures.paper || '') === 'A4' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'A4\')">A4</button>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note"><b>Class A</b> prints black on white with repeating headers; <b>Class B</b> keeps Cormorant and gold hairlines.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="print-centre">' + viewsHtml + metersHtml + paperHtml + noteHtml + '</div>';
+  }
+
   var CONTEXT_BUILDERS = {
     guests: buildGuestContext,
+    households: buildHouseholdsContext,
+    contacts: buildContactsContext,
     party: buildPartyContext,
     gifts: buildGiftsContext,
     tables: buildTablesContext,
     dashboard: buildDashboardContext,
+    notes: buildNotesContext,
     budget: buildBudgetContext,
     payments: buildPaymentsContext,
     contracts: buildContractsContext,
+    vendors: buildVendorsContext,
+    venue: buildVenueContext,
+    timeline: buildTimelineContext,
+    ceremony: buildCeremonyContext,
+    honeymoon: buildHoneymoonContext,
+    homecoming: buildHomecomingContext,
+    history: buildHistoryContext,
+    vision: buildVisionContext,
+    prayer: buildPrayerContext,
+    counseling: buildCounselingContext,
+    firstmonth: buildFirstmonthContext,
+    mood: buildMoodContext,
+    essentials: buildEssentialsContext,
+    packets: buildPacketsContext,
+    emails: buildEmailsContext,
+    'print-centre': buildPrintCentreContext,
     tasks: buildTasksContext,
     appointments: buildAppointmentsContext,
     logistics: buildLogisticsContext,
     calendar: buildCalendarContext,
     catering: buildCateringContext,
+    entertainment: buildEntertainmentContext,
+    shotlist: buildShotlistContext,
     'data-hub': buildDataHubContext
   };
 
