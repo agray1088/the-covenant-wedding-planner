@@ -2181,6 +2181,26 @@
       viewItem('shared', 'Shared with vendors', counts.shared || 0) +
       '</div></div>';
 
+    var activeSection = (typeof window._moodSection === 'string' && window._moodSection) || 'gallery';
+    var sectionDefs = [
+      ['decisions', 'Vision Decisions'],
+      ['palette', 'Colour Palette'],
+      ['cards', 'Inspiration Cards'],
+      ['gallery', 'Inspiration Gallery'],
+      ['details', 'Details Tracker']
+    ];
+    var sectionHtml =
+      '<div class="rd-rail__section">' +
+      '<div class="rd-rail__title">Sections</div>' +
+      '<div class="rd-rail__list" role="list">' +
+      sectionDefs.map(function (pair) {
+        var id = pair[0];
+        var label = pair[1];
+        return '<button type="button" class="rd-rail__item' + (activeSection === id ? ' is-active' : '') + '"' +
+          ' onclick="rdSetMoodSection(\'' + id + '\')">' + esc(label) + '</button>';
+      }).join('') +
+      '</div></div>';
+
     var catOrder = ['Ceremony', 'Reception', 'Florals', 'Attire', 'Stationery', 'Uncategorised'];
     Object.keys(byCat).forEach(function (k) {
       if (catOrder.indexOf(k) < 0) catOrder.push(k);
@@ -2207,7 +2227,7 @@
     var noteHtml =
       '<p class="rd-rail__note">&ldquo;He hath made every thing beautiful in his time.&rdquo; Ecclesiastes 3:11</p>';
 
-    return '<div class="rd-rail__stack" data-page-rail="mood">' + viewsHtml + categoriesHtml + noteHtml + '</div>';
+    return '<div class="rd-rail__stack" data-page-rail="mood">' + viewsHtml + sectionHtml + categoriesHtml + noteHtml + '</div>';
   }
 
   /* All.dc #17a / Dark.dc #17a rail — Kits + Packed meters + Group by. */

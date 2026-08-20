@@ -1,21 +1,39 @@
-/* Vision Board — All.dc #8b + Dark.dc #8b rail + Drawers batch (Vision pin · 8b).
-   Views: Board | Palette | List (Palette/List are switcher surfaces; no Views.dc drawings).
+/* Vision Board — Master s14 · 8b / 46a / 46b / 19d / 19e
+   Views: Board | List | By category
+   Section tabs: Vision Decisions · Colour Palette · Inspiration Cards ·
+                 Inspiration Gallery · Details Tracker
+   (19e: category chips stay filters — never tabs)
    Rail: All pins · Linked to a vendor · Linked to budget · Not categorised · Shared with vendors
-         + Categories meters + Ecclesiastes note.
-   Stats: Pins · Categories · Palette · Linked to a vendor · Uncategorised.
-   Board: palette strip + pin grid with drop wells.
-   Drawer tabs: Pin · Colours · Links · History.
+   Stats: Pins · Categories · Palette · Linked to a vendor · Uncategorised
+   Drawer tabs: Pin · Colours · Links · History
    Data: moodPhotos · moodItems · palettes · visionBoard · moodFavorites. */
 (function () {
   'use strict';
 
   window._moodMode = window._moodMode || 'board';
+  window._moodSection = window._moodSection || 'gallery';
   window._moodRailView = window._moodRailView || 'all';
-  window._moodUiFilters = window._moodUiFilters || { category: 'all', linked: 'all' };
+  window._moodUiFilters = window._moodUiFilters || { category: 'all', linked: 'all', decision: 'all' };
   window._moodDrawerId = window._moodDrawerId || null;
   window._moodDrawerTab = window._moodDrawerTab || 0;
 
   const DRAWER_TABS = ['Pin', 'Colours', 'Links', 'History'];
+  const SECTION_TABS = [
+    { id: 'decisions', label: 'Vision Decisions' },
+    { id: 'palette', label: 'Colour Palette' },
+    { id: 'cards', label: 'Inspiration Cards' },
+    { id: 'gallery', label: 'Inspiration Gallery' },
+    { id: 'details', label: 'Details Tracker' }
+  ];
+  /* 46b — always drawn, even when empty (silence is a finding). */
+  const CATEGORY_CARDS = [
+    { key: 'Florals', label: 'Flowers & greenery', hint: 'Bloom shortlist and greenery direction' },
+    { key: 'Reception', label: 'Table & place settings', hint: 'Hire list and tablescape' },
+    { key: 'Ceremony', label: 'Ceremony', hint: 'Aisle, arch, running order' },
+    { key: 'Reception & exit', label: 'Reception & exit', hint: 'Venue rules matter here' },
+    { key: 'Stationery', label: 'Stationery', hint: 'Quoted paper goods' },
+    { key: 'Attire', label: 'Attire', hint: 'Bridal party look' }
+  ];
   const DEFAULT_PALETTE = [
     { name: 'Forest', hex: '#2D4A3E', note: 'Groomsmen, greenery' },
     { name: 'Antique gold', hex: '#B89968', note: 'Stationery, candles' },
@@ -76,6 +94,26 @@
     return null;
   }
 
+  function pinDecision(row) {
+    const raw = String(row.finalized || row.decision || row.status || '').trim().toLowerCase();
+    if (/rule|reject|out|no\b|avoid|forbid/.test(raw)) return 'Ruled out';
+    if (/chosen|yes|final|decid|approve|settled|agreed/.test(raw)) return 'Chosen';
+    return 'Undecided';
+  }
+  function pinSource(row) {
+    const s = String(row.source || row.from || '').trim();
+    if (s) return s;
+    const notes = String(row.notes || row.colorStory || '').trim();
+    if (/pinterest/i.test(notes)) return 'from Pinterest';
+    if (/lookbook|bloom/i.test(notes)) return 'from lookbook';
+    if (/vendor|reel/i.test(notes)) return 'vendor reel';
+    if (/family|photo/i.test(notes)) return 'family photo';
+    return row.vendorMatch ? ('vendor · ' + String(row.vendorMatch)) : 'on the board';
+  }
+  function pinAddedBy(row) {
+    return String(row.addedBy || row.by || row.author || 'Ama').trim() || 'Ama';
+  }
+
   function unifyPhoto(row, i) {
     const cat = pinCategory(row.section);
     const title = String(row.caption || row.title || row.section || 'Untitled pin').trim() || 'Untitled pin';
@@ -93,14 +131,16 @@
       budget: bLink,
       shared: shared,
       sharedOn: row.sharedOn || '',
-      colors: Array.isArray(row.colors) ? row.colors : []
+      colors: Array.isArray(row.colors) ? row.colors : [],
+      decision: pinDecision(row),
+      source: pinSource(row),
+      addedBy: pinAddedBy(row)
     };
   }
   function unifyItem(row, i) {
     const cat = pinCategory(row.section);
     const title = String(row.item || row.title || 'Untitled pin').trim() || 'Untitled pin';
     const vLink = vendorLink(Object.assign({}, row, { vendor: row.vendorMatch === 'Matched' ? (row.vendor || row.notes) : row.vendor }));
-    /* If vendorMatch is Matched, try notes for name */
     let vendor = vLink;
     if (!vendor && /matched/i.test(String(row.vendorMatch || ''))) {
       const vendors = data.vendors || [];
@@ -121,8 +161,32 @@
       shared: !!(row.shared || row.sharedOn),
       sharedOn: row.sharedOn || '',
       colors: Array.isArray(row.colors) ? row.colors : [],
-      finalized: row.finalized || ''
+      finalized: row.finalized || '',
+      decision: pinDecision(row),
+      source: pinSource(row),
+      addedBy: pinAddedBy(row)
     };
+  }
+
+  function ensureMoodDemoPins() {
+    ensureMood();
+    if ((data.moodPhotos || []).length || (data.moodItems || []).length) return;
+    const seed = [
+      { section: 'Ceremony', caption: 'Arch with trailing greenery', notes: 'Asymmetric, heavier on the left. Forest and ivory only.', vendor: 'Bloom Studio', budgetLine: 'Florals & decor', finalized: 'Chosen', shared: true, sharedOn: '14 Jul', source: 'Bloom Studio lookbook', colors: ['#2D4A3E', '#F4EFE6', '#B89968'] },
+      { section: 'Ceremony', caption: 'Aisle candles in glass', notes: 'Twelve pairs, staggered. Grace Hall allows open flame.', vendor: 'Grace Hall', finalized: 'Chosen', source: 'Venue walkthrough' },
+      { section: 'Reception', caption: 'Long tables with runners', notes: 'Terracotta runners, gold candlesticks, low florals.', budgetLine: 'Florals & decor', finalized: 'Undecided', source: 'from Pinterest' },
+      { section: 'Florals', caption: 'Bouquet · garden style', notes: 'Loose, unstructured. No roses.', vendor: 'Bloom Studio', finalized: 'Chosen', source: 'Bloom Studio lookbook' },
+      { section: 'Attire', caption: 'Bridesmaids in champagne', notes: 'Mismatched necklines, same fabric.', budgetLine: 'Attire', finalized: 'Chosen', source: 'Fitting notes' },
+      { section: 'Other', caption: 'Cake reference', notes: 'Three tiers, textured buttercream, fresh greenery.', finalized: '', source: 'Bakery consult' }
+    ];
+    seed.forEach(row => {
+      if (typeof ensureRowId === 'function') ensureRowId(row, 'moodPhotos');
+      data.moodPhotos.push(row);
+    });
+    if (!(data.palettes || []).length) {
+      data.palettes.push({ name: 'Ama & Kwesi', colors: DEFAULT_PALETTE.map(c => ({ name: c.name, hex: c.hex, note: c.note })) });
+    }
+    if (typeof save === 'function') save();
   }
 
   function allPins() {
@@ -235,16 +299,16 @@
     const panel = document.getElementById('panel-mood');
     if (!panel) return;
     panel.classList.add('ued-scope', 'mood-mockup');
-    if (panel.dataset.uedShell === 'mood-rd8b') {
+    if (panel.dataset.uedShell === 'mood-rd8b-v2') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'mood-rd8b';
+    panel.dataset.uedShell = 'mood-rd8b-v2';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
-          <div class="rd-pagehead__eyebrow">Documents</div>
+          <div class="rd-pagehead__eyebrow">Vendors</div>
           <div class="rd-pagehead__title-row">
             <h1 class="rd-pagehead__title">Vision Board</h1>
           </div>
@@ -252,13 +316,15 @@
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
       <div class="rd-stats m-stats" id="mood-stats" aria-label="Vision board summary"></div>
+      <div class="rd-sectiontabs" id="mood-section-tabs" role="tablist" aria-label="Vision Board sections"></div>
       <div class="rd-toolbar" id="mood-toolbar"></div>
       <div class="rd-surface">
         <div class="rd-surface__row" id="mood-surface-row">
           <div class="rd-surface__main" id="mood-view-host">
             <div class="rd-view" id="mood-view-board" data-mood-view="board"></div>
-            <div class="rd-view" id="mood-view-palette" data-mood-view="palette" hidden></div>
             <div class="rd-view" id="mood-view-list" data-mood-view="list" hidden></div>
+            <div class="rd-view" id="mood-view-bycat" data-mood-view="bycat" hidden></div>
+            <div class="rd-view" id="mood-view-section" data-mood-view="section" hidden></div>
           </div>
           <div id="mood-drawer-slot"></div>
         </div>
@@ -302,35 +368,71 @@
       + '</button>';
   }
 
+  function renderMoodSectionTabs() {
+    const host = document.getElementById('mood-section-tabs');
+    if (!host) return;
+    const active = window._moodSection || 'gallery';
+    const pins = allPins();
+    const favs = (data.moodFavorites || []).length;
+    const counts = {
+      decisions: Object.keys((data.visionBoard || {})).filter(k => String(data.visionBoard[k] || '').trim()).length || 0,
+      palette: paletteColors().length,
+      cards: favs || pins.length,
+      gallery: pins.length,
+      details: (data.moodItems || []).length || pins.length
+    };
+    host.innerHTML = SECTION_TABS.map(tab => {
+      const n = counts[tab.id];
+      return `<button type="button" class="rd-sectiontabs__item${active === tab.id ? ' is-active' : ''}" role="tab" aria-selected="${active === tab.id}" onclick="rdSetMoodSection('${tab.id}')">${esc(tab.label)}<span class="rd-sectiontabs__count">${n}</span></button>`;
+    }).join('');
+  }
+
   function renderMoodToolbar() {
     const host = document.getElementById('mood-toolbar');
     if (!host) return;
+    const section = window._moodSection || 'gallery';
+    /* View switcher only on Inspiration Gallery — other sections own their surface. */
+    if (section !== 'gallery') {
+      host.innerHTML = `<span class="rd-help">${esc((SECTION_TABS.find(t => t.id === section) || {}).label || '')}</span>`;
+      return;
+    }
     const mode = window._moodMode || 'board';
     host.innerHTML = filterChip('Category', 'category') + filterChip('Linked', 'linked') +
       (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by category', "rdStdOpenSort(this,'mood')") : '') +
-      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('mood') : '') +
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Vision Board view">` +
       `<button type="button" class="rd-viewswitch__item${mode === 'board' ? ' is-active' : ''}" onclick="rdSetMoodView('board')">Board</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'palette' ? ' is-active' : ''}" onclick="rdSetMoodView('palette')">Palette</button>` +
       `<button type="button" class="rd-viewswitch__item${mode === 'list' ? ' is-active' : ''}" onclick="rdSetMoodView('list')">List</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'bycat' ? ' is-active' : ''}" onclick="rdSetMoodView('bycat')">By category</button>` +
       `</div></div>`;
   }
 
   function applyViewMode() {
+    const section = window._moodSection || 'gallery';
     const mode = window._moodMode || 'board';
-    ['board', 'palette', 'list'].forEach(name => {
+    const showGallery = section === 'gallery';
+    ['board', 'list', 'bycat', 'section'].forEach(name => {
       const el = document.getElementById('mood-view-' + name);
-      if (el) el.hidden = name !== mode;
+      if (!el) return;
+      if (name === 'section') el.hidden = showGallery;
+      else el.hidden = !showGallery || name !== mode;
     });
   }
   function rdSetMoodView(mode) {
-    window._moodMode = (mode === 'palette' || mode === 'list') ? mode : 'board';
+    window._moodSection = 'gallery';
+    window._moodMode = (mode === 'list' || mode === 'bycat') ? mode : 'board';
+    renderMoodRd();
+  }
+  function rdSetMoodSection(id) {
+    const ok = SECTION_TABS.some(t => t.id === id);
+    window._moodSection = ok ? id : 'gallery';
+    if (window._moodSection === 'gallery' && !window._moodMode) window._moodMode = 'board';
     renderMoodRd();
   }
   function applyMoodRailView(viewId) {
     window._moodRailView = viewId || 'all';
     if (typeof setSavedView === 'function') setSavedView('mood', window._moodRailView);
+    window._moodSection = 'gallery';
     window._moodMode = 'board';
     renderMoodRd();
   }
@@ -354,7 +456,7 @@
       `</div>` +
       `<div class="rd-mood-palette__swatches">`;
     colors.forEach(c => {
-      html += `<button type="button" class="rd-mood-swatch" onclick="rdSetMoodView('palette')" title="${esc(c.hex)}">` +
+      html += `<button type="button" class="rd-mood-swatch" onclick="rdSetMoodSection('palette')" title="${esc(c.hex)}">` +
         `<span class="rd-mood-swatch__chip" style="background:${esc(c.hex)}"></span>` +
         `<strong>${esc(c.name)}</strong>` +
         `<span class="rd-mood-swatch__hex">${esc(c.hex)}</span>` +
@@ -457,25 +559,177 @@
     const host = document.getElementById('mood-view-list');
     if (!host) return;
     const pins = filteredPins();
-    let html = `<table class="rd-mood-table"><thead><tr>` +
-      `<th>Pin</th><th>Category</th><th>Linked</th><th>Shared</th><th>Note</th>` +
-      `</tr></thead><tbody>`;
-    if (!pins.length) {
-      html += `<tr><td colspan="5" class="rd-mood-empty-cell">No pins in this view yet.</td></tr>`;
-    } else {
-      pins.forEach(p => {
-        html += `<tr class="rd-mood-row" onclick="rdMoodOpenDrawer('${esc(p.id)}')">` +
-          `<td class="rd-mood-name">${esc(p.title)}</td>` +
-          `<td>${esc(p.category)}</td>` +
-          `<td>${esc(linkLabel(p))}</td>` +
-          `<td>${esc(p.shared ? ('Yes' + (p.sharedOn ? ' · ' + p.sharedOn : '')) : '—')}</td>` +
-          `<td>${esc(p.note || '—')}</td>` +
-          `</tr>`;
-      });
-    }
-    html += `</tbody></table>` +
-      `<button type="button" class="rd-mood-addbtn" onclick="rdMoodAdd()"><span>+</span> Add a pin</button>`;
+    const groups = [
+      { key: 'Undecided', sub: 'No decision recorded yet' },
+      { key: 'Chosen', sub: 'Settled for the look' },
+      { key: 'Ruled out', sub: 'Kept so the same idea is not proposed twice' }
+    ];
+    let html = `<div class="rd-mood-list">`;
+    groups.forEach(g => {
+      const rows = pins.filter(p => p.decision === g.key);
+      html += `<section class="rd-mood-list-group">` +
+        `<header class="rd-mood-list-group__head">${esc(g.key)} · ${rows.length} pin${rows.length === 1 ? '' : 's'}` +
+        `<span class="rd-mood-list-group__sub">${esc(g.sub)}</span></header>` +
+        `<div class="rd-mood-list-group__body">`;
+      if (!rows.length) {
+        html += `<p class="rd-help">No pins in this group.</p>`;
+      } else {
+        rows.forEach(p => {
+          html += `<button type="button" class="rd-mood-list-row" onclick="rdMoodOpenDrawer('${esc(p.id)}')">` +
+            `<span class="rd-mood-list-row__pin">${esc(p.title)}</span>` +
+            `<span class="rd-mood-list-row__meta">${esc(p.category)} · ${esc(p.source)}</span>` +
+            `<span class="rd-mood-list-row__by">${esc(p.addedBy)}</span>` +
+            `<span class="rd-mood-list-row__status">${esc(p.decision)}</span>` +
+            `</button>`;
+        });
+      }
+      html += `</div></section>`;
+    });
+    html += `<button type="button" class="rd-mood-addbtn" onclick="rdMoodAdd()"><span>+</span> Add a pin</button></div>`;
     host.innerHTML = html;
+  }
+
+  function categoryCardStats(catLabel, mapKeys) {
+    const keys = mapKeys && mapKeys.length ? mapKeys : [catLabel];
+    const pins = allPins().filter(p => {
+      if (catLabel === 'Reception & exit') {
+        return p.category === 'Reception' && /exit|send|sparkler|umbrella|dove/i.test([p.title, p.note, p.source].join(' '));
+      }
+      if (catLabel === 'Reception') {
+        return p.category === 'Reception' && !/exit|send|sparkler|umbrella|dove/i.test([p.title, p.note, p.source].join(' '));
+      }
+      return keys.some(k => p.category === k);
+    });
+    const decided = pins.filter(p => p.decision === 'Chosen' || p.decision === 'Ruled out').length;
+    const open = pins.filter(p => p.decision === 'Undecided').length;
+    const settled = pins.length ? Math.min(100, Math.round((decided / pins.length) * 100)) : 0;
+    let tone = 'Empty';
+    if (!pins.length) tone = 'Empty';
+    else if (settled >= 100) tone = 'Settled';
+    else if (settled >= 70) tone = 'Nearly done';
+    else if (settled >= 40) tone = 'In progress';
+    else if (settled > 0) tone = 'Mostly open';
+    else tone = 'Open';
+    return { pins: pins.length, decided, open, settled, tone, sample: pins };
+  }
+
+  function renderByCategoryView() {
+    const host = document.getElementById('mood-view-bycat');
+    if (!host) return;
+    const f = moodFigures();
+    let html = `<div class="rd-mood-bycat-head"><span>${f.pins} pins · ${CATEGORY_CARDS.length} categories</span>` +
+      `<p class="rd-help">Empty categories stay on the page — silence is a finding</p></div>` +
+      `<div class="rd-mood-bycat">`;
+    CATEGORY_CARDS.forEach(card => {
+      const st = categoryCardStats(card.key, card.map);
+      const openNote = !st.pins
+        ? 'Nobody has put anything here — worth asking why'
+        : (st.open
+          ? (st.sample.find(p => p.decision === 'Undecided') || {}).title || (st.open + ' still open')
+          : 'Ready to order once the guest count firms up');
+      html += `<article class="rd-mood-catcard${st.pins ? '' : ' is-empty'}" onclick="rdMoodFilterCategory('${esc(card.key)}')">` +
+        `<div class="rd-mood-catcard__head"><h3>${esc(card.label)}</h3>` +
+        `<span class="rd-mood-catcard__tone">${esc(st.tone)}</span></div>` +
+        `<p class="rd-mood-catcard__hint">${esc(card.hint)}</p>` +
+        `<div class="rd-mood-catcard__meters">` +
+        `<span>Pins <b>${st.pins}</b></span>` +
+        `<span>Decided <b>${st.decided}</b></span>` +
+        `<span>Open <b>${st.open}</b></span>` +
+        `</div>` +
+        `<div class="rd-mood-catcard__bar" aria-hidden="true"><span style="width:${st.settled}%"></span></div>` +
+        `<p class="rd-mood-catcard__note">${esc(openNote)}</p>` +
+        `</article>`;
+    });
+    html += `</div>`;
+    host.innerHTML = html;
+  }
+
+  function rdMoodFilterCategory(cat) {
+    window._moodUiFilters = window._moodUiFilters || {};
+    window._moodUiFilters.category = cat || 'all';
+    window._moodSection = 'gallery';
+    window._moodMode = 'board';
+    renderMoodRd();
+  }
+
+  function renderSectionSurface() {
+    const host = document.getElementById('mood-view-section');
+    if (!host) return;
+    const section = window._moodSection || 'gallery';
+    if (section === 'palette') {
+      host.innerHTML = '';
+      /* Reuse palette page markup into section host */
+      const tmpId = 'mood-view-palette';
+      let tmp = document.getElementById(tmpId);
+      if (!tmp) {
+        tmp = document.createElement('div');
+        tmp.id = tmpId;
+        tmp.hidden = true;
+        host.appendChild(tmp);
+      }
+      renderPaletteView();
+      host.innerHTML = tmp.innerHTML;
+      if (typeof renderPresetPalettes === 'function') renderPresetPalettes();
+      if (typeof renderSavedPalettes === 'function') renderSavedPalettes();
+      return;
+    }
+    if (section === 'decisions') {
+      const vb = data.visionBoard || {};
+      const fields = [
+        ['paletteDecision', 'Final palette', 'e.g. Forest, ivory, champagne gold'],
+        ['floralDirection', 'Floral direction', 'Garden roses, greenery, soft white blooms'],
+        ['attireDirection', 'Attire direction', 'Black tuxedos, satin bridesmaid dresses'],
+        ['decorDirection', 'Decor direction', 'Candlelight, greenery runners'],
+        ['stationeryDirection', 'Stationery direction', 'Script serif, vellum wrap'],
+        ['mustHaveDetails', 'Must-have details', 'Details that matter most for vendors', true],
+        ['avoidList', 'Avoid list', 'Colours and styles you do not want', true]
+      ];
+      host.innerHTML = `<section class="rd-mood-section">` +
+        `<div class="rd-section__head"><div class="rd-pagehead__eyebrow">Vision Decisions</div>` +
+        `<p class="rd-help">Turn inspiration into vendor-ready choices</p></div>` +
+        `<div class="rd-mood-decisions">` +
+        fields.map(([key, label, ph, multi]) => {
+          const val = esc(vb[key] || '');
+          return `<label class="rd-mood-decision${multi ? ' is-full' : ''}"><span>${esc(label)}</span>` +
+            (multi
+              ? `<textarea oninput="updateVisionDecision('${key}',this.value)" placeholder="${esc(ph)}">${val}</textarea>`
+              : `<input type="text" value="${val}" placeholder="${esc(ph)}" oninput="updateVisionDecision('${key}',this.value)">`) +
+            `</label>`;
+        }).join('') +
+        `</div></section>`;
+      return;
+    }
+    if (section === 'cards') {
+      const favs = (data.moodFavorites || []).map(f => (typeof f === 'string' ? f : (f && f.text) || '')).filter(Boolean);
+      const pins = filteredPins().slice(0, 12);
+      host.innerHTML = `<section class="rd-mood-section">` +
+        `<div class="rd-section__head"><div class="rd-pagehead__eyebrow">Inspiration Cards</div>` +
+        `<p class="rd-help">Favourites and short prompts that travel into vendor briefs</p></div>` +
+        `<div class="rd-mood-cards">` +
+        (favs.length ? favs : pins.map(p => p.title)).map(t =>
+          `<article class="rd-mood-card"><p>${esc(t)}</p></article>`
+        ).join('') +
+        (favs.length || pins.length ? '' : `<p class="rd-help">No inspiration cards yet.</p>`) +
+        `</div></section>`;
+      return;
+    }
+    if (section === 'details') {
+      const items = (data.moodItems || []).length ? data.moodItems : allPins().map(p => ({
+        item: p.title, section: p.category, colorStory: p.note, vendorMatch: p.vendor ? p.vendor.label : '', finalized: p.decision
+      }));
+      host.innerHTML = `<section class="rd-mood-section">` +
+        `<div class="rd-section__head"><div class="rd-pagehead__eyebrow">Details Tracker</div>` +
+        `<p class="rd-help">The working list behind the gallery — colour story, vendor match, decision</p></div>` +
+        `<table class="rd-mood-table"><thead><tr><th>Detail</th><th>Category</th><th>Colour story</th><th>Vendor</th><th>Decision</th></tr></thead><tbody>` +
+        (items.length ? items.map((r, i) =>
+          `<tr><td>${esc(r.item || r.title || '')}</td><td>${esc(r.section || '')}</td>` +
+          `<td>${esc(r.colorStory || r.notes || '')}</td><td>${esc(r.vendorMatch || r.vendor || '—')}</td>` +
+          `<td>${esc(r.finalized || pinDecision(r))}</td></tr>`
+        ).join('') : `<tr><td colspan="5" class="rd-mood-empty-cell">No details yet.</td></tr>`) +
+        `</tbody></table></section>`;
+      return;
+    }
+    host.innerHTML = '';
   }
 
   /* ── Drawer ──────────────────────────────────────────────────────────── */
@@ -709,7 +963,7 @@
       colors.push({ name: 'New colour', hex: '#C4B8A5', note: '' });
     }
     if (typeof save === 'function') save();
-    window._moodMode = 'palette';
+    window._moodSection = 'palette';
     renderMoodRd();
   }
   function rdMoodPrint() {
@@ -742,20 +996,32 @@
 
   function renderMoodRd() {
     ensureMood();
+    ensureMoodDemoPins();
     if (typeof getSavedView === 'function') {
       const saved = getSavedView('mood', window._moodRailView || 'all');
       if (saved) window._moodRailView = saved;
+    }
+    /* Migrate legacy Palette view into Colour Palette section. */
+    if (window._moodMode === 'palette') {
+      window._moodSection = 'palette';
+      window._moodMode = 'board';
     }
     uedMoodShellRd();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('mood');
     applyViewMode();
     renderMoodStatsRd();
+    renderMoodSectionTabs();
     renderMoodToolbar();
 
-    const mode = window._moodMode || 'board';
-    if (mode === 'palette') renderPaletteView();
-    else if (mode === 'list') renderListView();
-    else renderBoardView();
+    const section = window._moodSection || 'gallery';
+    if (section !== 'gallery') {
+      renderSectionSurface();
+    } else {
+      const mode = window._moodMode || 'board';
+      if (mode === 'list') renderListView();
+      else if (mode === 'bycat') renderByCategoryView();
+      else renderBoardView();
+    }
     renderMoodDrawer();
 
     if (typeof renderContextSidebar === 'function'
@@ -766,13 +1032,13 @@
     if (typeof uxRevealPanel === 'function') uxRevealPanel('mood');
   }
 
-  /* After Use / Save / Delete palette, refresh the redesign Palette view
+  /* After Use / Save / Delete palette, refresh the redesign Palette section
      so active swatches and Your Palettes stay in sync. */
   function refreshMoodAfterPaletteChange() {
     if (typeof refreshThemeOptionsFromMood === 'function') {
       try { refreshThemeOptionsFromMood(); } catch (e) { /* soft */ }
     }
-    if (window._moodMode === 'palette') renderPaletteView();
+    if (window._moodSection === 'palette') renderSectionSurface();
     else if (document.body.getAttribute('data-active-panel') === 'mood') renderMoodRd();
   }
   ['savePaletteChoice', 'addCustomPalette', 'removePalette', 'setMoodSeason', 'usePreset', 'useSeasonPalette'].forEach(name => {
@@ -791,6 +1057,8 @@
   window.renderMoodPage = renderMoodRd;
   window.renderMoodRd = renderMoodRd;
   window.rdSetMoodView = rdSetMoodView;
+  window.rdSetMoodSection = rdSetMoodSection;
+  window.rdMoodFilterCategory = rdMoodFilterCategory;
   window.applyMoodRailView = applyMoodRailView;
   window.moodRailCounts = moodRailCounts;
   window.moodFigures = moodFigures;
@@ -809,7 +1077,7 @@
   window.rdMoodExport = rdMoodExport;
   window.rdMoodCycleFilter = rdMoodCycleFilter;
   window.rdMoodClearFilter = rdMoodClearFilter;
-  window.visionTab = function () { rdSetMoodView('board'); };
+  window.visionTab = function () { rdSetMoodSection('gallery'); rdSetMoodView('board'); };
 
   function hookMoodPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) {
