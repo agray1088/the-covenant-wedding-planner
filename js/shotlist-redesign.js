@@ -154,8 +154,8 @@
     const w = String(win || '').toLowerCase();
     if (!w) return 'unscheduled';
     if (/getting|ready|pre-ceremony|detail|before/i.test(w)) return 'getting';
+    if (/after ceremony|family|formal|golden|portrait|couple/i.test(w)) return 'golden';
     if (/ceremony/i.test(w)) return 'ceremony';
-    if (/golden|portrait|couple|family/i.test(w)) return 'golden';
     if (/reception|cocktail|send/i.test(w)) return 'reception';
     return 'other';
   }
