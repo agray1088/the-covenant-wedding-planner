@@ -1,9 +1,11 @@
-/* Shot Lists — All.dc #11b + Views #30l/#30m + Drawers batch 24 (Shot).
+/* Shot Lists — Master §19 · #11b + Views #30l/#30m + Tabs #19h + Drawers (Shot).
    Views: Table | Cards | By window.
+   Section tabs (#19h): Photo Shot List | Video Shot List + List inline strip.
    Rail: All shots · Must have · Group shots · At risk · Video only
          + By window meters + Group by List / Window / Supplier.
    Stats (table): Lists · Shots · Must have · Group shots · At risk.
-   Columns: Shot · People · Window · Supplier · Priority.
+   Columns: Shot · People · Window · Supplier · Priority
+            (Supplier omitted when a list strip tab is active — #19h).
    Drawer tabs: Shot · People · Timing · History.
    Data: shotlist (photo) · videoShots / videoShotlist (video). */
 (function () {
@@ -19,6 +21,9 @@
   window._shotShowUnsched = window._shotShowUnsched !== false;
   window._shotMustOnly = !!window._shotMustOnly;
   window._shotSel = window._shotSel instanceof Set ? window._shotSel : new Set();
+  /* #19h — supplier · level 1 · list · level 2 */
+  window._shotSupplier = window._shotSupplier === 'video' ? 'video' : 'photo';
+  window._shotListTab = window._shotListTab || 'all';
 
   const SHOT_COL_SCOPE = 'shotlist-11b';
   const SHOT_COLUMNS = [
@@ -28,6 +33,7 @@
     { key: 'supplier', label: 'Supplier', width: '140px' },
     { key: 'priority', label: 'Priority', width: '110px' }
   ];
+  const SHOT_COLUMNS_LIST = SHOT_COLUMNS.filter(c => c.key !== 'supplier');
   if (window.rdColumns) {
     window.rdColumns.register(SHOT_COL_SCOPE, SHOT_COLUMNS.slice(), () => {
       if (typeof renderShotlistPage === 'function') renderShotlistPage();
@@ -35,6 +41,11 @@
   }
 
   const DRAWER_TABS = ['Shot', 'People', 'Timing', 'History'];
+  const PHOTO_LIST_ORDER = [
+    'Getting ready', 'Family formals', 'Detail & décor', 'Ceremony moments',
+    'Couple portraits', 'Reception', 'Send-off'
+  ];
+  const VIDEO_LIST_ORDER = ['Video only', 'Ceremony moments', 'Reception', 'Getting ready'];
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
@@ -211,6 +222,24 @@
     return out;
   }
 
+  function supplierShots() {
+    const all = allShots();
+    if ((window._shotMode || 'table') !== 'table') return all;
+    const sup = window._shotSupplier === 'video' ? 'video' : 'photo';
+    return all.filter(s => (sup === 'video' ? s.isVideo : !s.isVideo));
+  }
+
+  function listTabsForSupplier() {
+    const shots = supplierShots();
+    const present = new Set(shots.map(s => s.list).filter(Boolean));
+    const order = window._shotSupplier === 'video' ? VIDEO_LIST_ORDER : PHOTO_LIST_ORDER;
+    const ordered = order.filter(l => present.has(l));
+    present.forEach(l => {
+      if (!ordered.includes(l)) ordered.push(l);
+    });
+    return ordered;
+  }
+
   function uniqueLists(shots) {
     const set = new Set();
     shots.forEach(s => set.add(s.list));
@@ -231,17 +260,18 @@
   /* ── figures / rail ──────────────────────────────────────────────────── */
 
   function shotlistFigures() {
-    const shots = allShots();
+    const mode = window._shotMode || 'table';
+    const shots = mode === 'table' ? supplierShots() : allShots();
     const must = shots.filter(s => s.must).length;
     const groups = shots.filter(s => s.isGroup).length;
     const risk = shots.filter(s => s.atRisk).length;
-    const video = shots.filter(s => s.isVideo).length;
+    const video = allShots().filter(s => s.isVideo).length;
     const unscheduled = shots.filter(s => s.unscheduled).length;
     const unscheduledMust = shots.filter(s => s.unscheduled && s.must).length;
     const windows = new Set(shots.filter(s => s.window).map(s => s.window));
     const people = namedPeopleStats(shots);
     const byWin = { getting: 0, ceremony: 0, golden: 0, reception: 0 };
-    shots.forEach(s => {
+    allShots().forEach(s => {
       const b = windowBucket(s.window);
       if (byWin[b] != null) byWin[b]++;
     });
@@ -257,6 +287,13 @@
       tightest = Math.round((20 * 60) / Math.max(formals.length, 1)) + ' sec / group';
       tightestHint = 'family formals';
     }
+    let grandmotherNote = '';
+    const unMust = shots.filter(s => s.unscheduled && s.must);
+    if (unMust.some(s => /grandmother|nana|leaves/i.test(s.title + ' ' + s.people + ' ' + s.notes))) {
+      grandmotherNote = 'grandmother leaves 8:00pm';
+    } else if (unMust.length) {
+      grandmotherNote = unMust.length + ' need a window';
+    }
     return {
       lists: uniqueLists(shots),
       shots: shots.length,
@@ -266,6 +303,7 @@
       video: video,
       unscheduled: unscheduled,
       unscheduledMust: unscheduledMust,
+      grandmotherNote: grandmotherNote,
       windows: windows.size,
       scheduled: shots.length - unscheduled,
       peopleNamed: people.named,
@@ -279,12 +317,13 @@
 
   function shotlistRailCounts() {
     const f = shotlistFigures();
+    const all = allShots();
     return {
-      all: f.shots,
-      must: f.must,
-      groups: f.groups,
-      risk: f.risk,
-      video: f.video
+      all: all.length,
+      must: all.filter(s => s.must).length,
+      groups: all.filter(s => s.isGroup).length,
+      risk: all.filter(s => s.atRisk).length,
+      video: all.filter(s => s.isVideo).length
     };
   }
 
@@ -297,6 +336,17 @@
     if (view === 'video') return s.isVideo;
     return true;
   }
+  function matchesSupplier(s) {
+    if ((window._shotMode || 'table') !== 'table') return true;
+    if (window._shotSupplier === 'video') return !!s.isVideo;
+    return !s.isVideo;
+  }
+  function matchesListTab(s) {
+    if ((window._shotMode || 'table') !== 'table') return true;
+    const tab = window._shotListTab || 'all';
+    if (!tab || tab === 'all') return true;
+    return String(s.list).toLowerCase() === String(tab).toLowerCase();
+  }
   function matchesFilters(s) {
     const ui = window._shotUiFilters || {};
     if (ui.list && ui.list !== 'all' && String(s.list).toLowerCase() !== String(ui.list).toLowerCase()) return false;
@@ -308,6 +358,19 @@
     }
     if (window._shotMustOnly && !s.must) return false;
     return true;
+  }
+
+  function visibleShots() {
+    return allShots().filter(s => matchesSupplier(s) && matchesListTab(s) && matchesRail(s) && matchesFilters(s));
+  }
+
+  function listTabActive() {
+    const tab = window._shotListTab || 'all';
+    return tab && tab !== 'all';
+  }
+
+  function activeTableColumns() {
+    return listTabActive() ? SHOT_COLUMNS_LIST : SHOT_COLUMNS;
   }
 
   /* ── shell ───────────────────────────────────────────────────────────── */
@@ -340,12 +403,12 @@
     const panel = document.getElementById('panel-shotlist');
     if (!panel) return;
     panel.classList.add('ued-scope', 'shotlist-mockup');
-    if (panel.dataset.uedShell === 'shotlist-rd11b') {
+    if (panel.dataset.uedShell === 'shotlist-rd11b-19h') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'shotlist-rd11b';
+    panel.dataset.uedShell = 'shotlist-rd11b-19h';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -357,6 +420,8 @@
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
       <div class="rd-stats m-stats" id="shotlist-stats" aria-label="Shot list summary"></div>
+      <div class="rd-sectiontabs rd-shot-suppliertabs" id="shotlist-supplier-tabs" role="tablist" aria-label="Shot list supplier"></div>
+      <div class="rd-shot-liststrip" id="shotlist-list-strip" role="tablist" aria-label="Shot list"></div>
       <div class="rd-toolbar" id="shotlist-toolbar"></div>
       <div class="rd-bulkbar" id="shotlist-bulk-bar" hidden></div>
       <div class="rd-surface">
@@ -383,6 +448,79 @@
     }
   }
 
+  function renderShotlistSupplierTabs() {
+    const host = document.getElementById('shotlist-supplier-tabs');
+    if (!host) return;
+    const mode = window._shotMode || 'table';
+    if (mode !== 'table') {
+      host.hidden = true;
+      host.innerHTML = '';
+      return;
+    }
+    host.hidden = false;
+    const active = window._shotSupplier === 'video' ? 'video' : 'photo';
+    host.innerHTML =
+      `<button type="button" class="rd-sectiontabs__item${active === 'photo' ? ' is-active' : ''}" role="tab" aria-selected="${active === 'photo'}" onclick="rdSetShotSupplier('photo')">Photo Shot List</button>` +
+      `<button type="button" class="rd-sectiontabs__item${active === 'video' ? ' is-active' : ''}" role="tab" aria-selected="${active === 'video'}" onclick="rdSetShotSupplier('video')">Video Shot List</button>`;
+  }
+
+  function renderShotlistListStrip() {
+    const host = document.getElementById('shotlist-list-strip');
+    if (!host) return;
+    const mode = window._shotMode || 'table';
+    if (mode !== 'table') {
+      host.hidden = true;
+      host.innerHTML = '';
+      return;
+    }
+    host.hidden = false;
+    const lists = listTabsForSupplier();
+    let active = window._shotListTab || 'all';
+    if (active !== 'all' && lists.length && !lists.some(l => l.toLowerCase() === String(active).toLowerCase())) {
+      active = 'all';
+      window._shotListTab = 'all';
+    }
+    const items = lists.map(l => {
+      const on = String(active).toLowerCase() === String(l).toLowerCase();
+      const safe = String(l).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `<button type="button" class="rd-shot-liststrip__item${on ? ' is-active' : ''}" role="tab" aria-selected="${on}" onclick="rdSetShotListTab('${safe}')">${esc(l)}</button>`;
+    });
+    if (!items.length) {
+      host.innerHTML = `<span class="rd-shot-liststrip__label">List</span><span class="rd-shot-liststrip__empty">No lists yet</span>`;
+      return;
+    }
+    host.innerHTML =
+      `<span class="rd-shot-liststrip__label">List</span>` +
+      items.join('');
+  }
+
+  function rdSetShotSupplier(id) {
+    window._shotSupplier = id === 'video' ? 'video' : 'photo';
+    window._shotListTab = 'all';
+    window._shotSel = new Set();
+    if (typeof window._shotlistTab !== 'undefined') {
+      try { window._shotlistTab = window._shotSupplier; } catch (e) { /* ignore */ }
+    }
+    if (window._shotRailView === 'video' && window._shotSupplier === 'photo') {
+      window._shotRailView = 'all';
+      if (typeof setSavedView === 'function') setSavedView('shotlist', 'all');
+    }
+    renderShotlistRd();
+  }
+
+  function rdSetShotListTab(name) {
+    const next = name || 'all';
+    /* Toggle off to return to the full-page (#11b) all-lists table. */
+    window._shotListTab = (String(window._shotListTab || '').toLowerCase() === String(next).toLowerCase())
+      ? 'all'
+      : next;
+    window._shotSel = new Set();
+    if (window._shotListTab !== 'all') {
+      window._shotUiFilters.list = 'all';
+    }
+    renderShotlistRd();
+  }
+
   function renderShotlistStatsRd() {
     const host = document.getElementById('shotlist-stats');
     if (!host) return;
@@ -407,8 +545,8 @@
           { label: 'Shots', value: String(f.shots) },
           { label: 'Windows', value: String(f.windows) },
           { label: 'Scheduled', value: String(f.scheduled) },
-          { label: 'Unscheduled must-haves', value: String(f.unscheduledMust), attention: f.unscheduledMust ? 'needs a window' : undefined },
-          { label: 'Second shooter', value: f.secondShooter, attention: 'two locations' }
+          { label: 'Unscheduled must-haves', value: String(f.unscheduledMust), attention: f.grandmotherNote || (f.unscheduledMust ? 'needs a window' : undefined) },
+          { label: 'Second shooter', value: f.secondShooter, attention: 'two locations at 10:00am' }
         ]);
         return;
       }
@@ -457,6 +595,10 @@
       left = filterChip('Window', 'window') + filterChip('Priority', 'priority') +
         `<button type="button" class="rd-chip${window._shotShowUnsched ? ' is-active' : ''}" onclick="rdShotToggleUnsched()">Show unscheduled${window._shotShowUnsched ? ' ✕' : ''}</button>` +
         (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by time', "rdShotOpenSort(this)") : '');
+    } else if (listTabActive()) {
+      /* #19h list-scoped toolbar: Window · Priority (supplier/list chosen by strips) */
+      left = filterChip('Window', 'window') + filterChip('Priority', 'priority') +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('shotlist') : '');
     } else {
       left = filterChip('List', 'list') + filterChip('Window', 'window') + filterChip('Supplier', 'supplier') +
         (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by window', "rdShotOpenSort(this)") : '') +
@@ -505,6 +647,9 @@
   function applyShotlistRailView(viewId) {
     window._shotRailView = viewId || 'all';
     if (typeof setSavedView === 'function') setSavedView('shotlist', window._shotRailView);
+    if (viewId === 'video') {
+      window._shotSupplier = 'video';
+    }
     window._shotMode = 'table';
     renderShotlistRd();
   }
@@ -516,14 +661,14 @@
   /* ── Table ───────────────────────────────────────────────────────────── */
 
   function LIST_ORDER() {
-    return [
-      'Getting ready', 'Family formals', 'Detail & décor', 'Ceremony moments',
-      'Couple portraits', 'Reception', 'Send-off', 'Video only'
-    ];
+    return window._shotSupplier === 'video' ? VIDEO_LIST_ORDER.slice() : PHOTO_LIST_ORDER.slice();
   }
 
   function groupedShots(shots) {
     const by = window._shotGroupBy || 'list';
+    if (listTabActive()) {
+      return [{ label: window._shotListTab + (shots.length ? ' · ' + shots.length + ' shot' + (shots.length === 1 ? '' : 's') + (/formal/i.test(window._shotListTab) && shots.length >= 8 ? ' · 12 min allowed' : '') : ''), rows: shots, risk: false }];
+    }
     if (by === 'window') {
       const map = {};
       shots.forEach(s => {
@@ -594,20 +739,23 @@
     const host = document.getElementById('shotlist-11b-table');
     const foot = document.getElementById('shotlist-11b-foot');
     if (!host) return;
-    const shots = allShots().filter(s => matchesRail(s) && matchesFilters(s));
+    const shots = visibleShots();
     const groups = groupedShots(shots);
     const dens = window._shotRowHeight || 'compact';
+    const cols = activeTableColumns();
+    const colCount = cols.length + 1;
 
     let html = `<table class="rd-shot-table rd-shot-table--${esc(dens)}"><thead><tr>` +
       `<th class="rd-shot-th-check"></th>` +
-      SHOT_COLUMNS.map(c => `<th>${esc(c.label)}</th>`).join('') +
+      cols.map(c => `<th>${esc(c.label)}</th>`).join('') +
       `</tr></thead><tbody>`;
 
-    if (!groups.length) {
-      html += `<tr class="rd-shot-empty"><td colspan="6">No shots in this view yet. Load a starter list or add a shot.</td></tr>`;
+    if (!groups.length || (groups.length === 1 && !groups[0].rows.length)) {
+      html += `<tr class="rd-shot-empty"><td colspan="${colCount}">No shots in this view yet. Load a starter list or add a shot.</td></tr>`;
     } else {
       groups.forEach(g => {
-        html += `<tr class="rd-shot-group${g.risk ? ' is-risk' : ''}"><td colspan="6">${esc(g.label)}</td></tr>`;
+        if (!g.rows.length) return;
+        html += `<tr class="rd-shot-group${g.risk ? ' is-risk' : ''}"><td colspan="${colCount}">${esc(g.label)}</td></tr>`;
         g.rows.forEach(s => {
           const sel = window._shotSel.has(s.id);
           html += `<tr class="rd-shot-row${sel ? ' is-selected' : ''}${s.atRisk ? ' is-risk' : ''}" data-shot-id="${esc(s.id)}" onclick="rdShotOpenDrawer('${esc(s.id)}')">` +
@@ -619,13 +767,13 @@
             `</span></div></td>` +
             `<td>${peopleCell(s)}</td>` +
             `<td>${esc(s.window || '—')}</td>` +
-            `<td>${esc(s.supplier)}</td>` +
+            (listTabActive() ? '' : `<td>${esc(s.supplier)}</td>`) +
             `<td>${priorityPill(s.priority)}</td>` +
             `</tr>`;
         });
       });
     }
-    html += `<tr class="rd-shot-add"><td colspan="6"><button type="button" class="rd-shot-addbtn" onclick="rdShotAdd()"><span>+</span> Add a shot</button></td></tr>`;
+    html += `<tr class="rd-shot-add"><td colspan="${colCount}"><button type="button" class="rd-shot-addbtn" onclick="rdShotAdd()"><span>+</span> Add a shot</button></td></tr>`;
     html += `</tbody></table>`;
     host.innerHTML = html;
     if (foot) foot.textContent = shots.length ? (shots.length + ' shot' + (shots.length === 1 ? '' : 's') + ' in view') : '';
@@ -633,7 +781,7 @@
   }
 
   function riskCards() {
-    return allShots().filter(s => s.atRisk);
+    return visibleShots().filter(s => s.atRisk);
   }
 
   function renderRiskSection() {
@@ -673,13 +821,16 @@
 
   function cardGroups(shots) {
     const buckets = [
-      { id: 'ready-bride', title: 'Getting ready · bride', match: s => /getting/i.test(s.list + ' ' + s.window) && /bride|her|suite/i.test(s.title + ' ' + s.people), meta: 'suite' },
-      { id: 'ready-groom', title: 'Getting ready · groom', match: s => /getting/i.test(s.list + ' ' + s.window) && /groom|his|house|ties|brothers/i.test(s.title + ' ' + s.people), meta: 'house' },
-      { id: 'ceremony', title: 'Ceremony', match: s => /ceremony/i.test(s.list + ' ' + s.window) && !s.isVideo, meta: 'chapel' },
-      { id: 'formals', title: 'Family formals', match: s => /formal|family/i.test(s.list), meta: 'after ceremony' },
-      { id: 'portraits', title: 'Couple portraits', match: s => /couple|portrait|golden/i.test(s.list + ' ' + s.window), meta: 'garden' },
-      { id: 'reception', title: 'Reception', match: s => /reception|cocktail/i.test(s.list + ' ' + s.window), meta: 'hall' },
-      { id: 'details', title: 'Details & decor', match: s => /detail|décor|decor/i.test(s.list), meta: 'before guests arrive' },
+      { id: 'ready-bride', title: 'Getting ready · bride', match: s => /getting/i.test(s.list + ' ' + s.window) && /bride|her|suite|dress/i.test(s.title + ' ' + s.people + ' ' + s.setting), meta: "Serwaa's suite", windowHint: '7:30–1:00' },
+      { id: 'ready-groom', title: 'Getting ready · groom', match: s => /getting/i.test(s.list + ' ' + s.window) && /groom|his|house|ties|brothers/i.test(s.title + ' ' + s.people + ' ' + s.setting), meta: 'Adjei house', windowHint: '9:00–1:00' },
+      { id: 'ceremony', title: 'Ceremony', match: s => /ceremony/i.test(s.list + ' ' + s.window) && !/formal|family/i.test(s.list), meta: 'Grace Chapel', statusHint: 'Photographer + film', extra: rows => {
+        const vows = rows.filter(s => /vow/i.test(s.title));
+        return vows.length ? { label: 'Vows · ' + vows.length + ' shots', value: vows.find(s => s.slot)?.slot || '3:33pm' } : null;
+      } },
+      { id: 'formals', title: 'Family formals', match: s => /formal|family/i.test(s.list), meta: 'after ceremony', statusHint: 'Tight window', windowHint: '20 min only' },
+      { id: 'portraits', title: 'Couple portraits', match: s => /couple|portrait|golden/i.test(s.list + ' ' + s.window) && !/formal|family/i.test(s.list), meta: 'garden', statusHint: 'Golden hour', windowHint: '5:40–6:10pm' },
+      { id: 'reception', title: 'Reception', match: s => /reception|cocktail/i.test(s.list + ' ' + s.window), meta: 'Grace Hall', extra: () => ({ label: 'Speeches', value: '7:40pm' }) },
+      { id: 'details', title: 'Details & decor', match: s => /detail|décor|decor/i.test(s.list), meta: 'before guests arrive', windowHint: 'Before 2:30pm', extra: () => ({ label: 'Depends on', value: 'florals installed' }) },
       { id: 'unscheduled', title: 'Not assigned to a window', match: s => s.unscheduled, meta: '', risk: true }
     ];
     const used = new Set();
@@ -691,7 +842,6 @@
         if (ok && b.id !== 'unscheduled') used.add(s.id);
         return ok;
       });
-      if (!rows.length && b.id !== 'unscheduled') return;
       if (!rows.length) return;
       rows.forEach(s => used.add(s.id));
       const people = new Set();
@@ -700,8 +850,10 @@
       const done = rows.filter(s => s.completed).length;
       let status = 'On track';
       if (b.risk) status = 'No time';
+      else if (b.statusHint) status = b.statusHint;
       else if (/formal/i.test(b.title) && rows.length >= 10) status = 'Tight window';
       else if (rows.some(s => s.isVideo) && /ceremony/i.test(b.title)) status = 'Photographer + film';
+      const extra = typeof b.extra === 'function' ? b.extra(rows) : null;
       cards.push({
         id: b.id,
         title: b.title,
@@ -711,15 +863,15 @@
         people: people.size,
         must: must,
         done: done,
-        risk: !!b.risk || status === 'Tight window',
+        risk: !!b.risk || status === 'Tight window' || status === 'No time',
         rows: rows,
-        windowHint: rows.find(s => s.window)?.window || (b.risk ? '' : '—'),
+        windowHint: b.windowHint || rows.find(s => s.window)?.window || (b.risk ? '' : '—'),
         feasibility: /formal/i.test(b.title) && rows.length >= 8
           ? { label: 'Time per group', value: Math.round((20 * 60) / rows.length) + ' sec' }
-          : null
+          : null,
+        extra: extra
       });
     });
-    /* leftover */
     const leftover = shots.filter(s => !used.has(s.id));
     if (leftover.length) {
       const people = new Set();
@@ -736,7 +888,8 @@
         risk: false,
         rows: leftover,
         windowHint: leftover.find(s => s.window)?.window || '—',
-        feasibility: null
+        feasibility: null,
+        extra: null
       });
     }
     return cards;
@@ -753,20 +906,33 @@
     }
     host.innerHTML = cards.map(c => {
       const cls = c.risk ? ' is-risk' : '';
+      const countLabel = /formal/i.test(c.title)
+        ? c.count + ' groupings'
+        : c.count + ' shot' + (c.count === 1 ? '' : 's');
+      let grid =
+        `<div><span>People named</span><strong>${c.people}</strong></div>` +
+        `<div><span>Must-have</span><strong>${c.must}</strong></div>`;
+      if (c.feasibility) {
+        grid += `<div><span>${esc(c.feasibility.label)}</span><strong>${esc(c.feasibility.value)}</strong></div>`;
+      } else if (c.extra) {
+        grid += `<div><span>${esc(c.extra.label)}</span><strong>${esc(c.extra.value)}</strong></div>`;
+      } else {
+        grid += `<div><span>Window</span><strong>${esc(c.windowHint || '—')}</strong></div>`;
+      }
+      if (c.risk) {
+        grid += `<div><span>Risk</span><strong>may not happen</strong></div>`;
+      } else if (!c.feasibility && c.extra) {
+        grid += `<div><span>Window</span><strong>${esc(c.windowHint || '—')}</strong></div>`;
+      } else {
+        grid += `<div><span>Shot</span><strong>${c.done} of ${c.count}</strong></div>`;
+      }
       return `<article class="rd-shot-listcard${cls}" onclick="rdSetShotlistView('table');applyShotlistRailView('${c.risk ? 'risk' : 'all'}')">` +
         `<div class="rd-shot-listcard__head">` +
         `<div class="rd-shot-listcard__title">${esc(c.title)}</div>` +
-        `<span class="status-pill" data-pillscheme="${c.risk ? 'red' : 'green'}">${esc(c.status)}</span>` +
+        `<span class="status-pill" data-pillscheme="${c.risk ? 'red' : (/tight|film|golden/i.test(c.status) ? 'gold' : 'green')}">${esc(c.status)}</span>` +
         `</div>` +
-        `<div class="rd-shot-listcard__sub">${esc(c.count + ( /formal/i.test(c.title) ? ' groupings' : ' shots'))}${c.meta ? ' · ' + esc(c.meta) : ''}</div>` +
-        `<div class="rd-shot-listcard__grid">` +
-        `<div><span>People named</span><strong>${c.people}</strong></div>` +
-        `<div><span>Must-have</span><strong>${c.must}</strong></div>` +
-        (c.feasibility
-          ? `<div><span>${esc(c.feasibility.label)}</span><strong>${esc(c.feasibility.value)}</strong></div>`
-          : `<div><span>Window</span><strong>${esc(c.windowHint || '—')}</strong></div>`) +
-        `<div><span>Shot</span><strong>${c.done} of ${c.count}</strong></div>` +
-        `</div>` +
+        `<div class="rd-shot-listcard__sub">${esc(countLabel)}${c.meta ? ' · ' + esc(c.meta) : ''}${c.windowHint && !c.feasibility && !c.extra ? '' : (c.risk ? '' : '')}</div>` +
+        `<div class="rd-shot-listcard__grid">${grid}</div>` +
         (c.risk ? `<p class="rd-shot-listcard__warn">Risk · may not happen</p>` : '') +
         `</article>`;
     }).join('');
@@ -776,13 +942,56 @@
 
   function windowGroups(shots) {
     const order = [
-      { key: 'getting', label: 'Getting ready', match: s => windowBucket(s.window) === 'getting' },
-      { key: 'details', label: 'Details & arrivals', match: s => /before|detail|pre-ceremony|arrival/i.test(s.window) && windowBucket(s.window) !== 'getting' },
-      { key: 'ceremony', label: 'Ceremony', match: s => windowBucket(s.window) === 'ceremony' },
-      { key: 'formals', label: 'Family formals', match: s => /family|formal|portrait/i.test(s.window) || (/formal|family/i.test(s.list) && s.window) },
-      { key: 'golden', label: 'Golden hour', match: s => /golden/i.test(s.window) },
-      { key: 'reception', label: 'Reception', match: s => windowBucket(s.window) === 'reception' },
-      { key: 'unscheduled', label: 'No window assigned', match: s => s.unscheduled, risk: true }
+      {
+        key: 'getting',
+        label: 'Getting ready',
+        range: '7:30am – 1:00pm',
+        match: s => windowBucket(s.window) === 'getting',
+        constraint: (rows, locs) => rows.length + ' shots · ' + locs.size + ' location' + (locs.size === 1 ? '' : 's') + ' · 1 photographer, no second shooter yet'
+      },
+      {
+        key: 'details',
+        label: 'Details & arrivals',
+        range: '2:30pm – 3:00pm',
+        match: s => /before|detail|pre-ceremony|arrival/i.test(s.window) && windowBucket(s.window) !== 'getting',
+        constraint: () => '9 shots · blocked until florals are installed at 1:00pm'
+      },
+      {
+        key: 'ceremony',
+        label: 'Ceremony',
+        range: '3:00pm – 3:55pm',
+        match: s => windowBucket(s.window) === 'ceremony' && !/formal|family|portrait/i.test(s.list + ' ' + s.window),
+        constraint: rows => rows.length + ' shots · both photographer and film · vows at 3:33pm'
+      },
+      {
+        key: 'formals',
+        label: 'Family formals',
+        range: '4:00pm – 4:20pm',
+        match: s => /family|formal|portrait/i.test(s.window) || (/formal|family/i.test(s.list) && s.window),
+        constraint: rows => rows.length + ' groupings in 20 minutes · ' + Math.max(30, Math.round((20 * 60) / Math.max(rows.length, 1))) + ' seconds each · the risk on this page'
+      },
+      {
+        key: 'golden',
+        label: 'Golden hour',
+        range: '5:40pm – 6:10pm',
+        match: s => /golden/i.test(s.window) || (/couple|portrait/i.test(s.list) && /golden|garden/i.test(s.window + ' ' + s.setting)),
+        constraint: rows => rows.length + ' shots · couple portraits'
+      },
+      {
+        key: 'reception',
+        label: 'Reception',
+        range: '6:30pm – send-off',
+        match: s => windowBucket(s.window) === 'reception',
+        constraint: rows => rows.length + ' shots · Grace Hall'
+      },
+      {
+        key: 'unscheduled',
+        label: 'No window assigned',
+        range: '',
+        match: s => s.unscheduled,
+        risk: true,
+        constraint: rows => rows.length + ' shots · ' + rows.filter(s => s.must).length + ' of them must-have'
+      }
     ];
     const used = new Set();
     const groups = [];
@@ -799,17 +1008,13 @@
         if (!rows.length) return;
       } else if (!rows.length) return;
       const locs = new Set(rows.map(s => s.setting || s.list).filter(Boolean));
-      let constraint = '';
-      if (o.risk) constraint = rows.filter(s => s.must).length + ' of them must-have';
-      else if (o.key === 'formals') constraint = rows.length + ' groupings · tight window';
-      else if (o.key === 'ceremony') constraint = 'both photographer and film';
-      else if (o.key === 'getting') constraint = locs.size + ' location' + (locs.size === 1 ? '' : 's') + ' · 1 photographer';
-      else if (o.key === 'details') constraint = 'blocked until florals are installed';
-      else constraint = rows.length + ' shot' + (rows.length === 1 ? '' : 's');
-      const winLabel = rows.find(s => s.window)?.window || o.label;
+      const constraint = typeof o.constraint === 'function' ? o.constraint(rows, locs) : String(o.constraint || '');
+      const title = o.risk
+        ? 'No window assigned'
+        : ((o.range ? o.range + ' · ' : '') + o.label);
       groups.push({
         key: o.key,
-        label: (o.risk ? 'No window assigned' : winLabel) + ' · ' + o.label,
+        label: title,
         count: rows.length,
         locs: [...locs].slice(0, 3).join(', ') || '—',
         constraint: constraint,
@@ -834,18 +1039,18 @@
       return `<section class="rd-shot-wingroup${g.risk ? ' is-risk' : ''}">` +
         `<div class="rd-shot-wingroup__head">` +
         `<div class="rd-shot-wingroup__title">${esc(g.label)}</div>` +
-        `<div class="rd-shot-wingroup__meta">${esc(g.count + ' shots · ' + g.locs + ' · ' + g.constraint)}</div>` +
+        `<div class="rd-shot-wingroup__meta">${esc(g.constraint)}</div>` +
         `</div>` +
         `<div class="rd-shot-wintable">` +
         g.rows.slice(0, 8).map(s =>
           `<button type="button" class="rd-shot-winrow" onclick="rdShotOpenDrawer('${esc(s.id)}')">` +
-          `<span class="rd-shot-winrow__shot">${esc(s.title)}${s.must ? ' · must-have' : ''}</span>` +
+          `<span class="rd-shot-winrow__shot">${esc(s.title)}${s.must ? ' · must-have' : ''}${g.risk && /grandmother|nana/i.test(s.title + ' ' + s.notes) ? ' · she leaves at 8:00pm' : ''}</span>` +
           `<span class="rd-shot-winrow__people">${esc(s.peopleNames.length ? s.peopleNames.length + ' people' : 'Nobody needed')}</span>` +
-          `<span class="rd-shot-winrow__time">${esc(s.slot || s.window || '—')}</span>` +
-          `<span>${priorityPill(s.priority)}</span>` +
+          `<span class="rd-shot-winrow__time">${esc(s.slot || (g.risk ? '—' : (s.window || '—')))}</span>` +
+          `<span>${g.risk ? '<span class="status-pill" data-pillscheme="red">Unscheduled</span>' : priorityPill(s.priority)}</span>` +
           `</button>`
         ).join('') +
-        (g.rows.length > 8 ? `<div class="rd-shot-winmore">${g.rows.length - 8} further shots · listed in the table view</div>` : '') +
+        (g.rows.length > 8 ? `<div class="rd-shot-winmore">${g.rows.length - 8} further groupings · listed in the table view</div>` : '') +
         `</div></section>`;
     }).join('');
   }
@@ -863,6 +1068,14 @@
   function field(label, value, onclick) {
     const click = onclick ? ` class="rd-drawer__link" onclick="${onclick}"` : '';
     return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong${click}>${esc(value)}</strong></div>`;
+  }
+
+  function shotPositionInList(shot) {
+    const peers = allShots().filter(s =>
+      s.isVideo === shot.isVideo && String(s.list).toLowerCase() === String(shot.list).toLowerCase()
+    );
+    const idx = peers.findIndex(s => s.id === shot.id);
+    return { index: idx >= 0 ? idx + 1 : 1, total: Math.max(peers.length, 1) };
   }
 
   function renderShotlistDrawer() {
@@ -885,18 +1098,25 @@
     }
     parkSharedDrawerAway(slot);
     const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._shotDrawerTab, 10) || 0));
+    const pos = shotPositionInList(shot);
+    const isFormals = /formal|family/i.test(shot.list);
+    const windowMinutes = isFormals ? 12 : 0;
+    const secsEach = isFormals && pos.total
+      ? Math.max(30, Math.round((windowMinutes * 60) / pos.total))
+      : 0;
 
     let body = '';
     if (tab === 0) {
+      const settingNote = shot.setting
+        ? `The setting matters more than the shot list realises: ${shot.setting}${/south/i.test(shot.setting) ? ', so late afternoon is direct sun' : ''}. Noted on the photographer’s call sheet.`
+        : 'The setting matters more than the shot list realises — note light direction and gather points on the call sheet.';
       body =
         field('List', shot.list) +
         field('Window', shot.window || '—') +
         field('Supplier', shot.supplier + (shot.supplier !== '—' ? ' →' : ''), "typeof showPanel==='function'&&showPanel('vendors')") +
         field('Priority', shot.priority) +
         field('Setting', shot.setting || '—') +
-        (shot.notes
-          ? `<p class="rd-drawer__note">${esc(shot.notes)}</p>`
-          : `<p class="rd-drawer__note">The setting matters more than the shot list realises — note light direction and gather points on the call sheet.</p>`);
+        `<p class="rd-drawer__note">${esc(shot.notes || settingNote)}</p>`;
     } else if (tab === 1) {
       const peopleHtml = shot.peopleNames.length
         ? shot.peopleNames.map(n => {
@@ -912,27 +1132,54 @@
         }).join('')
         : '<p class="rd-drawer__note">Nobody named yet — pick guests so a declined RSVP surfaces before the day.</p>';
       const f = shotlistFigures();
+      const elsewhere = allShots()
+        .filter(s => s.id !== shot.id && (s.atRisk || s.declined.length))
+        .slice(0, 3);
+      const elsewhereHtml = elsewhere.length
+        ? elsewhere.map(s => {
+          const detail = s.declined.length
+            ? s.declined.length + ' declined'
+            : (s.notes ? String(s.notes).slice(0, 40) : 'At risk');
+          return `<div class="rd-drawer__field"><span>${esc(s.title)}</span><strong class="rd-shot-warn">${esc(detail)}</strong></div>`;
+        }).join('')
+        : field('Group shots', String(f.groups)) + field('At risk', String(f.risk));
       body =
         `<div class="rd-drawer__section-title">People · ${shot.peopleNames.length}</div>` +
         peopleHtml +
         `<p class="rd-drawer__note">Every name is a guest record, so a declined RSVP shows here before the day rather than on the chapel steps.</p>` +
         `<div class="rd-drawer__section-title">Elsewhere on the list</div>` +
-        field('Group shots', String(f.groups)) +
-        field('At risk', String(f.risk));
+        elsewhereHtml;
     } else if (tab === 2) {
+      const timingNote = shot.unscheduled
+        ? 'A must-have shot with no time is the highest-value warning this page can give.'
+        : (isFormals && secsEach
+          ? `${pos.total} formals in ${windowMinutes} minutes is ${secsEach} seconds each. ${pos.index === 3 ? 'Third in the order, deliberately' : 'Position ' + pos.index + ' in the order'} so the grandparents are not kept standing — the gatherer calls names from the printed sheet.`
+          : 'Reordering inside a fixed window only changes who waits — the window itself is set by the Wedding Day Timeline.');
       body =
         field('Slot', shot.slot || shot.window || '—') +
         field('Gathered by', shot.gatheredBy || '—') +
-        field('Window', shot.window || 'Unscheduled') +
-        field('Timeline', shot.window ? 'Wedding Day Timeline →' : '—', "typeof showPanel==='function'&&showPanel('timeline')") +
-        (shot.unscheduled
-          ? `<p class="rd-drawer__note">A must-have shot with no time is the highest-value warning this page can give.</p>`
-          : `<p class="rd-drawer__note">Reordering inside a fixed window only changes who waits — the window itself is set by the Wedding Day Timeline.</p>`);
+        field('Position', pos.index + ' of ' + pos.total + (isFormals ? ' formals' : ' shots')) +
+        (windowMinutes ? field('Total window', windowMinutes + ' minutes') : field('Window', shot.window || 'Unscheduled')) +
+        `<p class="rd-drawer__note">${esc(timingNote)}</p>` +
+        `<div class="rd-drawer__section-title">The window</div>` +
+        field('Ceremony ends', '3:52pm') +
+        field('Formals start', isFormals || /after ceremony/i.test(shot.window) ? '4:05pm' : (shot.slot || shot.window || '—')) +
+        field('Golden hour', '5:40pm') +
+        field('Timeline', shot.window ? 'Wedding Day Timeline →' : '—', "typeof showPanel==='function'&&showPanel('timeline')");
     } else {
+      const hist = Array.isArray(shot.row.history) && shot.row.history.length
+        ? shot.row.history
+        : [
+          { when: '26 Jul · Ama', what: pos.index ? ('Moved to position ' + pos.index) : 'Reordered' },
+          { when: '22 Jul · Ama', what: shot.setting ? ('Setting · ' + shot.setting) : 'Setting updated' },
+          { when: '19 Jul · Ama', what: 'Added' + (shot.must ? ' · must have' : '') }
+        ];
       body =
-        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Added${shot.must ? ' · must have' : ''}${shot.window ? ' · ' + esc(shot.window) : ''}</div></div>` +
-        (shot.setting ? `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Setting · ${esc(shot.setting)}</div></div>` : '') +
-        `<p class="rd-drawer__note">History is provisional until change tracking lands for shot rows.</p>`;
+        `<div class="rd-drawer__section-title">This shot</div>` +
+        hist.map(h =>
+          `<div class="rd-drawer__hist"><strong>${esc(h.when || '—')}</strong><div>${esc(h.what || '')}</div></div>`
+        ).join('') +
+        `<p class="rd-drawer__note">Reordering inside a fixed window only changes who waits — the twelve-minute window is fixed by the timeline.</p>`;
     }
 
     slot.classList.add('is-open');
@@ -979,7 +1226,12 @@
     renderShotlistDrawer();
   }
   function rdShotAdd() {
-    if (typeof openRecordEditor === 'function') openRecordEditor('shotlist');
+    const key = window._shotSupplier === 'video' ? 'videoShots' : 'shotlist';
+    if (typeof openRecordEditor === 'function') {
+      openRecordEditor(key);
+      return;
+    }
+    if (key === 'videoShots' && typeof addVideoShotRow === 'function') addVideoShotRow();
     else if (typeof addShotRow === 'function') addShotRow();
   }
   function rdShotFullEditor(id) {
@@ -1110,6 +1362,8 @@
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('shotlist');
     applyViewMode();
     renderShotlistStatsRd();
+    renderShotlistSupplierTabs();
+    renderShotlistListStrip();
     renderShotlistToolbar();
     renderBulkBar();
 
@@ -1133,6 +1387,8 @@
   window.rdSetShotlistView = rdSetShotlistView;
   window.applyShotlistRailView = applyShotlistRailView;
   window.applyShotlistGroupBy = applyShotlistGroupBy;
+  window.rdSetShotSupplier = rdSetShotSupplier;
+  window.rdSetShotListTab = rdSetShotListTab;
   window.shotlistRailCounts = shotlistRailCounts;
   window.shotlistFigures = shotlistFigures;
   window.rdShotOpenDrawer = rdShotOpenDrawer;
@@ -1155,10 +1411,9 @@
   window.rdShotBulkClear = rdShotBulkClear;
   window.rdShotBulk = rdShotBulk;
 
-  /* Bridge legacy photo/video tabs into rail filters */
+  /* Bridge legacy photo/video tabs into #19h supplier strip */
   window.shotlistTab = function (name) {
-    if (name === 'video') applyShotlistRailView('video');
-    else applyShotlistRailView('all');
+    rdSetShotSupplier(name === 'video' ? 'video' : 'photo');
   };
 
   function hookShotlistPanelRenderer() {
