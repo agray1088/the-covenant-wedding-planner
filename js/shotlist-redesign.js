@@ -1108,7 +1108,7 @@
     let body = '';
     if (tab === 0) {
       const settingNote = shot.setting
-        ? `The setting matters more than the shot list realises: ${shot.setting}${/south/i.test(shot.setting) ? ', so late afternoon is direct sun' : ''}. Noted on the photographer’s call sheet.`
+        ? `The setting matters more than the shot list realises: ${shot.setting}${/south/i.test(shot.setting) ? ', so late afternoon is direct sun' : ''}. Noted on the photographer's call sheet.`
         : 'The setting matters more than the shot list realises — note light direction and gather points on the call sheet.';
       body =
         field('List', shot.list) +
