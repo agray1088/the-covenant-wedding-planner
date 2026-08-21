@@ -9813,11 +9813,17 @@ function logisticsRailGroupBy(){
 
 function logisticsPageheadActionsHtml(){
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
-  return `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>
-        <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
+  const view = rdGetLogView();
+  const primaryLabel = view === 'rooms' ? 'Assign a room' : view === 'transport' ? 'Assign a driver' : 'Add movement';
+  const printLabel = view === 'rooms' ? 'Print rooming list' : view === 'transport' ? 'Print driver sheets' : 'Print section';
+  const briefBtn = view === 'schedule'
+    ? `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>`
+    : '';
+  return `${briefBtn}
+        <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>${escapeHtml(printLabel)}</button>
         <button type="button" class="rd-btn" data-rd-full-editor onclick="rdLogFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
         <button type="button" class="rd-btn" onclick="exportSectionCSV('Weekend Logistics',(data.weekendTimeline||[]).concat(data.transportation||[]))">Export</button>
-        <button type="button" class="rd-btn rd-btn--primary" onclick="addLogisticsRow()">+ Add movement</button>`;
+        <button type="button" class="rd-btn rd-btn--primary" onclick="addLogisticsRow()">${escapeHtml(primaryLabel)}</button>`;
 }
 function logisticsSurfaceRowHtml(){
   return `<div class="rd-surface__row" id="logistics-surface-row">
@@ -9828,14 +9834,22 @@ function logisticsSurfaceRowHtml(){
         <div class="rd-log-roomblock" id="logistics-room-block"></div>
       </div>
       <div class="rd-view" id="log-view-rooms" data-log-view="rooms" hidden>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-hotelBlocks"></div>
-        <span class="rd-table-foot ued-soft" id="cwp-hotelBlocks-foot"></span>
-        <div class="rd-log-section-label">Travel &amp; accommodations</div>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-travelAccommodations"></div>
+        <div class="rd-log-rooms" id="logistics-rooms-grouped"></div>
+        <details class="rd-log-editor-toggle">
+          <summary>Edit as table</summary>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-hotelBlocks"></div>
+          <span class="rd-table-foot ued-soft" id="cwp-hotelBlocks-foot"></span>
+          <div class="rd-log-section-label">Travel &amp; accommodations</div>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-travelAccommodations"></div>
+        </details>
       </div>
       <div class="rd-view" id="log-view-transport" data-log-view="transport" hidden>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-transportation"></div>
-        <span class="rd-table-foot ued-soft" id="cwp-transportation-foot"></span>
+        <div class="rd-log-gantt" id="logistics-transport-gantt"></div>
+        <details class="rd-log-editor-toggle">
+          <summary>Edit as table</summary>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-transportation"></div>
+          <span class="rd-table-foot ued-soft" id="cwp-transportation-foot"></span>
+        </details>
       </div>
     </div>
     <div id="logistics-drawer-slot"></div>
@@ -9845,13 +9859,13 @@ function uedLogisticsShell(){
   const panel = document.getElementById('panel-logistics');
   if (!panel) return;
   panel.classList.add('ued-scope', 'logistics-mockup');
-  if (panel.dataset.uedShell === 'logistics-rd11a') {
+  if (panel.dataset.uedShell === 'logistics-rd11d-s20') {
     const actions = panel.querySelector('.rd-pagehead__actions');
     if (actions) actions.innerHTML = logisticsPageheadActionsHtml();
     if (typeof window.covenantShell !== 'undefined' && window.covenantShell.drawer) window.covenantShell.drawer();
     return;
   }
-  panel.dataset.uedShell = 'logistics-rd11a';
+  panel.dataset.uedShell = 'logistics-rd11d-s20';
   panel.innerHTML = `<div class="rd-page">
     <div class="rd-pagehead">
       <div>
@@ -9862,6 +9876,8 @@ function uedLogisticsShell(){
       </div>
       <div class="rd-pagehead__actions">${logisticsPageheadActionsHtml()}</div>
     </div>
+    <div class="rd-sectiontabs rd-log-daytabs" id="logistics-day-tabs" role="tablist" aria-label="Weekend day"></div>
+    <p class="rd-log-mirror-note" id="logistics-mirror-note" hidden>Sunday movements also appear on the Wedding Day Timeline. Editing one edits both.</p>
     <div class="rd-stats m-stats" id="logistics-stats"></div>
     <div class="rd-toolbar" id="logistics-toolbar"></div>
     <div class="rd-bulkbar" id="logistics-bulk-bar" hidden></div>
@@ -9926,9 +9942,35 @@ function logisticsStatsData(){
 function renderLogisticsStats(){
   const host = document.getElementById('logistics-stats');
   if (!host) return;
-  const s = logisticsStatsData();
   const cell = (label, val, tone) =>
     `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
+  const view = rdGetLogView();
+  if (view === 'transport' && typeof logisticsTransportStatsData === 'function') {
+    const s = logisticsTransportStatsData();
+    const spend = typeof fmt === 'function' ? fmt(s.spend) : ('$' + (s.spend || 0));
+    host.innerHTML = [
+      cell('Vehicles', s.vehicles),
+      cell('Movements', s.movements),
+      cell('Covered', s.covered),
+      cell('No driver', s.noDriver, s.noDriver ? 'danger' : ''),
+      cell('Transport spend', spend)
+    ].join('');
+    return;
+  }
+  if (view === 'rooms' && typeof logisticsRoomsStatsData === 'function') {
+    const s = logisticsRoomsStatsData();
+    const couplePays = typeof fmt === 'function' ? fmt(s.couplePays) : ('$' + (s.couplePays || 0));
+    const releaseLabel = s.releaseLabel && s.releaseLabel !== '—' ? ('Releasing ' + s.releaseLabel) : 'Releasing date';
+    host.innerHTML = [
+      cell('Rooms held', s.roomsHeld),
+      cell('Claimed', s.claimed),
+      cell(releaseLabel, s.releaseAtRisk, s.releaseAtRisk ? 'warn' : ''),
+      cell('Couple pays', couplePays),
+      cell('Nowhere booked', s.nowhereGuests + (s.nowhereGuests === 1 ? ' guest' : ' guests'), s.nowhereGuests ? 'danger' : '')
+    ].join('');
+    return;
+  }
+  const s = logisticsStatsData();
   host.innerHTML = [
     cell('Movements', s.movements),
     cell('Days covered', s.daysCovered),
@@ -10009,6 +10051,24 @@ function rdRestoreCwpColumns(key){
 }
 function rdLogColScope(){ return 'logistics:' + logisticsActiveTableKey(); }
 function rdApplyLogColumns(){ return rdApplyCwpColumnChooser(logisticsActiveTableKey(), rdLogColScope()); }
+/** Master 19k: when a day tab is active the Day column is redundant. */
+function rdApplyLogDayColumnVisibility(){
+  if (rdGetLogView() !== 'schedule') return;
+  const day = logisticsRailView();
+  if (!['friday', 'saturday', 'sunday'].includes(day)) return;
+  const d = (typeof CWP !== 'undefined' && CWP.TABLES) ? CWP.TABLES.weekendTimeline : null;
+  if (!d || !d._rdColBase || typeof rdPickRowCells !== 'function') return;
+  const keep = new Set();
+  d._rdColBase.forEach((c, i) => {
+    if (c.key === 'day') return;
+    if (d.columns && d.columns.some(x => x.key === c.key)) keep.add(i);
+    else if (!d.columns) keep.add(i);
+  });
+  if (!keep.size) return;
+  d.columns = d._rdColBase.filter((c, i) => keep.has(i));
+  const base = d._rdRowBase || d.rowRender;
+  d.rowRender = (r) => rdPickRowCells(base(r), keep);
+}
 function rdRegisterLogColumns(){
   return rdRegisterCwpColumns(logisticsActiveTableKey(), rdLogColScope(), () => renderLogisticsPage());
 }
@@ -10101,8 +10161,10 @@ function renderLogisticsToolbar(){
   if (!host) return;
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';
   const view = rdGetLogView();
+  const dayActive = ['friday','saturday','sunday'].includes(logisticsRailView());
   host.innerHTML =
     `<div class="rd-toolbar__left">
+      ${view === 'schedule' ? `<button type="button" class="rd-chip${!dayActive ? ' is-active' : ''}" onclick="setLogisticsDayFilter('all')" title="Periods that do not overlap">Whole weekend</button>` : ''}
       ${logFilterChip('Day', 'day')}
       ${logFilterChip('Type', 'type')}
       ${logFilterChip('Owner', 'owner')}
@@ -10127,6 +10189,34 @@ function setLogisticsDayFilter(v){
   if (typeof renderContextSidebar === 'function') renderContextSidebar('logistics');
 }
 window.setLogisticsDayFilter = setLogisticsDayFilter;
+
+/* §19k — Friday / Saturday / Sunday · mirrored section tabs */
+function logisticsDayTabShortLabel(iso, fallback){
+  if (iso && typeof humanDate === 'function') {
+    return humanDate(iso, { month: 'short', day: 'numeric' });
+  }
+  return fallback || '';
+}
+function renderLogisticsDayTabs(){
+  const host = document.getElementById('logistics-day-tabs');
+  const note = document.getElementById('logistics-mirror-note');
+  if (!host) return;
+  const bands = logisticsDayBands();
+  const active = logisticsRailView() || 'all';
+  const friLab = 'Friday' + (bands.friday ? ' ' + logisticsDayTabShortLabel(bands.friday) : '');
+  const satLab = 'Saturday' + (bands.saturday ? ' ' + logisticsDayTabShortLabel(bands.saturday) : '');
+  const sunLab = 'Sunday' + (bands.sunday ? ' ' + logisticsDayTabShortLabel(bands.sunday) : '');
+  const tab = (id, label, mirrored) => {
+    const on = active === id;
+    return `<button type="button" class="rd-sectiontabs__item${on ? ' is-active' : ''}" role="tab" aria-selected="${on ? 'true' : 'false'}" onclick="setLogisticsDayFilter('${id}')">${escapeHtml(label)}${mirrored ? '<span class="rd-sectiontabs__mirrored">· mirrored</span>' : ''}</button>`;
+  };
+  host.innerHTML = tab('friday', friLab, false) + tab('saturday', satLab, false) + tab('sunday', sunLab, true);
+  host.hidden = rdGetLogView() !== 'schedule';
+  if (note) {
+    const showNote = rdGetLogView() === 'schedule' && (active === 'sunday' || active === 'all');
+    note.hidden = !showNote;
+  }
+}
 
 function logisticsMovementMatchesFilters(r){
   const day = logisticsRailView() || _logDayFilter || 'all';
@@ -10364,6 +10454,10 @@ function logisticsGroupHeaderLabel(meta, groupRows){
   if (kind === 'block') {
     return title + ' · ' + countPart + logisticsRoomsHeldRollup(groupRows) + logisticsUnownedRollup(groupRows, kind);
   }
+  /* Sunday movements are mirrored on the Wedding Day Timeline (Master 11d / 19k). */
+  if (kind === 'movement' && meta && meta.key === 'day:sunday') {
+    return title + ' · ' + countPart + ' · mirrored on the Wedding Day Timeline' + logisticsUnownedRollup(groupRows, kind);
+  }
   return title + ' · ' + countPart + logisticsUnownedRollup(groupRows, kind);
 }
 
@@ -10503,12 +10597,14 @@ function renderLogisticsPage(options={}){
   const active = document.body.getAttribute('data-active-panel') === 'logistics';
   if (active) {
     uedLogisticsShell();
+    renderLogisticsDayTabs();
     renderLogisticsStats();
     renderLogisticsToolbar();
     renderLogisticsBulkBar();
     rdApplyLogViewMode();
     const view = rdGetLogView();
     rdApplyLogColumns();
+    rdApplyLogDayColumnVisibility();
     if (typeof cwpRenderTable === 'function') {
       if (view === 'schedule' && document.getElementById('cwp-weekendTimeline')) {
         cwpRenderTable('weekendTimeline');
@@ -10528,10 +10624,12 @@ function renderLogisticsPage(options={}){
           if (typeof bindRoPreviewInline === 'function') bindRoPreviewInline('travelAccommodations', 'cwp-travelAccommodations', 'record-drawer-body');
           afterLogisticsPreviewRendered('travelAccommodations');
         }
+        if (typeof renderLogisticsRoomsGrouped === 'function') renderLogisticsRoomsGrouped();
       } else if (view === 'transport' && document.getElementById('cwp-transportation')) {
         cwpRenderTable('transportation');
         if (typeof bindRoPreviewInline === 'function') bindRoPreviewInline('transportation', 'cwp-transportation', 'record-drawer-body');
         afterLogisticsPreviewRendered('transportation');
+        if (typeof renderLogisticsTransportGantt === 'function') renderLogisticsTransportGantt();
       }
     }
     /* These table definitions are shared with the Database Hub, so the trimmed
@@ -16056,13 +16154,100 @@ function renderAppointmentRecordEditor(){
   ${calSection}`;
 }
 /* ── Weekend Logistics record editors (11d drawer tabs · Movement / People / Transport / History) ── */
+function logisticsMovementPeopleGroups(d){
+  const iso = String((d && d.date) || '').slice(0, 10);
+  const travel = safeArray(data.travelAccommodations).filter(r => {
+    if (!iso) return !!r.transportNeeded;
+    return String(r.arrival || '').slice(0, 10) === iso;
+  });
+  return travel.map(r => {
+    let head = 1;
+    if (/&| and /i.test(String(r.guest || ''))) head += 1;
+    const kids = parseInt(r.children, 10);
+    if (kids > 0) head += kids;
+    const when = r.arrivalTime
+      ? ((typeof humanTime === 'function' ? humanTime(r.arrivalTime) : r.arrivalTime) + ' arrival')
+      : (r.notes || 'Travelling');
+    return { name: r.guest || 'Guest', count: head, when, transportNeeded: !!r.transportNeeded };
+  });
+}
+function logisticsMovementTransportSummary(d){
+  const iso = String((d && d.date) || '').slice(0, 10);
+  const owner = String((d && d.host) || '').trim().toLowerCase();
+  const routes = safeArray(data.transportation).filter(r => {
+    if (iso && String(r.date || '').slice(0, 10) !== iso) return false;
+    if (!owner) return true;
+    return String(r.driver || '').trim().toLowerCase() === owner
+      || String(r.group || '').toLowerCase().includes(owner.split(' ')[0] || '___');
+  });
+  const vehicles = new Set();
+  let spend = 0, noDriver = 0;
+  routes.forEach(r => {
+    if (r.vehicle) vehicles.add(String(r.vehicle).trim());
+    spend += parseFloat(r.cost) || 0;
+    if (!String(r.driver || '').trim()) noDriver++;
+  });
+  return { routes, vehicles: vehicles.size, spend, noDriver };
+}
+function logisticsMovementOwnerClash(d){
+  const owner = String((d && d.host) || '').trim();
+  if (!owner) return null;
+  const iso = String((d && d.date) || '').slice(0, 10);
+  const parse = hhmm => {
+    const m = /^(\d{1,2}):(\d{2})/.exec(String(hhmm || ''));
+    if (!m) return null;
+    return (parseInt(m[1], 10) || 0) * 60 + (parseInt(m[2], 10) || 0);
+  };
+  const start = parse(d.start), end = parse(d.end) || (start != null ? start + 45 : null);
+  if (start == null) return null;
+  const hits = [];
+  safeArray(data.transportation).forEach(r => {
+    if (String(r.driver || '').trim().toLowerCase() !== owner.toLowerCase()) return;
+    if (iso && String(r.date || '').slice(0, 10) !== iso) return;
+    const rs = parse(r.pickupTime);
+    if (rs == null) return;
+    let re = parse(r.dropoffTime);
+    if (re == null || re <= rs) re = rs + 30;
+    if (start < re && rs < (end || start + 45)) {
+      hits.push({ kind: 'transport', label: [r.pickup, r.dropoff].filter(Boolean).join(' → ') || r.group || 'Transport run', time: r.pickupTime });
+    }
+  });
+  safeArray(data.appointments).forEach(a => {
+    if (String(a.contact || a.with || '').trim().toLowerCase() !== owner.toLowerCase()) return;
+    if (iso && String(a.date || '').slice(0, 10) !== iso) return;
+    const as = parse(a.time);
+    if (as == null) return;
+    if (Math.abs(as - start) < 90) {
+      hits.push({ kind: 'appointment', label: a.title || 'Appointment', time: a.time });
+    }
+  });
+  return hits[0] || null;
+}
 function renderWeekendTimelineRecordEditor(){
   const d = recordEditorState.draft || {};
   const statusOpts = ['Planned','Confirmed','Needs Detail','Optional','Canceled','Unowned'];
   const groupOpts = typeof weddingGroupOptions === 'function'
     ? weddingGroupOptions(safeArray(data.weekendTimeline).map(r => r.group).concat([d.group]))
     : ['Everyone','Wedding Party','Immediate Family','Out-of-Town Guests'];
-  return `<section class="record-editor-section" data-drawer-group="movement"><h4>Movement</h4><div class="record-editor-grid">
+  const dayKey = logisticsRowDayKey(d);
+  const dayNote = dayKey === 'sunday'
+    ? '<p class="record-editor-note">A Sunday movement is mirrored on the Wedding Day Timeline — editing it there edits it here.</p>'
+    : '<p class="record-editor-note">Friday and Saturday movements live only here. Sunday ones are mirrored on the Timeline.</p>';
+  const people = logisticsMovementPeopleGroups(d);
+  const peopleTotal = people.reduce((s, p) => s + (p.count || 1), 0);
+  const peopleRows = people.length
+    ? people.map(p => `<div class="rd-log-people-row"><strong>${escapeHtml(p.name)}${p.count > 1 ? ' · ' + p.count + ' guests' : ''}</strong><span>${escapeHtml(p.when)}</span></div>`).join('')
+    : `<div class="rd-log-people-row"><strong>${escapeHtml(d.group || 'Guest group')}</strong><span>No travel rows on this day yet</span></div>`;
+  const clash = logisticsMovementOwnerClash(d);
+  const clashHtml = clash
+    ? `<div class="rd-log-drawer-summary is-warn">${escapeHtml(d.host || 'Owner')} cannot cover the full window — also needed for <b>${escapeHtml(clash.label)}</b>${clash.time ? ' at ' + escapeHtml(typeof humanTime === 'function' ? humanTime(clash.time) : clash.time) : ''}. Nothing checks movements against appointments automatically.</div>`
+    : '';
+  const tsum = logisticsMovementTransportSummary(d);
+  const spendLabel = tsum.spend ? (typeof fmt === 'function' ? fmt(tsum.spend) : ('$' + tsum.spend)) : '—';
+  const transportNote = tsum.noDriver
+    ? `<div class="rd-log-drawer-summary is-warn">${tsum.noDriver} run${tsum.noDriver === 1 ? '' : 's'} on this day still need a driver.</div>`
+    : `<div class="rd-log-drawer-summary">${tsum.vehicles || 0} vehicle${tsum.vehicles === 1 ? '' : 's'} · ${tsum.routes.length} run${tsum.routes.length === 1 ? '' : 's'} · ${escapeHtml(spendLabel)} posts to the Transport budget line when set.</div>`;
+  return `<section class="record-editor-section" data-drawer-group="movement"><h4>Movement</h4>${dayNote}<div class="record-editor-grid">
     <div class="record-editor-field" style="display:none"><label>ID</label><input value="${escapeHtml(d._id||'')}" readonly></div>
     ${recordInput('Movement','event','text',true)}
     ${recordInput('Day','date','date')}
@@ -16075,15 +16260,18 @@ function renderWeekendTimelineRecordEditor(){
     ${recordInput('Attire','attire','text')}
     ${recordInput('Cost','cost','number')}
   </div></section>
-  <section class="record-editor-section" data-drawer-group="people"><h4>People</h4>
-    <p class="record-editor-note">Who this movement is for. Guest group and owner live here so the Schedule stays a one-line scan.</p>
+  <section class="record-editor-section" data-drawer-group="people"><h4>People${peopleTotal ? ' · ' + peopleTotal + ' travelling' : ''}</h4>
+    <p class="record-editor-note">Who this movement is for. Guest counts come from travel rows and the guest list — never typed twice.</p>
+    <div class="rd-log-people-list">${peopleRows}</div>
+    ${clashHtml}
     <div class="record-editor-grid">
     ${recordSelect('Guest group','group',groupOpts)}
     ${recordInput('Owner / lead','host','text')}
     ${recordTextarea('Notes','notes',true)}
   </div></section>
   <section class="record-editor-section" data-drawer-group="transport"><h4>Transport</h4>
-    <p class="record-editor-note">Link a route from the Transport view when a movement needs vehicles. Cost can stay here as a projected amount.</p>
+    <p class="record-editor-note">Vehicle coverage for this movement. Cost posts to the Transport budget line when the couple pays.</p>
+    ${transportNote}
     <div class="record-editor-grid">
     ${recordInput('Related place from/to','location','text')}
     ${recordInput('Projected cost','cost','number')}
@@ -30625,15 +30813,16 @@ const SAMPLE_DATA = {
   ],
   weekendTimeline: [
     { date: "2026-11-12", start: "17:00", end: "18:00", event: "Ceremony Rehearsal", location: "Grace Community Church", host: "Pastor David Reynolds", group: "Wedding Party", attire: "Casual", status: "Confirmed", cost: "", notes: "Bring marriage license" },
+    { date: "2026-11-12", start: "17:00", end: "18:00", event: "Wedding Party Call Time", location: "Grace Community Church", host: "Michael Whitfield", group: "Wedding Party", attire: "Casual", status: "Confirmed", cost: "", notes: "Best man — walkthrough starts sharp at 5" },
     { date: "2026-11-12", start: "18:30", end: "21:00", event: "Rehearsal Dinner", location: "The Copper Table", host: "Thomas & Carol Carter", group: "Wedding Party", attire: "Smart casual", status: "Confirmed", cost: "500", notes: "Groom's parents hosting" },
     { date: "2026-11-13", start: "14:00", end: "16:00", event: "Hair & Makeup", location: "Bridal suite", host: "Blossom Bridal Beauty", group: "Bride & Bridesmaids", attire: "Robes", status: "Confirmed", cost: "", notes: "" },
     { date: "2026-11-13", start: "17:00", end: "23:00", event: "Wedding Day", location: "Church → Magnolia Barn", host: "Both families", group: "Everyone", attire: "Formal", status: "Confirmed", cost: "", notes: "See Day-Of Timeline" },
     { date: "2026-11-14", start: "10:00", end: "12:00", event: "Morning-After Brunch", location: "Comfort Suites lobby", host: "Whitfield family", group: "Family & out-of-town guests", attire: "Casual", status: "Planned", cost: "250", notes: "Say goodbye before travel" }
   ],
   travelAccommodations: [
-    { guest: "Uncle George & Aunt Mary Carter", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "15:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44120", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "", notes: "Driving in from Riverton" },
-    { guest: "The Thompson Family", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "18:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44121", roomBlock: "Carter-Whitfield Wedding", transportNeeded: false, cost: "", notes: "Two rooms, 3 kids" },
-    { guest: "Grace Bennett", group: "Wedding Party", arrival: "2026-11-12", arrivalTime: "12:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44122", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "", notes: "Bridesmaid — needs ride to church" },
+    { guest: "Uncle George & Aunt Mary Carter", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "15:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44120", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "238", notes: "Driving in from Riverton" },
+    { guest: "The Thompson Family", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "18:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44121", roomBlock: "Carter-Whitfield Wedding", transportNeeded: false, cost: "476", notes: "Two rooms, 3 kids" },
+    { guest: "Grace Bennett", group: "Wedding Party", arrival: "2026-11-12", arrivalTime: "12:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44122", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "238", payer: "couple", notes: "Bridesmaid — needs ride to church" },
     { guest: "Pastor David & Ruth Reynolds", group: "VIP", arrival: "2026-11-13", arrivalTime: "15:00", departure: "2026-11-13", hotel: "Local", confirmation: "", roomBlock: "", transportNeeded: false, notes: "Local, no hotel needed" }
   ],
   hotelBlocks: [
@@ -30641,8 +30830,11 @@ const SAMPLE_DATA = {
     { hotel: "Riverton Inn & Suites", address: "12 River Rd, Riverton", link: "https://rivertoninn.example/block", blockName: "Whitfield Wedding", rate: "$99/night", cutoff: "2026-10-20", reserved: "8", booked: "3", contact: "(555) 010-7200", notes: "Closer to reception venue" }
   ],
   transportation: [
+    { date: "2026-11-12", pickupTime: "15:00", dropoffTime: "15:45", pickup: "Springfield Regional Airport", dropoff: "Comfort Suites Springfield", driver: "Premier Limo Service", vehicle: "Family SUV", group: "Out-of-town arrivals", capacity: "6", status: "Booked", cost: "80", notes: "Afternoon airport loop" },
+    { date: "2026-11-12", pickupTime: "17:15", dropoffTime: "18:00", pickup: "Springfield Regional Airport", dropoff: "Comfort Suites Springfield", driver: "Michael Whitfield", vehicle: "Family SUV", group: "Grandma Eleanor's flight", capacity: "4", status: "Booked", cost: "0", notes: "Grandma Eleanor lands 5:15 — same window as rehearsal walkthrough" },
     { date: "2026-11-13", pickupTime: "16:00", dropoffTime: "16:45", pickup: "Comfort Suites Springfield", dropoff: "Grace Community Church", driver: "Premier Limo Service", vehicle: "24-passenger shuttle", group: "Out-of-town guests", capacity: "24", status: "Booked", cost: "150", notes: "One loop before ceremony" },
     { date: "2026-11-13", pickupTime: "18:15", dropoffTime: "18:45", pickup: "Grace Community Church", dropoff: "The Magnolia Barn", driver: "Premier Limo Service", vehicle: "24-passenger shuttle", group: "Guests without cars", capacity: "24", status: "Booked", cost: "50", notes: "After ceremony" },
+    { date: "2026-11-13", pickupTime: "20:00", dropoffTime: "20:30", pickup: "The Magnolia Barn", dropoff: "Comfort Suites Springfield", driver: "", vehicle: "Sedan (TBD)", group: "Grandparents — early departure", capacity: "4", status: "Needed", cost: "", notes: "Nobody's confirmed for this run yet" },
     { date: "2026-11-13", pickupTime: "21:45", dropoffTime: "22:15", pickup: "The Magnolia Barn", dropoff: "Getaway", driver: "Vintage Rides Co.", vehicle: "Classic white convertible", group: "Bride & Groom", capacity: "2", status: "Needed", cost: "120", notes: "Send-off car — confirm final payment" }
   ],
   vipCare: [
