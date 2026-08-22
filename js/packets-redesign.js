@@ -1192,6 +1192,66 @@
       `<div class="rd-drawer__foot">${foot}</div></aside>`;
   }
 
+  /* ── Full editor (§16 popout) ─────────────────────────────────────────── */
+
+  const PKT_MODE_OPTS = ['Live', 'Snapshot'];
+  const PKT_STATUS_OPTS = ['Draft', 'Live', 'Expiring', 'Never opened', 'Expired', 'Revoked'];
+  const PKT_RECIPIENT_TYPES = ['Vendors', 'Family & party', 'Other'];
+
+  function syncPktDraftContains(draft) {
+    if (!draft) return;
+    const ids = sectionIdsFor(draft);
+    draft.sections = ids.slice();
+    draft.contains = ids.map(id => {
+      const s = PAGE_SECTIONS.find(p => p.id === id);
+      if (!s) return id;
+      return String(s.name).split(' ·')[0].trim();
+    }).filter(Boolean).join(' · ') || draft.contains || '';
+  }
+
+  function renderPacketsRecordEditorRd() {
+    const d = recordEditorState && recordEditorState.draft;
+    if (!d) return '';
+    if (!Array.isArray(d.sections)) d.sections = sectionIdsFor(d);
+    const secIds = new Set(sectionIdsFor(d));
+    const sectionChecks = PAGE_SECTIONS.filter(s => !s.never).map(s => {
+      const on = secIds.has(s.id);
+      return `<label class="record-editor-check"><input type="checkbox"${on ? ' checked' : ''} onchange="rdPktEditorToggleSection('${s.id}',this.checked)"><span>${esc(s.name)}</span></label>`;
+    }).join('');
+    const neverNote = PAGE_SECTIONS.filter(s => s.never).map(s => esc(s.name)).join(' · ');
+    return `<section class="record-editor-section"><h4>Share packet</h4><p class="record-editor-note">Live means the recipient sees edits as you make them. Snapshot freezes at send. Covenant records cannot be included — ${neverNote || 'Prayer, notes, and setup'}.</p><div class="record-editor-grid">`
+      + (typeof recordInput === 'function' ? recordInput('Packet name', 'name', 'text', true) : '')
+      + (typeof recordInput === 'function' ? recordInput('Tab label', 'tabLabel') : '')
+      + (typeof recordInput === 'function' ? recordInput('Card title', 'cardTitle') : '')
+      + (typeof recordInput === 'function' ? recordInput('Recipient', 'recipient', 'text', true) : '')
+      + (typeof recordInput === 'function' ? recordInput('Contact', 'contact') : '')
+      + (typeof recordSelect === 'function' ? recordSelect('Recipient type', 'recipientType', PKT_RECIPIENT_TYPES) : '')
+      + (typeof recordInput === 'function' ? recordInput('Contains summary', 'contains', 'text', true) : '')
+      + (typeof recordInput === 'function' ? recordInput('Hides summary', 'hides', 'text', true) : '')
+      + (typeof recordSelect === 'function' ? recordSelect('Mode', 'mode', PKT_MODE_OPTS) : '')
+      + (typeof recordSelect === 'function' ? recordSelect('Status', 'status', PKT_STATUS_OPTS) : '')
+      + (typeof recordInput === 'function' ? recordInput('Share link', 'link', 'text', true) : '')
+      + (typeof recordInput === 'function' ? recordInput('Passcode', 'passcode') : '')
+      + (typeof recordInput === 'function' ? recordInput('Expires', 'expires', 'date') : '')
+      + (typeof recordInput === 'function' ? recordInput('Created', 'created', 'date') : '')
+      + (typeof recordInput === 'function' ? recordInput('Sent', 'sent', 'date') : '')
+      + (typeof recordInput === 'function' ? recordInput('Opens', 'opens', 'number') : '')
+      + (typeof recordInput === 'function' ? recordInput('Last opened', 'lastOpen') : '')
+      + `</div><div class="record-editor-section"><h4>Sections included</h4><div class="record-editor-grid">${sectionChecks || '<p class="record-editor-note">No sections available.</p>'}</div></div>`;
+  }
+
+  function rdPktEditorToggleSection(secId, on) {
+    if (!recordEditorState || !recordEditorState.draft) return;
+    const spec = PAGE_SECTIONS.find(s => s.id === secId);
+    if (spec && spec.never) return;
+    const set = new Set(sectionIdsFor(recordEditorState.draft));
+    if (on) set.add(secId);
+    else set.delete(secId);
+    recordEditorState.draft.sections = Array.from(set);
+    syncPktDraftContains(recordEditorState.draft);
+    if (typeof renderRecordEditor === 'function') renderRecordEditor();
+  }
+
   /* ── actions ─────────────────────────────────────────────────────────── */
 
   function rdPktSelectPacket(id) {
@@ -1507,6 +1567,8 @@
   window.rdPktCycleFilter = rdPktCycleFilter;
   window.rdPktClearFilter = rdPktClearFilter;
   window.rdPktOpenSort = rdPktOpenSort;
+  window.rdPktEditorToggleSection = rdPktEditorToggleSection;
+  window.__packetsRenderRecordEditorRd = renderPacketsRecordEditorRd;
 
   function hookPktPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) {

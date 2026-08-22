@@ -13803,6 +13803,7 @@ function recordEditorDefault(key){
   if (key === 'moodItems') return { _id:nextRecordId('moodItems'), section:'Other', item:'', colorStory:'', vendorMatch:'Needed', finalized:'Gathering Ideas', notes:'' };
   if (key === 'homecoming') return { _id:nextRecordId('homecoming'), cat:'Other', item:'', status:'Not Started', owner:'Both', notes:'' };
   if (key === 'notesDetails') return { _id:nextRecordId('notesDetails'), title:'', category:'Planning', tags:'', pinned:false, date:'', time:'', status:'Open', note:'', nextStep:'', icon:'pencil' };
+  if (key === 'packets') return { _id:nextRecordId('packets'), name:'New packet', tabLabel:'New packet', cardTitle:'New packet', recipient:'', contact:'', recipientType:'Vendors', contains:'Timeline · contacts', sections:['timeline','contacts'], mode:'Live', opens:0, expires:'', status:'Draft', created:typeof todayISO==='function'?todayISO():'', link:'', passcode:'None · anyone with the link', activity:[], withheld:[] };
   if (key === 'honeyDetails') return { _id:nextRecordId('honeyDetails'), section:'Travel Overview', item:'', timeline:'', vendor:'', status:'Planned', reference:'', notes:'' };
   if (key === 'honeyTransport') return { _id:nextRecordId('honeyTransport'), type:'Flight', leg:'', date:'', departTime:'', arrivalTime:'', from:'', to:'', company:'', flight:'', ticket:'', travelers:'', seatVehicle:'', terminalGate:'', arriveBy:'', baggage:'', cost:'', status:'Planned', notes:'' };
   if (key === 'honeyItinerary') return { _id:nextRecordId('honeyItinerary'), day:'', time:'', plan:'', location:'', status:'Planned', confirmation:'', notes:'' };
@@ -13838,7 +13839,7 @@ function recordEditorTitle(key){
     ceremonyOrder:'Ceremony Order Step', ceremonyProcessional:'Processional Entry',
     ceremonyRecessional:'Recessional Entry', ceremonyChecklist:'Ceremony Legal Note', ceremonyVows:'Vow / Covenant Detail',
     ceremonyReceptionDetails:'Reception Detail', ceremonyTraditions:'Tradition / Cultural Moment', moodItems:'Vision Board Detail', homecoming:'Homecoming Checklist Item',
-    notesDetails:'Notes Tracker Entry', honeyDetails:'Honeymoon Detail', honeyTransport:'Transportation Row',
+    notesDetails:'Notes Tracker Entry', packets:'Share Packet', honeyDetails:'Honeymoon Detail', honeyTransport:'Transportation Row',
     honeyItinerary:'Honeymoon Itinerary Entry', packing:'Packing Item', hmBudgetItems:'Honeymoon Budget Line', nameChange:'Name Change Task',
     weekendTimeline:'Wedding Weekend Timeline Item', travelAccommodations:'Guest Travel Row',
     hotelBlocks:'Hotel Room Block', transportation:'Transportation Route', vipCare:'Family / VIP Care Item',
@@ -14727,6 +14728,7 @@ function recordEditorFieldsHtml(){
   if (key === 'plan') return renderPlanRecordEditor();
   if (key === 'timeline') return renderTimelineRecordEditor();
   if (key === 'vtimeline') return renderVendorTimelineRecordEditor();
+  if (key === 'packets') return renderPacketRecordEditor();
   return renderGenericRecordEditor();
 }
 function inlineRecordDisplayLabel(key, draft){
@@ -16573,6 +16575,20 @@ function renderTablesRecordEditor(){
     ${recordInput('Position note','placement')}
   </div></section>`;
 }
+function renderPacketRecordEditor(){
+  if (typeof window.__packetsRenderRecordEditorRd === 'function') return window.__packetsRenderRecordEditorRd();
+  const d = recordEditorState?.draft || {};
+  return `<section class="record-editor-section"><h4>Share packet</h4><div class="record-editor-grid">
+    ${recordInput('Packet name','name','text',true)}
+    ${recordInput('Recipient','recipient','text',true)}
+    ${recordInput('Contains','contains','text',true)}
+    ${recordSelect('Mode','mode',['Live','Snapshot'])}
+    ${recordSelect('Status','status',['Draft','Live','Expiring','Never opened','Expired','Revoked'])}
+    ${recordInput('Share link','link','text',true)}
+    ${recordInput('Expires','expires','date')}
+    ${recordTextarea('Notes','hides')}
+  </div></section>`;
+}
 function renderGiftRecordEditor(){
   if (typeof window.__giftsRenderRecordEditorRd === 'function') return window.__giftsRenderRecordEditorRd();
   const d = recordEditorState.draft;
@@ -16900,7 +16916,12 @@ function renderRecordEditorTarget(key){
       if (typeof renderContactsRd === 'function') renderContactsRd();
     },
     vendorCompare:renderVendorCompare,
-    attire:renderLogisticsPage, decor:renderLogisticsPage, stationery:renderLogisticsPage
+    attire:renderLogisticsPage, decor:renderLogisticsPage, stationery:renderLogisticsPage,
+    packets:()=>{
+      if (typeof renderPacketsRd === 'function') renderPacketsRd();
+      else if (typeof renderPacketsPage === 'function') renderPacketsPage();
+      else if (typeof renderPackets === 'function') renderPackets();
+    }
   };
   if (key === 'payments') syncPaymentsToBudget();
   if (map[key]) map[key]();
