@@ -1,17 +1,18 @@
-/* Email Templates — All.dc #12c + Views Preview/Sent log + Dark.dc rail
-   + Drawers batch (Email template · Template · Fields · Audience · Sent log).
-   Views: Table | Preview | Sent log.
+/* Email Templates — Master s25 / 12c · Preview 33e · Sent log 33f · Tabs 19n
+   Table: Template · Audience · Fields · Sent · Last used · Status
+   Surfaces: Templates (split preview) · Preview · Sent log
+   Section tabs (19n): Templates | Preview | Sent log + Audience filter chips
    Rail: All templates · Guests · Vendors · Wedding party · With blank fields
-         + Use meters + Group by Audience / Last used / Author.
-   Stats (Table): Templates · Emails sent · Merge fields · Unresolved · Drafts.
-   Columns: Template · Audience · Fields · Sent · Last used · Status.
-   Data: data.emailTemplates[] (seeded from EMAIL_TEMPLATES library). */
+         · Group by Audience / Last used / Author
+   Drawer: Template · Fields · Audience · Sent log
+   Primary: New template · Data: data.emailTemplates[] — nine Master templates. */
 (function () {
   'use strict';
 
   window._etMode = window._etMode || 'table';
   window._etRailView = window._etRailView || 'all';
   window._etGroupBy = window._etGroupBy || 'audience';
+  window._etAudienceTab = window._etAudienceTab || null;
   window._etUiFilters = window._etUiFilters || { audience: 'all', status: 'all', field: 'all', template: 'all', outcome: 'all' };
   window._etFailuresFirst = window._etFailuresFirst !== false;
   window._etDrawerId = window._etDrawerId || null;
@@ -20,17 +21,157 @@
   window._etPreviewId = window._etPreviewId || null;
   window._etPreviewIdx = window._etPreviewIdx || 0;
 
+  const SHELL_VER = 'et-rd12c-s25';
+  const COL_SCOPE = 'emails';
   const DRAWER_TABS = ['Template', 'Fields', 'Audience', 'Sent log'];
-  const SAMPLE_SENDS = {
-    'RSVP reminder': [
-      { when: 'Yesterday', sent: 17, label: '17 guests' },
-      { when: '12 Jul', sent: 9, label: '9 guests' },
-      { when: '2 Jun', sent: 0, label: 'No sends' }
-    ],
-    'Save the date': [
-      { when: '4 Mar', sent: 24, label: '24 guests' }
-    ]
-  };
+  const SURFACE_TABS = [
+    { id: 'table', label: 'Templates' },
+    { id: 'preview', label: 'Preview' },
+    { id: 'log', label: 'Sent log' }
+  ];
+  const AUDIENCE_TABS = ['Guests', 'Vendors', 'Wedding party'];
+  const ET_COLUMNS = [
+    { key: '_sel', label: '', width: '34px', fixed: true },
+    { key: 'template', label: 'Template' },
+    { key: 'audience', label: 'Audience', width: '120px' },
+    { key: 'fields', label: 'Fields', width: '70px' },
+    { key: 'sent', label: 'Sent', width: '70px' },
+    { key: 'lastUsed', label: 'Last used', width: '100px' },
+    { key: 'status', label: 'Status', width: '120px' }
+  ];
+  if (window.rdColumns) {
+    window.rdColumns.register(COL_SCOPE, ET_COLUMNS.slice(), function () { renderEmailsRd(); });
+  }
+
+  /* Master s25 — nine templates (4 Guests · 3 Vendors · 2 Wedding party). */
+  const MASTER_TEMPLATES = [
+    {
+      title: 'RSVP reminder', audience: 'Guests', fieldCount: 6, sent: 17, lastUsed: 'Yesterday', status: 'Ready',
+      subject: 'A gentle nudge — will we see you on {{wedding.date}}?',
+      body: 'Dear {{guest.first_name}},\n\nWe are counting down to {{wedding.date}} and are still hoping to hear from you. The chapel at {{wedding.venue}} holds {{wedding.seats}}, and we would love one of those seats to be yours.\n\nCould you let us know by {{wedding.rsvp_deadline}}?\n\nWith love,\n{{couple.shown_as}}',
+      sends: [{ when: 'Yesterday', sent: 17, label: '17 guests' }, { when: '12 Jul', sent: 9, label: '9 guests' }]
+    },
+    {
+      title: 'Save the date', audience: 'Guests', fieldCount: 4, sent: 24, lastUsed: '14 Mar', status: 'Ready',
+      subject: 'Save the Date — {{couple.shown_as}}',
+      body: 'Save the date! We are getting married on {{wedding.date}}.\n\nFormal invitation to follow.\n\n{{couple.shown_as}}',
+      sends: [{ when: '4 Mar', sent: 24, label: '24 guests' }]
+    },
+    {
+      title: 'Thank-you for the gift', audience: 'Guests', fieldCount: 5, sent: 0, lastUsed: '—', status: '1 blank field',
+      subject: 'From the bottom of our hearts',
+      body: 'Dear {{guest.first_name}},\n\nThank you for celebrating our wedding with us — and for the {{gift.description}}. Your presence and your gift mean more than we can say.\n\nWith love,\n{{couple.shown_as}}',
+      blankToken: 'gift.description',
+      sends: []
+    },
+    {
+      title: 'Travel & accommodation', audience: 'Guests', fieldCount: 7, sent: 0, lastUsed: '—', status: 'Ready',
+      subject: 'Travel & Lodging Information',
+      body: 'Hi {{guest.first_name}},\n\nThank you for traveling for our wedding on {{wedding.date}}. We have reserved a hotel block at {{hotel.name}}. Use code {{hotel.code}} when booking.\n\nLooking forward to celebrating with you,\n{{couple.shown_as}}',
+      sends: []
+    },
+    {
+      title: 'Request a quote', audience: 'Vendors', fieldCount: 5, sent: 8, lastUsed: '19 Apr', status: 'Ready',
+      subject: 'Wedding Inquiry — {{wedding.date}}',
+      body: 'Hi {{vendor.name}},\n\nWe are getting married on {{wedding.date}} at {{wedding.venue}} and would love to learn more about your services.\n\nThank you,\n{{couple.shown_as}}',
+      sends: [{ when: '19 Apr', sent: 8, label: '8 vendors' }]
+    },
+    {
+      title: 'Payment confirmation', audience: 'Vendors', fieldCount: 6, sent: 6, lastUsed: '24 Jul', status: 'Ready',
+      subject: 'Payment sent — {{vendor.name}}',
+      body: 'Hi {{vendor.name}},\n\nWe have sent {{payment.amount}} for {{payment.service}}. Please confirm receipt.\n\nThank you,\n{{couple.shown_as}}',
+      sends: [{ when: '24 Jul', sent: 6, label: '6 vendors' }]
+    },
+    {
+      title: 'Final headcount notice', audience: 'Vendors', fieldCount: 4, sent: 0, lastUsed: '—', status: '1 blank field',
+      subject: 'Final headcount — {{wedding.date}}',
+      body: 'Hi {{vendor.name}},\n\nOur final guest count is {{wedding.seats}}. Please confirm your team can accommodate this number.\n\nThank you,\n{{couple.shown_as}}',
+      blankToken: 'wedding.seats',
+      sends: []
+    },
+    {
+      title: 'Fitting reminder', audience: 'Wedding party', fieldCount: 5, sent: 6, lastUsed: '12 Jul', status: 'Ready',
+      subject: 'Fitting this week — {{wedding.date}}',
+      body: 'Hi {{guest.first_name}},\n\nA quick reminder about your fitting on {{fitting.date}} at {{fitting.location}}.\n\nThank you,\n{{couple.shown_as}}',
+      sends: [{ when: '12 Jul', sent: 6, label: '6 members' }]
+    },
+    {
+      title: 'Weekend brief', audience: 'Wedding party', fieldCount: 8, sent: 0, lastUsed: '—', status: 'Draft',
+      subject: 'Wedding weekend brief',
+      body: 'Hi everyone,\n\nThank you for being part of our wedding weekend. Key details:\n\nCeremony: {{ceremony.time}} at {{wedding.venue}}\nReception: {{reception.time}} at {{reception.venue}}\n\nWith gratitude,\n{{couple.shown_as}}',
+      sends: []
+    }
+  ];
+
+  const PREVIEW_RECIPIENTS = [
+    {
+      label: 'Owusu',
+      name: 'Mrs Comfort Owusu',
+      email: 'c.owusu@example.com',
+      templateHint: 'RSVP chase',
+      subject: 'A gentle reminder — we need your reply by 30 September',
+      body: 'Dear Mrs Owusu,\n\nWe are so glad you will be with us on Sunday 8 November. The caterer needs final numbers, so we are chasing the last few replies.\n\nWe have you down for 4 guests at 12 Ridge Rd, Accra, and we are still waiting on a meal choice for Nana Afua. If you could reply by 30 September, that would be a real help.\n\nWith love,\nAma and Kwesi',
+      fields: [
+        { token: 'household', value: 'Mrs Comfort Owusu' },
+        { token: 'guest_count', value: '4 guests' },
+        { token: 'address', value: '12 Ridge Rd, Accra' },
+        { token: 'missing_meal_for', value: 'Nana Afua' },
+        { token: 'rsvp_deadline', value: '30 September' },
+        { token: 'wedding_date', value: 'Sunday 8 November' }
+      ],
+      conditionalDrops: 3,
+      conditionalNote: 'Three of the twelve recipients have no meal outstanding. For those, the sentence containing {{missing_meal_for}} is dropped entirely rather than rendered empty.'
+    },
+    {
+      label: 'Mensah',
+      name: 'Efua Mensah',
+      email: 'efua.mensah@example.com',
+      templateHint: 'RSVP reminder',
+      subject: 'A gentle nudge — will we see you on 8 November?',
+      body: 'Dear Efua,\n\nWe are counting down to 8 November 2026 and are still hoping to hear from you. The chapel at Grace Hall holds 120, and we would love one of those seats to be yours.\n\nCould you let us know by 30 September?\n\nWith love,\nAma & Kwesi',
+      fields: [
+        { token: 'guest.first_name', value: 'Efua' },
+        { token: 'wedding.date', value: '8 November 2026' },
+        { token: 'wedding.venue', value: 'Grace Hall' },
+        { token: 'wedding.seats', value: '120' },
+        { token: 'wedding.rsvp_deadline', value: 'Not set on Wedding Setup', blank: true },
+        { token: 'couple.shown_as', value: 'Ama & Kwesi' }
+      ],
+      conditionalDrops: 0,
+      conditionalNote: ''
+    }
+  ];
+
+  const SEND_LOG_GROUPS = [
+    {
+      key: 'RSVP chase · sent 18 July', sent: 42, delivered: 38, opened: 24, replied: 9,
+      rows: [
+        { name: 'Owusu household', email: 'c.owusu@example.com', detail: 'Opened 3× · replied 18 Jul', outcome: 'Replied' },
+        { name: 'Boateng household', email: 'k.boateng@example.com', detail: 'Opened once 18 Jul', outcome: 'Opened' },
+        { name: 'Mensah household', email: 'no email on file', detail: 'Not sent —', outcome: 'Excluded' },
+        { name: 'Appiah household', email: 'j.appiah@example.com', detail: 'Bounced · mailbox full 18 Jul', outcome: 'Bounced' }
+      ]
+    },
+    {
+      key: 'Save the date · sent 4 March', sent: 62, delivered: 61, opened: 57, replied: 0,
+      rows: [
+        { name: 'All households', email: '62 recipients', detail: '92% open rate 4 Mar', outcome: 'Complete' }
+      ]
+    },
+    {
+      key: 'Vendor timing confirmation · sent 6 May', sent: 6, delivered: 6, opened: 5, replied: 0,
+      rows: [
+        { name: 'Highlife Collective', email: 'kojo@highlife.example', detail: 'Never opened 6 May', outcome: 'Unopened' }
+      ]
+    },
+    {
+      key: 'Drafts · not sent', sent: 0, delivered: 0, opened: 0, replied: 0,
+      rows: [
+        { name: 'Final numbers to Adom', email: '1 recipient · blocked', detail: 'Waits on the 20 Aug tasting —', outcome: 'Blocked' },
+        { name: 'Thank-you follow-up', email: '11 recipients', detail: 'Scheduled 15 Nov —', outcome: 'Scheduled' }
+      ]
+    }
+  ];
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
@@ -38,73 +179,50 @@
 
   function ensureEt() {
     if (!window.data) window.data = {};
+    if (!data.emailTemplatesMeta || typeof data.emailTemplatesMeta !== 'object') data.emailTemplatesMeta = {};
     if (!Array.isArray(data.emailTemplates)) data.emailTemplates = [];
-    if (!data.emailTemplates.length && typeof EMAIL_TEMPLATES !== 'undefined' && EMAIL_TEMPLATES.length) {
-      data.emailTemplates = EMAIL_TEMPLATES.map((t, i) => seedFromLibrary(t, i));
+    if (!data.emailTemplatesMeta.s25 || data.emailTemplates.length !== MASTER_TEMPLATES.length) {
+      data.emailTemplates = MASTER_TEMPLATES.map((t, i) => seedMasterTemplate(t, i));
+      data.emailTemplatesMeta.s25 = true;
     }
   }
 
-  function audienceFromCat(cat, title) {
-    const c = String(cat || '').toLowerCase();
-    const ti = String(title || '').toLowerCase();
-    if (/wedding party|bridesmaid|groomsmen|fitting|weekend brief/.test(c + ' ' + ti)) return 'Wedding party';
-    if (/vendor|quote|payment|headcount|inquiry|follow/.test(c + ' ' + ti)) return 'Vendors';
-    if (/guest|thank|rsvp|save the date|travel|invite/.test(c + ' ' + ti)) return 'Guests';
-    if (/guest/.test(c)) return 'Guests';
-    if (/vendor/.test(c)) return 'Vendors';
-    return 'Guests';
+  function libTemplate(title) {
+    if (typeof EMAIL_TEMPLATES === 'undefined') return null;
+    const want = String(title || '').toLowerCase();
+    return EMAIL_TEMPLATES.find(t => {
+      const ti = String(t.title || '').toLowerCase();
+      if (ti === want) return true;
+      if (/thank-you for the gift/i.test(title) && /thank you \(attended \+ gift\)/i.test(ti)) return true;
+      if (/travel & accommodation/i.test(title) && /travel & lodging/i.test(ti)) return true;
+      if (/request a quote/i.test(title) && /inquiry/i.test(ti)) return true;
+      if (/payment confirmation/i.test(title) && /final balance/i.test(ti)) return true;
+      if (/final headcount/i.test(title) && /headcount/i.test(ti)) return true;
+      if (/fitting reminder/i.test(title) && /fitting/i.test(ti)) return true;
+      if (/weekend brief/i.test(title) && /timeline email/i.test(ti)) return true;
+      return false;
+    }) || null;
   }
 
-  function seedFromLibrary(t, i) {
-    const title = t.title || 'Untitled template';
-    const audience = audienceFromCat(t.cat, title);
-    const defaults = defaultMeta(title);
+  function seedMasterTemplate(t, i) {
+    const lib = libTemplate(t.title);
     return {
-      _id: typeof nextRecordId === 'function' ? nextRecordId('emailTemplates') : ('et-' + i),
-      title: title,
-      cat: t.cat || audience,
-      audience: audience,
-      subject: t.subject || '',
-      body: t.body || '',
-      sent: defaults.sent,
-      lastUsed: defaults.lastUsed,
-      status: defaults.status,
+      _id: typeof nextRecordId === 'function' ? nextRecordId('emailTemplates') : ('et-s25-' + i),
+      title: t.title,
+      cat: t.audience,
+      audience: t.audience,
+      subject: lib ? lib.subject : t.subject,
+      body: lib ? lib.body : t.body,
+      sent: t.sent,
+      lastUsed: t.lastUsed,
+      status: t.status,
       author: 'Couple',
       from: '',
       replyTo: '',
-      sends: SAMPLE_SENDS[title] ? SAMPLE_SENDS[title].slice() : []
+      blankToken: t.blankToken || '',
+      sends: (t.sends || []).slice(),
+      fieldCountHint: t.fieldCount
     };
-  }
-
-  function defaultMeta(title) {
-    const map = {
-      'RSVP reminder': { sent: 17, lastUsed: 'Yesterday', status: 'Ready' },
-      'Save the date': { sent: 24, lastUsed: '14 Mar', status: 'Ready' },
-      'Thank you (attended + gift)': { sent: 0, lastUsed: '', status: '' },
-      'Travel & lodging info': { sent: 0, lastUsed: '', status: 'Ready' },
-      'Quote follow-up': { sent: 8, lastUsed: '19 Apr', status: 'Ready' },
-      'Final balance reminder (to ourselves)': { sent: 6, lastUsed: '24 Jul', status: 'Ready' },
-      'Wedding party timeline email': { sent: 6, lastUsed: '12 Jul', status: 'Ready' },
-      'Rehearsal reminder': { sent: 0, lastUsed: '', status: 'Draft' }
-    };
-    /* Map mock titles onto closest library titles */
-    if (/thank-you for the gift|thank you \(attended \+ gift\)/i.test(title)) {
-      return { sent: 0, lastUsed: '', status: '' };
-    }
-    if (/request a quote|florist inquiry|caterer inquiry/i.test(title)) {
-      return map['Quote follow-up'] || { sent: 8, lastUsed: '19 Apr', status: 'Ready' };
-    }
-    if (/payment confirmation|final balance/i.test(title)) {
-      return { sent: 6, lastUsed: '24 Jul', status: 'Ready' };
-    }
-    if (/final headcount/i.test(title)) return { sent: 0, lastUsed: '', status: '' };
-    if (/fitting reminder|bridesmaid proposal/i.test(title)) {
-      return { sent: 6, lastUsed: '12 Jul', status: 'Ready' };
-    }
-    if (/weekend brief|wedding party timeline/i.test(title)) {
-      return { sent: 0, lastUsed: '', status: 'Draft' };
-    }
-    return map[title] || { sent: 0, lastUsed: '', status: 'Ready' };
   }
 
   function extractFields(subject, body) {
@@ -164,9 +282,14 @@
   function fieldStates(row) {
     const lookup = mergeLookup();
     const tokens = extractFields(row.subject, row.body);
+    const forcedBlank = String(row.blankToken || '').trim();
     return tokens.map(token => {
-      const value = resolveField(token, lookup);
-      const blank = isBlankValue(value);
+      let value = resolveField(token, lookup);
+      let blank = isBlankValue(value);
+      if (forcedBlank && (token === forcedBlank || token.replace(/\./g, '_') === forcedBlank.replace(/\./g, '_'))) {
+        blank = true;
+        value = 'Not set on Wedding Setup';
+      }
       return {
         token: token,
         display: '{{' + token + '}}',
@@ -183,9 +306,11 @@
     const blanks = fields.filter(f => f.blank).length;
     let status = String(row.status || '').trim();
     if (/draft/i.test(status)) status = 'Draft';
+    else if (/blank field/i.test(status)) status = status;
     else if (blanks > 0) status = blanks === 1 ? '1 blank field' : (blanks + ' blank fields');
     else if (!status || /ready/i.test(status)) status = 'Ready';
     const sent = Number(row.sent) || 0;
+    const fieldCount = Number(row.fieldCountHint) || fields.length;
     return {
       id: row._id ? ('emailTemplates:' + row._id) : ('emailTemplates:idx:' + i),
       index: i,
@@ -195,16 +320,24 @@
       subject: String(row.subject || ''),
       body: String(row.body || ''),
       fields: fields,
-      fieldCount: fields.length,
+      fieldCount: fieldCount,
       blanks: blanks,
       sent: sent,
-      lastUsed: String(row.lastUsed || (sent ? '—' : '—')).trim() || '—',
+      lastUsed: String(row.lastUsed || '—').trim() || '—',
       status: status,
       author: String(row.author || 'Couple'),
       from: String(row.from || mergeLookup()['couple.shown_as'] || 'Couple'),
       replyTo: String(row.replyTo || ''),
-      sends: Array.isArray(row.sends) ? row.sends : (SAMPLE_SENDS[row.title] || [])
+      sends: Array.isArray(row.sends) ? row.sends : []
     };
+  }
+
+  function audienceFromCat(cat, title) {
+    const c = String(cat || '').toLowerCase();
+    const ti = String(title || '').toLowerCase();
+    if (/wedding party|bridesmaid|groomsmen|fitting|weekend brief/.test(c + ' ' + ti)) return 'Wedding party';
+    if (/vendor|quote|payment|headcount|inquiry|follow/.test(c + ' ' + ti)) return 'Vendors';
+    return 'Guests';
   }
 
   function allTemplates() {
@@ -271,6 +404,8 @@
   }
   function matchesFilters(x) {
     if (!matchesRail(x)) return false;
+    const audTab = window._etAudienceTab;
+    if (audTab && x.audience !== audTab) return false;
     const ui = window._etUiFilters || {};
     if (ui.audience && ui.audience !== 'all' && x.audience.toLowerCase() !== String(ui.audience).toLowerCase()) return false;
     if (ui.status && ui.status !== 'all' && x.status.toLowerCase() !== String(ui.status).toLowerCase()) return false;
@@ -330,13 +465,13 @@
   function uedEmailsShellRd() {
     const panel = document.getElementById('panel-emails');
     if (!panel) return;
-    panel.classList.add('ued-scope', 'emails-mockup');
-    if (panel.dataset.uedShell === 'et-rd12c') {
+    panel.classList.add('ued-scope', 'emails-mockup', 'emails-rd');
+    if (panel.dataset.uedShell === SHELL_VER) {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'et-rd12c';
+    panel.dataset.uedShell = SHELL_VER;
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -348,6 +483,7 @@
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
       <div class="rd-stats m-stats" id="emails-stats" aria-label="Email templates summary"></div>
+      <div class="rd-sectiontabs rd-et-surfacetabs" id="emails-section-tabs" role="tablist" aria-label="Email Templates surfaces"></div>
       <div class="rd-toolbar" id="emails-toolbar"></div>
       <div class="rd-bulkbar" id="emails-bulk-bar" hidden></div>
       <div class="rd-surface">
@@ -364,6 +500,20 @@
     if (typeof window.covenantShell !== 'undefined' && window.covenantShell.drawer) {
       window.covenantShell.drawer();
     }
+  }
+
+  function renderEtSectionTabs() {
+    const host = document.getElementById('emails-section-tabs');
+    if (!host) return;
+    const mode = window._etMode || 'table';
+    host.innerHTML = SURFACE_TABS.map(t =>
+      `<button type="button" class="rd-sectiontabs__item${mode === t.id ? ' is-active' : ''}" role="tab" aria-selected="${mode === t.id}" onclick="rdEtSetSurface('${t.id}')">${esc(t.label)}</button>`
+    ).join('') + '<span class="rd-et-surfacetabs-note">3 surfaces</span>';
+  }
+
+  function audienceChip(label) {
+    const active = window._etAudienceTab === label;
+    return `<button type="button" class="rd-chip${active ? ' is-active' : ''}" onclick="rdEtSetAudienceTab('${esc(label)}')">${esc(label)}${active ? '<span class="rd-chip__clear" onclick="event.stopPropagation();rdEtSetAudienceTab(null)">&#10005;</span>' : ''}</button>`;
   }
 
   function renderEtStatsRd() {
@@ -421,28 +571,30 @@
     if (!host) return;
     const mode = window._etMode || 'table';
     const preview = allTemplates().find(x => x.id === window._etPreviewId) || filteredTemplates()[0];
+    const recipient = PREVIEW_RECIPIENTS[window._etPreviewIdx || 0] || PREVIEW_RECIPIENTS[0];
     let left = '';
     if (mode === 'preview') {
-      left = `<span class="rd-chip is-active">Template: ${esc(preview ? preview.title : '—')}</span>` +
-        `<span class="rd-chip">Recipient: sample</span>` +
-        `<button type="button" class="rd-chip is-active" onclick="rdEtClearFilter('status')">Resolved<span class="rd-chip__clear">✕</span></button>` +
+      left = `<span class="rd-chip is-active">Template: ${esc(preview ? (recipient.templateHint || preview.title) : '—')}</span>` +
+        `<span class="rd-chip is-active">Recipient: ${esc(recipient.label || 'sample')}</span>` +
+        `<button type="button" class="rd-chip is-active" onclick="rdEtClearFilter('status')">Resolved<span class="rd-chip__clear">&#10005;</span></button>` +
         `<span class="rd-et-toolbar-note">${(window._etPreviewIdx || 0) + 1} of ${etFigures().withEmail || 12}</span>`;
     } else if (mode === 'log') {
       left = filterChip('Template', 'template') + filterChip('Outcome', 'outcome') +
-        `<button type="button" class="rd-chip${window._etFailuresFirst ? ' is-active' : ''}" onclick="rdEtToggleFailures()">Failures first${window._etFailuresFirst ? '<span class="rd-chip__clear">✕</span>' : ''}</button>` +
+        `<button type="button" class="rd-chip${window._etFailuresFirst ? ' is-active' : ''}" onclick="rdEtToggleFailures()">Failures first${window._etFailuresFirst ? '<span class="rd-chip__clear">&#10005;</span>' : ''}</button>` +
         `<span class="rd-et-toolbar-note">Sort by send date</span>`;
     } else {
-      left = filterChip('Audience', 'audience') + filterChip('Status', 'status') + filterChip('Field', 'field') +
-        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by last used', "rdEtOpenSort(this)") : '') +
-        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('emails') : '');
+      if (window._etAudienceTab) {
+        left = '<span class="rd-toolbar__label">Audience</span>' +
+          AUDIENCE_TABS.map(audienceChip).join('') +
+          filterChip('Status', 'status') +
+          (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml(COL_SCOPE) : '');
+      } else {
+        left = filterChip('Audience', 'audience') + filterChip('Status', 'status') + filterChip('Field', 'field') +
+          (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by last used', "rdEtOpenSort(this)") : '') +
+          (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml(COL_SCOPE) : '');
+      }
     }
-    host.innerHTML = left +
-      `<div class="rd-toolbar__right">` +
-      `<div class="rd-viewswitch" role="group" aria-label="Email Templates view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetEtView('table')">Table</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'preview' ? ' is-active' : ''}" onclick="rdSetEtView('preview')">Preview</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'log' ? ' is-active' : ''}" onclick="rdSetEtView('log')">Sent log</button>` +
-      `</div></div>`;
+    host.innerHTML = left;
   }
 
   function renderEtBulk() {
@@ -472,13 +624,28 @@
     });
   }
   function rdSetEtView(mode) {
+    rdEtSetSurface((mode === 'preview' || mode === 'log') ? mode : 'table');
+  }
+  function rdEtSetSurface(mode) {
     window._etMode = (mode === 'preview' || mode === 'log') ? mode : 'table';
+    if (window._etMode !== 'table') window._etAudienceTab = null;
+    renderEmailsRd();
+  }
+  function rdEtSetAudienceTab(label) {
+    if (label && window._etAudienceTab === label) window._etAudienceTab = null;
+    else window._etAudienceTab = label || null;
+    window._etMode = 'table';
     renderEmailsRd();
   }
   function applyEmailsRailView(viewId) {
     window._etRailView = viewId || 'all';
     if (typeof setSavedView === 'function') setSavedView('emails', window._etRailView);
     window._etMode = 'table';
+    if (viewId === 'Guests' || viewId === 'Vendors' || viewId === 'Wedding party') {
+      window._etAudienceTab = viewId;
+    } else {
+      window._etAudienceTab = null;
+    }
     renderEmailsRd();
   }
   function applyEmailsGroupBy(id) {
@@ -536,7 +703,7 @@
       `<div class="rd-et-letter__body">${body}</div>` +
       `</div>` +
       (blank
-        ? `<div class="rd-et-callout"><strong>${blanks} blank field${blanks === 1 ? '' : 's'}</strong><p>${esc(blank.token)} is not set on Wedding Setup — fix it before this template can send.</p></div>`
+        ? `<div class="rd-et-callout"><strong>${blanks} blank field${blanks === 1 ? '' : 's'}</strong><p>${esc(blank.token)} is not set on Wedding Setup, so this template cannot be sent. Set it once and every template resolves.</p></div>`
         : '') +
       `<div class="rd-drawer__section-title">Merge fields · ${x.fieldCount}</div>` +
       x.fields.map(f =>
@@ -585,13 +752,18 @@
     });
     table += `</tbody></table>` +
       `<button type="button" class="rd-et-addbtn" onclick="rdEtAdd()"><span>+</span> New template</button>`;
-    /* All.dc #12c — preview sits in a 470px column to the right of the table. */
-    host.innerHTML =
-      `<div class="rd-et-split">` +
-      `<div class="rd-et-split__main">${table}</div>` +
-      `<aside class="rd-et-split__preview" id="et-inline-preview-host" aria-label="Template preview">` +
-      renderInlinePreview(preview) +
-      `</aside></div>`;
+    /* All.dc #12c — preview sits in a 470px column unless audience tab filters (19n). */
+    const showSplitPreview = !window._etAudienceTab;
+    if (showSplitPreview) {
+      host.innerHTML =
+        `<div class="rd-et-split">` +
+        `<div class="rd-et-split__main">${table}</div>` +
+        `<aside class="rd-et-split__preview" id="et-inline-preview-host" aria-label="Template preview">` +
+        renderInlinePreview(preview) +
+        `</aside></div>`;
+    } else {
+      host.innerHTML = `<div class="rd-et-split__main rd-et-split__main--solo">${table}</div>`;
+    }
   }
 
   /* ── Preview view ────────────────────────────────────────────────────── */
@@ -600,30 +772,35 @@
     const host = document.getElementById('et-view-preview');
     if (!host) return;
     const items = filteredTemplates();
-    const x = items.find(i => i.id === window._etPreviewId) || items[0];
+    const x = items.find(i => i.id === window._etPreviewId) || items.find(i => /rsvp/i.test(i.title)) || items[0];
     if (!x) {
       host.innerHTML = `<div class="rd-et-empty"><p>No template to preview.</p></div>`;
       return;
     }
     window._etPreviewId = x.id;
     const f = etFigures();
-    const subject = fillPreviewText(x.subject, x);
-    const body = fillPreviewText(x.body, x).replace(/\n/g, '<br>');
+    const idx = Math.max(0, Math.min(PREVIEW_RECIPIENTS.length - 1, window._etPreviewIdx || 0));
+    const recip = PREVIEW_RECIPIENTS[idx] || PREVIEW_RECIPIENTS[0];
+    const fields = recip.fields || x.fields.map(fld => ({ token: fld.token, value: fld.value, blank: fld.blank }));
     host.innerHTML = `<div class="rd-et-preview">` +
       `<div class="rd-et-letter is-large">` +
-      `<div class="rd-et-letter__row"><span>Subject</span><strong>${esc(subject)}</strong></div>` +
-      `<div class="rd-et-letter__row"><span>To</span><strong>Household ${(window._etPreviewIdx || 0) + 1}</strong></div>` +
-      `<div class="rd-et-letter__body">${body}</div>` +
+      `<div class="rd-et-letter__row"><span>To</span><strong>${esc(recip.name)} &lt;${esc(recip.email)}&gt;</strong></div>` +
+      `<div class="rd-et-letter__row"><span>Subject</span><strong>${esc(recip.subject || fillPreviewText(x.subject, x))}</strong></div>` +
+      `<div class="rd-et-letter__body">${String(recip.body || fillPreviewText(x.body, x)).replace(/\n/g, '<br>')}</div>` +
+      `<p class="rd-et-preview__footer">Sent via the Covenant Wedding Planner · reply to this email and it reaches Ama directly</p>` +
       `</div>` +
       `<aside class="rd-et-preview__side">` +
       `<div class="rd-drawer__section-title">Merge fields resolved</div>` +
-      x.fields.map(fld =>
-        `<div class="rd-drawer__guest">${esc(fld.display)} <span class="${fld.blank ? 'is-blank' : 'is-ok'}">${esc(fld.value)}</span></div>`
+      fields.map(fld =>
+        `<div class="rd-drawer__guest">${esc('{{' + fld.token + '}}')} <span class="${fld.blank ? 'is-blank' : 'is-ok'}">${esc(fld.value)}</span></div>`
       ).join('') +
+      (recip.conditionalDrops
+        ? `<div class="rd-et-callout"><strong>Conditional drops · ${recip.conditionalDrops}</strong><p>${esc(recip.conditionalNote || '')}</p></div>`
+        : '') +
       `<div class="rd-drawer__section-title">This send</div>` +
       fieldPlain('Recipients', (f.withEmail || 12) + ' households') +
       fieldPlain('Missing an address', (f.noEmail || 1) + ' · excluded') +
-      fieldPlain('Previewing', ((window._etPreviewIdx || 0) + 1) + ' of ' + (f.withEmail || 12)) +
+      fieldPlain('Previewing', (idx + 1) + ' of ' + (f.withEmail || 12)) +
       `</aside></div>`;
   }
   function fieldPlain(label, value) {
@@ -635,30 +812,34 @@
   function renderLogView() {
     const host = document.getElementById('et-view-log');
     if (!host) return;
-    const items = filteredTemplates().filter(x => x.sent > 0 || x.status === 'Draft');
-    const groups = [
-      { key: 'RSVP chase · sent 18 July', sent: 42, delivered: 38, opened: 24, replied: 9, rows: [
-        { name: 'Efua Mensah', outcome: 'Replied' },
-        { name: 'Owusu household', outcome: 'Opened' },
-        { name: 'No address on file', outcome: 'Excluded' }
-      ]},
-      { key: 'Save the date · sent 4 March', sent: 24, delivered: 24, opened: 18, replied: 0, rows: [
-        { name: 'All households', outcome: 'Complete' }
-      ]},
-      { key: 'Drafts · not sent', sent: 0, delivered: 0, opened: 0, replied: 0, rows: items.filter(x => x.status === 'Draft').map(x => ({ name: x.title, outcome: 'Blocked' })) }
-    ];
+    let groups = SEND_LOG_GROUPS.slice();
     if (window._etFailuresFirst) {
-      groups.forEach(g => g.rows.sort((a, b) => (/bounce|exclu|block/i.test(a.outcome) ? -1 : 0) - (/bounce|exclu|block/i.test(b.outcome) ? -1 : 0)));
+      groups = groups.map(g => Object.assign({}, g, {
+        rows: g.rows.slice().sort((a, b) => (/bounce|exclu|block|fail/i.test(a.outcome) ? -1 : 0) - (/bounce|exclu|block|fail/i.test(b.outcome) ? -1 : 0))
+      }));
+    }
+    const ui = window._etUiFilters || {};
+    if (ui.template && ui.template !== 'all') {
+      groups = groups.filter(g => g.key.toLowerCase().includes(String(ui.template).toLowerCase()));
+    }
+    if (ui.outcome && ui.outcome !== 'all') {
+      groups = groups.map(g => Object.assign({}, g, {
+        rows: g.rows.filter(r => r.outcome.toLowerCase() === String(ui.outcome).toLowerCase())
+      })).filter(g => g.rows.length);
     }
     let html = '';
     groups.forEach(g => {
-      if (!g.rows.length && /Drafts/.test(g.key)) return;
+      if (!g.rows.length) return;
       html += `<section class="rd-et-send">` +
         `<div class="rd-et-send__head"><span>${esc(g.key)}</span>` +
         `<em>${g.sent} sent · ${g.delivered} delivered · ${g.opened} opened · ${g.replied} replied</em></div>`;
       g.rows.forEach(r => {
-        html += `<div class="rd-et-send__row${/bounce|exclu|block/i.test(r.outcome) ? ' is-fail' : ''}">` +
-          `<strong>${esc(r.name)}</strong>${statusPill(r.outcome)}</div>`;
+        const fail = /bounce|exclu|block|fail/i.test(r.outcome);
+        html += `<div class="rd-et-send__row${fail ? ' is-fail' : ''}">` +
+          `<div><strong>${esc(r.name)}</strong>` +
+          (r.email ? `<div class="rd-et-send__email">${esc(r.email)}</div>` : '') +
+          (r.detail ? `<div class="rd-et-send__detail">${esc(r.detail)}</div>` : '') +
+          `</div>${statusPill(r.outcome)}</div>`;
       });
       html += `</section>`;
     });
@@ -708,7 +889,7 @@
         field('From', x.from) +
         field('Reply to', x.replyTo || '—') +
         field('Last sent', x.sent ? (x.lastUsed + ' · ' + x.sent + ' recipients') : 'Never') +
-        `<p class="rd-drawer__note">The planner never sends mail itself. Prepare opens your mail client with the resolved copy — you press send.</p>`;
+        `<p class="rd-drawer__note">The planner writes the letter and logs the send; your mail client does the sending.</p>`;
     } else if (tab === 1) {
       body =
         `<div class="rd-drawer__section-title">Merge fields · ${x.fieldCount}</div>` +
@@ -719,19 +900,21 @@
     } else if (tab === 2) {
       body =
         `<div class="rd-drawer__section-title">Audience right now</div>` +
-        field('Pending RSVPs', f.pending + ' guests') +
+        field('Pending RSVPs', f.pending + ' guests · was 31 yesterday') +
         field('With an email address', String(f.withEmail)) +
-        field('No email on file', String(f.noEmail)) +
-        `<p class="rd-drawer__note">Audience is a query, not a fixed list — it updates as RSVPs and addresses change.</p>`;
+        field('No email on file', String(f.noEmail) + ' · excluded from send') +
+        `<p class="rd-drawer__note">Audience is a query, not a list. It was 31 yesterday and three of them have no email at all.</p>`;
     } else {
-      const sends = x.sends.length ? x.sends : [{ when: '—', label: 'No sends' }];
+      const sends = x.sends.length ? x.sends : [{ when: '—', label: 'No sends yet' }];
+      const pending = Math.max(0, f.pending - x.sent);
       body =
         `<div class="rd-drawer__section-title">Sends · ${sends.length}</div>` +
         sends.map(s => `<div class="rd-drawer__hist"><strong>${esc(s.when)}</strong><div>${esc(s.label || (s.sent + ' recipients'))}</div></div>`).join('') +
         `<div class="rd-drawer__section-title">Across templates</div>` +
         field('Total sent', String(f.sentTotal)) +
         field('Most used', f.mostTitle + ' · ' + f.mostSent) +
-        field('Never used', String(f.never));
+        field('Still pending', pending + ' on this audience') +
+        (pending > 0 ? `<p class="rd-drawer__note">${x.sent} sends logged — ${pending} still pending on this group.</p>` : '');
     }
 
     const foot = tab === 1
@@ -827,7 +1010,18 @@
     if (typeof EMAIL_TEMPLATES !== 'undefined') {
       EMAIL_TEMPLATES.forEach((t, i) => {
         if (data.emailTemplates.some(r => String(r.title).toLowerCase() === String(t.title).toLowerCase())) return;
-        data.emailTemplates.push(seedFromLibrary(t, data.emailTemplates.length + i));
+        const aud = audienceFromCat(t.cat, t.title);
+        data.emailTemplates.push(seedMasterTemplate({
+          title: t.title,
+          audience: aud,
+          fieldCount: extractFields(t.subject, t.body).length,
+          sent: 0,
+          lastUsed: '—',
+          status: 'Draft',
+          subject: t.subject,
+          body: t.body,
+          sends: []
+        }, data.emailTemplates.length + i));
       });
       if (typeof save === 'function') save();
     }
@@ -947,6 +1141,7 @@
     uedEmailsShellRd();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('emails');
     applyViewMode();
+    renderEtSectionTabs();
     renderEtStatsRd();
     renderEtToolbar();
     renderEtBulk();
@@ -969,6 +1164,8 @@
   window.renderEmailsPage = renderEmailsRd;
   window.renderEmailsRd = renderEmailsRd;
   window.rdSetEtView = rdSetEtView;
+  window.rdEtSetSurface = rdEtSetSurface;
+  window.rdEtSetAudienceTab = rdEtSetAudienceTab;
   window.applyEmailsRailView = applyEmailsRailView;
   window.applyEmailsGroupBy = applyEmailsGroupBy;
   window.etRailCounts = etRailCounts;

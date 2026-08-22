@@ -21625,7 +21625,56 @@ body.rd-scope[data-theme="night"] #panel-packets .rd-pkt-liststrip {
 }
 
 
-/* ── Email Templates (All.dc #12c) ────────────────────────────────────────── */
+/* ── Email Templates (Master s25 / 12c) ───────────────────────────────────── */
+body.rd-scope #panel-emails.emails-rd .rd-sectiontabs.rd-et-surfacetabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  padding: 0 4px;
+  border-bottom: 1px solid #e7e1d4;
+  background: #fdfcfa;
+}
+body.rd-scope #panel-emails.emails-rd .rd-et-surfacetabs-note {
+  margin-left: auto;
+  padding: 8px 12px 10px;
+  font-size: 11px;
+  color: #8a7e6b;
+  letter-spacing: .02em;
+}
+body.rd-scope #panel-emails .rd-et-split__main--solo {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  padding: 4px 4px 28px;
+  width: 100%;
+}
+body.rd-scope #panel-emails .rd-et-preview__footer {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #efe9dc;
+  font-size: 11px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-emails .rd-et-send__email {
+  font-size: 12px;
+  color: #6b645d;
+  margin-top: 2px;
+}
+body.rd-scope #panel-emails .rd-et-send__detail {
+  font-size: 12px;
+  color: #8a7e6b;
+  margin-top: 2px;
+}
+body.rd-scope #panel-emails .rd-toolbar__label {
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 600;
+  align-self: center;
+  margin-right: 2px;
+}
 body.rd-scope #panel-emails.ued-scope,
 body.rd-scope #panel-emails.emails-mockup { min-height: 0; }
 body.rd-scope #panel-emails .rd-page {
