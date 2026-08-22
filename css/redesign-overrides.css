@@ -24249,6 +24249,87 @@ body.rd-scope #panel-print-centre .rd-pc-pack-card p {
   line-height: 1.45;
 }
 
+/* §21 Households · Cards / Labels / drawer (Master 14b) */
+body.rd-scope #panel-households .rd-hh-card__addr {
+  margin-top: 2px;
+  color: #6b645d;
+}
+body.rd-scope #panel-households .rd-hh-card__meta {
+  margin-top: 6px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-households .rd-hh-card__chip {
+  margin-top: 10px;
+}
+body.rd-scope #panel-households .rd-hh-card.is-selected {
+  border-color: #2D4A3E;
+  background: #f4f7fb;
+}
+body.rd-scope #panel-households .rd-hh-labelsheet .rd-hh-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 88px;
+}
+body.rd-scope #panel-households .rd-hh-label__addr {
+  font-size: 12px;
+  color: #3f3b34;
+  line-height: 1.45;
+}
+body.rd-scope #panel-households .rd-hh-label__count {
+  margin-top: auto;
+  font-size: 11px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-households .rd-hh-drawer-lead {
+  margin: 0 0 12px;
+  line-height: 1.55;
+}
+body.rd-scope #panel-households .rd-drawer__section-label {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #e7e1d4;
+  margin: 10px 0 8px;
+}
+body.rd-scope #panel-households .rd-hh-drawer-members {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+body.rd-scope #panel-households .rd-hh-drawer-member {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #23211c;
+}
+body.rd-scope #panel-households .rd-hh-drawer-member__rsvp {
+  color: #6b645d;
+  white-space: nowrap;
+}
+body.rd-scope #panel-households .rd-hh-edit-addr {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+body.rd-scope.night #panel-households .rd-hh-card,
+body.rd-scope[data-theme="night"] #panel-households .rd-hh-card {
+  border-color: #3a3a32;
+  background: #1c1c18;
+}
+body.rd-scope.night #panel-households .rd-hh-card strong,
+body.rd-scope[data-theme="night"] #panel-households .rd-hh-card strong {
+  color: #e6e1d6;
+}
+body.rd-scope.night #panel-households .rd-drawer__section-label,
+body.rd-scope[data-theme="night"] #panel-households .rd-drawer__section-label {
+  border-bottom-color: #2e2e28;
+}
+
 /* Vision keepsake read surface */
 body.rd-scope #panel-vision .rd-keepsake,
 body.rd-scope #panel-vision .rd-vis-keepsake {

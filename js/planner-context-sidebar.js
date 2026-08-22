@@ -2550,17 +2550,18 @@
     return '<div class="rd-rail__stack" data-page-rail="emails">' + viewsHtml + useHtml + groupHtml + noteHtml + '</div>';
   }
 
-  /* All.dc #14b / Views #28 — derived households over guests. */
+  /* Master s21 / All.dc #14b — derived households over guests. */
   function buildHouseholdsContext() {
     var activeView = 'all';
     if (typeof getSavedView === 'function') activeView = getSavedView('households', 'all');
     else if (typeof window._hhRailView === 'string' && window._hhRailView) activeView = window._hhRailView;
     window._hhRailView = activeView;
     var counts = typeof window.hhRailCounts === 'function' ? window.hhRailCounts() : {
-      all: 0, invited: 0, fully: 0, partly: 0, none: 0
+      all: 0, invited: 0, fully: 0, partly: 0, none: 0, noAddress: 0
     };
     var figures = typeof window.hhFigures === 'function' ? window.hhFigures() : {
-      invited: 0, households: 0, fully: 0, seats: 0, confirmed: 0
+      invited: 0, households: 0, fully: 0, withAddress: 0, noAddress: 0,
+      labelsPrinted: 0, chased: 0
     };
     var groupBy = window._hhGroupBy || 'side';
     function viewItem(id, label, count, warn) {
@@ -2577,13 +2578,19 @@
       viewItem('fully', 'Fully replied', counts.fully || 0) +
       viewItem('partly', 'Partly replied', counts.partly || 0, true) +
       viewItem('none', 'No reply', counts.none || 0, true) +
+      viewItem('noAddress', 'No address', counts.noAddress || 0, true) +
       '</div></div>';
+    var withAddr = figures.withAddress != null ? figures.withAddress
+      : Math.max(0, (figures.households || 0) - (figures.noAddress || 0));
     var metersHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Invitations</div><div class="rd-rail__meters">' +
-      '<div class="rd-rail__meter-top"><span>Sent</span><span class="rd-rail__count">' + (figures.invited || 0) + ' of ' + (figures.households || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Replied</span><span class="rd-rail__count">' + (figures.fully || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Seats requested</span><span class="rd-rail__count">' + (figures.seats || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Seats confirmed</span><span class="rd-rail__count">' + (figures.confirmed || 0) + '</span></div>' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Addresses on file</span><span class="rd-rail__count">' +
+      withAddr + ' of ' + (figures.households || 0) + '</span></div>' +
+      '<div class="rd-progress"><div class="rd-progress__fill" style="width:' +
+      ((figures.households ? Math.round(100 * withAddr / figures.households) : 0)) + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Labels printed</span><span class="rd-rail__count">' + (figures.labelsPrinted || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Replied in full</span><span class="rd-rail__count">' + (figures.fully || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Chased</span><span class="rd-rail__count">' + (figures.chased || 0) + '</span></div>' +
       '</div></div>';
     function groupItem(id, label) {
       return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
@@ -2591,9 +2598,9 @@
     }
     var groupHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
-      groupItem('side', 'Side') + groupItem('city', 'City') + groupItem('reply', 'Reply status') +
+      groupItem('side', 'Side') + groupItem('reply', 'Reply status') + groupItem('city', 'City') +
       '</div></div>';
-    var noteHtml = '<p class="rd-rail__note"><b>A derived view.</b> Households are grouped guest records — editing an address here edits it on every guest in that household.</p>';
+    var noteHtml = '<p class="rd-rail__note">Derived from the guest table. Editing a household address writes to every guest inside it — there is no household record to edit on its own.</p>';
     return '<div class="rd-rail__stack" data-page-rail="households">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
