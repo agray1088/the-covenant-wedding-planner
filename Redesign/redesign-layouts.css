@@ -152,7 +152,8 @@
   font: inherit; color: var(--text-link); cursor: pointer;
 }
 .rd-bulkbar__action:hover { text-decoration: underline; }
-.rd-viewswitch__item { background: none; border: 0; font: inherit; }
+/* View items use the chip metric (set in redesign-components) — do not inherit body 17px type. */
+.rd-viewswitch__item { background: none; border-top: 0; border-right: 0; border-bottom: 0; }
 .rd-chip--ghost { border-color: transparent; }
 .rd-chip--ghost:hover { border-color: var(--border-control); }
 .rd-tab__dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }

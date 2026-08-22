@@ -23,9 +23,9 @@ function blankData() {
     party: [], tables: [], gifts: [], shotlist: [], videoShotlist: [], recSongs: [], recMoments: [], speeches: [],
     menu: [], beverages: [], kidsMenu: [], placeSettings: [], cateringRentals: [], cateringMeta: {}, venue: {}, vtimeline: [], essentials: [], plan: [],
     entertainment: [], mustPlay: [], doNotPlay: [], receptionPlaylist: [], palettes: [], moodPhotos: [], moodFavorites: [], moodItems: [],
-    honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
-    vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
-    vision: {}, homecoming: [], firstmonth: {}, marriageLicense: {},
+    honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], firstMonthBudget: [], homecomingReflection: {}, honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
+    packets: [], emailTemplates: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
+    vision: {}, homecoming: [], firstmonth: {}, rhythms: [], marriageLicense: {},
     vendorCompare: [], reception: {}, attire: [], decor: [], stationery: [], events: [], locations: [], contacts: [],
     weekendTimeline: [], travelAccommodations: [], hotelBlocks: [], transportation: [], vipCare: [],
     _historyLog: [], _undoSnapshots: [], _redoSnapshots: [], _historyPrefs: {}
@@ -593,6 +593,24 @@ const COVENANT_PRINT_CSS = `
 #cvp-root .cvp-phasehead .pn{color:var(--forest-d);font:400 16px Georgia,"Times New Roman",serif}
 #cvp-root .cvp-phasehead .pc{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
 #cvp-root .cvp-phaserule{height:3px;margin:6px 0 8px;background:linear-gradient(to right,var(--forest),var(--gold-s),transparent)}
+/* Appointments print target = Agenda (20b), not the table. */
+#cvp-root .cvp-agenda{margin:2px 0 8px}
+#cvp-root .cvp-agenda-month{margin:0 0 12px}
+#cvp-root .cvp-agenda-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:14px 0 4px;padding-bottom:5px;border-bottom:1px solid var(--line);break-after:avoid}
+#cvp-root .cvp-agenda-head .pn{color:var(--forest-d);font:400 16px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-agenda-head .pc{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+#cvp-root .cvp-agenda-head.held{border-bottom-color:var(--gold)}
+#cvp-root .cvp-agenda-row{display:grid;grid-template-columns:1.2in 1fr .95in .8in;gap:8px;align-items:start;padding:7px 2px;border-bottom:1px solid var(--line);break-inside:avoid}
+#cvp-root .cvp-agenda-row.clash{background:var(--burg-pale)}
+#cvp-root .cvp-agenda-when{color:var(--forest);font-size:10px;line-height:1.35}
+#cvp-root .cvp-agenda-when .d{font-weight:700;display:block}
+#cvp-root .cvp-agenda-when .t{color:var(--muted)}
+#cvp-root .cvp-agenda-title{color:var(--forest-d);font:700 11.5px Georgia,"Times New Roman",serif}
+#cvp-root .cvp-agenda-sub{margin-top:1px;color:var(--muted);font-size:9.5px;line-height:1.35}
+#cvp-root .cvp-agenda-who{color:var(--charcoal);font-size:10px}
+#cvp-root .cvp-agenda-gap{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;padding:4px 2px 4px 1.2in;color:var(--muted);font-size:9px;font-style:italic;break-inside:avoid}
+#cvp-root .cvp-agenda-gap.clash{color:var(--burg);font-style:normal;background:var(--burg-pale)}
+#cvp-root .cvp-agenda-gap .pill{display:inline-block;padding:1px 6px;border:1px solid currentColor;border-radius:10px;font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;font-style:normal}
 #cvp-root .cvp-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:2px 0 8px}
 #cvp-root .cvp-card{position:relative;padding:16px 14px 14px;background:#fff;border:1px solid var(--line);border-radius:4px;break-inside:avoid}
 #cvp-root .cvp-card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--forest)}
@@ -1558,31 +1576,51 @@ function buildTimelinePrintSheets(){
     + '</section>' + _cvpFoot('To every thing there is a season.', 'Wedding Day Timeline') + '</main>';
 }
 
-/* Builder — Appointments (Planning). */
+/* Builder — Appointments (Planning). Print target is Agenda 20b, not the table. */
 function buildAppointmentsPrintSheets(){
-  const appts = safeArray(data && data.appointments);
+  if (typeof ensureAppointmentData === 'function') ensureAppointmentData();
+  const items = typeof appointmentAgendaPrintItems === 'function'
+    ? appointmentAgendaPrintItems()
+    : safeArray(data && data.appointments).map((row, i) => ({ row, i }));
+  const model = typeof appointmentAgendaModel === 'function'
+    ? appointmentAgendaModel(items)
+    : { months: [], held: [], totalN: items.length, clashMap: new Map() };
+  const appts = items.map(it => it.row);
   const confirmed = appts.filter(a => _cvpStatusClass(a.status) === 'done').length;
   const todayISO = new Date().toISOString().slice(0, 10);
   const upcoming = appts.filter(a => _cvpStr(a.date) >= todayISO).length;
-  const rows = appts.slice().sort((a, b) => (_cvpStr(a.date) + _cvpStr(a.time)).localeCompare(_cvpStr(b.date) + _cvpStr(b.time))).map(a =>
-    '<tr><td class="date">' + _cvpShortDate(a.date) + '</td>'
-    + '<td>' + escapeHtml(_cvpStr(a.time)) + '</td>'
-    + '<td class="strong">' + escapeHtml(_cvpStr(a.title)) + '</td>'
-    + '<td>' + escapeHtml(_cvpStr(a.vendor)) + '</td>'
-    + '<td>' + escapeHtml(_cvpStr(a.location)) + '</td>'
-    + '<td>' + (_cvpStr(a.status) ? _cvpPill(a.status) : '') + '</td></tr>'
-  ).join('') || '<tr><td colspan="6" class="cvp-empty">No appointments yet.</td></tr>';
+  const clashN = items.reduce((n, it) => {
+    const key = it.row && it.row._id != null ? String(it.row._id) : ('idx:' + it.i);
+    return n + ((model.clashMap && (model.clashMap.has(key) || model.clashMap.has('idx:' + it.i))) ? 1 : 0);
+  }, 0);
+  const agendaBody = typeof appointmentAgendaPrintHtml === 'function'
+    ? appointmentAgendaPrintHtml(model)
+    : '<p class="cvp-empty">No appointments yet.</p>';
   return '<main class="cvp-page">'
-    + _cvpMast('The Covenant Wedding Planner &middot; Planning', 'Appointments', 'Fittings, tastings, and meetings')
+    + _cvpMast('The Covenant Wedding Planner &middot; Planning', 'Appointments', 'Agenda — fittings, tastings, and meetings')
     + '<section class="cvp-body">'
     + '<span class="cvp-sec">Overview</span><div class="cvp-info">'
     + _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate())
-    + _cvpInfoCell('Appointments', appts.length) + _cvpInfoCell('Upcoming', upcoming) + '</div>'
+    + _cvpInfoCell('Appointments', model.totalN) + _cvpInfoCell('Upcoming', upcoming) + '</div>'
     + '<span class="cvp-sec">At a glance</span><div class="cvp-stats">'
-    + _cvpStat('Total', appts.length) + _cvpStat('Confirmed', confirmed, 'gold') + _cvpStat('Upcoming', upcoming, 'mauve') + '</div>'
-    + '<span class="cvp-sec">Schedule</span>'
-    + '<table class="cvp-table"><thead><tr><th>Date</th><th>Time</th><th>Appointment</th><th>With</th><th>Location</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + _cvpStat('Total', model.totalN) + _cvpStat('Confirmed', confirmed, 'gold')
+    + _cvpStat('Upcoming', upcoming, 'mauve') + _cvpStat('Clashes', clashN, clashN ? 'burg' : '') + '</div>'
+    + '<span class="cvp-sec">Agenda</span>'
+    + '<p class="cvp-p">This page prints as the itinerary: month headers, travel as a gap between entries, Held last with the reason a date is missing.</p>'
+    + agendaBody
+    + (typeof _cvpAppointmentDetails === 'function' ? _cvpAppointmentDetails(appts) : '')
     + '</section>' + _cvpFoot('Prepare thy work, and make it fit.', 'Appointments') + '</main>';
+}
+function _cvpAppointmentDetails(appts){
+  const cards = (appts || []).map(a => _cvpRecord(_cvpStr(a.title) || 'Appointment', [
+    _cvpField('Vendor', a.vendor), _cvpField('Contact', a.contact),
+    _cvpField('Date', a.date ? _cvpShortDate(a.date) : 'Held — no date'),
+    _cvpField('Time', a.time), _cvpField('Location', a.location),
+    _cvpField('Travel', a.travel), _cvpField('Who', a.guests || a.contact),
+    _cvpField('Status', a.status),
+    _cvpField('Notes', a.notes, { full: true })
+  ])).filter(Boolean).join('');
+  return cards ? (_cvpDetailSec('Full appointment details') + cards) : '';
 }
 
 /* Small shared builders for the remaining single-sheet table templates. */
@@ -1902,7 +1940,7 @@ function buildGiftsPrintSheets(){
   return _cvpPage(_CVP_BRAND + ' &middot; Design &amp; Details', 'Gift Log', 'Gifts received and thank-you tracking', info, stats + table, 'Every good gift is from above.', 'Gift Log');
 }
 
-/* Honeymoon & After */
+/* Honeymoon */
 function buildHoneymoonPrintSheets(){
   const it = safeArray(data && data.honeyItinerary), tr = safeArray(data && data.honeyTransport), pk = safeArray(data && data.packing);
   const iBody = it.map(r => '<tr><td>' + escapeHtml(_cvpStr(r.day)) + '</td><td>' + escapeHtml(_cvpStr(r.time)) + '</td><td class="strong">' + escapeHtml(_cvpStr(r.plan)) + '</td><td>' + escapeHtml(_cvpStr(r.location)) + '</td></tr>').join('');
@@ -1910,7 +1948,7 @@ function buildHoneymoonPrintSheets(){
   const info = _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()) + _cvpInfoCell('Itinerary days', it.length) + _cvpInfoCell('Packing items', pk.length);
   const body = _cvpSec('Itinerary') + _cvpTable([{label:'Day'},{label:'Time'},{label:'Plan'},{label:'Location'}], iBody, 'No itinerary yet.')
     + _cvpSec('Travel') + _cvpTable([{label:'Type'},{label:'Date'},{label:'From'},{label:'To'}], tBody, 'No travel legs yet.');
-  return _cvpPage(_CVP_BRAND + ' &middot; After the Day', 'Honeymoon &amp; After', 'Travel, itinerary, and rest', info, body, 'They twain shall be one flesh.', 'Honeymoon');
+  return _cvpPage(_CVP_BRAND + ' &middot; The Day', 'Honeymoon', 'Travel, itinerary, and rest', info, body, 'They twain shall be one flesh.', 'Honeymoon');
 }
 
 /* First-Month Rhythms (reflect / rhythms) */
@@ -2161,6 +2199,9 @@ function tryCovenantPrintTemplate(target){
       if (_rflTab === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
       if (_rflTab === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
     }
+    if (target === 'vision') { openCovenantPrintTemplate(buildVisionFoundationPrintSheets()); return true; }
+    if (target === 'firstmonth' || target === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
+    if (target === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
     if (target === 'packets') {
       openCovenantPrintTemplate(buildPacketsPrintSheets());
       return true;
@@ -2314,7 +2355,8 @@ function renderWhenInputComplete(renderFn) {
    PLANNER HISTORY, UNDO, AND REDO
 ════════════════════════════════════════════════ */
 const HISTORY_SNAPSHOT_LIMIT = 15;
-const HISTORY_LOG_LIMIT = 250;
+/* Readable change log capacity (All.dc 18b). Undo snapshots stay at 15. */
+const HISTORY_LOG_LIMIT = 200;
 const HISTORY_GROUP_MS = 3000;
 /* _recordHistory belongs here for the same reason the others do: it is a
    record OF changes, not a change. Left out, every per-record history write
@@ -2367,7 +2409,7 @@ function historyPanelLabel(id = historyPanelId()) {
     calendar:'Smart Calendar', appointments:'Appointments', notes:'Notes', contracts:'Contracts, Invoices & Rentals',
     venue:'Venue & Vendors', catering:'Catering & Menu', party:'Wedding Party', tables:'Table Layout',
     ceremony:'Ceremony & Reception', timeline:'Wedding Day Timeline', entertainment:'Music & Speeches', shotlist:'Photo & Video Shot Lists',
-    mood:'Vision Board', essentials:'Essentials Checklist', gifts:'Gift Log', honeymoon:'Honeymoon & After',
+    mood:'Vision Board', essentials:'Essentials Checklist', gifts:'Gift Log', honeymoon:'Honeymoon',
     prayer:'Prayer Journal', counseling:'Premarital Counseling'
   };
   return labels[id] || id.replace(/[-_]/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
@@ -2424,9 +2466,26 @@ function historySummarizeChange(beforeText, afterText) {
   const page = historyPanelLabel();
   const visible = changed.slice(0,4).map(item => item.detail).join('; ');
   const extra = changed.length > 4 ? `; plus ${changed.length - 4} more section${changed.length - 4 === 1 ? '' : 's'}` : '';
+  const primary = changed[0] ? historySectionLabel(changed[0].key) : page;
+  const fieldCount = changed.length;
+  const changeTitle = fieldCount === 1
+    ? `Changed 1 field on ${primary}`
+    : `Changed ${fieldCount} fields on ${primary}`;
+  const fields = changed.slice(0, 6).map(item => {
+    const m = String(item.detail || '').match(/^([^:]+):\s*(.*)$/);
+    return { label: m ? m[1].trim() : historySectionLabel(item.key), from: '', to: m ? m[2].trim() : (item.detail || 'updated') };
+  });
+  const who = (() => {
+    const bride = String((data.setup && data.setup.bride) || '').trim();
+    return bride ? bride.split(/\s+/)[0] : 'You';
+  })();
   return {
     source: page,
-    action: `Updated ${page}`,
+    action: changeTitle,
+    change: changeTitle,
+    record: page + (primary && primary !== page ? ' · ' + primary : ''),
+    who,
+    fields,
     details: visible + extra,
     groupKey: page + '|' + changed.map(item => item.key).join(',')
   };
@@ -2454,6 +2513,10 @@ function recordPlannerHistory() {
     last.date = historyTodayISO();
     last.time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
     last.details = summary.details;
+    last.action = summary.action;
+    last.change = summary.change || summary.action;
+    last.record = summary.record || summary.source;
+    last.fields = summary.fields || last.fields;
   } else {
     data._undoSnapshots.unshift(HISTORY_BASE_SNAPSHOT);
     data._undoSnapshots = data._undoSnapshots.slice(0, HISTORY_SNAPSHOT_LIMIT);
@@ -2465,13 +2528,21 @@ function recordPlannerHistory() {
       time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
       source: summary.source,
       action: summary.action,
+      change: summary.change || summary.action,
+      record: summary.record || summary.source,
+      who: summary.who || 'You',
+      fields: summary.fields || [],
       details: summary.details,
-      groupKey: summary.groupKey
+      groupKey: summary.groupKey,
+      hasSnapshot: true
     });
     data._historyLog = data._historyLog.slice(0, HISTORY_LOG_LIMIT);
   }
   HISTORY_BASE_SNAPSHOT = nextSnapshot;
   updateHistoryControls();
+  if (document.body?.getAttribute('data-active-panel') === 'history' && typeof renderHistoryRd === 'function') {
+    renderWhenInputComplete(renderHistoryRd);
+  }
 }
 function saveHistorySilent() {
   normalizeHistoryState();
@@ -2517,8 +2588,13 @@ function addHistorySystemEntry(action, details) {
     time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
     source: 'Planner History',
     action,
+    change: action,
+    record: 'Planner History',
+    who: 'You',
+    fields: [],
     details,
-    groupKey: 'system|' + action
+    groupKey: 'system|' + action,
+    hasSnapshot: false
   });
   data._historyLog = data._historyLog.slice(0, HISTORY_LOG_LIMIT);
 }
@@ -2644,10 +2720,13 @@ async function clearPlannerHistory() {
   HISTORY_BASE_SNAPSHOT = historySnapshotString();
   HISTORY_SUSPENDED = true;
   try { saveHistorySilent(); } finally { HISTORY_SUSPENDED = false; }
-  renderHistoryPage();
+  if (typeof renderHistoryRd === 'function') renderHistoryRd();
+  else renderHistoryPage();
   renderHistoryDrawer();
   updateHistoryControls();
 }
+window.undoLastChange = undoPlannerChange;
+window.redoLastChange = redoPlannerChange;
 
 /* ── Track 4 / Phase B — SQLite write-through ──
    After every JSON/localStorage save, mirror the current `data` into the live
@@ -3746,8 +3825,8 @@ const NAV_CATEGORIES = [
     { id:'emails', label:'Email Templates', subtitle:'Vendor & guest messages', icon:'mail' },
     { id:'packets', label:'Share Packets', subtitle:'Print-ready handoffs', icon:'folder_shared' }
   ]},
-  { id:'after', label:'After the Day', subtitle:'Honeymoon & beyond', icon:'beach_access', pages:[
-    { id:'honeymoon', label:'Honeymoon & After', subtitle:'Travel & journal', icon:'beach_access' }
+  { id:'after', label:'Honeymoon', subtitle:'Travel & trip', icon:'beach_access', pages:[
+    { id:'honeymoon', label:'Honeymoon', subtitle:'Travel & journal', icon:'beach_access' }
   ]},
   { id:'rhythms', label:'Marriage Rhythms', subtitle:'First months together', icon:'nightlight', pages:[
     { id:'reflect', label:'First-Month Rhythms', subtitle:'Date nights & devotions', icon:'nightlight', action:"showReflectTabPage('rhythms')" },
@@ -3867,15 +3946,13 @@ const DATA_HUB_REGISTRY = {
     ]
   },
   honeymoon: {
-    label: 'Honeymoon & After', icon: 'beach_access',
+    label: 'Honeymoon', icon: 'beach_access',
     tables: [
       { key: 'honeyDetails', label: 'Honeymoon Details' },
       { key: 'honeyTransport', label: 'Transportation' },
       { key: 'honeyItinerary', label: 'Itinerary' },
       { key: 'packing', label: 'Packing List' },
-      { key: 'hmBudgetItems', label: 'Honeymoon Budget' },
-      { key: 'homecoming', label: 'Homecoming Checklist' },
-      { key: 'nameChange', label: 'Name Change' }
+      { key: 'hmBudgetItems', label: 'Honeymoon Budget' }
     ]
   }
 };
@@ -3911,7 +3988,7 @@ const SYSTEM_PAGE_REGISTRY = {
   gifts: { id:'gifts', label:'Gift Log', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add gift', usesCwpTable:true, tableKeys:['gifts'], bulkMode:'shared', hub:'design' },
   emails: { id:'emails', label:'Email Templates', scopeTier:'launch', archetype:'editorial', status:'exception', primaryAction:'Copy template', usesCwpTable:false, tableKeys:[], bulkMode:'disabled', hub:'none', notes:'Template library, not a record tracker.' },
   packets: { id:'packets', label:'Share Packets', scopeTier:'launch', archetype:'editorial', status:'exception', primaryAction:'Prepare packet', usesCwpTable:false, tableKeys:[], bulkMode:'disabled', hub:'none', notes:'Print/share handoff surface.' },
-  honeymoon: { id:'honeymoon', label:'Honeymoon & After', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add honeymoon detail', usesCwpTable:true, tableKeys:['honeyDetails','honeyTransport','honeyItinerary','packing','hmBudgetItems','homecoming','nameChange'], bulkMode:'hubOnly', hub:'honeymoon', notes:'Primary tracker with travel, checklist, journal, and after-wedding tabs.' },
+  honeymoon: { id:'honeymoon', label:'Honeymoon', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add honeymoon detail', usesCwpTable:true, tableKeys:['honeyDetails','honeyTransport','honeyItinerary','packing','hmBudgetItems'], bulkMode:'hubOnly', hub:'honeymoon', notes:'Primary tracker with travel, packing, trip budget, and journal. Post-wedding work lives on Newlywed Homecoming.' },
   'data-hub': { id:'data-hub', label:'Database Hub', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Edit table rows', usesCwpTable:true, tableKeys:['*'], bulkMode:'shared', hub:'none', notes:'Customer-facing full-table workspace, not developer UI.' }
 };
 const SYSTEM_STATUS_SEMANTICS = {
@@ -4344,7 +4421,7 @@ function renderDataHubPrimaryAction(category, tableId){
     logistics: { weekendTimeline: "logAdd('weekendTimeline',{date:'',start:'',end:'',event:'',location:'',host:'',group:'Everyone',attire:'',status:'Planned',cost:'',notes:''})", travelAccommodations: "logAdd('travelAccommodations',{guest:'',group:'Out-of-Town Guests',arrival:'',arrivalTime:'',departure:'',hotel:'',confirmation:'',roomBlock:'',transportNeeded:false,cost:'',notes:''})", hotelBlocks: "logAdd('hotelBlocks',{hotel:'',address:'',link:'',blockName:'',rate:'',cutoff:'',reserved:'',booked:'',contact:'',notes:''})", transportation: "logAdd('transportation',{date:'',pickupTime:'',route:'',vehicle:'',driver:'',passengers:'',status:'Needed',cost:'',notes:''})", vipCare: "logAdd('vipCare',{person:'',relationship:'',need:'Other',helper:'',phone:'',location:'',status:'Needs Plan',notes:''})", logAttire: "logAdd('attire',{item:'',person:'',vendor:'',status:'Needed',notes:''})", logDecor: "logAdd('decor',{item:'',area:'',vendor:'',status:'Planned',notes:''})", logStationery: "logAdd('stationery',{item:'',qty:'',vendor:'',status:'Draft',notes:''})", logEvents: "logAdd('events',{event:'Bachelorette',date:'',host:'',location:'',guests:'',budget:'',actual:'',notes:''})", logLocations: "logAdd('locations',{name:'',address:'',contact:'',phone:'',arrival:'',parking:'',who:''})", contactsDirectory: "logAdd('contacts',{name:'',role:'',category:'Manual',email:'',phone:'',company:'',emergency:false,lastContact:'',notes:''})" },
     design: { essentials: "addEssentialRow()", moodItems: "addMoodItem()", shotlist: "addShotRow()", videoShots: "addVideoShotRow()", gifts: "addGiftRow()" },
     faith: { counseling: "addCounselingRow()", prayer: "addPrayerRow()" },
-    honeymoon: { honeyDetails: "addHoneyDetailRow()", honeyTransport: "addHoneyTransportRow()", honeyItinerary: "addHoneyItiRow()", packing: "addPackingRow()", hmBudgetItems: "openRecordEditor('hmBudgetItems')", nameChange: "addNameChangeRow()", homecoming: "addHCRow()" }
+    honeymoon: { honeyDetails: "addHoneyDetailRow()", honeyTransport: "addHoneyTransportRow()", honeyItinerary: "addHoneyItiRow()", packing: "addPackingRow()", hmBudgetItems: "openRecordEditor('hmBudgetItems')" }
   };
   const fn = actions[category] && actions[category][tableId];
   if (!fn) return '';
@@ -4364,7 +4441,9 @@ function renderDataHubToolbar(category, tableId){
   const exportRows = dataHubActiveTableExportRows(category, tableId);
   const exportLabel = tab ? tab.label : 'Table';
   const exportBtn = exportRows ? `<button type="button" class="ued-btn" onclick="exportSectionCSV(${JSON.stringify(exportLabel)}, dataHubActiveTableExportRows('${category}','${tableId}'))">Export CSV</button>` : '';
-  return `<div class="data-hub-toolbar ued-actions"><button type="button" class="ued-btn" onclick="autoFitDataHubTables()" title="Size all columns to fit their contents">Auto-fit columns</button><button type="button" class="ued-btn" onclick="autoFitDataHubTableRows()" title="Size all rows to fit their contents">Auto-fit rows</button>${exportBtn}${renderDataHubPrimaryAction(category, tableId)}</div>`;
+  /* Legacy Auto-fit columns | Auto-fit rows pair removed — table chip toolbars
+     already expose Auto-fit columns + Row height. */
+  return `<div class="data-hub-toolbar ued-actions">${exportBtn}${renderDataHubPrimaryAction(category, tableId)}</div>`;
 }
 function autoFitDataHubTables(){
   const hub = document.getElementById('panel-data-hub');
@@ -5385,6 +5464,10 @@ function printSelectedSection(){
     setTimeout(() => openWdayTimelinePrint(), 120);
     return;
   }
+  if (printTarget === 'appointments') {
+    setTimeout(() => openAppointmentsAgendaPrint(), 120);
+    return;
+  }
   setTimeout(() => printSharedPage(printTarget), 160);
 }
 function printCurrentPage(){
@@ -5393,8 +5476,19 @@ function printCurrentPage(){
     setTimeout(() => openWdayTimelinePrint(), 120);
     return;
   }
+  if (active === 'appointments') {
+    setTimeout(() => openAppointmentsAgendaPrint(), 120);
+    return;
+  }
   setTimeout(() => printSharedPage(active), 160);
 }
+/* 20b: Print section produces the Agenda itinerary, never the table clone. */
+function openAppointmentsAgendaPrint(){
+  if (typeof tryCovenantPrintTemplate === 'function' && tryCovenantPrintTemplate('appointments')) return;
+  if (typeof printSharedPage === 'function') { printSharedPage('appointments'); return; }
+  window.print();
+}
+window.openAppointmentsAgendaPrint = openAppointmentsAgendaPrint;
 function openPlannerHelp(){
   showPanel('instructions', true);
   requestAnimationFrame(() => window.scrollTo({top:0, behavior:'smooth'}));
@@ -5518,26 +5612,37 @@ document.addEventListener('keydown', function(e){
   if(e.altKey && e.key.toLowerCase()==='b'){ e.preventDefault(); showPanel('budget'); }
   if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey && !plannerShortcutTypingContext()) {
     e.preventDefault();
-    scrollToPlannerKeyboardShortcuts(true);
+    if (document.body.classList.contains('rd-scope') && typeof openShortcutSheet === 'function') openShortcutSheet();
+    else scrollToPlannerKeyboardShortcuts(true);
   }
 });
 
 function isCurrencyLikeTableInput(el){
   if (!el || el.tagName !== 'INPUT' || !el.closest('table')) return false;
   /* The CWP unified table engine formats its own money cells (cwpEditMoney) and
-     must NOT be touched by this legacy heuristic. The heuristic below inspects
-     ALL of a table's <th> text, so any engine table containing a money column
-     (Amount, Total, Cost, Balance…) would wrongly flag every text cell as
-     currency and strip its letters on focus — the "text disappears" bug. */
+     must NOT be touched by this legacy heuristic. */
   if (el.closest('.cwp-table')) return false;
   if (['date','time','datetime-local','checkbox','email','tel','search'].includes(el.type)) return false;
   if (el.classList?.contains('no-currency') || el.dataset?.currency === 'false') return false;
-  if (el.closest('#prayer-body') && /scripture/i.test([el.placeholder, el.getAttribute('oninput'), el.className].join(' '))) return false;
-  const ths = Array.from(el.closest('table')?.querySelectorAll('th') || []).map(th => th.textContent || '').join(' ');
-  const sig = [el.id, el.name, el.placeholder, el.className, el.getAttribute('oninput'), ths].join(' ').toLowerCase();
-  if (/\b(scripture|bible|verse|passage|reference)\b/.test(sig)) return false;
-  if (/\b(kid|kids|child|children|count|quantity|qty|guest count|headcount|table #|table number)\b/.test(sig) && !/\b(cost|price|amount|budget|paid|payment|deposit|balance|quote|rate|actual|value|total|fee)\b/.test([el.id, el.name, el.placeholder, el.className, el.getAttribute('oninput')].join(' ').toLowerCase())) return false;
-  return /cost|price|amount|budget|paid|payment|deposit|balance|quote|rate|actual|value|total|fee/.test(sig);
+  if (el.classList?.contains('payment-money') || el.dataset?.currency === 'true') return true;
+  /* Judge only THIS cell's column header + the input's own attrs.
+     Do NOT scan every <th> in the table (a money column elsewhere would
+     mark every text cell as currency), and do NOT read oninput — nearly
+     every handler contains `this.value`, which falsely matched the
+     currency keyword `value` and stripped letters on focus (Newlywed
+     Homecoming Item / Name-change Task columns). */
+  const cell = el.closest('td, th');
+  const row = cell && cell.parentElement;
+  const colIndex = (row && cell) ? Array.prototype.indexOf.call(row.children, cell) : -1;
+  const headRow = el.closest('table')?.querySelector('thead tr:not(.bulk-table-row)');
+  const colTh = (colIndex >= 0 && headRow && headRow.children[colIndex])
+    ? String(headRow.children[colIndex].textContent || '')
+    : '';
+  const ownSig = [el.id, el.name, el.placeholder, el.className, colTh].join(' ').toLowerCase();
+  if (/\b(scripture|bible|verse|passage|reference)\b/.test(ownSig)) return false;
+  const moneyRe = /\b(cost|price|amount|budget|paid|payment|deposit|balance|quote|rate|actual|value|total|fee)\b/;
+  if (/\b(kid|kids|child|children|count|quantity|qty|guest count|headcount|table #|table number)\b/.test(ownSig) && !moneyRe.test(ownSig)) return false;
+  return moneyRe.test(ownSig);
 }
 function stripCurrencyDisplay(value){
   return String(value ?? '').replace(/[^0-9.-]/g,'');
@@ -5768,8 +5873,8 @@ function renderRegisteredPanel(id){
 window.SYSTEM_PANEL_RENDERERS = SYSTEM_PANEL_RENDERERS;
 
 function showPanel(id, forceOpen = false) {
-  if (id === 'history') id = 'dashboard';
   if (id === 'plan') id = 'tasks';
+  /* History is UNTABBED (All.dc 18b) — reachable from undo/redo + prefs. */
   if (id === 'reflect' && typeof _rflTab === 'undefined') _rflTab = 'vision';
   /* Redesign chrome (§06) lists the full IA — Weekend Logistics, Wedding Party,
      Table Layout, Contracts, etc. Essentials / Focus presets still hide those
@@ -5812,7 +5917,7 @@ function showPanel(id, forceOpen = false) {
   const mainForCal = document.getElementById('main');
   if (mainForCal) {
     if (id === 'calendar') {
-      const mode = (typeof smartCalendarMode !== 'undefined' && (smartCalendarMode === 'week' || smartCalendarMode === 'agenda'))
+      const mode = (typeof smartCalendarMode !== 'undefined' && (smartCalendarMode === 'week' || smartCalendarMode === 'agenda' || smartCalendarMode === 'source'))
         ? smartCalendarMode : 'month';
       mainForCal.setAttribute('data-cal-mode', mode);
     } else {
@@ -5837,8 +5942,8 @@ function showPanel(id, forceOpen = false) {
   if (id === 'venue' && typeof syncVenueVendorsHubTabs === 'function') syncVenueVendorsHubTabs('venue');
   else if (id === 'vendors' && typeof syncVenueVendorsHubTabs === 'function') syncVenueVendorsHubTabs(_vndTab === 'shortlist' ? 'shortlist' : 'vendors');
   if (typeof updateTopbarNotificationsBell === 'function') updateTopbarNotificationsBell();
-  requestAnimationFrame(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); mountAllTabs(); normalizeCurrencyTableInputs(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot, { reset:true }); });
-  setTimeout(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot); }, 80);
+  requestAnimationFrame(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; if (typeof rdCanonicalizePlannerTables === 'function') rdCanonicalizePlannerTables(panelRoot); if (typeof rdRemoveDuplicateToolbars === 'function') rdRemoveDuplicateToolbars(panelRoot); enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); mountAllTabs(); normalizeCurrencyTableInputs(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot, { reset:true }); });
+  setTimeout(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; if (typeof rdCanonicalizePlannerTables === 'function') rdCanonicalizePlannerTables(panelRoot); if (typeof rdRemoveDuplicateToolbars === 'function') rdRemoveDuplicateToolbars(panelRoot); enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot); }, 80);
   injectMasthead(id);
   injectPageScripture(id);
   injectPrayerPrompt(id);
@@ -6099,7 +6204,7 @@ const SECTION_CARD_ORDER = [
   ['ceremony','Ceremony & Reception'],['timeline','Wedding Day Timeline'],['entertainment','Music & Speeches'],['shotlist','Photo Shot List'],
   ['essentials','Essentials'],['gifts','Gift Log'],['mood','Vision Board'],
   ['appointments','Appointments'],['counseling','Counseling'],['prayer','Prayer Journal'],
-  ['honeymoon','Honeymoon & After']
+  ['honeymoon','Honeymoon']
 ];
 function computeSectionProgress(){
   const out = {};
@@ -6420,52 +6525,85 @@ function buildSmartCalendarNotificationItems(){
   });
   return items;
 }
-function buildPlannerNotificationSections(){
+function buildPlannerNotificationModel(){
   const guidance = typeof plannerGuidanceState === 'function' ? plannerGuidanceState() : { alerts: [], attentionCount: 0 };
-  const kindLabel = { rsvp:'RSVP', budget:'Budget', vendor:'Vendors', legal:'Legal', backup:'Backup', general:'General' };
-  const attention = safeArray(guidance.alerts).map((a, i) => ({
+  const kindLabel = { rsvp:'RSVP', budget:'Budget', vendor:'Vendors', legal:'Legal', backup:'Backup', general:'General', covenant:'Covenant' };
+  const needsYou = safeArray(guidance.alerts).map((a, i) => ({
     id: 'attention-' + i,
     title: (a.kind && kindLabel[a.kind] ? kindLabel[a.kind] + ': ' : '') + (a.title || 'Needs attention'),
     note: a.note || '',
     urgent: a.priority === 1,
+    chip: a.chip || (a.priority === 1 ? 'Blocker' : (a.kind === 'covenant' ? 'Covenant' : '')),
+    chipTone: a.kind === 'covenant' ? 'gold' : (a.priority === 1 ? 'red' : ''),
     action: a.action || `showPanel('${a.page || 'dashboard'}')`
   }));
   const backup = getBackupReminderState();
-  const backupItems = backup.due ? [{
-    id: 'backup-reminder',
-    title: backup.title,
-    note: backup.message,
-    urgent: true,
-    action: backup.action,
-    laterAction: backup.laterAction
-  }] : [];
+  if (backup.due) {
+    needsYou.unshift({
+      id: 'backup-reminder',
+      title: backup.title,
+      note: backup.message,
+      urgent: true,
+      chip: 'Backup',
+      chipTone: 'red',
+      action: backup.action,
+      laterAction: backup.laterAction
+    });
+  }
   const smart = buildSmartCalendarNotificationItems();
-  const sections = [
-    { id: 'attention', label: 'Needs attention', items: attention },
-    { id: 'backup', label: 'Backup reminder', items: backupItems },
-    { id: 'smart', label: 'Smart alerts', items: smart }
-  ];
-  const totalCount = sections.reduce((sum, s) => sum + s.items.length, 0);
-  return { sections, totalCount };
+  const activity = smart.map((item, i) => ({
+    id: item.id || ('activity-' + i),
+    title: item.title,
+    note: item.note || '',
+    when: item.when || item.chip || 'recently',
+    action: item.action || ''
+  }));
+  return {
+    needsYou,
+    activity,
+    activityMeta: activity.length ? 'recently' : '—',
+    quiet: 'No alert is raised for a guest replying, a payment coming due more than 14 days out, or a vendor opening a packet. Those are visible on their own pages and would train you to ignore this panel.',
+    needsCount: needsYou.length
+  };
+}
+function buildPlannerNotificationSections(){
+  const model = buildPlannerNotificationModel();
+  return {
+    sections: [
+      { id: 'needs', label: 'Needs you', items: model.needsYou },
+      { id: 'activity', label: 'Changed since you last looked', items: model.activity }
+    ],
+    totalCount: model.needsCount,
+    model
+  };
 }
 function renderTopbarNotificationsDrop(){
   const drop = document.getElementById('topbar-notifications-drop');
   if (!drop) return;
-  const { sections } = buildPlannerNotificationSections();
-  const activeSections = sections.filter(section => section.items.length);
-  const html = activeSections.length ? activeSections.map(section => {
-    const items = section.items.map(item => {
-      const later = item.laterAction
-        ? `<button type="button" class="tb-notif-later" onclick="event.stopPropagation();${item.laterAction};closeTopbarNotifications();">Later</button>`
-        : '';
-      return `<button type="button" class="tb-notif-item${item.urgent ? ' urgent' : ''}" role="menuitem" onclick="${item.action};closeTopbarNotifications();">
-        <span class="tb-notif-item-icon" aria-hidden="true">${item.urgent ? '!' : 'i'}</span>
-        <span class="tb-notif-item-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.note || '')}</span></span>
-        ${later}
-      </button>`;
-    }).join('');
-    return `<div class="tb-notif-section"><div class="tb-notif-section-head">${escapeHtml(section.label)}</div>${items}</div>`;
-  }).join('') : '<div class="tb-notif-empty">No alerts right now.</div>';
+  const { model } = buildPlannerNotificationSections();
+  if (typeof RdFurniture !== 'undefined' && RdFurniture.notificationsHtml) {
+    drop.innerHTML = `<div class="topbar-notifications-drop-scroll">${RdFurniture.notificationsHtml(model)}</div>`;
+    drop.querySelectorAll('[data-notif-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-notif-action') || '';
+        closeTopbarNotifications();
+        if (!action) return;
+        try { Function(action)(); } catch (e) { /* ignore bad action strings */ }
+      });
+    });
+    const mark = drop.querySelector('[data-notif-read]');
+    if (mark) mark.onclick = () => { closeTopbarNotifications(); if (typeof showToast === 'function') showToast('Activity marked as read'); };
+    const settings = drop.querySelector('[data-notif-settings]');
+    if (settings) settings.onclick = () => {
+      closeTopbarNotifications();
+      const gear = document.getElementById('rd-gear-btn');
+      if (gear) gear.click();
+    };
+    return;
+  }
+  const html = model.needsYou.length
+    ? model.needsYou.map(item => `<button type="button" class="tb-notif-item${item.urgent ? ' urgent' : ''}" role="menuitem" onclick="${item.action};closeTopbarNotifications();"><span class="tb-notif-item-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.note || '')}</span></span></button>`).join('')
+    : '<div class="tb-notif-empty">Nothing needs you right now.</div>';
   drop.innerHTML = `<div class="topbar-notifications-drop-scroll">${html}</div>`;
 }
 function updateTopbarNotificationsBell(){
@@ -6478,7 +6616,7 @@ function updateTopbarNotificationsBell(){
     badge.classList.toggle('is-empty', totalCount <= 0);
   }
   if (btn) {
-    btn.setAttribute('aria-label', totalCount ? `${totalCount} alert${totalCount === 1 ? '' : 's'}` : 'No alerts');
+    btn.setAttribute('aria-label', totalCount ? `${totalCount} need${totalCount === 1 ? 's' : ''} you` : 'No alerts');
     btn.classList.toggle('has-alerts', totalCount > 0);
   }
   const drop = document.getElementById('topbar-notifications-drop');
@@ -7002,7 +7140,7 @@ const QJ_PAGES = {
   ceremony:'Ceremony & Reception', timeline:'Wedding Day Timeline', entertainment:'Music & Speeches',
   shotlist:'Photo & Video Shot Lists', mood:'Vision Board', essentials:'Essentials Checklist',
   gifts:'Gift Log', emails:'Vendor Questions & Email Templates', packets:'Share Packets', logistics:'Wedding Weekend Logistics',
-  honeymoon:'Honeymoon & After', reflect:'Vision & Foundation', prayer:'Prayer Journal',
+  honeymoon:'Honeymoon', reflect:'Vision & Foundation', prayer:'Prayer Journal',
   counseling:'Premarital Counseling', history:'History', instructions:'Get Started', faq:'FAQ', 'data-hub':'Database Hub'
 };
 function trackRecentPage(id){
@@ -8286,7 +8424,9 @@ function cmdPaletteActionHits(q){
     { title:'Open Wedding Setup', sub:'Form · date and names', panel:'setup' },
     { title:'Download backup', sub:'Save a .sqlite copy', run:()=>{ if (typeof downloadSqliteBackup==='function') downloadSqliteBackup(); else if (typeof startHereBackup==='function') startHereBackup(); } },
     { title:'Import guests CSV', sub:'People · Guest List', panel:'guests', run:()=>{ showPanel('guests', true); if (typeof openImportModal==='function') openImportModal(); } },
-    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } }
+    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } },
+    { title:'Open trash', sub:'Restore deleted records · 30 days', run:()=>{ if (typeof RdFurniture!=='undefined' && RdFurniture.openTrash) RdFurniture.openTrash({ items: Array.isArray(data.trash)?data.trash:[] }); } },
+    { title:'Review duplicate guests', sub:'People · merge review', run:()=>{ if (typeof openGuestDuplicateReview==='function') openGuestDuplicateReview(); } },
   ];
   return actions.map(a => {
     const sc = q ? commandPaletteScore(q, a.title, a.sub) : 88;
@@ -8308,7 +8448,16 @@ function runCommandPalette(qRaw){
     const fav = (ob.favoritePages||[]).filter(p=>QJ_PAGES[p]).slice(0,4);
     fav.forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Favourite', panel:id, score:90 }));
     if (!fav.length) {
-      ['guests','tasks','budget','calendar'].filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Most used', panel:id, score:85 }));
+      ['guests','budget','timeline','appointments'].filter(p=>QJ_PAGES[p]).forEach(id=>{
+        let count = '';
+        try {
+          if (id === 'guests') count = safeArray(data.guests).length + ' guests';
+          if (id === 'budget') count = safeArray(data.budget).length + ' categories';
+          if (id === 'appointments') count = safeArray(data.appointments).length + ' booked';
+          if (id === 'timeline') count = safeArray(data.timeline).length + ' events';
+        } catch (e) { count = ''; }
+        hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub: count || 'Most used', panel:id, score:85, count: count || undefined });
+      });
     }
     (ob.recentPages||[]).slice(0,4).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Recent', type:'Recent', title:QJ_PAGES[id], sub:'Recently viewed', panel:id, score:70 }));
   } else {
@@ -8367,14 +8516,26 @@ function runCommandPalette(qRaw){
     return;
   }
   let lastGroup = '';
+  const GROUP_HINTS = {
+    'Needs you': 'derived from live records',
+    Actions: 'run without leaving this page',
+    Pages: 'jump without searching',
+    Records: 'matching across pages',
+    Recent: 'last four things you opened'
+  };
   box.innerHTML = _cmdPaletteResults.map((h,i)=>{
     let groupHtml = '';
     if (h.group && h.group !== lastGroup) {
       lastGroup = h.group;
-      groupHtml = `<div class="rd-cmd__group" role="presentation">${escapeHtml(h.group)}</div>`;
+      const hint = GROUP_HINTS[h.group] || '';
+      groupHtml = `<div class="rd-cmd__group" role="presentation" data-hint="${escapeHtml(hint)}">${escapeHtml(h.group)}</div>`;
     }
+    const trail = h.trail || (h.panel && h.record ? (typeof QJ_PAGES !== 'undefined' && QJ_PAGES[h.panel] ? QJ_PAGES[h.panel] : '') : '');
+    const trailHtml = trail ? `<span class="rd-cmd__trail">${escapeHtml(trail)}</span>` : '';
+    const kbd = (i === 0 || h.action) && i === Math.max(0, _cmdPaletteResults.findIndex(x => x.group === h.group))
+      ? '<span class="rd-cmd__kbd-chip">↵</span>' : '';
     const count = h.count != null ? `<span class="rd-cmd__count">${escapeHtml(String(h.count))}</span>` : '';
-    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}</button>`;
+    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}${trailHtml}${kbd}</button>`;
   }).join('');
 }
 function executeCommandPaletteResult(i, opts){
@@ -9652,11 +9813,17 @@ function logisticsRailGroupBy(){
 
 function logisticsPageheadActionsHtml(){
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
-  return `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>
-        <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
+  const view = rdGetLogView();
+  const primaryLabel = view === 'rooms' ? 'Assign a room' : view === 'transport' ? 'Assign a driver' : 'Add movement';
+  const printLabel = view === 'rooms' ? 'Print rooming list' : view === 'transport' ? 'Print driver sheets' : 'Print section';
+  const briefBtn = view === 'schedule'
+    ? `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>`
+    : '';
+  return `${briefBtn}
+        <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>${escapeHtml(printLabel)}</button>
         <button type="button" class="rd-btn" data-rd-full-editor onclick="rdLogFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
         <button type="button" class="rd-btn" onclick="exportSectionCSV('Weekend Logistics',(data.weekendTimeline||[]).concat(data.transportation||[]))">Export</button>
-        <button type="button" class="rd-btn rd-btn--primary" onclick="addLogisticsRow()">+ Add movement</button>`;
+        <button type="button" class="rd-btn rd-btn--primary" onclick="addLogisticsRow()">${escapeHtml(primaryLabel)}</button>`;
 }
 function logisticsSurfaceRowHtml(){
   return `<div class="rd-surface__row" id="logistics-surface-row">
@@ -9667,14 +9834,22 @@ function logisticsSurfaceRowHtml(){
         <div class="rd-log-roomblock" id="logistics-room-block"></div>
       </div>
       <div class="rd-view" id="log-view-rooms" data-log-view="rooms" hidden>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-hotelBlocks"></div>
-        <span class="rd-table-foot ued-soft" id="cwp-hotelBlocks-foot"></span>
-        <div class="rd-log-section-label">Travel &amp; accommodations</div>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-travelAccommodations"></div>
+        <div class="rd-log-rooms" id="logistics-rooms-grouped"></div>
+        <details class="rd-log-editor-toggle">
+          <summary>Edit as table</summary>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-hotelBlocks"></div>
+          <span class="rd-table-foot ued-soft" id="cwp-hotelBlocks-foot"></span>
+          <div class="rd-log-section-label">Travel &amp; accommodations</div>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-travelAccommodations"></div>
+        </details>
       </div>
       <div class="rd-view" id="log-view-transport" data-log-view="transport" hidden>
-        <div class="rd-table-wrap ued-table-wrap" id="cwp-transportation"></div>
-        <span class="rd-table-foot ued-soft" id="cwp-transportation-foot"></span>
+        <div class="rd-log-gantt" id="logistics-transport-gantt"></div>
+        <details class="rd-log-editor-toggle">
+          <summary>Edit as table</summary>
+          <div class="rd-table-wrap ued-table-wrap" id="cwp-transportation"></div>
+          <span class="rd-table-foot ued-soft" id="cwp-transportation-foot"></span>
+        </details>
       </div>
     </div>
     <div id="logistics-drawer-slot"></div>
@@ -9684,13 +9859,13 @@ function uedLogisticsShell(){
   const panel = document.getElementById('panel-logistics');
   if (!panel) return;
   panel.classList.add('ued-scope', 'logistics-mockup');
-  if (panel.dataset.uedShell === 'logistics-rd11a') {
+  if (panel.dataset.uedShell === 'logistics-rd11d-s20') {
     const actions = panel.querySelector('.rd-pagehead__actions');
     if (actions) actions.innerHTML = logisticsPageheadActionsHtml();
     if (typeof window.covenantShell !== 'undefined' && window.covenantShell.drawer) window.covenantShell.drawer();
     return;
   }
-  panel.dataset.uedShell = 'logistics-rd11a';
+  panel.dataset.uedShell = 'logistics-rd11d-s20';
   panel.innerHTML = `<div class="rd-page">
     <div class="rd-pagehead">
       <div>
@@ -9701,6 +9876,8 @@ function uedLogisticsShell(){
       </div>
       <div class="rd-pagehead__actions">${logisticsPageheadActionsHtml()}</div>
     </div>
+    <div class="rd-sectiontabs rd-log-daytabs" id="logistics-day-tabs" role="tablist" aria-label="Weekend day"></div>
+    <p class="rd-log-mirror-note" id="logistics-mirror-note" hidden>Sunday movements also appear on the Wedding Day Timeline. Editing one edits both.</p>
     <div class="rd-stats m-stats" id="logistics-stats"></div>
     <div class="rd-toolbar" id="logistics-toolbar"></div>
     <div class="rd-bulkbar" id="logistics-bulk-bar" hidden></div>
@@ -9765,9 +9942,35 @@ function logisticsStatsData(){
 function renderLogisticsStats(){
   const host = document.getElementById('logistics-stats');
   if (!host) return;
-  const s = logisticsStatsData();
   const cell = (label, val, tone) =>
     `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${label}</div><div class="m-stat-val">${val}</div></div>`;
+  const view = rdGetLogView();
+  if (view === 'transport' && typeof logisticsTransportStatsData === 'function') {
+    const s = logisticsTransportStatsData();
+    const spend = typeof fmt === 'function' ? fmt(s.spend) : ('$' + (s.spend || 0));
+    host.innerHTML = [
+      cell('Vehicles', s.vehicles),
+      cell('Movements', s.movements),
+      cell('Covered', s.covered),
+      cell('No driver', s.noDriver, s.noDriver ? 'danger' : ''),
+      cell('Transport spend', spend)
+    ].join('');
+    return;
+  }
+  if (view === 'rooms' && typeof logisticsRoomsStatsData === 'function') {
+    const s = logisticsRoomsStatsData();
+    const couplePays = typeof fmt === 'function' ? fmt(s.couplePays) : ('$' + (s.couplePays || 0));
+    const releaseLabel = s.releaseLabel && s.releaseLabel !== '—' ? ('Releasing ' + s.releaseLabel) : 'Releasing date';
+    host.innerHTML = [
+      cell('Rooms held', s.roomsHeld),
+      cell('Claimed', s.claimed),
+      cell(releaseLabel, s.releaseAtRisk, s.releaseAtRisk ? 'warn' : ''),
+      cell('Couple pays', couplePays),
+      cell('Nowhere booked', s.nowhereGuests + (s.nowhereGuests === 1 ? ' guest' : ' guests'), s.nowhereGuests ? 'danger' : '')
+    ].join('');
+    return;
+  }
+  const s = logisticsStatsData();
   host.innerHTML = [
     cell('Movements', s.movements),
     cell('Days covered', s.daysCovered),
@@ -9848,6 +10051,24 @@ function rdRestoreCwpColumns(key){
 }
 function rdLogColScope(){ return 'logistics:' + logisticsActiveTableKey(); }
 function rdApplyLogColumns(){ return rdApplyCwpColumnChooser(logisticsActiveTableKey(), rdLogColScope()); }
+/** Master 19k: when a day tab is active the Day column is redundant. */
+function rdApplyLogDayColumnVisibility(){
+  if (rdGetLogView() !== 'schedule') return;
+  const day = logisticsRailView();
+  if (!['friday', 'saturday', 'sunday'].includes(day)) return;
+  const d = (typeof CWP !== 'undefined' && CWP.TABLES) ? CWP.TABLES.weekendTimeline : null;
+  if (!d || !d._rdColBase || typeof rdPickRowCells !== 'function') return;
+  const keep = new Set();
+  d._rdColBase.forEach((c, i) => {
+    if (c.key === 'day') return;
+    if (d.columns && d.columns.some(x => x.key === c.key)) keep.add(i);
+    else if (!d.columns) keep.add(i);
+  });
+  if (!keep.size) return;
+  d.columns = d._rdColBase.filter((c, i) => keep.has(i));
+  const base = d._rdRowBase || d.rowRender;
+  d.rowRender = (r) => rdPickRowCells(base(r), keep);
+}
 function rdRegisterLogColumns(){
   return rdRegisterCwpColumns(logisticsActiveTableKey(), rdLogColScope(), () => renderLogisticsPage());
 }
@@ -9940,8 +10161,10 @@ function renderLogisticsToolbar(){
   if (!host) return;
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';
   const view = rdGetLogView();
+  const dayActive = ['friday','saturday','sunday'].includes(logisticsRailView());
   host.innerHTML =
     `<div class="rd-toolbar__left">
+      ${view === 'schedule' ? `<button type="button" class="rd-chip${!dayActive ? ' is-active' : ''}" onclick="setLogisticsDayFilter('all')" title="Periods that do not overlap">Whole weekend</button>` : ''}
       ${logFilterChip('Day', 'day')}
       ${logFilterChip('Type', 'type')}
       ${logFilterChip('Owner', 'owner')}
@@ -9966,6 +10189,34 @@ function setLogisticsDayFilter(v){
   if (typeof renderContextSidebar === 'function') renderContextSidebar('logistics');
 }
 window.setLogisticsDayFilter = setLogisticsDayFilter;
+
+/* §19k — Friday / Saturday / Sunday · mirrored section tabs */
+function logisticsDayTabShortLabel(iso, fallback){
+  if (iso && typeof humanDate === 'function') {
+    return humanDate(iso, { month: 'short', day: 'numeric' });
+  }
+  return fallback || '';
+}
+function renderLogisticsDayTabs(){
+  const host = document.getElementById('logistics-day-tabs');
+  const note = document.getElementById('logistics-mirror-note');
+  if (!host) return;
+  const bands = logisticsDayBands();
+  const active = logisticsRailView() || 'all';
+  const friLab = 'Friday' + (bands.friday ? ' ' + logisticsDayTabShortLabel(bands.friday) : '');
+  const satLab = 'Saturday' + (bands.saturday ? ' ' + logisticsDayTabShortLabel(bands.saturday) : '');
+  const sunLab = 'Sunday' + (bands.sunday ? ' ' + logisticsDayTabShortLabel(bands.sunday) : '');
+  const tab = (id, label, mirrored) => {
+    const on = active === id;
+    return `<button type="button" class="rd-sectiontabs__item${on ? ' is-active' : ''}" role="tab" aria-selected="${on ? 'true' : 'false'}" onclick="setLogisticsDayFilter('${id}')">${escapeHtml(label)}${mirrored ? '<span class="rd-sectiontabs__mirrored">· mirrored</span>' : ''}</button>`;
+  };
+  host.innerHTML = tab('friday', friLab, false) + tab('saturday', satLab, false) + tab('sunday', sunLab, true);
+  host.hidden = rdGetLogView() !== 'schedule';
+  if (note) {
+    const showNote = rdGetLogView() === 'schedule' && (active === 'sunday' || active === 'all');
+    note.hidden = !showNote;
+  }
+}
 
 function logisticsMovementMatchesFilters(r){
   const day = logisticsRailView() || _logDayFilter || 'all';
@@ -10203,6 +10454,10 @@ function logisticsGroupHeaderLabel(meta, groupRows){
   if (kind === 'block') {
     return title + ' · ' + countPart + logisticsRoomsHeldRollup(groupRows) + logisticsUnownedRollup(groupRows, kind);
   }
+  /* Sunday movements are mirrored on the Wedding Day Timeline (Master 11d / 19k). */
+  if (kind === 'movement' && meta && meta.key === 'day:sunday') {
+    return title + ' · ' + countPart + ' · mirrored on the Wedding Day Timeline' + logisticsUnownedRollup(groupRows, kind);
+  }
   return title + ' · ' + countPart + logisticsUnownedRollup(groupRows, kind);
 }
 
@@ -10342,12 +10597,14 @@ function renderLogisticsPage(options={}){
   const active = document.body.getAttribute('data-active-panel') === 'logistics';
   if (active) {
     uedLogisticsShell();
+    renderLogisticsDayTabs();
     renderLogisticsStats();
     renderLogisticsToolbar();
     renderLogisticsBulkBar();
     rdApplyLogViewMode();
     const view = rdGetLogView();
     rdApplyLogColumns();
+    rdApplyLogDayColumnVisibility();
     if (typeof cwpRenderTable === 'function') {
       if (view === 'schedule' && document.getElementById('cwp-weekendTimeline')) {
         cwpRenderTable('weekendTimeline');
@@ -10367,10 +10624,12 @@ function renderLogisticsPage(options={}){
           if (typeof bindRoPreviewInline === 'function') bindRoPreviewInline('travelAccommodations', 'cwp-travelAccommodations', 'record-drawer-body');
           afterLogisticsPreviewRendered('travelAccommodations');
         }
+        if (typeof renderLogisticsRoomsGrouped === 'function') renderLogisticsRoomsGrouped();
       } else if (view === 'transport' && document.getElementById('cwp-transportation')) {
         cwpRenderTable('transportation');
         if (typeof bindRoPreviewInline === 'function') bindRoPreviewInline('transportation', 'cwp-transportation', 'record-drawer-body');
         afterLogisticsPreviewRendered('transportation');
+        if (typeof renderLogisticsTransportGantt === 'function') renderLogisticsTransportGantt();
       }
     }
     /* These table definitions are shared with the Database Hub, so the trimmed
@@ -11414,7 +11673,16 @@ function renderReflectPage(){
 function rflSetTab(t){ _rflTab = t; renderReflectPage(); if(typeof injectMasthead==='function') injectMasthead('reflect'); }
 function showReflectTabPage(t){
   _rflTab = t || 'vision';
-  if (_rflTab === 'homecoming') _homecomingSubTab = 'checklist';
+  if (_rflTab === 'homecoming') {
+    _homecomingSubTab = 'checklist';
+    if (document.getElementById('panel-homecoming')) { showPanel('homecoming', true); return; }
+  }
+  if (_rflTab === 'rhythms') {
+    if (document.getElementById('panel-firstmonth')) { showPanel('firstmonth', true); return; }
+  }
+  if (_rflTab === 'vision') {
+    if (document.getElementById('panel-vision')) { showPanel('vision', true); return; }
+  }
   showPanel('reflect', true);
   renderReflectPage();
   if(typeof injectMasthead==='function') injectMasthead('reflect');
@@ -11422,6 +11690,11 @@ function showReflectTabPage(t){
 function showNameChangePage(){
   _rflTab = 'homecoming';
   _homecomingSubTab = 'namechange';
+  if (document.getElementById('panel-homecoming')) {
+    showPanel('homecoming', true);
+    if (typeof rdSetHomecomingView === 'function') rdSetHomecomingView('namechange');
+    return;
+  }
   showPanel('reflect');
 }
 function setHomecomingSubTab(tab){
@@ -12009,7 +12282,7 @@ const PAGE_HELP = {
   plan: {title:'Planning Timeline',text:'A month-by-month master checklist organized by phase (12+ months out through the wedding week). Click <strong>Load Full Wedding Checklist</strong> for a comprehensive 8-phase, 59-task plan, and expand any task to add your own <strong>subtasks</strong>. Tasks with due dates appear in the Smart Calendar.'},
   venue: {title:'Venue & Vendors',text:'Use the Venue tab for ceremony and reception details and venue shortlist cards. Vendor comparisons live on the Shortlist & Compare tab.'},
   catering: {title:'Catering & Menu',text:'This page owns four budget categories — <strong>Food, Cake & Desserts, Drinks, and Rentals</strong>. It also tracks <strong>Pre-Wedding Snacks</strong> and <strong>Vendor Meals</strong> tables that roll into the Food budget. Every item auto-syncs as a read-only line in the Budget. Use <strong>Load Starter</strong> buttons on each table for pre-built lists. Costs recalculate live as you edit.'},
-  honeymoon: {title:'Honeymoon & After',text:'Plan your honeymoon travel, packing, reservations, transportation, budget, and journal across <strong>tabs</strong>. Name-change and newlywed homecoming workflows now live under <strong>Marriage Rhythms</strong> so post-wedding life tasks are separated from honeymoon travel. Your honeymoon budget is tracked <strong>separately</strong> from your wedding budget. Departure/return dates appear in the Smart Calendar.'},
+  honeymoon: {title:'Honeymoon',text:'Plan your honeymoon travel, packing, reservations, transportation, budget, and journal across <strong>tabs</strong>. Post-wedding settling, name change, and thank-you follow-up live on <strong>Newlywed Homecoming</strong>. Your honeymoon budget is tracked <strong>separately</strong> from your wedding budget. Departure/return dates appear in the Smart Calendar.'},
   emails: {title:'Vendor Questions & Email Templates',text:'Start with the <strong>Vendor Questions</strong> tab for comprehensive questions by vendor type, then use <strong>Email Templates</strong> for inquiry, follow-up, wedding party, guest, and thank-you messages. Merge fields like <strong>{{bride}}</strong> and <strong>{{date}}</strong> auto-fill from Wedding Setup.'},
   packets: {title:'Share Packets',text:'Print-ready packets for vendors, wedding party, your coordinator, and wedding-weekend helpers. Fields <strong>auto-fill from your planner</strong> (guest counts, meals, timeline, contacts, travel, hotels, transportation, and more) and stay editable where appropriate — your typed-in text always wins, and a per-field <strong>↺ Use planner value</strong> link or the packet <strong>Reset</strong> button restores the live value. Weekend packets stay live from Wedding Weekend Logistics. Every editable packet has a <strong>Special Notes</strong> box for personal instructions. Print any packet or copy it as text.'},
   reflect: {title:'Vision & Foundation',text:'Faith-first pages for building a marriage, not just a wedding. <strong>Vision & Foundation</strong> captures prayers, priorities, boundaries, and your marriage verse. <strong>First-Month Rhythms</strong> sets intentional habits like date nights, devotions, budget meetings, and check-ins. <strong>Newlywed Homecoming</strong> has two tabs: Homecoming Checklist and Name Change.'},
@@ -12104,7 +12377,7 @@ const PAGE_EYEBROW = {
   guests:'People', party:'People', tables:'People', ceremony:'Ceremony & Reception', timeline:'Ceremony & Reception',
   entertainment:'Ceremony & Reception', shotlist:'Ceremony & Reception', mood:'Design & Details',
   essentials:'Design & Details', gifts:'Design & Details', emails:'Design & Details', packets:'Design & Details',
-  honeymoon:'After the Day', reflect:'Start Here', prayer:'Start Here', counseling:'Start Here',
+  honeymoon:'The Day', reflect:'Start Here', prayer:'Start Here', counseling:'Start Here',
   instructions:'Start Planning', guide:'Start Planning', faq:'Start Planning'
 };
 function v4MastIcon(n){
@@ -12645,6 +12918,27 @@ function renderSetupPage() {
   renderTopbarPhoto();
   renderMenuVisibilitySettings();
   renderEssentialsHubHosts();
+  /* All.dc 18b — Clear History lives in Wedding Setup danger zone, not on the log. */
+  let danger = document.getElementById('setup-history-danger');
+  if (!danger && panel) {
+    danger = document.createElement('section');
+    danger.id = 'setup-history-danger';
+    danger.className = 'm-block rd-setup-danger';
+    danger.innerHTML = `
+      <div class="m-head">Danger zone</div>
+      <p class="v4-help-note">Irreversible actions. Clearing history removes the readable log and undo/redo snapshots — it does not delete guests, budget lines, or any other planner content.</p>
+      <div class="rd-setup-danger__grid">
+        <div class="rd-setup-danger__cell">
+          <div class="rd-setup-danger__title">Clear Planner History</div>
+          <p>Drops up to ${HISTORY_LOG_LIMIT} log entries and ${HISTORY_SNAPSHOT_LIMIT} undo snapshots. Download a backup first if you may need the record later.</p>
+          <div class="rd-setup-danger__row">
+            <button type="button" class="btn btn-danger" onclick="clearPlannerHistory()">Clear History</button>
+            <button type="button" class="m-btn" onclick="showPanel('history', true)">Open Planner History</button>
+          </div>
+        </div>
+      </div>`;
+    panel.appendChild(danger);
+  }
 }
 
 /* ════════════════════════════════════════════════
@@ -12810,7 +13104,7 @@ const SMART_SOURCE_DATA_KEY = {
   vendorArrival:'vtimeline', payment:'payments', contract:'contracts', budgetItem:'budget',
   paymentInstallment:'payments', weekendTimeline:'weekendTimeline', travelAccommodations:'travelAccommodations',
   hotelBlocks:'hotelBlocks', transportation:'transportation', note:'notesDetails', gift:'gifts',
-  rental:'rentals', honeyTransport:'honeyTransport'
+  rental:'rentals', honeyTransport:'honeyTransport', counseling:'counseling'
 };
 function smartSourceDataKey(source){ return SMART_SOURCE_DATA_KEY[source] || source || ''; }
 function recordIdentity(row){ return row ? String(row._id || row.id || row.guestId || '') : ''; }
@@ -13502,12 +13796,14 @@ function recordEditorDefault(key){
   if (key === 'ceremonyOrder') return { _id:nextRecordId('ceremonyOrder'), step:'', moment:'', length:'', person:'', cue:'', notes:'' };
   if (key === 'ceremonyProcessional') return { _id:nextRecordId('ceremonyProcessional'), num:'', name:'', role:'', notes:'' };
   if (key === 'ceremonyRecessional') return { _id:nextRecordId('ceremonyRecessional'), num:'', name:'', role:'', notes:'' };
+  if (key === 'ceremonyVows') return { _id:nextRecordId('ceremonyVows'), detail:'', wording:'' };
   if (key === 'ceremonyChecklist') return { _id:nextRecordId('ceremonyChecklist'), done:false, item:'', notes:'' };
   if (key === 'ceremonyReceptionDetails') return { _id:nextRecordId('ceremonyReceptionDetails'), moment:'', category:'Reception Detail', person:'', timing:'', notes:'' };
   if (key === 'ceremonyTraditions') return { _id:nextRecordId('ceremonyTraditions'), moment:'', part:'Ceremony', context:'Family Tradition', meaning:'', people:'', items:'', timing:'', script:'', instructions:'', notes:'' };
   if (key === 'moodItems') return { _id:nextRecordId('moodItems'), section:'Other', item:'', colorStory:'', vendorMatch:'Needed', finalized:'Gathering Ideas', notes:'' };
   if (key === 'homecoming') return { _id:nextRecordId('homecoming'), cat:'Other', item:'', status:'Not Started', owner:'Both', notes:'' };
   if (key === 'notesDetails') return { _id:nextRecordId('notesDetails'), title:'', category:'Planning', tags:'', pinned:false, date:'', time:'', status:'Open', note:'', nextStep:'', icon:'pencil' };
+  if (key === 'packets') return { _id:nextRecordId('packets'), name:'New packet', tabLabel:'New packet', cardTitle:'New packet', recipient:'', contact:'', recipientType:'Vendors', contains:'Timeline · contacts', sections:['timeline','contacts'], mode:'Live', opens:0, expires:'', status:'Draft', created:typeof todayISO==='function'?todayISO():'', link:'', passcode:'None · anyone with the link', activity:[], withheld:[] };
   if (key === 'honeyDetails') return { _id:nextRecordId('honeyDetails'), section:'Travel Overview', item:'', timeline:'', vendor:'', status:'Planned', reference:'', notes:'' };
   if (key === 'honeyTransport') return { _id:nextRecordId('honeyTransport'), type:'Flight', leg:'', date:'', departTime:'', arrivalTime:'', from:'', to:'', company:'', flight:'', ticket:'', travelers:'', seatVehicle:'', terminalGate:'', arriveBy:'', baggage:'', cost:'', status:'Planned', notes:'' };
   if (key === 'honeyItinerary') return { _id:nextRecordId('honeyItinerary'), day:'', time:'', plan:'', location:'', status:'Planned', confirmation:'', notes:'' };
@@ -13543,7 +13839,7 @@ function recordEditorTitle(key){
     ceremonyOrder:'Ceremony Order Step', ceremonyProcessional:'Processional Entry',
     ceremonyRecessional:'Recessional Entry', ceremonyChecklist:'Ceremony Legal Note', ceremonyVows:'Vow / Covenant Detail',
     ceremonyReceptionDetails:'Reception Detail', ceremonyTraditions:'Tradition / Cultural Moment', moodItems:'Vision Board Detail', homecoming:'Homecoming Checklist Item',
-    notesDetails:'Notes Tracker Entry', honeyDetails:'Honeymoon Detail', honeyTransport:'Transportation Row',
+    notesDetails:'Notes Tracker Entry', packets:'Share Packet', honeyDetails:'Honeymoon Detail', honeyTransport:'Transportation Row',
     honeyItinerary:'Honeymoon Itinerary Entry', packing:'Packing Item', hmBudgetItems:'Honeymoon Budget Line', nameChange:'Name Change Task',
     weekendTimeline:'Wedding Weekend Timeline Item', travelAccommodations:'Guest Travel Row',
     hotelBlocks:'Hotel Room Block', transportation:'Transportation Route', vipCare:'Family / VIP Care Item',
@@ -13551,6 +13847,40 @@ function recordEditorTitle(key){
     vendorCompare:'Vendor Comparison Row', attire:'Attire Item', decor:'Decor Item', stationery:'Stationery Item'
   }[key] || 'Record');
 }
+/* Match the page’s “+ Add …” wording when available; otherwise derive from the record title. */
+function recordEditorAddNewLabel(key){
+  try {
+    const d = (typeof CWP !== 'undefined' && CWP.TABLES) ? CWP.TABLES[key] : null;
+    if (d && d.addLabel) return d.addLabel;
+  } catch (e) { /* ignore */ }
+  const title = recordEditorTitle(key);
+  return '+ Add ' + String(title || 'record').toLowerCase();
+}
+/* Open a blank record of the same type from inside the full-editor popout.
+   Saves the current draft first when dirty (same pattern as Prev/Next). */
+async function recordEditorAddNew(){
+  if (!recordEditorState) return;
+  if (typeof isSmartCalendarWorkspaceEditor === 'function' && isSmartCalendarWorkspaceEditor(recordEditorState)) {
+    if (typeof smartCalendarWorkspaceCreate === 'function') smartCalendarWorkspaceCreate('appointment');
+    return;
+  }
+  const key = recordEditorState.key;
+  if (recordEditorState.isNew) {
+    saveRecordEditor(true);
+    return;
+  }
+  if (recordEditorIsDirty()) {
+    const saveFirst = await covConfirm(
+      'Save your changes before adding a new entry? Choose OK to save and continue, or Cancel to stay on this entry.',
+      { title: 'Save changes?', okText: 'Save & continue', cancelText: 'Stay' }
+    );
+    if (!saveFirst) return;
+    const saved = saveRecordEditor(false, { keepOpen: true });
+    if (!saved) return;
+  }
+  openRecordEditor(key);
+}
+window.recordEditorAddNew = recordEditorAddNew;
 function syncRecordEditorChrome(overlay){
   if (!overlay) return;
   overlay.querySelectorAll('.record-editor-actions .m-btn, .record-editor-actions-left .m-btn, .record-editor-actions-right .m-btn, .re-content-actions .m-btn').forEach(btn => {
@@ -13753,11 +14083,12 @@ function recordEditorRenderRail(){
     const newLabel = `New ${title.toLowerCase()}`;
     list.innerHTML = `<button type="button" class="re-rail-item is-active" disabled title="${escapeHtml(newLabel)}">
       <span class="re-rail-item-name">${escapeHtml(newLabel)}</span>
-    </button>`;
+    </button>
+    <button type="button" class="re-rail-add" onclick="recordEditorAddNew()">${escapeHtml(recordEditorAddNewLabel(key))}</button>`;
     return;
   }
   const shown = meta.indices.slice(0, 40);
-  list.innerHTML = shown.map(i => {
+  list.innerHTML = (shown.map(i => {
     const row = rows[i];
     const name = recordEditorDisplayName(key, row, false);
     const side = recordEditorSiblingMetaLabel(key, row);
@@ -13767,7 +14098,8 @@ function recordEditorRenderRail(){
       <span class="re-rail-item-name">${escapeHtml(name)}</span>
       ${side ? `<span class="re-rail-item-meta">${escapeHtml(side)}</span>` : ''}
     </button>`;
-  }).join('') || `<div class="re-rail-empty">No sibling records</div>`;
+  }).join('') || `<div class="re-rail-empty">No sibling records</div>`)
+    + `<button type="button" class="re-rail-add" onclick="recordEditorAddNew()">${escapeHtml(recordEditorAddNewLabel(key))}</button>`;
 }
 async function recordEditorJumpTo(index){
   if (!recordEditorState || recordEditorState.isNew) return;
@@ -13909,9 +14241,16 @@ function recordEditorDecorateFullShell(){
       addAnother.textContent = '+ New appointment';
       addAnother.setAttribute('onclick', "smartCalendarWorkspaceCreate('appointment')");
     } else {
-      addAnother.style.display = isNew ? '' : 'none';
-      addAnother.textContent = 'Save & add another';
-      addAnother.setAttribute('onclick', 'saveRecordEditor(true)');
+      /* Always offer add-from-editor: Save & add another while composing a
+         new draft; otherwise a page-style “+ Add …” that opens a blank record. */
+      addAnother.style.display = '';
+      if (isNew) {
+        addAnother.textContent = 'Save & add another';
+        addAnother.setAttribute('onclick', 'saveRecordEditor(true)');
+      } else {
+        addAnother.textContent = recordEditorAddNewLabel(key);
+        addAnother.setAttribute('onclick', 'recordEditorAddNew()');
+      }
     }
   }
   if (prev) prev.style.display = isCalWs ? 'none' : '';
@@ -14389,6 +14728,7 @@ function recordEditorFieldsHtml(){
   if (key === 'plan') return renderPlanRecordEditor();
   if (key === 'timeline') return renderTimelineRecordEditor();
   if (key === 'vtimeline') return renderVendorTimelineRecordEditor();
+  if (key === 'packets') return renderPacketRecordEditor();
   return renderGenericRecordEditor();
 }
 function inlineRecordDisplayLabel(key, draft){
@@ -15580,9 +15920,7 @@ function guestDrawerHistoryPaneHtml(d){
 function renderTaskDrawerEditor(){
   const d = recordEditorState.draft;
   const overdue = typeof taskIsOverdue === 'function' && taskIsOverdue(d);
-  /* Full-editor parity — Task / Schedule / Links / Subtasks / Notes.
-     Tabs (redesign-shell): Task shows Task+Schedule+Notes; dedicated tabs for
-     Subtasks, Links, History. */
+  /* Master 9a drawer: Task · Depends on · People · History */
   return `
     <section class="record-editor-section rd-drawer-fields" data-drawer-group="task"><h4>Task</h4>
       ${rdDrawerInputRow('Task name','task','text')}
@@ -15593,16 +15931,144 @@ function renderTaskDrawerEditor(){
       ${rdDrawerInputRow('Due date','date','date', overdue ? 'is-overdue' : '')}
       ${rdDrawerInputRow('Suggested date','suggestedDue','date')}
       ${rdDrawerSelectRow('Priority','priority',PRIORITY || [])}
-      ${rdDrawerDatalistRow('Owner','assigned',recordAssigneeOptionValues(), true)}
       ${rdDrawerSelectRow('Status','status',TASK_STATUS || [])}
     </section>
-    <section class="record-editor-section rd-drawer-fields" data-drawer-group="links"><h4>Links</h4>
-      ${rdDrawerLinkSelect('Vendor','vendorId',data?.vendors,'name')}
-      ${rdDrawerLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat')}
-    </section>
+    ${renderTaskDrawerDepends()}
+    ${renderTaskDrawerPeople()}
     ${renderTaskDrawerSubtasks()}
     ${renderTaskDrawerNotes()}`;
 }
+function taskDependsOnIds(row){
+  const raw = row && row.dependsOn;
+  if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
+  if (raw) return [String(raw)];
+  return [];
+}
+function taskWatchersList(row){
+  const raw = row && row.watchers;
+  if (Array.isArray(raw)) return raw.map(s => String(s).trim()).filter(Boolean);
+  if (typeof raw === 'string' && raw.trim()) return raw.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
+}
+function taskFindById(id){
+  return safeArray(data.tasks).find(t => String(t._id) === String(id)) || null;
+}
+function taskDownstreamOf(id){
+  const sid = String(id || '');
+  if (!sid) return [];
+  return safeArray(data.tasks).filter(t => taskDependsOnIds(t).includes(sid));
+}
+function renderTaskDrawerDepends(){
+  const d = recordEditorState.draft || {};
+  const ids = taskDependsOnIds(d);
+  const up = ids.map(id => {
+    const t = taskFindById(id);
+    const name = t ? (t.task || 'Task') : ('Missing task');
+    const st = t ? (t.status || '') : '';
+    return `<div class="rd-task-dep-row">
+      <button type="button" class="rd-task-dep-row__main" onclick="rdTaskOpenDepend('${escapeHtml(String(id))}')">
+        <strong>${escapeHtml(name)}</strong>
+        <span>${escapeHtml(st || '—')}</span>
+      </button>
+      <button type="button" class="rd-task-dep-row__del" aria-label="Remove dependency" onclick="rdTaskRemoveDepend('${escapeHtml(String(id))}')">×</button>
+    </div>`;
+  }).join('');
+  const blockedNote = String(d.blockedBy || '').trim();
+  const down = taskDownstreamOf(d._id);
+  const downHtml = down.map(t => {
+    const idx = data.tasks.indexOf(t);
+    return `<button type="button" class="rd-task-dep-row__main" onclick="if(typeof rdOpenDrawer==='function')rdOpenDrawer('tasks',${idx})">
+      <strong>${escapeHtml(t.task || 'Task')}</strong>
+      <span>${escapeHtml(t.status || '—')}</span>
+    </button>`;
+  }).join('');
+  return `<section class="record-editor-section rd-drawer-fields" data-drawer-group="depends"><h4>Depends on</h4>
+    <p class="rd-drawer-callout">What must happen first, and what is waiting on this — the reason a due date is not a wish.</p>
+    <div class="rd-task-dep-block">
+      <div class="rd-drawer-section-title">Blocked by · ${ids.length}</div>
+      ${up || '<p class="rd-help">No upstream tasks yet.</p>'}
+      <button type="button" class="rd-btn rd-btn--quiet" onclick="rdTaskAddDepend()">+ Add dependency</button>
+    </div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Blocker note</span>
+      <input class="rd-field-row__value" type="text" value="${escapeHtml(blockedNote)}" placeholder="Unsigned contract, RSVP deadline…" oninput="recordEditorSet('blockedBy',this.value)">
+    </div>
+    <div class="rd-task-dep-block">
+      <div class="rd-drawer-section-title">Blocks · ${down.length}</div>
+      ${downHtml || '<p class="rd-help">Nothing is waiting on this task.</p>'}
+    </div>
+  </section>`;
+}
+function renderTaskDrawerPeople(){
+  const d = recordEditorState.draft || {};
+  const watchers = taskWatchersList(d);
+  const chips = watchers.map((w, i) =>
+    `<span class="rd-task-watcher">${escapeHtml(w)}<button type="button" aria-label="Remove watcher" onclick="rdTaskRemoveWatcher(${i})">×</button></span>`
+  ).join('');
+  return `<section class="record-editor-section rd-drawer-fields" data-drawer-group="people"><h4>People</h4>
+    <p class="rd-drawer-callout">Owner, watchers and the vendor on the other end. Everyone who gets a notification when this moves.</p>
+    ${rdDrawerDatalistRow('Owner','assigned',recordAssigneeOptionValues(), true)}
+    <div class="rd-field-row"><span class="rd-field-row__label">Watching · ${watchers.length}</span>
+      <div class="rd-task-watchers">${chips || '<span class="rd-help">No watchers</span>'}</div>
+    </div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Add watcher</span>
+      <input class="rd-field-row__value" type="text" placeholder="Name, then Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();rdTaskAddWatcher(this.value);this.value='';}">
+    </div>
+    ${rdDrawerLinkSelect('Vendor','vendorId',data?.vendors,'name')}
+    ${rdDrawerLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat')}
+  </section>`;
+}
+async function rdTaskAddDepend(){
+  const d = recordEditorState && recordEditorState.draft;
+  if (!d) return;
+  const current = new Set(taskDependsOnIds(d).concat([String(d._id || '')]));
+  const others = safeArray(data.tasks).filter(t => t._id && !current.has(String(t._id)));
+  if (!others.length) {
+    if (typeof showToast === 'function') showToast('No other tasks to depend on.');
+    return;
+  }
+  const labels = others.map(t => t.task || 'Untitled task');
+  let picked = null;
+  if (typeof window.covChoose === 'function') picked = await window.covChoose('', labels, { title: 'Depends on' });
+  else if (typeof prompt === 'function') picked = prompt('Depends on which task?');
+  if (!picked) return;
+  const hit = others.find(t => (t.task || 'Untitled task') === picked) || others[labels.indexOf(picked)];
+  if (!hit) return;
+  d.dependsOn = taskDependsOnIds(d).concat([String(hit._id)]);
+  if (typeof renderRecordEditor === 'function') renderRecordEditor();
+}
+function rdTaskRemoveDepend(id){
+  const d = recordEditorState && recordEditorState.draft;
+  if (!d) return;
+  d.dependsOn = taskDependsOnIds(d).filter(x => String(x) !== String(id));
+  if (typeof renderRecordEditor === 'function') renderRecordEditor();
+}
+function rdTaskOpenDepend(id){
+  const idx = safeArray(data.tasks).findIndex(t => String(t._id) === String(id));
+  if (idx > -1 && typeof rdOpenDrawer === 'function') rdOpenDrawer('tasks', idx);
+}
+function rdTaskAddWatcher(name){
+  const d = recordEditorState && recordEditorState.draft;
+  const n = String(name || '').trim();
+  if (!d || !n) return;
+  const list = taskWatchersList(d);
+  if (!list.includes(n)) list.push(n);
+  d.watchers = list;
+  if (typeof renderRecordEditor === 'function') renderRecordEditor();
+}
+function rdTaskRemoveWatcher(i){
+  const d = recordEditorState && recordEditorState.draft;
+  if (!d) return;
+  const list = taskWatchersList(d);
+  list.splice(i, 1);
+  d.watchers = list;
+  if (typeof renderRecordEditor === 'function') renderRecordEditor();
+}
+window.rdTaskAddDepend = rdTaskAddDepend;
+window.rdTaskRemoveDepend = rdTaskRemoveDepend;
+window.rdTaskOpenDepend = rdTaskOpenDepend;
+window.rdTaskAddWatcher = rdTaskAddWatcher;
+window.rdTaskRemoveWatcher = rdTaskRemoveWatcher;
+window.taskDependsOnIds = taskDependsOnIds;
 function renderTaskDrawerSubtasks(){
   const d = recordEditorState.draft;
   if (!Array.isArray(d.subtasks)) d.subtasks = [];
@@ -15655,6 +16121,7 @@ function renderAppointmentRecordEditor(){
     ${recordDatalist('Vendor / Company','vendor',vendors)}
     ${recordDatalist('Contact Person','contact',contacts)}
     ${recordInput('Date','date','date')}
+    ${!d.date ? '<p class="record-editor-note">No date — this appointment sits in Held on the agenda, with Notes as the reason.</p>' : ''}
     ${recordInput('Start time','time','time')}
     ${recordInput('End time','endTime','time')}
     ${recordDatalist('Location','location',locations,true)}
@@ -15689,13 +16156,100 @@ function renderAppointmentRecordEditor(){
   ${calSection}`;
 }
 /* ── Weekend Logistics record editors (11d drawer tabs · Movement / People / Transport / History) ── */
+function logisticsMovementPeopleGroups(d){
+  const iso = String((d && d.date) || '').slice(0, 10);
+  const travel = safeArray(data.travelAccommodations).filter(r => {
+    if (!iso) return !!r.transportNeeded;
+    return String(r.arrival || '').slice(0, 10) === iso;
+  });
+  return travel.map(r => {
+    let head = 1;
+    if (/&| and /i.test(String(r.guest || ''))) head += 1;
+    const kids = parseInt(r.children, 10);
+    if (kids > 0) head += kids;
+    const when = r.arrivalTime
+      ? ((typeof humanTime === 'function' ? humanTime(r.arrivalTime) : r.arrivalTime) + ' arrival')
+      : (r.notes || 'Travelling');
+    return { name: r.guest || 'Guest', count: head, when, transportNeeded: !!r.transportNeeded };
+  });
+}
+function logisticsMovementTransportSummary(d){
+  const iso = String((d && d.date) || '').slice(0, 10);
+  const owner = String((d && d.host) || '').trim().toLowerCase();
+  const routes = safeArray(data.transportation).filter(r => {
+    if (iso && String(r.date || '').slice(0, 10) !== iso) return false;
+    if (!owner) return true;
+    return String(r.driver || '').trim().toLowerCase() === owner
+      || String(r.group || '').toLowerCase().includes(owner.split(' ')[0] || '___');
+  });
+  const vehicles = new Set();
+  let spend = 0, noDriver = 0;
+  routes.forEach(r => {
+    if (r.vehicle) vehicles.add(String(r.vehicle).trim());
+    spend += parseFloat(r.cost) || 0;
+    if (!String(r.driver || '').trim()) noDriver++;
+  });
+  return { routes, vehicles: vehicles.size, spend, noDriver };
+}
+function logisticsMovementOwnerClash(d){
+  const owner = String((d && d.host) || '').trim();
+  if (!owner) return null;
+  const iso = String((d && d.date) || '').slice(0, 10);
+  const parse = hhmm => {
+    const m = /^(\d{1,2}):(\d{2})/.exec(String(hhmm || ''));
+    if (!m) return null;
+    return (parseInt(m[1], 10) || 0) * 60 + (parseInt(m[2], 10) || 0);
+  };
+  const start = parse(d.start), end = parse(d.end) || (start != null ? start + 45 : null);
+  if (start == null) return null;
+  const hits = [];
+  safeArray(data.transportation).forEach(r => {
+    if (String(r.driver || '').trim().toLowerCase() !== owner.toLowerCase()) return;
+    if (iso && String(r.date || '').slice(0, 10) !== iso) return;
+    const rs = parse(r.pickupTime);
+    if (rs == null) return;
+    let re = parse(r.dropoffTime);
+    if (re == null || re <= rs) re = rs + 30;
+    if (start < re && rs < (end || start + 45)) {
+      hits.push({ kind: 'transport', label: [r.pickup, r.dropoff].filter(Boolean).join(' → ') || r.group || 'Transport run', time: r.pickupTime });
+    }
+  });
+  safeArray(data.appointments).forEach(a => {
+    if (String(a.contact || a.with || '').trim().toLowerCase() !== owner.toLowerCase()) return;
+    if (iso && String(a.date || '').slice(0, 10) !== iso) return;
+    const as = parse(a.time);
+    if (as == null) return;
+    if (Math.abs(as - start) < 90) {
+      hits.push({ kind: 'appointment', label: a.title || 'Appointment', time: a.time });
+    }
+  });
+  return hits[0] || null;
+}
 function renderWeekendTimelineRecordEditor(){
   const d = recordEditorState.draft || {};
   const statusOpts = ['Planned','Confirmed','Needs Detail','Optional','Canceled','Unowned'];
   const groupOpts = typeof weddingGroupOptions === 'function'
     ? weddingGroupOptions(safeArray(data.weekendTimeline).map(r => r.group).concat([d.group]))
     : ['Everyone','Wedding Party','Immediate Family','Out-of-Town Guests'];
-  return `<section class="record-editor-section" data-drawer-group="movement"><h4>Movement</h4><div class="record-editor-grid">
+  const dayKey = logisticsRowDayKey(d);
+  const dayNote = dayKey === 'sunday'
+    ? '<p class="record-editor-note">A Sunday movement is mirrored on the Wedding Day Timeline — editing it there edits it here.</p>'
+    : '<p class="record-editor-note">Friday and Saturday movements live only here. Sunday ones are mirrored on the Timeline.</p>';
+  const people = logisticsMovementPeopleGroups(d);
+  const peopleTotal = people.reduce((s, p) => s + (p.count || 1), 0);
+  const peopleRows = people.length
+    ? people.map(p => `<div class="rd-log-people-row"><strong>${escapeHtml(p.name)}${p.count > 1 ? ' · ' + p.count + ' guests' : ''}</strong><span>${escapeHtml(p.when)}</span></div>`).join('')
+    : `<div class="rd-log-people-row"><strong>${escapeHtml(d.group || 'Guest group')}</strong><span>No travel rows on this day yet</span></div>`;
+  const clash = logisticsMovementOwnerClash(d);
+  const clashHtml = clash
+    ? `<div class="rd-log-drawer-summary is-warn">${escapeHtml(d.host || 'Owner')} cannot cover the full window — also needed for <b>${escapeHtml(clash.label)}</b>${clash.time ? ' at ' + escapeHtml(typeof humanTime === 'function' ? humanTime(clash.time) : clash.time) : ''}. Nothing checks movements against appointments automatically.</div>`
+    : '';
+  const tsum = logisticsMovementTransportSummary(d);
+  const spendLabel = tsum.spend ? (typeof fmt === 'function' ? fmt(tsum.spend) : ('$' + tsum.spend)) : '—';
+  const transportNote = tsum.noDriver
+    ? `<div class="rd-log-drawer-summary is-warn">${tsum.noDriver} run${tsum.noDriver === 1 ? '' : 's'} on this day still need a driver.</div>`
+    : `<div class="rd-log-drawer-summary">${tsum.vehicles || 0} vehicle${tsum.vehicles === 1 ? '' : 's'} · ${tsum.routes.length} run${tsum.routes.length === 1 ? '' : 's'} · ${escapeHtml(spendLabel)} posts to the Transport budget line when set.</div>`;
+  return `<section class="record-editor-section" data-drawer-group="movement"><h4>Movement</h4>${dayNote}<div class="record-editor-grid">
     <div class="record-editor-field" style="display:none"><label>ID</label><input value="${escapeHtml(d._id||'')}" readonly></div>
     ${recordInput('Movement','event','text',true)}
     ${recordInput('Day','date','date')}
@@ -15708,15 +16262,18 @@ function renderWeekendTimelineRecordEditor(){
     ${recordInput('Attire','attire','text')}
     ${recordInput('Cost','cost','number')}
   </div></section>
-  <section class="record-editor-section" data-drawer-group="people"><h4>People</h4>
-    <p class="record-editor-note">Who this movement is for. Guest group and owner live here so the Schedule stays a one-line scan.</p>
+  <section class="record-editor-section" data-drawer-group="people"><h4>People${peopleTotal ? ' · ' + peopleTotal + ' travelling' : ''}</h4>
+    <p class="record-editor-note">Who this movement is for. Guest counts come from travel rows and the guest list — never typed twice.</p>
+    <div class="rd-log-people-list">${peopleRows}</div>
+    ${clashHtml}
     <div class="record-editor-grid">
     ${recordSelect('Guest group','group',groupOpts)}
     ${recordInput('Owner / lead','host','text')}
     ${recordTextarea('Notes','notes',true)}
   </div></section>
   <section class="record-editor-section" data-drawer-group="transport"><h4>Transport</h4>
-    <p class="record-editor-note">Link a route from the Transport view when a movement needs vehicles. Cost can stay here as a projected amount.</p>
+    <p class="record-editor-note">Vehicle coverage for this movement. Cost posts to the Transport budget line when the couple pays.</p>
+    ${transportNote}
     <div class="record-editor-grid">
     ${recordInput('Related place from/to','location','text')}
     ${recordInput('Projected cost','cost','number')}
@@ -16018,6 +16575,20 @@ function renderTablesRecordEditor(){
     ${recordInput('Position note','placement')}
   </div></section>`;
 }
+function renderPacketRecordEditor(){
+  if (typeof window.__packetsRenderRecordEditorRd === 'function') return window.__packetsRenderRecordEditorRd();
+  const d = recordEditorState?.draft || {};
+  return `<section class="record-editor-section"><h4>Share packet</h4><div class="record-editor-grid">
+    ${recordInput('Packet name','name','text',true)}
+    ${recordInput('Recipient','recipient','text',true)}
+    ${recordInput('Contains','contains','text',true)}
+    ${recordSelect('Mode','mode',['Live','Snapshot'])}
+    ${recordSelect('Status','status',['Draft','Live','Expiring','Never opened','Expired','Revoked'])}
+    ${recordInput('Share link','link','text',true)}
+    ${recordInput('Expires','expires','date')}
+    ${recordTextarea('Notes','hides')}
+  </div></section>`;
+}
 function renderGiftRecordEditor(){
   if (typeof window.__giftsRenderRecordEditorRd === 'function') return window.__giftsRenderRecordEditorRd();
   const d = recordEditorState.draft;
@@ -16225,6 +16796,7 @@ function saveRecordEditor(addAnother=false, options={}){
   if (isNew) { rows.push(row); savedIndex = rows.length - 1; }
   else rows[index] = row;
   recordHistoryLog(key, historyBefore, row);
+  if (key === 'ceremonyVows' && typeof syncCeremonyVowsToCeremony === 'function') syncCeremonyVowsToCeremony();
   if (key === 'guests') {
     if (recordEditorState.newEventIds?.length) {
       const ids = new Set(recordEditorState.newEventIds);
@@ -16338,8 +16910,18 @@ function renderRecordEditorTarget(key){
     hotelBlocks:()=>{ renderLogisticsPage(); renderSmartCalendarIfActive(); },
     transportation:()=>{ renderLogisticsPage(); logAfterChange(); },
     vipCare:renderLogisticsPage, events:()=>{ renderLogisticsPage(); renderSmartCalendarIfActive(); },
-    locations:renderLogisticsPage, contacts:renderLogisticsPage, vendorCompare:renderVendorCompare,
-    attire:renderLogisticsPage, decor:renderLogisticsPage, stationery:renderLogisticsPage
+    locations:renderLogisticsPage,
+    contacts:()=>{
+      if (typeof renderLogisticsPage === 'function') renderLogisticsPage();
+      if (typeof renderContactsRd === 'function') renderContactsRd();
+    },
+    vendorCompare:renderVendorCompare,
+    attire:renderLogisticsPage, decor:renderLogisticsPage, stationery:renderLogisticsPage,
+    packets:()=>{
+      if (typeof renderPacketsRd === 'function') renderPacketsRd();
+      else if (typeof renderPacketsPage === 'function') renderPacketsPage();
+      else if (typeof renderPackets === 'function') renderPackets();
+    }
   };
   if (key === 'payments') syncPaymentsToBudget();
   if (map[key]) map[key]();
@@ -16962,6 +17544,24 @@ function budgetItemEditorUpdateSaveState(){
   const text = el.querySelector('span') || el;
   text.textContent = dirty ? 'Unsaved changes' : 'Saved';
 }
+async function budgetItemEditorAddNew(){
+  const st = budgetItemEditorState;
+  if (!st) return;
+  if (st.isNew) {
+    saveBudgetItemEditor(true);
+    return;
+  }
+  if (budgetItemDirty()) {
+    const saveFirst = await covConfirm(
+      'Save your changes before adding a new line item? Choose OK to save and continue, or Cancel to stay here.',
+      { title: 'Save changes?', okText: 'Save & continue', cancelText: 'Stay' }
+    );
+    if (!saveFirst) return;
+    if (!saveBudgetItemEditor(false, { keepOpen: true })) return;
+  }
+  openBudgetItemEditor(st.ci, null);
+}
+window.budgetItemEditorAddNew = budgetItemEditorAddNew;
 function budgetItemEditorRenderRail(){
   const list = document.getElementById('budget-item-sibling-list');
   const label = document.getElementById('budget-item-rail-label');
@@ -16973,10 +17573,11 @@ function budgetItemEditorRenderRail(){
   if (st.isNew) {
     list.innerHTML = `<button type="button" class="re-rail-item is-active" disabled title="New line item">
       <span class="re-rail-item-name">New line item</span>
-    </button>`;
+    </button>
+    <button type="button" class="re-rail-add" onclick="budgetItemEditorAddNew()">+ Add line item</button>`;
     return;
   }
-  list.innerHTML = items.slice(0, 40).map((it, i) => {
+  list.innerHTML = (items.slice(0, 40).map((it, i) => {
     const name = it.name || 'Untitled line';
     const side = fmt(budgetItemActual(it));
     const active = i === visibleIndex ? ' is-active' : '';
@@ -16984,7 +17585,8 @@ function budgetItemEditorRenderRail(){
       <span class="re-rail-item-name">${escapeHtml(name)}</span>
       <span class="re-rail-item-meta">${escapeHtml(side)}</span>
     </button>`;
-  }).join('') || '<div class="re-rail-empty">No other line items</div>';
+  }).join('') || '<div class="re-rail-empty">No other line items</div>')
+    + `<button type="button" class="re-rail-add" onclick="budgetItemEditorAddNew()">+ Add line item</button>`;
 }
 function budgetItemEditorBuildJumpList(){
   const jump = document.getElementById('budget-item-jump-list');
@@ -17062,7 +17664,16 @@ function renderBudgetItemEditor(){
   if (sub) sub.hidden = true;
   if (pills) pills.innerHTML = budgetItemEditorPillsHtml();
   if (del) del.style.display = st.isNew ? 'none' : '';
-  if (addAnother) addAnother.style.display = st.isNew ? '' : 'none';
+  if (addAnother) {
+    addAnother.style.display = '';
+    if (st.isNew) {
+      addAnother.textContent = 'Save & add another';
+      addAnother.setAttribute('onclick', 'saveBudgetItemEditor(true)');
+    } else {
+      addAnother.textContent = '+ Add line item';
+      addAnother.setAttribute('onclick', 'budgetItemEditorAddNew()');
+    }
+  }
   if (saveClose) saveClose.textContent = st.isNew ? 'Add & close' : 'Save & close';
   updateBudgetItemEditorNav();
   budgetItemEditorRenderRail();
@@ -17863,6 +18474,7 @@ function paymentFormatDate(val) {
   return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 function addPaymentRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('payments')) return;
   if (document.body.getAttribute('data-active-panel') === 'payments' && document.getElementById('payment-inline-editor-body')) {
     covInlineLoad('payments', null, 'payment-inline-editor-body');
     return;
@@ -18747,6 +19359,7 @@ function addVendorRow() {
     const catDef = typeof vendorCategoryByKey === 'function' ? vendorCategoryByKey(catKey) : null;
     if (catDef && catDef.label) seed.cat = catDef.label;
   }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('vendors', seed)) return;
   if (document.body.getAttribute('data-active-panel') === 'vendors' && document.getElementById('vendor-inline-editor-body')) {
     covInlineLoad('vendors', null, 'vendor-inline-editor-body', seed);
     return;
@@ -18904,7 +19517,7 @@ function uedVendorShell(){
       <section class="ued-table-card vendors-table-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor tracker <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-link" onclick="exportVendorCSV()">Export CSV</button><button class="ued-btn db-edit-btn" onclick="openDataHub('vendors','vendors')">Edit in Vendors Hub</button></div></div><div id="cwp-vendors" class="ro-preview"></div><div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet editing and bulk actions live in the Vendors Hub.</span></div></section>
       <section class="ued-table-card vendor-cards-card"><div class="ued-table-head"><div class="ued-table-title">${uedIcon('briefcase')} Vendor cards</div></div><div class="hub-record-card-grid" id="vendor-card-grid"></div><div class="hub-record-card-pager"><span class="ued-soft" id="vendor-card-foot"></span><span id="vendor-card-pager"></span></div>${hubPreviewFoot('vendors','vendors')}</section>
     </div>
-    <div data-vnd-tab="shortlist" style="display:none"><section class="ued-panel vendors-compare-panel"><div class="ued-table-head"><div class="ued-table-title">Vendor Comparisons</div><div class="ued-actions"><button type="button" class="cwp-btn" onclick="vcmpAutoFitCols()" title="Size all columns to fit their contents">Auto-fit columns</button><button type="button" class="cwp-btn" onclick="vcmpAutoFitRows()" title="Size all rows to fit their contents">Auto-fit rows</button></div></div><p class="v4-help-note">Compare up to 3 vendors side by side — full compare table in Database Hub.</p><div id="vendor-compare-preview"></div>${hubPreviewFoot('vendors','vendorCompare')}</section></div>
+    <div data-vnd-tab="shortlist" style="display:none"><section class="ued-panel vendors-compare-panel"><div class="ued-table-head"><div class="ued-table-title">Vendor Comparisons</div></div><p class="v4-help-note">Compare up to 3 vendors side by side — full compare table in Database Hub.</p><div id="vendor-compare-preview"></div>${hubPreviewFoot('vendors','vendorCompare')}</section></div>
   </div>`;
 }
 
@@ -19034,15 +19647,10 @@ function setGuestPage(page) {
 }
 function changeGuestPage(direction) { setGuestPage(guestPageIndex + direction); }
 function addGuestRow() {
-  if (document.body.getAttribute('data-active-panel') === 'guests') {
-    if (typeof rdOpenDrawer === 'function' && document.getElementById('record-drawer-body')) {
-      rdOpenDrawer('guests', null);
-      return;
-    }
-    if (document.getElementById('guest-inline-editor-body')) {
-      covInlineLoad('guests', null, 'guest-inline-editor-body');
-      return;
-    }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('guests')) return;
+  if (document.body.getAttribute('data-active-panel') === 'guests' && document.getElementById('guest-inline-editor-body')) {
+    covInlineLoad('guests', null, 'guest-inline-editor-body');
+    return;
   }
   openRecordEditor('guests');
 }
@@ -19119,6 +19727,52 @@ function parseGuestCSV(text){
   if (row.some(v => String(v).trim())) rows.push(row);
   return rows.filter(r => r.some(v => String(v).trim()));
 }
+function openGuestDuplicateReview(){
+  if (typeof RdFurniture === 'undefined' || !RdFurniture.openMergeReview) {
+    showToast('Merge review is not available yet.', 'warn');
+    return;
+  }
+  const guests = safeArray(data.guests);
+  let left = null, right = null;
+  for (let i = 0; i < guests.length; i++) {
+    const a = guests[i];
+    const aEmail = normalizeGuestImportKey(a.email);
+    const aName = normalizeGuestImportKey(a.name);
+    for (let j = i + 1; j < guests.length; j++) {
+      const b = guests[j];
+      const sameEmail = aEmail && aEmail === normalizeGuestImportKey(b.email);
+      const sameName = aName && aName === normalizeGuestImportKey(b.name);
+      if (sameEmail || sameName) { left = a; right = b; break; }
+    }
+    if (left) break;
+  }
+  if (!left || !right) {
+    showToast('No obvious duplicates found on the guest list.');
+    return;
+  }
+  showPanel('guests', true);
+  RdFurniture.openMergeReview({
+    left: { name: left.name, email: left.email, household: left.household, rsvp: left.rsvp, table: left.table },
+    right: { name: right.name, email: right.email, household: right.household, rsvp: right.rsvp, table: right.table },
+    onMerge: function () {
+      /* Keep left; fold right email into notes/history and remove right. */
+      if (right.email && left.email && right.email !== left.email) {
+        left.altEmail = right.email;
+        left.notes = (left.notes ? left.notes + '\n' : '') + 'Merged alternate email: ' + right.email;
+      }
+      Object.keys(right).forEach(k => {
+        if (k === '_id') return;
+        if ((left[k] == null || left[k] === '') && right[k] != null && right[k] !== '') left[k] = right[k];
+      });
+      const idx = guests.indexOf(right);
+      if (idx >= 0) guests.splice(idx, 1);
+      save();
+      if (typeof renderGuests === 'function') renderGuests();
+    }
+  });
+}
+window.openGuestDuplicateReview = openGuestDuplicateReview;
+
 function ensureGuestCsvModal(){
   let overlay = document.getElementById('guest-csv-overlay');
   if (overlay) return overlay;
@@ -19127,16 +19781,17 @@ function ensureGuestCsvModal(){
   overlay.className = 'tb-overlay';
   overlay.onclick = (event) => { if (event.target === overlay) closeGuestCSVImport(); };
   overlay.innerHTML = `
-    <div class="tb-modal" role="dialog" aria-modal="true" aria-labelledby="guest-csv-title" style="max-width:860px">
+    <div class="tb-modal rd-import-modal" role="dialog" aria-modal="true" aria-labelledby="guest-csv-title" style="max-width:660px">
       <div class="tb-head">
-        <h3 id="guest-csv-title">Import Guest CSV</h3>
+        <h3 id="guest-csv-title">Import guests · step 1 of 3</h3>
         <button type="button" class="tb-close" onclick="closeGuestCSVImport()" aria-label="Close">x</button>
       </div>
       <p class="tb-sub" id="guest-csv-sub">Import guests from Excel, Google Sheets, or RSVP responses exported as CSV.</p>
       <input id="guest-csv-file" type="file" accept=".csv,text/csv" style="display:none" onchange="handleGuestCSVFile(event)">
       <div id="guest-csv-body"></div>
-      <div class="tb-actions">
-        <button type="button" class="btn btn-outline btn-sm" onclick="closeGuestCSVImport()">Cancel</button>
+      <div class="tb-actions" id="guest-csv-actions">
+        <button type="button" class="btn btn-outline btn-sm" id="guest-csv-back-btn" onclick="closeGuestCSVImport()">Cancel</button>
+        <button type="button" class="btn btn-outline btn-sm" id="guest-csv-template-btn" onclick="downloadGuestCSVTemplate((guestCsvImportState&&guestCsvImportState.mode)||'guests')">Download a template instead</button>
         <button type="button" class="btn btn-forest btn-sm" id="guest-csv-import-btn" onclick="commitEntityCSVImport()" disabled>Import</button>
       </div>
     </div>`;
@@ -19145,25 +19800,31 @@ function ensureGuestCsvModal(){
 }
 function openGuestCSVImport(mode='guests'){
   const overlay = ensureGuestCsvModal();
-  guestCsvImportState = {mode, headers:[], rows:[], mapping:{}};
+  guestCsvImportState = {mode, headers:[], rows:[], mapping:{}, step:1, fileName:'', conflicts:[], conflictResolutions:{}};
   const title = document.getElementById('guest-csv-title');
   const sub = document.getElementById('guest-csv-sub');
   const body = document.getElementById('guest-csv-body');
   const btn = document.getElementById('guest-csv-import-btn');
-  if (title) title.textContent = mode === 'rsvp' ? 'Import RSVP Responses' : 'Import Guest List CSV';
+  if (title) title.textContent = mode === 'rsvp' ? 'Import RSVP · step 1 of 3' : 'Import guests · step 1 of 3';
   if (sub) sub.textContent = mode === 'rsvp'
-    ? 'Use this for Google Forms or RSVP spreadsheet exports. The planner matches guests by email or name, then updates RSVP, meal, dietary, plus-one, children, and notes.'
-    : 'Use this for large guest lists exported from Excel or Google Sheets. You will preview the columns before anything is added.';
+    ? 'Use this for Google Forms or RSVP spreadsheet exports. Map columns next — nothing is written until you confirm.'
+    : 'Map the file’s columns to planner fields. Nothing is written until step 3.';
   if (body) body.innerHTML = `
     <div class="v4-help-note">
-      <strong>CSV import is additive.</strong> Existing guests are matched by email or name. New rows are added; matched rows are updated with non-empty values.
+      <strong>CSV import is additive.</strong> Existing guests are matched by email or name. Import never deletes guests that are missing from the file.
     </div>
     <div class="m-actions" style="margin:.8rem 0 1rem">
       <button type="button" class="m-btn m-btn-primary" onclick="document.getElementById('guest-csv-file').click()">Choose CSV File</button>
       <button type="button" class="m-btn" onclick="downloadGuestCSVTemplate('${mode}')">Download Template</button>
     </div>
     <div class="empty-dashboard-note">No file selected yet.</div>`;
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Import';
+    btn.onclick = () => commitEntityCSVImport();
+  }
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) { back.textContent = 'Cancel'; back.onclick = () => closeGuestCSVImport(); }
   overlay.style.display = 'flex';
 }
 function closeGuestCSVImport(){
@@ -19185,40 +19846,213 @@ function handleGuestCSVFile(event){
     const rows = parsed.slice(1).filter(r => r.some(v => String(v || '').trim()));
     guestCsvImportState.headers = headers;
     guestCsvImportState.rows = rows;
+    guestCsvImportState.fileName = file.name || 'import.csv';
+    guestCsvImportState.step = 2;
     guestCsvImportState.mapping = {};
+    guestCsvImportState.conflicts = [];
+    guestCsvImportState.conflictResolutions = {};
     headers.forEach((h,i) => {
       const guessFn = guestCsvImportState.mode === 'vendors' ? guessVendorCsvField : (guestCsvImportState.mode === 'gifts' ? guessGiftCsvField : guessGuestCsvField);
-      guestCsvImportState.mapping[i] = guessFn(h, guestCsvImportState.mode);
+      let mapped = guessFn(h, guestCsvImportState.mode);
+      /* Seating is owned by Table Layout — never take it from a file (Views · import). */
+      if (mapped === 'table') mapped = 'skip';
+      guestCsvImportState.mapping[i] = mapped;
     });
     renderGuestCSVMapping();
   };
   reader.readAsText(file);
   event.target.value = '';
 }
+function guestCsvImportPreflight(){
+  const state = guestCsvImportState;
+  if (!state) return { create:0, match:0, conflict:0, skip:0, untouched:0, conflicts:[], matchHow:'' };
+  let create = 0, match = 0, conflict = 0, skip = 0;
+  let matchEmail = 0, matchName = 0;
+  const conflicts = [];
+  const matchedIds = new Set();
+  state.rows.forEach((row, rowIndex) => {
+    const incoming = buildGuestImportObject(row);
+    if (!incoming.name && !incoming.email) { skip++; return; }
+    const email = normalizeGuestImportKey(incoming.email);
+    const name = normalizeGuestImportKey(incoming.name);
+    let byEmail = -1, byName = -1;
+    if (email) byEmail = data.guests.findIndex(g => normalizeGuestImportKey(g.email) === email);
+    if (name) byName = data.guests.findIndex(g => normalizeGuestImportKey(g.name) === name);
+    if (byEmail >= 0) {
+      match++; matchEmail++;
+      matchedIds.add(String(data.guests[byEmail]._id || byEmail));
+      return;
+    }
+    if (byName >= 0) {
+      const existing = data.guests[byName];
+      const existingEmail = normalizeGuestImportKey(existing.email);
+      if (email && existingEmail && email !== existingEmail) {
+        conflict++;
+        conflicts.push({
+          id: 'c-' + rowIndex,
+          rowIndex,
+          left: { name: existing.name, email: existing.email, household: existing.household, rsvp: existing.rsvp, table: existing.table },
+          right: { name: incoming.name, email: incoming.email, household: incoming.household, rsvp: incoming.rsvp, table: incoming.table },
+          incoming
+        });
+        matchedIds.add(String(existing._id || byName));
+        return;
+      }
+      match++; matchName++;
+      matchedIds.add(String(existing._id || byName));
+      return;
+    }
+    create++;
+  });
+  const untouched = Math.max(0, safeArray(data.guests).length - matchedIds.size);
+  return {
+    create, match, conflict, skip, untouched, conflicts,
+    matchHow: matchEmail && !matchName ? 'by email' : (matchName && !matchEmail ? 'by name' : (match ? 'by email or name' : ''))
+  };
+}
+function guestCsvMappingChip(header, field){
+  const h = normalizeGuestImportKey(header);
+  if (/table|seat|seating/.test(h) || field === 'table') {
+    return { label: 'ignored · seating is set in the planner', tone: 'gray', locked: true };
+  }
+  if (field === 'skip') {
+    return { label: 'not imported · no field for it', tone: 'gray', locked: false };
+  }
+  if (field === 'side' && /(b\/g|bride|groom)/.test(h)) {
+    return { label: 'matched · values will be mapped', tone: 'amber', locked: false };
+  }
+  if (field === 'plusone' || /^(y\/n|yesno|plus)/.test(h)) {
+    return { label: field === 'plusone' ? 'matched · Y/N → yes/no' : 'matched', tone: field === 'plusone' ? 'amber' : 'green', locked: false };
+  }
+  if (field === 'rsvp') return { label: 'matched · values will be mapped', tone: 'amber', locked: false };
+  return { label: 'matched', tone: 'green', locked: false };
+}
 function renderGuestCSVMapping(){
   const state = guestCsvImportState;
   const body = document.getElementById('guest-csv-body');
   const btn = document.getElementById('guest-csv-import-btn');
+  const title = document.getElementById('guest-csv-title');
+  const sub = document.getElementById('guest-csv-sub');
   if (!state || !body) return;
-  const opts = (state.mode === 'guests' || state.mode === 'rsvp') ? guestCsvFieldOptions(state.mode) : entityCsvFieldOptions(state.mode);
-  const previewRows = state.rows.slice(0,5);
-  const mapSelects = state.headers.map((h,i) => `
-    <label class="m-field">
-      <span>${escapeHtml(h || 'Column '+(i+1))}</span>
-      <select onchange="setGuestCsvMapping(${i},this.value)">
-        ${opts.map(([k,label]) => `<option value="${k}"${state.mapping[i]===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}
-      </select>
-    </label>`).join('');
-  const table = `<div style="overflow:auto;margin-top:1rem"><table class="budget-table" style="min-width:760px"><thead><tr>${state.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${state.headers.map((_,i)=>`<td>${escapeHtml(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  body.innerHTML = `
-    <div class="v4-help-note"><strong>${state.rows.length} rows found.</strong> Map each CSV column to a planner field. Leave unused columns as Skip.</div>
-    <div class="m-form cols-3">${mapSelects}</div>
-    ${table}`;
-  if (btn) btn.disabled = false;
+  if (state.mode !== 'guests' && state.mode !== 'rsvp') {
+    const opts = entityCsvFieldOptions(state.mode);
+    const previewRows = state.rows.slice(0, 5);
+    const mapSelects = state.headers.map((h, i) => `
+      <label class="m-field">
+        <span>${escapeHtml(h || 'Column '+(i+1))}</span>
+        <select onchange="setGuestCsvMapping(${i},this.value)">
+          ${opts.map(([k,label]) => `<option value="${k}"${state.mapping[i]===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}
+        </select>
+      </label>`).join('');
+    const table = `<div style="overflow:auto;margin-top:1rem"><table class="budget-table" style="min-width:760px"><thead><tr>${state.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${state.headers.map((_,i)=>`<td>${escapeHtml(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    body.innerHTML = `<div class="v4-help-note"><strong>${state.rows.length} rows found.</strong> Map each CSV column to a planner field. Leave unused columns as Skip.</div><div class="m-form cols-3">${mapSelects}</div>${table}`;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Import';
+      btn.onclick = () => commitEntityCSVImport();
+    }
+    return;
+  }
+  if (state.step === 3) {
+    renderGuestCSVConflicts();
+    return;
+  }
+  const opts = guestCsvFieldOptions(state.mode);
+  const pre = guestCsvImportPreflight();
+  state.conflicts = pre.conflicts;
+  if (title) title.textContent = (state.mode === 'rsvp' ? 'Import RSVP' : 'Import guests') + ' · step 2 of 3';
+  if (sub) sub.textContent = 'Map the file’s columns to planner fields. Nothing is written until step 3.';
+  const rowsHtml = state.headers.map((h, i) => {
+    const field = state.mapping[i] || 'skip';
+    const chip = guestCsvMappingChip(h, field);
+    const lockedTable = chip.locked && /table|seat|seating/.test(normalizeGuestImportKey(h));
+    if (lockedTable) state.mapping[i] = 'skip';
+    const dst = lockedTable
+      ? `<span class="rd-import__dst is-muted">—</span>`
+      : `<span class="rd-import__dst"><select onchange="setGuestCsvMapping(${i},this.value)">${opts.map(([k,label]) => `<option value="${k}"${(state.mapping[i]||'skip')===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}</select></span>`;
+    return `<div class="rd-import__row">
+      <div class="rd-import__src">${escapeHtml(h || 'Column '+(i+1))}</div>
+      <div class="rd-import__arrow">→</div>
+      ${dst}
+      <span class="rd-import__chip${chip.tone==='amber'?' is-amber':chip.tone==='gray'?' is-gray':''}">${escapeHtml(chip.label)}</span>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="rd-import">
+    <div class="rd-import__eyebrow"><span>Mapping ${state.headers.length} columns</span><span>${escapeHtml(state.fileName || 'file.csv')} · ${state.rows.length} rows detected</span></div>
+    <div class="rd-import__map">${rowsHtml}</div>
+    <div class="rd-import__preflight">
+      <div class="rd-import__preflight-title">Before anything is written</div>
+      <div class="rd-import__count"><span>New guests to create</span><strong>${pre.create}</strong></div>
+      <div class="rd-import__count"><span>Matched to existing guests</span><strong>${pre.match}${pre.matchHow ? ' · ' + pre.matchHow : ''}</strong></div>
+      <div class="rd-import__count is-amber"><span>Conflicts to review</span><strong>${pre.conflict}${pre.conflict ? ' · same name, different email' : ''}</strong></div>
+      <div class="rd-import__count is-red"><span>Rows that will be skipped</span><strong>${pre.skip}</strong></div>
+      <div class="rd-import__count"><span>Existing guests not in this file</span><strong>${pre.untouched} · nothing will be deleted</strong></div>
+    </div>
+  </div>`;
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) {
+    back.textContent = 'Back';
+    back.onclick = () => openGuestCSVImport(state.mode);
+  }
+  if (btn) {
+    btn.disabled = false;
+    if (pre.conflict > 0) {
+      btn.textContent = `Review ${pre.conflict} conflict${pre.conflict === 1 ? '' : 's'}`;
+      btn.onclick = () => { guestCsvImportState.step = 3; renderGuestCSVConflicts(); };
+    } else {
+      btn.textContent = `Import ${pre.create + pre.match} row${(pre.create + pre.match) === 1 ? '' : 's'}`;
+      btn.onclick = () => commitEntityCSVImport();
+    }
+  }
 }
 function setGuestCsvMapping(index, value){
   if (!guestCsvImportState) return;
+  if (value === 'table') value = 'skip';
   guestCsvImportState.mapping[index] = value;
+  if (guestCsvImportState.mode === 'guests' || guestCsvImportState.mode === 'rsvp') renderGuestCSVMapping();
+}
+function renderGuestCSVConflicts(){
+  const state = guestCsvImportState;
+  const body = document.getElementById('guest-csv-body');
+  const btn = document.getElementById('guest-csv-import-btn');
+  const title = document.getElementById('guest-csv-title');
+  const sub = document.getElementById('guest-csv-sub');
+  if (!state || !body) return;
+  if (title) title.textContent = (state.mode === 'rsvp' ? 'Import RSVP' : 'Import guests') + ' · step 3 of 3';
+  if (sub) sub.textContent = 'Keep the existing record or take the file’s values. You cannot write until every conflict is decided.';
+  const list = (state.conflicts || []).map(c => {
+    const res = (state.conflictResolutions && state.conflictResolutions[c.id]) || 'keep';
+    return `<div class="rd-import__conflict-row">
+      <div><strong>${escapeHtml(c.left.name || 'Existing')}</strong><div class="rd-help">${escapeHtml(c.left.email || '—')}</div></div>
+      <div><strong>${escapeHtml(c.right.name || 'From file')}</strong><div class="rd-help">${escapeHtml(c.right.email || '—')}</div></div>
+      <div>
+        <select onchange="setGuestCsvConflictResolution('${c.id}',this.value)">
+          <option value="keep"${res==='keep'?' selected':''}>Keep existing</option>
+          <option value="file"${res==='file'?' selected':''}>Use file</option>
+          <option value="skip"${res==='skip'?' selected':''}>Skip row</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="rd-import">
+    <div class="rd-import__eyebrow"><span>Conflicts</span><span>${(state.conflicts||[]).length} ambiguous rows</span></div>
+    <div class="rd-import__conflicts">${list || '<p class="rd-help">No conflicts left.</p>'}</div>
+  </div>`;
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) {
+    back.textContent = 'Back';
+    back.onclick = () => { guestCsvImportState.step = 2; renderGuestCSVMapping(); };
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Write import';
+    btn.onclick = () => commitEntityCSVImport();
+  }
+}
+function setGuestCsvConflictResolution(id, value){
+  if (!guestCsvImportState) return;
+  if (!guestCsvImportState.conflictResolutions) guestCsvImportState.conflictResolutions = {};
+  guestCsvImportState.conflictResolutions[id] = value;
 }
 function guestCsvValue(row, field){
   const state = guestCsvImportState;
@@ -19271,19 +20105,50 @@ function commitGuestCSVImport(){
     showToast('Map at least a Guest Name or Email column before importing.', 'warn');
     return;
   }
+  const pre = guestCsvImportPreflight();
+  if (pre.conflict > 0 && state.step !== 3) {
+    state.conflicts = pre.conflicts;
+    state.step = 3;
+    renderGuestCSVConflicts();
+    showToast('Review conflicts before writing.', 'warn');
+    return;
+  }
+  const conflictByRow = {};
+  (state.conflicts || pre.conflicts || []).forEach(c => { conflictByRow[c.rowIndex] = c; });
   let added = 0, updated = 0, skipped = 0;
-  state.rows.forEach(row => {
+  state.rows.forEach((row, rowIndex) => {
     const incoming = buildGuestImportObject(row);
+    delete incoming.table; /* seating owned by Table Layout */
     if (!incoming.name && !incoming.email) { skipped++; return; }
+    const conflict = conflictByRow[rowIndex];
+    if (conflict) {
+      const res = (state.conflictResolutions && state.conflictResolutions[conflict.id]) || 'keep';
+      if (res === 'skip') { skipped++; return; }
+      const idx = findGuestForImport({ name: conflict.left.name, email: conflict.left.email });
+      if (idx < 0) { skipped++; return; }
+      if (res === 'file') {
+        const target = data.guests[idx];
+        Object.entries(incoming).forEach(([key,val]) => {
+          if (key === 'table') return;
+          if (val !== '' && val != null) target[key] = val;
+        });
+        updated++;
+      } else {
+        skipped++; /* keep existing — counted as reviewed, not mutated */
+      }
+      return;
+    }
     const idx = findGuestForImport(incoming);
     if (idx >= 0) {
       const target = data.guests[idx];
       Object.entries(incoming).forEach(([key,val]) => {
+        if (key === 'table') return;
         if (val !== '' && val != null) target[key] = val;
       });
       updated++;
     } else {
       const next = Object.assign(guestCsvDefaultRow(), incoming);
+      delete next.table;
       if (state.mode === 'rsvp' && !next.notes) next.notes = 'Imported from RSVP CSV';
       data.guests.push(next);
       added++;
@@ -19905,15 +20770,10 @@ function ensureWitnessTask(){
   save();
 }
 function addTaskRow() {
-  if (document.body.getAttribute('data-active-panel') === 'tasks') {
-    if (document.getElementById('record-drawer-body') && typeof rdOpenDrawer === 'function') {
-      rdOpenDrawer('tasks', null);
-      return;
-    }
-    if (document.getElementById('task-inline-editor-body')) {
-      covInlineLoad('tasks', null, 'task-inline-editor-body');
-      return;
-    }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('tasks')) return;
+  if (document.body.getAttribute('data-active-panel') === 'tasks' && document.getElementById('task-inline-editor-body')) {
+    covInlineLoad('tasks', null, 'task-inline-editor-body');
+    return;
   }
   openRecordEditor('tasks');
 }
@@ -20665,6 +21525,27 @@ function renderTaskToolbar(){
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';
   const { shown, total } = rdTaskColCounts();
   const view = rdGetTaskView();
+  const viewswitch = `<div class="rd-viewswitch">`
+    +     `<button type="button" class="rd-viewswitch__item${view==='table'?' is-active':''}" onclick="rdSetTaskView('table')">Table</button>`
+    +     `<button type="button" class="rd-viewswitch__item${view==='board'?' is-active':''}" onclick="rdSetTaskView('board')">Board</button>`
+    +     `<button type="button" class="rd-viewswitch__item${view==='timeline'?' is-active':''}" onclick="rdSetTaskView('timeline')">Timeline</button>`
+    +   `</div>`;
+  if (view === 'board') {
+    el.innerHTML = taskFilterChip('phase','Phase')
+      + taskFilterChip('assigned','Owner')
+      + taskFilterChip('status','Status')
+      + `<div class="rd-toolbar__right">${viewswitch}</div>`;
+    return;
+  }
+  if (view === 'timeline') {
+    const depsOn = window._rdTaskShowDeps !== false;
+    el.innerHTML = taskFilterChip('phase','Phase')
+      + taskFilterChip('assigned','Owner')
+      + taskFilterChip('status','Status')
+      + `<button type="button" class="rd-chip${depsOn ? ' is-active' : ''}" onclick="rdTaskToggleDepsShown()">Dependencies shown</button>`
+      + `<div class="rd-toolbar__right">${viewswitch}</div>`;
+    return;
+  }
   el.innerHTML =
       taskFilterChip('phase','Phase')
     + taskFilterChip('assigned','Owner')
@@ -20674,13 +21555,15 @@ function renderTaskToolbar(){
     +   `<button type="button" class="rd-chip" data-rd-task-cols onclick="openTaskColVisibility(this)"><svg ${svg}><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · ${shown} of ${total}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>`
     +   `<button type="button" class="rd-chip" onclick="rdTaskAutoFitColumns(this)"><svg ${svg}><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>`
     +   `<button type="button" class="rd-chip" onclick="rdCycleRowHeight()"><svg ${svg}><path d="M4 8h16M4 12h16M4 16h16"/></svg>Row height · ${escapeHtml(rdRowHeightLabel())}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>`
-    +   `<div class="rd-viewswitch">`
-    +     `<button type="button" class="rd-viewswitch__item${view==='table'?' is-active':''}" onclick="rdSetTaskView('table')">Table</button>`
-    +     `<button type="button" class="rd-viewswitch__item${view==='board'?' is-active':''}" onclick="rdSetTaskView('board')">Board</button>`
-    +     `<button type="button" class="rd-viewswitch__item${view==='timeline'?' is-active':''}" onclick="rdSetTaskView('timeline')">Timeline</button>`
-    +   `</div>`
+    +   viewswitch
     + `</div>`;
 }
+function rdTaskToggleDepsShown(){
+  window._rdTaskShowDeps = window._rdTaskShowDeps === false;
+  if (typeof renderTaskTimelineView === 'function') renderTaskTimelineView();
+  renderTaskToolbar();
+}
+window.rdTaskToggleDepsShown = rdTaskToggleDepsShown;
 
 function rdTaskViewKey(){ return 'rdTaskView:' + (typeof activeProfile !== 'undefined' ? activeProfile : 'default'); }
 function rdGetTaskView(){
@@ -21221,6 +22104,15 @@ function taskTimelineOpenTaskRows(entries, rangeStart, rangeEnd){
     const geom = taskTimelineBarGeom(row, rangeStart, rangeEnd);
     const label = taskTimelineStatusLabel(row.status);
     const idx = (typeof i === 'number' && i >= 0) ? i : (data.tasks || []).indexOf(row);
+    const depIds = taskDependsOnIds(row);
+    const depNames = depIds.map(id => {
+      const t = safeArray(data.tasks).find(x => String(x._id) === String(id));
+      return t ? (t.task || 'Task') : '';
+    }).filter(Boolean);
+    const showDeps = window._rdTaskShowDeps !== false;
+    const depHtml = (showDeps && (depNames.length || String(row.blockedBy || '').trim()))
+      ? `<div class="rd-task-timeline__dep">${escapeHtml(depNames.length ? ('Blocked by · ' + depNames.join(', ')) : ('Blocked by · ' + String(row.blockedBy || row.notes || 'dependency')))}</div>`
+      : '';
     return `<div class="rd-task-timeline__taskrow" data-task-index="${idx}">
       <button type="button" class="rd-task-timeline__tasklab"${idx >= 0 ? ` onclick="if(typeof rdOpenDrawer==='function')rdOpenDrawer('tasks',${idx})"` : ''}>
         <span class="rd-task-timeline__taskname">${escapeHtml(row.task || 'Untitled task')}</span>
@@ -21237,6 +22129,7 @@ function taskTimelineOpenTaskRows(entries, rangeStart, rangeEnd){
           onclick="event.stopPropagation();if(typeof rdOpenDrawer==='function'&&${idx}>=0)rdOpenDrawer('tasks',${idx})">
           <span>${escapeHtml(label)}</span>
         </div>
+        ${depHtml}
       </div>
     </div>`;
   }).join('');
@@ -21937,19 +22830,20 @@ function renderTaskStats() {
   let daysToGo = '—', weddingLabel = 'Not set';
   if (wedding) { const w=new Date(wedding+'T00:00:00'); if(!isNaN(w)){ const diff=Math.ceil((w-today)/86400000); daysToGo = diff>0? diff : (diff===0?'Today':'—'); weddingLabel = w.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); } }
   if (typeof RdDepth !== 'undefined' && RdDepth.renderStats && el.classList.contains('rd-stats')) {
+    const open = Math.max(0, total - done);
+    const unassigned = data.tasks.filter(t => !String(t.assigned || '').trim() && t.status !== 'Complete').length;
     RdDepth.renderStats(el, [
-      { label: 'Total tasks', value: total, filter: 'Show all' },
-      { label: 'Complete', value: done, filter: 'Filter · Complete', delta: total ? pct + '% of total' : undefined, deltaTone: 'flat' },
-      { label: 'In progress', value: inprog, filter: 'Filter · In Progress' },
-      { label: 'Upcoming', value: upcoming, filter: 'Dated & open' },
+      { label: 'Open', value: open, filter: 'Show open', onFilter: () => { if (typeof applyTaskRailView === 'function') applyTaskRailView('all'); } },
+      { label: 'Complete', value: done, filter: 'Filter · Complete', onFilter: () => { if (typeof applyTaskRailView === 'function') applyTaskRailView('complete'); } },
       {
         label: 'Overdue',
         value: overdue,
         filter: 'Filter · Overdue',
-        attention: overdue ? 'Past due — needs attention' : undefined
+        attention: overdue ? 'Past due — needs attention' : undefined,
+        onFilter: () => { if (typeof applyTaskRailView === 'function') applyTaskRailView('overdue'); }
       },
-      { label: 'Wedding date', value: weddingLabel, filter: 'Open Wedding Setup', onFilter: () => { if (typeof showPanel === 'function') showPanel('setup', true); } },
-      { label: 'Days to go', value: daysToGo, filter: 'Countdown' }
+      { label: 'Unassigned', value: unassigned, filter: 'Filter · Unassigned', onFilter: () => { if (typeof applyTaskRailView === 'function') applyTaskRailView('unassigned'); } },
+      { label: 'Days to wedding', value: daysToGo, filter: 'Countdown', onFilter: () => { if (typeof showPanel === 'function') showPanel('setup', true); } }
     ]);
     return;
   }
@@ -22002,6 +22896,7 @@ function resetTasksSpreadsheetWidthsOnce(){
    TIMELINE
 ════════════════════════════════════════════════ */
 function addTimelineRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('timeline')) return;
   openRecordEditor('timeline');
 }
 const WDAY_TIMELINE_PRESET = [
@@ -22820,6 +23715,7 @@ function prayerInlineAvailable(){
 }
 
 function addPrayerRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('prayer')) return;
   if (prayerInlineAvailable()) {
     covInlineLoad('prayer', null, 'prayer-inline-editor-body');
     return;
@@ -22910,6 +23806,7 @@ function counselingInlineAvailable(){
 }
 
 function addCounselingRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('counseling')) return;
   if (counselingInlineAvailable()) {
     covInlineLoad('counseling', null, 'counseling-inline-editor-body');
     return;
@@ -24376,19 +25273,19 @@ function deleteRow(key, i) {
 ════════════════════════════════════════════════ */
 const APPOINTMENT_STATUS = ['Unconfirmed','Pending','Confirmed','Completed','Cancelled'];
 const APPOINTMENT_CATEGORIES = ['Venue','Catering','Attire','Florals','Photography','Cake','Beauty','Music','Officiant','Planner','Rentals','Transportation','Other'];
-const SMART_SOURCES = ['Tasks','Appointments','Budget','Payments','Vendors','Timeline','Planning','Weekend','Honeymoon','Rentals','Gifts','Manual'];
+const SMART_SOURCES = ['Tasks','Appointments','Counseling','Budget','Payments','Vendors','Timeline','Planning','Weekend','Honeymoon','Rentals','Gifts','Manual'];
 let smartCalendarMode = 'month';
 let smartCalendarMonth = null;
 let smartSelectedDate = null;
 const smartAppointmentFilters = { category:'All Categories', status:'All Statuses', range:'All Dates', q:'', month:'all', vendor:'all' };
-let smartCalendarSources = { Tasks:true, Appointments:true, Budget:true, Payments:true, Vendors:true, Timeline:true, Planning:true, Weekend:true, Honeymoon:true, Rentals:true, Gifts:true, Manual:true };
+let smartCalendarSources = { Tasks:true, Appointments:true, Counseling:true, Budget:true, Payments:true, Vendors:true, Timeline:true, Planning:true, Weekend:true, Honeymoon:true, Rentals:true, Gifts:true, Manual:true };
 /* Month edge-fill + filled chips + day drawer + row height
    (step8s: 360px drawer; step8t/u: roomy default week-row; default no longer fit-clamped). */
 let smartCalDensity = 'default'; /* compact | default | tall — mirrored from localStorage */
 let smartCalDrawerOpen = false;
-let smartCalDrawerTab = 0; /* 0 Day · 1 Entry · 2 Reminders */
+let smartCalDrawerTab = 0; /* Month/Agenda/Source: Entry·Source·People·History. Week: Block·Conflicts·People·History. */
 let smartCalDrawerEntryId = null;
-/* null = review (Day|Entry|Reminders); appointment|task|event = create form in drawer */
+/* null = review (Entry|Source|People|History); appointment|task|event = create form in drawer */
 let smartCalDrawerCreateType = null;
 const smartCalKeptConflicts = new Set(); /* dates user chose “Keep both” */
 /* Preferred week-row tracks (px). compact < default < tall; tall remains tallest.
@@ -24580,11 +25477,7 @@ function appointmentClashCount(){
 function addAppointmentRow(){
   ensureAppointmentData();
   smartAppointmentFilters.range = 'All Dates';
-  if (document.body.getAttribute('data-active-panel') === 'appointments' && document.getElementById('record-drawer-body')) {
-    if (typeof rdOpenDrawer === 'function') rdOpenDrawer('appointments', null);
-    else openRecordEditor('appointments');
-    return;
-  }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('appointments')) return;
   if (document.body.getAttribute('data-active-panel') === 'appointments' && document.getElementById('appointment-inline-editor-body')) {
     covInlineLoad('appointments', null, 'appointment-inline-editor-body');
     return;
@@ -25474,11 +26367,25 @@ function apptTimeLabel(row){
   }
   return start;
 }
+function appointmentIsHeld(row){
+  return !(row && row.date && typeof dateFromISO === 'function' && dateFromISO(row.date));
+}
+function apptHeldReason(row){
+  const custom = String(row && (row.heldReason || row.reason) || '').trim();
+  if (custom) return custom.replace(/\s+/g, ' ');
+  const note = String(row && row.notes || '').trim().replace(/\s+/g, ' ');
+  if (note) return note;
+  return 'no date set';
+}
 function apptAgendaLocationLine(row){
   const bits = [];
   if (row && row.vendor) bits.push(String(row.vendor).trim());
   if (row && row.location) bits.push(String(row.location).trim());
-  if (row && row.notes && !row.location) {
+  if (appointmentIsHeld(row)) {
+    const reason = apptHeldReason(row);
+    if (reason && reason !== 'no date set') bits.push(reason);
+    else if (!bits.length) bits.push('no date set');
+  } else if (row && row.notes && !row.location) {
     const note = String(row.notes).trim();
     if (note.length && note.length < 48) bits.push(note);
   }
@@ -25668,6 +26575,127 @@ function apptCalFirstClashExplain(byDate, clashMap){
   }
   return null;
 }
+function appointmentAgendaPrintItems(){
+  const onPage = typeof document !== 'undefined'
+    && document.body
+    && document.body.getAttribute('data-active-panel') === 'appointments';
+  if (onPage && typeof smartAppointmentFilteredIndexes === 'function') {
+    return smartAppointmentFilteredIndexes();
+  }
+  if (typeof ensureAppointmentData === 'function') ensureAppointmentData();
+  return (data.appointments || []).map((row, i) => ({ row, i }));
+}
+/**
+ * Shared Agenda 20b model: month groups with travel/clash gap rows, Held last.
+ */
+function appointmentAgendaModel(items){
+  const clashMap = typeof appointmentClashLabels === 'function' ? appointmentClashLabels() : new Map();
+  items = items || [];
+  const held = items.filter(({ row }) => appointmentIsHeld(row));
+  const dated = items
+    .filter(({ row }) => !appointmentIsHeld(row))
+    .sort((a, b) => ((a.row.date || '') + ' ' + (a.row.time || '')).localeCompare((b.row.date || '') + ' ' + (b.row.time || '')));
+  const monthMap = new Map();
+  dated.forEach(it => {
+    const d = dateFromISO(it.row.date);
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (!monthMap.has(key)) {
+      monthMap.set(key, {
+        key,
+        label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        items: []
+      });
+    }
+    monthMap.get(key).items.push(it);
+  });
+  const months = [...monthMap.values()].sort((a, b) => a.key.localeCompare(b.key)).map(group => {
+    const clashN = group.items.reduce((n, it) => {
+      const key = it.row._id != null ? String(it.row._id) : ('idx:' + it.i);
+      return n + ((clashMap.has(key) || clashMap.has('idx:' + it.i)) ? 1 : 0);
+    }, 0);
+    const rows = [];
+    const ordered = group.items.slice().sort((a, b) =>
+      ((a.row.date || '') + ' ' + (a.row.time || '')).localeCompare((b.row.date || '') + ' ' + (b.row.time || '')));
+    let prevTimed = null;
+    ordered.forEach(it => {
+      const start = apptRowStartMins(it.row);
+      const end = apptRowEndMins(it.row);
+      const travel = apptRowTravelMins(it.row);
+      const cur = start == null ? null : {
+        it, start, end: end == null ? start : end, travel,
+        travelStart: start - travel
+      };
+      if (prevTimed && cur && prevTimed.it.row.date === it.row.date) {
+        const gap = apptCalGapBetween(prevTimed, cur);
+        if (gap) rows.push({ type: 'gap', gap });
+      }
+      rows.push({ type: 'item', it });
+      prevTimed = cur || null;
+    });
+    return {
+      key: group.key,
+      label: group.label,
+      clashN,
+      countLab: group.items.length + ' appointment' + (group.items.length === 1 ? '' : 's')
+        + (clashN ? (' · ' + clashN + ' clash' + (clashN === 1 ? '' : 'es')) : ''),
+      rows
+    };
+  });
+  return { items, held, months, clashMap, totalN: items.length };
+}
+function appointmentAgendaPrintHtml(model){
+  model = model || appointmentAgendaModel(appointmentAgendaPrintItems());
+  const esc = (typeof escapeHtml === 'function') ? escapeHtml : (s => String(s == null ? '' : s));
+  const pill = (st) => (typeof _cvpPill === 'function' && st) ? _cvpPill(st) : esc(st || '');
+  const rowHtml = (it) => {
+    const row = it.row;
+    const key = row._id != null ? String(row._id) : ('idx:' + it.i);
+    const clash = model.clashMap.has(key) || model.clashMap.has('idx:' + it.i);
+    const who = String(row.guests || row.contact || '').trim();
+    const sub = apptAgendaLocationLine(row);
+    const held = appointmentIsHeld(row);
+    const when = held
+      ? '<span class="d">Held</span><span class="t">—</span>'
+      : ('<span class="d">' + esc(apptCalShortDate(row.date)) + '</span><span class="t">'
+        + esc(row.allDay ? 'All day' : (row.time ? (typeof humanTime === 'function' ? humanTime(row.time) : row.time) : '—'))
+        + '</span>');
+    return '<div class="cvp-agenda-row' + (clash ? ' clash' : '') + '">'
+      + '<div class="cvp-agenda-when">' + when + '</div>'
+      + '<div><div class="cvp-agenda-title">' + esc(row.title || 'Appointment') + '</div>'
+      + (sub ? ('<div class="cvp-agenda-sub">' + esc(sub) + '</div>') : '') + '</div>'
+      + '<div class="cvp-agenda-who">' + esc(who) + '</div>'
+      + '<div>' + pill(row.status || (held ? 'Held' : 'Pending')) + '</div>'
+      + '</div>';
+  };
+  const gapHtml = (gap) => {
+    if (!gap) return '';
+    if (gap.kind === 'clash') {
+      return '<div class="cvp-agenda-gap clash"><span>↓</span><strong>'
+        + esc(gap.label) + '</strong><span>·</span><span>'
+        + esc(gap.detail || '') + '</span><span class="pill">Clash</span></div>';
+    }
+    return '<div class="cvp-agenda-gap"><span>↓</span><span>' + esc(gap.label) + '</span></div>';
+  };
+  if (!model.totalN) return '<p class="cvp-empty">No appointments yet.</p>';
+  let html = '<div class="cvp-agenda">';
+  model.months.forEach(group => {
+    html += '<div class="cvp-agenda-month"><div class="cvp-agenda-head"><span class="pn">'
+      + esc(group.label) + '</span><span class="pc">' + esc(group.countLab) + '</span></div>';
+    group.rows.forEach(entry => {
+      if (entry.type === 'gap') html += gapHtml(entry.gap);
+      else html += rowHtml(entry.it);
+    });
+    html += '</div>';
+  });
+  if (model.held.length) {
+    const n = model.held.length;
+    html += '<div class="cvp-agenda-month"><div class="cvp-agenda-head held"><span class="pn">Held</span><span class="pc">'
+      + n + ' appointment' + (n === 1 ? '' : 's') + ' · no date set</span></div>'
+      + model.held.map(rowHtml).join('') + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
 /**
  * Agenda 20b — reading / print itinerary (mock #20b).
  * Month group headers, row = date·time | title·place | who | status,
@@ -25678,11 +26706,8 @@ function renderAppointmentAgendaView(){
   const host = document.getElementById('appt-agenda-view');
   if (!host) return;
   const items = smartAppointmentFilteredIndexes();
-  const clashMap = typeof appointmentClashLabels === 'function' ? appointmentClashLabels() : new Map();
-  const held = items.filter(({row}) => !row.date || !dateFromISO(row.date));
-  const dated = items
-    .filter(({row}) => row.date && dateFromISO(row.date))
-    .sort((a, b) => ((a.row.date || '') + ' ' + (a.row.time || '')).localeCompare((b.row.date || '') + ' ' + (b.row.time || '')));
+  const model = appointmentAgendaModel(items);
+  const clashMap = model.clashMap;
 
   if (!items.length) {
     host.innerHTML = `<div class="rd-appt-agenda" data-mode="agenda-20b">
@@ -25691,11 +26716,11 @@ function renderAppointmentAgendaView(){
     return;
   }
 
-  const totalN = items.length;
+  const totalN = model.totalN;
   const head = `<div class="rd-appt-agenda__banner">
     <div class="rd-appt-agenda__banner-kicker">Agenda · ${totalN} appointment${totalN === 1 ? '' : 's'}</div>
     <div class="rd-appt-agenda__banner-copy">The print target for this page · Class A working document</div>
-    <button type="button" class="rd-appt-agenda__banner-action" onclick="typeof printCurrentPage==='function'&&printCurrentPage()">Print the agenda</button>
+    <button type="button" class="rd-appt-agenda__banner-action" onclick="typeof openAppointmentsAgendaPrint==='function'?openAppointmentsAgendaPrint():printCurrentPage()">Print the agenda</button>
   </div>`;
 
   const rowHtml = (it) => {
@@ -25739,64 +26764,28 @@ function renderAppointmentAgendaView(){
     </div>`;
   };
 
-  /* Partition by month (year) for dated, then Held residual. */
-  const monthMap = new Map();
-  dated.forEach(it => {
-    const d = dateFromISO(it.row.date);
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    if (!monthMap.has(key)) {
-      monthMap.set(key, {
-        key,
-        label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-        items: []
-      });
-    }
-    monthMap.get(key).items.push(it);
-  });
-  const months = [...monthMap.values()].sort((a, b) => a.key.localeCompare(b.key));
-
   let body = '';
-  months.forEach(group => {
-    const clashN = group.items.reduce((n, it) => {
-      const key = it.row._id != null ? String(it.row._id) : ('idx:' + it.i);
-      return n + ((clashMap.has(key) || clashMap.has('idx:' + it.i)) ? 1 : 0);
-    }, 0);
-    const countLab = group.items.length + ' appointment' + (group.items.length === 1 ? '' : 's')
-      + (clashN ? (' · ' + clashN + ' clash' + (clashN === 1 ? '' : 'es')) : '');
+  model.months.forEach(group => {
     body += `<div class="rd-appt-agenda__month">
       <div class="rd-appt-agenda__monthhead">
         <span class="rd-appt-agenda__month-title">${escapeHtml(group.label)}</span>
-        <span class="rd-appt-agenda__month-meta${clashN ? ' is-clash' : ''}">${escapeHtml(countLab)}</span>
+        <span class="rd-appt-agenda__month-meta${group.clashN ? ' is-clash' : ''}">${escapeHtml(group.countLab)}</span>
       </div>`;
-    /* Within month, walk chronologically and insert gap rows between consecutive same-day (and free multi-hour). */
-    const ordered = group.items.slice().sort((a, b) =>
-      ((a.row.date || '') + ' ' + (a.row.time || '')).localeCompare((b.row.date || '') + ' ' + (b.row.time || '')));
-    let prevTimed = null;
-    ordered.forEach(it => {
-      const start = apptRowStartMins(it.row);
-      const end = apptRowEndMins(it.row);
-      const travel = apptRowTravelMins(it.row);
-      const cur = start == null ? null : {
-        it, start, end: end == null ? start : end, travel,
-        travelStart: start - travel
-      };
-      if (prevTimed && cur && prevTimed.it.row.date === it.row.date) {
-        body += gapHtml(apptCalGapBetween(prevTimed, cur));
-      }
-      body += rowHtml(it);
-      if (cur) prevTimed = cur;
-      else prevTimed = null;
+    group.rows.forEach(entry => {
+      if (entry.type === 'gap') body += gapHtml(entry.gap);
+      else body += rowHtml(entry.it);
     });
     body += `</div>`;
   });
 
-  if (held.length) {
+  if (model.held.length) {
+    const heldN = model.held.length;
     body += `<div class="rd-appt-agenda__month is-held">
       <div class="rd-appt-agenda__monthhead">
         <span class="rd-appt-agenda__month-title">Held</span>
-        <span class="rd-appt-agenda__month-meta">${held.length} appointment${held.length === 1 ? '' : 's'} · no date set</span>
+        <span class="rd-appt-agenda__month-meta">${heldN} appointment${heldN === 1 ? '' : 's'} · no date set</span>
       </div>
-      ${held.map(it => rowHtml(it)).join('')}
+      ${model.held.map(it => rowHtml(it)).join('')}
     </div>`;
   }
 
@@ -26166,7 +27155,8 @@ function smartEventSourceHex(source){
   const s = String(source || '').toLowerCase();
   if (s === 'payments') return '#C96B55';
   if (s === 'budget') return '#6B8BB0';
-  if (s === 'appointments' || s === 'counseling') return '#B38549';
+  if (s === 'appointments') return '#B38549';
+  if (s === 'counseling') return '#6B5478';
   if (s === 'tasks') return '#2D4A3E';
   if (s === 'vendors') return '#9B7A9E';
   if (s === 'timeline') return '#7A8A98';
@@ -26178,8 +27168,8 @@ function smartEventSourceHex(source){
   return '#4A6B5C';
 }
 function smartEventInlineStyle(e, strength=30){
-  const custom = String(e?.color || '').trim();
-  const color = /^#[0-9a-f]{6}$/i.test(custom) ? custom : smartEventSourceHex(e?.source);
+  /* 45a: colour is the owning page, never status or a per-record tint. */
+  const color = smartEventSourceHex(e?.source);
   /* Always paint solid tinted fills — CSS !important reads --smart-event-color;
      inline background beats pale legacy washes that still target button.smart-event-chip. */
   return `--smart-event-color:${color};--smart-chip-bar:${color};background:color-mix(in srgb, ${color} ${strength}%, #fff);background-color:color-mix(in srgb, ${color} ${strength}%, #fff);border-top-color:color-mix(in srgb, ${color} 34%, #fff);border-right-color:color-mix(in srgb, ${color} 34%, #fff);border-bottom-color:color-mix(in srgb, ${color} 34%, #fff);border-left-color:${color};`;
@@ -26241,6 +27231,19 @@ function buildSmartCalendarEvents(){
   }
   safeArray(data.appointments).forEach((a,i)=>{
     if (a.date) add({id:`appt-${i}`, title:a.title || 'Appointment', source:'Appointments', category:a.category || 'Appointment', date:a.date, time:a.time||a.startTime||'', endTime:a.endTime||'', allDay:a.allDay, status:a.status || 'Pending', notes:a.description||[a.vendor,a.location,a.notes].filter(Boolean).join(' • '), description:a.description||a.notes||'', guests:a.guests||'', location:a.location||'', owner:a.contact||a.vendor||a.owner||'', color:a.color||'', icon:a.icon||'calendar', reminder:a.reminder||'', timezone:a.timezone||'', sourcePage:'appointments', ...smartSourceMeta('appointment',i)});
+  });
+  safeArray(data.counseling).forEach((c,i)=>{
+    if (c.date) add({
+      id:`counsel-${i}`,
+      title: c.topic || ('Counseling session ' + (c.num || (i + 1))),
+      source:'Counseling', category:'Counseling', date:c.date, time:c.time||'',
+      status:c.status || 'Scheduled',
+      notes:[c.homework, c.takeaway, c.notes].filter(Boolean).join(' • '),
+      guests: c.guests || 'Both',
+      owner: c.counselor || c.pastor || '',
+      sourcePage:'counseling',
+      ...smartSourceMeta('counseling', i)
+    });
   });
   safeArray(data.budget).forEach((cat,ci)=>{
     safeArray(cat.items).forEach((it,ii)=>{
@@ -26470,7 +27473,8 @@ function smartCalSyncRowHeightChip(){
 }
 function smartCalApplyDensity(){
   smartCalDensity = smartCalDensityLabel();
-  const mode = (smartCalendarMode === 'week' || smartCalendarMode === 'agenda') ? smartCalendarMode : 'month';
+  const mode = (smartCalendarMode === 'week' || smartCalendarMode === 'agenda' || smartCalendarMode === 'source')
+    ? smartCalendarMode : 'month';
   const panel = document.getElementById('panel-calendar');
   if (panel) {
     panel.setAttribute('data-cal-density', smartCalDensity);
@@ -26487,6 +27491,14 @@ function smartCalApplyDensity(){
     else mainEl.removeAttribute('data-cal-mode');
   }
   smartCalSyncRowHeightChip();
+  smartCalSyncToolbarTools();
+}
+function smartCalSyncToolbarTools(){
+  const monthTools = smartCalendarMode === 'month';
+  ['smart-columns-chip','smart-row-height-chip','smart-autofit-chip'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.hidden = !monthTools;
+  });
 }
 /* step8w: fixed --cal-week-row from density preferred for all densities
    (compact 220 · default 260 · tall 350). Page may scroll for full month. */
@@ -26948,9 +27960,12 @@ function renderSmartStats(events, all){
   let taskLab = 'Tasks due';
   const isDone = e => /complete|done|paid|confirmed/i.test(e.status || '');
   if (smartCalendarMode === 'agenda') {
-    /* Mock 6d: upcoming range from today; overdue pinned separately. */
+    /* Mock 6d: upcoming range from today (~32 days); overdue pinned separately. */
     const today = typeof todayISO === 'function' ? todayISO() : '';
-    const upcoming = events.filter(e => e.date && e.date >= today);
+    const start = dateFromISO(today) || new Date();
+    const end = new Date(start); end.setDate(start.getDate() + 31);
+    const windowEnd = isoFromDate(end);
+    const upcoming = events.filter(e => e.date && e.date >= today && e.date <= windowEnd);
     const overdue = events.filter(e => e.date && e.date < today && !isDone(e));
     scopeEvents = upcoming;
     const pays = upcoming.filter(e => e.source === 'Payments' || e.source === 'Budget');
@@ -26993,8 +28008,8 @@ function renderSmartStats(events, all){
     });
     entriesLab = `Entries · ${monthName}`;
     apptLab = `Appointments · ${monthShort}`;
-    payLab = `Payments Due · ${monthShort}`;
-    taskLab = `Tasks Due · ${monthShort}`;
+    payLab = `Payments due · ${monthShort}`;
+    taskLab = `Tasks due · ${monthShort}`;
   }
   const appts = scopeEvents.filter(e => e.source === 'Appointments');
   const pays = scopeEvents.filter(e => e.source === 'Payments' || e.source === 'Budget');
@@ -27222,8 +28237,10 @@ function toggleSmartSource(src){
 }
 function setSmartCalendarMode(mode){
   if (mode === 'appointments') { showPanel('appointments'); return; }
+  if (mode === 'bysource' || mode === 'cards') mode = 'source';
+  if (!['month','week','agenda','source'].includes(mode)) mode = 'month';
   smartCalendarMode = mode;
-  ['month','week','agenda'].forEach(m=>{
+  ['month','week','agenda','source'].forEach(m=>{
     const btn = document.getElementById('smart-mode-'+m);
     if (btn) {
       const on = m===mode;
@@ -27233,7 +28250,7 @@ function setSmartCalendarMode(mode){
   });
   const layout = document.querySelector('#panel-calendar .smart-layout');
   if(layout){
-    if(mode === 'agenda') layout.style.gridTemplateColumns = '1fr';
+    if(mode === 'agenda' || mode === 'source') layout.style.gridTemplateColumns = '1fr';
     else layout.style.gridTemplateColumns = '';
   }
   renderSmartCalendar();
@@ -27308,11 +28325,26 @@ function selectSmartEntry(id){
   if (ev && ev.date) smartSelectedDate = ev.date;
   else if (!smartSelectedDate) smartSelectedDate = typeof todayISO === 'function' ? todayISO() : '';
   smartCalDrawerOpen = true;
-  smartCalDrawerTab = 1;
+  smartCalDrawerTab = 0;
   smartCalDrawerEntryId = ev ? String(ev.id) : (sid || null);
   smartCalDrawerCreateType = null;
   renderSmartCalendar();
 }
+function openSmartWeekConflicts(date){
+  if (date) smartSelectedDate = date;
+  else if (!smartSelectedDate) smartSelectedDate = typeof todayISO === 'function' ? todayISO() : '';
+  smartCalDrawerOpen = true;
+  smartCalDrawerCreateType = null;
+  smartCalDrawerTab = 1;
+  if (!smartCalDrawerEntryId) {
+    const dayEvents = smartFilteredEvents().filter(e => e.date === smartSelectedDate);
+    const conflicts = typeof detectCalendarConflicts === 'function' ? detectCalendarConflicts(dayEvents) : [];
+    const first = conflicts[0] && conflicts[0].a;
+    if (first && first.id != null) smartCalDrawerEntryId = String(first.id);
+  }
+  renderSmartCalendar();
+}
+window.openSmartWeekConflicts = openSmartWeekConflicts;
 function closeCalendarDayDrawer(){
   smartCalDrawerOpen = false;
   smartCalDrawerEntryId = null;
@@ -27321,7 +28353,7 @@ function closeCalendarDayDrawer(){
 }
 function setCalendarDrawerTab(tab){
   smartCalDrawerCreateType = null;
-  smartCalDrawerTab = Math.max(0, Math.min(2, Number(tab) || 0));
+  smartCalDrawerTab = Math.max(0, Math.min(3, Number(tab) || 0));
   renderCalendarDayDrawer(smartFilteredEvents());
 }
 /* Open 360px calendar drawer in create mode (appointment default). */
@@ -27401,7 +28433,7 @@ function saveCalendarDrawerCreate(){
   if (d) smartCalendarMonth = new Date(d.getFullYear(), d.getMonth(), 1);
   smartCalDrawerCreateType = null;
   smartCalDrawerEntryId = newId;
-  smartCalDrawerTab = 1;
+  smartCalDrawerTab = 0;
   smartCalDrawerOpen = true;
   save();
   renderSmartCalendar();
@@ -27451,8 +28483,7 @@ function smartEventChipInnerHtml(e){
   return `<span class="smart-event-chip__text">${escapeHtml(title)}</span>`;
 }
 function smartMonthChipBarColor(e){
-  if (e.color && /^#[0-9a-f]{6}$/i.test(e.color)) return e.color;
-  return smartEventSourceHex(e.source);
+  return smartEventSourceHex(e && e.source);
 }
 function renderSmartMain(events){
   const host = document.getElementById('smart-calendar-main');
@@ -27480,13 +28511,124 @@ function renderSmartMain(events){
       label.textContent = sameYear
         ? `${humanDate(isoFromDate(start), { month: 'short', day: 'numeric' })} – ${humanDate(isoFromDate(end), { month: 'short', day: 'numeric', year: 'numeric' })}`
         : `${humanDate(isoFromDate(start), { month: 'short', day: 'numeric', year: 'numeric' })} – ${humanDate(isoFromDate(end), { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    } else if (smartCalendarMode === 'source') {
+      const monthName = smartCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const pages = new Set((events || []).map(e => e.source).filter(Boolean));
+      label.textContent = `${monthName} · ${(events || []).length} entries · ${pages.size} page${pages.size === 1 ? '' : 's'}`;
     } else {
       label.textContent = smartCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     }
   }
   if (smartCalendarMode === 'week') return renderSmartWeekView(host, events);
   if (smartCalendarMode === 'agenda') return renderSmartAgendaView(host, events);
+  if (smartCalendarMode === 'source') return renderSmartBySourceView(host, events);
   renderSmartMonthView(host, events);
+}
+function renderSmartBySourceView(host, events){
+  const monthStart = new Date(smartCalendarMonth.getFullYear(), smartCalendarMonth.getMonth(), 1);
+  const monthEnd = new Date(smartCalendarMonth.getFullYear(), smartCalendarMonth.getMonth() + 1, 0);
+  const monthItems = (events || []).filter(e => {
+    const d = dateFromISO(e.date);
+    return d && d >= monthStart && d <= monthEnd;
+  }).sort((a,b)=> ((a.date||'')+' '+(a.time||'')).localeCompare((b.date||'')+' '+(b.time||'')));
+  const order = [];
+  const seen = new Set();
+  (typeof SMART_SOURCES !== 'undefined' ? SMART_SOURCES : []).forEach(s => {
+    if (!seen.has(s)) { order.push(s); seen.add(s); }
+  });
+  monthItems.forEach(e => {
+    if (e.source && !seen.has(e.source)) { order.push(e.source); seen.add(e.source); }
+  });
+  const groups = order.map(src => ({
+    source: src,
+    items: monthItems.filter(e => e.source === src)
+  })).filter(g => g.items.length);
+  const monthName = smartCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  if (!groups.length) {
+    host.innerHTML = `<div class="rd-cal-source" data-mode="source-45b">
+      <div class="rd-cal-source__banner">
+        <div class="rd-cal-source__kicker">${escapeHtml(monthName)}</div>
+        <div class="rd-cal-source__copy">Nothing dated this month from the pages currently shown.</div>
+      </div>
+      <div class="rd-cal-source__empty">Turn on a source in the rail, or pick another month.</div>
+    </div>`;
+    return;
+  }
+  const groupsHtml = groups.map(g => {
+    const hex = typeof smartEventSourceHex === 'function' ? smartEventSourceHex(g.source) : '#4A6B5C';
+    const blurb = smartSourceOwningBlurb(g.source);
+    const n = g.items.length;
+    const rows = g.items.map(e => {
+      const when = [
+        e.date ? (typeof humanDate === 'function' ? humanDate(e.date, { day:'numeric', month:'short' }) : e.date) : '',
+        e.allDay ? 'All day' : (e.time ? (typeof humanTime === 'function' ? humanTime(e.time) : e.time) : ''),
+        (e.source === 'Payments' || e.source === 'Budget') && e.amount
+          ? (typeof fmt === 'function' ? fmt(e.amount) : ('$' + Number(e.amount).toLocaleString()))
+          : ''
+      ].filter(Boolean).join(' · ');
+      const statusHtml = (typeof smartStatusPill === 'function')
+        ? smartStatusPill(e.status || '')
+        : escapeHtml(e.status || '');
+      const active = String(smartCalDrawerEntryId) === String(e.id);
+      return `<button type="button" class="rd-cal-source__row${active ? ' is-active' : ''}" onclick="selectSmartEntry('${String(e.id).replace(/'/g,"\\'")}')">
+        <span class="rd-cal-source__title">${escapeHtml(e.title || 'Untitled')}</span>
+        <span class="rd-cal-source__when">${escapeHtml(when)}</span>
+        <span class="rd-cal-source__status">${statusHtml}</span>
+      </button>`;
+    }).join('');
+    return `<section class="rd-cal-source__group">
+      <div class="rd-cal-source__head">
+        <span class="rd-cal-source__swatch" style="background:${escapeHtml(hex)}" aria-hidden="true"></span>
+        <div>
+          <div class="rd-cal-source__name">${escapeHtml(smartSourcePageTitle(g.source))} · ${n} ${n === 1 ? 'entry' : 'entries'}</div>
+          <div class="rd-cal-source__blurb">${escapeHtml(blurb)}</div>
+        </div>
+      </div>
+      <div class="rd-cal-source__rows">${rows}</div>
+    </section>`;
+  }).join('');
+  host.innerHTML = `<div class="rd-cal-source" data-mode="source-45b">
+    <div class="rd-cal-source__banner">
+      <div class="rd-cal-source__kicker">${escapeHtml(monthName)}</div>
+      <div class="rd-cal-source__copy">${monthItems.length} ${monthItems.length === 1 ? 'entry' : 'entries'} · ${groups.length} ${groups.length === 1 ? 'page' : 'pages'} · counts are of entries, not records</div>
+    </div>
+    <div class="rd-cal-source__list">${groupsHtml}</div>
+  </div>`;
+}
+function smartSourcePageTitle(source){
+  const map = {
+    Tasks: 'Planning Timeline & Tasks',
+    Appointments: 'Appointments',
+    Counseling: 'Premarital Counseling',
+    Payments: 'Payments',
+    Budget: 'Budget',
+    Vendors: 'Vendors',
+    Timeline: 'Wedding Day Timeline',
+    Planning: 'Planning',
+    Weekend: 'Weekend Logistics',
+    Honeymoon: 'Honeymoon',
+    Rentals: 'Rentals',
+    Gifts: 'Gifts',
+    Manual: 'Manual events',
+    Notes: 'Notes'
+  };
+  return map[source] || source || 'Planner';
+}
+function smartSourceOwningBlurb(source){
+  const map = {
+    Appointments: 'Owned by the Appointments page',
+    Payments: 'Due dates, not appointments',
+    Budget: 'Budget due dates, not appointments',
+    Tasks: 'Task due dates',
+    Counseling: 'Sessions owned by Premarital Counseling',
+    Vendors: 'Vendor arrivals and dated vendor records',
+    Timeline: 'Wedding-day timeline rows',
+    Weekend: 'Weekend logistics movements',
+    Honeymoon: 'Travel owned by Honeymoon',
+    Manual: 'Manual events saved on this calendar',
+    Notes: 'Dated notes'
+  };
+  return map[source] || ('Owned by the ' + smartSourcePageTitle(source) + ' page');
 }
 function renderSmartMonthView(host, events){
   const year = smartCalendarMonth.getFullYear();
@@ -27496,8 +28638,8 @@ function renderSmartMonthView(host, events){
   const today = todayISO();
   const byDate = events.reduce((acc,e)=>{ (acc[e.date] ||= []).push(e); return acc; }, {});
   const conflictDates = getConflictDates(events);
-  /* step8n: maxChips ladder tracks density (track px does the heavy lift) */
-  const maxChips = smartCalDensity === 'tall' ? 8 : smartCalDensity === 'default' ? 7 : 6;
+  /* 45a: up to three items a day, then a count. Colour is the owning page. */
+  const maxChips = 3;
   let html = '<div class="smart-calendar-grid" data-mode="month">';
   ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(d=>html += `<div class="smart-weekday">${d}</div>`);
   for (let i=0; i<42; i++) {
@@ -27555,7 +28697,7 @@ function ensureCalendarDayDrawer(){
     d = document.createElement('aside');
     d.id = 'calendar-day-drawer';
     d.className = 'rd-drawer cal-day-drawer';
-    d.setAttribute('aria-label', 'Day details');
+    d.setAttribute('aria-label', 'Calendar entry');
     d.hidden = true;
     slot.appendChild(d);
   } else if (d.parentElement !== slot) {
@@ -27566,12 +28708,154 @@ function ensureCalendarDayDrawer(){
 function calendarSourceNavLabel(e){
   const page = e.sourcePage || '';
   if (page === 'tasks' || e.source === 'Tasks') return 'Task';
-  if (page === 'appointments' || e.source === 'Appointments') return 'Appointment';
+  if (page === 'counseling' || e.source === 'Counseling') return 'Counseling';
   if (page === 'payments' || e.source === 'Payments') return 'Payment';
   if (page === 'budget' || e.source === 'Budget') return 'Budget';
   if (page === 'vendors' || e.source === 'Vendors') return 'Vendor';
   if (page === 'timeline') return 'Timeline';
   return e.source || 'Entry';
+}
+function calendarEntryHistoryEntity(e){
+  if (!e) return '';
+  if (e.sourcePage === 'tasks') return 'tasks';
+  if (e.sourcePage === 'appointments') return 'appointments';
+  if (e.sourcePage === 'payments') return 'payments';
+  if (e.sourcePage === 'counseling') return 'counseling';
+  if (e.sourcePage === 'vendors') return 'vendors';
+  if (e.sourcePage === 'timeline') return 'timeline';
+  if (e.sourcePage === 'budget') return 'budget';
+  if (e.sourcePage === 'gifts') return 'gifts';
+  if (e.sourcePage === 'notes') return 'notesDetails';
+  if (e.sourcePage === 'logistics') return e.sourceType || 'weekendTimeline';
+  if (e.sourcePage === 'honeymoon') return 'honeyTransport';
+  if (e.sourcePage === 'calendar') return 'calendarEvents';
+  if (e.sourcePage === 'contracts') return 'contracts';
+  return (typeof smartSourceDataKey === 'function' && e.sourceType) ? smartSourceDataKey(e.sourceType) : '';
+}
+function calendarDrawerHistoryHtml(entry){
+  const entity = calendarEntryHistoryEntity(entry);
+  const id = entry && (entry.sourceId || '');
+  const rows = (entity && id && typeof recordHistoryFor === 'function') ? recordHistoryFor(entity, id) : [];
+  if (!rows.length) {
+    return `<div class="cal-day-empty">No changes recorded for this entry yet. Edits on ${escapeHtml(smartSourcePageTitle(entry.source))} appear here.</div>`;
+  }
+  return `<div class="re-history-list">${rows.slice(0, 12).map(h => {
+    const change = (h.changes || []).map(c => `${escapeHtml(c.label)}: ${escapeHtml(c.from)} → ${escapeHtml(c.to)}`).join('; ');
+    return `<div class="re-history-row"><span class="re-history-when">${escapeHtml(h.date || '')} · ${escapeHtml(h.time || '')}</span><span class="re-history-what">${escapeHtml(h.action || 'Updated')}${change ? ' — ' + change : ''}</span></div>`;
+  }).join('')}</div>`;
+}
+function calendarDrawerIsTimeBlock(){
+  return smartCalendarMode === 'week';
+}
+function calendarBlockWhenLabel(row){
+  if (!row) return '—';
+  if (row.allDay) return 'All day · Due band';
+  if (!row.time) return 'Due date · Due band';
+  const start = typeof humanTime === 'function' ? humanTime(row.time) : row.time;
+  return row.endTime
+    ? `${start} – ${typeof humanTime === 'function' ? humanTime(row.endTime) : row.endTime}`
+    : start;
+}
+function calendarDrawerBlockHtml(entry, dayEvents, dayConflicts){
+  const timed = (dayEvents || []).filter(e => !smartWeekIsAllDay(e));
+  const due = (dayEvents || []).filter(e => smartWeekIsAllDay(e));
+  if (!entry) {
+    const held = timed.length
+      ? timed.map(e => `<div class="cal-people-row"><span>${escapeHtml(e.title || 'Untitled')}</span><span class="cal-people-row__meta">${escapeHtml(calendarBlockWhenLabel(e))}</span></div>`).join('')
+      : '';
+    const dueRows = due.length
+      ? due.map(e => `<div class="cal-people-row"><span>${escapeHtml(e.title || 'Untitled')}</span><span class="cal-people-row__meta">${escapeHtml(e.allDay ? 'All day' : 'Due date')}</span></div>`).join('')
+      : '';
+    if (!held && !dueRows) {
+      return `<div class="cal-day-empty">Nothing held on this day. All-day and due-date entries sit on the Due band; timed entries occupy an hour.</div>`;
+    }
+    return `<div class="cal-entry-detail">
+      <p class="record-editor-note">A span of the week rather than a single event: what is held, and what may not be booked over it.</p>
+      ${held ? `<div class="rd-field-row__label" style="margin-bottom:6px">Held on the hour grid</div><div class="cal-people-list">${held}</div>` : ''}
+      ${dueRows ? `<div class="rd-field-row__label" style="margin:12px 0 6px">Due band — no hour</div><div class="cal-people-list">${dueRows}</div>` : ''}
+    </div>`;
+  }
+  const onHour = !smartWeekIsAllDay(entry);
+  const collideN = (dayConflicts || []).filter(c =>
+    String(c.a && c.a.id) === String(entry.id) || String(c.b && c.b.id) === String(entry.id)
+  ).length;
+  return `<div class="cal-entry-detail">
+    <div class="cal-entry-detail__title">${escapeHtml(entry.title || 'Untitled')}</div>
+    <p class="record-editor-note">${onHour
+      ? 'This span is held on the week grid. Other timed entries may not be booked over it without a conflict.'
+      : 'All-day and due-date entries cannot sit on an hour, so this lives on the Due band above the grid instead of midnight.'}</p>
+    <div class="rd-field-row"><span class="rd-field-row__label">Held</span><span class="rd-field-row__value">${escapeHtml(calendarBlockWhenLabel(entry))}</span></div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Owning page</span><span class="rd-field-row__value">${escapeHtml(smartSourcePageTitle(entry.source))}</span></div>
+    <div class="rd-field-row"><span class="rd-field-row__label">May not overlay</span><span class="rd-field-row__value">${onHour ? (collideN ? collideN + ' collision' + (collideN === 1 ? '' : 's') + ' — see Conflicts' : 'No other timed entry in this span') : 'Not an hour block'}</span></div>
+    <div class="cal-entry-detail__actions">
+      <button type="button" class="rd-btn rd-btn--primary" onclick="openSmartCalendarEventFullEditor('${String(entry.id).replace(/'/g,"\\'")}')">Edit in source</button>
+      <button type="button" class="rd-btn" onclick="openCalendarSource({sourcePage:'${escapeHtml(entry.sourcePage||'')}',id:'${String(entry.id).replace(/'/g,"\\'")}',source:'${escapeHtml(entry.source||'')}'})">Open ${escapeHtml(calendarSourceNavLabel(entry))}</button>
+    </div>
+  </div>`;
+}
+function calendarDrawerConflictsHtml(entry, dayConflicts, hasConflict){
+  const list = (dayConflicts || []).filter(c => {
+    if (!entry) return true;
+    return String(c.a && c.a.id) === String(entry.id) || String(c.b && c.b.id) === String(entry.id);
+  });
+  if (!list.length) {
+    if (entry && smartWeekIsAllDay(entry)) {
+      return `<div class="cal-day-empty">Due-band entries do not collide on the hour grid. The week view draws timed overlaps; this drawer explains them.</div>`;
+    }
+    return `<div class="cal-day-empty">${hasConflict ? 'Those overlaps were kept on purpose.' : 'Nothing collides with this block.'}</div>`;
+  }
+  const cards = list.map(c => {
+    const mins = conflictOverlapMinutes(c.a, c.b) || 30;
+    const aLabel = (c.a.title || 'Entry').replace(/\s+/g,' ').slice(0, 48);
+    const bLabel = (c.b.title || 'Entry').replace(/\s+/g,' ').slice(0, 48);
+    const aWhen = calendarBlockWhenLabel(c.a);
+    const bWhen = calendarBlockWhenLabel(c.b);
+    return `<div class="cal-conflict-box" role="alert">
+      <div class="cal-conflict-box__text"><strong>${mins}-minute overlap</strong> — ${escapeHtml(aLabel)} (${escapeHtml(aWhen)}) and ${escapeHtml(bLabel)} (${escapeHtml(bWhen)}) share this span. The week view hatches the shared half-hour; this tab names it.</div>
+      <div class="cal-conflict-box__actions">
+        <button type="button" class="rd-btn rd-btn--primary" onclick="smartCalendarReschedule('${String(c.a.id).replace(/'/g,"\\'")}')">Reschedule ${escapeHtml((c.a.title||'entry').split(' ').slice(0,2).join(' ').slice(0,18))}</button>
+        <button type="button" class="rd-btn" onclick="smartCalendarReschedule('${String(c.b.id).replace(/'/g,"\\'")}')">Reschedule ${escapeHtml((c.b.title||'entry').split(' ').slice(0,2).join(' ').slice(0,18))}</button>
+        <button type="button" class="rd-btn" onclick="smartCalendarKeepBoth('${smartSelectedDate}')">Keep both</button>
+      </div>
+    </div>`;
+  }).join('');
+  return cards;
+}
+function calendarDrawerPeopleHtml(entry){
+  const names = String(entry.guests || '')
+    .split(/\s*(?:,|&|\+|\/| and )\s*/i)
+    .map(s => s.trim())
+    .filter(Boolean);
+  const owner = String(entry.owner || '').trim();
+  const timeBlock = calendarDrawerIsTimeBlock();
+  if (!names.length && !owner) {
+    return `<div class="cal-day-empty">${timeBlock
+      ? 'No one is named inside this block. Who attends is stored on ' + escapeHtml(smartSourcePageTitle(entry.source)) + '.'
+      : 'No one named on this entry. Who attends is stored on ' + escapeHtml(smartSourcePageTitle(entry.source)) + '.'}</div>`;
+  }
+  const inside = names.map(n => `<div class="cal-people-row"><span>${escapeHtml(n)}</span><span class="cal-people-row__meta">${timeBlock ? 'Inside the block' : 'Expected'}</span></div>`).join('');
+  const ownerRow = owner
+    ? `<div class="cal-people-row"><span>${escapeHtml(owner)}</span><span class="cal-people-row__meta">${timeBlock ? 'Needs to know' : 'Owner / contact'}</span></div>`
+    : '';
+  const note = timeBlock
+    ? 'Who is inside the block, and who only needs to know it exists.'
+    : 'Who is expected. Replies and RSVPs live on the owning page — a tasting slips because one person never replied.';
+  return `<p class="record-editor-note">${note}</p>
+    <div class="cal-people-list">${ownerRow}${inside}</div>`;
+}
+function calendarDrawerSourceHtml(entry){
+  const page = smartSourcePageTitle(entry.source);
+  const nav = calendarSourceNavLabel(entry);
+  return `<div class="cal-entry-detail">
+    <p class="record-editor-note">The Smart Calendar owns no records. Editing writes to <strong>${escapeHtml(page)}</strong>.</p>
+    <div class="rd-field-row"><span class="rd-field-row__label">Owning page</span><span class="rd-field-row__value">${escapeHtml(page)}</span></div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Kind</span><span class="rd-field-row__value">${escapeHtml(nav)}</span></div>
+    <div class="rd-field-row"><span class="rd-field-row__label">Source</span><span class="rd-field-row__value">${escapeHtml(entry.source || '—')}</span></div>
+    <div class="cal-entry-detail__actions">
+      <button type="button" class="rd-btn rd-btn--primary" onclick="openSmartCalendarEventFullEditor('${String(entry.id).replace(/'/g,"\\'")}')">Edit on ${escapeHtml(nav)}</button>
+      <button type="button" class="rd-btn" onclick="openCalendarSource({sourcePage:'${escapeHtml(entry.sourcePage||'')}',id:'${String(entry.id).replace(/'/g,"\\'")}',source:'${escapeHtml(entry.source||'')}'})">Open ${escapeHtml(page)}</button>
+    </div>
+  </div>`;
 }
 function openCalendarSource(e){
   const page = e && e.sourcePage;
@@ -27690,9 +28974,20 @@ function renderCalendarDayDrawer(events){
     return;
   }
 
+  const focused = (events || smartFilteredEvents()).find(e => String(e.id) === String(smartCalDrawerEntryId));
+  const entry = focused || (dayEvents.length === 1 ? dayEvents[0] : null);
+  if (entry && !smartCalDrawerEntryId) smartCalDrawerEntryId = entry.id;
+
   let title = 'Day summary';
-  if (hasConflict && dayConflicts[0]) {
+  let eyebrowKind = 'DAY';
+  const timeBlock = calendarDrawerIsTimeBlock();
+  d.setAttribute('aria-label', timeBlock ? 'Time block' : 'Calendar entry');
+  if (entry) {
+    title = entry.title || (timeBlock ? 'Time block' : 'Entry');
+    eyebrowKind = timeBlock ? 'BLOCK' : 'ENTRY';
+  } else if (hasConflict && dayConflicts[0]) {
     title = dayEvents.length === 2 ? 'Two commitments overlap' : 'Schedule overlap';
+    if (timeBlock) eyebrowKind = 'BLOCK';
   } else if (!dayEvents.length) {
     title = 'No entries yet';
   } else if (dayEvents.length === 1) {
@@ -27703,20 +28998,42 @@ function renderCalendarDayDrawer(events){
 
   const pills = [];
   if (hasConflict) pills.push(`<span class="status-pill" data-pillscheme="red">Conflict</span>`);
-  if (dayEvents.length) pills.push(`<span class="status-pill" data-pillscheme="blue">${dayEvents.length} entr${dayEvents.length===1?'y':'ies'}</span>`);
+  if (entry) pills.push(`<span class="status-pill" data-pillscheme="blue">${escapeHtml(calendarSourceNavLabel(entry))}</span>`);
+  else if (dayEvents.length) pills.push(`<span class="status-pill" data-pillscheme="blue">${dayEvents.length} entr${dayEvents.length===1?'y':'ies'}</span>`);
 
-  const tabs = ['Day','Entry','Reminders'].map((lab,i)=>
+  const tabLabels = timeBlock ? ['Block','Conflicts','People','History'] : ['Entry','Source','People','History'];
+  const tabs = tabLabels.map((lab,i)=>
     `<button type="button" class="${i===smartCalDrawerTab?'is-active':''}" onclick="setCalendarDrawerTab(${i})">${lab}</button>`
   ).join('');
 
-  let body = '';
-  if (smartCalDrawerTab === 0) {
+  const entryDetailHtml = (row) => {
+    const time = row.allDay || !row.time
+      ? 'All day'
+      : `${humanTime(row.time)}${row.endTime ? ' – ' + humanTime(row.endTime) : ''}`;
+    return `<div class="cal-entry-detail">
+        <div class="cal-entry-detail__title">${escapeHtml(row.title||'Untitled')}</div>
+        <p class="record-editor-note">One dated thing, owned by ${escapeHtml(smartSourcePageTitle(row.source))} — the calendar does not keep its own copy.</p>
+        <div class="rd-field-row"><span class="rd-field-row__label">When</span><span class="rd-field-row__value">${escapeHtml(time)}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Source</span><span class="rd-field-row__value">${escapeHtml(row.source||'—')}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Status</span><span class="rd-field-row__value">${escapeHtml(row.status||'—')}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Location</span><span class="rd-field-row__value">${escapeHtml(row.location||'—')}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Who</span><span class="rd-field-row__value">${escapeHtml(row.guests||row.owner||'—')}</span></div>
+        <div class="rd-field-row"><span class="rd-field-row__label">Notes</span><span class="rd-field-row__value">${escapeHtml(row.notes||'—')}</span></div>
+        <div class="cal-entry-detail__actions">
+          <button type="button" class="rd-btn rd-btn--primary" onclick="openSmartCalendarEventFullEditor('${String(row.id).replace(/'/g,"\\'")}')">Edit in source</button>
+          <button type="button" class="rd-btn" onclick="openCalendarSource({sourcePage:'${escapeHtml(row.sourcePage||'')}',id:'${String(row.id).replace(/'/g,"\\'")}',source:'${escapeHtml(row.source||'')}'})">Open ${escapeHtml(calendarSourceNavLabel(row))}</button>
+        </div>
+      </div>`;
+  };
+
+  const dayListHtml = () => {
+    let html = '';
     if (hasConflict && dayConflicts[0]) {
       const c = dayConflicts[0];
       const mins = conflictOverlapMinutes(c.a, c.b) || 30;
       const aLabel = (c.a.title || 'Entry').replace(/\s+/g,' ').slice(0, 40);
       const bLabel = (c.b.title || 'Entry').replace(/\s+/g,' ').slice(0, 40);
-      body += `<div class="cal-conflict-box" role="alert">
+      html += `<div class="cal-conflict-box" role="alert">
         <div class="cal-conflict-box__text"><strong>${mins}-minute overlap</strong> — ${escapeHtml(aLabel)} and ${escapeHtml(bLabel)} share time on this day.</div>
         <div class="cal-conflict-box__actions">
           <button type="button" class="rd-btn rd-btn--primary" onclick="smartCalendarReschedule('${String(c.a.id).replace(/'/g,"\\'")}')">Reschedule ${escapeHtml((c.a.title||'entry').split(' ').slice(0,2).join(' ').slice(0,18))}</button>
@@ -27725,9 +29042,9 @@ function renderCalendarDayDrawer(events){
       </div>`;
     }
     if (!dayEvents.length) {
-      body += `<div class="cal-day-empty">Nothing scheduled. Add an appointment, task, or payment for this day.</div>`;
+      html += `<div class="cal-day-empty">Nothing scheduled. Add an appointment, task, or payment for this day.</div>`;
     } else {
-      body += `<div class="cal-day-entries">${dayEvents.map(e => {
+      html += `<div class="cal-day-entries">${dayEvents.map(e => {
         const time = e.allDay || !e.time
           ? 'All day'
           : `${humanTime(e.time)}${e.endTime ? ' – ' + humanTime(e.endTime) : ''}`;
@@ -27744,38 +29061,32 @@ function renderCalendarDayDrawer(events){
         </article>`;
       }).join('')}</div>`;
     }
+    return html;
+  };
+
+  let body = '';
+  if (timeBlock) {
+    if (smartCalDrawerTab === 0) {
+      body = calendarDrawerBlockHtml(entry, dayEvents, dayConflicts);
+    } else if (smartCalDrawerTab === 1) {
+      body = calendarDrawerConflictsHtml(entry, dayConflicts, hasConflict);
+    } else if (!entry) {
+      body = `<div class="cal-day-empty">Select a block to see ${smartCalDrawerTab === 2 ? 'people' : 'history'}.</div>`;
+    } else if (smartCalDrawerTab === 2) {
+      body = calendarDrawerPeopleHtml(entry);
+    } else {
+      body = calendarDrawerHistoryHtml(entry);
+    }
+  } else if (smartCalDrawerTab === 0) {
+    body = entry ? entryDetailHtml(entry) : dayListHtml();
+  } else if (!entry) {
+    body = `<div class="cal-day-empty">Select an entry to see ${['source','people','history'][smartCalDrawerTab-1] || 'details'}.</div>`;
   } else if (smartCalDrawerTab === 1) {
-    const entry = dayEvents.find(e => String(e.id) === String(smartCalDrawerEntryId)) || dayEvents[0];
-    if (!entry) {
-      body += `<div class="cal-day-empty">Select a day entry to inspect details.</div>`;
-    } else {
-      smartCalDrawerEntryId = entry.id;
-      const time = entry.allDay || !entry.time
-        ? 'All day'
-        : `${humanTime(entry.time)}${entry.endTime ? ' – ' + humanTime(entry.endTime) : ''}`;
-      body += `<div class="cal-entry-detail">
-        <div class="cal-entry-detail__title">${escapeHtml(entry.title||'Untitled')}</div>
-        <div class="rd-field-row"><span class="rd-field-row__label">When</span><span class="rd-field-row__value">${escapeHtml(time)}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Source</span><span class="rd-field-row__value">${escapeHtml(entry.source||'—')}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Status</span><span class="rd-field-row__value">${escapeHtml(entry.status||'—')}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Location</span><span class="rd-field-row__value">${escapeHtml(entry.location||'—')}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Owner</span><span class="rd-field-row__value">${escapeHtml(entry.owner||'—')}</span></div>
-        <div class="rd-field-row"><span class="rd-field-row__label">Notes</span><span class="rd-field-row__value">${escapeHtml(entry.notes||'—')}</span></div>
-        <div class="cal-entry-detail__actions">
-          <button type="button" class="rd-btn rd-btn--primary" onclick="openSmartCalendarEventFullEditor('${String(entry.id).replace(/'/g,"\\'")}')">Edit in source</button>
-          <button type="button" class="rd-btn" onclick="openCalendarSource({sourcePage:'${escapeHtml(entry.sourcePage||'')}',id:'${String(entry.id).replace(/'/g,"\\'")}',source:'${escapeHtml(entry.source||'')}'})">Open ${escapeHtml(calendarSourceNavLabel(entry))}</button>
-        </div>
-      </div>`;
-    }
+    body = calendarDrawerSourceHtml(entry);
+  } else if (smartCalDrawerTab === 2) {
+    body = calendarDrawerPeopleHtml(entry);
   } else {
-    const rems = dayEvents.filter(e => e.reminder || !/complete|paid|confirmed/i.test(e.status||''));
-    if (!rems.length) {
-      body += `<div class="cal-day-empty">No follow-ups flagged for this day.</div>`;
-    } else {
-      body += `<div class="cal-day-reminders">${rems.map(e =>
-        `<div class="cal-rem-row"><strong>${escapeHtml(e.title||'')}</strong><span>${escapeHtml(e.reminder || e.status || e.source || '')}</span></div>`
-      ).join('')}</div>`;
-    }
+    body = calendarDrawerHistoryHtml(entry);
   }
 
   d.hidden = false;
@@ -27787,7 +29098,7 @@ function renderCalendarDayDrawer(events){
       <div class="rd-drawer__actions-row">
         <button type="button" class="rd-drawer__close" aria-label="Close" onclick="closeCalendarDayDrawer()">✕</button>
       </div>
-      <div class="rd-drawer__eyebrowrow"><span class="rd-drawer__eyebrow">DAY · ${escapeHtml(eyebrowDate)}</span></div>
+      <div class="rd-drawer__eyebrowrow"><span class="rd-drawer__eyebrow">${eyebrowKind} · ${escapeHtml(eyebrowDate)}</span></div>
       <div class="rd-drawer__title">${escapeHtml(title)}</div>
       <div class="rd-drawer__pills">${pills.join('')}</div>
       <div class="rd-drawer__tabs">${tabs}</div>
@@ -27932,9 +29243,10 @@ function smartWeekEventBlockHtml(e, layout, rangeStart){
 function smartWeekDueChipHtml(e){
   const eid = String(e.id == null ? '' : e.id).replace(/'/g, "\\'");
   const overdue = e.date && e.date < todayISO() && !/complete|done|paid|confirmed/i.test(e.status || '');
+  const kind = e.allDay ? 'All day' : 'Due date';
   const meta = overdue
-    ? (e.source === 'Tasks' ? 'All day · overdue task' : 'All day · overdue')
-    : (e.allDay || !e.time ? 'All day' : 'Due date');
+    ? (e.source === 'Tasks' ? `${kind} · overdue task` : `${kind} · overdue`)
+    : kind;
   /* Due chips share month/week filled source tint. */
   return `<button type="button" class="rd-week__due-chip ${smartSourceSlug(e.source)}${overdue ? ' is-overdue' : ''}" style="${smartEventInlineStyle(e, 30)}" onclick="event.stopPropagation();selectSmartEntry('${eid}')" title="${escapeHtml(e.title || '')}">
     <span class="rd-week__due-chip-title">${escapeHtml(e.title || 'Untitled')}</span>
@@ -28012,7 +29324,7 @@ function renderSmartWeekView(host, events){
     const hatch = zones.map(z => {
       const topMin = Math.max(0, z.start - rangeStart);
       const heightMin = Math.max(8, z.end - z.start);
-      return `<div class="rd-week__hatch" style="top:calc(var(--rd-week-hour) * ${topMin} / 60);height:calc(var(--rd-week-hour) * ${heightMin} / 60)" aria-hidden="true"></div>`;
+      return `<button type="button" class="rd-week__hatch" style="top:calc(var(--rd-week-hour) * ${topMin} / 60);height:calc(var(--rd-week-hour) * ${heightMin} / 60)" aria-label="Open overlapping time" onclick="event.stopPropagation();openSmartWeekConflicts('${iso}')"></button>`;
     }).join('');
     const blocks = timed.map(item => {
       const lay = layout.get(String(item.e.id));
@@ -28028,9 +29340,10 @@ function renderSmartWeekView(host, events){
 
   const weekConflicts = detectCalendarConflicts(week);
   const conflictN = weekConflicts.length;
+  const firstConflictDate = (weekConflicts[0] && weekConflicts[0].date) || '';
   const footLeft = conflictN
-    ? `<span class="rd-week__legend"><span class="rd-week__legend-swatch" aria-hidden="true"></span>Overlapping half-hour</span>
-       <span class="rd-week__foot-copy">${conflictN} schedule conflict${conflictN === 1 ? '' : 's'} this week — open the day drawer to reschedule or keep both.</span>`
+    ? `<button type="button" class="rd-week__legend" onclick="openSmartWeekConflicts('${escapeHtml(firstConflictDate)}')"><span class="rd-week__legend-swatch" aria-hidden="true"></span>Overlapping half-hour</button>
+       <span class="rd-week__foot-copy">${conflictN} schedule conflict${conflictN === 1 ? '' : 's'} this week — the grid hatches the shared span; the Conflicts tab names it.</span>`
     : week.length
       ? `<span class="rd-week__foot-copy">${week.length} entr${week.length === 1 ? 'y' : 'ies'} this week across filtered sources.</span>`
       : `<span class="rd-week__foot-copy">Quiet week — add appointments, tasks, or payments and they will land here by hour.</span>`;
@@ -28123,7 +29436,7 @@ function renderSmartAgendaView(host, events){
     .sort((a, b) => String(a.date || '').localeCompare(String(b.date || ''))
       || String(a.time || '').localeCompare(String(b.time || '')));
 
-  /* Forward list: today → ~32 days; only days with entries (today always shown). */
+  /* Forward list: today → ~32 days; only days that have entries. */
   const upcoming = list
     .filter(e => e.date && e.date >= today && e.date <= windowEnd)
     .sort((a, b) => (String(a.date) + (a.time || '')).localeCompare(String(b.date) + (b.time || '')))
@@ -28135,11 +29448,6 @@ function renderSmartAgendaView(host, events){
     if (!byDate[e.date]) { byDate[e.date] = []; order.push(e.date); }
     byDate[e.date].push(e);
   });
-  if (today && !byDate[today]) {
-    byDate[today] = [];
-    order.unshift(today);
-  }
-  order.sort((a, b) => String(a).localeCompare(String(b)));
 
   const rowHtml = (e, opts = {}) => {
     const eid = String(e.id == null ? '' : e.id).replace(/'/g, "\\'");
@@ -28187,7 +29495,7 @@ function renderSmartAgendaView(host, events){
     </div>`;
   };
 
-  if (!overdue.length && !upcoming.length && !(today && byDate[today])) {
+  if (!overdue.length && !upcoming.length) {
     host.innerHTML = `<div class="rd-agenda smart-calendar-grid" data-mode="agenda">
       <div class="rd-agenda__empty">No upcoming events yet. Add tasks, appointments, payments, or events and they will appear here automatically.</div>
     </div>`;
@@ -28208,23 +29516,9 @@ function renderSmartAgendaView(host, events){
 
   order.forEach(date => {
     const dayEvents = byDate[date] || [];
-    /* Skip empty days except today (mock always shows today). */
-    if (!dayEvents.length && date !== today) return;
-    let rows;
-    if (dayEvents.length) {
-      rows = dayEvents.map(e => rowHtml(e)).join('');
-    } else {
-      rows = `<div class="rd-agenda__empty-day">
-        <span class="rd-agenda__time">—</span>
-        <span class="rd-agenda__bar rd-agenda__bar--muted" aria-hidden="true"></span>
-        <span class="rd-agenda__main">
-          <span class="rd-agenda__title">Nothing scheduled</span>
-          <span class="rd-agenda__sub">Add a task, appointment, or payment and it will land here</span>
-        </span>
-        <span class="rd-agenda__source">—</span>
-        <span class="rd-agenda__status"><span class="status-pill" data-pillscheme="gold">Not an entry</span></span>
-      </div>`;
-    }
+    /* 6d: skip empty days entirely. */
+    if (!dayEvents.length) return;
+    const rows = dayEvents.map(e => rowHtml(e)).join('');
     body += `<div class="rd-agenda__day${date === today ? ' is-today' : ''}" data-date="${escapeHtml(date)}">
       ${dateCol(date)}
       <div class="rd-agenda__events">${rows}</div>
@@ -28573,7 +29867,7 @@ function openSmartCalendarEditor(id){
     smartSelectedDate = event.date || smartSelectedDate;
     smartCalDrawerOpen = true;
     smartCalDrawerEntryId = event.id;
-    smartCalDrawerTab = 1;
+    smartCalDrawerTab = 0;
     if (typeof renderSmartCalendar === 'function') renderSmartCalendar();
   }
 }
@@ -29220,6 +30514,15 @@ const SAMPLE_DATA = {
     { vendor: "Magnolia Catering Co.", time: "16:00", location: "The Magnolia Barn", contact: "(555) 010-2222", notes: "Kitchen setup" },
     { vendor: "DJ Marcus Reed", time: "17:30", location: "The Magnolia Barn", contact: "(555) 010-5555", notes: "Sound check before reception" }
   ],
+  packets: [
+    { name: "Grace Hall day-of packet", recipient: "Grace Hall events", recipientType: "Vendors", contains: "Timeline · floor plan · contacts", sections: ["Wedding Day Timeline","Table Layout · plan only","Contacts · vendors","Ceremony & Reception"], mode: "Live", opens: 14, expires: "2026-12-08", status: "Live", created: "2026-07-12", link: "covenant.link/g/4kq9", lastOpen: "2 hours ago from Accra", contact: "events@gracehall.gh", activity: [{when:"2 hours ago",where:"Accra",browser:"Chrome"},{when:"Yesterday",where:"Accra",browser:"Chrome"},{when:"26 Jul",where:"Accra",browser:"Safari"}], openedThisWeek: true },
+    { name: "Catering brief", recipient: "Adom Catering", recipientType: "Vendors", contains: "Menu · headcount · dietary", sections: ["Catering & Menu","Headcount","Dietary notes"], mode: "Live", opens: 9, expires: "2026-12-08", status: "Live", created: "2026-07-18", link: "covenant.link/g/cat9", lastOpen: "yesterday", openedThisWeek: true },
+    { name: "Photography brief", recipient: "Nii Photography", recipientType: "Vendors", contains: "Shot lists · timeline", sections: ["Shot Lists","Wedding Day Timeline"], mode: "Snapshot", opens: 6, expires: "2026-08-04", status: "Expiring", created: "2026-06-01", link: "covenant.link/g/pho6" },
+    { name: "Wedding party brief", recipient: "10 members", recipientType: "Family & party", contains: "Duties · attire · weekend", sections: ["Wedding Party","Weekend Logistics"], mode: "Live", opens: 7, expires: "2026-11-09", status: "Live", created: "2026-07-20", link: "covenant.link/g/pty7", openedThisWeek: true },
+    { name: "Parents’ overview", recipient: "Both sets of parents", recipientType: "Family & party", contains: "Timeline · order of service", sections: ["Wedding Day Timeline","Ceremony & Reception"], mode: "Snapshot", opens: 2, expires: "2026-08-03", status: "Expiring", created: "2026-06-15", link: "covenant.link/g/par2" },
+    { name: "Officiant packet", recipient: "Rev. Mensah", recipientType: "Family & party", contains: "Order of service · vows", sections: ["Ceremony & Reception","Vows"], mode: "Live", opens: 0, expires: "2026-11-09", status: "Never opened", created: "2026-07-22", link: "covenant.link/g/off0" },
+    { name: "Venue shortlist comparison", recipient: "Mr & Mrs Owusu", recipientType: "Closed", contains: "Venue comparison only", sections: ["Venue Comparison"], mode: "Snapshot", opens: 0, expires: "2026-03-14", status: "Expired", created: "2026-02-01", link: "covenant.link/g/ven0" }
+  ],
   essentials: [
     { cat: "Marriage Essentials", item: "Marriage license", packed: true, notes: "In white folder" },
     { cat: "Marriage Essentials", item: "Wedding rings", packed: false, notes: "Best man to hold" },
@@ -29531,15 +30834,16 @@ const SAMPLE_DATA = {
   ],
   weekendTimeline: [
     { date: "2026-11-12", start: "17:00", end: "18:00", event: "Ceremony Rehearsal", location: "Grace Community Church", host: "Pastor David Reynolds", group: "Wedding Party", attire: "Casual", status: "Confirmed", cost: "", notes: "Bring marriage license" },
+    { date: "2026-11-12", start: "17:00", end: "18:00", event: "Wedding Party Call Time", location: "Grace Community Church", host: "Michael Whitfield", group: "Wedding Party", attire: "Casual", status: "Confirmed", cost: "", notes: "Best man — walkthrough starts sharp at 5" },
     { date: "2026-11-12", start: "18:30", end: "21:00", event: "Rehearsal Dinner", location: "The Copper Table", host: "Thomas & Carol Carter", group: "Wedding Party", attire: "Smart casual", status: "Confirmed", cost: "500", notes: "Groom's parents hosting" },
     { date: "2026-11-13", start: "14:00", end: "16:00", event: "Hair & Makeup", location: "Bridal suite", host: "Blossom Bridal Beauty", group: "Bride & Bridesmaids", attire: "Robes", status: "Confirmed", cost: "", notes: "" },
     { date: "2026-11-13", start: "17:00", end: "23:00", event: "Wedding Day", location: "Church → Magnolia Barn", host: "Both families", group: "Everyone", attire: "Formal", status: "Confirmed", cost: "", notes: "See Day-Of Timeline" },
     { date: "2026-11-14", start: "10:00", end: "12:00", event: "Morning-After Brunch", location: "Comfort Suites lobby", host: "Whitfield family", group: "Family & out-of-town guests", attire: "Casual", status: "Planned", cost: "250", notes: "Say goodbye before travel" }
   ],
   travelAccommodations: [
-    { guest: "Uncle George & Aunt Mary Carter", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "15:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44120", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "", notes: "Driving in from Riverton" },
-    { guest: "The Thompson Family", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "18:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44121", roomBlock: "Carter-Whitfield Wedding", transportNeeded: false, cost: "", notes: "Two rooms, 3 kids" },
-    { guest: "Grace Bennett", group: "Wedding Party", arrival: "2026-11-12", arrivalTime: "12:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44122", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "", notes: "Bridesmaid — needs ride to church" },
+    { guest: "Uncle George & Aunt Mary Carter", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "15:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44120", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "238", notes: "Driving in from Riverton" },
+    { guest: "The Thompson Family", group: "Out-of-Town Guests", arrival: "2026-11-12", arrivalTime: "18:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44121", roomBlock: "Carter-Whitfield Wedding", transportNeeded: false, cost: "476", notes: "Two rooms, 3 kids" },
+    { guest: "Grace Bennett", group: "Wedding Party", arrival: "2026-11-12", arrivalTime: "12:00", departure: "2026-11-14", hotel: "Comfort Suites Springfield", confirmation: "CS-44122", roomBlock: "Carter-Whitfield Wedding", transportNeeded: true, cost: "238", payer: "couple", notes: "Bridesmaid — needs ride to church" },
     { guest: "Pastor David & Ruth Reynolds", group: "VIP", arrival: "2026-11-13", arrivalTime: "15:00", departure: "2026-11-13", hotel: "Local", confirmation: "", roomBlock: "", transportNeeded: false, notes: "Local, no hotel needed" }
   ],
   hotelBlocks: [
@@ -29547,8 +30851,11 @@ const SAMPLE_DATA = {
     { hotel: "Riverton Inn & Suites", address: "12 River Rd, Riverton", link: "https://rivertoninn.example/block", blockName: "Whitfield Wedding", rate: "$99/night", cutoff: "2026-10-20", reserved: "8", booked: "3", contact: "(555) 010-7200", notes: "Closer to reception venue" }
   ],
   transportation: [
+    { date: "2026-11-12", pickupTime: "15:00", dropoffTime: "15:45", pickup: "Springfield Regional Airport", dropoff: "Comfort Suites Springfield", driver: "Premier Limo Service", vehicle: "Family SUV", group: "Out-of-town arrivals", capacity: "6", status: "Booked", cost: "80", notes: "Afternoon airport loop" },
+    { date: "2026-11-12", pickupTime: "17:15", dropoffTime: "18:00", pickup: "Springfield Regional Airport", dropoff: "Comfort Suites Springfield", driver: "Michael Whitfield", vehicle: "Family SUV", group: "Grandma Eleanor's flight", capacity: "4", status: "Booked", cost: "0", notes: "Grandma Eleanor lands 5:15 — same window as rehearsal walkthrough" },
     { date: "2026-11-13", pickupTime: "16:00", dropoffTime: "16:45", pickup: "Comfort Suites Springfield", dropoff: "Grace Community Church", driver: "Premier Limo Service", vehicle: "24-passenger shuttle", group: "Out-of-town guests", capacity: "24", status: "Booked", cost: "150", notes: "One loop before ceremony" },
     { date: "2026-11-13", pickupTime: "18:15", dropoffTime: "18:45", pickup: "Grace Community Church", dropoff: "The Magnolia Barn", driver: "Premier Limo Service", vehicle: "24-passenger shuttle", group: "Guests without cars", capacity: "24", status: "Booked", cost: "50", notes: "After ceremony" },
+    { date: "2026-11-13", pickupTime: "20:00", dropoffTime: "20:30", pickup: "The Magnolia Barn", dropoff: "Comfort Suites Springfield", driver: "", vehicle: "Sedan (TBD)", group: "Grandparents — early departure", capacity: "4", status: "Needed", cost: "", notes: "Nobody's confirmed for this run yet" },
     { date: "2026-11-13", pickupTime: "21:45", dropoffTime: "22:15", pickup: "The Magnolia Barn", dropoff: "Getaway", driver: "Vintage Rides Co.", vehicle: "Classic white convertible", group: "Bride & Groom", capacity: "2", status: "Needed", cost: "120", notes: "Send-off car — confirm final payment" }
   ],
   vipCare: [
@@ -29794,6 +31101,7 @@ let partyStatusFilter = 'all';
 const PARTY_ROLE_OPTIONS = ['Maid of Honor','Matron of Honor','Bridesmaid','Junior Bridesmaid','Best Man','Groomsman','Usher','Flower Girl','Ring Bearer','Honor Attendant','Reader','Officiant Assistant'];
 const PARTY_STATUS_OPTIONS = ['Dress Ordered','Dress Ready','Tux Confirmed','Fitting Scheduled','Tux Fitting','Outfit Ready','Needs Follow-Up','Not Started'];
 function addPartyRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('party')) return;
   if (document.body.getAttribute('data-active-panel') === 'party' && document.getElementById('party-inline-editor-body')) {
     covInlineLoad('party', null, 'party-inline-editor-body');
     return;
@@ -30029,6 +31337,23 @@ function updateTable(i, key, val) {
     if (preset) {
       data.tables[i].shape = preset.shape;
       data.tables[i].capacity = preset.capacity;
+      /* Preset owns footprint orientation for banquet rectangles. */
+      if (preset.shape === 'circle') data.tables[i].vert = false;
+    }
+  }
+  /* Shape is owned by Size & Shape (preset). A direct shape change means
+     custom geometry — clear preset so normalizeTableRecord cannot fight back. */
+  if (key === 'shape') data.tables[i].preset = '';
+  if (key === 'type') {
+    if (!data.tables[i].preset) {
+      if (val === 'head') data.tables[i].shape = 'rect';
+      else if (val === 'sweetheart') {
+        if (data.tables[i].shape !== 'rect' && data.tables[i].shape !== 'circle') {
+          data.tables[i].shape = 'circle';
+        }
+      } else if (val === 'parents' || val === 'guest') {
+        if (!data.tables[i].shape) data.tables[i].shape = 'circle';
+      }
     }
   }
   data.tables[i][key] = val;
@@ -30038,7 +31363,11 @@ function updateTable(i, key, val) {
   }
   save();
   if (['name','capacity','type','shape','preset','vip','facing'].includes(key)) {
-    if (typeof window.__tablesRenderRd === 'function' && document.getElementById('panel-tables')?.dataset?.uedShell === 'tables-rd8a') {
+    const shell = document.getElementById('panel-tables')?.dataset?.uedShell || '';
+    if (typeof window.__tablesRenderRd === 'function' && String(shell).indexOf('tables-rd8a') === 0) {
+      /* Redesign page owns the full refresh via tablesUpdateField; still
+         redraw the floor plan so Size & Shape changes are visible immediately
+         even when called from older card markup. */
       renderGuestTableOptions();
       if (typeof renderTableMap === 'function') renderTableMap();
       return;
@@ -30110,7 +31439,7 @@ function tablePresetGuide(value){
     half:'Half-round tables work well as sweetheart/VIP tables or against walls when you want a softer shape without a full round footprint.',
     square:'Square tables feel modern and balanced, giving each guest an equal position around the table.',
     serpentine:'Serpentine tables create curves, waves, buffet stations, dessert displays, or a more dramatic reception flow.',
-    custom:'Choose a preset size above, then adjust capacity or shape if your rental company uses a custom table.'
+    custom:'Choose a preset size above. Floor-plan size and round/rectangle shape follow that preset; use Custom only when your rental uses a non-standard table.'
   };
   return guides[family] || guides.custom;
 }
@@ -30546,17 +31875,31 @@ function startFloorFixtureResize(e, key, el, map) {
   document.addEventListener('pointermove', move);
   document.addEventListener('pointerup', up);
 }
-function tableNodeDims(isRect, isVert, type, presetValue='') {
+function tableNodeDims(isRect, isVert, type, presetValue='', capacity) {
   const preset = tablePreset(presetValue);
   if (preset) {
     const w = preset.w || (isRect ? 220 : 110);
     const h = preset.h || (isRect ? 70 : 110);
-    return isVert && isRect ? {w:h, h:w} : {w,h};
+    return isVert && isRect ? { w: h, h: w } : { w, h };
   }
   if (type === 'head') return isVert ? { w: 86, h: 188 } : { w: 248, h: 72 };
   if (type === 'sweetheart') return isRect ? { w: 178, h: 72 } : { w: 136, h: 136 };
-  if (!isRect) return { w: 110, h: 110 };
-  return isVert ? { w: 92, h: 166 } : { w: 230, h: 70 };
+  /* Custom (no Size & Shape preset): scale the floor-plan footprint with seat count
+     so detail-card Seats still change the diagram. */
+  const cap = Math.max(1, parseInt(capacity, 10) || 8);
+  if (!isRect) {
+    const s = Math.round(Math.min(168, Math.max(68, 52 + cap * 7.5)));
+    return { w: s, h: s };
+  }
+  const w = Math.round(Math.min(320, Math.max(120, 70 + cap * 18)));
+  const h = Math.round(Math.min(120, Math.max(56, 48 + cap * 2.5)));
+  return isVert ? { w: h, h: w } : { w, h };
+}
+function tableDimsForRecord(t) {
+  if (!t) return { w: 110, h: 110 };
+  const type = tableType(t);
+  const isRect = (t.shape === 'rect') || (t.shape == null && (type === 'head' || tableIsVip(t)));
+  return tableNodeDims(isRect, !!t.vert, type, t.preset || '', t.capacity);
 }
 function oneSideChairsHtml(count, dims, facing, pairedOnly) {
   const n = Math.max(0, Math.min(parseInt(count) || 0, pairedOnly ? 2 : 28));
@@ -30582,10 +31925,10 @@ function oneSideChairsHtml(count, dims, facing, pairedOnly) {
   }
   return chairs.join('');
 }
-function tableChairHtml(count, isRect, isVert, type, facing, presetValue='') {
+function tableChairHtml(count, isRect, isVert, type, facing, presetValue='', capacity) {
   const n = Math.max(0, Math.min(parseInt(count) || 0, 28));
   if (!n) return '';
-  const dims = tableNodeDims(isRect, isVert, type, presetValue);
+  const dims = tableNodeDims(isRect, isVert, type, presetValue, capacity != null ? capacity : count);
   if (type === 'head') return oneSideChairsHtml(n, dims, facing, false);
   if (type === 'sweetheart') return oneSideChairsHtml(Math.min(2, n || 2), dims, facing || 'down', true);
   const s = 13;
@@ -30665,9 +32008,8 @@ function renderTables() {
     const vip = tableIsVip(t);
     const typeOptions = ['guest','head','sweetheart','parents'].map(opt => `<option value="${opt}" ${type===opt?'selected':''}>${opt==='guest'?'Guest Table':opt==='head'?'Head Table':opt==='sweetheart'?'Sweetheart Table':'Parents Table'}</option>`).join('');
     const presetOptions = tablePresetOptions(t.preset || '');
-    const shapeOptions = ['circle','rect'].map(opt => `<option value="${opt}" ${(t.shape||'circle')===opt?'selected':''}>${opt==='circle'?'Round / Circle':'Rectangle / Square'}</option>`).join('');
     const facingOptions = ['down','up','left','right'].map(opt => `<option value="${opt}" ${(t.facing||'down')===opt?'selected':''}>Chairs ${opt}</option>`).join('');
-    return `<div class="table-card card ${vip ? 'vip-table-card' : ''}"><div class="table-card-head"><span class="table-card-head-left">${vip ? `<span class="table-card-crown" title="VIP table">${tableCrownSvg()}</span>` : ''}<span class="table-label-display">${escapeHtml(tableLabel(t.name))}</span></span>${plannerTrashButton(`removeTable(${t._i})`,'Remove table')}</div><label class="table-name-edit">Name / number <input class="table-name-input" type="text" value="${escapeHtml(t.name)}" oninput="updateTable(${t._i},'name',this.value)"></label><div class="table-seat-row"><span class="table-count ${over ? 'over' : ''}">${count} of ${cap || '?'} seated</span><label class="table-cap">Seats <input type="number" min="1" value="${cap || ''}" oninput="updateTable(${t._i},'capacity',this.value)"></label></div><div class="progress-track ued-track"><span style="width:${pct}%"></span></div><div class="table-card-controls"><label>Table Type<select onchange="updateTable(${t._i},'type',this.value)">${typeOptions}</select></label><label>Size & Shape<select onchange="updateTable(${t._i},'preset',this.value)">${presetOptions}</select></label><label>Shape Override<select onchange="updateTable(${t._i},'shape',this.value)">${shapeOptions}</select></label><label>Chair Side<select onchange="updateTable(${t._i},'facing',this.value)">${facingOptions}</select></label><label class="table-vip-toggle"><input type="checkbox" ${vip?'checked':''} onchange="updateTable(${t._i},'vip',this.checked)"> VIP Table</label></div><div class="v4-help-note">${escapeHtml(tablePresetGuide(t.preset))}</div><input class="table-placement" type="text" value="${escapeHtml(t.placement || '')}" placeholder="Placement note - e.g. near dance floor" oninput="updateTable(${t._i},'placement',this.value)"><div class="table-guests">${people.length ? people.map(chip).join('') : '<span class="table-empty">No guests assigned yet</span>'}</div></div>`;
+    return `<div class="table-card card ${vip ? 'vip-table-card' : ''}"><div class="table-card-head"><span class="table-card-head-left">${vip ? `<span class="table-card-crown" title="VIP table">${tableCrownSvg()}</span>` : ''}<span class="table-label-display">${escapeHtml(tableLabel(t.name))}</span></span>${plannerTrashButton(`removeTable(${t._i})`,'Remove table')}</div><label class="table-name-edit">Name / number <input class="table-name-input" type="text" value="${escapeHtml(t.name)}" oninput="updateTable(${t._i},'name',this.value)"></label><div class="table-seat-row"><span class="table-count ${over ? 'over' : ''}">${count} of ${cap || '?'} seated</span><label class="table-cap">Seats <input type="number" min="1" value="${cap || ''}" oninput="updateTable(${t._i},'capacity',this.value)"></label></div><div class="progress-track ued-track"><span style="width:${pct}%"></span></div><div class="table-card-controls"><label>Table Type<select onchange="updateTable(${t._i},'type',this.value)">${typeOptions}</select></label><label>Size & Shape<select onchange="updateTable(${t._i},'preset',this.value)">${presetOptions}</select></label><label>Chair Side<select onchange="updateTable(${t._i},'facing',this.value)">${facingOptions}</select></label><label class="table-vip-toggle"><input type="checkbox" ${vip?'checked':''} onchange="updateTable(${t._i},'vip',this.checked)"> VIP Table</label></div><div class="v4-help-note">${escapeHtml(tablePresetGuide(t.preset))}</div><input class="table-placement" type="text" value="${escapeHtml(t.placement || '')}" placeholder="Placement note - e.g. near dance floor" oninput="updateTable(${t._i},'placement',this.value)"><div class="table-guests">${people.length ? people.map(chip).join('') : '<span class="table-empty">No guests assigned yet</span>'}</div></div>`;
   }).join('');
   renderTableMap();
 }
@@ -30700,16 +32042,25 @@ function renderTableMap() {
     const statusClass = vip ? ' vip' : (count === 0 ? ' open' : (cap && count >= cap ? ' assigned' : ' partial'));
     const node = document.createElement('div');
     node.className = 'table-node seating-drop-target ' + (isRect ? 'rect' : 'circle') + (isRect && t.vert ? ' vert' : '') + (type !== 'guest' ? ' special-table ' + type + '-table' : '') + ((cap && count > cap) ? ' over' : statusClass);
+    if (t.preset) node.setAttribute('data-preset', t.preset);
+    node.setAttribute('data-shape', isRect ? 'rect' : 'circle');
+    node.setAttribute('data-capacity', String(cap || 0));
     node.setAttribute('data-table-name', tableLabel(t.name));
     node.style.left = (t.x || 0) + 'px'; node.style.top = (t.y || 0) + 'px';
     const rotateBtn = isRect ? `<button class="tn-rotate" title="Rotate table" onclick="toggleTableRotate(${idx})">⟳</button>` : '';
     const faceBtn = (type === 'head' || type === 'sweetheart') ? `<button class="tn-rotate" title="Move chair side" onclick="cycleTableFacing(${idx})">↻</button>` : '';
     const label = tableLabel(t.name);
     const compact = (!isRect && /^Table\s+\d+$/i.test(label)) ? label.replace(/Table\s+/i, '') : label;
-    const dims = tableNodeDims(isRect, !!t.vert, type, t.preset || '');
-    node.style.width = dims.w + 'px';
-    node.style.height = dims.h + 'px';
-    const chairs = tableChairHtml(cap, isRect, !!t.vert, type, t.facing || 'down', t.preset || '');
+    const dims = tableDimsForRecord(t);
+    /* Beat stylesheet locks (incl. sweetheart !important defaults) so Size & Shape
+       and seat count from the detail cards actually resize the diagram. */
+    node.style.setProperty('width', dims.w + 'px', 'important');
+    node.style.setProperty('height', dims.h + 'px', 'important');
+    node.style.setProperty('--tn-w', dims.w + 'px');
+    node.style.setProperty('--tn-h', dims.h + 'px');
+    /* Redesign zeros every border-radius inside #main; restore circle/rect here. */
+    node.style.setProperty('border-radius', isRect ? (type === 'head' ? '9px' : '8px') : '999px', 'important');
+    const chairs = tableChairHtml(cap, isRect, !!t.vert, type, t.facing || 'down', t.preset || '', cap);
     node.innerHTML = `${chairs}<div class="tn-controls"><button class="tn-shape" title="Switch circle / rectangle" onclick="toggleTableShape(${idx})">↺</button>${rotateBtn}${faceBtn}</div>${vip ? `<div class="tn-crown" title="VIP table">${tableCrownSvg()}</div>` : ''}<div class="tn-label">${escapeHtml(compact)}</div><div class="tn-count">${count}/${cap || '?'}</div>`;
     node.addEventListener('pointerdown', e => startTableDrag(e, idx, node, map));
     map.appendChild(node);
@@ -30717,7 +32068,21 @@ function renderTableMap() {
   if (changed) save();
   if (typeof wireSeatingDragDrop === 'function') wireSeatingDragDrop();
 }
-function toggleTableShape(idx) { data.tables[idx].shape = (data.tables[idx].shape === 'rect') ? 'circle' : 'rect'; save(); renderTableMap(); }
+function toggleTableShape(idx) {
+  const t = data.tables[idx];
+  if (!t) return;
+  t.shape = (t.shape === 'rect') ? 'circle' : 'rect';
+  /* Floor-plan toggle is a custom override — drop the size preset so
+     normalizeTableRecord / tableNodeDims stop re-applying the old shape. */
+  t.preset = '';
+  save();
+  renderTableMap();
+  if (typeof window.renderTablesDetailGrid === 'function' && document.getElementById('tables-detail-grid')) {
+    window.renderTablesDetailGrid();
+  } else if (typeof renderTableAssignments === 'function') {
+    renderTableAssignments();
+  }
+}
 function toggleTableRotate(idx) { data.tables[idx].vert = !data.tables[idx].vert; save(); renderTableMap(); }
 function cycleTableFacing(idx) { const order = ['down','left','up','right']; const cur = data.tables[idx]?.facing || 'down'; data.tables[idx].facing = order[(order.indexOf(cur)+1+order.length)%order.length]; save(); renderTableMap(); }
 function startTableDrag(e, idx, node, map) {
@@ -30761,6 +32126,7 @@ function giftIconSvg(type) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[type] || icons.gift}</svg>`;
 }
 function addGiftRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('gifts')) return;
   if (document.getElementById('gifts-inline-editor-body')) {
     covInlineLoad('gifts', null, 'gifts-inline-editor-body');
     return;
@@ -31185,11 +32551,13 @@ function ensureShotInlineEditor(){
 }
 window.setShotInlineTable = setShotInlineTable;
 function addShotRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('shotlist')) return;
   if (shotInlineAdd('shotlist')) return;
   openRecordEditor('shotlist');
 }
 function addVideoShotRow() {
   if (!Array.isArray(data.videoShotlist)) data.videoShotlist = [];
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('videoShots')) return;
   if (shotInlineAdd('videoShots')) return;
   openRecordEditor('videoShots');
 }
@@ -31458,9 +32826,16 @@ function openShotPeoplePicker(entity, id, btn){
     }).join('') : '<p class="spp-empty">Add guests on the Guest List first, then pick names here.</p>')
     + '</div><div class="spp-actions"><button type="button" class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="closeShotPeoplePicker()">Cancel</button><button type="button" class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="addShotPeoplePicker()">Add</button></div>';
   document.body.appendChild(pop);
-  const rect = btn.getBoundingClientRect();
-  pop.style.top = (window.scrollY + rect.bottom + 6) + 'px';
-  pop.style.left = Math.min(window.scrollX + rect.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 12) + 'px';
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 280, gap: 6, zIndex: 12000 });
+  } else {
+    const rect = btn.getBoundingClientRect();
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    const w = Math.max(pop.offsetWidth || 0, 280);
+    pop.style.top = (rect.bottom + 6) + 'px';
+    pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - w - 12)) + 'px';
+  }
   setTimeout(() => document.addEventListener('mousedown', shotPeoplePickerOutside, true), 0);
 }
 function addShotPeoplePicker(){
@@ -31654,7 +33029,7 @@ const FAQ_ITEMS = [
   ['How do the Email Templates personalize each message?',
    'On the <strong>Email Templates</strong> page, pick a category from the left rail and the editable cards appear on the right. Merge fields like <strong>{{bride}}</strong> and <strong>{{date}}</strong> fill in automatically from your Wedding Setup — the <strong>Available Merge Fields</strong> card lists every field and its current value. Edit the subject and body, then <strong>Copy</strong> or <strong>Open in Email</strong> in your own mail app. The planner does not send mail — it prepares copy you paste or open locally.'],
   ['Is my honeymoon budget part of my wedding budget?',
-   'No — your honeymoon spending on the <strong>Honeymoon &amp; After</strong> page is tracked <strong>separately</strong> so it never inflates your wedding budget totals. That page also has a built-in <strong>Currency Converter</strong> for planning costs in another currency.'],
+   'No — your honeymoon spending on the <strong>Honeymoon</strong> page is tracked <strong>separately</strong> so it never inflates your wedding budget totals. That page also has a built-in <strong>Currency Converter</strong> for planning costs in another currency.'],
   ['Can I rate tasks or assign them to specific people?',
    'Yes. On the <strong>Tasks</strong> page each task has priority, status, due date, notes, and an <strong>Assigned to</strong> field that lets you pick anyone from your Guest List or Wedding Party — the list grows automatically as you add people. Vendor star ratings live on the <strong>Vendors</strong> page where comparison and shortlisting happen. A starter <strong>"Assign 2 witnesses"</strong> task is included for you.'],
   ['Where is the Wedding Day Timeline?',
@@ -32065,7 +33440,7 @@ const PAGE_GUIDE = [
 <h4>Topics Discussed</h4>
 <p>A chip cloud automatically shows all unique topics extracted from your sessions.</p>`],
 
-  ['Honeymoon & After','After the Day',`
+  ['Honeymoon','The Day',`
 <h4>Overview</h4>
 <p>Plan your honeymoon travel, packing, reservations, transportation, budget, and journal. Post-wedding homecoming and name-change tasks live together under <strong>Marriage Rhythms → Newlywed Homecoming</strong> so honeymoon travel and newlywed life stay cleanly separated.</p>
 <h4>Sections</h4>
@@ -33478,7 +34853,7 @@ function persistColumnWidths(table, key, colgroup) {
   store[key] = widths;
   saveTableWidthsStore(store);
 }
-const TABLE_COL_TIP_TEXT = 'Tip: Drag the right edge of a column header to resize it. Double-click that edge to auto-fit one column. Use Auto-fit columns to resize every column at once. Use Auto-fit rows to expand every row to fit wrapped content.';
+const TABLE_COL_TIP_TEXT = 'Tip: Drag the right edge of a column header to resize it. Double-click that edge to auto-fit one column. Use Auto-fit columns to resize every column at once. Use Row height to set a shared row size.';
 function isPlannerAutofitRowSkipped(tr) {
   if (!tr || tr.closest('thead')) return true;
   if (tr.classList.contains('cwp-empty') || tr.classList.contains('bulk-table-row') || tr.classList.contains('plan-sub-row')) return true;
@@ -33740,59 +35115,44 @@ function autoFitActivePanelTables() {
   if (typeof showToast === 'function' && count) showToast('Auto-fitted columns on ' + count + ' table' + (count === 1 ? '' : 's'), 'ok');
   return count;
 }
-function ensureAutoFitTableButton(table, tableIndex) {
-  if (!table || isRecordEditorMiniTable(table) || table.closest('.cwp-mount, .cwp-modal, #cwp-modal')) return;
-  const uid = table.dataset.plannerAutofitUid || (table.dataset.tableKey || table.tBodies?.[0]?.id || 'tbl-' + (tableIndex ?? 0));
-  table.dataset.plannerAutofitUid = uid;
-  const makeColBtn = (className) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = className + ' planner-autofit-btn planner-autofit-cols-btn';
-    btn.dataset.plannerAutofitColsFor = uid;
-    btn.textContent = 'Auto-fit columns';
-    btn.title = 'Size all columns to fit their contents';
-    btn.addEventListener('click', () => autoFitOneTable(table, tableIndex));
-    return btn;
-  };
-  const makeRowBtn = (className) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = className + ' planner-autofit-btn planner-autofit-rows-btn';
-    btn.dataset.plannerAutofitRowsFor = uid;
-    btn.textContent = 'Auto-fit rows';
-    btn.title = 'Size all rows to fit their contents';
-    btn.addEventListener('click', () => autoFitOneTableRows(table, tableIndex));
-    return btn;
-  };
-  const addAutofitButtons = (container, prepend) => {
-    if (!document.querySelector('[data-planner-autofit-cols-for="' + uid + '"]')) {
-      const colBtn = makeColBtn(prepend ? 'btn btn-outline btn-sm' : 'm-btn');
-      if (prepend) container.insertBefore(colBtn, container.firstChild);
-      else container.appendChild(colBtn);
+function removeLegacyAutofitPairButtons(root) {
+  /* Strip the old Auto-fit columns | Auto-fit rows pair everywhere —
+     including leftovers parked inside .rd-toolbar from older injectors.
+     Keep rd-chip "Auto-fit columns", Row height, Sort, Filters, Columns · N of M,
+     and the topbar Auto-fit Columns (autoFitActivePanelTables). */
+  const scope = root && root.querySelectorAll ? root : document;
+  scope.querySelectorAll('.planner-autofit-btn, .planner-autofit-bar, .planner-autofit-cols-btn, .planner-autofit-rows-btn, .cwp-toolbar--autofit, [data-planner-autofit-cols-for], [data-planner-autofit-rows-for], [data-planner-autofit-for]').forEach(el => {
+    if (el.classList && el.classList.contains('rd-chip')) return;
+    if (el.parentNode) el.parentNode.removeChild(el);
+  });
+  scope.querySelectorAll('button, .ued-btn, .cwp-btn, .m-btn, .btn').forEach(btn => {
+    if (btn.classList && btn.classList.contains('rd-chip')) return;
+    const t = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+    const on = btn.getAttribute('onclick') || '';
+    const title = btn.getAttribute('title') || '';
+    const isRows = /^Auto-fit rows$/i.test(t)
+      || /autoFitDataHubTableRows|vcmpAutoFitRows|cwpAutoFitTableRows/.test(on)
+      || /Size all rows to fit their contents/i.test(title);
+    const isLegacyCols = (/^Auto-fit columns$/i.test(t) && /autoFitDataHubTables|vcmpAutoFitCols|cwpAutoFitTableColumns/.test(on))
+      || (/Size all columns to fit their contents/i.test(title) && !/autoFitActivePanelTables|rdStdAutoFit|rdTableAutofit|smartCalendarAutoFit/.test(on));
+    if (!(isRows || isLegacyCols)) return;
+    const parent = btn.parentNode;
+    if (parent) parent.removeChild(btn);
+    /* Drop an empty twin-button wrapper left behind. */
+    if (parent && parent.classList && /planner-autofit-bar|cwp-toolbar--autofit/.test(parent.className)
+      && !parent.querySelector('button, a, input, select')) {
+      if (parent.parentNode) parent.parentNode.removeChild(parent);
     }
-    if (!document.querySelector('[data-planner-autofit-rows-for="' + uid + '"]')) {
-      const rowBtn = makeRowBtn(prepend ? 'btn btn-outline btn-sm' : 'm-btn');
-      if (prepend) container.insertBefore(rowBtn, container.firstChild);
-      else container.appendChild(rowBtn);
-    }
-  };
-  const planActions = table.closest('.payment-plan-card')?.querySelector('.payment-plan-actions');
-  if (planActions) { addAutofitButtons(planActions, true); return; }
-  const block = table.closest('.m-block, .payments-table-card, .guest-table-card, .tasks-table-card, .budget-selected-wrap, #budget-reconciliation-wrap, .ued-table-card');
-  const head = block?.querySelector(':scope > .m-head, :scope > .payments-table-head, :scope > .ued-table-head, :scope > .payments-table-head');
-  if (head) { addAutofitButtons(head, false); return; }
-  const wrap = table.closest('.budget-table-wrap, .payments-table-wrap, .payment-plan-table-wrap, .guest-table-wrap, .app-table-wrap') || table.parentElement;
-  if (!wrap) return;
-  let bar = wrap.parentNode?.querySelector(':scope > .planner-autofit-bar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.className = 'planner-autofit-bar';
-    wrap.parentNode.insertBefore(bar, wrap);
-  }
-  addAutofitButtons(bar, false);
+  });
+}
+window.removeLegacyAutofitPairButtons = removeLegacyAutofitPairButtons;
+function ensureAutoFitTableButton(/* table, tableIndex */) {
+  /* Legacy Auto-fit columns | Auto-fit rows injector retired. Standard
+     toolbars already include the Auto-fit columns chip + Row height bar. */
 }
 function makeColumnsResizable(root) {
   const scope = root && root.querySelectorAll ? root : document;
+  removeLegacyAutofitPairButtons(scope);
   const tables = [...scope.querySelectorAll('#main table, table')].filter(table => table.closest('#main') && !table.closest('.cwp-mount') && !table.classList.contains('cwp-table') && !isRecordEditorMiniTable(table));
   tables.forEach((table, tableIndex) => {
     standardizeTableTrashButtons(table);
@@ -35537,6 +36897,7 @@ const ESSENTIALS_PRESET = [
   ['Exit / Send-Off','Getaway car keys','Best Man','Coordinator binder','Confirm assigned person']
 ];
 function addEssentialRow(){
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('essentials')) return;
   if (document.getElementById('essentials-inline-editor-body')) {
     covInlineLoad('essentials', null, 'essentials-inline-editor-body');
     return;
@@ -36193,6 +37554,7 @@ function uedContractsShell(){
   </div>`;
 }
 function addContractRow(){
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('contracts')) return;
   if (document.body.getAttribute('data-active-panel') === 'contracts' && document.getElementById('contracts-inline-editor-body')) {
     covInlineLoad('contracts', null, 'contracts-inline-editor-body');
     return;
@@ -39119,14 +40481,18 @@ function guestFilterOutside(ev){
 }
 function positionGuestMenu(pop, btn){
   if (!pop || !btn || !btn.getBoundingClientRect) return;
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { minWidth: 180, gap: 4, zIndex: 12000 });
+    return;
+  }
   const r = btn.getBoundingClientRect();
-  pop.style.position = 'absolute';
+  pop.style.position = 'fixed';
+  pop.style.display = 'inline-block';
+  pop.style.width = 'max-content';
   pop.style.zIndex = '12000';
-  let left = window.scrollX + r.left;
-  const maxLeft = window.scrollX + document.documentElement.clientWidth - Math.max(pop.offsetWidth, 180) - 8;
-  if (left > maxLeft) left = Math.max(window.scrollX + 8, maxLeft);
-  pop.style.top = (window.scrollY + r.bottom + 4) + 'px';
-  pop.style.left = left + 'px';
+  const w = Math.max(pop.offsetWidth || 0, 180);
+  pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+  pop.style.top = (r.bottom + 4) + 'px';
 }
 function openGuestFilter(field, btn){
   closeGuestFilterMenu();
@@ -40264,9 +41630,10 @@ function renderGuestPreviewTable(){
     }
   }
 }
-function guestAggregatedHouseholds(){
+function guestAggregatedHouseholds(opts){
+  const skipFilters = !!(opts && opts.all);
   const map = new Map();
-  safeArray(data.guests).filter(g => typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true).forEach((g, idx) => {
+  safeArray(data.guests).filter(g => skipFilters ? true : (typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true)).forEach((g, idx) => {
     const key = String(g.household || '').trim() || ('__solo__:' + (g._id || g.name || idx));
     const label = String(g.household || '').trim() || (g.name || 'Household');
     if (!map.has(key)) {
@@ -40594,20 +41961,101 @@ function guestSeatingAssignOptions(selected){
   }
   return opts;
 }
-function guestAssignTableFromSeating(guestId, tableVal){
+function guestsSeatedAtTable(tableName){
+  const name = String(tableName || '').trim();
+  if (!name) return [];
+  return safeArray(data.guests).filter(g => {
+    if (typeof guestIsDeclined === 'function' && guestIsDeclined(g)) return false;
+    return String(g.table || '').trim() === name;
+  });
+}
+function guestSeatNumber(g){
+  if (!g) return '';
+  const seat = g.seat != null && g.seat !== '' ? g.seat : (g.seatNo != null ? g.seatNo : g.seatNumber);
+  return String(seat == null ? '' : seat).trim();
+}
+function guestNextFreeSeat(tableName, cap, exceptId){
+  const taken = new Set(guestsSeatedAtTable(tableName)
+    .filter(g => String(g._id) !== String(exceptId || ''))
+    .map(guestSeatNumber).filter(Boolean));
+  const max = Math.max(parseInt(cap, 10) || 0, taken.size + 1, 1);
+  for (let i = 1; i <= max + 2; i++) {
+    if (!taken.has(String(i))) return i;
+  }
+  return '';
+}
+function guestAssignTableFromSeating(guestId, tableVal, seatVal){
   const g = safeArray(data.guests).find(x => String(x._id) === String(guestId));
   if (!g) return;
+  const prevTable = String(g.table || '').trim();
   g.table = tableVal || '';
+  if (!tableVal) {
+    g.seat = '';
+    g.seatNo = '';
+    g.seatNumber = '';
+  } else if (seatVal != null && seatVal !== '') {
+    g.seat = seatVal;
+  } else if (prevTable !== String(tableVal) || !guestSeatNumber(g)) {
+    const t = safeArray(data.tables).find(x => String(x.name || '') === String(tableVal));
+    const cap = t ? (parseInt(t.capacity, 10) || 0) : 0;
+    const next = guestNextFreeSeat(tableVal, cap, g._id);
+    if (next) g.seat = next;
+  }
   if (typeof save === 'function') save();
   if (typeof renderGuests === 'function') renderGuests();
   if (typeof renderTables === 'function') renderTables();
   if (typeof showToast === 'function') {
+    const seatBit = guestSeatNumber(g) ? (' · seat ' + guestSeatNumber(g)) : '';
     showToast(tableVal
-      ? ((g.name || 'Guest') + ' → ' + (typeof tableLabel === 'function' ? tableLabel(tableVal) : tableVal))
+      ? ((g.name || 'Guest') + ' → ' + (typeof tableLabel === 'function' ? tableLabel(tableVal) : tableVal) + seatBit)
       : ((g.name || 'Guest') + ' unseated'));
   }
 }
 window.guestAssignTableFromSeating = guestAssignTableFromSeating;
+function guestSeatingDragStart(ev, guestId){
+  if (!ev || !ev.dataTransfer) return;
+  ev.dataTransfer.setData('text/plain', String(guestId || ''));
+  ev.dataTransfer.effectAllowed = 'move';
+  if (ev.currentTarget && ev.currentTarget.classList) ev.currentTarget.classList.add('is-dragging');
+}
+function guestSeatingDragEnd(ev){
+  if (ev && ev.currentTarget && ev.currentTarget.classList) ev.currentTarget.classList.remove('is-dragging');
+  document.querySelectorAll('#guest-seating-view .is-drop').forEach(el => el.classList.remove('is-drop'));
+}
+function guestSeatingAllowDrop(ev){
+  if (!ev) return;
+  ev.preventDefault();
+  if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+  const target = ev.currentTarget;
+  if (target && target.classList) target.classList.add('is-drop');
+}
+function guestSeatingDragLeave(ev){
+  const target = ev && ev.currentTarget;
+  if (!target || !target.classList) return;
+  if (target.contains(ev.relatedTarget)) return;
+  target.classList.remove('is-drop');
+}
+function guestSeatingDropOnTable(ev, tableName){
+  if (ev) ev.preventDefault();
+  const id = ev && ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
+  if (!id) return;
+  guestAssignTableFromSeating(id, tableName);
+}
+function guestSeatingDropOnSeat(ev, tableName, seatNo){
+  if (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+  const id = ev && ev.dataTransfer ? ev.dataTransfer.getData('text/plain') : '';
+  if (!id) return;
+  guestAssignTableFromSeating(id, tableName, seatNo);
+}
+window.guestSeatingDragStart = guestSeatingDragStart;
+window.guestSeatingDragEnd = guestSeatingDragEnd;
+window.guestSeatingAllowDrop = guestSeatingAllowDrop;
+window.guestSeatingDragLeave = guestSeatingDragLeave;
+window.guestSeatingDropOnTable = guestSeatingDropOnTable;
+window.guestSeatingDropOnSeat = guestSeatingDropOnSeat;
 function guestSeatingWorklistMode(){
   const ui = window._guestUiFilters || {};
   const mode = ui.seated || 'unseated-first';
@@ -40664,7 +42112,8 @@ function guestSeatingTableSubtitle(t){
 }
 function guestSeatingTableCardHtml(t, info){
   const cap = info.capacity || parseInt(t.capacity, 10) || 0;
-  const seated = info.seated || 0;
+  const seatedGuests = guestsSeatedAtTable(t.name);
+  const seated = info.seated || seatedGuests.length;
   const free = cap ? Math.max(0, cap - seated) : 0;
   const shortCode = typeof guestTableLabelShort === 'function' ? guestTableLabelShort(t.name) : (t.name || 'Table');
   const title = t.label || t.displayName || (typeof tableLabel === 'function' ? tableLabel(t.name) : (t.name || 'Table'));
@@ -40673,18 +42122,43 @@ function guestSeatingTableCardHtml(t, info){
   const isFull = cap > 0 && free === 0;
   const countCls = hasFree ? 'is-open' : '';
   const cardCls = 'rd-seat-table-card' + (hasFree ? ' is-open' : '') + (isFull && cap ? ' is-full' : '');
+  const tableAttr = escapeHtml(String(t.name || ''));
+  const bySeat = {};
+  seatedGuests.forEach(g => {
+    const n = parseInt(guestSeatNumber(g), 10);
+    if (n > 0) bySeat[n] = g;
+  });
+  let unseatedAtTable = seatedGuests.filter(g => !parseInt(guestSeatNumber(g), 10));
   let dots = '';
   const totalDots = cap || Math.max(seated, 8);
   for (let i = 0; i < totalDots; i++) {
-    dots += '<span class="rd-seat-dot' + (i < seated ? ' is-filled' : ' is-empty') + '"></span>';
+    const seatNo = i + 1;
+    const occupant = bySeat[seatNo] || unseatedAtTable.shift();
+    const filled = !!occupant;
+    const titleAttr = occupant
+      ? escapeHtml((occupant.name || 'Guest') + ' · seat ' + seatNo)
+      : ('Drop here · seat ' + seatNo);
+    dots += '<span class="rd-seat-dot' + (filled ? ' is-filled' : ' is-empty') + '"'
+      + ' title="' + titleAttr + '"'
+      + ' ondragover="guestSeatingAllowDrop(event)" ondragleave="guestSeatingDragLeave(event)"'
+      + ' ondrop="guestSeatingDropOnSeat(event,\'' + tableAttr.replace(/'/g, "\\'") + '\',' + seatNo + ')">'
+      + '</span>';
   }
-  return '<div class="' + cardCls + '">'
+  const shownNames = seatedGuests.slice(0, 4).map(g => escapeHtml(g.name || 'Guest')).join(', ');
+  const extra = seatedGuests.length > 4 ? (' +' + (seatedGuests.length - 4)) : '';
+  const people = seatedGuests.length
+    ? '<div class="rd-seat-table-card__people">' + shownNames + extra + '</div>'
+    : '';
+  return '<div class="' + cardCls + '" data-table-name="' + tableAttr + '"'
+    + ' ondragover="guestSeatingAllowDrop(event)" ondragleave="guestSeatingDragLeave(event)"'
+    + ' ondrop="guestSeatingDropOnTable(event,\'' + tableAttr.replace(/'/g, "\\'") + '\')">'
     + '<div class="rd-seat-table-card__head">'
     + '<b>' + escapeHtml(shortCode) + '</b>'
     + '<span class="rd-seat-table-card__name">' + escapeHtml(displayTitle) + '</span>'
     + '<span class="rd-seat-table-card__count' + (countCls ? ' ' + countCls : '') + '">' + seated + (cap ? '/' + cap : '') + '</span>'
     + '</div>'
     + (guestSeatingTableSubtitle(t) ? '<div class="rd-seat-table-card__sub">' + escapeHtml(guestSeatingTableSubtitle(t)) + '</div>' : '')
+    + people
     + '<div class="rd-seat-table-card__dots">' + dots + '</div>'
     + '</div>';
 }
@@ -40698,7 +42172,7 @@ function guestSeatingTeachHtml(){
     + '<div class="rd-guest-events-under__panels">'
     + '<div class="rd-guest-events-under__panel">'
     + '<div class="rd-guest-events-under__panel-kicker">This view seats people</div>'
-    + '<p>You are working through a list of guests and putting each one somewhere. Pick a table from the dropdown on each row — the unseated column is the worklist and it empties as you go.</p>'
+    + '<p>You are working through a list of guests and putting each one somewhere. Drag a name onto a table or an empty seat — the unseated column is the worklist and it empties as you go.</p>'
     + '</div>'
     + '<div class="rd-guest-events-under__panel">'
     + '<div class="rd-guest-events-under__panel-kicker">Table Layout arranges tables</div>'
@@ -40758,8 +42232,11 @@ function renderGuestSeatingView(){
     const open = gi > -1
       ? `onclick="if(!event.target.closest('select,button,input,a')){if(typeof rdOpenDrawer==='function')rdOpenDrawer('guests',${gi});}"`
       : '';
-    return '<div class="rd-seat-worklist-item" ' + open + '>'
+    return '<div class="rd-seat-worklist-item" draggable="true" data-guest-id="' + id + '" '
+      + 'ondragstart="guestSeatingDragStart(event,\'' + id + '\')" ondragend="guestSeatingDragEnd(event)" '
+      + open + '>'
       + '<div class="rd-seat-worklist-item__main">'
+      + '<span class="rd-seat-worklist-item__handle" aria-hidden="true">⋮⋮</span>'
       + '<span class="rd-seat-worklist-item__name">' + escapeHtml(g.name || 'Guest') + '</span>'
       + '</div>'
       + '<div class="rd-seat-worklist-item__sub' + (subCls ? ' ' + subCls : '') + '">' + escapeHtml(sub) + '</div>'
@@ -40789,7 +42266,7 @@ function renderGuestSeatingView(){
 
   host.innerHTML = '<div class="rd-guest-surface-head">'
     + '<div class="rd-guest-surface-head__kicker">Seating · ' + totalSeatedAll + ' of ' + totalGuests + ' seated</div>'
-    + '<div class="rd-guest-surface-head__help">The same guests against the ' + tables.length + ' table' + (tables.length === 1 ? '' : 's') + ' from Table Layout · choose a table from each row</div>'
+    + '<div class="rd-guest-surface-head__help">The same guests against the ' + tables.length + ' table' + (tables.length === 1 ? '' : 's') + ' from Table Layout · drag a name onto a seat</div>'
     + '<button type="button" class="rd-link-quiet rd-guest-surface-head__action" onclick="showPanel(\'tables\')">Open Table Layout</button>'
     + '</div>'
     + '<div class="rd-seat-split">'
@@ -42835,6 +44312,7 @@ function mountAllTabs(root){
       entity:'counseling', title:'Session tracker', mount:'cwp-counseling',
       search:true, filters:[], bulk:{enabled:false}, rowClickEdit:true,
       addLabel:'+ Add session', recordLabel:'Counseling Session',
+      addFn:()=>{ if(typeof addCounselingRow==='function') addCounselingRow(); },
       newRecord:()=>({ date:'', topic:'', homework:'', takeaway:'', questions:'', status:'Not Started' }),
       afterChange:()=>{ if(typeof renderCounselingStats==='function') renderCounselingStats(); if(typeof renderCounselingCurriculum==='function') renderCounselingCurriculum(); },
       columns:[
@@ -42851,6 +44329,7 @@ function mountAllTabs(root){
       entity:'essentials', title:'Packing checklist', mount:'cwp-essentials',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add item', recordLabel:'Essential Item',
+      addFn:()=>{ if(typeof addEssentialRow==='function') addEssentialRow(); },
       newRecord:()=>({ cat:'', item:'', packed:false, assigned:'', location:'', notes:'' }),
       afterChange:()=>{ if(typeof renderEssentialsStats==='function') renderEssentialsStats(); if(typeof renderEssentialsCategoryProgress==='function') renderEssentialsCategoryProgress(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('essentials'); },
       columns:[
@@ -42866,6 +44345,7 @@ function mountAllTabs(root){
       entity:'shotlist', title:'Photo shot list', mount:'cwp-shotlist',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add shot', recordLabel:'Photo Shot',
+      addFn:()=>{ if(typeof addShotRow==='function') addShotRow(); },
       newRecord:()=>({ completed:false, section:'', shot:'', priority:'Important', must:'No', people:'', timing:'', notes:'' }),
       afterChange:()=>{ if(typeof renderShotlistStats==='function') renderShotlistStats(); if(typeof renderShotOverviewCards==='function') renderShotOverviewCards(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('shotlist'); },
       columns:[
@@ -42884,6 +44364,7 @@ function mountAllTabs(root){
       entity:'videoShots', title:'Video shot list', mount:'cwp-videoShots',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add video shot', recordLabel:'Video Shot',
+      addFn:()=>{ if(typeof addVideoShotRow==='function') addVideoShotRow(); },
       newRecord:()=>({ completed:false, section:'', shot:'', priority:'Important', must:'No', people:'', timing:'', notes:'' }),
       afterChange:()=>{ if(typeof renderVideoShotlistStats==='function') renderVideoShotlistStats(); if(typeof renderVideoShotOverviewCards==='function') renderVideoShotOverviewCards(); },
       columns:[
@@ -42902,6 +44383,7 @@ function mountAllTabs(root){
       entity:'party', title:'Wedding party members', mount:'cwp-party',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add member', recordLabel:'Wedding Party Member',
+      addFn:()=>{ if(typeof addPartyRow==='function') addPartyRow(); },
       newRecord:()=>({ name:'', role:'Bridesmaid', phone:'', email:'', attire:'', size:'', status:'', notes:'' }),
       afterChange:()=>{ if(typeof renderPartyStats==='function') renderPartyStats(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('party'); },
       columns:[
@@ -42919,6 +44401,7 @@ function mountAllTabs(root){
       entity:'prayer', title:'Prayer log', mount:'cwp-prayer',
       search:true, filters:[], bulk:{enabled:false}, rowClickEdit:true,
       addLabel:'+ Add prayer', recordLabel:'Prayer Entry',
+      addFn:()=>{ if(typeof addPrayerRow==='function') addPrayerRow(); },
       newRecord:()=>({ date:'', focus:'', request:'', scripture:'', answer:'', status:'Praying' }),
       afterChange:()=>{ if(typeof renderPrayerStats==='function') renderPrayerStats(); },
       columns:[
@@ -42953,6 +44436,7 @@ function mountAllTabs(root){
       entity:'gifts', title:'Gifts received', mount:'cwp-gifts',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add gift', recordLabel:'Gift',
+      addFn:()=>{ if(typeof addGiftRow==='function') addGiftRow(); },
       newRecord:()=>({ from:'', desc:'', value:0, category:'Registry', date:'', thankyou:false, phone:'', email:'', address:'', notes:'' }),
       afterChange:()=>{ if(typeof renderGiftStats==='function') renderGiftStats(); if(typeof renderGiftDashboardExtras==='function') renderGiftDashboardExtras(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('gifts'); },
       /* honor the category / thank-you quick-filter pills (global giftLogFilter) */
@@ -42979,6 +44463,7 @@ function mountAllTabs(root){
       entity:'guests', title:'Guest tracker', mount:'cwp-guests',
       search:false, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ Add guest', recordLabel:'Guest',
+      addFn:()=>{ if(typeof addGuestRow==='function') addGuestRow(); },
       pageSize:(typeof GUEST_PAGE_SIZE!=='undefined'?GUEST_PAGE_SIZE:15),
       newRecord:()=>({ name:'', household:'', group:'Everyone', side:'Both', role:'Adult Guest', phone:'', email:'', inviteDecision:'Maybe', invited:false, rsvp:'Pending', meal:'', dietary:'', plusone:false, children:0, family:false, companions:[], table:'', thankyou:false, notes:'' }),
       /* Group by rail (household/side/table/group/rsvp); residual buckets always last. */
@@ -43068,6 +44553,7 @@ function mountAllTabs(root){
       entity:'payments', title:'Payment schedule', mount:'cwp-payments',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ Add payment', recordLabel:'Payment',
+      addFn:()=>{ if(typeof addPaymentRow==='function') addPaymentRow(); },
       pageSize:(typeof PAYMENT_PAGE_SIZE!=='undefined'?PAYMENT_PAGE_SIZE:8),
       wrapClass:'payments-table-wrap',
       newRecord:()=>({ vendor:'', desc:'', due:0, paid:0, gratuity:0, gratuityStatus:'Not Planned', date:'', paiddate:'', ptype:'', status:'Not Paid', notes:'', installments:[], budgetCat:'', budgetItemId:'', budgetItem:'', contractIdx:'' }),
@@ -43118,8 +44604,9 @@ function mountAllTabs(root){
     },
     contracts:{
       entity:'contracts', title:'Contracts, invoices & receipts', mount:'cwp-contracts',
-      search:false, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
+      search:false, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true, pageOwnsToolbar:true,
       addLabel:'+ Add document', recordLabel:'Contract or Invoice',
+      addFn:()=>{ if(typeof addContractRow==='function') addContractRow(); },
       newRecord:()=>({ name:'', vendor:'', type:'Contract', date:'', total:0, deposit:0, status:'Not Signed', where:'', notes:'' }),
       afterChange:()=>{ if(typeof renderContractStats==='function') renderContractStats(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('contracts'); },
       /* the shell keeps its search + type/status filter card */
@@ -43155,6 +44642,7 @@ function mountAllTabs(root){
       entity:'appointments', title:'Appointment tracker', mount:'cwp-appointments',
       search:false, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true, hideToolbar:true,
       addLabel:'+ Book appointment', recordLabel:'Appointment',
+      addFn:()=>{ if(typeof addAppointmentRow==='function') addAppointmentRow(); },
       /* Row grouping: month buckets + Held residual (undated). Other Group-by modes from rail. */
       rowGroup:(r)=> (typeof apptRowGroupMeta === 'function' ? apptRowGroupMeta(r) : null),
       groupHeader:(meta, groupRows)=> (typeof apptGroupHeaderLabel === 'function'
@@ -43219,6 +44707,7 @@ function mountAllTabs(root){
       hideToolbar:true,
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ New task', recordLabel:'Task',
+      addFn:()=>{ if(typeof addTaskRow==='function') addTaskRow(); },
       pageSize:(typeof TASKS_PER_PAGE!=='undefined'?TASKS_PER_PAGE:8),
       sortRows:(a,b)=>{
         const da=String(a.date||a.suggestedDue||''), db=String(b.date||b.suggestedDue||'');
@@ -43443,7 +44932,7 @@ function mountAllTabs(root){
       }
     },
     honeyDetails:{
-      entity:'honeyDetails', title:'Honeymoon & After Details Tracker', mount:'cwp-honeyDetails',
+      entity:'honeyDetails', title:'Honeymoon Details Tracker', mount:'cwp-honeyDetails',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add Detail', recordLabel:'Honeymoon Detail',
       addFn:()=>{ if(typeof addHoneyDetailRow==='function') addHoneyDetailRow(); },
@@ -44346,7 +45835,37 @@ function mountAllTabs(root){
 
   /* ---------- per-table UI state ---------- */
   const STATE={};
-  function st(k){ return STATE[k] || (STATE[k]={search:'', filters:{}, colf:{}, sel:new Set(), page:0, viewAll:false, colw:{}, rowh:{}}); }
+  function st(k){ return STATE[k] || (STATE[k]={search:'', filters:{}, colf:{}, sel:new Set(), page:0, viewAll:false, colw:{}, rowh:{}, sortKey:'', sortDir:'asc'}); }
+  /* Pages that already paint a complete Tasks-style chip toolbar above the
+     mount (filters + sort + Columns · N of M + Auto-fit + Row height). Those
+     mounts skip the injected CWP rd-toolbar to avoid a duplicate bar. */
+  const CWP_PAGE_OWNS_TOOLBAR=new Set([
+    'tasks','guests','appointments','party','gifts','vendors','budgetItems',
+    'payments','paymentStages','contracts','tables',
+    /* logistics page chrome owns Day/Type/Owner + Columns/Auto-fit/Row height */
+    'weekendTimeline','travelAccommodations','hotelBlocks','transportation','vipCare',
+    /* Redesign pages that paint rdStandardRightHtml on the page toolbar */
+    'counseling','essentials','prayer','shotlist','videoShots','menu','kidsMenu',
+    'beverages','placeSettings','cateringRentals','snacks','vendorMeals',
+    'ceremonyOrder','ceremonyProcessional','ceremonyRecessional','scriptures',
+    'ceremonyChecklist','ceremonyVows','ceremonyReceptionDetails','ceremonyTraditions',
+    'entertainment','honeymoon','honeyDetails','honeyTransport','honeyItinerary',
+    'wdayTimeline','notesDetails','notes','contactsDirectory','homecoming','nameChange',
+    'moodItems','packing'
+  ]);
+  function pageOwnsToolbar(key){
+    const d=TABLES[key];
+    if(d && d.pageOwnsToolbar===true) return true;
+    if(d && d.pageOwnsToolbar===false) return false;
+    if(CWP_PAGE_OWNS_TOOLBAR.has(key)) return true;
+    /* Live DOM: the redesign page toolbar already has Columns/Auto-fit/Row height. */
+    try {
+      const mountId=(d && d.mount) || ('cwp-'+key);
+      const mount=document.getElementById(mountId);
+      if(mount && typeof window.rdPanelHasPageToolbarChrome==='function' && window.rdPanelHasPageToolbarChrome(mount)) return true;
+    } catch(e) { /* ignore */ }
+    return false;
+  }
   /* Tables that manage their OWN selection or show merged/computed rows that
      cannot be mutated through DB — the engine selection column is suppressed here. */
   const CWP_NO_BULK=new Set(['contactsDirectory']);
@@ -44426,7 +45945,16 @@ function mountAllTabs(root){
       if(typeof window.linkedPageMatchesRow==='function' && !window.linkedPageMatchesRow(key, r)) return false;
       return true;
     });
-    if(typeof d.sortRows==='function') out.sort((a,b)=>d.sortRows(a.r,b.r));
+    if(s.sortKey){
+      const col=d.columns.find(c=>c.key===s.sortKey);
+      const dir=s.sortDir==='desc'?-1:1;
+      out.sort((a,b)=>{
+        const av=col?colText(col,a.r):String(a.r[s.sortKey]==null?'':a.r[s.sortKey]);
+        const bv=col?colText(col,b.r):String(b.r[s.sortKey]==null?'':b.r[s.sortKey]);
+        if(av===bv) return 0;
+        return av<bv?-1*dir:1*dir;
+      });
+    } else if(typeof d.sortRows==='function') out.sort((a,b)=>d.sortRows(a.r,b.r));
     return out;
   }
 
@@ -44542,7 +46070,11 @@ function mountAllTabs(root){
     const hasGroups=typeof d.rowGroup==='function';
     if(hasGroups) all=applyRowGroups(key, all);
     const s=st(key);
-    const cols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns, bulk=!readOnlyPreview&&bulkOn(key);
+    const rawCols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns;
+    const cols=(typeof window.rdColumns!=='undefined' && window.rdColumns.isVisible)
+      ? rawCols.filter(c=>window.rdColumns.isVisible(key, c.key))
+      : rawCols;
+    const bulk=!readOnlyPreview&&bulkOn(key);
     const span=cols.length+(bulk?1:0);
     if(!all.length){
       const ghostHtml = typeof cwpGhostRowsHtml === 'function' ? cwpGhostRowsHtml(key, cols, bulk) : '';
@@ -44661,10 +46193,16 @@ function mountAllTabs(root){
         return '<label class="cfp-item" data-val="'+attr(String(v).toLowerCase())+'"><input type="checkbox" value="'+attr(v)+'" '+(checked?'checked':'')+' onchange="cwpColFilterToggle(\''+key+'\',\''+colKey+'\',this.value,this.checked)"> '+label+'</label>'; }).join('')+'</div>'
       +'<div class="cfp-actions"><button type="button" class="cfp-btn" onclick="cwpColFilterClear(\''+key+'\',\''+colKey+'\')">Clear</button><button type="button" class="cfp-btn cfp-btn-primary" onclick="cwpCloseColFilter()">Done</button></div>';
     document.body.appendChild(pop);
-    const r=btn.getBoundingClientRect(); let left=window.scrollX+r.left;
-    const maxLeft=window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-8;
-    if(left>maxLeft) left=Math.max(window.scrollX+8,maxLeft);
-    pop.style.top=(window.scrollY+r.bottom+4)+'px'; pop.style.left=left+'px';
+    if (typeof window.rdAnchorToButton === 'function') {
+      window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 236, gap: 4, zIndex: 2147483600 });
+    } else {
+      pop.style.position = 'fixed';
+      pop.style.display = 'inline-block';
+      const r = btn.getBoundingClientRect();
+      const w = Math.max(pop.offsetWidth || 0, 236);
+      pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+      pop.style.top = (r.bottom + 4) + 'px';
+    }
     setTimeout(()=>document.addEventListener('mousedown', colFilterOutside, true),0);
   };
   window.cwpColFilterToggle=(key,colKey,val,on)=>{ const s=st(key); if(!s.colf[colKey]) s.colf[colKey]=new Set(distinctValues(key,colKey)); if(on) s.colf[colKey].add(val); else s.colf[colKey].delete(val); if(s.colf[colKey].size===distinctValues(key,colKey).length) delete s.colf[colKey]; s.page=0; renderRows(key); };
@@ -44673,19 +46211,152 @@ function mountAllTabs(root){
   window.cwpCloseColFilter=()=>closeColFilter();
   window.cwpColFilterSearch=(q)=>{ q=String(q||'').toLowerCase(); const pop=document.getElementById('cwp-colfilter-pop'); if(!pop) return; pop.querySelectorAll('.cfp-list .cfp-item').forEach(it=>{ it.style.display=it.getAttribute('data-val').indexOf(q)>-1?'':'none'; }); };
 
+  function cwpColIsFixed(c){
+    if(!c||!c.key) return true;
+    if(String(c.key).startsWith('_')) return true;
+    if(c.type==='index'||c.type==='drag'||c.type==='id') return true;
+    return !!c.fixed;
+  }
+  function cwpRegisterRdColumns(key, allCols){
+    if(typeof window.rdColumns==='undefined'||!window.rdColumns.register) return allCols;
+    const catalog=(allCols||[]).map(c=>({ key:c.key, label:c.label||c.key, fixed:cwpColIsFixed(c) }));
+    window.rdColumns.register(key, catalog, function(){ renderTable(key); });
+    return (allCols||[]).filter(c=>window.rdColumns.isVisible(key, c.key));
+  }
+  function cwpChipFilterCols(cols){
+    let list=(cols||[]).filter(c=>c.filter===true && !cwpColIsFixed(c));
+    if(!list.length){
+      list=(cols||[]).filter(c=>colFilterable(c) && (c.type==='select'||c.type==='status'||c.type==='text'||c.type==='date'||c.type==='checkbox'));
+    }
+    return list.slice(0, 3);
+  }
+  function cwpSortableCols(cols){
+    return (cols||[]).filter(c=>!cwpColIsFixed(c) && c.type!=='longtext' && c.type!=='stars' && c.type!=='review' && colFilterable(c));
+  }
+  function cwpSortLabel(key){
+    const s=st(key), d=TABLES[key]; if(!d) return 'Sort';
+    if(!s.sortKey) return 'Sort by '+(cwpSortableCols(d.columns)[0]?.label||'column').toLowerCase();
+    const col=d.columns.find(c=>c.key===s.sortKey);
+    const dir=s.sortDir==='desc'?' (Z–A)':'';
+    return 'Sort by '+((col&&col.label)||s.sortKey).toLowerCase()+dir;
+  }
+  function cwpRdToolbarHtml(key){
+    const d=TABLES[key]; if(!d) return '';
+    const s=st(key);
+    const filterCols=cwpChipFilterCols(d.columns);
+    let html='<div class="rd-toolbar rd-cwp-toolbar" data-rd-cwp-key="'+esc(key)+'">';
+    filterCols.forEach(col=>{
+      const cur=s.filters[col.key]||'all';
+      const on=cur && cur!=='all' && cur!=='';
+      const text=on?(col.label+': '+cur):(col.label+': all');
+      html+='<button type="button" class="rd-chip'+(on?' is-active':'')+'" onclick="rdCwpOpenFilter(\''+key+'\',\''+col.key+'\',this)">'
+        +esc(text)
+        +(on?'<span class="rd-chip__clear" onclick="event.stopPropagation();rdCwpClearFilter(\''+key+'\',\''+col.key+'\')">&#10005;</span>'
+            :'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg>')
+        +'</button>';
+    });
+    html+='<button type="button" class="rd-chip rd-chip--ghost" onclick="rdCwpOpenSort(\''+key+'\',this)">'
+      +'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>'
+      +esc(cwpSortLabel(key))
+      +'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg></button>';
+    if(typeof window.rdStandardRightHtml==='function'){
+      html+=window.rdStandardRightHtml(key, {
+        openColumns:"rdCwpOpenColumns(this,'"+key+"')",
+        autofit:"rdCwpAutoFit('"+key+"')",
+        rowHeight:"rdCwpCycleRowHeight('"+key+"')"
+      });
+    } else {
+      html+='<button type="button" class="rd-chip" onclick="rdCwpOpenColumns(this,\''+key+'\')">Columns</button>'
+        +'<button type="button" class="rd-chip" onclick="rdCwpAutoFit(\''+key+'\')">Auto-fit columns</button>'
+        +'<button type="button" class="rd-chip" onclick="rdCwpCycleRowHeight(\''+key+'\')">Row height</button>';
+    }
+    html+='</div>';
+    return html;
+  }
+  window.rdCwpToolbarHtml=cwpRdToolbarHtml;
+  window.rdCwpOpenFilter=function(key, field, btn){
+    const d=TABLES[key]; if(!d) return;
+    const col=d.columns.find(c=>c.key===field);
+    const s=st(key);
+    const cur=s.filters[field]||'all';
+    const values=[...new Set(DB.all(d.entity).map(r=>{
+      return col?colText(col,r):String(r[field]==null?'':r[field]).trim();
+    }).filter(v=>v!==''))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+    const opts=[{value:'all',label:'All'}].concat(values.map(v=>({value:v,label:v})));
+    if(typeof window.rdPickOne==='function'){
+      window.rdPickOne(btn, opts, cur||'all', val=>{
+        if(!val||val==='all') delete s.filters[field];
+        else s.filters[field]=val;
+        s.page=0; renderTable(key);
+      });
+    }
+  };
+  window.rdCwpClearFilter=function(key, field){
+    const s=st(key); delete s.filters[field]; s.page=0; renderTable(key);
+  };
+  window.rdCwpOpenSort=function(key, btn){
+    const d=TABLES[key]; if(!d) return;
+    const s=st(key);
+    const cols=cwpSortableCols(d.columns);
+    const opts=[{value:'',label:'Default order'}].concat(cols.map(c=>({
+      value:c.key+':asc', label:c.label+' (A–Z)'
+    })).concat(cols.map(c=>({
+      value:c.key+':desc', label:c.label+' (Z–A)'
+    }))));
+    const current=s.sortKey?(s.sortKey+':'+(s.sortDir||'asc')):'';
+    if(typeof window.rdPickOne==='function'){
+      window.rdPickOne(btn, opts, current, val=>{
+        if(!val){ s.sortKey=''; s.sortDir='asc'; }
+        else { const parts=String(val).split(':'); s.sortKey=parts[0]; s.sortDir=parts[1]==='desc'?'desc':'asc'; }
+        s.page=0; renderTable(key);
+      });
+    }
+  };
+  window.rdCwpOpenColumns=function(btn, key){
+    if(typeof window.rdOpenColumns==='function') window.rdOpenColumns(btn, key);
+  };
+  window.rdCwpAutoFit=function(key){
+    if(typeof window.rdStdAutoFit==='function') window.rdStdAutoFit(null, key);
+    else if(typeof window.cwpAutoFitTableColumns==='function') window.cwpAutoFitTableColumns(key);
+  };
+  window.rdCwpCycleRowHeight=function(key){
+    const mount=cwpMountEl(key);
+    if(typeof window.rdStdApplyRowHeight==='function' && typeof window.rdStdHeightLabel==='function'){
+      const order=['compact','default','tall'];
+      const cur=window.rdStdHeightLabel(key);
+      const next=order[(Math.max(0, order.indexOf(cur))+1)%order.length];
+      try { localStorage.setItem('rdRowHeight:'+(typeof activeProfile!=='undefined'&&activeProfile!=null?activeProfile:'default')+':'+key, next); } catch(e) {}
+      window.rdStdApplyRowHeight(key, mount);
+    }
+    renderTable(key);
+  };
+
   function renderTable(key, mountOverride){
     const d=TABLES[key]; if(!d) return;
     if (mountOverride) _cwpMountOverride[key] = mountOverride;
     else if (!isDataHubPanelActive()) delete _cwpMountOverride[key];
+    /* Contracts redesign (10c) owns the live page table + drawer. Do not let
+       CWP wipe #cwp-contracts / the redesign grid on panel show — that removed
+       rdConOpenDrawer row clicks. Data Hub still passes a mountOverride. */
+    if (key === 'contracts' && !mountOverride && !isDataHubPanelActive()) {
+      const panel = document.getElementById('panel-contracts');
+      if (panel && (panel.dataset.uedShell === 'contracts-rd10c' || panel.classList.contains('contracts-mockup'))
+        && typeof window.__contractsRenderRd === 'function') {
+        return;
+      }
+    }
     ensureIds(d.entity);
     const mountId = _cwpMountOverride[key] || d.mount;
     const mount=document.getElementById(mountId); if(!mount) return;
     mount.classList.add('cwp-mount');
     const readOnlyPreview=mount.classList.contains('ro-preview');
     mount.classList.toggle('cwp-readonly-preview', readOnlyPreview);
-    const cols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns, bulk=!readOnlyPreview&&bulkOn(key);
+    const rawCols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns;
+    const cols=cwpRegisterRdColumns(key, rawCols), bulk=!readOnlyPreview&&bulkOn(key);
     const s=st(key);
     const hubFullToolbar = isCwpHubMount(mountId);
+    const ownsPage = pageOwnsToolbar(key) && !hubFullToolbar && !readOnlyPreview;
+    const injectRdToolbar = !ownsPage;
     const showFullToolbar = !d.hideToolbar || hubFullToolbar || readOnlyPreview;
     /* bulk action buttons (Edit Selected / Delete Selected) — shared so they can
        appear in the full toolbar OR in a slim bar when the page owns the header */
@@ -44704,15 +46375,18 @@ function mountAllTabs(root){
       tools+='<select class="cwp-filter" onchange="cwpFilter(\''+key+'\',\''+fk+'\',this.value)"><option value="">All '+esc(col.label)+'</option>'+list.map(([val,lab])=>'<option value="'+attr(val)+'"'+(String(s.filters[fk]||'')===String(val)?' selected':'')+'>'+esc(lab)+'</option>').join('')+'</select>';
     });
     if(d.search||(d.filters&&d.filters.length)) tools+='<button class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="cwpClear(\''+key+'\')">Clear</button>';
-    const autofitBtn='<button class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="cwpAutoFitTableColumns(\''+key+'\')" title="Size all columns to fit their contents">Auto-fit columns</button>';
-    const autofitRowsBtn='<button class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="cwpAutoFitTableRows(\''+key+'\')" title="Size all rows to fit their contents">Auto-fit rows</button>';
+    /* Do not inject the legacy Auto-fit columns | Auto-fit rows pair.
+       Chip toolbars already own Auto-fit columns + Row height. */
     if(readOnlyPreview) {
-      tools+=autofitBtn+autofitRowsBtn;
-    } else if(d.hideToolbar && bulk && !hubFullToolbar) bulkTools=autofitBtn+autofitRowsBtn+bulkTools;
-    else {
-      tools+=autofitBtn+autofitRowsBtn;
+      /* Preview mounts keep search/filters only — no autofit pair. */
+    } else if(d.hideToolbar && bulk && !hubFullToolbar) bulkTools=bulkTools;
+    else if(!injectRdToolbar) {
       tools+='<button class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="cwpAdd(\''+key+'\')">'+esc(d.addLabel||'+ Add')+'</button>';
       tools+=bulkTools;
+    } else {
+      /* Chip toolbar owns Filters / Sort / Columns / Auto-fit / Row height.
+         Keep Add + bulk on a slim secondary strip. */
+      tools='<button class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="cwpAdd(\''+key+'\')">'+esc(d.addLabel||'+ Add')+'</button>'+bulkTools;
     }
 
     let head='<tr>';
@@ -44725,10 +46399,23 @@ function mountAllTabs(root){
       ? '<th data-t="'+c.type+'"'+w+'><span class="cwp-th-flx">'+esc(c.label)+'<button type="button" class="col-filter cwp-col-filter" data-col="'+attr(c.key)+'" onclick="cwpOpenColFilter(\''+key+'\',\''+c.key+'\',this)" aria-label="Filter '+attr(c.label)+'">▾</button></span><span class="cwp-col-resizer" data-col="'+attr(c.key)+'"></span></th>'
       : '<th data-t="'+c.type+'"'+w+'>'+esc(c.label)+'<span class="cwp-col-resizer" data-col="'+attr(c.key)+'"></span></th>'; }).join('')+'</tr>';
 
+    const rdBar = injectRdToolbar ? cwpRdToolbarHtml(key) : '';
+    let legacyBar='';
+    if(ownsPage){
+      legacyBar = showFullToolbar
+        ? '<div class="cwp-toolbar">'+tools+'</div>'
+        : (bulk?'<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>':'');
+    } else if(tools){
+      legacyBar = '<div class="cwp-toolbar cwp-toolbar--bulk">'+tools+'</div>';
+    } else if(bulk){
+      legacyBar = '<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>';
+    }
+
     mount.innerHTML=
       '<section class="cwp-section">'
       +(!d.hideToolbar?'<div class="cwp-section-head"><h2 class="cwp-section-title">'+esc(d.title)+'</h2></div>':'')
-      +(showFullToolbar?'<div class="cwp-toolbar">'+tools+'</div>':(bulk?'<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>':'<div class="cwp-toolbar cwp-toolbar--autofit">'+autofitBtn+autofitRowsBtn+'</div>'))
+      +rdBar
+      +legacyBar
       +'<div class="cwp-section-body"><div class="cwp-table-wrap'+(d.wrapClass?' '+d.wrapClass:'')+'"><table class="cwp-table"><thead>'+head+'</thead><tbody id="cwp-tbody-'+key+'"></tbody></table></div></div>'
       +'<div class="cwp-pager" id="cwp-pager-'+key+'"></div>'
       +'</section>';
@@ -44737,11 +46424,19 @@ function mountAllTabs(root){
     if(stripActions(key)){ const hr=mount.querySelector('thead tr'); if(hr && hr.lastElementChild) hr.removeChild(hr.lastElementChild); }
     cwpWireResizers(key);
     const tableEl = mount.querySelector('table.cwp-table');
+    if (typeof window.rdStdApplyRowHeight === 'function') window.rdStdApplyRowHeight(key, mount);
     if (tableEl && typeof scheduleStretchPlannerTable === 'function') scheduleStretchPlannerTable(tableEl);
     if (tableEl && typeof ensureTableWidthStretchObserver === 'function') ensureTableWidthStretchObserver(tableEl);
     if (typeof uedApplyTableHeaderColor === 'function') uedApplyTableHeaderColor(mount);
     if (typeof RdDepth !== 'undefined' && RdDepth.decorateTable && tableEl) {
       try { RdDepth.decorateTable(tableEl, { force: true, summary: true, addColumn: false }); } catch (e) {}
+    }
+    try {
+      mount.dispatchEvent(new CustomEvent('cwp:table-rendered', { bubbles: true, detail: { key: key } }));
+    } catch (e) { /* IE ignore */ }
+    /* Page chrome owns Columns/Auto-fit — drop any inject that slipped in. */
+    if (ownsPage && typeof window.rdRemoveDuplicateToolbars === 'function') {
+      try { window.rdRemoveDuplicateToolbars(mount.closest('.panel, .rd-page') || mount); } catch (e) {}
     }
   }
 
@@ -44981,7 +46676,25 @@ function mountAllTabs(root){
   window.cwpViewAll=(key,on)=>{ const s=st(key); s.viewAll=!!on; s.page=0; renderRows(key); };
   window.cwpClear=(key)=>{ const s=st(key); s.search=''; s.filters={}; s.colf={}; renderTable(key); };
   function indexOf(entity,id){ return DB.all(entity).findIndex(r=>String(r._id)===String(id)); }
-  window.cwpAdd=(key)=>{ const d=TABLES[key]; if(typeof d.addFn==='function'){ d.addFn(); return; } if(typeof openRecordEditor==='function'){ openRecordEditor(d.entity); } else { const rec=DB.add(d.entity, d.newRecord?d.newRecord():{}); renderRows(key); openEditor(d.entity, rec._id); } };
+  window.cwpAdd=(key)=>{
+    const d=TABLES[key]; if(!d) return;
+    /* Prefer page helpers / redesign drawer — never jump straight to the
+       traffic-light full-editor window for a blank +Add when a drawer exists. */
+    if(typeof d.addFn==='function'){ d.addFn(); return; }
+    const entity=d.entity||key;
+    const helpers={
+      tasks:'addTaskRow', guests:'addGuestRow', appointments:'addAppointmentRow',
+      vendors:'addVendorRow', party:'addPartyRow', gifts:'addGiftRow',
+      payments:'addPaymentRow', contracts:'addContractRow', essentials:'addEssentialRow',
+      shotlist:'addShotRow', videoShots:'addVideoShotRow', prayer:'addPrayerRow',
+      counseling:'addCounselingRow', timeline:'addTimelineRow', notesDetails:'addNotesDetailRow'
+    };
+    const fnName=helpers[entity]||helpers[key];
+    if(fnName && typeof window[fnName]==='function'){ window[fnName](); return; }
+    if(typeof rdOpenNewInDrawer==='function' && rdOpenNewInDrawer(entity)) return;
+    if(typeof openRecordEditor==='function'){ openRecordEditor(entity); return; }
+    const rec=DB.add(entity, d.newRecord?d.newRecord():{}); renderRows(key); openEditor(entity, rec._id);
+  };
   window.cwpDelete=async (key,id)=>{ const d=TABLES[key]; if(!(await covConfirm('Delete this '+(ENTITIES[d.entity].label||'record').toLowerCase()+'?', {title:'Delete record?', danger:true, okText:'Delete'}))) return; DB.remove(d.entity,id); st(key).sel.delete(String(id)); renderRows(key); if(typeof afterCwpChange==='function') afterCwpChange(d.entity); };
   window.cwpToggleRow=(key,id,on,el)=>{
     const s=st(key);
@@ -45074,9 +46787,17 @@ function openFieldPicker(input, getOptions, cfg){
     it.addEventListener('mousedown', function(ev){ ev.preventDefault(); pickFieldOption(it.getAttribute('data-val')); });
   });
   var r = input.getBoundingClientRect();
-  pop.style.top = (window.scrollY + r.bottom + 2) + 'px';
-  pop.style.left = (window.scrollX + r.left) + 'px';
-  pop.style.minWidth = Math.max(180, r.width) + 'px';
+  var minW = Math.max(180, r.width);
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, input, { minWidth: minW, gap: 2, zIndex: 2147483600 });
+  } else {
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    pop.style.width = 'max-content';
+    pop.style.minWidth = minW + 'px';
+    pop.style.top = (r.bottom + 2) + 'px';
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - minW - 8)) + 'px';
+  }
 }
 function pickFieldOption(val){
   var s = _fpState, input = s.input; if(!input) return;
@@ -45316,10 +47037,16 @@ PT.openColFilter = function(key, field, btn){
       }).join('') + '</div>'
     + '<div class="cfp-actions"><button type="button" class="cfp-btn" onclick="PT.colClear(\''+key+'\',\''+field+'\')">Clear</button><button type="button" class="cfp-btn cfp-btn-primary" onclick="PT.closeColFilter()">Done</button></div>';
   document.body.appendChild(pop);
-  var r = btn.getBoundingClientRect(), left = window.scrollX + r.left;
-  var maxLeft = window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 8;
-  if(left > maxLeft) left = Math.max(window.scrollX + 8, maxLeft);
-  pop.style.top = (window.scrollY + r.bottom + 4) + 'px'; pop.style.left = left + 'px';
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 236, gap: 4, zIndex: 2147483600 });
+  } else {
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    var r = btn.getBoundingClientRect();
+    var w = Math.max(pop.offsetWidth || 0, 236);
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+    pop.style.top = (r.bottom + 4) + 'px';
+  }
   setTimeout(function(){ document.addEventListener('mousedown', PT._colOutside, true); }, 0);
 };
 PT.cfpFilter = function(q){ q = (q||'').toLowerCase(); document.querySelectorAll('#pt-col-pop .cfp-list .cfp-item').forEach(function(it){ it.style.display = (!q || (it.getAttribute('data-val')||'').indexOf(q) !== -1) ? '' : 'none'; }); };
