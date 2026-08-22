@@ -85,7 +85,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [21 · Households](#section-21) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [22 · Contacts](#section-22) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [23 · Notes](#section-23) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
-- [24 · Share Packets](#section-24) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
+- [24 · Share Packets](#section-24) — done on `cursor/dashboard-views-017e` — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [25 · Email Templates](#section-25) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [26 · Print Centre](#section-26) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [27 · Vision & Foundation](#section-27) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
@@ -2830,7 +2830,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s24` · slug `share-packets`
 - **Header counts:** 7 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §25
 - **Screen ids:** `12b`, `33c`, `33d`, `19m`
 
 ### Five parts on this page

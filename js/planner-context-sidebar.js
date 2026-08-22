@@ -2404,7 +2404,6 @@
       (figures.totalOpens || 0) + '</span></div>' +
       '<div class="rd-rail__meter-top"><span>Last open</span><span class="rd-rail__count">' +
       esc(figures.lastOpen || '—') + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Default expiry</span><span class="rd-rail__count">30 days</span></div>' +
       '</div></div>';
 
     function groupItem(id, label) {
@@ -2421,7 +2420,7 @@
       '</div></div>';
 
     var noteHtml =
-      '<p class="rd-rail__note">Packets are snapshots by default. A live packet updates as you edit; both states are shown on the row.</p>';
+      '<p class="rd-rail__note">Packets are snapshots by default. A live packet updates as you edit — both states show on the row.</p>';
 
     return '<div class="rd-rail__stack" data-page-rail="packets">' + viewsHtml + activityHtml + groupHtml + noteHtml + '</div>';
   }
