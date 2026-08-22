@@ -62,20 +62,21 @@
       <div>
         <div class="rd-rail__title">Views<button type="button" class="rd-rail__add" onclick="saveContactView()">+</button></div>
         <div class="rd-rail__list">
-          <button type="button" class="rd-rail__item is-active">Everyone<span class="rd-rail__count">48</span></button>
+          <button type="button" class="rd-rail__item is-active">Everyone<span class="rd-rail__count">47</span></button>
+          <button type="button" class="rd-rail__item">Day-of numbers<span class="rd-rail__count">12</span></button>
           <button type="button" class="rd-rail__item">Vendors<span class="rd-rail__count">10</span></button>
           <button type="button" class="rd-rail__item">Wedding party<span class="rd-rail__count">10</span></button>
-          <button type="button" class="rd-rail__item">Family<span class="rd-rail__count">21</span></button>
-          <button type="button" class="rd-rail__item">Day-of only<span class="rd-rail__count">9</span></button>
+          <button type="button" class="rd-rail__item">Family<span class="rd-rail__count">15</span></button>
+          <button type="button" class="rd-rail__item">No number<span class="rd-rail__count rd-rail__count--warn">6</span></button>
         </div>
       </div>
       <div>
-        <div class="rd-rail__title">Reachable</div>
+        <div class="rd-rail__title">Day-of sheet</div>
         <div class="rd-rail__meters">
-          <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>With a phone number</span><span class="rd-rail__count">44 of 48</span></div><div class="rd-progress"><div class="rd-progress__fill" style="width:92%"></div></div></div>
-          <div class="rd-rail__meter-top"><span>With an email</span><span class="rd-rail__count">39</span></div>
-          <div class="rd-rail__meter-top"><span>Neither</span><span class="rd-rail__count">2</span></div>
-          <div class="rd-rail__meter-top"><span>On the day-of sheet</span><span class="rd-rail__count">9</span></div>
+          <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>On the sheet</span><span class="rd-rail__count">12 of 12</span></div><div class="rd-progress"><div class="rd-progress__fill" style="width:100%"></div></div></div>
+          <div class="rd-rail__meter-top"><span>Numbers verified</span><span class="rd-rail__count">9</span></div>
+          <div class="rd-rail__meter-top"><span>Unverified</span><span class="rd-rail__count">3</span></div>
+          <div class="rd-rail__meter-top"><span>Printed</span><span class="rd-rail__count">26 Jul</span></div>
         </div>
       </div>
       <div>
@@ -83,10 +84,10 @@
         <div class="rd-rail__list">
           <button type="button" class="rd-rail__item is-active">Role<span class="rd-rail__count"></span></button>
           <button type="button" class="rd-rail__item">Side<span class="rd-rail__count"></span></button>
-          <button type="button" class="rd-rail__item">Company<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">On the day-of sheet<span class="rd-rail__count"></span></button>
         </div>
       </div>
-      <p class="rd-rail__note">Clicking a card opens the same 360px drawer as Table view.</p>
+      <p class="rd-rail__note">Derived from guests and vendors. A number edited here is edited on the source record — this page stores nothing of its own.</p>
     </aside>
     <main class="rd-main" id="panel-contacts-cards" data-panel="contacts" data-view="cards">
       <div class="rd-pagehead">
@@ -95,24 +96,23 @@
           <h1 class="rd-pagehead__title">Contacts</h1>
         </div>
         <div class="rd-pagehead__actions">
-          <button type="button" class="rd-btn" onclick="printContactSheet()">Print sheet</button>
-          <button type="button" class="rd-btn" onclick="window.print()">Print section</button>
-          <button type="button" class="rd-btn" onclick="exportSectionCSV('Contacts',data.contacts)">Export CSV</button>
-          <button type="button" class="rd-btn rd-btn--primary" onclick="addContactRow()">+ Add contact</button>
+          <button type="button" class="rd-btn" onclick="printCurrentPage()">Print section</button>
+          <button type="button" class="rd-btn" onclick="rdCtFullEditor()">Full editor</button>
+          <button type="button" class="rd-btn rd-btn--primary" onclick="rdCtAdd(this)">Add contact</button>
         </div>
       </div>
       <div class="rd-stats m-stats" id="contacts-cards-stats"></div>
       <div class="rd-toolbar">
-        <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item">Table</button><button type="button" class="rd-viewswitch__item is-active">Cards</button><button type="button" class="rd-viewswitch__item">Day-of sheet</button></div>
+        <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item">Table</button><button type="button" class="rd-viewswitch__item">Day-of sheet</button><button type="button" class="rd-viewswitch__item is-active">Cards</button></div>
         </div>
       </div>
       <div class="rd-bulkbar" id="bulk-bar" hidden>
         <span class="rd-bulkbar__count"><span data-bulk-count>0</span> selected</span>
         <span class="rd-bulkbar__sep"></span>
         <button type="button" class="rd-bulkbar__action">Add to day-of sheet</button>
-        <button type="button" class="rd-bulkbar__action">Set role</button>
-        <button type="button" class="rd-bulkbar__action">Email selected</button>
-        <button type="button" class="rd-bulkbar__action">Print sheet</button>
+        <button type="button" class="rd-bulkbar__action">Verify number</button>
+        <button type="button" class="rd-bulkbar__action">Send a text</button>
+        <button type="button" class="rd-bulkbar__action">Export vCards</button>
         <button type="button" class="rd-bulkbar__clear">Clear selection</button>
       </div>
       <div class="rd-surface">

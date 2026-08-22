@@ -2604,40 +2604,47 @@
     return '<div class="rd-rail__stack" data-page-rail="households">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
-  /* All.dc #14c / Views #28 — master contact directory. */
+  /* Master s22 / 14c — derived contact directory. */
   function buildContactsContext() {
     var activeView = 'everyone';
     if (typeof getSavedView === 'function') activeView = getSavedView('contacts', 'everyone');
     else if (typeof window._ctRailView === 'string' && window._ctRailView) activeView = window._ctRailView;
     window._ctRailView = activeView;
     var counts = typeof window.ctRailCounts === 'function' ? window.ctRailCounts() : {
-      everyone: 0, vendors: 0, party: 0, family: 0, dayof: 0
+      everyone: 0, dayof: 0, vendors: 0, party: 0, family: 0, nonumber: 0
     };
     var figures = typeof window.ctFigures === 'function' ? window.ctFigures() : {
-      withPhone: 0, contacts: 0, withEmail: 0, neither: 0, dayof: 0
+      withPhone: 0, contacts: 0, dayof: 0, onSheet: 0, sheetWithPhone: 0,
+      sheetVerified: 0, sheetUnverified: 0, printed: ''
     };
     var groupBy = window._ctGroupBy || 'role';
-    function viewItem(id, label, count) {
+    function viewItem(id, label, count, warn) {
       return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
         ' onclick="applyContactsRailView(\'' + id + '\')">' + esc(label) +
-        '<span class="rd-rail__count">' + count + '</span></button>';
+        '<span class="rd-rail__count' + (warn && count > 0 ? ' rd-rail__count--warn' : '') + '">' + count + '</span></button>';
     }
     var viewsHtml =
       '<div class="rd-rail__section">' +
       '<div class="rd-rail__title">Views<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
       '<div class="rd-rail__list" role="list">' +
       viewItem('everyone', 'Everyone', counts.everyone || 0) +
+      viewItem('dayof', 'Day-of numbers', counts.dayof || 0) +
       viewItem('vendors', 'Vendors', counts.vendors || 0) +
       viewItem('party', 'Wedding party', counts.party || 0) +
       viewItem('family', 'Family', counts.family || 0) +
-      viewItem('dayof', 'Day-of only', counts.dayof || 0) +
+      viewItem('nonumber', 'No number', counts.nonumber || 0, true) +
       '</div></div>';
+    var onSheet = figures.onSheet || figures.dayof || 0;
+    var onSheetHave = figures.sheetWithPhone != null ? figures.sheetWithPhone : onSheet;
     var metersHtml =
-      '<div class="rd-rail__section"><div class="rd-rail__title">Reachable</div><div class="rd-rail__meters">' +
-      '<div class="rd-rail__meter-top"><span>With a phone number</span><span class="rd-rail__count">' + (figures.withPhone || 0) + ' of ' + (figures.contacts || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>With an email</span><span class="rd-rail__count">' + (figures.withEmail || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Neither</span><span class="rd-rail__count">' + (figures.neither || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>On the day-of sheet</span><span class="rd-rail__count">' + (figures.dayof || 0) + '</span></div>' +
+      '<div class="rd-rail__section"><div class="rd-rail__title">Day-of sheet</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>On the sheet</span><span class="rd-rail__count">' +
+      onSheetHave + ' of ' + onSheet + '</span></div>' +
+      '<div class="rd-progress"><div class="rd-progress__fill" style="width:' +
+      (onSheet ? Math.round(100 * onSheetHave / onSheet) : 0) + '%"></div></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Numbers verified</span><span class="rd-rail__count">' + (figures.sheetVerified || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Unverified</span><span class="rd-rail__count">' + (figures.sheetUnverified || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Printed</span><span class="rd-rail__count">' + esc(figures.printed || 'Not yet') + '</span></div>' +
       '</div></div>';
     function groupItem(id, label) {
       return '<button type="button" class="rd-rail__item' + (groupBy === id ? ' is-active' : '') + '"' +
@@ -2645,9 +2652,9 @@
     }
     var groupHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Group by</div><div class="rd-rail__list" role="list">' +
-      groupItem('role', 'Role') + groupItem('side', 'Side') + groupItem('company', 'Company') +
+      groupItem('role', 'Role') + groupItem('side', 'Side') + groupItem('dayof', 'On the day-of sheet') +
       '</div></div>';
-    var noteHtml = '<p class="rd-rail__note"><b>A derived view.</b> Contacts are vendors and guests seen through one lens — the phone number lives on the original record.</p>';
+    var noteHtml = '<p class="rd-rail__note">Derived from guests and vendors. A number edited here is edited on the source record — this page stores nothing of its own.</p>';
     return '<div class="rd-rail__stack" data-page-rail="contacts">' + viewsHtml + metersHtml + groupHtml + noteHtml + '</div>';
   }
 
