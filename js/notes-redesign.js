@@ -1,16 +1,18 @@
-/* Notes — All.dc #12a (List) + Views #33a Cards / #33b Timeline
-   + Dark.dc rail + Drawers Note · Pin · Sharing · History.
-   Views: List | Cards | Timeline.
-   Rail: All notes · Unpinned · Flagged · Mine · Shared
-         + By subject meters + Group by Pinned to / Author / Date.
-   Stats (List): Notes · Flagged · Pinned · Loose · This week.
-   Data: data.notesDetails[] (adapter adds kind, author, flagged, pinnedTo). */
+/* Notes — Master s23 / 12a · Cards 33a · Timeline 33b
+   Table columns: Note · Pinned to · Author · Written · Flag
+   Views: List · Cards · Timeline
+   Rail: All notes · Unpinned · Flagged · Mine · Shared with Mary
+         · By subject · Group by Pinned to / Author / Date
+   Drawer tabs: Note · Pin · Sharing · History
+   Primary: New note (List) / Write a note (Cards · Timeline)
+   Data: data.notesDetails[] — figures derived from the note record. */
 (function () {
   'use strict';
 
   window._notesMode = window._notesMode || 'list';
   window._notesRailView = window._notesRailView || 'all';
   window._notesGroupBy = window._notesGroupBy || 'pinnedTo';
+  window._notesSort = window._notesSort || 'newest';
   window._notesUiFilters = window._notesUiFilters || {
     subject: 'all', author: 'all', flag: 'all', kind: 'all', period: 'all', pinnedTo: 'all'
   };
@@ -22,13 +24,202 @@
   window._notesSearch = window._notesSearch || '';
 
   const DRAWER_TABS = ['Note', 'Pin', 'Sharing', 'History'];
-  const KINDS = ['Open question', 'Blocker', 'Decision needed', 'Deadline', 'Preference', 'Sensitive', 'Time-critical'];
+  const KINDS = [
+    'Open question', 'Blocker', 'Decision needed', 'Deadline',
+    'Preference', 'Sensitive', 'Time-critical', 'Context'
+  ];
+  const SHELL_VER = 'notes-rd12a-s23';
+  const COL_SCOPE = 'notes';
+  const NOTES_COLUMNS = [
+    { key: '_sel', label: '', width: '34px', fixed: true },
+    { key: 'note', label: 'Note' },
+    { key: 'pinnedTo', label: 'Pinned to', width: '180px' },
+    { key: 'author', label: 'Author', width: '110px' },
+    { key: 'written', label: 'Written', width: '90px' },
+    { key: 'flag', label: 'Flag', width: '90px' }
+  ];
+  if (window.rdColumns) {
+    window.rdColumns.register(COL_SCOPE, NOTES_COLUMNS.slice(), function () {
+      renderNotesRd();
+    });
+  }
+
+  /* Master demo notes (12a / 33a / 33b). Seeded when the tracker is empty
+     or still holds the old five-item starter pack. */
+  const MASTER_NOTES = [
+    {
+      title: 'Baker has not quoted the cake yet',
+      note: 'Sweet Rose said “around a thousand” on the phone in June. Nothing in writing. Budget carries $1,000 as projected, not committed, which is why the true total reads $24,040 rather than $23,040.',
+      pinnedTo: 'Vendors · Sweet Rose', subject: 'Vendors', author: 'Ama',
+      date: '2026-07-28', lastEdited: '2026-07-28', flagged: true, kind: 'Open question',
+      alsoShowsOn: 'Budget · Cake row', owner: 'Ama', dueBy: '15 August',
+      status: 'Open', nextStep: 'Get a written quote by 15 August',
+      replies: [{ author: 'Mary O.', when: '29 Jul', text: 'I will call her Monday. If there is still no number by the 15th we should price the two backups.' }],
+      history: [
+        { when: '29 Jul', who: 'Mary O.', what: 'Replied' },
+        { when: '28 Jul', who: 'Ama', what: 'Flagged' },
+        { when: '28 Jul', who: 'Ama', what: 'Written' }
+      ],
+      relatedNotes: [{ title: 'This note', flag: true }, { title: 'No quote in writing', flag: true }],
+      sharingNote: 'A note is never in a share packet, whatever sections you pick. This one names a price the vendor has not committed to — sending it would be quoting them against themselves.'
+    },
+    {
+      title: 'Grace Hall will not confirm the 11:45pm clear',
+      note: 'Venue will not put the late clear in writing. Contracts still show the standard window.',
+      pinnedTo: 'Contracts · Grace Hall', subject: 'Vendors', author: 'Mary O.',
+      date: '2026-07-26', lastEdited: '2026-07-26', flagged: true, kind: 'Decision needed',
+      alsoShowsOn: 'Wedding Day Timeline', status: 'Open', sharedWith: 'Mary'
+    },
+    {
+      title: 'Bloom Studio renamed from Bloom & Vine in May',
+      note: 'Update stationery and the vendor packet so the new name matches the contract.',
+      pinnedTo: 'Vendors · Bloom Studio', subject: 'Vendors', author: 'Kwesi',
+      date: '2026-07-19', lastEdited: '2026-07-19', flagged: false, kind: 'Open question', status: 'Open'
+    },
+    {
+      title: 'Band wants a hot meal, not the vendor box',
+      note: 'Highlife asked for a hot meal rather than the standard vendor box.',
+      pinnedTo: 'Entertainment · Highlife', subject: 'Vendors', author: 'Kwesi',
+      date: '2026-07-14', lastEdited: '2026-07-14', flagged: false, kind: 'Preference',
+      alsoShowsOn: 'Catering · Vendor meals', status: 'Open'
+    },
+    {
+      title: 'Uncle Ato declined — do not re-invite',
+      note: 'He declined clearly. Keep him off the list and do not send a reminder.',
+      pinnedTo: 'Guests · Ato Owusu', subject: 'Guests', author: 'Ama',
+      date: '2026-07-22', lastEdited: '2026-07-22', flagged: false, kind: 'Preference', status: 'Open'
+    },
+    {
+      title: 'Mensah household needs a ground-floor room',
+      note: 'Ground-floor only for the Mensah household — mobility needs.',
+      pinnedTo: 'Households · Mensah', subject: 'Guests', author: 'Ama',
+      date: '2026-07-20', lastEdited: '2026-07-20', flagged: true, kind: 'Open question',
+      alsoShowsOn: 'Weekend Logistics', status: 'Open'
+    },
+    {
+      title: 'Two children under 3 — no charge agreed with Adom',
+      note: 'Confirm zero charge for the two under-threes with Adom before the tasting.',
+      pinnedTo: 'Catering & Menu', subject: 'Guests', author: 'Mary O.',
+      date: '2026-07-18', lastEdited: '2026-07-18', flagged: false, kind: 'Decision needed',
+      sharedWith: 'Mary', status: 'Open'
+    },
+    {
+      title: 'Gratuity for Grace Hall and Adom is the same money as the tipping rows',
+      note: 'Do not double-count tip lines against the venue and catering totals.',
+      pinnedTo: 'Budget', subject: 'Money', author: 'Mary O.',
+      date: '2026-07-25', lastEdited: '2026-07-25', flagged: true, kind: 'Open question',
+      sharedWith: 'Mary', status: 'Open'
+    },
+    {
+      title: 'Owusu gift of $1,200 was earmarked for the venue balance',
+      note: 'Gift already spoken for — keep it against the Grace Hall balance.',
+      pinnedTo: 'Gifts · Owusu', subject: 'Money', author: 'Ama',
+      date: '2026-07-16', lastEdited: '2026-07-16', flagged: false, kind: 'Preference', status: 'Open'
+    },
+    {
+      title: 'Ask Rev. Mensah whether the register needs two witnesses or three',
+      note: 'Loose until pinned — ask at the next meeting.',
+      pinnedTo: '—', subject: 'Loose', author: 'Kwesi',
+      date: '2026-07-29', lastEdited: '2026-07-29', flagged: true, kind: 'Open question',
+      pinned: false, status: 'Open'
+    },
+    {
+      title: 'Someone mentioned a cousin who does calligraphy',
+      note: 'No name yet. Ask Ama’s aunt before chasing a stationer.',
+      pinnedTo: '—', subject: 'Loose', author: 'Ama',
+      date: '2026-07-27', lastEdited: '2026-07-27', flagged: false, kind: 'Open question',
+      pinned: false, status: 'Open'
+    },
+    {
+      title: 'Adom will not confirm the veg main until the tasting',
+      note: 'Vegetarian main stays provisional until the 20 Aug tasting.',
+      pinnedTo: 'Catering & Menu', subject: 'Guests', author: 'Ama',
+      date: '2026-07-20', lastEdited: '2026-07-20', flagged: false, kind: 'Open question',
+      affects: '9 guests', foot: 'Resolves at the 20 Aug tasting', status: 'Open'
+    },
+    {
+      title: 'Grace Hall want the COI by 1 Oct or they will not release keys',
+      note: 'Certificate of insurance is a hard gate for keys.',
+      pinnedTo: 'Grace Hall contract', subject: 'Vendors', author: 'Mary O.',
+      date: '2026-07-14', lastEdited: '2026-07-14', flagged: true, kind: 'Blocker',
+      chased: 'Twice', foot: 'Adom owes the certificate', sharedWith: 'Mary', status: 'Open'
+    },
+    {
+      title: 'Mrs Adjei prefers the tilapia less spicy — she will not say so herself',
+      note: 'Heat reduced after tasting feedback.',
+      pinnedTo: 'Tasting 1', subject: 'Guests', author: 'Kwesi',
+      date: '2026-06-12', lastEdited: '2026-06-12', flagged: false, kind: 'Sensitive',
+      actedOn: 'Heat reduced', foot: 'Resolved', status: 'Resolved', resolved: true
+    },
+    {
+      title: 'Michael cannot do the 5:45pm Friday run',
+      note: 'Needs a second driver for the Friday airport run.',
+      pinnedTo: 'Out-of-town arrivals', subject: 'The day', author: 'Ama',
+      date: '2026-08-22', lastEdited: '2026-08-22', time: '08:20', flagged: true, kind: 'Blocker',
+      affects: '2 guests', foot: 'Needs a second driver', status: 'Open'
+    },
+    {
+      title: 'Lagos pair added to Friday arrivals',
+      note: 'Two guests from Lagos added to the Friday arrival list.',
+      pinnedTo: 'Out-of-town arrivals', subject: 'The day', author: 'Ama',
+      date: '2026-08-22', lastEdited: '2026-08-22', time: '08:15', flagged: false, kind: 'Context',
+      status: 'Open'
+    },
+    {
+      title: 'Uncle Kojo gave $2,000 with no line attached',
+      note: 'Cash gift with no budget line yet — assign it or hold it.',
+      pinnedTo: 'Budget', subject: 'Money', author: 'Ama',
+      date: '2026-07-08', lastEdited: '2026-07-08', flagged: true, kind: 'Decision needed',
+      amount: '$2,000', foot: 'Assign it or hold it', status: 'Open'
+    },
+    {
+      title: 'Grandmother leaves at 8pm — get her photo before the speeches',
+      note: 'Still has no shot window on the list.',
+      pinnedTo: 'Shot Lists', subject: 'The day', author: 'Ama',
+      date: '2026-07-02', lastEdited: '2026-07-02', flagged: true, kind: 'Time-critical',
+      shot: 'Unscheduled', foot: 'Still has no window', status: 'Open'
+    },
+    {
+      title: 'Do not seat the Boatengs near the band',
+      note: 'Preference applied on the floor plan.',
+      pinnedTo: 'Table Layout', subject: 'Guests', author: 'Kwesi',
+      date: '2026-06-18', lastEdited: '2026-06-18', flagged: false, kind: 'Preference',
+      applied: 'T5, far side', foot: 'Resolved', status: 'Resolved', resolved: true
+    },
+    {
+      title: 'Rev. Mensah wants the vows a week early to read them once',
+      note: 'Nothing written yet for the early read.',
+      pinnedTo: 'Exchange of vows', subject: 'The day', author: 'Ama',
+      date: '2026-06-14', lastEdited: '2026-06-14', flagged: false, kind: 'Deadline',
+      dueField: '25 Oct', foot: 'Nothing written yet', status: 'Open'
+    },
+    {
+      title: 'Travel allowance raised to 75 minutes',
+      note: 'Travel window for the tasting party raised to 75 minutes.',
+      pinnedTo: 'Menu tasting', subject: 'The day', author: 'Ama',
+      date: '2026-07-20', lastEdited: '2026-07-20', flagged: false, kind: 'Context',
+      status: 'Open'
+    },
+    {
+      title: 'Sankofa quote received, unsigned',
+      note: 'Quote is in; signature still outstanding.',
+      pinnedTo: 'Sankofa Films', subject: 'Vendors', author: 'Mary O.',
+      date: '2026-07-18', lastEdited: '2026-07-18', flagged: false, kind: 'Decision needed',
+      sharedWith: 'Mary', status: 'Open'
+    }
+  ];
+
+  const STARTER_TITLES = /Vendor Questions|Ceremony Ideas|Reception Details|Personal Reminders|Vow Inspiration/i;
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
     : String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c])));
+
+  function jsId(id) {
+    return String(id == null ? '' : id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
 
   function ensureNotes() {
     if (typeof ensureNotesData === 'function') ensureNotesData();
@@ -38,19 +229,49 @@
     }
   }
 
+  function stampMasterNote(n) {
+    const copy = Object.assign({}, n);
+    if (typeof nextRecordId === 'function') copy._id = nextRecordId('notesDetails');
+    copy.pinned = !!(copy.pinnedTo && copy.pinnedTo !== '—');
+    copy.category = copy.subject === 'Loose' ? 'Planning' : (copy.subject || 'Planning');
+    copy.tags = copy.kind || '';
+    copy.lastEdited = copy.lastEdited || copy.date;
+    return copy;
+  }
+
+  function ensureMasterNotes() {
+    ensureNotes();
+    if (data.notesMaster12a) return;
+    const rows = data.notesDetails || [];
+    const onlyStarter = rows.length > 0 && rows.every(n => STARTER_TITLES.test(String(n.title || '')));
+    if (rows.length === 0 || onlyStarter) {
+      data.notesDetails = MASTER_NOTES.map(stampMasterNote);
+    } else {
+      const have = new Set(rows.map(n => String(n.title || '').trim().toLowerCase()));
+      MASTER_NOTES.forEach(function (n) {
+        if (!have.has(String(n.title).trim().toLowerCase())) {
+          data.notesDetails.push(stampMasterNote(n));
+        }
+      });
+    }
+    data.notesSeeded = true;
+    data.notesMaster12a = true;
+    if (typeof save === 'function') save();
+  }
+
   function subjectFromCategory(cat, pinnedTo) {
     if (pinnedTo && pinnedTo !== '—') {
       const p = String(pinnedTo).toLowerCase();
-      if (/vendor|baker|florist|photo|cater|dj|band/.test(p)) return 'Vendors';
-      if (/guest|household|rsvp|seating|table/.test(p)) return 'Guests';
-      if (/budget|payment|money|contract|cake/.test(p)) return 'Money';
-      if (/day|timeline|ceremony|reception|weekend/.test(p)) return 'The day';
+      if (/vendor|baker|florist|photo|cater|dj|band|entertainment|bloom|sweet rose|sankofa|grace hall contract|contracts ·/i.test(p)) return 'Vendors';
+      if (/guest|household|rsvp|seating|table|tasting|ato |mensah/i.test(p)) return 'Guests';
+      if (/budget|payment|money|gift|cake row/i.test(p)) return 'Money';
+      if (/day|timeline|ceremony|reception|weekend|shot|arrival|vow|logistics|menu tasting/i.test(p)) return 'The day';
     }
     const c = String(cat || '').toLowerCase();
     if (/vendor/.test(c)) return 'Vendors';
     if (/guest|personal|family|party/.test(c)) return 'Guests';
-    if (/budget|money|payment|contract/.test(c)) return 'Money';
-    if (/ceremony|reception|day|timeline|planning|honeymoon/.test(c)) return 'The day';
+    if (/budget|money|payment|contract|gift/.test(c)) return 'Money';
+    if (/ceremony|reception|day|timeline|planning|honeymoon|shot/.test(c)) return 'The day';
     return 'Loose';
   }
 
@@ -64,6 +285,7 @@
     if (/prefer|like|want/.test(hay)) return 'Preference';
     if (/sensitive|private|confidential/.test(hay)) return 'Sensitive';
     if (/urgent|asap|time.critical|today/.test(hay)) return 'Time-critical';
+    if (/context|added to|raised to|allowance/.test(hay)) return 'Context';
     return 'Open question';
   }
 
@@ -94,26 +316,28 @@
   }
 
   function isResolved(row, kind) {
+    if (row.resolved === true) return true;
     return kind === 'Resolved' || /done|complete|resolved|archived/i.test(row.status || '');
   }
 
   function unify(row, i) {
     if (typeof ensureRowId === 'function') ensureRowId(row, 'notesDetails');
-    const kind = deriveKind(row);
+    const kindRaw = deriveKind(row);
     const author = deriveAuthor(row, i);
-    const flagged = deriveFlagged(row, kind);
+    const flagged = deriveFlagged(row, kindRaw);
     const pinnedTo = derivePinnedTo(row, subjectFromCategory(row.category));
     const loose = !pinnedTo || pinnedTo === '—';
-    const subject = loose ? 'Loose' : subjectFromCategory(row.category, pinnedTo);
-    const resolved = isResolved(row, kind);
+    const subject = row.subject || (loose ? 'Loose' : subjectFromCategory(row.category, pinnedTo));
+    const resolved = isResolved(row, kindRaw);
     const written = row.lastEdited || row.date || '';
     const excerpt = String(row.note || row.nextStep || '').replace(/\s+/g, ' ').trim();
+    const kind = kindRaw === 'Resolved' ? 'Open question' : kindRaw;
     return {
       id: row._id ? ('notesDetails:' + row._id) : ('notesDetails:idx:' + i),
       index: i,
       row: row,
       title: String(row.title || 'Untitled note').trim() || 'Untitled note',
-      excerpt: excerpt.slice(0, 120),
+      excerpt: excerpt.slice(0, 160),
       body: String(row.note || ''),
       nextStep: String(row.nextStep || ''),
       category: String(row.category || ''),
@@ -124,18 +348,31 @@
       written: written,
       time: String(row.time || ''),
       flagged: flagged,
-      kind: kind === 'Resolved' ? 'Open question' : kind,
+      kind: kind,
       resolved: resolved,
-      shared: /mary|shared/i.test(String(row.sharedWith || row.sharing || author)),
+      shared: !!(row.sharedWith) || /mary/i.test(String(row.sharedWith || '')) || /mary/i.test(author),
       mine: /ama|^me$/i.test(author),
       status: resolved ? 'Resolved' : (flagged ? 'Flagged' : 'Open'),
-      alsoShowsOn: row.alsoShowsOn || (subject === 'Vendors' ? 'Budget · related row' : ''),
-      replies: Array.isArray(row.replies) ? row.replies : []
+      alsoShowsOn: row.alsoShowsOn || '',
+      owner: String(row.owner || author || ''),
+      dueBy: String(row.dueBy || ''),
+      affects: String(row.affects || ''),
+      chased: String(row.chased || ''),
+      actedOn: String(row.actedOn || ''),
+      amount: String(row.amount || ''),
+      shot: String(row.shot || ''),
+      applied: String(row.applied || ''),
+      dueField: String(row.dueField || ''),
+      foot: String(row.foot || row.nextStep || ''),
+      replies: Array.isArray(row.replies) ? row.replies : [],
+      history: Array.isArray(row.history) ? row.history : [],
+      relatedNotes: Array.isArray(row.relatedNotes) ? row.relatedNotes : [],
+      sharingNote: String(row.sharingNote || '')
     };
   }
 
   function allNotes() {
-    ensureNotes();
+    ensureMasterNotes();
     return data.notesDetails.map(unify);
   }
 
@@ -148,6 +385,8 @@
   function fmtShort(value) {
     const d = parseDate(value);
     if (!d) return String(value || '—');
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (d.getTime() === today.getTime()) return 'Today';
     return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
   }
 
@@ -169,6 +408,11 @@
     return n != null && n >= 0 && n < 7;
   }
 
+  function lastWeek(value) {
+    const n = daysAgo(value);
+    return n != null && n >= 7 && n < 14;
+  }
+
   function periodKey(value) {
     const n = daysAgo(value);
     if (n == null) return 'Earlier';
@@ -181,6 +425,10 @@
       return 'Earlier in ' + d.toLocaleDateString('en-US', { month: 'long' });
     }
     return d.toLocaleDateString('en-US', { month: 'long' });
+  }
+
+  function visCols() {
+    return window.rdColumns ? window.rdColumns.visible(COL_SCOPE) : NOTES_COLUMNS;
   }
 
   function filteredNotes() {
@@ -212,9 +460,16 @@
       list = list.filter(x => (x.title + ' ' + x.body + ' ' + x.pinnedTo + ' ' + x.author + ' ' + x.kind).toLowerCase().indexOf(q) >= 0);
     }
 
+    const sort = window._notesSort || 'newest';
     if (mode === 'cards') {
       const rank = k => (/blocker/i.test(k) ? 0 : (/decision|deadline|time/i.test(k) ? 1 : 2));
       list.sort((a, b) => rank(a.kind) - rank(b.kind) || String(b.written).localeCompare(String(a.written)));
+    } else if (sort === 'oldest') {
+      list.sort((a, b) => String(a.written).localeCompare(String(b.written)) || String(a.time).localeCompare(String(b.time)));
+    } else if (sort === 'flagged') {
+      list.sort((a, b) => (b.flagged ? 1 : 0) - (a.flagged ? 1 : 0) || String(b.written).localeCompare(String(a.written)));
+    } else if (sort === 'author') {
+      list.sort((a, b) => String(a.author).localeCompare(String(b.author)) || String(b.written).localeCompare(String(a.written)));
     } else {
       list.sort((a, b) => String(b.written).localeCompare(String(a.written)) || String(b.time).localeCompare(String(a.time)));
     }
@@ -227,10 +482,12 @@
     const pinned = all.filter(x => !x.loose).length;
     const loose = all.filter(x => x.loose).length;
     const week = all.filter(x => thisWeek(x.written)).length;
+    const weekPrior = all.filter(x => lastWeek(x.written)).length;
     const open = all.filter(x => !x.resolved).length;
-    const blockers = all.filter(x => /blocker/i.test(x.kind)).length;
-    const decisions = all.filter(x => /decision/i.test(x.kind)).length;
+    const blockers = all.filter(x => /blocker/i.test(x.kind) && !x.resolved);
+    const decisions = all.filter(x => /decision/i.test(x.kind) && !x.resolved).length;
     const resolved = all.filter(x => x.resolved).length;
+    const resolvedWeek = all.filter(x => x.resolved && thisWeek(x.written)).length;
     const authors = Array.from(new Set(all.map(x => x.author)));
     let oldest = null;
     all.filter(x => !x.resolved).forEach(x => {
@@ -239,13 +496,19 @@
     });
     const bySubject = { Vendors: 0, Guests: 0, Money: 0, 'The day': 0, Loose: 0 };
     all.forEach(x => { bySubject[x.subject] = (bySubject[x.subject] || 0) + 1; });
+    const blockerHint = blockers.slice(0, 2).map(x => {
+      if (/coi/i.test(x.title)) return 'COI';
+      if (/driver|friday run|michael/i.test(x.title)) return 'the Friday driver';
+      return x.title.split(/[—–-]/)[0].trim().slice(0, 28);
+    }).filter(Boolean);
     return {
-      notes: all.length, flagged, pinned, loose, week,
-      open, blockers, decisions, resolved, authors,
+      notes: all.length, flagged, pinned, loose, week, weekPrior,
+      open, blockers: blockers.length, decisions, resolved, resolvedWeek, authors,
       oldest, bySubject,
       unpinned: loose,
       mine: all.filter(x => x.mine).length,
-      shared: all.filter(x => x.shared || /mary/i.test(x.author)).length
+      shared: all.filter(x => x.shared || /mary/i.test(x.author)).length,
+      blockerHint: blockerHint.length ? blockerHint.join(' and ') : ''
     };
   }
 
@@ -284,12 +547,12 @@
     const panel = document.getElementById('panel-notes');
     if (!panel) return;
     panel.classList.add('ued-scope', 'notes-mockup', 'notes-rd');
-    if (panel.dataset.uedShell === 'notes-rd12a') {
+    if (panel.dataset.uedShell === SHELL_VER) {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'notes-rd12a';
+    panel.dataset.uedShell = SHELL_VER;
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -326,18 +589,25 @@
     const mode = window._notesMode || 'list';
     let stats;
     if (mode === 'cards') {
+      const openPct = f.notes ? Math.round(f.open / f.notes * 100) + '%' : undefined;
       stats = [
         { label: 'Notes', value: String(f.notes) },
-        { label: 'Open', value: String(f.open), attention: f.notes ? Math.round(f.open / f.notes * 100) + '%' : undefined },
-        { label: 'Blockers', value: String(f.blockers), attention: f.blockers ? 'act now' : undefined },
+        { label: 'Open', value: String(f.open), attention: openPct },
+        { label: 'Blockers', value: String(f.blockers), attention: f.blockerHint || (f.blockers ? 'act now' : undefined) },
         { label: 'Decisions needed', value: String(f.decisions) },
-        { label: 'Resolved', value: String(f.resolved), attention: f.week ? ('↑' + f.week + ' this week') : undefined }
+        { label: 'Resolved', value: String(f.resolved), attention: f.resolvedWeek ? ('↑' + f.resolvedWeek + ' this week') : undefined }
       ];
     } else if (mode === 'timeline') {
+      let weekAtt;
+      if (f.weekPrior != null) {
+        const delta = f.week - f.weekPrior;
+        if (delta > 0) weekAtt = '↑' + delta + ' on last week';
+        else if (delta < 0) weekAtt = '↓' + Math.abs(delta) + ' on last week';
+      }
       stats = [
         { label: 'Notes', value: String(f.notes) },
-        { label: 'Written this week', value: String(f.week) },
-        { label: 'Oldest unresolved', value: f.oldest ? (f.oldest.days + ' days') : '—', attention: f.oldest ? f.oldest.title : undefined },
+        { label: 'Written this week', value: String(f.week), attention: weekAtt },
+        { label: 'Oldest unresolved', value: f.oldest ? (f.oldest.days + ' days') : '—', attention: f.oldest ? (f.oldest.title.length > 40 ? f.oldest.title.slice(0, 36) + '…' : f.oldest.title) : undefined },
         { label: 'Resolved', value: String(f.resolved) },
         { label: 'Authors', value: String(f.authors.length), attention: f.authors.slice(0, 3).join(', ') }
       ];
@@ -364,9 +634,26 @@
     const cur = ui[field] || 'all';
     const on = cur && cur !== 'all';
     const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.2"><path d="m6 9 6 6 6-6"/></svg>';
-    return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="rdNotesCycleFilter('${field}')">${esc(on ? label + ': ' + cur : label + ': all')}`
+    return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="rdNotesOpenFilter(this,'${field}')">${esc(on ? label + ': ' + cur : label + ': all')}`
       + (on ? `<span class="rd-chip__clear" onclick="event.stopPropagation();rdNotesClearFilter('${field}')">&#10005;</span>` : chev)
       + '</button>';
+  }
+
+  function sortChipLabel() {
+    const by = window._notesSort || 'newest';
+    if (by === 'oldest') return 'Sort by oldest';
+    if (by === 'flagged') return 'Sort by flagged';
+    if (by === 'author') return 'Sort by author';
+    return 'Sort by newest';
+  }
+
+  function viewSwitchHtml(mode) {
+    return `<div class="rd-toolbar__right">` +
+      `<div class="rd-viewswitch" role="group" aria-label="Notes view">` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'list' ? ' is-active' : ''}" onclick="rdSetNotesView('list')">List</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'cards' ? ' is-active' : ''}" onclick="rdSetNotesView('cards')">Cards</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'timeline' ? ' is-active' : ''}" onclick="rdSetNotesView('timeline')">Timeline</button>` +
+      `</div></div>`;
   }
 
   function renderNotesToolbar() {
@@ -384,17 +671,12 @@
         `<span class="rd-notes-toolbar-note">Newest first</span>`;
     } else {
       left = filterChip('Subject', 'subject') + filterChip('Author', 'author') + filterChip('Flag', 'flag') +
-        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by newest', "rdNotesOpenSort(this)") : '') +
-        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('notes') : '');
+        (typeof rdSortChipHtml === 'function'
+          ? rdSortChipHtml(sortChipLabel(), 'rdNotesOpenSort(this)')
+          : `<button type="button" class="rd-chip" onclick="rdNotesOpenSort(this)">${esc(sortChipLabel())}</button>`) +
+        (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml(COL_SCOPE) : '');
     }
-    host.innerHTML = left +
-      `<div class="rd-toolbar__right">` +
-      (mode === 'list' ? `<button type="button" class="rd-chip" onclick="rdNotesAutoFit()">Auto-fit columns</button>` : '') +
-      `<div class="rd-viewswitch" role="group" aria-label="Notes view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'list' ? ' is-active' : ''}" onclick="rdSetNotesView('list')">List</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'cards' ? ' is-active' : ''}" onclick="rdSetNotesView('cards')">Cards</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'timeline' ? ' is-active' : ''}" onclick="rdSetNotesView('timeline')">Timeline</button>` +
-      `</div></div>`;
+    host.innerHTML = left + viewSwitchHtml(mode);
   }
 
   function renderNotesBulk() {
@@ -411,7 +693,7 @@
       `<span class="rd-bulkbar__count">${n} selected</span><span class="rd-bulkbar__sep"></span>` +
       `<button type="button" class="rd-bulkbar__action" onclick="rdNotesBulk('flag')">Flag</button>` +
       `<button type="button" class="rd-bulkbar__action" onclick="rdNotesBulk('pin')">Pin to a record</button>` +
-      `<button type="button" class="rd-bulkbar__action" onclick="rdNotesBulk('share')">Share</button>` +
+      `<button type="button" class="rd-bulkbar__action" onclick="rdNotesBulk('share')">Share with Mary</button>` +
       `<button type="button" class="rd-bulkbar__action" onclick="rdNotesBulk('delete')">Delete</button>` +
       `<button type="button" class="rd-bulkbar__clear" onclick="rdNotesBulkClear()">Clear selection</button>`;
   }
@@ -422,20 +704,49 @@
     const g = window._notesGroupBy || 'pinnedTo';
     if (g === 'author') return x.author || 'Unknown';
     if (g === 'date') return periodKey(x.written);
-    if (x.loose) return 'Loose · not pinned to anything';
-    return x.subject + ' · notes';
+    if (x.loose) return 'Loose';
+    return x.subject;
+  }
+
+  function groupBanner(key, count) {
+    if (key === 'Loose') return 'Loose · ' + count + ' notes · not pinned to anything';
+    if (window._notesGroupBy === 'author') return key + ' · ' + count + ' notes';
+    if (window._notesGroupBy === 'date') return key + ' · ' + count + ' notes';
+    return key + ' · ' + count + ' notes';
+  }
+
+  function cellFor(x, key, safeId) {
+    if (key === '_sel') {
+      const sel = window._notesSel.has(x.id);
+      return `<td class="rd-notes-check" onclick="event.stopPropagation()">` +
+        `<input type="checkbox" ${sel ? 'checked' : ''} onchange="rdNotesToggleSel('${esc(safeId)}')" aria-label="Select note"></td>`;
+    }
+    if (key === 'note') {
+      return `<td class="rd-notes-name"><strong>${esc(x.title)}</strong>` +
+        (x.excerpt ? `<span>${esc(x.excerpt)}</span>` : '') + `</td>`;
+    }
+    if (key === 'pinnedTo') return `<td>${esc(x.loose ? '—' : x.pinnedTo)}</td>`;
+    if (key === 'author') return `<td>${esc(x.author)}</td>`;
+    if (key === 'written') return `<td>${esc(fmtShort(x.written))}</td>`;
+    if (key === 'flag') {
+      return `<td>${x.flagged ? '<span class="rd-notes-flag">Flagged</span>' : ''}</td>`;
+    }
+    return '<td></td>';
   }
 
   function renderListView() {
     const host = document.getElementById('notes-view-list');
     if (!host) return;
     const rows = filteredNotes();
+    const cols = visCols();
+    const span = cols.length;
     if (!rows.length) {
       host.innerHTML = `<div class="rd-notes-empty"><h3>No notes yet</h3>
         <p>Write a note and pin it to a record as you type.</p>
         <button type="button" class="rd-btn rd-btn--primary" onclick="rdNotesAdd()">New note</button></div>`;
       return;
     }
+    const SUBJECT_ORDER = ['Vendors', 'Guests', 'Money', 'The day', 'Loose'];
     const groups = {};
     const order = [];
     rows.forEach(x => {
@@ -443,39 +754,38 @@
       if (!groups[k]) { groups[k] = []; order.push(k); }
       groups[k].push(x);
     });
-    let html = `<div class="rd-table-wrap"><table class="rd-notes-table"><thead><tr>
-      <th class="rd-notes-check"></th><th>Note</th><th>Pinned to</th><th>Author</th><th>Written</th><th>Flag</th>
-    </tr></thead><tbody>`;
+    if ((window._notesGroupBy || 'pinnedTo') === 'pinnedTo') {
+      order.sort((a, b) => {
+        const ia = SUBJECT_ORDER.indexOf(a);
+        const ib = SUBJECT_ORDER.indexOf(b);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+      });
+    }
+    const th = cols.map(c => {
+      const w = c.width ? ` style="width:${c.width}"` : '';
+      const af = c.fixed ? ' data-autofit="off"' : '';
+      return `<th${w}${af}>${esc(c.label || '')}</th>`;
+    }).join('');
+    let html = `<div class="rd-table-wrap"><table class="rd-notes-table rd-table"><thead><tr>${th}</tr></thead><tbody>`;
     order.forEach(g => {
       const items = groups[g];
-      html += `<tr class="rd-notes-group"><td colspan="6">${esc(g.replace(' · notes', ' · ' + items.length + ' notes'))}</td></tr>`;
+      html += `<tr class="rd-notes-group"><td colspan="${span}">${esc(groupBanner(g, items.length))}</td></tr>`;
       items.forEach(x => {
         const sel = window._notesSel.has(x.id);
         const open = window._notesDrawerId === x.id;
-        html += `<tr class="rd-notes-row${sel ? ' is-selected' : ''}${open ? ' is-open' : ''}" onclick="rdNotesOpenDrawer('${esc(x.id)}')">
-          <td class="rd-notes-check" onclick="event.stopPropagation()">
-            <input type="checkbox" ${sel ? 'checked' : ''} onchange="rdNotesToggleSel('${esc(x.id)}')" aria-label="Select note">
-          </td>
-          <td class="rd-notes-name"><strong>${esc(x.title)}</strong>${x.excerpt ? '<span>' + esc(x.excerpt) + '</span>' : ''}</td>
-          <td>${esc(x.loose ? '—' : x.pinnedTo)}</td>
-          <td>${esc(x.author)}</td>
-          <td>${esc(fmtShort(x.written))}</td>
-          <td>${x.flagged ? '<span class="rd-notes-flag">Flagged</span>' : '—'}</td>
-        </tr>`;
+        const safeId = jsId(x.id);
+        html += `<tr class="rd-notes-row${sel ? ' is-selected' : ''}${open ? ' is-open' : ''}" onclick="rdNotesOpenDrawer('${esc(safeId)}')">`;
+        cols.forEach(c => { html += cellFor(x, c.key, safeId); });
+        html += `</tr>`;
       });
     });
     html += `<tr class="rd-notes-addrow" onclick="rdNotesAdd()"><td class="rd-notes-check">+</td>
-      <td colspan="5">Write a note — pin it to a record as you type</td></tr>`;
+      <td colspan="${Math.max(1, span - 1)}">Write a note — pin it to a record as you type</td></tr>`;
     html += '</tbody></table></div>';
-    const loose = notesFigures().loose;
-    if (loose > 0) {
-      html += `<div class="rd-section__head rd-notes-loose">
-        <div class="rd-pagehead__eyebrow">Loose notes</div>
-        <p class="rd-help">${loose} not pinned to anything yet.</p>
-        <button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="rdNotesSetRailView('unpinned')">Pin them</button>
-      </div>`;
-    }
     host.innerHTML = html;
+    if (typeof window.rdStdApplyRowHeight === 'function') {
+      window.rdStdApplyRowHeight(COL_SCOPE, host);
+    }
   }
 
   function kindClass(kind) {
@@ -485,7 +795,21 @@
     if (/deadline|time/.test(k)) return 'deadline';
     if (/prefer/.test(k)) return 'preference';
     if (/sensit/.test(k)) return 'sensitive';
+    if (/context/.test(k)) return 'context';
     return 'open';
+  }
+
+  function cardExtraRows(x) {
+    const rows = [];
+    rows.push({ label: 'Written', value: fmtShort(x.written) + ' · ' + x.author });
+    if (x.affects) rows.push({ label: 'Affects', value: x.affects });
+    if (x.chased) rows.push({ label: 'Chased', value: x.chased });
+    if (x.actedOn) rows.push({ label: 'Acted on', value: x.actedOn });
+    if (x.amount) rows.push({ label: 'Amount', value: x.amount });
+    if (x.shot) rows.push({ label: 'Shot', value: x.shot });
+    if (x.applied) rows.push({ label: 'Applied', value: x.applied });
+    if (x.dueField) rows.push({ label: 'Due', value: x.dueField });
+    return rows;
   }
 
   function renderCardsView() {
@@ -498,19 +822,30 @@
         <button type="button" class="rd-btn rd-btn--primary" onclick="rdNotesAdd()">Write a note</button></div>`;
       return;
     }
-    host.innerHTML = `<div class="rd-notes-cardgrid">${rows.map(x => `
-      <article class="rd-notes-card${x.flagged ? ' is-flagged' : ''}${x.resolved ? ' is-resolved' : ''}" onclick="rdNotesOpenDrawer('${esc(x.id)}')">
+    host.innerHTML = `<div class="rd-notes-cardgrid">${rows.map(x => {
+      const safeId = jsId(x.id);
+      const extras = cardExtraRows(x);
+      const foot = x.resolved ? 'Resolved' : (x.foot || (x.flagged ? 'Needs a decision' : 'Open'));
+      return `
+      <article class="rd-notes-card${x.flagged ? ' is-flagged' : ''}${x.resolved ? ' is-resolved' : ''}" onclick="rdNotesOpenDrawer('${esc(safeId)}')">
         <div class="rd-notes-card__top">
           <h3>${esc(x.title)}</h3>
           <span class="rd-notes-kind rd-notes-kind--${kindClass(x.kind)}">${esc(x.resolved ? 'Resolved' : x.kind)}</span>
         </div>
         <div class="rd-notes-card__pin">${esc(x.loose ? 'Loose · not pinned' : 'Pinned to · ' + x.pinnedTo)}</div>
         <div class="rd-notes-card__meta">
-          <div><span>Written</span><strong>${esc(fmtShort(x.written))} · ${esc(x.author)}</strong></div>
-          ${x.nextStep ? `<div><span>Next</span><strong>${esc(x.nextStep)}</strong></div>` : ''}
+          ${extras.map(r => `<div><span>${esc(r.label)}</span><strong>${esc(r.value)}</strong></div>`).join('')}
         </div>
-        <div class="rd-notes-card__foot">${esc(x.resolved ? 'Resolved' : (x.flagged ? 'Needs a decision' : 'Open'))}</div>
-      </article>`).join('')}</div>`;
+        <div class="rd-notes-card__foot">${esc(foot)}</div>
+      </article>`;
+    }).join('')}</div>`;
+  }
+
+  function timelineStatus(x) {
+    if (x.resolved) return 'Resolved';
+    if (/context/i.test(x.kind)) return 'Note';
+    if (x.flagged || /blocker|decision|deadline|time/i.test(x.kind)) return 'Open';
+    return 'Note';
   }
 
   function renderTimelineView() {
@@ -540,14 +875,16 @@
       html += `<div class="rd-notes-period"><div class="rd-notes-period__head"><strong>${esc(p)}</strong><span>${esc(meta)}</span></div><ul>`;
       items.forEach(x => {
         const when = (p === 'Today' && x.time) ? x.time : fmtShort(x.written);
-        html += `<li class="rd-notes-tl" onclick="rdNotesOpenDrawer('${esc(x.id)}')">
-          <span class="rd-notes-tl__when">${esc(when)}</span>
+        const pinLine = x.author + ' · ' + (x.loose ? 'loose' : ('pinned to ' + x.pinnedTo));
+        const safeId = jsId(x.id);
+        html += `<li class="rd-notes-tl" onclick="rdNotesOpenDrawer('${esc(safeId)}')">
           <div class="rd-notes-tl__body">
             <strong>${esc(x.title)}</strong>
-            <em>${esc(x.author)} · ${esc(x.loose ? 'loose' : x.pinnedTo)}</em>
+            <em>${esc(pinLine)}</em>
           </div>
           <span class="rd-notes-kind rd-notes-kind--${kindClass(x.kind)}">${esc(x.resolved ? 'Resolved' : x.kind)}</span>
-          <span class="rd-notes-tl__status">${esc(x.resolved ? 'Resolved' : (x.flagged ? 'Open' : 'Note'))}</span>
+          <span class="rd-notes-tl__when">${esc(when)}</span>
+          <span class="rd-notes-tl__status">${esc(timelineStatus(x))}</span>
         </li>`;
       });
       html += '</ul></div>';
@@ -567,6 +904,71 @@
     return allNotes().find(x => x.id === id) || null;
   }
 
+  function field(label, valueHtml) {
+    return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong>${valueHtml}</strong></div>`;
+  }
+
+  function drawerNoteBody(x) {
+    return `<div class="rd-drawer__note-body">${esc(x.body || x.excerpt || 'No body yet.')}</div>`
+      + field('Author', esc(x.author))
+      + field('Written', esc(fmtLong(x.written)))
+      + field('Flagged', x.flagged ? 'Yes · needs a decision' : 'No')
+      + (x.owner ? field('Owner', esc(x.owner)) : '')
+      + (x.dueBy ? field('By', esc(x.dueBy)) : '');
+  }
+
+  function drawerPinBody(x) {
+    const looseCount = notesFigures().loose;
+    const pinHtml = x.loose
+      ? '— · loose'
+      : `<button type="button" class="rd-drawer__link" onclick="rdNotesOpenPin('${esc(jsId(x.subject))}')">${esc(x.pinnedTo)} →</button>`;
+    let related = '';
+    if (!x.loose) {
+      const others = (x.relatedNotes && x.relatedNotes.length)
+        ? x.relatedNotes.slice()
+        : allNotes().filter(n => n.id !== x.id && n.pinnedTo === x.pinnedTo).slice(0, 3)
+          .map(n => ({ title: n.title, flag: n.flagged }));
+      if (!others.length) others.push({ title: 'This note', flag: x.flagged });
+      const label = /vendor/i.test(x.subject) ? 'Notes on this vendor' : ('Notes on ' + x.pinnedTo);
+      related = `<div class="rd-drawer__section-title">${esc(label)}</div>` +
+        others.map(r => `<div class="rd-drawer__guest"><strong>${esc(r.title === 'This note' ? 'This note' : r.title)}</strong>` +
+          `<span>${r.flag ? '<span class="rd-notes-flag">Flagged</span>' : ''}</span></div>`).join('');
+    }
+    return field('Record', pinHtml)
+      + (x.alsoShowsOn ? field('Also shows on', esc(x.alsoShowsOn)) : '')
+      + `<p class="rd-drawer__note">A pinned note appears in that record&rsquo;s drawer. Deleting the record keeps the note and marks it <em>loose</em> — ${looseCount} note${looseCount === 1 ? '' : 's'} ${looseCount === 1 ? 'is' : 'are'} loose today.</p>`
+      + related;
+  }
+
+  function drawerSharingBody(x) {
+    const note = x.sharingNote ||
+      'A note is never in a share packet, whatever sections you pick.';
+    const replies = x.replies || [];
+    return `<div class="rd-drawer__guest"><strong>Mary O. · planner</strong><span>Can read and reply</span></div>`
+      + `<div class="rd-drawer__guest"><strong>Kwesi</strong><span>Can read and reply</span></div>`
+      + `<div class="rd-drawer__guest"><strong>Vendors</strong><span>Never</span></div>`
+      + `<p class="rd-drawer__note">${esc(note)}</p>`
+      + (replies.length
+        ? `<div class="rd-drawer__section-title">Replies · ${replies.length}</div>` +
+          replies.map(r => `<div class="rd-drawer__hist"><strong>${esc(r.author || 'Mary O.')}</strong> · ${esc(r.when || '')}<br>${esc(r.text || '')}</div>`).join('')
+        : `<div class="rd-drawer__section-title">Replies · 0</div><p class="rd-drawer__note">No replies yet.</p>`);
+  }
+
+  function drawerHistoryBody(x) {
+    let entries = x.history && x.history.length ? x.history.slice() : [];
+    if (!entries.length) {
+      entries.push({ when: fmtShort(x.written), who: x.author, what: 'Written' });
+      if (x.flagged) entries.unshift({ when: fmtShort(x.written), who: x.author, what: 'Flagged' });
+      (x.replies || []).forEach(r => {
+        entries.unshift({ when: r.when || '', who: r.author || 'Mary O.', what: 'Replied' });
+      });
+    }
+    const people = Array.from(new Set(entries.map(e => e.who).filter(Boolean)));
+    return `<div class="rd-drawer__section-title">This note</div>`
+      + entries.map(e => `<div class="rd-drawer__hist">${esc(e.when)} · ${esc(e.who)}<br><strong>${esc(e.what)}</strong></div>`).join('')
+      + `<p class="rd-drawer__note">A note is the only record whose history is mostly conversation. ${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}, ${people.length} people${x.flagged && !x.resolved ? ', one decision still open' : ''}.</p>`;
+  }
+
   function renderNotesDrawer() {
     const slot = document.getElementById('notes-drawer-slot');
     if (!slot) return;
@@ -578,35 +980,16 @@
       slot.classList.remove('is-open');
       return;
     }
-    const tab = window._notesDrawerTab || 0;
+    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._notesDrawerTab, 10) || 0));
     let body = '';
-    if (tab === 0) {
-      body = `<div class="rd-drawer__note-body">${esc(x.body || x.excerpt || 'No body yet.')}</div>`
-        + field('Author', x.author)
-        + field('Written', fmtLong(x.written))
-        + field('Flagged', x.flagged ? 'Yes · needs a decision' : 'No')
-        + (x.nextStep ? field('Next step', x.nextStep) : '');
-    } else if (tab === 1) {
-      body = field('Record', x.loose
-        ? '— · loose'
-        : `<button type="button" class="rd-drawer__link" onclick="rdNotesOpenPin('${esc(x.subject)}')">${esc(x.pinnedTo)} →</button>`)
-        + (x.alsoShowsOn ? field('Also shows on', x.alsoShowsOn) : '')
-        + `<p class="rd-drawer__note">A pinned note appears in that record&rsquo;s drawer. Deleting the record keeps the note and marks it loose — ${notesFigures().loose} notes are loose today.</p>`;
-    } else if (tab === 2) {
-      body = `<div class="rd-drawer__guest"><strong>Mary O. · planner</strong><span>Can read and reply</span></div>`
-        + `<div class="rd-drawer__guest"><strong>Kwesi</strong><span>Can read and reply</span></div>`
-        + `<div class="rd-drawer__guest"><strong>Vendors</strong><span>Never</span></div>`
-        + `<p class="rd-drawer__note">A note is never in a share packet, whatever sections you pick.</p>`
-        + (x.replies.length ? `<div class="rd-drawer__section-title">Replies · ${x.replies.length}</div>` +
-          x.replies.map(r => `<div class="rd-drawer__hist"><strong>${esc(r.author || 'Mary O.')}</strong> · ${esc(r.when || '')}<br>${esc(r.text || '')}</div>`).join('')
-          : `<div class="rd-drawer__section-title">Replies · 0</div><p class="rd-drawer__note">No replies yet.</p>`);
-    } else {
-      body = `<div class="rd-drawer__hist">${esc(fmtShort(x.written))} · Written by ${esc(x.author)}</div>`
-        + (x.flagged ? `<div class="rd-drawer__hist">Flagged · needs a decision</div>` : '')
-        + `<p class="rd-drawer__note">A note is the only record whose history is mostly conversation.</p>`;
-    }
+    if (tab === 0) body = drawerNoteBody(x);
+    else if (tab === 1) body = drawerPinBody(x);
+    else if (tab === 2) body = drawerSharingBody(x);
+    else body = drawerHistoryBody(x);
+
     const crumb = 'Note · ' + (x.loose ? 'loose' : x.subject.toLowerCase());
-    const chips = (x.flagged ? '<span class="rd-notes-flag">Flagged</span> ' : '') + esc(x.author + ' · ' + fmtShort(x.written));
+    const chips = (x.flagged ? '<span class="rd-notes-flag">Flagged</span> ' : '') +
+      esc(x.author + ' · ' + fmtShort(x.written));
     slot.innerHTML = `<aside class="rd-drawer rd-notes-drawer" role="dialog" aria-label="${esc(x.title)}">
       <div class="rd-drawer__head">
         <button type="button" class="rd-drawer__close" onclick="rdNotesCloseDrawer()" aria-label="Close">✕</button>
@@ -620,14 +1003,10 @@
       <div class="rd-drawer__body">${body}</div>
       <div class="rd-drawer__foot">
         <button type="button" class="rd-btn" onclick="rdNotesSave()">Save</button>
-        <button type="button" class="rd-btn rd-btn--primary" onclick="rdNotesFullEditor('${esc(x.id)}')">Full editor</button>
+        <button type="button" class="rd-btn rd-btn--primary" onclick="rdNotesFullEditor('${esc(jsId(x.id))}')">Full editor</button>
       </div>
     </aside>`;
     slot.classList.add('is-open');
-  }
-
-  function field(label, valueHtml) {
-    return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong>${valueHtml}</strong></div>`;
   }
 
   /* ── actions ─────────────────────────────────────────────────────────── */
@@ -654,24 +1033,56 @@
     if (typeof setSavedView === 'function') setSavedView('notesGroupBy', window._notesGroupBy);
     renderNotesRd();
   }
-  function rdNotesCycleFilter(field) {
-    const options = { all: true };
-    allNotes().forEach(x => {
-      if (field === 'subject') options[x.subject] = true;
-      if (field === 'author') options[x.author] = true;
-      if (field === 'kind') options[x.kind] = true;
-      if (field === 'pinnedTo' && !x.loose) options[x.pinnedTo] = true;
-      if (field === 'period') options[periodKey(x.written)] = true;
-      if (field === 'flag') { options.Flagged = true; options.Clear = true; }
-    });
-    const list = Object.keys(options);
+  function rdNotesOpenFilter(btn, field) {
+    const options = [{ value: 'all', label: 'All' }];
+    if (field === 'flag') {
+      options.push({ value: 'Flagged', label: 'Flagged' });
+      options.push({ value: 'Clear', label: 'Clear' });
+    } else {
+      const seen = {};
+      allNotes().forEach(x => {
+        if (field === 'subject' && x.subject) seen[x.subject] = true;
+        if (field === 'author' && x.author) seen[x.author] = true;
+        if (field === 'kind' && x.kind) seen[x.kind] = true;
+        if (field === 'pinnedTo' && !x.loose) seen[x.pinnedTo] = true;
+        if (field === 'period') seen[periodKey(x.written)] = true;
+      });
+      Object.keys(seen).sort().forEach(v => options.push({ value: v, label: v }));
+    }
     const cur = (window._notesUiFilters || {})[field] || 'all';
+    if (typeof window.rdPickOne === 'function') {
+      window.rdPickOne(btn, options, cur, function (val) {
+        window._notesUiFilters[field] = val || 'all';
+        renderNotesRd();
+      });
+      return;
+    }
+    const list = options.map(o => o.value);
     const i = list.indexOf(cur);
     window._notesUiFilters[field] = list[(i + 1) % list.length];
     renderNotesRd();
   }
   function rdNotesClearFilter(field) {
     window._notesUiFilters[field] = 'all';
+    renderNotesRd();
+  }
+  function rdNotesOpenSort(btn) {
+    const opts = [
+      { value: 'newest', label: 'Sort by newest' },
+      { value: 'oldest', label: 'Sort by oldest' },
+      { value: 'flagged', label: 'Sort by flagged' },
+      { value: 'author', label: 'Sort by author' }
+    ];
+    if (typeof window.rdPickOne === 'function') {
+      window.rdPickOne(btn, opts, window._notesSort || 'newest', function (val) {
+        window._notesSort = val || 'newest';
+        renderNotesRd();
+      });
+      return;
+    }
+    const list = opts.map(o => o.value);
+    const i = list.indexOf(window._notesSort || 'newest');
+    window._notesSort = list[(i + 1) % list.length];
     renderNotesRd();
   }
   function rdNotesToggleOpenOnly() {
@@ -705,7 +1116,12 @@
       if (!ref) return;
       rows.forEach(x => { x.row.pinnedTo = ref; x.row.pinned = true; });
     } else if (action === 'share') {
-      if (typeof covAlert === 'function') covAlert('Notes can be shared with your planner — they are never included in a vendor share packet.');
+      rows.forEach(x => { x.row.sharedWith = 'Mary'; });
+      if (typeof covAlert === 'function') {
+        covAlert('Shared with Mary. Notes are never included in a vendor share packet.');
+      } else if (typeof showToast === 'function') {
+        showToast('Shared with Mary', 'ok');
+      }
     } else if (action === 'delete') {
       const ok = typeof covConfirm === 'function'
         ? await covConfirm('Delete ' + rows.length + ' note(s)?')
@@ -740,7 +1156,7 @@
     renderNotesDrawer();
   }
   function rdNotesAdd() {
-    ensureNotes();
+    ensureMasterNotes();
     if (typeof addNotesDetailRow === 'function') {
       try { addNotesDetailRow(); } catch (e) { /* fall through */ }
     }
@@ -750,11 +1166,14 @@
       const fresh = {
         title: 'New note',
         category: 'Planning',
+        subject: 'Loose',
         tags: '',
         pinned: false,
+        pinnedTo: '—',
         flagged: false,
         author: 'Ama',
         date: typeof notesToday === 'function' ? notesToday() : new Date().toISOString().slice(0, 10),
+        lastEdited: typeof notesToday === 'function' ? notesToday() : new Date().toISOString().slice(0, 10),
         time: typeof notesTimeNow === 'function' ? notesTimeNow() : '',
         status: 'Open',
         note: '',
@@ -791,8 +1210,6 @@
     }
   }
   function rdNotesSearchFocus() {
-    window._notesSearch = typeof covPrompt === 'function'
-      ? '' : '';
     const q = window.prompt ? window.prompt('Search notes', window._notesSearch || '') : '';
     if (q == null) return;
     window._notesSearch = q;
@@ -819,7 +1236,7 @@
   /* ── main ────────────────────────────────────────────────────────────── */
 
   function renderNotesRd() {
-    ensureNotes();
+    ensureMasterNotes();
     if (typeof getSavedView === 'function') {
       const saved = getSavedView('notes', window._notesRailView || 'all');
       if (saved) window._notesRailView = saved;
@@ -871,12 +1288,13 @@
   window.rdNotesToggleSel = rdNotesToggleSel;
   window.rdNotesBulkClear = rdNotesBulkClear;
   window.rdNotesBulk = rdNotesBulk;
-  window.rdNotesCycleFilter = rdNotesCycleFilter;
+  window.rdNotesOpenFilter = rdNotesOpenFilter;
+  window.rdNotesCycleFilter = rdNotesOpenFilter;
   window.rdNotesClearFilter = rdNotesClearFilter;
+  window.rdNotesOpenSort = rdNotesOpenSort;
   window.rdNotesToggleOpenOnly = rdNotesToggleOpenOnly;
   window.rdNotesToggleUnresolved = rdNotesToggleUnresolved;
 
-  /* Override legacy renderer — keep name renderNotesPage for all call sites */
   window.renderNotesPage = function () { renderNotesRd(); };
   window.renderNotes = function () { renderNotesRd(); };
 

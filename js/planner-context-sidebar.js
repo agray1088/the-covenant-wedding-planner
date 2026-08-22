@@ -2453,18 +2453,18 @@
       viewItem('unpinned', 'Unpinned', counts.unpinned || 0) +
       viewItem('flagged', 'Flagged', counts.flagged || 0) +
       viewItem('mine', 'Mine', counts.mine || 0) +
-      viewItem('shared', 'Shared', counts.shared || 0) +
+      viewItem('shared', 'Shared with Mary', counts.shared || 0) +
       '</div></div>';
 
     var subjectHtml =
       '<div class="rd-rail__section">' +
       '<div class="rd-rail__title">By subject</div>' +
       '<div class="rd-rail__meters">' +
-      '<div class="rd-rail__meter-top"><span>Vendors</span><span class="rd-rail__count">' + (bySubject.Vendors || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Guests</span><span class="rd-rail__count">' + (bySubject.Guests || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Money</span><span class="rd-rail__count">' + (bySubject.Money || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>The day</span><span class="rd-rail__count">' + (bySubject['The day'] || 0) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Loose</span><span class="rd-rail__count">' + (bySubject.Loose || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Vendors</span><span class="rd-rail__count">' + (bySubject.Vendors || 0) + ' notes</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Guests</span><span class="rd-rail__count">' + (bySubject.Guests || 0) + ' notes</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Money</span><span class="rd-rail__count">' + (bySubject.Money || 0) + ' notes</span></div>' +
+      '<div class="rd-rail__meter-top"><span>The day</span><span class="rd-rail__count">' + (bySubject['The day'] || 0) + ' notes</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Loose</span><span class="rd-rail__count">' + (bySubject.Loose || 0) + ' notes</span></div>' +
       '</div></div>';
 
     function groupItem(id, label) {
@@ -2481,7 +2481,7 @@
       '</div></div>';
 
     var noteHtml =
-      '<p class="rd-rail__note">A note is never in a share packet. Pin it to a record so it shows up where the work is.</p>';
+      '<p class="rd-rail__note">A note pinned to a record shows in that record&rsquo;s drawer. Deleting the record keeps the note and marks it loose.</p>';
 
     return '<div class="rd-rail__stack" data-page-rail="notes">' + viewsHtml + subjectHtml + groupHtml + noteHtml + '</div>';
   }
