@@ -2952,6 +2952,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §26
 - **Screen ids:** `12c`, `33e`, `33f`, `19n`
 
+### Five parts on this page
+
 | Part | Applies | What to build |
 |---|---|---|
 | Full page | yes | `12c` |
