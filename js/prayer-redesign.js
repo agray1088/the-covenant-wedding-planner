@@ -1,18 +1,20 @@
-/* Prayer Journal — All.dc #13b + Views #32c/#32d + Drawers batch 26 (Entry) + Dark.dc rail.
-   Views: Journal | Table | Print preview.
+/* Prayer Journal — Master s28 / 13b · Table 32c · Print preview 32d
+   Views: Journal | Table | Print preview (no page reload).
    Rail: All entries · Answered · Still praying · Laid down · Written together
          + Rhythm meters + Group by Status / Author / Month.
    Stats (Journal): Entries · Answered · Still praying · Laid down · Words.
    Stats (Table): Entries · Answered · Still asking · Set down · Longest open.
    Stats (Print): Entries printing · Pages · Excluded · Paper · Print class.
-   Drawer tabs: Entry · Answer · Privacy · History.
-   Data: data.prayer[] — date, focus, request, scripture, answer, status (+ soft author/answered). */
+   Drawer: Entry · Answer · Privacy · History.
+   Primary: New entry. Figures come from data.prayer — never typed twice.
+   Print class B keepsake from this page; covenant rows never travel in a packet. */
 (function () {
   'use strict';
 
   window._prMode = window._prMode || 'journal';
   window._prRailView = window._prRailView || 'all';
   window._prGroupBy = window._prGroupBy || 'status';
+  window._prSort = window._prSort || '';
   window._prUiFilters = window._prUiFilters || { status: 'all', author: 'both', month: 'all' };
   window._prAnsweredOnly = window._prAnsweredOnly !== false;
   window._prDrawerId = window._prDrawerId || null;
@@ -20,35 +22,162 @@
   window._prSearch = window._prSearch || '';
 
   const DRAWER_TABS = ['Entry', 'Answer', 'Privacy', 'History'];
+  const SHELL_VER = 'prayer-rd13b-s28';
+
+  /* Master-drawn entries from 13b + 32c (same records; figures derived). */
+  const MASTER_PRAYER = [
+    {
+      date: '2026-06-30', focus: 'A house we can afford', author: 'Both',
+      request: 'We asked for somewhere in Adenta we could pay for without borrowing from either family. We had seen eleven and every one was either out of reach or falling down.',
+      answer: 'The Adenta flat came back on the market $400 below what we had budgeted, because the previous buyer pulled out. We move in two weeks after the wedding.',
+      answered: '2026-07-24', status: 'Answered',
+      links: [
+        { page: 'Marriage Rhythms', detail: 'Monthly thanksgiving' },
+        { page: 'Vision & Foundation', detail: 'Value · money in the light' }
+      ],
+      history: [
+        { when: '2026-07-24', who: 'Both', what: 'Answer written' },
+        { when: '2026-06-30', who: 'Both', what: 'Entry written' }
+      ]
+    },
+    {
+      date: '2026-05-12', focus: 'That Mum would come round', author: 'Ama',
+      request: 'She has not said a word about the wedding since March.',
+      answer: 'She asked to help choose the fabric. That was the whole answer.',
+      answered: '2026-07-02', status: 'Answered'
+    },
+    {
+      date: '2026-07-18', focus: 'For my father\'s health before November', author: 'Kwesi',
+      request: 'The consultant wants to see him again in September. He wants to walk Ama\'s mother down the aisle and I want him to be able to.',
+      answer: '', status: 'Still praying'
+    },
+    {
+      date: '2026-07-21', focus: 'That we would not lose each other in the planning', author: 'Both',
+      request: 'We have had three arguments this month and all three were about a spreadsheet.',
+      answer: '', status: 'Still praying'
+    },
+    {
+      date: '2026-04-14', focus: 'A December date', author: 'Ama',
+      request: 'We wanted December. The hall had nothing until March. We stopped asking and took 8 November, and we are glad.',
+      answer: '', status: 'Laid down', laidOn: '2026-04-20'
+    },
+    {
+      date: '2026-01-12', focus: 'That both families would agree on the date', author: 'Both',
+      request: 'They chose it together in one evening, after four months of nobody wanting to be the one to suggest a date.',
+      answer: 'They chose it together in one evening.',
+      answered: '2026-04-02', status: 'Answered'
+    },
+    {
+      date: '2026-03-03', focus: 'For Kwesi\'s mother\'s health before the day', author: 'Both',
+      request: 'Discharged on the Friday, and dancing at the engagement on the Sunday.',
+      answer: 'Discharged, and dancing at the engagement.',
+      answered: '2026-06-18', status: 'Answered'
+    },
+    {
+      date: '2026-01-20', focus: 'That the venue would come in under budget', author: 'Both',
+      request: 'It did not come in under budget. We signed anyway, and we are at peace about it, which was not the prayer but seems to be the answer.',
+      answer: 'It did not. We are at peace about it.',
+      answered: '2026-03-12', status: 'Answered', notAsAsked: true
+    },
+    {
+      date: '2026-01-14', focus: 'For patience with each other in the last month', author: 'Both',
+      request: 'Both of us',
+      answer: '', status: 'Still praying'
+    },
+    {
+      date: '2026-05-08', focus: 'That the marriage would outlast the wedding', author: 'Both',
+      request: 'Written after counseling 03',
+      answer: '', status: 'Still praying'
+    },
+    {
+      date: '2026-07-02', focus: 'For Michael, who is carrying a lot quietly', author: 'Kwesi',
+      request: 'Kwesi',
+      answer: '', status: 'Still praying'
+    },
+    {
+      date: '2026-02-01', focus: 'That the rain would hold off', author: 'Ama',
+      request: 'It is November. We booked a marquee instead.',
+      answer: '', status: 'Laid down', laidOn: '2026-06-04'
+    }
+  ];
+
+  const LEGACY_FOCUS = /Vendor peace|Guest list|Marriage prep|Engagement|Wedding budget|Venue search|Family relationships|Premarital counseling|Finances|Patience|Honeymoon planning|The marriage ahead|Stress & anxiety|Gratitude/i;
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
-    : String(s == null ? '' : s));
+    : String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch])));
+
+  function jsId(id) {
+    return String(id == null ? '' : id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  function store() {
+    if (typeof getCovenantPlannerData === 'function') return getCovenantPlannerData();
+    try { if (typeof data !== 'undefined' && data) return data; } catch (e) { /* lexical */ }
+    if (!window.data) window.data = {};
+    return window.data;
+  }
+
+  function persist() {
+    if (typeof save === 'function') save();
+  }
 
   function ensurePrayer() {
-    if (!window.data) window.data = {};
-    if (!Array.isArray(data.prayer)) data.prayer = [];
+    const d = store();
+    if (!Array.isArray(d.prayer)) d.prayer = [];
+  }
+
+  function stampMaster(row) {
+    const copy = Object.assign({}, row);
+    if (typeof nextRecordId === 'function') copy._id = nextRecordId('prayer');
+    copy.scripture = copy.scripture || '';
+    return copy;
+  }
+
+  function ensureMasterPrayer() {
+    ensurePrayer();
+    const d = store();
+    if (d.prayerMaster13b) return;
+    const rows = d.prayer || [];
+    const onlyLegacy = rows.length > 0 && rows.every(r => LEGACY_FOCUS.test(String(r.focus || r.title || '')));
+    if (rows.length === 0 || onlyLegacy) {
+      d.prayer = MASTER_PRAYER.map(stampMaster);
+    } else {
+      const have = new Set(rows.map(r => String(r.focus || r.title || '').trim().toLowerCase()));
+      MASTER_PRAYER.forEach(function (n) {
+        if (!have.has(String(n.focus).trim().toLowerCase())) d.prayer.push(stampMaster(n));
+      });
+    }
+    d.prayerMaster13b = true;
+    persist();
   }
 
   function parseDate(value) {
     if (!value) return null;
-    const d = new Date(String(value).split('T')[0] + 'T00:00:00');
+    const d = new Date(String(value).indexOf('T') >= 0 ? value : String(value).split('T')[0] + 'T00:00:00');
     return Number.isNaN(d.getTime()) ? null : d;
   }
   function fmtLong(value) {
     const d = parseDate(value);
     if (!d) return String(value || '—');
-    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   }
   function fmtShort(value) {
     const d = parseDate(value);
     if (!d) return String(value || '—');
-    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
   function fmtChipDate(value) {
     const d = parseDate(value);
     if (!d) return '—';
-    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  }
+  function monthLabel(value) {
+    const d = parseDate(value);
+    if (!d) return 'Undated';
+    return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
   }
   function daysBetween(a, b) {
     const da = parseDate(a);
@@ -59,22 +188,54 @@
   function wordCount(text) {
     return String(text || '').trim().split(/\s+/).filter(Boolean).length;
   }
+  function todayISO() {
+    if (typeof window.todayISO === 'function') return window.todayISO();
+    return new Date().toISOString().slice(0, 10);
+  }
   function coupleNames() {
-    const s = data.setup || {};
+    const s = store().setup || {};
     const a = s.bride || 'Ama';
     const b = s.groom || 'Kwesi';
     return a + ' & ' + b;
   }
+  function coupleAnd() {
+    const s = store().setup || {};
+    return [s.bride || 'Ama', s.groom || 'Kwesi'].join(' and ');
+  }
 
-  /* Status model: journal uses Still praying / Laid down; table uses Still asking / Set down. */
+  const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+    'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+  const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+  function spellNumber(n) {
+    n = Math.round(Number(n) || 0);
+    if (n < 20) return ONES[n];
+    if (n < 100) {
+      const t = TENS[Math.floor(n / 10)];
+      const o = n % 10;
+      return o ? (t + '-' + ONES[o]) : t;
+    }
+    if (n < 200) {
+      const rest = n - 100;
+      return rest ? ('one hundred and ' + spellNumber(rest)) : 'one hundred';
+    }
+    return String(n);
+  }
+  function capitalize(s) {
+    s = String(s || '');
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  }
+
   function deriveKind(row) {
     const status = String(row.status || '').trim().toLowerCase();
     const answer = String(row.answer || '').trim();
     if (/laid|set down|setdown|released/.test(status)) return 'laid';
-    if (row.notAsAsked || /not as asked/i.test(answer) || /not as asked/i.test(status)) {
-      return answer ? 'answered-other' : 'open';
+    if (row.notAsAsked || /not as asked/i.test(status)) return answer ? 'answered-other' : 'open';
+    if (answer || status === 'answered') {
+      if (/not as asked/i.test(answer) || /it did not/i.test(answer) && /peace about it/i.test(answer)) {
+        return 'answered-other';
+      }
+      return 'answered';
     }
-    if (answer || status === 'answered') return 'answered';
     return 'open';
   }
   function journalLabel(kind) {
@@ -101,30 +262,72 @@
     const answer = String(row.answer || '').trim();
     const author = String(row.author || row.writtenBy || 'Both').trim() || 'Both';
     const written = row.date || row.written || '';
-    const answeredOn = row.answered || row.answeredOn || (kind.indexOf('answered') === 0 ? (row.date || '') : '');
+    const answeredOn = row.answered || row.answeredOn || '';
+    const laidOn = row.laidOn || row.setDown || '';
     const days = kind.indexOf('answered') === 0
-      ? (daysBetween(written, answeredOn) ?? daysBetween(written, written))
-      : (daysBetween(written, new Date().toISOString().slice(0, 10)));
+      ? daysBetween(written, answeredOn || written)
+      : (kind === 'laid' ? daysBetween(written, laidOn || written) : daysBetween(written, todayISO()));
     const id = row._id ? ('prayer:' + row._id) : ('prayer:idx:' + i);
+    const hist = Array.isArray(row.history) ? row.history.slice() : [];
+    if (!hist.length) {
+      if (answer && answeredOn) hist.push({ when: answeredOn, who: author, what: 'Answer written' });
+      if (kind === 'laid' && laidOn) hist.push({ when: laidOn, who: author, what: 'Set down' });
+      if (written) hist.push({ when: written, who: author, what: 'Entry written' });
+    }
     return {
       id: id, index: i, row: row, kind: kind,
       title: title, request: request, answer: answer,
       scripture: String(row.scripture || '').trim(),
-      author: author, written: written, answeredOn: answeredOn,
+      author: author, written: written, answeredOn: answeredOn, laidOn: laidOn,
       days: days, words: wordCount(request) + wordCount(answer),
       journalStatus: journalLabel(kind),
       tableStatus: tableLabel(kind),
       tableGroup: tableGroupLabel(kind),
-      together: /both|together|we/i.test(author)
+      together: /both|together|we/i.test(author),
+      notAsAsked: kind === 'answered-other',
+      links: Array.isArray(row.links) ? row.links : [],
+      history: hist
     };
   }
 
   function allEntries() {
     ensurePrayer();
-    return data.prayer.map(unify);
+    return store().prayer.map(unify);
   }
   function findById(id) {
     return allEntries().find(e => e.id === id) || null;
+  }
+
+  function isoWeekKey(d) {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const day = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const wk = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    return date.getUTCFullYear() + '-W' + wk;
+  }
+  function streakWeeks(keys) {
+    if (!keys.length) return 0;
+    const sorted = keys.slice().sort();
+    let best = 1, cur = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const [y1, w1] = sorted[i - 1].split('-W').map(Number);
+      const [y2, w2] = sorted[i].split('-W').map(Number);
+      const seq = (y2 === y1 && w2 === w1 + 1) || (y2 === y1 + 1 && w1 >= 52 && w2 === 1);
+      if (seq) { cur += 1; if (cur > best) best = cur; }
+      else cur = 1;
+    }
+    return best;
+  }
+  function lastEntryLabel(written) {
+    const d = parseDate(written);
+    if (!d) return '—';
+    const today = parseDate(todayISO());
+    if (!today) return fmtShort(written);
+    const diff = Math.round((today - d) / 86400000);
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return fmtShort(written);
   }
 
   function prayerFigures() {
@@ -135,21 +338,24 @@
     const together = els.filter(e => e.together);
     const words = els.reduce((s, e) => s + e.words, 0);
     let longestOpen = 0;
-    open.forEach(e => { if ((e.days || 0) > longestOpen) longestOpen = e.days || 0; });
+    let oldestOpenTitle = '';
+    open.forEach(e => {
+      if ((e.days || 0) >= longestOpen) {
+        longestOpen = e.days || 0;
+        oldestOpenTitle = e.title;
+      }
+    });
     let longestWait = 0;
     answered.forEach(e => { if ((e.days || 0) > longestWait) longestWait = e.days || 0; });
 
-    /* Rhythm: weeks with an entry over a 20-week window ending today */
     const weeks = new Set();
     els.forEach(e => {
       const d = parseDate(e.written);
-      if (!d) return;
-      const oneJan = new Date(d.getFullYear(), 0, 1);
-      const wk = Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
-      weeks.add(d.getFullYear() + '-W' + wk);
+      if (d) weeks.add(isoWeekKey(d));
     });
-    const printDefault = answered;
-    const excluded = els.length - printDefault.length;
+    const newest = els.slice().sort((a, b) => String(b.written).localeCompare(String(a.written)))[0];
+    const printSet = window._prAnsweredOnly === false ? els : answered;
+    const excluded = els.length - printSet.length;
 
     return {
       entries: els.length,
@@ -159,14 +365,15 @@
       together: together.length,
       words: words,
       longestOpen: longestOpen,
+      oldestOpenTitle: oldestOpenTitle,
       longestWait: longestWait,
       weeksWithEntry: weeks.size,
       weeksWindow: 20,
-      streak: Math.min(4, weeks.size || 0),
-      lastEntry: els.length ? fmtShort(els.slice().sort((a, b) => String(b.written).localeCompare(String(a.written)))[0].written) : '—',
-      printCount: printDefault.length,
+      streak: streakWeeks(Array.from(weeks)),
+      lastEntry: newest ? lastEntryLabel(newest.written) : '—',
+      printCount: printSet.length,
       printExcluded: excluded,
-      printPages: Math.max(1, Math.ceil(Math.max(printDefault.length, 1) / 2))
+      printPages: Math.max(1, Math.ceil((printSet.length || 1) / 1.5))
     };
   }
   function prayerRailCounts() {
@@ -199,14 +406,9 @@
     }
     if (ui.author && ui.author !== 'all' && ui.author !== 'both') {
       if (String(e.author).toLowerCase() !== String(ui.author).toLowerCase()) return false;
-    } else if (ui.author === 'both' && window._prMode === 'journal') {
-      /* "Author: both" in All.dc is the default chip label meaning filter unset / couple-facing — show all */
     }
     if (ui.month && ui.month !== 'all') {
-      const d = parseDate(e.written);
-      if (!d) return false;
-      const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      if (label.toLowerCase() !== String(ui.month).toLowerCase()) return false;
+      if (monthLabel(e.written).toLowerCase() !== String(ui.month).toLowerCase()) return false;
     }
     if (window._prSearch) {
       const q = window._prSearch.toLowerCase();
@@ -215,10 +417,28 @@
     }
     return true;
   }
+  function sortEntries(list) {
+    const mode = window._prMode || 'journal';
+    const sort = window._prSort || (mode === 'table' ? 'days' : 'newest');
+    const rows = list.slice();
+    rows.sort((a, b) => {
+      if (sort === 'oldest') return String(a.written || '').localeCompare(String(b.written || ''));
+      if (sort === 'az') return a.title.localeCompare(b.title);
+      if (sort === 'za') return b.title.localeCompare(a.title);
+      if (sort === 'days') return (b.days || 0) - (a.days || 0);
+      return String(b.written || '').localeCompare(String(a.written || ''));
+    });
+    return rows;
+  }
   function filteredEntries() {
-    const list = allEntries().filter(matchesFilters);
-    list.sort((a, b) => String(b.written || '').localeCompare(String(a.written || '')));
-    return list;
+    return sortEntries(allEntries().filter(matchesFilters));
+  }
+
+  function groupKey(e) {
+    const g = window._prGroupBy || 'status';
+    if (g === 'author') return e.author || 'Both';
+    if (g === 'month') return monthLabel(e.written);
+    return window._prMode === 'table' ? e.tableGroup : e.journalStatus;
   }
 
   /* ── shell ───────────────────────────────────────────────────────────── */
@@ -236,12 +456,12 @@
       return ''
         + '<button type="button" class="rd-btn" onclick="rdPrPrint()">Print keepsake</button>'
         + '<button type="button" class="rd-btn" onclick="rdPrFullEditor()">Full editor</button>'
-        + '<button type="button" class="rd-btn" onclick="rdPrExport()">Export PDF</button>'
+        + '<button type="button" class="rd-btn" onclick="rdPrExportPdf()">Export PDF</button>'
         + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdPrPrint()">Print</button>';
     }
     return ''
       + '<button type="button" class="rd-btn" onclick="rdPrSearch()">Search entries</button>'
-      + '<button type="button" class="rd-btn" onclick="rdPrPrint()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>'
+      + '<button type="button" class="rd-btn" onclick="rdPrPrintSection()"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>'
       + '<button type="button" class="rd-btn" onclick="rdPrFullEditor()">Full editor</button>'
       + '<button type="button" class="rd-btn" onclick="rdPrExport()">Export</button>'
       + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdPrAdd()">New entry</button>';
@@ -251,12 +471,12 @@
     const panel = document.getElementById('panel-prayer');
     if (!panel) return;
     panel.classList.add('ued-scope', 'prayer-mockup');
-    if (panel.dataset.uedShell === 'prayer-rd13b') {
+    if (panel.dataset.uedShell === SHELL_VER) {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'prayer-rd13b';
+    panel.dataset.uedShell = SHELL_VER;
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -290,45 +510,41 @@
     if (!host) return;
     const f = prayerFigures();
     const mode = window._prMode || 'journal';
+    let items;
     if (mode === 'table') {
-      if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-        RdDepth.renderStats(host, [
-          { label: 'Entries', value: String(f.entries) },
-          { label: 'Answered', value: String(f.answered) },
-          { label: 'Still asking', value: String(f.open) },
-          { label: 'Set down', value: String(f.laid) },
-          { label: 'Longest open', value: f.longestOpen ? (f.longestOpen + ' days') : '—', attention: f.longestOpen ? 'patience with each other' : undefined }
-        ]);
-        return;
-      }
-    }
-    if (mode === 'print') {
-      if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-        RdDepth.renderStats(host, [
-          { label: 'Entries printing', value: f.printCount + ' of ' + f.entries },
-          { label: 'Pages', value: String(f.printPages) },
-          { label: 'Excluded', value: String(f.printExcluded), attention: 'open and set down' },
-          { label: 'Paper', value: 'A5 · portrait' },
-          { label: 'Print class', value: 'B · keepsake' }
-        ]);
-        return;
-      }
-    }
-    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, [
+      const attn = f.longestOpen && f.oldestOpenTitle
+        ? f.oldestOpenTitle.replace(/^For\s+/i, '').replace(/\s+in the last month$/i, '')
+        : undefined;
+      items = [
+        { label: 'Entries', value: String(f.entries) },
+        { label: 'Answered', value: String(f.answered) },
+        { label: 'Still asking', value: String(f.open) },
+        { label: 'Set down', value: String(f.laid) },
+        { label: 'Longest open', value: f.longestOpen ? (f.longestOpen + ' days') : '—', attention: attn }
+      ];
+    } else if (mode === 'print') {
+      items = [
+        { label: 'Entries printing', value: f.printCount + ' of ' + f.entries },
+        { label: 'Pages', value: String(f.printPages) },
+        { label: 'Excluded', value: String(f.printExcluded), attention: 'open and set down' },
+        { label: 'Paper', value: 'A5 · portrait' },
+        { label: 'Print class', value: 'B · keepsake' }
+      ];
+    } else {
+      items = [
         { label: 'Entries', value: String(f.entries) },
         { label: 'Answered', value: String(f.answered) },
         { label: 'Still praying', value: String(f.open) },
         { label: 'Laid down', value: String(f.laid) },
         { label: 'Words', value: f.words.toLocaleString() }
-      ]);
+      ];
+    }
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, items);
       return;
     }
-    host.innerHTML = [
-      ['Entries', f.entries], ['Answered', f.answered], ['Still praying', f.open],
-      ['Laid down', f.laid], ['Words', f.words.toLocaleString()]
-    ].map(([l, v]) =>
-      `<div class="m-stat"><div class="m-stat-label">${esc(l)}</div><div class="m-stat-val">${esc(String(v))}</div></div>`
+    host.innerHTML = items.map(it =>
+      `<div class="m-stat"><div class="m-stat-label">${esc(it.label)}</div><div class="m-stat-val">${esc(String(it.value))}</div></div>`
     ).join('');
   }
 
@@ -343,10 +559,21 @@
       + '</button>';
   }
 
+  function sortLabel() {
+    const mode = window._prMode || 'journal';
+    const sort = window._prSort || (mode === 'table' ? 'days' : 'newest');
+    if (sort === 'days') return 'Sort by days open';
+    if (sort === 'oldest') return 'Sort by oldest';
+    if (sort === 'az') return 'Sort A–Z';
+    if (sort === 'za') return 'Sort Z–A';
+    return 'Sort by newest';
+  }
+
   function renderPrayerToolbar() {
     const host = document.getElementById('prayer-toolbar');
     if (!host) return;
     const mode = window._prMode || 'journal';
+    const g = window._prGroupBy || 'status';
     let left = '';
     if (mode === 'print') {
       left =
@@ -355,11 +582,13 @@
         `<span class="rd-pr-toolbar-note">Open prayers excluded by default</span>`;
     } else if (mode === 'table') {
       left = filterChip('Status', 'status') + filterChip('Written by', 'author') +
-        `<button type="button" class="rd-chip is-active">Group by status</button>` +
-        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by days open', "rdPrayerOpenSort(this)") : '') + (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('prayer') : '');
+        `<button type="button" class="rd-chip is-active" onclick="rdPrCycleGroup()">Group by ${esc(g)}${g !== 'status' ? '<span class="rd-chip__clear" onclick="event.stopPropagation();rdPrClearGroup()">✕</span>' : ''}</button>` +
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml(sortLabel(), 'rdPrayerOpenSort(this)') : '');
+      if (typeof rdStandardRightHtml === 'function') left += rdStandardRightHtml('prayer');
     } else {
       left = filterChip('Status', 'status') + filterChip('Author', 'author') + filterChip('Month', 'month') +
-        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by newest', "rdPrayerOpenSort(this)") : '') + (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('prayer') : '');
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml(sortLabel(), 'rdPrayerOpenSort(this)') : '');
+      if (typeof rdStandardRightHtml === 'function') left += rdStandardRightHtml('prayer');
     }
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
@@ -379,17 +608,31 @@
   }
   function rdSetPrayerView(mode) {
     window._prMode = (mode === 'table' || mode === 'print') ? mode : 'journal';
+    if (!window._prSort) window._prSort = window._prMode === 'table' ? 'days' : 'newest';
     renderPrayerRd();
   }
   function applyPrayerRailView(viewId) {
     window._prRailView = viewId || 'all';
     if (typeof setSavedView === 'function') setSavedView('prayer', window._prRailView);
-    window._prMode = 'journal';
     renderPrayerRd();
   }
   function applyPrayerGroupBy(g) {
     window._prGroupBy = g || 'status';
     renderPrayerRd();
+  }
+
+  function groupedMap(els, preferTable) {
+    const groups = {};
+    const order = [];
+    els.forEach(e => {
+      const k = preferTable && (window._prGroupBy || 'status') === 'status' ? e.tableGroup : groupKey(e);
+      if (!groups[k]) { groups[k] = []; order.push(k); }
+      groups[k].push(e);
+    });
+    if (preferTable && (window._prGroupBy || 'status') === 'status') {
+      return { groups, order: ['Answered', 'Still asking', 'Set down'].filter(k => groups[k] && groups[k].length) };
+    }
+    return { groups, order };
   }
 
   /* ── Journal (#13b) ──────────────────────────────────────────────────── */
@@ -403,24 +646,35 @@
         `<button type="button" class="rd-pr-addbtn" onclick="rdPrAdd()"><span>+</span> Write an entry</button>`;
       return;
     }
+    const grouped = (window._prGroupBy && window._prGroupBy !== 'status');
+    const pack = grouped ? groupedMap(els, false) : { groups: { _: els }, order: ['_'] };
     let html = `<div class="rd-pr-journal">`;
-    els.forEach(e => {
-      const closed = e.kind === 'answered' || e.kind === 'answered-other';
-      const scheme = e.kind === 'laid' ? 'muted' : (closed ? 'gold' : 'forest');
-      html += `<article class="rd-pr-entry${closed ? ' is-answered' : ''}${e.kind === 'laid' ? ' is-laid' : ''}" onclick="rdPrOpenDrawer('${esc(e.id)}')">` +
-        `<div class="rd-pr-entry__meta">` +
-        `<span class="status-pill" data-pillscheme="${scheme}">${esc(e.journalStatus)}</span>` +
-        `<span class="rd-pr-entry__when">${esc(fmtLong(e.written))} · ${esc(e.author)}</span>` +
-        `</div>` +
-        `<h3 class="rd-pr-entry__title">${esc(e.title)}</h3>` +
-        `<p class="rd-pr-entry__ask">${esc(e.request || '—')}</p>`;
-      if (closed && e.answer) {
-        html += `<div class="rd-pr-entry__answer">` +
-          `<div class="rd-pr-entry__answer-label">The answer</div>` +
-          `<p>${esc(e.answer)}</p>` +
-          `</div>`;
+    pack.order.forEach(g => {
+      const rows = pack.groups[g] || [];
+      if (!rows.length) return;
+      if (grouped) {
+        html += `<div class="rd-section__head"><div class="rd-pagehead__eyebrow">${esc(g)} · ${rows.length}</div></div>`;
       }
-      html += `</article>`;
+      rows.forEach(e => {
+        const closed = e.kind === 'answered' || e.kind === 'answered-other';
+        const scheme = e.kind === 'laid' ? 'muted' : (closed ? 'gold' : 'forest');
+        const sid = jsId(e.id);
+        html += `<article class="rd-pr-entry${closed ? ' is-answered' : ''}${e.kind === 'laid' ? ' is-laid' : ''}${window._prDrawerId === e.id ? ' is-open' : ''}" onclick="rdPrOpenDrawer('${esc(sid)}')">` +
+          `<div class="rd-pr-entry__meta">` +
+          `<span class="status-pill" data-pillscheme="${scheme}">${esc(e.journalStatus)}</span>` +
+          `<span class="rd-pr-entry__when">${esc(fmtLong(e.written))} · ${esc(e.author)}</span>` +
+          `</div>` +
+          `<h3 class="rd-pr-entry__title">${esc(e.title)}</h3>` +
+          `<p class="rd-pr-entry__ask">${esc(e.request || '—')}</p>`;
+        if (closed && e.answer) {
+          const lead = e.answeredOn ? ('Answered ' + fmtChipDate(e.answeredOn).replace(/ (\d{4})?$/, '') + ' — ') : '';
+          html += `<div class="rd-pr-entry__answer">` +
+            `<div class="rd-pr-entry__answer-label">The answer</div>` +
+            `<p>${esc(lead + e.answer)}</p>` +
+            `</div>`;
+        }
+        html += `</article>`;
+      });
     });
     html += `</div>`;
     html += `<button type="button" class="rd-pr-addbtn" onclick="rdPrAdd()"><span>+</span> Write an entry</button>`;
@@ -429,43 +683,51 @@
 
   /* ── Table (#32c) ────────────────────────────────────────────────────── */
 
+  function tableExcerpt(e) {
+    if (e.kind === 'answered' || e.kind === 'answered-other') {
+      const when = e.answeredOn ? fmtShort(e.answeredOn).replace(/ \d{4}$/, '') : '';
+      const q = e.answer ? ('“' + e.answer.replace(/^["“]|["”]$/g, '') + '”') : '';
+      return (when ? ('Answered ' + when) : 'Answered') + (q ? (' · ' + q) : '');
+    }
+    if (e.kind === 'laid') {
+      return e.request ? ('“' + e.request + '”') : 'Set down';
+    }
+    return e.request || e.author || '—';
+  }
+
   function renderTableView() {
     const host = document.getElementById('pr-view-table');
     if (!host) return;
     const els = filteredEntries();
-    const groups = { Answered: [], 'Still asking': [], 'Set down': [] };
-    els.forEach(e => {
-      const g = e.tableGroup;
-      if (!groups[g]) groups[g] = [];
-      groups[g].push(e);
-    });
-    const help = {
-      Answered: 'closed in serif · the page’s one typographic reward',
-      'Still asking': els.filter(e => e.kind === 'open').length
-        ? ('oldest is ' + (prayerFigures().longestOpen || 0) + ' days')
-        : 'none open',
-      'Set down': 'no longer being asked · kept, not deleted'
+    const pack = groupedMap(els, true);
+    const f = prayerFigures();
+    const helpFor = function (g, rows) {
+      if (g === 'Answered') return 'closed in serif · the page’s one typographic reward';
+      if (g === 'Still asking') return rows.length ? ('oldest is ' + (f.longestOpen || 0) + ' days') : 'none open';
+      if (g === 'Set down') return 'no longer being asked · kept, not deleted';
+      return rows.length + (rows.length === 1 ? ' entry' : ' entries');
     };
     let html = `<div class="rd-grouplist">`;
-    Object.keys(groups).forEach(g => {
-      const rows = groups[g];
+    pack.order.forEach(g => {
+      const rows = pack.groups[g] || [];
       if (!rows.length) return;
       html += `<section class="rd-grouplist__group">` +
-        `<div class="rd-section__head"><div class="rd-pagehead__eyebrow">${esc(g)} · ${rows.length}</div>` +
-        `<p class="rd-help">${esc(help[g] || '')}</p></div>`;
+        `<div class="rd-section__head"><div class="rd-pagehead__eyebrow">${esc(g)} · ${rows.length} ${rows.length === 1 ? 'entry' : 'entries'}</div>` +
+        `<p class="rd-help">${esc(helpFor(g, rows))}</p></div>`;
       rows.forEach(e => {
-        const excerpt = e.answer
-          ? e.answer.slice(0, 90) + (e.answer.length > 90 ? '…' : '')
-          : (e.request.slice(0, 90) + (e.request.length > 90 ? '…' : ''));
         const scheme = e.kind === 'answered-other' ? 'red'
           : (e.kind.indexOf('answered') === 0 ? 'gold' : (e.kind === 'laid' ? 'muted' : 'forest'));
-        html += `<button type="button" class="rd-grouplist__row${e.kind.indexOf('answered') === 0 ? ' is-answered' : ''}" onclick="rdPrOpenDrawer('${esc(e.id)}')">` +
+        const sid = jsId(e.id);
+        const daysCell = e.kind === 'laid'
+          ? (e.laidOn ? ('Set down ' + fmtChipDate(e.laidOn)) : 'Set down')
+          : (e.days != null ? (e.days + ' days') : '—');
+        html += `<button type="button" class="rd-grouplist__row${e.kind.indexOf('answered') === 0 ? ' is-answered' : ''}${window._prDrawerId === e.id ? ' is-open' : ''}" onclick="rdPrOpenDrawer('${esc(sid)}')">` +
           `<div class="rd-grouplist__main">` +
           `<strong>${esc(e.title)}</strong>` +
-          `<span>${esc(excerpt || '—')}</span>` +
+          `<span>${esc(tableExcerpt(e))}</span>` +
           `</div>` +
-          `<div class="rd-grouplist__meta">Asked ${esc(fmtShort(e.written))}</div>` +
-          `<div class="rd-grouplist__days">${e.days != null ? esc(e.days + ' days') : '—'}</div>` +
+          `<div class="rd-grouplist__meta">Asked ${esc(fmtShort(e.written).replace(/ \d{4}$/, ''))}</div>` +
+          `<div class="rd-grouplist__days">${esc(daysCell)}</div>` +
           `<span class="status-pill" data-pillscheme="${scheme}">${esc(e.tableStatus)}</span>` +
           `</button>`;
       });
@@ -478,6 +740,19 @@
 
   /* ── Print preview (#32d) ────────────────────────────────────────────── */
 
+  function printRangeLabel(els) {
+    if (!els.length) return '—';
+    const first = parseDate(els[0].written);
+    const last = parseDate(els[els.length - 1].written);
+    if (!first || !last) return fmtLong(els[0].written);
+    const a = first.toLocaleDateString('en-GB', { month: 'long' });
+    const b = last.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    if (first.getFullYear() === last.getFullYear() && first.getMonth() === last.getMonth()) {
+      return a + ' ' + last.getFullYear();
+    }
+    return a + ' to ' + b;
+  }
+
   function renderPrintView() {
     const host = document.getElementById('pr-view-print');
     if (!host) return;
@@ -487,23 +762,22 @@
     });
     els = els.filter(matchesRail).sort((a, b) => String(a.written || '').localeCompare(String(b.written || '')));
     const f = prayerFigures();
-    const range = els.length
-      ? (fmtShort(els[0].written) + ' to ' + fmtShort(els[els.length - 1].written))
-      : '—';
-    let html = `<article class="rd-pr-print rd-printsheet">` +
+    const countLabel = capitalize(spellNumber(els.length)) + ' prayer' + (els.length === 1 ? '' : 's');
+    let html = `<article class="rd-pr-print rd-printsheet rd-pr-keepsake">` +
       `<header class="rd-pr-print__head">` +
       `<div class="rd-pr-print__names">${esc(coupleNames())}</div>` +
       `<div class="rd-pr-print__kicker">Prayer journal</div>` +
+      `<div class="rd-pr-print__names rd-pr-print__names--small">${esc(coupleNames())}</div>` +
       `<h2>Answered</h2>` +
-      `<p class="rd-pr-print__sub">${esc(els.length + ' prayer' + (els.length === 1 ? '' : 's') + ', ' + range)}</p>` +
+      `<p class="rd-pr-print__sub">${esc(countLabel + ', ' + printRangeLabel(els))}</p>` +
       `</header>`;
     if (!els.length) {
       html += `<p class="rd-pr-empty">No answered entries to print yet.</p>`;
     } else {
       els.forEach(e => {
-        const daysLabel = e.kind === 'answered-other'
+        const daysLabel = e.kind === 'answered-other' || e.notAsAsked
           ? 'not as asked'
-          : (e.days != null ? (e.days + ' days') : '');
+          : (e.days != null ? spellNumber(e.days) + ' days' : '');
         html += `<section class="rd-pr-print__entry">` +
           `<h3>${esc(e.title)}</h3>` +
           `<div class="rd-pr-print__meta">Asked ${esc(fmtLong(e.written))}` +
@@ -515,7 +789,7 @@
           `</section>`;
       });
     }
-    html += `<footer class="rd-pr-print__foot">Proof · ${esc(fmtLong(new Date().toISOString().slice(0, 10)))}` +
+    html += `<footer class="rd-pr-print__foot">Proof · ${esc(fmtLong(todayISO()))}` +
       `<span>Page 1 of ${esc(String(f.printPages))}</span></footer></article>`;
     host.innerHTML = html;
   }
@@ -554,8 +828,10 @@
     parkSharedDrawerAway(slot);
     const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._prDrawerTab, 10) || 0));
     const f = prayerFigures();
+    const sid = jsId(e.id);
     let body = '';
     if (tab === 0) {
+      const links = e.links.length ? e.links : [];
       body =
         field('Written', fmtLong(e.written)) +
         field('Author', e.author) +
@@ -563,37 +839,42 @@
         field('Answered', e.answeredOn ? fmtLong(e.answeredOn) : '—') +
         field('Days', e.days != null ? String(e.days) : '—') +
         `<div class="rd-drawer__section-title">What we asked</div>` +
-        `<p class="rd-pr-drawer__prose">${esc(e.request || '—')}</p>` +
-        (e.answer
-          ? (`<div class="rd-drawer__section-title">The answer</div><p class="rd-pr-drawer__prose">${esc(e.answer)}</p>`)
-          : '') +
-        `<p class="rd-drawer__note">Status is derived from the answer. There is no tick — an entry is answered when an answer exists.</p>`;
+        `<textarea class="rd-pr-drawer__input" rows="4" oninput="rdPrPatch('${esc(sid)}','request',this.value)">${esc(e.request)}</textarea>` +
+        `<p class="rd-drawer__note">Status is derived from whether the Answer tab has text. There is no tick — an entry is answered when an answer exists.</p>` +
+        (links.length
+          ? (`<div class="rd-drawer__section-title">Linked</div>` +
+            links.map(l => field(l.page, l.detail)).join(''))
+          : '');
     } else if (tab === 1) {
       body =
-        `<p class="rd-pr-drawer__prose">${esc(e.answer || 'Nothing written yet.')}</p>` +
+        `<textarea class="rd-pr-drawer__input rd-pr-drawer__input--serif" rows="6" placeholder="Writing here marks it answered." oninput="rdPrPatch('${esc(sid)}','answer',this.value)">${esc(e.answer)}</textarea>` +
         field('Answered on', e.answeredOn ? fmtLong(e.answeredOn) : '—') +
         field('Days waiting', e.days != null ? String(e.days) : '—') +
-        `<p class="rd-drawer__note">An answer closes the entry and sets it in serif on the journal page. That is the page’s one typographic reward.</p>` +
+        `<p class="rd-drawer__note">Writing here is what marks the entry answered, moves it out of “Still praying” and changes the page stat` +
+        (e.answer ? '' : (' from ' + f.answered + ' to ' + (f.answered + 1))) +
+        `. One field, three consequences.</p>` +
         `<div class="rd-drawer__section-title">Across the journal</div>` +
         field('Answered', f.answered + ' of ' + f.entries) +
         field('Still praying', String(f.open)) +
         field('Laid down', String(f.laid)) +
         field('Longest wait', f.longestWait ? (f.longestWait + ' days') : '—');
+      void afterOpen;
     } else if (tab === 2) {
       body =
         field('Share packets', 'Never included') +
         field('Print', 'Keepsake only') +
-        field('Visible to', coupleNames()) +
+        field('Visible to', coupleAnd()) +
         field('Vendors', 'Never') +
-        `<p class="rd-pr-drawer__callout">Prayer entries are the only unshareable record type. They grey out in the share-packet picker — these are facts rather than toggles.</p>`;
+        `<p class="rd-pr-drawer__callout">This is the <em>only</em> record type in the planner that cannot be shared at all. The share-packet section picker greys prayer out rather than hiding it, so you can see that it was withheld deliberately.</p>` +
+        `<p class="rd-drawer__note">Privacy is a property of the record type, not a setting on this entry. There is nothing to switch on, which is why the tab shows facts rather than toggles.</p>`;
     } else {
+      const hist = e.history.slice();
       body =
         `<div class="rd-drawer__section-title">This entry</div>` +
-        (e.answer
-          ? `<div class="rd-drawer__hist"><strong>${esc(fmtChipDate(e.answeredOn || e.written))}</strong> · ${esc(e.author)}<div>Answer written</div></div>`
-          : '') +
-        `<div class="rd-drawer__hist"><strong>${esc(fmtChipDate(e.written))}</strong> · ${esc(e.author)}<div>Entry written</div></div>` +
-        `<p class="rd-drawer__note">History is sparse by design — a prayer journal does not need a dense audit trail.</p>` +
+        hist.map(h =>
+          `<div class="rd-drawer__hist"><strong>${esc(fmtChipDate(h.when))} · ${esc(h.who || e.author)}</strong><div>${esc(h.what)}</div></div>`
+        ).join('') +
+        `<p class="rd-drawer__note">Two edits in twenty-four days. Here a sparse history is the point, not a gap.</p>` +
         `<div class="rd-drawer__section-title">Rhythm</div>` +
         field('Weeks with an entry', f.weeksWithEntry + ' of ' + f.weeksWindow) +
         field('Longest streak', f.streak + ' weeks');
@@ -607,7 +888,7 @@
       `<div class="rd-drawer__eyebrow">${esc(eyebrow)}</div>` +
       `<h2 class="rd-drawer__title">${esc(e.title)}</h2>` +
       `<div class="rd-drawer__chips">` +
-      `<span class="status-pill" data-pillscheme="${e.kind.indexOf('answered') === 0 ? 'gold' : (e.kind === 'laid' ? 'muted' : 'forest')}">${esc(e.journalStatus)}</span>` +
+      `<span class="status-pill" data-pillscheme="${e.kind === 'answered-other' ? 'red' : (e.kind.indexOf('answered') === 0 ? 'gold' : (e.kind === 'laid' ? 'muted' : 'forest'))}">${esc(e.kind === 'answered-other' ? 'Answered · not as asked' : e.journalStatus)}</span>` +
       `<span class="status-pill" data-pillscheme="gold">${esc(e.author + ' · ' + fmtChipDate(e.written))}</span>` +
       `</div>` +
       `<button type="button" class="rd-drawer__close" onclick="rdPrCloseDrawer()" aria-label="Close">×</button>` +
@@ -618,8 +899,8 @@
       `</div></div>` +
       `<div class="rd-drawer__body">${body}</div>` +
       `<div class="rd-drawer__foot">` +
-      `<button type="button" class="rd-btn rd-btn--primary" onclick="rdPrCloseDrawer()">Save</button>` +
-      `<button type="button" class="rd-btn" onclick="rdPrFullEditor('${esc(e.id)}')">Full editor</button>` +
+      `<button type="button" class="rd-btn rd-btn--primary" onclick="rdPrSave()">Save</button>` +
+      `<button type="button" class="rd-btn" onclick="rdPrFullEditor('${esc(sid)}')">Open full editor</button>` +
       `</div></aside>`;
   }
 
@@ -629,9 +910,7 @@
     window._prDrawerId = id;
     window._prDrawerTab = 0;
     if (window._prMode === 'print') window._prMode = 'journal';
-    renderPrayerDrawer();
-    if (window._prMode === 'table') renderTableView();
-    else renderJournalView();
+    renderPrayerRd();
   }
   function rdPrCloseDrawer() {
     window._prDrawerId = null;
@@ -646,9 +925,66 @@
     window._prDrawerTab = i;
     renderPrayerDrawer();
   }
+  function rdPrPatch(id, key, val) {
+    const e = findById(id);
+    if (!e) return;
+    const row = e.row;
+    if (key === 'request') row.request = val;
+    if (key === 'answer') {
+      const was = String(row.answer || '').trim();
+      row.answer = val;
+      const now = String(val || '').trim();
+      if (now && !was) {
+        row.answered = row.answered || todayISO();
+        row.status = row.notAsAsked ? 'Answered' : 'Answered';
+        row.history = Array.isArray(row.history) ? row.history : [];
+        row.history.unshift({ when: row.answered, who: row.author || 'Both', what: 'Answer written' });
+      }
+      if (!now) {
+        row.answered = '';
+        if (!/laid|set down/i.test(String(row.status || ''))) row.status = 'Still praying';
+      }
+    }
+    persist();
+    if (key === 'answer') {
+      renderPrayerStatsRd();
+      if (window._prMode === 'table') renderTableView();
+      else renderJournalView();
+      const f = prayerFigures();
+      const note = document.querySelector('#prayer-drawer-slot .rd-drawer__note');
+      if (note && note.textContent.indexOf('One field') >= 0) {
+        note.textContent = 'Writing here is what marks the entry answered, moves it out of “Still praying” and changes the page stat from ' +
+          (nowEmpty(val) ? f.answered : Math.max(0, f.answered - 1)) + ' to ' + f.answered +
+          '. One field, three consequences.';
+      }
+    }
+  }
+  function nowEmpty(val) { return !String(val || '').trim(); }
+  function rdPrSave() {
+    persist();
+    rdPrCloseDrawer();
+    renderPrayerRd();
+  }
   function rdPrAdd() {
-    if (typeof openRecordEditor === 'function') openRecordEditor('prayer');
-    else if (typeof addPrayerRow === 'function') addPrayerRow();
+    ensurePrayer();
+    const d = store();
+    const row = {
+      date: todayISO(),
+      focus: 'Untitled prayer',
+      request: '',
+      scripture: '',
+      answer: '',
+      status: 'Still praying',
+      author: 'Both',
+      history: [{ when: todayISO(), who: 'Both', what: 'Entry written' }]
+    };
+    if (typeof nextRecordId === 'function') row._id = nextRecordId('prayer');
+    d.prayer.unshift(row);
+    persist();
+    window._prMode = window._prMode === 'print' ? 'journal' : window._prMode;
+    window._prDrawerId = row._id ? ('prayer:' + row._id) : ('prayer:idx:0');
+    window._prDrawerTab = 0;
+    renderPrayerRd();
   }
   function rdPrFullEditor(id) {
     const e = id ? findById(id) : findById(window._prDrawerId);
@@ -672,12 +1008,17 @@
     window._prSearch = String(val).trim();
     renderPrayerRd();
   }
-  function rdPrPrint() {
-    if (typeof buildPrayerPrintSheets === 'function' && typeof openCovenantPrintTemplate === 'function') {
-      openCovenantPrintTemplate(buildPrayerPrintSheets());
-    } else if (typeof printCurrentPage === 'function') printCurrentPage();
-    else window.print();
+  function goPrintViewAndPrint() {
+    window._prMode = 'print';
+    renderPrayerRd();
+    setTimeout(() => {
+      if (typeof printCurrentPage === 'function') printCurrentPage();
+      else window.print();
+    }, 40);
   }
+  function rdPrPrint() { goPrintViewAndPrint(); }
+  function rdPrPrintSection() { goPrintViewAndPrint(); }
+  function rdPrExportPdf() { goPrintViewAndPrint(); }
   function rdPrExport() {
     if (typeof exportSectionCSV === 'function') {
       exportSectionCSV('Prayer Journal', allEntries().map(e => ({
@@ -702,10 +1043,7 @@
       allEntries().forEach(e => { if (e.author) options[e.author] = true; });
     }
     if (field === 'month') {
-      allEntries().forEach(e => {
-        const d = parseDate(e.written);
-        if (d) options[d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })] = true;
-      });
+      allEntries().forEach(e => { options[monthLabel(e.written)] = true; });
     }
     const list = Object.keys(options);
     const cur = (window._prUiFilters || {})[field] || (field === 'author' ? 'both' : 'all');
@@ -717,11 +1055,47 @@
     window._prUiFilters[field] = field === 'author' ? 'both' : 'all';
     renderPrayerRd();
   }
+  function rdPrCycleGroup() {
+    const list = ['status', 'author', 'month'];
+    const i = list.indexOf(window._prGroupBy || 'status');
+    window._prGroupBy = list[(i + 1) % list.length];
+    renderPrayerRd();
+  }
+  function rdPrClearGroup() {
+    window._prGroupBy = 'status';
+    renderPrayerRd();
+  }
+  function rdPrayerOpenSort(btn) {
+    const mode = window._prMode || 'journal';
+    const opts = mode === 'table'
+      ? [
+        { value: 'days', label: 'Sort by days open' },
+        { value: 'newest', label: 'Sort by newest' },
+        { value: 'oldest', label: 'Sort by oldest' },
+        { value: 'az', label: 'Sort A–Z' }
+      ]
+      : [
+        { value: 'newest', label: 'Sort by newest' },
+        { value: 'oldest', label: 'Sort by oldest' },
+        { value: 'az', label: 'Sort A–Z' }
+      ];
+    const cur = window._prSort || (mode === 'table' ? 'days' : 'newest');
+    if (typeof window.rdStdOpenSort === 'function') {
+      window.rdStdOpenSort(btn, 'prayer', opts, cur, function (val) {
+        window._prSort = val;
+        renderPrayerRd();
+      });
+      return;
+    }
+    const i = opts.findIndex(o => o.value === cur);
+    window._prSort = opts[(i + 1) % opts.length].value;
+    renderPrayerRd();
+  }
 
   /* ── main ────────────────────────────────────────────────────────────── */
 
   function renderPrayerRd() {
-    ensurePrayer();
+    ensureMasterPrayer();
     uedPrayerShellRd();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('prayer');
     applyViewMode();
@@ -754,14 +1128,21 @@
   window.rdPrOpenDrawer = rdPrOpenDrawer;
   window.rdPrCloseDrawer = rdPrCloseDrawer;
   window.rdPrSetDrawerTab = rdPrSetDrawerTab;
+  window.rdPrPatch = rdPrPatch;
+  window.rdPrSave = rdPrSave;
   window.rdPrAdd = rdPrAdd;
   window.rdPrFullEditor = rdPrFullEditor;
   window.rdPrSearch = rdPrSearch;
   window.rdPrPrint = rdPrPrint;
+  window.rdPrPrintSection = rdPrPrintSection;
   window.rdPrExport = rdPrExport;
+  window.rdPrExportPdf = rdPrExportPdf;
   window.rdPrToggleAnsweredOnly = rdPrToggleAnsweredOnly;
   window.rdPrCycleFilter = rdPrCycleFilter;
   window.rdPrClearFilter = rdPrClearFilter;
+  window.rdPrCycleGroup = rdPrCycleGroup;
+  window.rdPrClearGroup = rdPrClearGroup;
+  window.rdPrayerOpenSort = rdPrayerOpenSort;
 
   function hookPrayerPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) {

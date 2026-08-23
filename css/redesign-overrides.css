@@ -19251,6 +19251,9 @@ body.rd-scope #panel-prayer .rd-pr-entry.is-laid .rd-pr-entry__title,
 body.rd-scope #panel-prayer .rd-pr-entry.is-laid .rd-pr-entry__ask {
   color: #8a7e6b;
 }
+body.rd-scope #panel-prayer .rd-pr-entry.is-open {
+  background: #fdfaf4;
+}
 body.rd-scope #panel-prayer .rd-pr-addbtn {
   display: flex;
   align-items: center;
@@ -19322,12 +19325,14 @@ body.rd-scope #panel-prayer .rd-grouplist__days {
   color: #8a7e6b;
 }
 
-body.rd-scope #panel-prayer .rd-pr-print {
+body.rd-scope #panel-prayer .rd-pr-print,
+body.rd-scope #panel-prayer .rd-pr-keepsake {
   max-width: 520px;
   margin: 8px auto 28px;
   padding: 36px 40px 48px;
   border: 1px solid #e7e1d4;
   background: #fdfcfa;
+  color: #23211c;
   font-family: var(--font-display, Georgia, "Times New Roman", serif);
 }
 body.rd-scope #panel-prayer .rd-pr-print__head { text-align: center; margin-bottom: 28px; }
@@ -19335,6 +19340,11 @@ body.rd-scope #panel-prayer .rd-pr-print__names {
   font-size: 26px;
   color: #20362D;
   margin-bottom: 4px;
+}
+body.rd-scope #panel-prayer .rd-pr-print__names--small {
+  font-size: 15px;
+  margin-top: 18px;
+  margin-bottom: 0;
 }
 body.rd-scope #panel-prayer .rd-pr-print__kicker {
   font-size: 12px;
@@ -19467,6 +19477,24 @@ body.rd-scope #panel-prayer .rd-pr-drawer__prose {
   line-height: 1.55;
   color: #3f3b34;
 }
+body.rd-scope #panel-prayer .rd-pr-drawer__input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 72px;
+  padding: 8px 10px;
+  border: 1px solid #e7e1d4;
+  background: #fff;
+  color: #3f3b34;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+body.rd-scope #panel-prayer .rd-pr-drawer__input--serif {
+  font-family: var(--font-display, Georgia, "Times New Roman", serif);
+  font-size: 15px;
+  min-height: 120px;
+}
 body.rd-scope #panel-prayer .rd-pr-drawer__callout {
   margin: 0;
   padding: 10px 12px;
@@ -19505,6 +19533,54 @@ body.rd-scope #panel-prayer .rd-pr-drawer .rd-drawer__foot {
   }
   body.rd-scope #panel-prayer .rd-grouplist__meta,
   body.rd-scope #panel-prayer .rd-grouplist__days { grid-column: 1; }
+}
+
+body.rd-scope.dark-mode #panel-prayer #prayer-drawer-slot.is-open,
+body.rd-scope[data-theme="dark"] #panel-prayer #prayer-drawer-slot.is-open {
+  border-left-color: #3a3830;
+  background: #1c1d13;
+}
+body.rd-scope.dark-mode #panel-prayer .rd-pr-entry,
+body.rd-scope[data-theme="dark"] #panel-prayer .rd-pr-entry,
+body.rd-scope.dark-mode #panel-prayer .rd-grouplist__row,
+body.rd-scope[data-theme="dark"] #panel-prayer .rd-grouplist__row {
+  border-bottom-color: #33332c;
+}
+body.rd-scope.dark-mode #panel-prayer .rd-pr-entry__title,
+body.rd-scope[data-theme="dark"] #panel-prayer .rd-pr-entry__title,
+body.rd-scope.dark-mode #panel-prayer .rd-grouplist__main strong,
+body.rd-scope[data-theme="dark"] #panel-prayer .rd-grouplist__main strong {
+  color: #e6e1d6;
+}
+body.rd-scope.dark-mode #panel-prayer .rd-pr-entry__ask,
+body.rd-scope[data-theme="dark"] #panel-prayer .rd-pr-entry__ask {
+  color: #cfc6b4;
+}
+body.rd-scope.dark-mode #panel-prayer .rd-pr-drawer__input,
+body.rd-scope[data-theme="dark"] #panel-prayer .rd-pr-drawer__input {
+  background: #17180f;
+  border-color: #33332c;
+  color: #e6e1d6;
+}
+/* Class B keepsake always prints and previews light */
+body.rd-scope.dark-mode #panel-prayer .rd-pr-keepsake,
+body.rd-scope[data-theme="dark"] #panel-prayer .rd-pr-keepsake,
+body.rd-scope.dark-mode #panel-prayer .rd-pr-print,
+body.rd-scope[data-theme="dark"] #panel-prayer .rd-pr-print {
+  background: #fdfcfa;
+  color: #23211c;
+  border-color: #e7e1d4;
+}
+@media print {
+  body.rd-scope #panel-prayer .rd-pagehead,
+  body.rd-scope #panel-prayer .rd-stats,
+  body.rd-scope #panel-prayer .rd-toolbar,
+  body.rd-scope #panel-prayer #prayer-drawer-slot { display: none !important; }
+  body.rd-scope #panel-prayer .rd-pr-keepsake {
+    border: 0;
+    margin: 0 auto;
+    max-width: none;
+  }
 }
 
 /* ── Premarital Counseling (All.dc #13c) ──────────────────────────────────── */

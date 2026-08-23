@@ -7682,9 +7682,9 @@ const CWP_GHOST_TEMPLATES = {
     { section:'Getting Ready', shot:'Bride letter reading (optional)', priority:'Optional', timing:'Getting Ready' }
   ],
   prayer: [
-    { date:'2026-01-12', focus:'Vendor peace', request:'Wisdom choosing caterer', scripture:'James 1:5', answer:'' },
-    { date:'2026-02-03', focus:'Guest list', request:'Unity with both families', scripture:'Colossians 3:14', answer:'' },
-    { date:'2026-03-20', focus:'Marriage prep', request:'Hearts ready for covenant', scripture:'Ephesians 5:25', answer:'' }
+    { date:'2026-06-30', focus:'A house we can afford', author:'Both', request:'We asked for somewhere in Adenta we could pay for without borrowing from either family.', scripture:'', answer:'The Adenta flat came back on the market $400 below what we had budgeted.', answered:'2026-07-24', status:'Answered' },
+    { date:'2026-07-18', focus:'For my father\'s health before November', author:'Kwesi', request:'The consultant wants to see him again in September.', scripture:'', answer:'', status:'Still praying' },
+    { date:'2026-04-14', focus:'A December date', author:'Ama', request:'We wanted December. The hall had nothing until March.', scripture:'', answer:'', status:'Laid down' }
   ],
   wdayTimeline: [
     { time:'08:00', event:'Hair & makeup begins', location:'Bridal suite', responsible:'Bride & party', duration:'2 hr' },
@@ -13768,7 +13768,7 @@ function recordEditorDefault(key){
   if (key === 'plan') return { _id:nextRecordId('plan'), phase:'12+ Months Before', task:'', owner:'', suggestedDue:'', due:'', priority:'Medium', status:'Upcoming', done:false, notes:'', subtasks:[] };
   if (key === 'timeline') return { _id:nextRecordId('timeline'), time:'', event:'', location:'', responsible:'', duration:'', notes:'' };
   if (key === 'scriptures') return { _id:nextRecordId('scriptures'), num:'', passage:'', fullPassage:'', text:'', reader:'', translation:(data.setup && data.setup.scriptureTranslation) || 'KJV', purpose:'', notes:'' };
-  if (key === 'prayer') return { _id:nextRecordId('prayer'), date:typeof todayISO === 'function' ? todayISO() : '', focus:'', request:'', scripture:'', answer:'', status:'Praying' };
+  if (key === 'prayer') return { _id:nextRecordId('prayer'), date:typeof todayISO === 'function' ? todayISO() : '', focus:'', request:'', scripture:'', answer:'', status:'Still praying', author:'Both' };
   if (key === 'counseling') return { _id:nextRecordId('counseling'), num:(safeArray(data?.counseling).length + 1), date:'', topic:'', homework:'', takeaway:'', questions:'', status:'Not Started' };
   if (key === 'party') return { _id:nextRecordId('party'), name:'', role:'Bridesmaid', phone:'', email:'', attire:'', size:'', status:'Not Started', notes:'' };
   if (key === 'gifts') return { _id:nextRecordId('gifts'), from:'', phone:'', email:'', address:'', desc:'', value:0, date:'', category:'Registry', thankyou:false, notes:'' };
@@ -30392,18 +30392,18 @@ const SAMPLE_DATA = {
     { num: 3, passage: "Colossians 3:12-17", text: "Put on therefore… kindness, humbleness of mind, meekness, longsuffering. (KJV)", reader: "Pastor David Reynolds", notes: "Part of the message" }
   ],
   prayer: [
-    { date: "2025-12-28", focus: "Engagement", request: "Thankfulness for the proposal and wisdom as we begin planning", scripture: "James 1:5", answer: "Felt peace about starting the planning process together" },
-    { date: "2026-01-11", focus: "Wedding budget", request: "Wisdom to plan a budget that honors God and doesn't cause anxiety", scripture: "Philippians 4:6-7", answer: "" },
-    { date: "2026-01-25", focus: "Venue search", request: "Guidance in choosing the right ceremony and reception venues", scripture: "Proverbs 3:5-6", answer: "Found Grace Community Church and The Magnolia Barn" },
-    { date: "2026-02-08", focus: "Family relationships", request: "Unity between both families as plans come together", scripture: "Romans 12:18", answer: "" },
-    { date: "2026-02-22", focus: "Premarital counseling", request: "Open hearts as we begin counseling with Pastor Reynolds", scripture: "Proverbs 27:17", answer: "First session was encouraging and honest" },
-    { date: "2026-03-08", focus: "Finances", request: "Wisdom for vendor payments and staying within budget", scripture: "Luke 14:28", answer: "" },
-    { date: "2026-03-22", focus: "Patience", request: "Patience with each other during a stressful planning season", scripture: "Ephesians 4:2", answer: "" },
-    { date: "2026-04-05", focus: "Honeymoon planning", request: "A restful and meaningful honeymoon after the wedding", scripture: "Genesis 2:24", answer: "Flights booked, felt provided for" },
-    { date: "2026-04-19", focus: "Guest list", request: "Grace in navigating difficult guest list decisions", scripture: "Colossians 3:13", answer: "" },
-    { date: "2026-05-03", focus: "The marriage ahead", request: "That our marriage would point others to Christ", scripture: "Matthew 5:16", answer: "" },
-    { date: "2026-05-17", focus: "Stress & anxiety", request: "Peace during a busy season of vendor coordination", scripture: "1 Peter 5:7", answer: "" },
-    { date: "2026-05-31", focus: "Gratitude", request: "A heart of thankfulness as the wedding date approaches", scripture: "1 Thessalonians 5:18", answer: "Reminded of how far the planning has come" }
+    { date: "2026-06-30", focus: "A house we can afford", author: "Both", request: "We asked for somewhere in Adenta we could pay for without borrowing from either family. We had seen eleven and every one was either out of reach or falling down.", scripture: "", answer: "The Adenta flat came back on the market $400 below what we had budgeted, because the previous buyer pulled out. We move in two weeks after the wedding.", answered: "2026-07-24", status: "Answered" },
+    { date: "2026-05-12", focus: "That Mum would come round", author: "Ama", request: "She has not said a word about the wedding since March.", scripture: "", answer: "She asked to help choose the fabric. That was the whole answer.", answered: "2026-07-02", status: "Answered" },
+    { date: "2026-07-18", focus: "For my father's health before November", author: "Kwesi", request: "The consultant wants to see him again in September. He wants to walk Ama's mother down the aisle and I want him to be able to.", scripture: "", answer: "", status: "Still praying" },
+    { date: "2026-07-21", focus: "That we would not lose each other in the planning", author: "Both", request: "We have had three arguments this month and all three were about a spreadsheet.", scripture: "", answer: "", status: "Still praying" },
+    { date: "2026-04-14", focus: "A December date", author: "Ama", request: "We wanted December. The hall had nothing until March. We stopped asking and took 8 November, and we are glad.", scripture: "", answer: "", status: "Laid down", laidOn: "2026-04-20" },
+    { date: "2026-01-12", focus: "That both families would agree on the date", author: "Both", request: "They chose it together in one evening, after four months of nobody wanting to be the one to suggest a date.", scripture: "", answer: "They chose it together in one evening.", answered: "2026-04-02", status: "Answered" },
+    { date: "2026-03-03", focus: "For Kwesi's mother's health before the day", author: "Both", request: "Discharged on the Friday, and dancing at the engagement on the Sunday.", scripture: "", answer: "Discharged, and dancing at the engagement.", answered: "2026-06-18", status: "Answered" },
+    { date: "2026-01-20", focus: "That the venue would come in under budget", author: "Both", request: "It did not come in under budget. We signed anyway, and we are at peace about it, which was not the prayer but seems to be the answer.", scripture: "", answer: "It did not. We are at peace about it.", answered: "2026-03-12", status: "Answered", notAsAsked: true },
+    { date: "2026-01-14", focus: "For patience with each other in the last month", author: "Both", request: "Both of us", scripture: "", answer: "", status: "Still praying" },
+    { date: "2026-05-08", focus: "That the marriage would outlast the wedding", author: "Both", request: "Written after counseling 03", scripture: "", answer: "", status: "Still praying" },
+    { date: "2026-07-02", focus: "For Michael, who is carrying a lot quietly", author: "Kwesi", request: "Kwesi", scripture: "", answer: "", status: "Still praying" },
+    { date: "2026-02-01", focus: "That the rain would hold off", author: "Ama", request: "It is November. We booked a marquee instead.", scripture: "", answer: "", status: "Laid down", laidOn: "2026-06-04" }
   ],
   counseling: [
     { num: 1, date: "2026-02-15", topic: "Foundations of a Christ-centered marriage", homework: "Read chapters 1-2 of marriage prep book", takeaway: "Marriage is a covenant, not just a contract", questions: "How do we keep Christ at the center during busy seasons?", status: "Complete" },
@@ -44402,7 +44402,7 @@ function mountAllTabs(root){
       search:true, filters:[], bulk:{enabled:false}, rowClickEdit:true,
       addLabel:'+ Add prayer', recordLabel:'Prayer Entry',
       addFn:()=>{ if(typeof addPrayerRow==='function') addPrayerRow(); },
-      newRecord:()=>({ date:'', focus:'', request:'', scripture:'', answer:'', status:'Praying' }),
+      newRecord:()=>({ date:'', focus:'', request:'', scripture:'', answer:'', status:'Still praying', author:'Both' }),
       afterChange:()=>{ if(typeof renderPrayerStats==='function') renderPrayerStats(); },
       columns:[
         {key:'date',      label:'Date',                type:'date',     filter:true},
@@ -44410,7 +44410,7 @@ function mountAllTabs(root){
         {key:'request',   label:'Request',             type:'longtext'},
         {key:'scripture', label:'Scripture Reference', type:'text',     min:150},
         {key:'answer',    label:'Answer / Reflection', type:'longtext'},
-        {key:'status',    label:'Status',              type:'status',   options:['Praying','Answered','Waiting'], filter:true}
+        {key:'status',    label:'Status',              type:'status',   options:['Still praying','Answered','Laid down'], filter:true}
       ]
     },
     vendors:{
