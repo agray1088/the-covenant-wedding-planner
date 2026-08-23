@@ -632,7 +632,7 @@
   /* Aliases for chips wired from redesign toolbars */
   ['rdEssOpenSort','rdContactsOpenSort','rdHhOpenSort','rdNotesOpenSort','rdEtOpenSort',
    'rdPktOpenSort','rdCerOpenSort','rdEntOpenSort','rdShotOpenSort','rdWdayOpenSort',
-   'rdPrayerOpenSort','rdCatOpenSort'].forEach(function (name) {
+   'rdPrayerOpenSort','rdCatOpenSort','rdPcOpenSort'].forEach(function (name) {
     if (typeof window[name] !== 'function') {
       window[name] = function (btn) { window.rdStdOpenSort(btn, name); };
     }

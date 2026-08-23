@@ -2886,17 +2886,21 @@
       viewItem('printed', 'Printed already', counts.printed || 0) +
       viewItem('dayof', 'Day-of pack', counts.dayof || 0) +
       '</div></div>';
+    var readyPct = figures.dayOfTotal ? Math.round((figures.dayOfReady || 0) * 100 / figures.dayOfTotal) : 0;
     var metersHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Day-of pack</div><div class="rd-rail__meters">' +
-      '<div class="rd-rail__meter-top"><span>Ready to print</span><span class="rd-rail__count">' + (figures.dayOfReady || 0) + ' of ' + (figures.dayOfTotal || 0) + '</span></div>' +
+      '<div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>Ready to print</span><span class="rd-rail__count">' + (figures.dayOfReady || 0) + ' of ' + (figures.dayOfTotal || 0) + '</span></div>' +
+      '<div class="rd-progress"><div class="rd-progress__fill" style="width:' + readyPct + '%"></div></div></div>' +
       '<div class="rd-rail__meter-top"><span>Blocked</span><span class="rd-rail__count">' + (figures.packBlocked || 0) + '</span></div>' +
       '</div></div>';
+    var paper = figures.paper || 'Letter';
     var paperHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Paper</div><div class="rd-rail__list" role="list">' +
-      '<button type="button" class="rd-rail__item' + ((figures.paper || 'Letter') === 'Letter' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'Letter\')">Letter</button>' +
-      '<button type="button" class="rd-rail__item' + ((figures.paper || '') === 'A4' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'A4\')">A4</button>' +
+      '<button type="button" class="rd-rail__item' + (paper === 'Letter' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'Letter\')">Letter</button>' +
+      '<button type="button" class="rd-rail__item' + (paper === 'A4' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'A4\')">A4</button>' +
+      '<button type="button" class="rd-rail__item' + (paper === 'Both' ? ' is-active' : '') + '" onclick="setPrintCentrePaper(\'Both\')">Both, fit to page</button>' +
       '</div></div>';
-    var noteHtml = '<p class="rd-rail__note"><b>Class A</b> prints black on white with repeating headers; <b>Class B</b> keeps Cormorant and gold hairlines.</p>';
+    var noteHtml = '<p class="rd-rail__note">Class A prints black on white with repeating headers. Class B keeps Cormorant, gold hairlines and generous margins.</p>';
     return '<div class="rd-rail__stack" data-page-rail="print-centre">' + viewsHtml + metersHtml + paperHtml + noteHtml + '</div>';
   }
 
