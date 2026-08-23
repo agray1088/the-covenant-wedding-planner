@@ -88,7 +88,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [24 · Share Packets](#section-24) — done on `cursor/dashboard-views-017e` — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [25 · Email Templates](#section-25) — done on `cursor/dashboard-views-017e` — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [26 · Print Centre](#section-26) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
-- [27 · Vision & Foundation](#section-27) — queued — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
+- [27 · Vision & Foundation](#section-27) — done on `cursor/dashboard-views-017e` — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [28 · Prayer Journal](#section-28) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [29 · Premarital Counseling](#section-29) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [30 · First-Month Rhythms](#section-30) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
@@ -3184,7 +3184,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s27` · slug `vision-foundation`
 - **Header counts:** 7 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §28
 - **Screen ids:** `13a`, `32a`, `32b`, `19l`
 
 ### Five parts on this page

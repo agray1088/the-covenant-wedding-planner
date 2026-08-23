@@ -2667,12 +2667,14 @@
       vision: 0, values: 0, scriptures: 0, promises: 0, building: 0
     };
     var figures = typeof window.visFigures === 'function' ? window.visFigures() : {
-      sectionsComplete: 0, sectionsTotal: 5, words: 0, lastWritten: '—'
+      sectionsComplete: 0, sectionsTotal: 5, words: 0, lastWritten: '—', printed: 'Not yet'
     };
     function viewItem(id, label, count) {
+      var countHtml = (count === '' || count == null)
+        ? ''
+        : '<span class="rd-rail__count">' + count + '</span>';
       return '<button type="button" class="rd-rail__item' + (activeView === id ? ' is-active' : '') + '"' +
-        ' onclick="applyVisionRailView(\'' + id + '\')">' + esc(label) +
-        '<span class="rd-rail__count">' + (count || '') + '</span></button>';
+        ' onclick="applyVisionRailView(\'' + id + '\')">' + esc(label) + countHtml + '</button>';
     }
     var viewsHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Sections</div><div class="rd-rail__list" role="list">' +
@@ -2685,11 +2687,17 @@
     var metersHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Written</div><div class="rd-rail__meters">' +
       '<div class="rd-rail__meter-top"><span>Sections complete</span><span class="rd-rail__count">' + (figures.sectionsComplete || 0) + ' of ' + (figures.sectionsTotal || 5) + '</span></div>' +
-      '<div class="rd-rail__meter-top"><span>Words</span><span class="rd-rail__count">' + (figures.words || 0) + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Words</span><span class="rd-rail__count">' + (typeof figures.words === 'number' ? figures.words.toLocaleString('en-US') : (figures.words || 0)) + '</span></div>' +
       '<div class="rd-rail__meter-top"><span>Last written</span><span class="rd-rail__count">' + esc(figures.lastWritten || '—') + '</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Printed</span><span class="rd-rail__count">' + esc(figures.printed || 'Not yet') + '</span></div>' +
       '</div></div>';
-    var noteHtml = '<p class="rd-rail__note">Prints as a <b>Class B keepsake</b>: Cormorant returns, margins open, one gold hairline per page.</p>';
-    return '<div class="rd-rail__stack" data-page-rail="vision">' + viewsHtml + metersHtml + noteHtml + '</div>';
+    var keepHtml =
+      '<div class="rd-rail__section"><div class="rd-rail__title">Keepsake</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Class B · Letter</span><span class="rd-rail__count">Gold hairline</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Cormorant headings</span><span class="rd-rail__count"></span></div>' +
+      '</div></div>';
+    var noteHtml = '<p class="rd-rail__note">This page prints as a Class B keepsake: Cormorant returns, margins open to 0.9in, one gold hairline per page.</p>';
+    return '<div class="rd-rail__stack" data-page-rail="vision">' + viewsHtml + metersHtml + keepHtml + noteHtml + '</div>';
   }
 
   /* All.dc #13d — First-Month Rhythms. Views · Since the wedding · Group by. */

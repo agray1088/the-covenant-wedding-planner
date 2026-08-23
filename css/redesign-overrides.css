@@ -24889,44 +24889,353 @@ body.rd-scope[data-theme="night"] #panel-contacts .rd-ct-drawer .rd-ct-input {
   }
 }
 
-/* Vision keepsake read surface */
+/* Vision keepsake read surface — Master s27 / 13a */
 body.rd-scope #panel-vision .rd-keepsake,
-body.rd-scope #panel-vision .rd-vis-keepsake {
-  max-width: 42rem;
+body.rd-scope #panel-vision .rd-vis-keepsake,
+body.rd-scope #panel-vision .rd-vis-read {
+  max-width: 46rem;
   margin: 0 auto;
-  padding: 28px 8px 48px;
+  padding: 12px 8px 48px;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 18px;
-  line-height: 1.55;
+  line-height: 1.6;
   color: #2a2620;
 }
-body.rd-scope #panel-vision .rd-vis-section {
-  margin: 0 0 28px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid #e7ce80;
+body.rd-scope #panel-vision .rd-vis-block {
+  margin: 0 0 36px;
+  padding-bottom: 8px;
 }
-body.rd-scope #panel-vision .rd-vis-section h2 {
+body.rd-scope #panel-vision .rd-vis-block__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+body.rd-scope #panel-vision .rd-vis-block h2 {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 26px;
   font-weight: 500;
-  margin: 0 0 10px;
+  margin: 0;
+  color: #20362D;
 }
-body.rd-scope #panel-vision .rd-vis-edit .rfl-field,
-body.rd-scope #panel-vision .rd-vis-edit label {
+body.rd-scope #panel-vision .rd-vis-block__sub {
+  margin: 0;
+  flex: 1;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-vision .rd-vis-prose p {
+  margin: 0 0 14px;
+}
+body.rd-scope #panel-vision .rd-vis-values {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+body.rd-scope #panel-vision .rd-vis-value {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  padding: 12px 4px 14px;
+  border-top: 1px solid #efe6cf;
+  cursor: pointer;
+}
+body.rd-scope #panel-vision .rd-vis-value.is-open,
+body.rd-scope #panel-vision .rd-vis-scripture.is-open,
+body.rd-scope #panel-vision .rd-vis-promises li.is-open {
+  background: #fbf6ea;
+}
+body.rd-scope #panel-vision .rd-vis-value__n {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: #b89968;
+  padding-top: 4px;
+}
+body.rd-scope #panel-vision .rd-vis-value strong {
   display: block;
+  font-size: 20px;
+  font-weight: 600;
+  color: #20362D;
+}
+body.rd-scope #panel-vision .rd-vis-value p {
+  margin: 4px 0 0;
+  font-size: 16px;
+}
+body.rd-scope #panel-vision .rd-vis-add {
+  display: inline-block;
+  margin-top: 10px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  color: #946f33;
+  cursor: pointer;
+}
+body.rd-scope #panel-vision .rd-vis-scriptures {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+body.rd-scope #panel-vision .rd-vis-scripture {
+  padding: 14px 4px 16px;
+  border-top: 1px solid #efe6cf;
+  cursor: pointer;
+}
+body.rd-scope #panel-vision .rd-vis-scripture strong {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .04em;
+  color: #20362D;
+}
+body.rd-scope #panel-vision .rd-vis-scripture blockquote {
+  margin: 8px 0;
+  font-size: 20px;
+  font-style: italic;
+  color: #2a2620;
+}
+body.rd-scope #panel-vision .rd-vis-scripture__note {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-vision .rd-vis-promises {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+body.rd-scope #panel-vision .rd-vis-promises h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  color: #20362D;
+}
+body.rd-scope #panel-vision .rd-vis-promises ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+body.rd-scope #panel-vision .rd-vis-promises li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid #efe6cf;
+  cursor: pointer;
+  font-size: 16px;
+}
+body.rd-scope #panel-vision .rd-vis-promises li span {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #b89968;
+  padding-top: 4px;
+}
+body.rd-scope #panel-vision .rd-vis-promises li p { margin: 0; }
+body.rd-scope #panel-vision .rd-vis-unfinished {
+  margin: 0;
+  padding: 16px 0 8px;
+  color: #6b645d;
+  font-size: 17px;
+}
+body.rd-scope #panel-vision .rd-vis-block--unfinished {
+  border-top: 1px solid #e7ce80;
+  padding-top: 18px;
+}
+
+/* Edit view 32a — blocks, not fields */
+body.rd-scope #panel-vision .rd-vis-edit {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 8px 8px 48px;
+}
+body.rd-scope #panel-vision .rd-vis-edit__banner {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  color: #6b645d;
+}
+body.rd-scope #panel-vision .rd-vis-edit__banner strong { color: #20362D; }
+body.rd-scope #panel-vision .rd-vis-edit__title,
+body.rd-scope #panel-vision .rd-vis-edit__body,
+body.rd-scope #panel-vision .rd-vis-blockinsert {
+  display: block;
+  margin: 0 0 16px;
   font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   color: #6b645d;
-  margin: 12px 0 4px;
 }
+body.rd-scope #panel-vision .rd-vis-edit input,
 body.rd-scope #panel-vision .rd-vis-edit textarea,
-body.rd-scope #panel-vision .rd-vis-edit input {
+body.rd-scope #panel-vision .rd-vis-blockinsert textarea {
+  display: block;
   width: 100%;
+  margin-top: 6px;
   border: 1px solid #e7e1d4;
   background: #fff;
-  padding: 8px 10px;
-  font: inherit;
+  padding: 10px 12px;
   color: #23211c;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 18px;
+  line-height: 1.5;
+}
+body.rd-scope #panel-vision .rd-vis-edit__body textarea { min-height: 140px; }
+body.rd-scope #panel-vision .rd-vis-blockset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 18px;
+}
+body.rd-scope #panel-vision .rd-vis-blockinsert--rule hr {
+  border: 0;
+  border-top: 1px solid #b89968;
+  margin: 12px 0;
+}
+body.rd-scope #panel-vision .rd-vis-coedit {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  color: #8a7e6b;
+  line-height: 1.5;
+}
+body.rd-scope #panel-vision .rd-vis-edit__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+}
+body.rd-scope #panel-vision .rd-vis-cursor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  color: #946f33;
+}
+body.rd-scope #panel-vision .rd-vis-cursor i {
+  width: 2px;
+  height: 14px;
+  background: #946f33;
+}
+
+/* Print preview 32b — Class B, always light */
+body.rd-scope #panel-vision .rd-vis-proof {
+  padding: 16px 20px 48px;
+  background: #f4f1ea;
+}
+body.rd-scope #panel-vision .rd-vis-sheet {
+  max-width: 520px;
+  margin: 0 auto;
+  background: #fff;
+  color: #23211c;
+  padding: 40px 44px 32px;
+  border: 1px solid #d9cfba;
+  box-shadow: 0 12px 32px rgba(32, 54, 45, .08);
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+body.rd-scope #panel-vision .rd-vis-sheet--letter { max-width: 680px; }
+body.rd-scope #panel-vision .rd-vis-sheet__kicker,
+body.rd-scope #panel-vision .rd-vis-sheet__foot {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-vision .rd-vis-sheet__titlepage {
+  text-align: center;
+  padding: 12px 0 28px;
+}
+body.rd-scope #panel-vision .rd-vis-sheet__orn { color: #b89968; letter-spacing: .2em; }
+body.rd-scope #panel-vision .rd-vis-sheet__titlepage h2 {
+  margin: 8px 0 4px;
+  font-size: 34px;
+  font-weight: 500;
+  color: #20362D;
+}
+body.rd-scope #panel-vision .rd-vis-sheet__names { margin: 0; font-size: 18px; }
+body.rd-scope #panel-vision .rd-vis-sheet__gold {
+  border: 0;
+  border-top: 1px solid #b89968;
+  width: 72px;
+  margin: 14px auto;
+}
+body.rd-scope #panel-vision .rd-vis-sheet__sub {
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-vision .rd-vis-sheet__sec { margin: 22px 0; }
+body.rd-scope #panel-vision .rd-vis-sheet__sec h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #20362D;
+}
+body.rd-scope #panel-vision .rd-vis-sheet__sec p { margin: 0 0 10px; font-size: 16px; line-height: 1.55; }
+body.rd-scope #panel-vision .rd-vis-sheet__q {
+  margin: 8px 0;
+  font-style: italic;
+  font-size: 18px;
+}
+body.rd-scope #panel-vision .rd-vis-sheet__gap { color: #8a7e6b; font-style: italic; }
+body.rd-scope #panel-vision .rd-vis-sheet__foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 28px;
+  padding-top: 10px;
+  border-top: 1px solid #efe9dc;
+}
+body.rd-scope #panel-vision .rd-vis-proof__note {
+  max-width: 520px;
+  margin: 14px auto 0;
+  font-size: 12px;
+  color: #6b645d;
+}
+body.rd-scope.night #panel-vision .rd-vis-sheet,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-sheet,
+body.rd-scope.dark-mode #panel-vision .rd-vis-sheet {
+  background: #fff !important;
+  color: #23211c !important;
+}
+body.rd-scope.night #panel-vision .rd-vis-proof,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-proof,
+body.rd-scope.dark-mode #panel-vision .rd-vis-proof { background: #2a2a24; }
+
+body.rd-scope #panel-vision .rd-vis-drawer__print {
+  padding: 12px 4px 16px;
+  border-left: 2px solid #b89968;
+  margin-bottom: 12px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+body.rd-scope #panel-vision .rd-vis-drawer__print-kicker,
+body.rd-scope #panel-vision .rd-vis-drawer__print-page,
+body.rd-scope #panel-vision .rd-vis-drawer__print span {
+  display: block;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  color: #8a7e6b;
+  margin-bottom: 6px;
+}
+
+@media print {
+  body.rd-scope[data-active-panel="vision"] .rd-pagehead,
+  body.rd-scope[data-active-panel="vision"] .rd-stats,
+  body.rd-scope[data-active-panel="vision"] .rd-toolbar,
+  body.rd-scope[data-active-panel="vision"] #vision-drawer-slot,
+  body.rd-scope[data-active-panel="vision"] .rd-vis-proof__note {
+    display: none !important;
+  }
+  body.rd-scope[data-active-panel="vision"] .rd-vis-sheet {
+    box-shadow: none;
+    border: 0;
+    max-width: none;
+  }
 }
 
 /* Vision drawer · Wording tab — prose is the record, so it renders in
