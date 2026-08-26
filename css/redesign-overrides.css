@@ -25602,6 +25602,187 @@ body.rd-scope #panel-firstmonth .rd-fm-drawer__prose {
   color: #20362D;
 }
 
+/* ── First-Month Rhythms · Master s30 (13d · 32g · 32h) ─────────────────── */
+
+/* 32h Year plot — horizon marks (● committed · ○ intended · — beyond). */
+body.rd-scope #panel-firstmonth .rd-yearplot__cell.is-committed { color: #20362D; }
+body.rd-scope #panel-firstmonth .rd-yearplot__cell.is-intended { color: #946f33; }
+body.rd-scope #panel-firstmonth .rd-yearplot__leg--committed::before { content: "\25CF"; color: #20362D; }
+body.rd-scope #panel-firstmonth .rd-yearplot__leg--intended::before { content: "\25CB"; color: #946f33; }
+body.rd-scope #panel-firstmonth .rd-yearplot__leg--beyond::before { content: "\2014"; color: #cfc6b4; }
+body.rd-scope #panel-firstmonth .rd-yearplot__row { cursor: pointer; }
+body.rd-scope #panel-firstmonth .rd-yearplot__row:hover { background: #faf7f1; }
+body.rd-scope #panel-firstmonth .rd-fm-toolbar-note {
+  font-size: 11.5px; color: #8a7e6b; align-self: center; margin-left: 4px;
+}
+
+/* 13d Table — the row is clickable into the drawer; inputs stop the bubble. */
+body.rd-scope #panel-firstmonth .rd-fm-row { cursor: pointer; }
+body.rd-scope #panel-firstmonth .rd-fm-row:hover { background: #faf7f1; }
+body.rd-scope #panel-firstmonth .rd-fm-row.is-open { background: #f4efe4; }
+body.rd-scope #panel-firstmonth .rd-fm-rhythmcell { position: relative; }
+body.rd-scope #panel-firstmonth .rd-fm-row__open {
+  display: none; position: absolute; right: 6px; top: 6px;
+  font-size: 11px; color: #946f33; font-weight: 600;
+}
+body.rd-scope #panel-firstmonth .rd-fm-row:hover .rd-fm-row__open { display: inline; }
+
+/* 32g Cards — provenance citation + the not-yet ("—, never 0") state. */
+body.rd-scope #panel-firstmonth .rd-fm-card { cursor: pointer; }
+body.rd-scope #panel-firstmonth .rd-fm-card:hover { border-color: #d9cdb8; background: #fdfcfa; }
+body.rd-scope #panel-firstmonth .rd-fm-card.is-notyet .rd-fm-card__meta { color: #8a7e6b; }
+body.rd-scope #panel-firstmonth .rd-fm-card__notyet {
+  font-style: normal; font-size: 10px; letter-spacing: .04em; text-transform: uppercase;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card__source {
+  display: flex; gap: 6px; align-items: baseline;
+  margin: 10px 0 0; padding-top: 8px; border-top: 1px solid #f0ebe0;
+  font-size: 11.5px; color: #8a7e6b;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card__source-mark { color: #b89968; }
+body.rd-scope #panel-firstmonth .rd-fm-card__source-link {
+  border: 0; background: none; padding: 0; cursor: pointer;
+  color: #946f33; text-decoration: underline; text-underline-offset: 2px;
+  font-size: 11.5px;
+}
+
+/* Drawer chrome (Rhythm · Cadence · Streak · History) — matches the
+   households / contacts custom-drawer pattern. */
+body.rd-scope #panel-firstmonth .rd-fm-drawer {
+  display: flex; flex-direction: column; height: 100%; min-height: 0; position: relative;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__head {
+  padding: 18px 18px 12px; border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__eyebrow {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__title {
+  margin: 6px 0 10px; font-size: 18px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__close {
+  position: absolute; top: 12px; right: 12px; border: 0; background: transparent;
+  font-size: 20px; color: #8a7e6b; cursor: pointer;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer__nav {
+  display: flex; align-items: center; gap: 8px; margin-top: 12px;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer__avatar {
+  width: 26px; height: 26px; border-radius: 50%; background: #20362D; color: #F4EFE6;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer__pos {
+  font-size: 11.5px; color: #8a7e6b;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer__navbtns {
+  margin-left: auto; display: flex; gap: 4px;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__tabs {
+  display: flex; margin-top: 12px; border: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__tab {
+  flex: 1; text-align: center; padding: 6px 0; font-size: 12px; color: #6b645d;
+  border-left: 1px solid #e7e1d4; background: none; cursor: pointer;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__tab:first-child { border-left: 0; }
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__tab.is-active {
+  background: #20362D; color: #F4EFE6; font-weight: 600;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__body {
+  padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; min-height: 0;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__inputlabel {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+  margin-bottom: -4px;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer__input {
+  width: 100%; border: 1px solid #e7e1d4; background: #fff; padding: 8px 10px;
+  font: inherit; font-size: 13px; color: #23211c; box-sizing: border-box;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer__input--tall {
+  resize: vertical; line-height: 1.45;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__field {
+  display: flex; justify-content: space-between; gap: 12px; font-size: 13px;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__field span { color: #8a7e6b; }
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__add { color: #b3a894; font-weight: 400; }
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__link {
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: #946f33;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__section-title {
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+  margin-top: 4px; padding-top: 10px; border-top: 1px solid #f0ebe0;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__note {
+  font-size: 12px; color: #6b645d; line-height: 1.45; margin: 4px 0 0;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__hist { font-size: 12.5px; }
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__hist strong { color: #20362D; }
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__hist div { color: #6b645d; }
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__provenance {
+  margin-top: 4px; padding-top: 10px; border-top: 1px solid #f0ebe0;
+  font-size: 11.5px; color: #8a7e6b;
+}
+body.rd-scope #panel-firstmonth .rd-fm-drawer .rd-drawer__foot {
+  display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid #e7e1d4; flex: 0 0 auto;
+}
+/* Streak — counted, not scored: a bare number, no bar, no badge. */
+body.rd-scope #panel-firstmonth .rd-fm-streak {
+  text-align: center; padding: 12px 0 4px;
+}
+body.rd-scope #panel-firstmonth .rd-fm-streak__num {
+  font-size: 34px; font-weight: 600; color: #20362D; line-height: 1;
+}
+body.rd-scope #panel-firstmonth .rd-fm-streak__cap {
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8a7e6b; margin-top: 4px;
+}
+
+/* §30 night theme — reuse the covenant-panel dark surfaces. */
+body.rd-scope.night #panel-firstmonth #firstmonth-drawer-slot.is-open,
+body.rd-scope[data-theme="night"] #panel-firstmonth #firstmonth-drawer-slot.is-open {
+  border-left-color: #2e2e28; background: #141414;
+}
+body.rd-scope.night #panel-firstmonth .rd-fm-drawer .rd-drawer__head,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-drawer .rd-drawer__head,
+body.rd-scope.night #panel-firstmonth .rd-fm-drawer .rd-drawer__foot,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-drawer .rd-drawer__foot,
+body.rd-scope.night #panel-firstmonth .rd-fm-drawer .rd-drawer__tabs,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-drawer .rd-drawer__tabs {
+  border-color: #2e2e28;
+}
+body.rd-scope.night #panel-firstmonth .rd-fm-drawer .rd-drawer__title,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-drawer .rd-drawer__title,
+body.rd-scope.night #panel-firstmonth .rd-fm-drawer .rd-drawer__hist strong,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-drawer .rd-drawer__hist strong,
+body.rd-scope.night #panel-firstmonth .rd-fm-streak__num,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-streak__num {
+  color: #e6e1d6;
+}
+body.rd-scope.night #panel-firstmonth .rd-fm-drawer__input,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-drawer__input {
+  background: #1c1c18; border-color: #3a3a32; color: #e6e1d6;
+}
+body.rd-scope.night #panel-firstmonth .rd-fm-drawer .rd-drawer__section-title,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-drawer .rd-drawer__section-title,
+body.rd-scope.night #panel-firstmonth .rd-fm-card__source,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-card__source {
+  border-top-color: #2e2e28;
+}
+body.rd-scope.night #panel-firstmonth .rd-fm-card:hover,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-fm-card:hover {
+  border-color: #3a3a32; background: #1c1c18;
+}
+body.rd-scope.night #panel-firstmonth .rd-yearplot__cell.is-committed,
+body.rd-scope[data-theme="night"] #panel-firstmonth .rd-yearplot__cell.is-committed {
+  color: #8FB99F;
+}
+
 body.rd-scope #panel-homecoming .rd-hc-block {
   margin: 0 0 36px;
 }
