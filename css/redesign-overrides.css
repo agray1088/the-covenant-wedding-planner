@@ -18990,6 +18990,49 @@ body.rd-scope #panel-honeymoon .rd-hm-journal-empty {
   font-size: 14px;
   line-height: 1.55;
 }
+
+/* §32 Overview tab — trip-summary cards + still-open list. */
+body.rd-scope #panel-honeymoon .rd-hm-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 4px 8px 20px;
+}
+body.rd-scope #panel-honeymoon .rd-hm-overview__card {
+  border: 1px solid #e7e1d4;
+  background: #fdfcfa;
+  padding: 12px 14px;
+}
+body.rd-scope #panel-honeymoon .rd-hm-overview__label {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+}
+body.rd-scope #panel-honeymoon .rd-hm-overview__val {
+  margin-top: 6px; font-size: 20px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #panel-honeymoon .rd-hm-overview__open { margin: 0 8px; }
+body.rd-scope #panel-honeymoon .rd-hm-openlist {
+  display: flex; flex-direction: column; gap: 6px; max-width: 640px;
+}
+body.rd-scope #panel-honeymoon .rd-hm-openrow {
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid #e7e1d4; background: #fff; padding: 9px 12px;
+  text-align: left; cursor: pointer; font: inherit;
+}
+body.rd-scope #panel-honeymoon .rd-hm-openrow:hover { background: #faf7f1; }
+body.rd-scope #panel-honeymoon .rd-hm-openrow__name { font-size: 13px; color: #23211c; flex: 1; }
+body.rd-scope #panel-honeymoon .rd-hm-openrow__meta { font-size: 12px; color: #8a7e6b; }
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-overview__card,
+body.rd-scope.night #panel-honeymoon .rd-hm-overview__card {
+  border-color: #3a3a32; background: #1c1c18;
+}
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-overview__val,
+body.rd-scope.night #panel-honeymoon .rd-hm-overview__val { color: #e6e1d6; }
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-openrow,
+body.rd-scope.night #panel-honeymoon .rd-hm-openrow {
+  border-color: #3a3a32; background: #1a1a16;
+}
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-openrow__name,
+body.rd-scope.night #panel-honeymoon .rd-hm-openrow__name { color: #e6e1d6; }
 body.rd-scope #panel-honeymoon .rd-hm-journal {
   display: flex;
   flex-direction: column;

@@ -15,13 +15,21 @@
   window._hmDrawerTab = window._hmDrawerTab || 0;
   window._hmSel = window._hmSel instanceof Set ? window._hmSel : new Set();
 
+  /* Seven section tabs (Master 19b). Details and Transportation are two
+     filtered views of the one booking table — the same records the Overview
+     tab shows in full — not separate datasets (17b full-page + same-records
+     contract). Overview is the trip summary. */
   const SECTIONS = [
-    { id: 'bookings', label: 'Details & bookings' },
+    { id: 'overview', label: 'Overview' },
+    { id: 'details', label: 'Details' },
+    { id: 'transport', label: 'Transportation' },
     { id: 'itinerary', label: 'Itinerary' },
     { id: 'packing', label: 'Packing' },
     { id: 'budget', label: 'Budget' },
-    { id: 'journal', label: 'Daily journal' }
+    { id: 'journal', label: 'Daily Journal' }
   ];
+  /* Sections that show the booking table and open the booking drawer. */
+  const BOOKING_SECTIONS = ['overview', 'details', 'transport'];
   const DRAWER_TABS = ['Booking', 'Cost', 'Documents', 'History'];
 
   const esc = s => (typeof escapeHtml === 'function'
@@ -235,14 +243,38 @@
       journalCount: (data.hmJournal || []).length
     };
   }
+  /* Two "after the day" counts read from Gifts and Tasks, never typed here. */
+  function thankYouPending() {
+    const gifts = (window.data && Array.isArray(data.gifts)) ? data.gifts : [];
+    return gifts.filter(g => {
+      const t = String(g.thankYou || g.thankYouStatus || g.thanked || '').trim().toLowerCase();
+      return !/^sent$|^written$|^done$|^complete/.test(t);
+    }).length;
+  }
+  function postWeddingTasks() {
+    const hc = (window.data && Array.isArray(data.homecoming)) ? data.homecoming : [];
+    const nc = (window.data && Array.isArray(data.nameChange)) ? data.nameChange : [];
+    const openHc = hc.filter(r => {
+      const s = String(r.status || (r.done ? 'Done' : '')).trim().toLowerCase();
+      return !/^done$|^complete/.test(s);
+    }).length;
+    return openHc + nc.length;
+  }
+
   function honeymoonRailCounts() {
     const f = honeymoonFigures();
+    ensureHm();
     return {
+      overview: f.bookingsTotal,
+      details: (data.honeyDetails || []).length,
+      transport: (data.honeyTransport || []).length,
       bookings: f.bookingsTotal,
       itinerary: f.itineraryTotal,
       packing: f.packingTotal,
       budget: f.budgetLines,
-      journal: f.journalCount
+      journal: f.journalCount,
+      thankyou: thankYouPending(),
+      postwedding: postWeddingTasks()
     };
   }
 
@@ -352,9 +384,11 @@
   function renderHmToolbar() {
     const host = document.getElementById('honeymoon-toolbar');
     if (!host) return;
-    const sec = window._hmSection || 'bookings';
+    const sec = window._hmSection || 'overview';
     let left = '';
-    if (sec === 'bookings') {
+    if (sec === 'overview') {
+      left = '';
+    } else if (sec === 'details' || sec === 'transport') {
       left = filterChip('Type', 'type') + filterChip('Status', 'status') +
         `<button type="button" class="rd-chip rd-chip--ghost">Sort by date</button>`;
     } else if (sec === 'itinerary') {
@@ -378,10 +412,13 @@
       `</div>`;
   }
 
+  function normalizeSection(id) {
+    if (id === 'after' || id === 'bookings') return 'overview';
+    return SECTIONS.some(s => s.id === id) ? id : 'overview';
+  }
   function applyHoneymoonSection(id) {
-    const ok = SECTIONS.some(s => s.id === id);
     /* Retired After the day section — post-wedding work lives on Homecoming. */
-    window._hmSection = ok ? id : 'bookings';
+    window._hmSection = normalizeSection(id);
     if (typeof setSavedView === 'function') setSavedView('honeymoon', window._hmSection);
     window._hmDrawerId = null;
     renderHoneymoonRd();
@@ -397,12 +434,62 @@
       `</div>`;
   }
 
-  function renderBookingsView() {
-    const bookings = allBookings().filter(matchesBookingFilters);
+  function renderOverviewView() {
+    ensureHm();
+    const f = honeymoonFigures();
+    const hm = data.honeymoon || {};
+    const dest = String(hm.destination || 'the honeymoon').trim() || 'the honeymoon';
+    const depart = shortDate(hm.depart);
+    const back = shortDate(hm.return);
+    const openBookings = allBookings().filter(b => !b.complete);
+    const daysVal = f.daysUntil == null ? '—' : String(Math.max(f.daysUntil, 0));
+
+    let html = sectionHead(
+      'Overview · ' + dest,
+      (depart !== '—' ? depart + ' – ' + back + ' · ' : '') + daysVal + ' days until the trip · the page that starts the day the rest of the planner stops',
+      'Add a booking', 'rdHmAddBooking()'
+    );
+    html += `<div class="rd-hm-overview">`;
+    [
+      ['Days until trip', daysVal],
+      ['Bookings complete', f.bookingsComplete + ' of ' + f.bookingsTotal],
+      ['Packed', f.packed + ' of ' + f.packingTotal],
+      ['Itinerary days', f.itineraryPlanned + ' of ' + f.itineraryTotal],
+      ['Committed', money0(f.budgetCommitted)],
+      ['Trip budget', money0(f.budgetTarget)]
+    ].forEach(([l, v]) => {
+      html += `<div class="rd-hm-overview__card"><div class="rd-hm-overview__label">${esc(l)}</div><div class="rd-hm-overview__val">${esc(String(v))}</div></div>`;
+    });
+    html += `</div>`;
+
+    html += `<div class="rd-hm-overview__open">`;
+    html += `<div class="rd-section__head"><div><div class="rd-pagehead__eyebrow">Still open</div>` +
+      `<p class="rd-help">${openBookings.length ? (openBookings.length + ' booking' + (openBookings.length === 1 ? '' : 's') + ' not settled yet') : 'Every booking is settled'}</p></div></div>`;
+    if (openBookings.length) {
+      html += `<div class="rd-hm-openlist">` + openBookings.map(b =>
+        `<button type="button" class="rd-hm-openrow" onclick="rdHmOpenDrawer('${esc(b.id)}')">` +
+        `<span class="rd-hm-openrow__name">${esc(b.title)}</span>` +
+        `<span class="rd-hm-openrow__meta">${esc(b.type)} · ${esc(money0(b.cost))}</span>` +
+        `<span class="status-pill" data-pillscheme="red">${esc(b.status)}</span>` +
+        `</button>`
+      ).join('') + `</div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
+  function renderBookingsView(sourceFilter) {
+    const src = sourceFilter || 'all';
+    const bookings = allBookings().filter(matchesBookingFilters).filter(b =>
+      src === 'all' ? true : (src === 'transport' ? b.src === 'honeyTransport' : b.src === 'honeyDetails')
+    );
     const f = honeymoonFigures();
     const openN = bookings.filter(b => b.open || !b.complete).length;
-    const help = f.bookingsComplete + ' confirmed · ' +
-      (openN ? openN + ' still open' : 'all bookings settled');
+    const settledMsg = src === 'transport' ? 'all travel booked' : (src === 'details' ? 'all details settled' : 'all bookings settled');
+    const heading = src === 'transport' ? 'Transportation' : (src === 'details' ? 'Details' : 'Details & bookings');
+    const confirmed = bookings.filter(b => b.complete).length;
+    const help = confirmed + ' confirmed · ' +
+      (openN ? openN + ' still open' : settledMsg);
     /* Complete Travel/Lodging stay in group; incomplete → Open */
     const buckets = { Travel: [], Lodging: [], Open: [] };
     bookings.forEach(b => {
@@ -413,7 +500,7 @@
     });
 
     let html = sectionHead(
-      'Details & bookings · ' + bookings.length + ' row' + (bookings.length === 1 ? '' : 's'),
+      heading + ' · ' + bookings.length + ' row' + (bookings.length === 1 ? '' : 's'),
       help, 'Add a booking', 'rdHmAddBooking()'
     );
     html += `<table class="rd-hm-table"><thead><tr>` +
@@ -639,12 +726,15 @@
   function renderMainSurface() {
     const host = document.getElementById('honeymoon-view-host');
     if (!host) return;
-    const sec = window._hmSection || 'bookings';
-    if (sec === 'itinerary') host.innerHTML = renderItineraryView();
+    const sec = window._hmSection || 'overview';
+    if (sec === 'overview') host.innerHTML = renderOverviewView();
+    else if (sec === 'details') host.innerHTML = renderBookingsView('details');
+    else if (sec === 'transport') host.innerHTML = renderBookingsView('transport');
+    else if (sec === 'itinerary') host.innerHTML = renderItineraryView();
     else if (sec === 'packing') host.innerHTML = renderPackingView();
     else if (sec === 'budget') host.innerHTML = renderBudgetView();
     else if (sec === 'journal') host.innerHTML = renderJournalView();
-    else host.innerHTML = renderBookingsView();
+    else host.innerHTML = renderBookingsView('all');
   }
 
   /* ── drawer ──────────────────────────────────────────────────────────── */
@@ -670,7 +760,7 @@
       return;
     }
     const b = findBooking(window._hmDrawerId);
-    if (!b || (window._hmSection || 'bookings') !== 'bookings') {
+    if (!b || !BOOKING_SECTIONS.includes(window._hmSection || 'overview')) {
       if (!(shared && slot.contains(shared) && !shared.hasAttribute('hidden'))) {
         parkSharedDrawerAway(slot);
         slot.innerHTML = '';
@@ -760,7 +850,7 @@
   /* ── actions ─────────────────────────────────────────────────────────── */
 
   function rdHmOpenDrawer(id) {
-    window._hmSection = 'bookings';
+    if (!BOOKING_SECTIONS.includes(window._hmSection)) window._hmSection = 'details';
     window._hmDrawerId = id;
     window._hmDrawerTab = 0;
     renderHoneymoonRd();
@@ -892,7 +982,7 @@
     const host = document.getElementById('honeymoon-bulk-bar');
     if (!host) return;
     const n = window._hmSel.size;
-    if (!n || (window._hmSection || 'bookings') !== 'bookings') {
+    if (!n || !BOOKING_SECTIONS.includes(window._hmSection || 'overview')) {
       host.hidden = true;
       host.innerHTML = '';
       return;
@@ -923,12 +1013,9 @@
   function renderHoneymoonRd() {
     ensureHm();
     if (typeof getSavedView === 'function') {
-      let saved = getSavedView('honeymoon', window._hmSection || 'bookings');
-      if (saved === 'after') saved = 'bookings';
-      if (SECTIONS.some(s => s.id === saved)) window._hmSection = saved;
-      else window._hmSection = 'bookings';
+      window._hmSection = normalizeSection(getSavedView('honeymoon', window._hmSection || 'overview'));
     }
-    if (window._hmSection === 'after') window._hmSection = 'bookings';
+    window._hmSection = normalizeSection(window._hmSection || 'overview');
     uedHoneymoonShellRd();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('honeymoon');
     renderHmStatsRd();
@@ -979,10 +1066,11 @@
 
   window.hmTab = function (name) {
     const map = {
-      overview: 'bookings', details: 'bookings', transport: 'bookings',
+      overview: 'overview', details: 'details', transport: 'transport',
+      transportation: 'transport', bookings: 'overview', after: 'overview',
       itinerary: 'itinerary', packing: 'packing', budget: 'budget', journal: 'journal'
     };
-    applyHoneymoonSection(map[name] || 'bookings');
+    applyHoneymoonSection(map[name] || 'overview');
   };
 
   function hookHoneymoonPanelRenderer() {

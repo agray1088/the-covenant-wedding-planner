@@ -2016,14 +2016,14 @@
 
   /* All.dc #17b / Dark.dc #17b rail — Sections + Readiness (After the day moved to Homecoming). */
   function buildHoneymoonContext() {
-    var active = 'bookings';
-    if (typeof getSavedView === 'function') active = getSavedView('honeymoon', 'bookings');
+    var active = 'overview';
+    if (typeof getSavedView === 'function') active = getSavedView('honeymoon', 'overview');
     else if (typeof window._hmSection === 'string' && window._hmSection) active = window._hmSection;
-    if (active === 'after') active = 'bookings';
+    if (active === 'after' || active === 'bookings') active = 'overview';
     window._hmSection = active;
 
     var counts = typeof window.honeymoonRailCounts === 'function' ? window.honeymoonRailCounts() : {
-      bookings: 0, itinerary: 0, packing: 0, budget: 0, journal: 0
+      overview: 0, details: 0, transport: 0, itinerary: 0, packing: 0, budget: 0, journal: 0, thankyou: 0, postwedding: 0
     };
     var figures = typeof window.honeymoonFigures === 'function' ? window.honeymoonFigures() : {
       bookingsComplete: 0, bookingsTotal: 0, packed: 0, packingTotal: 0,
@@ -2045,11 +2045,13 @@
       '<div class="rd-rail__section">' +
       '<div class="rd-rail__title">Sections<button type="button" class="rd-rail__add" aria-label="Save view">+</button></div>' +
       '<div class="rd-rail__list" role="list">' +
-      sectionItem('bookings', 'Details & bookings', counts.bookings || 0) +
+      sectionItem('overview', 'Overview', counts.overview || 0) +
+      sectionItem('details', 'Details', counts.details || 0) +
+      sectionItem('transport', 'Transportation', counts.transport || 0) +
       sectionItem('itinerary', 'Itinerary', counts.itinerary || 0) +
       sectionItem('packing', 'Packing', counts.packing || 0) +
       sectionItem('budget', 'Budget', counts.budget || 0) +
-      sectionItem('journal', 'Daily journal', counts.journal || 0) +
+      sectionItem('journal', 'Daily Journal', counts.journal || 0) +
       '</div></div>';
 
     var readinessHtml =
@@ -2066,15 +2068,23 @@
       esc(money0(figures.budgetCommitted || 0)) + '</span></div>' +
       '</div></div>';
 
+    /* After-the-day rows are links to the pages that own the data — their
+       counts are read from Gifts and Tasks, never typed here. */
+    function linkItem(label, count, onclick) {
+      return '<button type="button" class="rd-rail__item" onclick="' + onclick + '">' + esc(label) +
+        (count != null ? '<span class="rd-rail__count">' + count + '</span>' : '') + '</button>';
+    }
     var homecomingHtml =
       '<div class="rd-rail__section">' +
       '<div class="rd-rail__title">After the wedding</div>' +
       '<div class="rd-rail__list" role="list">' +
-      '<button type="button" class="rd-rail__item" onclick="typeof showPanel===\'function\'&&showPanel(\'homecoming\')">Newlywed Homecoming</button>' +
+      linkItem('Thank-you notes', counts.thankyou || 0, "typeof showPanel==='function'&&showPanel('gifts')") +
+      linkItem('Post-wedding tasks', counts.postwedding || 0, "typeof showPanel==='function'&&showPanel('homecoming')") +
+      linkItem('Newlywed Homecoming', null, "typeof showPanel==='function'&&showPanel('homecoming')") +
       '</div></div>';
 
     var noteHtml =
-      '<p class="rd-rail__note">The honeymoon budget is its own target — it is not part of the wedding budget and never appears on the Budget page. Post-wedding tasks live on Newlywed Homecoming.</p>';
+      '<p class="rd-rail__note">The honeymoon budget is its own target — it is not part of the wedding budget and never appears on the Budget page. Thank-you notes are read from Gifts and post-wedding tasks live on Newlywed Homecoming.</p>';
 
     return '<div class="rd-rail__stack" data-page-rail="honeymoon">' + sectionsHtml + readinessHtml + homecomingHtml + noteHtml + '</div>';
   }
