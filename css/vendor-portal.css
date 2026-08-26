@@ -383,6 +383,184 @@ html, body {
 }
 .vp-toast[hidden] { display: none !important; }
 
+/* The rules underneath — scope contract (V6) + access lifecycle (V7) */
+.vp-rulebar {
+  flex: 0 0 auto;
+  padding: 12px 15px 18px;
+  background: #fff;
+  border-top: 1px solid var(--vp-hair);
+}
+.vp-rulebar__btn {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--vp-sunken);
+  border: 1px solid var(--vp-line);
+  color: var(--vp-soft);
+  font-size: 12px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.vp-rulebar__btn:hover { color: var(--vp-ink); border-color: var(--vp-accent); }
+
+.vp-rules-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vp-rules-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 26, 22, .42);
+}
+.vp-rules-sheet {
+  position: relative;
+  width: min(760px, 94vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--vp-line);
+  box-shadow: 0 24px 64px rgba(20, 22, 18, .3);
+}
+.vp-rules-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--vp-line);
+  flex: 0 0 auto;
+}
+.vp-rules-title {
+  margin: 3px 0 0;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--vp-ink);
+}
+.vp-rules-close {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--vp-line);
+  background: #fff;
+  color: var(--vp-soft);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+}
+.vp-rules-close:hover { color: var(--vp-ink); border-color: var(--vp-accent); }
+.vp-rules-body {
+  overflow: auto;
+  padding: 4px 22px 22px;
+}
+.vp-rules-sec { padding-top: 18px; }
+.vp-rules-sec + .vp-rules-sec { border-top: 1px solid var(--vp-hair); margin-top: 6px; }
+.vp-rules-h {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vp-ink);
+}
+.vp-rules-lead {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--vp-soft);
+}
+.vp-rules-lead b { color: var(--vp-ink); font-weight: 600; }
+
+.vp-scope-wrap { overflow-x: auto; }
+.vp-scope-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+.vp-scope-table th {
+  text-align: left;
+  padding: 7px 9px;
+  background: var(--vp-sunken);
+  border-bottom: 1px solid var(--vp-line);
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--vp-muted);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.vp-scope-table th:nth-child(2),
+.vp-scope-table th:nth-child(3),
+.vp-scope-table th:nth-child(4),
+.vp-scope-table td:nth-child(2),
+.vp-scope-table td:nth-child(3),
+.vp-scope-table td:nth-child(4) { text-align: center; width: 62px; }
+.vp-scope-table td {
+  padding: 8px 9px;
+  border-bottom: 1px solid var(--vp-hair);
+  vertical-align: top;
+}
+.vp-scope-data { font-weight: 600; color: var(--vp-body); }
+.vp-scope-why { color: var(--vp-soft); line-height: 1.5; }
+.vp-mk {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 12px;
+}
+.vp-mk.is-yes { color: var(--vp-ok); }
+.vp-mk.is-no { color: #c0b7a6; }
+.vp-mk.is-part {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--vp-warn);
+  background: var(--vp-warn-bg);
+  border: 1px solid var(--vp-warn-bd);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+.vp-life {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+}
+.vp-life__step {
+  display: flex;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--vp-hair);
+}
+.vp-life__n {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--vp-forest);
+  color: #f4efe6;
+  font-size: 12px;
+  font-weight: 700;
+}
+.vp-life__step strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--vp-ink);
+}
+.vp-life__step em {
+  display: block;
+  margin-top: 3px;
+  font-style: normal;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--vp-soft);
+}
+
 @media (max-width: 520px) {
   .vp-app { padding: 0; background: #fff; }
   .vp-shell {
@@ -393,4 +571,5 @@ html, body {
   .vp-topbar__wedding { display: none; }
   .vp-stats .vp-stat:nth-child(4) { display: none; }
   .vp-pagehead .vp-sub { display: none; }
+  .vp-rules-sheet { width: 100%; height: 100%; max-height: 100vh; }
 }

@@ -101,7 +101,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [37 · Viewer Preferences](#section-37) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [38 · Database Hub](#section-38) — done on `cursor/dashboard-views-017e` — 5 screens · 2 record drawers — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [39 · App chrome, settings & record editor](#section-39) — done on `cursor/dashboard-views-017e` — 8 screens · 5 record drawers — Full page · Record drawer tabs · Night theme
-- [40 · Vendor Portal](#section-40) — queued — 7 screens — Full page
+- [40 · Vendor Portal](#section-40) — done on `cursor/dashboard-views-017e` — 7 screens — Full page
 - [41 · House style & visual directions](#section-41) — queued — 11 screens — Full page · View switcher views · Night theme
 - [42 · System-wide patterns](#section-42) — queued — 40 screens — Full page · View switcher views · Night theme
 
@@ -4685,7 +4685,9 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s40` · slug `vendor-portal`
 - **Header counts:** 7 screens
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §41. See the implementation note below.
+
+> **Implementation note (§40).** The Vendor Portal is a self-contained product — `vendor-portal.html` + `css/vendor-portal.css` + `js/vendor-portal.js`, reached from Share Packets / roles via a tokened `?g=` link. Five of the seven drawn screens were already built: **Your brief**, **Your schedule**, **Your paperwork**, **Upload** (the four vendor tabs), and **Mobile, and the expired link** (the `@media (max-width:520px)` layout with short tab labels + the calm `renderExpired` “This link has expired” state on `?expired=1`). This pass added the two “rules underneath” screens the drawing calls out as *the ones an implementer needs* — **The scope contract** (the 15-row Data · Vendor · Couple · Planner · Why security-model table, marks and load-bearing reasons verbatim from the Master, incl. the `counts` / `2 numbers` / `granted` / `own` special values) and **Access lifecycle** (the five steps packet→expiry plus the honest “what revoking actually achieves” table). They live behind a footer link (“Why you can see this — the scope & lifecycle behind this link”) as an overlay, not a fifth vendor tab, because *the four tabs above are what these two produce*; the portal is their intended home since revocation honesty is drawn as stated “in the dialog **and here**.” Counts-without-names holds throughout — no guest identity is ever surfaced. `?v=vp2-s40` bumped.
 
 ### Five parts on this page
 

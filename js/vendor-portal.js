@@ -13,10 +13,57 @@
     { id: 'upload', label: 'Upload', short: 'Upload' }
   ];
 
+  /* ── The rules underneath (V6/V7) — the scope contract and the access
+        lifecycle. Not a fifth tab: the four tabs above are what these two
+        produce. The reasons are load-bearing — they are what lets someone
+        extend the table correctly in a year — so every row carries its why.
+        The marks are the security model itself, not settings: every ✕ is
+        absent from the model, not hidden behind a permission flag. */
+  var SCOPE_ROWS = [
+    { data: 'Their own contract',            v: '✓',        c: '✓', p: '✓',       why: 'It is theirs. Withholding it creates email.' },
+    { data: 'Their instalments and invoices', v: '✓',       c: '✓', p: '✓',       why: 'Both parties must see the same schedule.' },
+    { data: 'Their slice of the run sheet',  v: '✓',        c: '✓', p: '✓',       why: 'Derived live, so a moved dinner moves their page.' },
+    { data: 'Headcount and dietary counts',  v: 'counts',   c: '✓', p: '✓',       why: 'The kitchen needs numbers, not identities.' },
+    { data: 'Venue access, loading, power',  v: '✓',        c: '✓', p: '✓',       why: 'Operational, and the venue already told them.' },
+    { data: 'Day-of contact for them',       v: '2 numbers', c: '✓', p: '✓',      why: 'The planner and the venue. Not the full list.' },
+    { data: 'Guest names and addresses',     v: '✕',        c: '✓', p: '✓',       why: 'No catering decision requires a name.' },
+    { data: 'Budget totals and targets',     v: '✕',        c: '✓', p: '✓',       why: 'Knowing the pot changes the next quote.' },
+    { data: "Other vendors' pricing",        v: '✕',        c: '✓', p: '✓',       why: 'Commercially theirs, not shared.' },
+    { data: "Other vendors' run sheets",     v: '✕',        c: '✓', p: '✓',       why: 'Only their own dependencies are surfaced.' },
+    { data: 'The Covenant tab',              v: '✕',        c: '✓', p: 'granted', why: 'Private to the couple; planner access is opt-in.' },
+    { data: 'Internal notes',                v: '✕',        c: '✓', p: '✓',       why: 'Notes are candid by design.' },
+    { data: 'Planner history',               v: '✕',        c: '✓', p: '✓',       why: 'An audit log is not a shared artefact.' },
+    { data: 'Saved views',                   v: '✕',        c: 'own', p: 'own',   why: 'Per person, never travels.' },
+    { data: 'Share-packet activity',         v: '✕',        c: '✓', p: '✓',       why: "Who opened what is the couple's business." }
+  ];
+
+  var LIFECYCLE_STEPS = [
+    { n: 1, title: 'Planner builds the packet', body: 'From Share Packets. Picks the vendor; the portal decides the contents from the scope contract — there is no content picker.' },
+    { n: 2, title: 'Link is sent', body: 'A URL with an embedded token. No account, no password — the same trust model as a calendar invite.' },
+    { n: 3, title: 'Vendor opens it', body: "Provenance banner names who shared it and when access ends. First open is logged and surfaces in the couple's Share Packets · Activity view." },
+    { n: 4, title: 'Vendor works from it', body: 'Reads their brief, accepts the schedule, uploads what they owe. Every write is attributed and lands as a note on their vendor record.' },
+    { n: 5, title: 'Access expires', body: 'Four days after the wedding, automatically. Downloaded files stay theirs; the live view closes.' }
+  ];
+
+  var REVOKE_ROWS = [
+    { label: 'Stops the live link',       val: 'immediately',      tone: 'ok' },
+    { label: 'Ends further downloads',    val: 'immediately',      tone: 'ok' },
+    { label: 'Removes them from activity', val: 'no · the log is kept', tone: 'no' },
+    { label: 'Recalls a downloaded PDF',  val: 'no · impossible',  tone: 'no' },
+    { label: 'Deletes what they uploaded', val: "no · it is the couple's now", tone: 'no' }
+  ];
+
+  function scopeMarkClass(mark) {
+    if (mark === '✓') return 'vp-mk is-yes';
+    if (mark === '✕') return 'vp-mk is-no';
+    return 'vp-mk is-part';
+  }
+
   var state = {
     tab: 'brief',
     session: null,
-    forceExpired: false
+    forceExpired: false,
+    rulesOpen: false
   };
 
   function esc(s) {
@@ -418,6 +465,60 @@
       + '</div>';
   }
 
+  function renderRules() {
+    var scope = ''
+      + '<div class="vp-rules-sec">'
+      + '<div class="vp-eyebrow">V6 · The scope contract</div>'
+      + '<h2 class="vp-rules-h">Fifteen rows deciding what a vendor can ever see</h2>'
+      + '<p class="vp-rules-lead">This is the security model, not a settings screen. Every ✕ is <b>absent from the query</b>, not filtered out of a response — a vendor endpoint that could return a guest name is a bug, not a misconfiguration. The reasons matter more than the marks: they are what lets someone extend this table correctly in a year.</p>'
+      + '<div class="vp-scope-wrap"><table class="vp-scope-table">'
+      + '<thead><tr><th>Data</th><th>Vendor</th><th>Couple</th><th>Planner</th><th>Why</th></tr></thead>'
+      + '<tbody>'
+      + SCOPE_ROWS.map(function (r) {
+        return '<tr>'
+          + '<td class="vp-scope-data">' + esc(r.data) + '</td>'
+          + '<td><span class="' + scopeMarkClass(r.v) + '">' + esc(r.v) + '</span></td>'
+          + '<td><span class="' + scopeMarkClass(r.c) + '">' + esc(r.c) + '</span></td>'
+          + '<td><span class="' + scopeMarkClass(r.p) + '">' + esc(r.p) + '</span></td>'
+          + '<td class="vp-scope-why">' + esc(r.why) + '</td>'
+          + '</tr>';
+      }).join('')
+      + '</tbody></table></div>'
+      + '<p class="vp-note">Every ✕ in the vendor column is absent from the model, not hidden behind a permission flag. There is no setting that turns one on, because a setting implies a case where it would be correct.</p>'
+      + '</div>';
+
+    var lifecycle = ''
+      + '<div class="vp-rules-sec">'
+      + '<div class="vp-eyebrow">V7 · Access lifecycle</div>'
+      + '<h2 class="vp-rules-h">How a vendor gets in, and out</h2>'
+      + '<p class="vp-rules-lead">Five steps from packet to expiry. No account creation anywhere in the flow — a caterer should not need a password to read their own call time.</p>'
+      + '<ol class="vp-life">'
+      + LIFECYCLE_STEPS.map(function (st) {
+        return '<li class="vp-life__step"><span class="vp-life__n">' + st.n + '</span>'
+          + '<div><strong>' + esc(st.title) + '</strong><em>' + esc(st.body) + '</em></div></li>';
+      }).join('')
+      + '</ol>'
+      + '<div class="vp-section-head"><strong>What revoking actually achieves</strong><span>stated in the revoke dialog too</span></div>'
+      + REVOKE_ROWS.map(function (r) {
+        return '<div class="vp-row"><div><strong>' + esc(r.label) + '</strong></div>'
+          + '<span class="' + (r.tone === 'ok' ? 'vp-chip is-ok' : 'vp-chip is-danger') + '">' + esc(r.val) + '</span></div>';
+      }).join('')
+      + '<p class="vp-note">Honest revocation: it stops the link, it does not recall a PDF, and it does not delete what they uploaded. A planner who believes revocation recalls a PDF will make a worse decision than one who knows it does not.</p>'
+      + '</div>';
+
+    return ''
+      + '<div class="vp-rules-overlay" id="vp-rules" role="dialog" aria-modal="true" aria-label="The rules underneath">'
+      + '<div class="vp-rules-scrim" data-vp-act="rules-close"></div>'
+      + '<div class="vp-rules-sheet">'
+      + '<div class="vp-rules-head">'
+      + '<div><div class="vp-eyebrow">The rules underneath</div><h1 class="vp-rules-title">Scope &amp; lifecycle</h1>'
+      + '<p class="vp-sub">What can be reached, and how someone gets in and out. These are what produce the four tabs.</p></div>'
+      + '<button type="button" class="vp-rules-close" data-vp-act="rules-close" aria-label="Close">×</button>'
+      + '</div>'
+      + '<div class="vp-rules-body">' + scope + lifecycle + '</div>'
+      + '</div></div>';
+  }
+
   function render() {
     var root = document.getElementById('vp-app');
     if (!root || !state.session) return;
@@ -454,7 +555,10 @@
       + ' · access expires ' + esc(fmtLong(s.expires))
       + ' · you are seeing ' + (s.mode === 'Live' ? 'live records, not a copy' : 'a snapshot') + '</div>'
       + '<div class="vp-body">' + body + '</div>'
-      + '</div>';
+      + '<div class="vp-rulebar"><button type="button" class="vp-rulebar__btn" data-vp-act="rules-open">'
+      + 'Why you can see this — the scope &amp; lifecycle behind this link</button></div>'
+      + '</div>'
+      + (state.rulesOpen ? renderRules() : '');
     bind(root);
   }
 
@@ -479,6 +583,8 @@
         else if (act === 'upload') toast('Upload received. It will clear on Contracts once reviewed.');
         else if (act === 'message') toast('Message sent to ' + (state.session.sharedBy || 'the planner') + '.');
         else if (act === 'download') toast('Brief prepared for download.');
+        else if (act === 'rules-open') { state.rulesOpen = true; render(); }
+        else if (act === 'rules-close') { state.rulesOpen = false; render(); }
       });
     });
   }
@@ -491,6 +597,9 @@
     var data = loadPlannerData();
     state.session = buildSessionFromData(data, token, state.forceExpired);
     document.title = state.session.vendor.name + ' · Vendor Portal';
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && state.rulesOpen) { state.rulesOpen = false; render(); }
+    });
     render();
     if (window.matchMedia) {
       try {
