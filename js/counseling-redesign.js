@@ -1,11 +1,12 @@
-/* Premarital Counseling — All.dc #13c + Views #32e/#32f + Drawers batch 26 (Session) + Dark.dc rail.
-   Views: Table | Cards | Calendar.
+/* Premarital Counseling — Master s29 / 13c · Cards 32e · Calendar 32f
+   Views: Table | Cards | Calendar (no page reload).
    Rail: All sessions · Completed · Scheduled · Not booked · Homework due
          + Progress meters + Group by Status / Topic / Month.
-   Stats: Sessions · Completed · Homework done · Next · Counselor.
-   Table columns: Session · Topic · Date · Homework · Status (+ §13 homework child rows).
-   Drawer tabs: Session · Homework · Notes · History.
-   Data: data.counseling[] — num, date, topic, homework (string|[]), takeaway, questions, status. */
+   Stats (Table): Sessions · Completed · Homework done · Next · Counselor.
+   Stats (Cards): Sessions · Complete · Homework owed · Unscheduled · Next session.
+   Stats (Calendar): Booked · Held · Unscheduled · Weeks remaining · Collisions.
+   Drawer: Session · Homework · Notes · History.
+   Primary: Book a session. Completion is derived from homework rows. */
 (function () {
   'use strict';
 
@@ -17,19 +18,177 @@
   window._couHomeworkFilter = !!window._couHomeworkFilter;
   window._couDrawerId = window._couDrawerId || null;
   window._couDrawerTab = window._couDrawerTab || 0;
-  window._couExpanded = window._couExpanded || null;
+  window._couExpanded = window._couExpanded === undefined ? 'pending-05' : window._couExpanded;
   window._couSel = window._couSel instanceof Set ? window._couSel : new Set();
-  window._couCalMonth = window._couCalMonth || null;
+  window._couCalMonth = window._couCalMonth || '2026-08';
 
   const DRAWER_TABS = ['Session', 'Homework', 'Notes', 'History'];
+  const SHELL_VER = 'counseling-rd13c-s29';
+  const REHEARSAL = '2026-11-06';
+  const LEGACY_TOPIC = /Money & stewardship|Communication patterns|Family-of-origin/i;
+
+  const MASTER_COUNSELING = [
+    {
+      num: 1, date: '2026-04-14', time: '', topic: 'Why marriage',
+      homeworkItems: [
+        { task: 'Read the covenant preface', who: 'Both', due: '2026-04-10', status: 'Done', done: true },
+        { task: 'Write why we are marrying', who: 'Both', due: '2026-04-12', status: 'Done', done: true }
+      ],
+      takeaway: '', questions: '',
+      history: [
+        { when: '2026-04-14', who: 'Ama', what: 'Session held' },
+        { when: '2026-04-14', who: 'Ama', what: 'Created in the plan of 8' }
+      ]
+    },
+    {
+      num: 2, date: '2026-05-12', time: '', topic: 'How we argue',
+      homeworkItems: [
+        { task: 'Name the retreat pattern', who: 'Both', due: '2026-05-08', status: 'Done', done: true },
+        { task: 'Practise “I am gathering” once', who: 'Ama', due: '2026-05-10', status: 'Done', done: true },
+        { task: 'Practise “I am gathering” once', who: 'Kwesi', due: '2026-05-10', status: 'Done', done: true }
+      ],
+      takeaway: 'We both retreat. Ama goes quiet and Kwesi goes busy, and we have spent four years mistaking each other’s retreat for indifference. Rev. Mensah gave us the phrase “I am not finished, I am gathering” and it has already stopped one argument.',
+      questions: '',
+      history: [
+        { when: '2026-05-12', who: 'Ama', what: 'Notes written' },
+        { when: '2026-05-12', who: 'Ama', what: 'Session held' },
+        { when: '2026-04-14', who: 'Ama', what: 'Created in the plan of 8' }
+      ]
+    },
+    {
+      num: 3, date: '2026-06-09', time: '', topic: 'Families of origin',
+      homeworkItems: [
+        { task: 'Map who we learned money from', who: 'Both', due: '2026-06-05', status: 'Done', done: true },
+        { task: 'Name one family rule we will not keep', who: 'Both', due: '2026-06-07', status: 'Done', done: true }
+      ],
+      takeaway: '', questions: '',
+      history: [
+        { when: '2026-06-09', who: 'Ama', what: 'Session held' },
+        { when: '2026-04-14', who: 'Ama', what: 'Created in the plan of 8' }
+      ]
+    },
+    {
+      num: 4, date: '2026-07-14', time: '', topic: 'Money in the light',
+      homeworkItems: [
+        { task: 'List every debt', who: 'Ama', due: '2026-07-10', status: 'Done', done: true },
+        { task: 'List every debt', who: 'Kwesi', due: '2026-07-10', status: 'Done', done: true }
+      ],
+      takeaway: 'We came in disagreeing about the wedding budget and left disagreeing about it, but with a rule: no purchase over $200 without both of us. That rule is now the third value on our Vision page.',
+      questions: '',
+      history: [
+        { when: '2026-07-14', who: 'Ama', what: 'Notes written' },
+        { when: '2026-07-14', who: 'Ama', what: 'Session held' },
+        { when: '2026-04-14', who: 'Ama', what: 'Created in the plan of 8' }
+      ],
+      links: [{ page: 'Vision & Foundation', detail: 'Promises' }]
+    },
+    {
+      num: 5, date: '2026-08-12', time: '6:00pm', topic: 'Intimacy and expectation',
+      homeworkItems: [
+        { task: 'Read chapters 7–9, separately', who: 'Both', due: '2026-08-05', status: 'Not started', done: false },
+        { task: 'Write three expectations neither of us has said aloud', who: 'Both', due: '2026-08-10', status: 'Not started', done: false }
+      ],
+      takeaway: '', questions: '',
+      prep: 'Read chapter 4',
+      history: [
+        { when: '2026-07-20', who: 'Ama', what: 'Homework added · 2 items' },
+        { when: '2026-07-14', who: 'Ama', what: 'Booked for 12 Aug' },
+        { when: '2026-04-14', who: 'Ama', what: 'Created in the plan of 8' }
+      ],
+      links: [
+        { page: 'Smart Calendar', detail: '12 Aug 6:00pm', go: "typeof showPanel==='function'&&showPanel('calendar')" },
+        { page: 'Timeline & Tasks', detail: '2 tasks', go: "typeof showPanel==='function'&&showPanel('tasks')" },
+        { page: 'Vision & Foundation', detail: 'Promises', go: "typeof showPanel==='function'&&showPanel('vision')" }
+      ]
+    },
+    {
+      num: 6, date: '2026-09-09', time: '6:00pm', topic: 'Faith at home',
+      homeworkItems: [
+        { task: 'Choose a household prayer hour', who: 'Both', due: '2026-09-07', status: 'Not started', done: false },
+        { task: 'Name one Sunday we will not skip', who: 'Both', due: '2026-09-07', status: 'Not started', done: false }
+      ],
+      takeaway: '', questions: '',
+      history: [
+        { when: '2026-07-14', who: 'Ama', what: 'Booked for 9 Sep' },
+        { when: '2026-04-14', who: 'Ama', what: 'Created in the plan of 8' }
+      ]
+    },
+    {
+      num: 7, date: '2026-10-07', time: '6:00pm', topic: 'Children and time',
+      homeworkItems: [
+        { task: 'Write what we hope for in five years', who: 'Both', due: '2026-10-05', status: 'Not started', done: false }
+      ],
+      takeaway: '', questions: '',
+      history: [
+        { when: '2026-07-14', who: 'Ama', what: 'Booked for 7 Oct' },
+        { when: '2026-04-14', who: 'Ama', what: 'Created in the plan of 8' }
+      ]
+    },
+    {
+      num: 8, date: '', time: '', topic: 'The week before',
+      homeworkItems: [
+        { task: 'Write the closing questions', who: 'Both', due: '', status: 'Not started', done: false },
+        { task: 'Name what we still have not said', who: 'Both', due: '', status: 'Not started', done: false }
+      ],
+      takeaway: '', questions: '',
+      proposedDate: '2026-08-26',
+      history: [
+        { when: '2026-04-14', who: 'Ama', what: 'Created in the plan of 8' }
+      ]
+    }
+  ];
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
-    : String(s == null ? '' : s));
+    : String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch])));
+
+  function jsId(id) {
+    return String(id == null ? '' : id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  function store() {
+    if (typeof getCovenantPlannerData === 'function') return getCovenantPlannerData();
+    try { if (typeof data !== 'undefined' && data) return data; } catch (e) { /* lexical */ }
+    if (!window.data) window.data = {};
+    return window.data;
+  }
+
+  function persist() {
+    if (typeof save === 'function') save();
+  }
 
   function ensureCou() {
-    if (!window.data) window.data = {};
-    if (!Array.isArray(data.counseling)) data.counseling = [];
+    const d = store();
+    if (!Array.isArray(d.counseling)) d.counseling = [];
+    if (!d.setup) d.setup = {};
+    if (!d.setup.counselor && !d.setup.pastor) d.setup.counselor = 'Rev. Mensah';
+  }
+
+  function stampMaster(row) {
+    const copy = JSON.parse(JSON.stringify(row));
+    if (typeof nextRecordId === 'function') copy._id = nextRecordId('counseling');
+    copy.status = copy.status || '';
+    return copy;
+  }
+
+  function ensureMasterCounseling() {
+    ensureCou();
+    const d = store();
+    if (d.counselingMaster13c) return;
+    const rows = d.counseling || [];
+    const onlyLegacy = rows.length > 0 && rows.every(r => LEGACY_TOPIC.test(String(r.topic || '')));
+    if (rows.length === 0 || onlyLegacy) {
+      d.counseling = MASTER_COUNSELING.map(stampMaster);
+    } else {
+      const have = new Set(rows.map(r => String(r.topic || '').trim().toLowerCase()));
+      MASTER_COUNSELING.forEach(function (n) {
+        if (!have.has(String(n.topic).trim().toLowerCase())) d.counseling.push(stampMaster(n));
+      });
+    }
+    d.counselingMaster13c = true;
+    persist();
   }
 
   function parseDate(value) {
@@ -48,6 +207,10 @@
     return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
   }
   function pad2(n) { return String(n).padStart(2, '0'); }
+  function todayISO() {
+    const n = new Date();
+    return n.getFullYear() + '-' + pad2(n.getMonth() + 1) + '-' + pad2(n.getDate());
+  }
 
   function topicCategory(topic) {
     const t = String(topic || '').toLowerCase();
@@ -82,26 +245,28 @@
     }));
   }
 
+  /* Completion is derived from child homework, never a parent tick. */
   function deriveKind(row, hw) {
-    const st = String(row.status || '').trim().toLowerCase();
-    const doneHw = hw.filter(h => h.done).length;
-    const totalHw = hw.length;
     const hasDate = !!parseDate(row.date);
-    if (/not booked|unscheduled|not started/.test(st) && !hasDate) return 'notbooked';
-    if ((/complete|completed|done/.test(st) || (totalHw > 0 && doneHw === totalHw && hasDate))
-      && !/homework due|scheduled/.test(st)) {
-      if (totalHw === 0 || doneHw === totalHw) return 'complete';
-    }
-    if (totalHw > 0 && doneHw < totalHw && hasDate) return 'homework';
-    if (hasDate || /scheduled|upcoming/.test(st)) return 'scheduled';
-    if (/complete|completed/.test(st)) return 'complete';
-    return 'notbooked';
+    const totalHw = hw.length;
+    const doneHw = hw.filter(h => h.done).length;
+    if (!hasDate) return 'notbooked';
+    if (totalHw > 0 && doneHw === totalHw) return 'complete';
+    if (totalHw > 0 && doneHw < totalHw) return 'homework';
+    return 'scheduled';
   }
   function statusLabel(kind) {
     if (kind === 'complete') return 'Complete';
     if (kind === 'homework') return 'Homework due';
     if (kind === 'scheduled') return 'Scheduled';
     return 'Not booked';
+  }
+  function cardStatusLabel(kind, row) {
+    if (kind === 'complete') return 'Complete';
+    if (kind === 'homework') return 'Homework outstanding';
+    if (kind === 'scheduled') return 'Upcoming';
+    if (/first year|optional/i.test(String(row.topic || ''))) return 'Optional';
+    return 'Unscheduled';
   }
   function groupLabel(kind) {
     if (kind === 'complete') return 'Completed';
@@ -110,8 +275,9 @@
   }
 
   function counselorName() {
-    const s = data.setup || {};
-    return String(s.counselor || s.pastor || (data.ceremony && data.ceremony.officiant) || 'Rev. Mensah').trim() || 'Rev. Mensah';
+    const d = store();
+    const s = d.setup || {};
+    return String(s.counselor || s.pastor || (d.ceremony && d.ceremony.officiant) || 'Rev. Mensah').trim() || 'Rev. Mensah';
   }
 
   function unify(row, i) {
@@ -119,36 +285,72 @@
     const kind = deriveKind(row, hw);
     const num = Number(row.num) || (i + 1);
     const topic = String(row.topic || '').trim() || 'Untitled session';
-    const title = pad2(num) + ' · ' + topic.split(/[—–-]/)[0].trim();
+    const title = pad2(num) + ' · ' + topic.split(/[—–]/)[0].trim();
     const id = row._id ? ('counseling:' + row._id) : ('counseling:idx:' + i);
     const time = String(row.time || row.when || '').trim();
     const dateLabel = parseDate(row.date)
       ? (fmtShort(row.date) + (time ? ' · ' + time : ''))
       : '—';
+    const owed = hw.filter(h => !h.done);
+    const owedWho = Array.from(new Set(owed.map(h => h.who).filter(w => w && w !== 'Both')));
     return {
       id: id, index: i, row: row, num: num,
       title: title, topic: topic, category: topicCategory(topic),
       date: row.date || '', time: time, dateLabel: dateLabel,
+      proposedDate: row.proposedDate || '',
       homework: hw,
       hwDone: hw.filter(h => h.done).length,
       hwTotal: hw.length,
       kind: kind,
       status: statusLabel(kind),
+      cardStatus: cardStatusLabel(kind, row),
       group: groupLabel(kind),
       takeaway: String(row.takeaway || row.notes || '').trim(),
       questions: String(row.questions || '').trim(),
       counselor: String(row.counselor || counselorName()).trim(),
       where: String(row.where || row.location || 'Grace Chapel · study').trim(),
-      length: String(row.length || '90 minutes').trim()
+      length: String(row.length || '90 minutes').trim(),
+      prep: String(row.prep || '').trim(),
+      history: Array.isArray(row.history) ? row.history : [],
+      links: Array.isArray(row.links) ? row.links : [],
+      owedWho: owedWho,
+      overdue: owed.filter(h => h.due && h.due < todayISO())
     };
   }
 
   function allSessions() {
     ensureCou();
-    return data.counseling.map(unify).sort((a, b) => a.num - b.num);
+    return store().counseling.map(unify).sort((a, b) => a.num - b.num);
   }
   function findById(id) {
     return allSessions().find(s => s.id === id) || null;
+  }
+
+  function rehearsalDate() { return parseDate(REHEARSAL); }
+
+  function weeksRemaining() {
+    const r = rehearsalDate();
+    if (!r) return '—';
+    const now = parseDate(todayISO()) || new Date();
+    const ms = r.getTime() - now.getTime();
+    if (ms <= 0) return '0';
+    return String(Math.ceil(ms / (7 * 24 * 60 * 60 * 1000)));
+  }
+
+  function otherCommitments() {
+    const d = store();
+    const out = [];
+    (d.appointments || []).forEach(a => {
+      const date = String(a.date || '').slice(0, 10);
+      if (!date) return;
+      out.push({
+        date: date,
+        title: a.title || a.name || 'Appointment',
+        time: a.time || a.when || '',
+        source: 'appointment'
+      });
+    });
+    return out;
   }
 
   function counselingFigures() {
@@ -157,14 +359,24 @@
     const scheduled = els.filter(e => e.kind === 'scheduled' || e.kind === 'homework');
     const notbooked = els.filter(e => e.kind === 'notbooked');
     const hwDue = els.filter(e => e.kind === 'homework');
-    let hwDone = 0, hwTotal = 0;
-    els.forEach(e => { hwDone += e.hwDone; hwTotal += e.hwTotal; });
+    let hwDone = 0, hwDated = 0, hwAll = 0, hwAllDone = 0;
+    els.forEach(e => {
+      hwAll += e.hwTotal;
+      hwAllDone += e.hwDone;
+      if (e.kind !== 'notbooked') {
+        hwDone += e.hwDone;
+        hwDated += e.hwTotal;
+      }
+    });
     const upcoming = els
       .filter(e => e.date && (e.kind === 'scheduled' || e.kind === 'homework'))
       .sort((a, b) => String(a.date).localeCompare(String(b.date)))[0];
     const withNotes = els.filter(e => e.takeaway);
     const words = withNotes.reduce((s, e) => s + String(e.takeaway).split(/\s+/).filter(Boolean).length, 0);
-    const last = els.filter(e => e.date).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+    const dated = els.filter(e => e.date).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const last = dated[dated.length - 1];
+    const owedItems = els.reduce((n, e) => n + e.homework.filter(h => !h.done).length, 0);
+    const collisions = collisionCount();
     return {
       sessions: els.length,
       complete: complete.length,
@@ -172,18 +384,36 @@
       notbooked: notbooked.length,
       homeworkDue: hwDue.length,
       hwDone: hwDone,
-      hwTotal: hwTotal,
+      hwTotal: hwDated || hwAll,
+      hwAll: hwAll,
+      hwAllDone: hwAllDone,
+      owedItems: owedItems,
       nextLabel: upcoming ? fmtShort(upcoming.date) : '—',
       nextTopic: upcoming ? upcoming.category : '',
-      finishes: last && last.kind !== 'complete' ? fmtShort(els.filter(e => e.date).slice(-1)[0]?.date) : (els.filter(e => e.date).slice(-1)[0] ? fmtShort(els.filter(e => e.date).slice(-1)[0].date) : '—'),
+      finishes: last ? fmtShort(last.date) : '—',
       counselor: counselorName(),
       notesCount: withNotes.length,
+      notesOfComplete: complete.length,
       words: words,
       held: complete.length,
       booked: scheduled.length,
-      collisions: 0
+      collisions: collisions,
+      weeks: weeksRemaining()
     };
   }
+
+  function collisionCount() {
+    const days = {};
+    allSessions().forEach(e => {
+      if (e.date) days[e.date.slice(0, 10)] = true;
+    });
+    let n = 0;
+    otherCommitments().forEach(c => {
+      if (days[c.date]) n += 1;
+    });
+    return n;
+  }
+
   function counselingRailCounts() {
     const f = counselingFigures();
     return {
@@ -221,6 +451,17 @@
     return allSessions().filter(matchesFilters);
   }
 
+  function registerCouColumns() {
+    if (!window.rdColumns || typeof window.rdColumns.register !== 'function') return;
+    window.rdColumns.register('counseling', [
+      { key: 'session', label: 'Session', fixed: true },
+      { key: 'topic', label: 'Topic' },
+      { key: 'date', label: 'Date' },
+      { key: 'homework', label: 'Homework' },
+      { key: 'status', label: 'Status' }
+    ], function () { renderCounselingRd(); });
+  }
+
   /* ── shell ───────────────────────────────────────────────────────────── */
 
   function pageheadActionsHtml() {
@@ -251,12 +492,12 @@
     const panel = document.getElementById('panel-counseling');
     if (!panel) return;
     panel.classList.add('ued-scope', 'counseling-mockup');
-    if (panel.dataset.uedShell === 'counseling-rd13c') {
+    if (panel.dataset.uedShell === SHELL_VER) {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'counseling-rd13c';
+    panel.dataset.uedShell = SHELL_VER;
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -291,46 +532,38 @@
     if (!host) return;
     const f = counselingFigures();
     const mode = window._couMode || 'table';
+    let items;
     if (mode === 'cards') {
-      if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-        RdDepth.renderStats(host, [
-          { label: 'Sessions', value: String(f.sessions) },
-          { label: 'Complete', value: String(f.complete) },
-          { label: 'Homework owed', value: String(f.homeworkDue), attention: f.homeworkDue ? 'outstanding' : undefined },
-          { label: 'Unscheduled', value: String(f.notbooked), attention: f.notbooked ? 'book before rehearsal' : undefined },
-          { label: 'Next session', value: f.nextLabel, attention: f.nextTopic || undefined }
-        ]);
-        return;
-      }
-    }
-    if (mode === 'calendar') {
-      if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-        RdDepth.renderStats(host, [
-          { label: 'Booked', value: String(f.booked), attention: f.nextLabel !== '—' ? f.nextLabel : undefined },
-          { label: 'Held', value: String(f.held) },
-          { label: 'Unscheduled', value: String(f.notbooked) },
-          { label: 'Weeks remaining', value: '—' },
-          { label: 'Collisions', value: String(f.collisions), attention: 'checked against appointments' }
-        ]);
-        return;
-      }
-    }
-    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, [
+      items = [
+        { label: 'Sessions', value: String(f.sessions) },
+        { label: 'Complete', value: String(f.complete) },
+        { label: 'Homework owed', value: String(f.homeworkDue || f.owedItems), attention: f.homeworkDue ? 'outstanding' : undefined },
+        { label: 'Unscheduled', value: String(f.notbooked), attention: f.notbooked ? 'both due before 6 Nov' : undefined },
+        { label: 'Next session', value: f.nextLabel, attention: f.nextTopic || undefined }
+      ];
+    } else if (mode === 'calendar') {
+      items = [
+        { label: 'Booked', value: String(f.booked), attention: f.nextLabel !== '—' ? f.nextLabel + (f.nextTopic ? ' · ' + f.nextTopic : '') : undefined },
+        { label: 'Held', value: String(f.held) },
+        { label: 'Unscheduled', value: String(f.notbooked), attention: f.notbooked ? 'deadline 6 Nov' : undefined },
+        { label: 'Weeks remaining', value: String(f.weeks) },
+        { label: 'Collisions', value: String(f.collisions), attention: 'checked against appointments' }
+      ];
+    } else {
+      items = [
         { label: 'Sessions', value: String(f.sessions) },
         { label: 'Completed', value: String(f.complete) },
         { label: 'Homework done', value: f.hwDone + ' of ' + Math.max(f.hwTotal, f.hwDone) },
         { label: 'Next', value: f.nextLabel },
         { label: 'Counselor', value: f.counselor }
-      ]);
+      ];
+    }
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, items);
       return;
     }
-    host.innerHTML = [
-      ['Sessions', f.sessions], ['Completed', f.complete],
-      ['Homework done', f.hwDone + ' of ' + f.hwTotal],
-      ['Next', f.nextLabel], ['Counselor', f.counselor]
-    ].map(([l, v]) =>
-      `<div class="m-stat"><div class="m-stat-label">${esc(l)}</div><div class="m-stat-val">${esc(String(v))}</div></div>`
+    host.innerHTML = items.map(it =>
+      `<div class="m-stat"><div class="m-stat-label">${esc(it.label)}</div><div class="m-stat-val">${esc(String(it.value))}</div></div>`
     ).join('');
   }
 
@@ -344,6 +577,16 @@
       + '</button>';
   }
 
+  function viewSwitchHtml() {
+    const mode = window._couMode || 'table';
+    return `<div class="rd-toolbar__right">` +
+      `<div class="rd-viewswitch" role="group" aria-label="Counseling view">` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetCounselingView('table')">Table</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'cards' ? ' is-active' : ''}" onclick="rdSetCounselingView('cards')">Cards</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'calendar' ? ' is-active' : ''}" onclick="rdSetCounselingView('calendar')">Calendar</button>` +
+      `</div></div>`;
+  }
+
   function renderCouToolbar() {
     const host = document.getElementById('counseling-toolbar');
     if (!host) return;
@@ -351,34 +594,22 @@
     let left = '';
     if (mode === 'calendar') {
       const month = calMonthDate();
-      const label = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const label = month.toLocaleDateString('en-US', { month: 'long' });
       left =
-        `<button type="button" class="rd-chip is-active">Month: ${esc(label.split(' ')[0])}</button>` +
+        `<button type="button" class="rd-chip is-active">Month: ${esc(label)}</button>` +
         `<button type="button" class="rd-chip${window._couShowCommitments ? ' is-active' : ''}" onclick="rdCouToggleCommitments()">Show other commitments${window._couShowCommitments ? ' ✕' : ''}</button>` +
         `<span class="rd-cou-toolbar-note">Red = proposed, not booked</span>`;
     } else if (mode === 'cards') {
       left = filterChip('Status', 'status') +
         `<button type="button" class="rd-chip rd-chip--ghost">With: ${esc(counselorName())}</button>` +
         `<button type="button" class="rd-chip${window._couHomeworkFilter ? ' is-active' : ''}" onclick="rdCouToggleHwFilter()">Homework outstanding${window._couHomeworkFilter ? ' ✕' : ''}</button>` +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by session number</button>`;
+        (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by session number', "rdStdOpenSort(this,'counseling')") : '<button type="button" class="rd-chip rd-chip--ghost">Sort by session number</button>');
     } else {
-      left = filterChip('Status', 'status') + filterChip('Topic', 'topic') + filterChip('Month', 'month') +
-        `<button type="button" class="rd-chip rd-chip--ghost">Sort by session number</button>`;
-    }
-    /* Table mode: keep filters + shared Columns/Auto-fit/Row height (CWP mount
-       may be empty until sessions exist; page chrome must still match Tasks). */
-    if (mode === 'table') {
       left = filterChip('Status', 'status') + filterChip('Topic', 'topic') + filterChip('Month', 'month') +
         (typeof rdSortChipHtml === 'function' ? rdSortChipHtml('Sort by session number', "rdStdOpenSort(this,'counseling')") : '') +
         (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('counseling') : '');
     }
-    host.innerHTML = left +
-      `<div class="rd-toolbar__right">` +
-      `<div class="rd-viewswitch" role="group" aria-label="Counseling view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetCounselingView('table')">Table</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'cards' ? ' is-active' : ''}" onclick="rdSetCounselingView('cards')">Cards</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'calendar' ? ' is-active' : ''}" onclick="rdSetCounselingView('calendar')">Calendar</button>` +
-      `</div></div>`;
+    host.innerHTML = left + viewSwitchHtml();
   }
 
   function renderBulkBar() {
@@ -414,7 +645,6 @@
   function applyCounselingRailView(viewId) {
     window._couRailView = viewId || 'all';
     if (typeof setSavedView === 'function') setSavedView('counseling', window._couRailView);
-    window._couMode = 'table';
     renderCounselingRd();
   }
   function applyCounselingGroupBy(g) {
@@ -422,7 +652,21 @@
     renderCounselingRd();
   }
 
-  /* ── Table ───────────────────────────────────────────────────────────── */
+  function defaultExpandedId() {
+    if (window._couExpanded && window._couExpanded !== 'pending-05') return window._couExpanded;
+    const five = allSessions().find(e => e.num === 5);
+    window._couExpanded = five ? five.id : null;
+    return window._couExpanded;
+  }
+
+  /* ── Table (#13c) ────────────────────────────────────────────────────── */
+
+  function pillScheme(kind) {
+    if (kind === 'complete') return 'gold';
+    if (kind === 'homework') return 'red';
+    if (kind === 'notbooked') return 'muted';
+    return 'forest';
+  }
 
   function renderTableView() {
     const host = document.getElementById('cou-view-table');
@@ -441,8 +685,9 @@
       groups[key].push(e);
     });
     const order = by === 'status' ? ['Completed', 'Scheduled', 'Not booked'] : Object.keys(groups);
+    const expanded = defaultExpandedId();
 
-    let html = `<table class="rd-cou-table"><thead><tr>` +
+    let html = `<table class="rd-cou-table rd-table--compact"><thead><tr>` +
       `<th style="width:34px"></th><th>Session</th><th>Topic</th><th>Date</th><th>Homework</th><th>Status</th>` +
       `</tr></thead><tbody>`;
 
@@ -457,26 +702,27 @@
       html += `<tr class="rd-cou-group"><td colspan="6">${esc(g)} · ${esc(sub)}</td></tr>`;
       rows.forEach(e => {
         const sel = window._couSel.has(e.id);
-        const expanded = window._couExpanded === e.id;
-        const scheme = e.kind === 'complete' ? 'gold' : (e.kind === 'homework' ? 'red' : (e.kind === 'notbooked' ? 'muted' : 'forest'));
-        html += `<tr class="rd-cou-row${sel ? ' is-selected' : ''}${e.kind === 'homework' ? ' is-due' : ''}" data-cou-id="${esc(e.id)}" onclick="rdCouOpenDrawer('${esc(e.id)}')">` +
-          `<td onclick="event.stopPropagation()"><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdCouToggleSel('${esc(e.id)}')"></td>` +
+        const isExp = expanded === e.id;
+        const scheme = pillScheme(e.kind);
+        const sid = jsId(e.id);
+        html += `<tr class="rd-cou-row${sel ? ' is-selected' : ''}${e.kind === 'homework' ? ' is-due' : ''}" data-cou-id="${esc(e.id)}" onclick="rdCouOpenDrawer('${sid}')">` +
+          `<td onclick="event.stopPropagation()"><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdCouToggleSel('${sid}')"></td>` +
           `<td class="rd-cou-name">${esc(e.title)}` +
           `<span class="rd-cou-row__actions">` +
-          `<button type="button" onclick="event.stopPropagation();rdCouToggleExpand('${esc(e.id)}')">${expanded ? 'Hide' : 'Homework'}</button>` +
-          `<button type="button" onclick="event.stopPropagation();rdCouFullEditor('${esc(e.id)}')">Full editor</button>` +
+          `<button type="button" onclick="event.stopPropagation();rdCouToggleExpand('${sid}')">${isExp ? 'Hide' : 'Homework'}</button>` +
+          `<button type="button" onclick="event.stopPropagation();rdCouFullEditor('${sid}')">Full editor</button>` +
           `</span></td>` +
           `<td>${esc(e.category)}</td><td>${esc(e.dateLabel)}</td>` +
           `<td>${esc(e.hwDone + ' of ' + e.hwTotal)}</td>` +
           `<td><span class="status-pill" data-pillscheme="${scheme}">${esc(e.status)}</span></td>` +
           `</tr>`;
-        if (expanded) {
+        if (isExp) {
           html += `<tr class="rd-cou-child"><td colspan="6">` +
             `<div class="rd-cou-hwpanel">` +
             `<div class="rd-section__head">` +
             `<div class="rd-pagehead__eyebrow">Homework · session ${esc(pad2(e.num))}</div>` +
             `<p class="rd-help">${e.date ? ('Due before ' + esc(fmtLong(e.date))) : 'No date set'}</p>` +
-            `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="rdCouAddHomework('${esc(e.id)}')">+ Add homework</button>` +
+            `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="rdCouAddHomework('${sid}')">+ Add homework</button>` +
             `</div>` +
             `<table class="rd-cou-hwtable"><thead><tr><th>Task</th><th>Who</th><th>Due</th><th>Status</th></tr></thead><tbody>`;
           if (!e.homework.length) {
@@ -485,7 +731,7 @@
             e.homework.forEach((h, hi) => {
               html += `<tr>` +
                 `<td>${esc(h.task)}</td><td>${esc(h.who)}</td><td>${esc(h.due ? fmtShort(h.due) : '—')}</td>` +
-                `<td><button type="button" class="rd-chip${h.done ? ' is-active' : ''}" onclick="rdCouToggleHw('${esc(e.id)}',${hi})">${esc(h.status)}</button></td>` +
+                `<td><button type="button" class="rd-chip${h.done ? ' is-active' : ''}" onclick="rdCouToggleHw('${sid}',${hi})">${esc(h.status)}</button></td>` +
                 `</tr>`;
             });
           }
@@ -499,8 +745,7 @@
     html += `</tbody></table>`;
     html += `<button type="button" class="rd-cou-addbtn" onclick="rdCouAdd()"><span>+</span> Book a session with ${esc(counselorName())}</button>`;
 
-    /* Keepsake notes band */
-    const noted = allSessions().filter(e => e.takeaway).slice(0, 4);
+    const noted = allSessions().filter(e => e.takeaway);
     html += `<section class="rd-cou-keepsake">` +
       `<div class="rd-section__head">` +
       `<div class="rd-pagehead__eyebrow">What we have written down</div>` +
@@ -509,7 +754,7 @@
       `</div>`;
     if (noted.length) {
       html += `<div class="rd-cou-keepsake__list">` + noted.map(e =>
-        `<article onclick="rdCouOpenDrawer('${esc(e.id)}')"><h4>${esc(e.title)}</h4><p>${esc(e.takeaway)}</p></article>`
+        `<article onclick="rdCouOpenDrawer('${jsId(e.id)}')"><h4>${esc(e.title)}</h4><p>${esc(e.takeaway)}</p></article>`
       ).join('') + `</div>`;
     } else {
       html += `<p class="rd-cou-empty">Notes are taken after the session, not before.</p>`;
@@ -520,22 +765,40 @@
 
   /* ── Cards (#32e) ────────────────────────────────────────────────────── */
 
+  function cardNote(e) {
+    if (e.kind === 'notbooked' && (e.num === 6 || e.num === 7)) return 'Must be before the rehearsal';
+    if (e.kind === 'notbooked' && e.num === 8) return 'The week before the wedding';
+    if (e.kind === 'notbooked') return 'Book before the rehearsal';
+    if (e.owedWho.length) return 'Owed by ' + e.owedWho.join(' & ');
+    if (e.prep && e.kind !== 'complete') return 'Prep ' + e.prep;
+    return 'With ' + e.counselor;
+  }
+
   function renderCardsView() {
     const host = document.getElementById('cou-view-cards');
     if (!host) return;
     const els = filteredSessions();
     let html = `<div class="rd-cou-cardgrid">`;
     els.forEach(e => {
-      const scheme = e.kind === 'complete' ? 'gold' : (e.kind === 'homework' ? 'red' : (e.kind === 'notbooked' ? 'muted' : 'forest'));
-      html += `<article class="rd-cou-card" onclick="rdCouOpenDrawer('${esc(e.id)}')">` +
+      const scheme = pillScheme(e.kind === 'homework' ? 'homework' : e.kind);
+      const pct = e.hwTotal ? Math.round((e.hwDone / e.hwTotal) * 100) : 0;
+      const hwLine = e.kind === 'notbooked' && !e.hwDone
+        ? 'Homework —'
+        : ('Homework ' + e.hwDone + ' of ' + e.hwTotal + (e.kind === 'complete' ? ' done' : (e.hwDone === 0 ? ' set' : ' done')));
+      const held = e.date
+        ? ((e.kind === 'complete' ? 'Held ' : '') + e.dateLabel.replace(/ · .*/, ''))
+        : 'Not scheduled';
+      html += `<article class="rd-cou-card${e.kind === 'homework' ? ' is-owed' : ''}${e.kind === 'notbooked' ? ' is-open' : ''}" onclick="rdCouOpenDrawer('${jsId(e.id)}')">` +
         `<div class="rd-cou-card__top">` +
         `<span class="rd-cou-card__num">${esc(pad2(e.num))}</span>` +
-        `<span class="status-pill" data-pillscheme="${scheme}">${esc(e.status)}</span>` +
+        `<span class="status-pill" data-pillscheme="${scheme}">${esc(e.cardStatus)}</span>` +
         `</div>` +
-        `<h3>${esc(e.topic)}</h3>` +
-        `<div class="rd-cou-card__meta">${esc(e.category)} · ${esc(e.dateLabel)}</div>` +
-        `<div class="rd-cou-card__hw">Homework ${esc(e.hwDone + ' of ' + e.hwTotal)}</div>` +
-        (e.kind === 'notbooked' ? `<p class="rd-cou-card__note">Book before the rehearsal</p>` : '') +
+        `<h3>${esc(pad2(e.num) + ' · ' + e.topic)}</h3>` +
+        `<div class="rd-cou-card__meta">${esc(held)}</div>` +
+        `<div class="rd-cou-card__bar" aria-hidden="true"><b style="width:${pct}%"></b></div>` +
+        `<div class="rd-cou-card__hw">${esc(hwLine)}</div>` +
+        `<div class="rd-cou-card__hw">Notes ${e.takeaway ? 'Written' : '—'}</div>` +
+        `<p class="rd-cou-card__note">${esc(cardNote(e))}</p>` +
         `</article>`;
     });
     if (!els.length) html += `<p class="rd-cou-empty">No sessions in this view yet.</p>`;
@@ -550,13 +813,7 @@
       const d = parseDate(window._couCalMonth + '-01');
       if (d) return d;
     }
-    const next = allSessions().find(e => e.date && (e.kind === 'scheduled' || e.kind === 'homework'));
-    if (next) {
-      const d = parseDate(next.date);
-      if (d) return new Date(d.getFullYear(), d.getMonth(), 1);
-    }
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return new Date(2026, 7, 1);
   }
 
   function renderCalendarView() {
@@ -566,41 +823,50 @@
     window._couCalMonth = month.getFullYear() + '-' + pad2(month.getMonth() + 1);
     const y = month.getFullYear();
     const m = month.getMonth();
-    const firstDow = new Date(y, m, 1).getDay();
+    const first = new Date(y, m, 1);
+    let mondayIndex = (first.getDay() + 6) % 7;
     const daysInMonth = new Date(y, m + 1, 0).getDate();
-    const sessions = allSessions().filter(e => {
-      const d = parseDate(e.date);
-      return d && d.getFullYear() === y && d.getMonth() === m;
-    });
     const f = counselingFigures();
     const monthLabel = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const bookedThisMonth = allSessions().filter(e => {
+      const d = parseDate(e.date);
+      return d && d.getFullYear() === y && d.getMonth() === m && e.kind !== 'complete';
+    }).length;
 
     let html = `<div class="rd-cou-cal">` +
       `<div class="rd-section__head">` +
-      `<div class="rd-pagehead__eyebrow">${esc(monthLabel)} · ${sessions.length} session${sessions.length === 1 ? '' : 's'} booked · ${f.notbooked} still unscheduled</div>` +
-      `<p class="rd-help">Click a day to add · sessions appear on Smart Calendar but are not appointment records</p>` +
+      `<div class="rd-pagehead__eyebrow">${esc(monthLabel)} · ${bookedThisMonth} session${bookedThisMonth === 1 ? '' : 's'} booked · ${f.notbooked} session${f.notbooked === 1 ? '' : 's'} still unscheduled before 6 November</div>` +
+      `<p class="rd-help">Click a day to add · drag an event to move it</p>` +
       `<div style="margin-left:auto;display:flex;gap:6px">` +
       `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouShiftMonth(-1)">‹</button>` +
+      `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouCalToday()">Today</button>` +
       `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouShiftMonth(1)">›</button>` +
       `</div></div>` +
       `<div class="rd-cou-cal__grid">` +
-      ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div class="rd-cou-cal__dow">${d}</div>`).join('');
+      ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<div class="rd-cou-cal__dow">${d}</div>`).join('');
 
-    for (let i = 0; i < firstDow; i++) html += `<div class="rd-cou-cal__day is-empty"></div>`;
+    for (let i = 0; i < mondayIndex; i++) html += `<div class="rd-cou-cal__day is-empty"></div>`;
+    const today = todayISO();
     for (let day = 1; day <= daysInMonth; day++) {
       const iso = y + '-' + pad2(m + 1) + '-' + pad2(day);
-      const daySessions = sessions.filter(e => String(e.date).slice(0, 10) === iso);
-      html += `<div class="rd-cou-cal__day" onclick="rdCouAddOnDay('${iso}')">` +
+      const daySessions = allSessions().filter(e => String(e.date).slice(0, 10) === iso);
+      const proposed = allSessions().filter(e => !e.date && String(e.proposedDate || '').slice(0, 10) === iso);
+      html += `<div class="rd-cou-cal__day${iso === today ? ' is-today' : ''}" onclick="rdCouAddOnDay('${iso}')">` +
         `<div class="rd-cou-cal__num">${day}</div>`;
       daySessions.forEach(e => {
-        html += `<button type="button" class="rd-cou-cal__event${e.kind === 'notbooked' ? ' is-proposed' : ''}" onclick="event.stopPropagation();rdCouOpenDrawer('${esc(e.id)}')">` +
+        html += `<button type="button" class="rd-cou-cal__event" draggable="true" ondragstart="rdCouDrag('${jsId(e.id)}',event)" onclick="event.stopPropagation();rdCouOpenDrawer('${jsId(e.id)}')">` +
           `${esc(pad2(e.num) + ' · ' + e.category)}${e.time ? ' · ' + esc(e.time) : ''}` +
           `</button>`;
       });
-      if (window._couShowCommitments && typeof data !== 'undefined' && Array.isArray(data.appointments)) {
-        data.appointments.forEach(a => {
-          if (String(a.date || '').slice(0, 10) === iso) {
-            html += `<div class="rd-cou-cal__other">${esc(a.title || a.name || 'Appointment')}${a.time ? ' · ' + esc(a.time) : ''}</div>`;
+      proposed.forEach(e => {
+        html += `<button type="button" class="rd-cou-cal__event is-proposed" onclick="event.stopPropagation();rdCouOpenDrawer('${jsId(e.id)}')">` +
+          `${esc(pad2(e.num) + ' · ' + e.category + ' · unscheduled')}` +
+          `</button>`;
+      });
+      if (window._couShowCommitments) {
+        otherCommitments().forEach(a => {
+          if (a.date === iso) {
+            html += `<div class="rd-cou-cal__other">${esc(a.title)}${a.time ? ' · ' + esc(a.time) : ''}</div>`;
           }
         });
       }
@@ -608,6 +874,16 @@
     }
     html += `</div></div>`;
     host.innerHTML = html;
+    host.ondragover = ev => ev.preventDefault();
+    host.ondrop = ev => {
+      const id = ev.dataTransfer && ev.dataTransfer.getData('text/cou-id');
+      const day = ev.target && ev.target.closest && ev.target.closest('.rd-cou-cal__day');
+      if (!id || !day || day.classList.contains('is-empty')) return;
+      const numEl = day.querySelector('.rd-cou-cal__num');
+      if (!numEl) return;
+      const iso = y + '-' + pad2(m + 1) + '-' + pad2(numEl.textContent);
+      rdCouMoveToDay(id, iso);
+    };
   }
 
   /* ── Drawer ──────────────────────────────────────────────────────────── */
@@ -645,6 +921,7 @@
     const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._couDrawerTab, 10) || 0));
     const f = counselingFigures();
     const total = Math.max(f.sessions, e.num);
+    const sid = jsId(e.id);
     let body = '';
     if (tab === 0) {
       body =
@@ -654,52 +931,68 @@
         field('Where', e.where) +
         field('Date', e.date ? (fmtLong(e.date) + (e.time ? ' · ' + e.time : '')) : '—') +
         field('Length', e.length) +
-        `<p class="rd-drawer__note">Sessions appear on the Smart Calendar. They are not appointment records — the calendar reads them, it does not own them.</p>` +
-        field('Smart Calendar', e.dateLabel !== '—' ? e.dateLabel + ' →' : '—', "typeof showPanel==='function'&&showPanel('calendar')");
+        `<p class="rd-drawer__note">Sessions appear on the Smart Calendar but are <b>not</b> appointment records — they are their own table, so nothing is entered twice.</p>` +
+        (e.links.length
+          ? `<div class="rd-drawer__section-title">Linked</div>` + e.links.map(l =>
+            field(l.page, l.detail, l.go || '')
+          ).join('')
+          : field('Smart Calendar', e.dateLabel !== '—' ? e.dateLabel + ' →' : '—', "typeof showPanel==='function'&&showPanel('calendar')"));
     } else if (tab === 1) {
       body =
         `<div class="rd-drawer__section-title">Homework · ${e.hwDone} of ${e.hwTotal}</div>` +
         (e.homework.length
           ? e.homework.map((h, hi) =>
-            `<div class="rd-drawer__guest">${esc(h.task)} <span>${esc(h.due ? ('Due ' + fmtShort(h.due)) : h.status)}</span>` +
-            `<button type="button" class="rd-chip" style="margin-left:8px" onclick="rdCouToggleHw('${esc(e.id)}',${hi})">${h.done ? 'Done' : 'Tick'}</button></div>`
+            `<div class="rd-drawer__guest"><span>${esc(h.task)}</span><span class="${h.done ? '' : 'rd-cou-due'}">${esc(h.due ? ('Due ' + fmtShort(h.due)) : h.status)}</span>` +
+            `<button type="button" class="rd-chip" onclick="rdCouToggleHw('${sid}',${hi})">${h.done ? 'Done' : 'Tick'}</button></div>`
           ).join('')
           : '<p class="rd-drawer__note">No homework rows yet.</p>') +
-        `<p class="rd-drawer__note">A session is finished when the homework is done — completion is derived from these child rows, not a tick on the parent.</p>` +
-        `<button type="button" class="rd-btn" onclick="rdCouAddHomework('${esc(e.id)}')">+ Add homework</button>` +
-        (e.homework.some(h => !h.done)
-          ? `<button type="button" class="rd-btn" onclick="rdCouTickAll('${esc(e.id)}')">Tick both</button>`
-          : '');
+        `<p class="rd-drawer__note">The session bar on the page is <b>derived from these two rows</b>. Ticking them here moves the page stat and the rail meter — there is no separate “session complete” tick to fall out of step.</p>` +
+        (e.overdue.length
+          ? `<p class="rd-cou-callout">Both are overdue against the ${esc(e.date ? fmtLong(e.date) : 'session')}. ${esc(e.homework[0] ? e.homework[0].task.split(',')[0] : 'Reading')} was due a week ago.</p>`
+          : '') +
+        `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouAddHomework('${sid}')">+ Add homework</button>`;
     } else if (tab === 2) {
+      const earlier = allSessions().filter(x => x.takeaway && x.id !== e.id).slice(0, 2);
       body =
         (e.takeaway
-          ? `<p class="rd-cou-drawer__prose">${esc(e.takeaway)}</p>`
-          : `<p class="rd-drawer__note">Nothing written yet — notes are taken after the session, not before.</p>`) +
-        (e.questions ? `<div class="rd-drawer__section-title">Questions</div><p class="rd-drawer__note">${esc(e.questions)}</p>` : '') +
+          ? `<textarea class="rd-cou-drawer__input rd-cou-drawer__input--serif" rows="6" oninput="rdCouPatch('${sid}','takeaway',this.value)">${esc(e.takeaway)}</textarea>`
+          : `<p class="rd-drawer__note">Nothing written yet — notes are taken after the session, not before.</p>` +
+            `<textarea class="rd-cou-drawer__input rd-cou-drawer__input--serif" rows="5" placeholder="Written after, not before." oninput="rdCouPatch('${sid}','takeaway',this.value)"></textarea>`) +
+        (earlier.length
+          ? `<div class="rd-drawer__section-title">Earlier sessions</div>` + earlier.map(x =>
+            `<blockquote class="rd-cou-quote"><strong>${esc(pad2(x.num) + ' · ' + x.topic)}</strong><span>${esc(x.takeaway)}</span></blockquote>`
+          ).join('')
+          : '') +
+        `<p class="rd-drawer__note">Session notes are Class B and print as one continuous record, which is why they are written in prose rather than bullets.</p>` +
         `<div class="rd-drawer__section-title">Notes written</div>` +
-        field('Sessions with notes', f.notesCount + ' of ' + f.complete) +
+        field('Sessions with notes', f.notesCount + ' of ' + Math.max(f.notesOfComplete, f.complete)) +
         field('Words', String(f.words));
     } else {
+      const hist = (e.history && e.history.length) ? e.history : [
+        { when: '', who: 'Planner', what: 'Created in the plan of ' + f.sessions }
+      ];
       body =
-        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Created in the plan of ${esc(String(f.sessions))}</div></div>` +
-        (e.date ? `<div class="rd-drawer__hist"><strong>${esc(fmtShort(e.date))}</strong> · Planner<div>Booked</div></div>` : '') +
-        (e.hwTotal ? `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Homework · ${esc(e.hwDone + ' of ' + e.hwTotal)}</div></div>` : '') +
-        `<p class="rd-drawer__note">History is provisional until counseling audit tracking lands.</p>`;
+        `<div class="rd-drawer__section-title">This session</div>` +
+        hist.map(h =>
+          `<div class="rd-drawer__hist"><strong>${esc(h.when ? fmtShort(h.when) : '—')} · ${esc(h.who || 'Planner')}</strong><div>${esc(h.what)}</div></div>`
+        ).join('') +
+        `<p class="rd-drawer__note">The eight sessions were created as a plan on 14 April, so ${f.notbooked} of them still ${f.notbooked === 1 ? 'has' : 'have'} no date. That is not a gap — it is a plan being kept to.</p>`;
     }
 
-    const domainCta = (tab === 1 && e.kind === 'homework')
-      ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCouTickAll('${esc(e.id)}')">Tick both</button>`
+    const domainCta = (tab === 1 && e.homework.some(h => !h.done))
+      ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCouTickAll('${sid}')">Tick both</button>`
       : `<button type="button" class="rd-btn rd-btn--primary" onclick="rdCouCloseDrawer()">Save</button>`;
 
+    const eyebrowKind = e.kind === 'complete' ? 'complete' : (e.kind === 'notbooked' ? 'unscheduled' : 'scheduled');
     slot.classList.add('is-open');
     slot.innerHTML =
       `<aside class="rd-drawer rd-cou-drawer" aria-label="Counseling session">` +
       `<div class="rd-drawer__head">` +
-      `<div class="rd-drawer__eyebrow">Session ${esc(pad2(e.num))} · ${esc(e.kind === 'complete' ? 'complete' : (e.kind === 'homework' ? 'scheduled' : e.kind))}</div>` +
+      `<div class="rd-drawer__eyebrow">Session ${esc(pad2(e.num))} · ${esc(eyebrowKind)}</div>` +
       `<h2 class="rd-drawer__title">${esc(e.topic)}</h2>` +
       `<div class="rd-drawer__chips">` +
       (e.dateLabel !== '—' ? `<span class="status-pill" data-pillscheme="gold">${esc(e.dateLabel)}</span>` : '') +
-      `<span class="status-pill" data-pillscheme="${e.kind === 'homework' ? 'red' : 'gold'}">${esc(e.status)}</span>` +
+      `<span class="status-pill" data-pillscheme="${e.kind === 'homework' ? 'red' : (e.kind === 'complete' ? 'gold' : 'muted')}">${esc(e.status)}</span>` +
       `</div>` +
       `<button type="button" class="rd-drawer__close" onclick="rdCouCloseDrawer()" aria-label="Close">×</button>` +
       `<div class="rd-drawer__tabs" role="tablist">` +
@@ -710,7 +1003,7 @@
       `<div class="rd-drawer__body">${body}</div>` +
       `<div class="rd-drawer__foot">` +
       domainCta +
-      `<button type="button" class="rd-btn" onclick="rdCouFullEditor('${esc(e.id)}')">Full editor</button>` +
+      `<button type="button" class="rd-btn" onclick="rdCouFullEditor('${sid}')">Full editor</button>` +
       `</div></aside>`;
   }
 
@@ -758,8 +1051,27 @@
           window.recordEditorState.draft.date = iso;
           window.recordEditorState.draft.status = 'Scheduled';
         }
-      } catch (e) { /* soft */ }
+      } catch (err) { /* soft */ }
     } else rdCouAdd();
+  }
+  function rdCouDrag(id, ev) {
+    if (ev && ev.dataTransfer) {
+      ev.dataTransfer.setData('text/cou-id', id);
+      ev.dataTransfer.effectAllowed = 'move';
+    }
+  }
+  function rdCouMoveToDay(id, iso) {
+    const e = findById(id);
+    if (!e) return;
+    e.row.date = iso;
+    e.row.proposedDate = '';
+    persist();
+    renderCounselingRd();
+  }
+  function rdCouCalToday() {
+    const n = new Date();
+    window._couCalMonth = n.getFullYear() + '-' + pad2(n.getMonth() + 1);
+    renderCounselingRd();
   }
   function rdCouFullEditor(id) {
     const e = id ? findById(id) : findById(window._couDrawerId);
@@ -792,13 +1104,26 @@
       })));
     }
   }
+  function rdCouPatch(id, key, val) {
+    const e = findById(id);
+    if (!e) return;
+    e.row[key] = val;
+    persist();
+    if (key === 'takeaway') {
+      const f = counselingFigures();
+      const host = document.getElementById('counseling-stats');
+      if (host && typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+        /* keep typing; full rerender on blur via Save */
+      }
+    }
+  }
   function rdCouAddHomework(id) {
     const e = findById(id);
     if (!e) return;
     const items = ensureHomeworkArray(e.row);
     items.push({ task: 'New homework', who: 'Both', due: '', status: 'Not started', done: false });
     e.row.homeworkItems = items;
-    if (typeof save === 'function') save();
+    persist();
     renderCounselingRd();
   }
   function rdCouToggleHw(id, hi) {
@@ -809,9 +1134,7 @@
     items[hi].done = !items[hi].done;
     items[hi].status = items[hi].done ? 'Done' : 'Not started';
     e.row.homeworkItems = items;
-    if (items.length && items.every(h => h.done) && e.date) e.row.status = 'Complete';
-    else if (e.date) e.row.status = 'Scheduled';
-    if (typeof save === 'function') save();
+    persist();
     renderCounselingRd();
   }
   function rdCouTickAll(id) {
@@ -820,8 +1143,7 @@
     const items = ensureHomeworkArray(e.row);
     items.forEach(h => { h.done = true; h.status = 'Done'; });
     e.row.homeworkItems = items;
-    if (e.date) e.row.status = 'Complete';
-    if (typeof save === 'function') save();
+    persist();
     renderCounselingRd();
   }
   function rdCouCycleFilter(field) {
@@ -892,7 +1214,8 @@
   /* ── main ────────────────────────────────────────────────────────────── */
 
   function renderCounselingRd() {
-    ensureCou();
+    ensureMasterCounseling();
+    registerCouColumns();
     uedCounselingShellRd();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('counseling');
     applyViewMode();
@@ -929,11 +1252,15 @@
   window.rdCouToggleExpand = rdCouToggleExpand;
   window.rdCouAdd = rdCouAdd;
   window.rdCouAddOnDay = rdCouAddOnDay;
+  window.rdCouDrag = rdCouDrag;
+  window.rdCouMoveToDay = rdCouMoveToDay;
+  window.rdCouCalToday = rdCouCalToday;
   window.rdCouFullEditor = rdCouFullEditor;
   window.rdCouMessage = rdCouMessage;
   window.rdCouPrint = rdCouPrint;
   window.rdCouPrintNotes = rdCouPrintNotes;
   window.rdCouExport = rdCouExport;
+  window.rdCouPatch = rdCouPatch;
   window.rdCouAddHomework = rdCouAddHomework;
   window.rdCouToggleHw = rdCouToggleHw;
   window.rdCouTickAll = rdCouTickAll;

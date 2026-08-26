@@ -19776,9 +19776,15 @@ body.rd-scope #panel-counseling .rd-cou-keepsake__list p {
   color: #3f3b34;
 }
 
+body.rd-scope #panel-counseling .rd-cou-toolbar-note {
+  font-size: 12px;
+  color: #8a7e6b;
+  align-self: center;
+  margin-left: 4px;
+}
 body.rd-scope #panel-counseling .rd-cou-cardgrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
 }
 body.rd-scope #panel-counseling .rd-cou-card {
@@ -19786,9 +19792,10 @@ body.rd-scope #panel-counseling .rd-cou-card {
   background: #fdfcfa;
   padding: 14px 16px;
   cursor: pointer;
-  min-height: 140px;
+  min-height: 168px;
 }
 body.rd-scope #panel-counseling .rd-cou-card:hover { background: #fdfaf4; }
+body.rd-scope #panel-counseling .rd-cou-card.is-owed { border-color: #e7ce80; background: #fffdf6; }
 body.rd-scope #panel-counseling .rd-cou-card__top {
   display: flex;
   justify-content: space-between;
@@ -19811,9 +19818,24 @@ body.rd-scope #panel-counseling .rd-cou-card__hw {
   color: #6b645d;
   margin-bottom: 4px;
 }
+body.rd-scope #panel-counseling .rd-cou-card__bar {
+  height: 4px;
+  background: #efe9dc;
+  margin: 8px 0 10px;
+}
+body.rd-scope #panel-counseling .rd-cou-card__bar b {
+  display: block;
+  height: 100%;
+  background: #2D4A3E;
+}
+body.rd-scope #panel-counseling .rd-cou-card.is-owed .rd-cou-card__bar b { background: #a33b28; }
 body.rd-scope #panel-counseling .rd-cou-card__note {
   margin: 8px 0 0;
   font-size: 11px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-counseling .rd-cou-card.is-owed .rd-cou-card__note,
+body.rd-scope #panel-counseling .rd-cou-card.is-open .rd-cou-card__note {
   color: #a33b28;
 }
 
@@ -19839,6 +19861,7 @@ body.rd-scope #panel-counseling .rd-cou-cal__day {
   vertical-align: top;
 }
 body.rd-scope #panel-counseling .rd-cou-cal__day.is-empty { background: #f7f3ea; cursor: default; }
+body.rd-scope #panel-counseling .rd-cou-cal__day.is-today { box-shadow: inset 0 0 0 1px #B89968; }
 body.rd-scope #panel-counseling .rd-cou-cal__num {
   font-size: 12px;
   color: #6b645d;
@@ -19953,6 +19976,45 @@ body.rd-scope #panel-counseling .rd-cou-drawer__prose {
   line-height: 1.55;
   color: #3f3b34;
 }
+body.rd-scope #panel-counseling .rd-cou-drawer__input {
+  width: 100%;
+  border: 1px solid #e0dbd1;
+  background: #fff;
+  color: #23211c;
+  font: inherit;
+  padding: 8px 9px;
+  resize: vertical;
+}
+body.rd-scope #panel-counseling .rd-cou-drawer__input--serif {
+  font-family: var(--font-display, Georgia, "Times New Roman", serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: #20362D;
+}
+body.rd-scope #panel-counseling .rd-cou-quote {
+  margin: 0;
+  padding: 12px 13px;
+  border-left: 2px solid #B89968;
+  background: #fdfcfa;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-display, Georgia, "Times New Roman", serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: #20362D;
+}
+body.rd-scope #panel-counseling .rd-cou-quote strong { font-size: 13px; font-family: inherit; }
+body.rd-scope #panel-counseling .rd-cou-callout {
+  margin: 0;
+  padding: 9px 10px;
+  border: 1px solid #e7ce80;
+  background: #fff7df;
+  color: #8a640f;
+  font-size: 12px;
+  line-height: 1.55;
+}
+body.rd-scope #panel-counseling .rd-cou-due { color: #a33b28; }
 body.rd-scope #panel-counseling .rd-cou-drawer .rd-drawer__hist {
   font-size: 12px;
   color: #6b645d;

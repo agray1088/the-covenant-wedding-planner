@@ -2204,7 +2204,7 @@
       '</div></div>';
 
     var noteHtml =
-      '<p class="rd-rail__note">Sessions appear on the Smart Calendar. Homework rows are child records — the session bar is derived from them.</p>';
+      '<p class="rd-rail__note">Session completion is <b>derived from the homework rows</b> — there is no separate tick to fall out of step.</p>';
 
     return '<div class="rd-rail__stack" data-page-rail="counseling">' + viewsHtml + progressHtml + groupHtml + noteHtml + '</div>';
   }
