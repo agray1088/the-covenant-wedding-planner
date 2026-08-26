@@ -11,14 +11,55 @@
   window._hcGroupBy = window._hcGroupBy || 'area';
   window._hcUiFilters = window._hcUiFilters || { area: 'all', owner: 'both', status: 'all' };
   window._hcSel = window._hcSel instanceof Set ? window._hcSel : new Set();
+  window._hcDrawerId = window._hcDrawerId || null;
+  window._hcDrawerTab = window._hcDrawerTab || 0;
 
   const AREAS = ['The home', 'Wedding wrap-up', 'Money', 'Church', 'Documents', 'Home Setup', 'Thank-You Notes', 'Other'];
   const OWNERS = ['Both', 'Bride', 'Groom', 'Ama', 'Kwesi', 'Akosua', 'Michael'];
-  const STATUSES = ['Not Started', 'In Progress', 'Blocked', 'Complete', 'Waiting'];
+  const STATUSES = ['Not Started', 'In Progress', 'Blocked', 'Ready', 'Complete', 'Waiting'];
+  const DRAWER_TABS = ['Institution', 'Documents', 'Dates', 'History'];
+  /* Four dependency steps (Master 31g). */
   const NAME_BANDS = [
-    { id: 'first', label: 'First · everything else depends on these' },
-    { id: 'then', label: 'Then · needs the new passport' },
-    { id: 'any', label: 'Any time' }
+    { id: 'step1', label: 'Step 1 · The document everything else needs' },
+    { id: 'step2', label: 'Step 2 · Government · order matters' },
+    { id: 'step3', label: 'Step 3 · Money · each needs the passport, not the certificate' },
+    { id: 'step4', label: 'Step 4 · Everything else · no dependency, do in any order' },
+    { id: 'first', label: 'Step 1 · The document everything else needs' },
+    { id: 'then', label: 'Step 2 · Government · order matters' },
+    { id: 'any', label: 'Step 4 · Everything else · no dependency, do in any order' }
+  ];
+  /* Master 18a/31g example: the drawn settling tasks, the eleven-institution
+     name-change sequence with its dependency steps and government fees, and
+     the first-month budget (incl. the contingent suit-return late fee). */
+  const MASTER_SETTLING = [
+    ['Sign the tenancy · both names', 'The home', 'Kwesi', '2026-11-14', '', 'Not Started'],
+    ['Utilities into both names', 'The home', 'Kwesi', '2026-11-30', 'Tenancy signed', 'Blocked'],
+    ['Return the hired suits', 'Wedding wrap-up', 'Michael', '2026-11-10', '', 'Not Started'],
+    ['Dress to the cleaner, then boxed', 'Wedding wrap-up', 'Akosua', '2026-11-16', '', 'Not Started'],
+    ['Write the last thank-you notes', 'Wedding wrap-up', 'Ama', '2026-11-29', 'Counted from Gifts', 'Not Started'],
+    ['Open the joint account', 'Money', 'Both', '2026-11-21', 'Needs new passport', 'Blocked']
+  ];
+  const MASTER_NAMECHANGE = [
+    ['step1', 'Registrar, Accra', 'from 12 Nov · Rev. Mensah files the register', 'Marriage certificate · 3 certified copies', 'Blocks 11 downstream steps', 45, 'Not Started'],
+    ['step2', 'Ghana Card update', 'NIA office · in person', 'Needs certificate', 'Passport, mobile money, voter', 20, 'Blocked'],
+    ['step2', 'Passport reissue', 'Passport Office, Accra · 6–8 weeks · do not book travel', 'Certificate + old passport', 'Bank, licence, NHIS', 110, 'Blocked'],
+    ["step2", "Driver's licence", 'DVLA · after passport', 'Needs passport', '', 35, 'Blocked'],
+    ['step2', 'Voter register', 'Electoral Commission', 'Needs Ghana Card', '', 0, 'Blocked'],
+    ['step3', 'Bank · primary current account', 'Branch visit', 'Needs passport', 'Joint account', 0, 'Blocked'],
+    ['step3', 'Mobile money account', 'Telco shop', 'Needs Ghana Card', '', 0, 'Blocked'],
+    ['step3', 'Pension and SSNIT', 'Employer HR handles', 'Needs certificate', '', 0, 'Blocked'],
+    ['step4', 'Employer HR record', 'Ama · Kwesi', '—', '', 0, 'Ready'],
+    ['step4', 'Insurance policies · 3', 'Health, car, contents', '—', '', 0, 'Ready'],
+    ['step4', 'Utilities and landlord', '2 accounts', '—', '', 0, 'Ready'],
+    ['step4', 'Email, subscriptions, loyalty', '14 small accounts', '—', '', 0, 'Ready']
+  ];
+  const MASTER_BUDGET = [
+    ['Setting up the home', 'First month rent', 600, 0, 'Due day 1 of the month'],
+    ['Setting up the home', 'Utilities connection', 120, 0, ''],
+    ['Admin', 'Passport reissue', 110, 0, 'Government fee · after-the-day budget'],
+    ['Admin', 'Ghana Card + licence + certificate copies', 100, 0, 'Name-change government fees'],
+    ["Living", 'Groceries above the usual', 340, 0, 'Hosting in the first month'],
+    ['Living', 'Suit-return late fee', 0, 0, 'Contingent · $40 only if returned after 12 Nov, not a budget line']
   ];
   const BUDGET_CATS = ['Setting up the home', 'Admin', 'Living'];
   const NOTICED_PROMPTS = [
@@ -39,6 +80,7 @@
   }
   function ensureData() {
     const d = store();
+    ensureMasterHomecoming();
     if (!Array.isArray(d.homecoming)) d.homecoming = [];
     if (!Array.isArray(d.nameChange)) d.nameChange = [];
     if (!Array.isArray(d.firstMonthBudget)) d.firstMonthBudget = [];
@@ -67,6 +109,31 @@
       if (!r.status) r.status = r.done ? 'Complete' : 'Not Started';
     });
     return d;
+  }
+  function ensureMasterHomecoming() {
+    const d = store();
+    if (d._hcMasterS33) return;
+    const legacyNames = Array.isArray(d.nameChange) && d.nameChange.length > 0 &&
+      !d.nameChange.some(r => /registrar|ghana card|ssnit|dvla/i.test(String(r.institution || r.task || '')));
+    if (!Array.isArray(d.homecoming)) d.homecoming = [];
+    if (!Array.isArray(d.nameChange)) d.nameChange = [];
+    if (!Array.isArray(d.firstMonthBudget)) d.firstMonthBudget = [];
+    const emptyAll = !d.homecoming.length && !d.nameChange.length && !d.firstMonthBudget.length;
+    if (emptyAll || legacyNames) {
+      d.homecoming = MASTER_SETTLING.map(([task, area, owner, due, dependsOn, status]) => {
+        const row = { task: task, item: task, area: area, cat: area, owner: owner, due: due, dependsOn: dependsOn, status: status, notes: '' };
+        if (typeof nextRecordId === 'function') row._id = nextRecordId('homecoming');
+        return row;
+      });
+      d.nameChange = MASTER_NAMECHANGE.map(([band, institution, office, document, blocks, cost, status]) => {
+        const row = { band: band, institution: institution, task: institution, office: office, document: document, blocks: blocks, cost: cost, submitted: '', confirmed: '', status: status, done: false, notes: '' };
+        if (typeof nextRecordId === 'function') row._id = nextRecordId('nameChange');
+        return row;
+      });
+      d.firstMonthBudget = MASTER_BUDGET.map(([category, line, budgeted, spent, note]) => ({ category: category, line: line, item: line, budgeted: budgeted, spent: spent, note: note }));
+    }
+    d._hcMasterS33 = true;
+    if (typeof save === 'function') save();
   }
   function mapLegacyArea(cat) {
     const c = String(cat || '');
@@ -194,12 +261,12 @@
     const panel = document.getElementById('panel-homecoming');
     if (!panel) return;
     panel.classList.add('ued-scope', 'homecoming-mockup');
-    if (panel.dataset.uedShell === 'homecoming-rd18a') {
+    if (panel.dataset.uedShell === 'homecoming-rd-s33') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'homecoming-rd18a';
+    panel.dataset.uedShell = 'homecoming-rd-s33';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -212,13 +279,14 @@
       <div class="rd-toolbar" id="homecoming-toolbar"></div>
       <div class="rd-bulkbar" id="homecoming-bulk-bar" hidden></div>
       <div class="rd-surface">
-        <div class="rd-surface__row">
+        <div class="rd-surface__row" id="homecoming-surface-row">
           <div class="rd-surface__main" id="homecoming-view-host">
             <section class="rd-hc-block" id="hc-sec-settling" data-hc-sec="settling"></section>
             <section class="rd-hc-block" id="hc-sec-namechange" data-hc-sec="namechange"></section>
             <section class="rd-hc-block" id="hc-sec-budget" data-hc-sec="budget"></section>
             <section class="rd-hc-block" id="hc-sec-noticed" data-hc-sec="noticed"></section>
           </div>
+          <div id="homecoming-drawer-slot"></div>
         </div>
       </div>
     </div>`;
@@ -421,27 +489,34 @@
       'Nothing can start until the marriage certificate is in hand · order matters, three of these need the passport first',
       'Print the pack', 'rdHcPrintNamePack()'
     );
-    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hc-table"><thead><tr>` +
-      `<th style="width:34px"></th><th>Institution</th><th>Document needed</th><th>Submitted</th><th>Confirmed</th><th>Blocks</th><th>Status</th>` +
+    /* De-dup band ids so the four steps render once each, in order. */
+    const seenBands = {};
+    const bandOrder = NAME_BANDS.filter(b => { if (seenBands[b.label]) return false; seenBands[b.label] = 1; return true; });
+    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hc-table rd-hc-nametable"><thead><tr>` +
+      `<th style="width:34px"></th><th>Institution</th><th>Document needed</th><th>Submitted</th><th>Confirmed</th><th>Cost</th><th>Status</th>` +
       `</tr></thead><tbody>`;
-    NAME_BANDS.forEach(band => {
+    bandOrder.forEach(band => {
+      const labelSet = new Set(NAME_BANDS.filter(b => b.label === band.label).map(b => b.id));
       const rows = d.nameChange
         .map((row, index) => ({ row, index }))
-        .filter(x => (x.row.band || mapNameBand(x.row.category, x.row.status)) === band.id);
+        .filter(x => labelSet.has(x.row.band || mapNameBand(x.row.category, x.row.status)));
       if (!rows.length) return;
       html += `<tr class="rd-group-row rd-hc-group"><td colspan="7">${esc(band.label)} · ${rows.length}</td></tr>`;
       rows.forEach(x => {
         const r = x.row;
         const id = 'nameChange:' + x.index;
         const sel = window._hcSel.has(id);
-        html += `<tr class="${sel ? 'is-selected' : ''}">` +
-          `<td><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdHcToggleSel('${esc(id)}')"></td>` +
-          `<td><input class="no-currency" data-currency="false" value="${esc(r.institution || r.task || '')}" placeholder="Institution" oninput="rdHcSaveName(${x.index},'institution',this.value)"></td>` +
-          `<td><input class="no-currency" data-currency="false" value="${esc(r.document || '')}" placeholder="Document" oninput="rdHcSaveName(${x.index},'document',this.value)"></td>` +
-          `<td><input type="date" value="${esc(r.submitted || '')}" onchange="rdHcSaveName(${x.index},'submitted',this.value)"></td>` +
-          `<td><input type="date" value="${esc(r.confirmed || '')}" onchange="rdHcSaveName(${x.index},'confirmed',this.value)"></td>` +
-          `<td><input class="no-currency" data-currency="false" value="${esc(r.blocks || '')}" placeholder="—" oninput="rdHcSaveName(${x.index},'blocks',this.value)"></td>` +
-          `<td><select onchange="rdHcSaveName(${x.index},'status',this.value)">${selectHtml(STATUSES, r.status || 'Not Started')}</select></td>` +
+        const blocked = /blocked/i.test(String(r.status || ''));
+        /* Route by the stable row index — seed-time _ids are not unique. */
+        html += `<tr class="rd-hc-namerow${sel ? ' is-selected' : ''}${blocked ? ' is-blocked' : ''}" onclick="rdHcOpenDrawer('${esc(id)}')">` +
+          `<td onclick="event.stopPropagation()"><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdHcToggleSel('${esc(id)}')"></td>` +
+          `<td class="rd-hc-instcell"><input class="no-currency" data-currency="false" value="${esc(r.institution || r.task || '')}" placeholder="Institution" onclick="event.stopPropagation()" oninput="rdHcSaveName(${x.index},'institution',this.value)">` +
+          (r.office ? `<span class="rd-hc-instcell__sub">${esc(r.office)}</span>` : '') + `</td>` +
+          `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" value="${esc(r.document || '')}" placeholder="Document" oninput="rdHcSaveName(${x.index},'document',this.value)"></td>` +
+          `<td onclick="event.stopPropagation()"><input type="date" value="${esc(r.submitted || '')}" onchange="rdHcSaveName(${x.index},'submitted',this.value)"></td>` +
+          `<td onclick="event.stopPropagation()"><input type="date" value="${esc(r.confirmed || '')}" onchange="rdHcSaveName(${x.index},'confirmed',this.value)"></td>` +
+          `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" inputmode="decimal" value="${esc(r.cost == null || r.cost === '' ? '' : r.cost)}" placeholder="$0" oninput="rdHcSaveName(${x.index},'cost',this.value)"></td>` +
+          `<td onclick="event.stopPropagation()"><select onchange="rdHcSaveName(${x.index},'status',this.value)">${selectHtml(STATUSES, r.status || 'Not Started')}</select></td>` +
           `</tr>`;
       });
     });
@@ -542,6 +617,118 @@
       }).join('') +
       `</div>`;
     host.innerHTML = html;
+  }
+
+  /* ── Name-change step drawer (Institution · Documents · Dates · History) ── */
+
+  function parkSharedDrawerAway(slot) {
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot && slot.contains(shared)) {
+      const park = document.getElementById('layout') || document.body;
+      park.appendChild(shared);
+    }
+  }
+  function findName(id) {
+    const d = ensureData();
+    const key = String(id || '').replace(/^nameChange:/, '');
+    let index = d.nameChange.findIndex(r => String(r._id) === key);
+    if (index < 0 && /^\d+$/.test(key)) index = parseInt(key, 10);
+    const row = d.nameChange[index];
+    return row ? { row, index } : null;
+  }
+  function drawerField(label, value, onclick) {
+    const empty = value == null || value === '' || value === '—';
+    const click = onclick ? ` class="rd-drawer__link" onclick="${onclick}"` : (empty ? ' class="rd-drawer__add"' : '');
+    return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong${click}>${esc(empty ? 'Add…' : value)}</strong></div>`;
+  }
+  function bandLabelFor(bandId) {
+    const b = NAME_BANDS.find(x => x.id === bandId);
+    return b ? b.label.replace(/ · .*/, '') : 'Step';
+  }
+
+  function renderNameDrawer() {
+    const slot = document.getElementById('homecoming-drawer-slot');
+    if (!slot) return;
+    const found = findName(window._hcDrawerId);
+    if (!found) {
+      parkSharedDrawerAway(slot);
+      slot.innerHTML = '';
+      slot.classList.remove('is-open');
+      return;
+    }
+    parkSharedDrawerAway(slot);
+    const r = found.row;
+    const idx = found.index;
+    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._hcDrawerTab, 10) || 0));
+    const blocked = /blocked/i.test(String(r.status || ''));
+    const jid = 'nameChange:' + idx;
+    const costLabel = (r.cost == null || r.cost === '' || Number(r.cost) === 0) ? 'No fee' : money0(r.cost);
+    let body = '';
+    if (tab === 0) {
+      body =
+        drawerField('Institution', r.institution || r.task) +
+        drawerField('Office', r.office) +
+        drawerField('Fee', costLabel) +
+        drawerField('Step', bandLabelFor(r.band || mapNameBand(r.category, r.status))) +
+        (r.blocks ? drawerField('Blocks', r.blocks) : '') +
+        `<p class="rd-drawer__note">${r.band === 'step1'
+          ? 'First in the order, because every other institution waits on the certificate this step produces.'
+          : 'One of the institutions that changes the name. Its place in the order is set by what it needs first.'}</p>`;
+    } else if (tab === 1) {
+      body =
+        drawerField('Document needed', r.document) +
+        `<p class="rd-drawer__note">The registry needs the document it makes — the marriage certificate the ceremony produces. Nothing downstream can be attempted before the certificate is in hand.</p>`;
+    } else if (tab === 2) {
+      body =
+        drawerField('Submitted', r.submitted ? fmtLong(new Date(r.submitted + 'T00:00:00')) : '') +
+        drawerField('Confirmed', r.confirmed ? fmtLong(new Date(r.confirmed + 'T00:00:00')) : '') +
+        `<p class="rd-drawer__note">Nothing can be filled before 9 November. Submitted-but-not-confirmed is the state to chase.${blocked ? ' This step is blocked — a prerequisite is still outstanding, so it is amber, not late.' : ''}</p>`;
+    } else {
+      body =
+        `<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Added to the name-change plan · ${esc(r.institution || r.task || '')}</div></div>` +
+        `<p class="rd-drawer__note">One entry. A short history here means the plan has not started, not that nothing was logged.</p>`;
+    }
+    slot.classList.add('is-open');
+    slot.innerHTML =
+      `<aside class="rd-drawer rd-hc-drawer" aria-label="Name-change step">` +
+      `<div class="rd-drawer__head">` +
+      `<button type="button" class="rd-drawer__close" onclick="rdHcCloseDrawer()" aria-label="Close">×</button>` +
+      `<div class="rd-drawer__eyebrow">Name-change step</div>` +
+      `<h2 class="rd-drawer__title">${esc(r.institution || r.task || 'Institution')}</h2>` +
+      `<div class="rd-drawer__chips">` +
+      `<span class="status-pill" data-pillscheme="${blocked ? 'gold' : (/ready/i.test(String(r.status || '')) ? 'green' : (/complete/i.test(String(r.status || '')) ? 'green' : 'muted'))}">${esc(r.status || 'Not Started')}</span>` +
+      (Number(r.cost) > 0 ? `<span class="status-pill" data-pillscheme="muted">${esc(money0(r.cost))}</span>` : '') +
+      `</div>` +
+      `<div class="rd-drawer__tabs" role="tablist">` +
+      DRAWER_TABS.map((label, i) =>
+        `<button type="button" class="rd-drawer__tab${i === tab ? ' is-active' : ''}" onclick="rdHcSetDrawerTab(${i})">${esc(label)}</button>`
+      ).join('') +
+      `</div></div>` +
+      `<div class="rd-drawer__body">${body}</div>` +
+      `<div class="rd-drawer__foot">` +
+      `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHcCloseDrawer()">Save</button>` +
+      `<button type="button" class="rd-btn" onclick="rdHcNameFullEditor('${esc(jid)}')">Full editor</button>` +
+      `</div></aside>`;
+  }
+
+  function rdHcOpenDrawer(id) {
+    window._hcDrawerId = id;
+    window._hcDrawerTab = 0;
+    renderNameDrawer();
+  }
+  function rdHcCloseDrawer() {
+    window._hcDrawerId = null;
+    const slot = document.getElementById('homecoming-drawer-slot');
+    if (slot) { parkSharedDrawerAway(slot); slot.innerHTML = ''; slot.classList.remove('is-open'); }
+  }
+  function rdHcSetDrawerTab(i) { window._hcDrawerTab = i; renderNameDrawer(); }
+  function rdHcNameFullEditor(id) {
+    const found = findName(id);
+    rdHcCloseDrawer();
+    if (typeof openRecordEditor === 'function') {
+      if (found) openRecordEditor('nameChange', found.index);
+      else openRecordEditor('nameChange');
+    }
   }
 
   /* ── mutations ───────────────────────────────────────────────────────── */
@@ -777,6 +964,7 @@
     renderNameChange();
     renderBudget();
     renderNoticed();
+    renderNameDrawer();
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'homecoming'
       && document.body.classList.contains('context-sidebar-mode')) {
@@ -815,6 +1003,10 @@
   window.rdHcBulkDone = rdHcBulkDone;
   window.rdHcBulkOwner = rdHcBulkOwner;
   window.rdHcBulkDue = rdHcBulkDue;
+  window.rdHcOpenDrawer = rdHcOpenDrawer;
+  window.rdHcCloseDrawer = rdHcCloseDrawer;
+  window.rdHcSetDrawerTab = rdHcSetDrawerTab;
+  window.rdHcNameFullEditor = rdHcNameFullEditor;
 
   function hookHomecomingPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) window.SYSTEM_PANEL_RENDERERS.homecoming = function () { renderHomecomingRd(); };

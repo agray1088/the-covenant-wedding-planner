@@ -24636,6 +24636,73 @@ body.rd-scope #panel-print-centre #print-centre-drawer-slot.is-open > .rd-drawer
   box-shadow: none;
 }
 
+/* §33 Name-change step drawer + table (Institution · Documents · Dates · History) */
+body.rd-scope #panel-homecoming .rd-hc-drawer {
+  display: flex; flex-direction: column; height: 100%; min-height: 0; position: relative;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__head {
+  padding: 18px 18px 12px; border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__eyebrow {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__title {
+  margin: 6px 0 10px; font-size: 18px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__close {
+  position: absolute; top: 12px; right: 12px; border: 0; background: transparent;
+  font-size: 20px; color: #8a7e6b; cursor: pointer;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__tabs {
+  display: flex; margin-top: 12px; border: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__tab {
+  flex: 1; text-align: center; padding: 6px 0; font-size: 12px; color: #6b645d;
+  border-left: 1px solid #e7e1d4; background: none; cursor: pointer;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__tab:first-child { border-left: 0; }
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__tab.is-active {
+  background: #20362D; color: #F4EFE6; font-weight: 600;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__body {
+  padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; min-height: 0;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__field {
+  display: flex; justify-content: space-between; gap: 12px; font-size: 13px;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__field span { color: #8a7e6b; }
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__add { color: #b3a894; font-weight: 400; }
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__link {
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: #946f33;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__note {
+  font-size: 12px; color: #6b645d; line-height: 1.45; margin: 4px 0 0;
+}
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__hist { font-size: 12.5px; }
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__hist strong { color: #20362D; }
+body.rd-scope #panel-homecoming .rd-hc-drawer .rd-drawer__foot {
+  display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid #e7e1d4; flex: 0 0 auto;
+}
+body.rd-scope #panel-homecoming .rd-hc-namerow { cursor: pointer; }
+body.rd-scope #panel-homecoming .rd-hc-namerow:hover > td { background: #faf7f1; }
+body.rd-scope #panel-homecoming .rd-hc-namerow.is-blocked > td:first-child {
+  box-shadow: inset 3px 0 0 #b8860b;
+}
+body.rd-scope #panel-homecoming .rd-hc-instcell__sub {
+  display: block; font-size: 11px; color: #8a7e6b; margin-top: 2px;
+}
+body.rd-scope.night #panel-homecoming .rd-hc-drawer .rd-drawer__head,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-drawer .rd-drawer__head,
+body.rd-scope.night #panel-homecoming .rd-hc-drawer .rd-drawer__foot,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-drawer .rd-drawer__foot,
+body.rd-scope.night #panel-homecoming .rd-hc-drawer .rd-drawer__tabs,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-drawer .rd-drawer__tabs { border-color: #2e2e28; }
+body.rd-scope.night #panel-homecoming .rd-hc-drawer .rd-drawer__title,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-drawer .rd-drawer__title,
+body.rd-scope.night #panel-homecoming .rd-hc-drawer .rd-drawer__hist strong,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-drawer .rd-drawer__hist strong { color: #e6e1d6; }
+
 /* Household / contact drawer chrome (Depth · drawer, §7.1) — these two
    drawers build their own markup rather than using the shared inline
    editor, so they need the same head/body/foot rules every other custom
