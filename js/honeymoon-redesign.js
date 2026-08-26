@@ -48,6 +48,39 @@
     });
     if (!data.hmBudget || typeof data.hmBudget !== 'object') data.hmBudget = {};
     if (typeof hmEnsureData === 'function') hmEnsureData();
+    ensureMasterHoneymoon();
+  }
+
+  /* Master s32 · 17b bookings — the drawn Zanzibar trip, exact rows: the two
+     Kenya Airways flights and the airport transfer (Travel · $2,000), the
+     Kilindi hotel (Lodging · $1,980), and travel insurance + the Mnemba
+     snorkelling still open (Open · $200). Seeded once when no bookings exist. */
+  function ensureMasterHoneymoon() {
+    if (data._hmMasterS32) return;
+    if ((data.honeyTransport && data.honeyTransport.length) ||
+        (data.honeyDetails && data.honeyDetails.length)) {
+      data._hmMasterS32 = true;
+      return;
+    }
+    const stamp = (src, row) => {
+      if (typeof nextRecordId === 'function') row._id = nextRecordId(src);
+      return row;
+    };
+    data.honeyTransport = [
+      stamp('honeyTransport', { leg: 'Outbound · ACC → ZNZ', type: 'Flight', company: 'Kenya Airways', flight: 'KQ 476', date: '2026-11-19', departTime: '06:40', cost: 920, ticket: 'KQ-4TT8B', status: 'Paid' }),
+      stamp('honeyTransport', { leg: 'Return · ZNZ → ACC', type: 'Flight', company: 'Kenya Airways', flight: 'KQ 479', date: '2026-11-28', departTime: '14:15', cost: 920, ticket: 'KQ-4TT8B', status: 'Paid' }),
+      stamp('honeyTransport', { leg: 'Airport transfer, both ways', type: 'Transfer', company: 'Kilindi shuttle', flight: '', date: '2026-11-19', departTime: '', cost: 160, ticket: '', status: 'Booked' })
+    ];
+    data.honeyDetails = [
+      stamp('honeyDetails', { item: 'Kilindi Zanzibar · 9 nights', section: 'Hotel', vendor: 'Kilindi Zanzibar', timeline: '19–28 Nov', cost: 1980, reference: 'KLD-99214', status: 'Deposit paid' }),
+      stamp('honeyDetails', { item: 'Travel insurance', section: 'Insurance', vendor: '', timeline: '19–28 Nov', cost: 0, reference: '', status: 'Not booked' }),
+      stamp('honeyDetails', { item: 'Mnemba atoll snorkelling', section: 'Excursion', vendor: 'Resort desk', timeline: '23 Nov', cost: 200, reference: '', status: 'Held, unpaid' })
+    ];
+    if (!data.honeymoon.depart) data.honeymoon.depart = '2026-11-19';
+    if (!data.honeymoon.return) data.honeymoon.return = '2026-11-28';
+    if (!data.honeymoon.destination) data.honeymoon.destination = 'Zanzibar';
+    data._hmMasterS32 = true;
+    if (typeof save === 'function') save();
   }
 
   function parseDate(value) {
@@ -96,10 +129,14 @@
     return 'Open';
   }
   function isBookingComplete(status) {
-    return /paid|booked|confirmed|purchased|deposit|complete|checked/i.test(String(status || ''));
+    const s = String(status || '').toLowerCase();
+    /* Negatives first — "Not booked" contains "booked", "Held, unpaid"
+       contains "paid", so substring tests must not lead. */
+    if (/\bnot\b|\bun(paid|booked|confirmed)\b|pending|planned|\bheld\b|\bopen\b|outstanding|to book/.test(s)) return false;
+    return /\b(paid|booked|confirmed|purchased|deposit|complete|checked)\b/.test(s);
   }
   function isOpenBooking(status) {
-    return !isBookingComplete(status) || /not booked|held|unpaid|pending|planned|open/i.test(String(status || ''));
+    return !isBookingComplete(status);
   }
 
   function unifyBooking(src, row, i) {
@@ -158,13 +195,17 @@
   }
   function budgetCommitted() {
     ensureHm();
-    return (data.hmBudgetItems || []).reduce((s, r) => {
+    const fromLines = (data.hmBudgetItems || []).reduce((s, r) => {
       const st = String(r.status || '').toLowerCase();
       if (/paid|booked|confirmed|deposit|committed/.test(st) || num(r.actual) > 0) {
         return s + (num(r.actual) || num(r.budgeted));
       }
       return s;
     }, 0);
+    if (fromLines) return fromLines;
+    /* No separate budget lines yet — the committed trip spend is what the
+       bookings themselves have locked in (paid or deposited). */
+    return allBookings().filter(b => b.complete).reduce((s, b) => s + b.cost, 0);
   }
 
   function honeymoonFigures() {
@@ -227,18 +268,18 @@
     const panel = document.getElementById('panel-honeymoon');
     if (!panel) return;
     panel.classList.add('ued-scope', 'honeymoon-mockup');
-    if (panel.dataset.uedShell === 'honeymoon-rd17c') {
+    if (panel.dataset.uedShell === 'honeymoon-rd-s32') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'honeymoon-rd17c';
+    panel.dataset.uedShell = 'honeymoon-rd-s32';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
           <div class="rd-pagehead__eyebrow">The Day</div>
           <div class="rd-pagehead__title-row">
-            <h1 class="rd-pagehead__title">Honeymoon</h1>
+            <h1 class="rd-pagehead__title">Honeymoon &amp; After</h1>
           </div>
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
@@ -651,14 +692,21 @@
         field('Status', b.status) +
         `<p class="rd-drawer__note">Bookings bind to the trip dates on the honeymoon overview — changing departure moves every bound row’s window.</p>`;
     } else if (tab === 1) {
+      const isFlight = /flight/i.test(b.type);
+      const budgetLine = 'Trip budget · ' + (isFlight ? 'Flights' : b.type);
+      const refundable = isFlight ? 'No' : (/deposit/i.test(b.status) ? 'Deposit only' : '—');
       body =
         field('Cost', money0(b.cost)) +
         field('Status', b.status) +
-        field('Budget line', 'Trip budget · ' + b.type) +
-        field('Trip budget committed', money0(f.budgetCommitted)) +
+        field('Budget line', budgetLine) +
+        field('Refundable', refundable) +
+        (isFlight ? field('Change fee', money0(120) + ' per ticket') : '') +
         field('This booking', (pct || 0) + '% of committed') +
+        field('Trip budget committed', money0(f.budgetCommitted)) +
         field('Target', money0(f.budgetTarget)) +
-        `<p class="rd-drawer__note">The honeymoon is real money in no wedding total. This booking never appears on the wedding Budget page.</p>`;
+        `<p class="rd-drawer__note">${isFlight
+          ? 'Non-refundable, ' + (pct || 0) + '% of the committed trip budget — the largest single exposure in either budget.'
+          : 'The honeymoon is real money in no wedding total. This booking never appears on the wedding Budget page.'}</p>`;
     } else if (tab === 2) {
       const missing = [];
       if (/insurance/i.test(b.type) && !b.complete) missing.push('Travel insurance');
