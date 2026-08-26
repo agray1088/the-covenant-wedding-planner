@@ -3823,7 +3823,8 @@ const NAV_CATEGORIES = [
     { id:'essentials', label:'Essentials Checklist', subtitle:'Packing list', icon:'checklist' },
     { id:'gifts', label:'Gift Log', subtitle:'Gifts & thank-yous', icon:'card_giftcard' },
     { id:'emails', label:'Email Templates', subtitle:'Vendor & guest messages', icon:'mail' },
-    { id:'packets', label:'Share Packets', subtitle:'Print-ready handoffs', icon:'folder_shared' }
+    { id:'packets', label:'Share Packets', subtitle:'Print-ready handoffs', icon:'folder_shared' },
+    { id:'vendor', label:'Vendor', subtitle:'Portal links & documents', icon:'storefront' }
   ]},
   { id:'after', label:'Honeymoon', subtitle:'Travel & trip', icon:'beach_access', pages:[
     { id:'honeymoon', label:'Honeymoon', subtitle:'Travel & journal', icon:'beach_access' }
@@ -3988,6 +3989,7 @@ const SYSTEM_PAGE_REGISTRY = {
   gifts: { id:'gifts', label:'Gift Log', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add gift', usesCwpTable:true, tableKeys:['gifts'], bulkMode:'shared', hub:'design' },
   emails: { id:'emails', label:'Email Templates', scopeTier:'launch', archetype:'editorial', status:'exception', primaryAction:'Copy template', usesCwpTable:false, tableKeys:[], bulkMode:'disabled', hub:'none', notes:'Template library, not a record tracker.' },
   packets: { id:'packets', label:'Share Packets', scopeTier:'launch', archetype:'editorial', status:'exception', primaryAction:'Prepare packet', usesCwpTable:false, tableKeys:[], bulkMode:'disabled', hub:'none', notes:'Print/share handoff surface.' },
+  vendor: { id:'vendor', label:'Vendor', scopeTier:'launch', archetype:'editorial', status:'exception', primaryAction:'Open Vendor Portal', usesCwpTable:false, tableKeys:[], bulkMode:'disabled', hub:'none', notes:'Planner-side manager for the Vendor Portal (share links, scope contract, access lifecycle) and a vendor document library derived from Contracts/Rentals. Not a record tracker.' },
   honeymoon: { id:'honeymoon', label:'Honeymoon', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Add honeymoon detail', usesCwpTable:true, tableKeys:['honeyDetails','honeyTransport','honeyItinerary','packing','hmBudgetItems'], bulkMode:'hubOnly', hub:'honeymoon', notes:'Primary tracker with travel, packing, trip budget, and journal. Post-wedding work lives on Newlywed Homecoming.' },
   'data-hub': { id:'data-hub', label:'Database Hub', scopeTier:'launch', archetype:'tracker', status:'standardized', primaryAction:'Edit table rows', usesCwpTable:true, tableKeys:['*'], bulkMode:'shared', hub:'none', notes:'Customer-facing full-table workspace, not developer UI.' }
 };

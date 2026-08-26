@@ -29,7 +29,7 @@
     { id: 'vendors',   label: 'Vendors',   pages: [['vendors','Venue & Vendors'], ['venue','Venue Comparison'], ['catering','Catering & Menu'], ['entertainment','Entertainment'], ['shotlist','Shot Lists']] },
     { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['logistics','Weekend Logistics'], ['honeymoon','Honeymoon']] },
     { id: 'covenant',  label: 'Covenant',  pages: [['vision','Vision & Foundation'], ['prayer','Prayer Journal'], ['counseling','Premarital Counseling'], ['firstmonth','First-Month Rhythms'], ['homecoming','Newlywed Homecoming']], dot: true },
-    { id: 'documents', label: 'Documents', pages: [['packets','Share Packets'], ['emails','Email Templates'], ['print-centre','Print Centre'], ['mood','Vision Board'], ['essentials','Essentials Checklist']] }
+    { id: 'documents', label: 'Documents', pages: [['packets','Share Packets'], ['vendor','Vendor'], ['emails','Email Templates'], ['print-centre','Print Centre'], ['mood','Vision Board'], ['essentials','Essentials Checklist']] }
   ];
 
   /* Reached from the top bar or help, never from a tab (§06). */
