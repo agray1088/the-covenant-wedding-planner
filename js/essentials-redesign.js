@@ -47,9 +47,59 @@
     ? escapeHtml(s == null ? '' : String(s))
     : String(s == null ? '' : s));
 
+  /* Master s31 · 17a example checklist. Every row the drawing shows, with its
+     exact carrier, kit, bag, status and note. The seven items with no carrier
+     are the drawn "Nobody is carrying these" residual (5 not bought, 2 bought
+     but in nobody's kit) — including the sparklers that also sit unowned on
+     Weekend Logistics. Aggregate counts derive from these rows, never typed. */
+  const MASTER_ESSENTIALS = [
+    ['Ceremony documents', 'Marriage licence', 'Kwesi', 'Document folder', 'In the bag', 'Rev. Mensah signs it'],
+    ['Ceremony documents', 'Both ID cards', 'Kwesi', 'Document folder', 'In the bag', ''],
+    ['Ceremony documents', 'Rings · two boxes', 'Yaw Darko', "Best man's jacket", 'In the bag', 'Kojo carries them down'],
+    ['Ceremony documents', 'Printed vows · both', 'Efua Mensah', 'Document folder', 'In the bag', 'Backup copy with Rev. Mensah'],
+    ['Ceremony documents', 'Order of service · 130', 'Kofi Asante', 'Chapel entrance table', 'In the bag', 'From Print Centre'],
+    ['Emergency kit', 'Sewing kit & safety pins', 'Efua Mensah', 'Bridal suite', 'In the bag', ''],
+    ['Emergency kit', 'Stain remover pen', 'Efua Mensah', 'Bridal suite', 'Bought, not packed', ''],
+    ['Emergency kit', 'Plasters & blister pads', 'Akosua', 'Bridal suite', 'In the bag', ''],
+    ['Emergency kit', 'Spare tights · 2 pairs', '', '', 'Not bought', ''],
+    ['Emergency kit', 'Double-sided tape', '', '', 'Not bought', ''],
+    ['Bride essentials', 'Dress · in the garment bag', 'Ama', 'Bridal suite wardrobe', 'In the bag', 'Collected 12 Sep'],
+    ['Bride essentials', 'Veil', 'Efua Mensah', 'Bridal suite wardrobe', 'In the bag', ''],
+    ['Bride essentials', 'Shoes · plus flats for dancing', 'Ama', 'Bridal suite', 'In the bag', 'Flats go under Table 1'],
+    ['Bride essentials', "Something borrowed · grandmother's brooch", 'Nana Afua', 'She is bringing it', 'Bought, not packed', 'Collect Friday at the rehearsal'],
+    ['Exit / send-off', 'Sparklers · 60', '', '', 'Not bought', 'Also unowned on Weekend Logistics'],
+    ['Exit / send-off', 'Long lighters · 4', 'Michael Tetteh', "Groom's car", 'In the bag', ''],
+    ['Exit / send-off', 'Going-away outfits · both', 'Akosua', 'Bridal suite', 'Bought, not packed', ''],
+    ['Beauty & medicine', 'Hairspray', '', '', 'Not bought', ''],
+    ['Groom essentials', 'Spare cufflinks', '', '', 'Not bought', ''],
+    ['Beauty & medicine', 'Blotting papers', '', '', 'Bought, not packed', ''],
+    ['Tech kit', 'Phone battery pack', '', '', 'Bought, not packed', '']
+  ];
+  const LEGACY_ESS_CAT = /Marriage Essentials|Quick Fixes|Personal & Health|Decor & Signage|Misc/i;
+
   function ensureEss() {
     if (!window.data) window.data = {};
     if (!Array.isArray(data.essentials)) data.essentials = [];
+  }
+
+  function ensureMasterEssentials() {
+    ensureEss();
+    if (data._essMasterS31) return;
+    const rows = data.essentials;
+    const legacyMajority = rows.length > 0
+      && rows.filter(r => LEGACY_ESS_CAT.test(String(r.cat || ''))).length >= rows.length / 2;
+    if (rows.length === 0 || legacyMajority) {
+      data.essentials = MASTER_ESSENTIALS.map(([cat, item, assigned, location, status, notes]) => {
+        const row = {
+          cat: cat, item: item, assigned: assigned || '', location: location || '',
+          notes: notes || '', status: status, packed: status === 'In the bag'
+        };
+        if (typeof nextRecordId === 'function') row._id = nextRecordId('essentials');
+        return row;
+      });
+    }
+    data._essMasterS31 = true;
+    if (typeof save === 'function') save();
   }
 
   function normalizeKit(cat) {
@@ -69,9 +119,15 @@
 
   function statusOf(row) {
     const raw = String(row.status || '').trim();
-    if (/in the bag|packed/i.test(raw) || row.packed === true) return 'In the bag';
-    if (/bought|purchased|have it/i.test(raw)) return 'Bought, not packed';
+    /* Exact Master states first — note "Bought, not packed" contains "packed"
+       and "Not bought" contains "bought", so substring tests must not lead. */
+    if (/^in the bag$/i.test(raw)) return 'In the bag';
+    if (/^bought,?\s*not packed$/i.test(raw)) return 'Bought, not packed';
+    if (/^not bought$/i.test(raw)) return 'Not bought';
+    /* Fuzzy fallback for legacy / user-typed values. */
     if (/not bought|to buy|need to buy/i.test(raw)) return 'Not bought';
+    if (/in the bag/i.test(raw) || row.packed === true) return 'In the bag';
+    if (/bought|purchased|have it/i.test(raw)) return 'Bought, not packed';
     if (row.packed) return 'In the bag';
     return 'Not bought';
   }
@@ -439,10 +495,27 @@
     let html = '';
 
     if (f.unassigned > 0 && (window._essRailView === 'all' || !window._essRailView)) {
+      const un = allItems().filter(x => x.unassigned);
+      const notBought = un.filter(x => x.status === 'Not bought');
+      const boughtNoName = un.filter(x => x.status === 'Bought, not packed');
+      const clash = un.filter(x => /weekend logistics|another page|two lists/i.test(x.note));
+      const nameList = list => list.map(x => x.item.split(' · ')[0]).join(', ');
+      let facts = '';
+      if (notBought.length) {
+        facts += `<li><b>${notBought.length} not bought</b> · ${esc(nameList(notBought))}</li>`;
+      }
+      if (boughtNoName.length) {
+        facts += `<li><b>${boughtNoName.length} bought, nobody named</b> · ${esc(nameList(boughtNoName))} — bought, but in nobody's kit</li>`;
+      }
+      if (clash.length) {
+        facts += `<li><b>${clash.length} clash${clash.length === 1 ? 'es' : ''} with another page</b> · ${esc(nameList(clash))} — same box, two lists</li>`;
+      }
       html += `<div class="rd-ess-callout">` +
-        `<div><strong>Nobody is carrying these · ${f.unassigned} item${f.unassigned === 1 ? '' : 's'}</strong>` +
-        `<p>An item with no name against it will not arrive</p></div>` +
-        `<button type="button" class="rd-btn rd-btn--primary" onclick="rdEssAssignUnassigned()">Assign all ${f.unassigned === 7 ? 'seven' : f.unassigned}</button>` +
+        `<div class="rd-ess-callout__main"><strong>Nobody is carrying these · ${f.unassigned} item${f.unassigned === 1 ? '' : 's'}</strong>` +
+        `<p>An item with no name against it will not arrive</p>` +
+        (facts ? `<ul class="rd-ess-callout__facts">${facts}</ul>` : '') +
+        `</div>` +
+        `<button type="button" class="rd-btn rd-btn--primary" onclick="rdEssAssignUnassigned()">Assign all ${f.unassigned <= 10 ? ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'][f.unassigned] : f.unassigned}</button>` +
         `</div>`;
     }
 
@@ -906,7 +979,7 @@
   /* ── main ────────────────────────────────────────────────────────────── */
 
   function renderEssentialsRd() {
-    ensureEss();
+    ensureMasterEssentials();
     if (typeof getSavedView === 'function') {
       const saved = getSavedView('essentials', window._essRailView || 'all');
       if (saved) window._essRailView = saved;
