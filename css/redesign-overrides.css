@@ -27432,6 +27432,55 @@ body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab.is-active { color: 
 body.rd-scope.night #panel-data-hub .rd-dh-tab__n,
 body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab__n { background: #23231c; color: #a79f92; }
 
+/* §39 Settings window — 49c · the gear pop-out read as a Settings window:
+   the green save-status banner (last backup + edits since) and labelled panes. */
+body.rd-scope .rd-settings-window .rd-settings-status {
+  margin: 0 0 10px; padding: 10px 12px; border-radius: 2px;
+  background: #eef5ef; border: 1px solid #cfe2d5;
+}
+body.rd-scope .rd-settings-window .rd-settings-status.is-stale {
+  background: #fbf3e4; border-color: #ecdcbb;
+}
+body.rd-scope .rd-settings-status__row { display: flex; align-items: center; gap: 8px; }
+body.rd-scope .rd-settings-status__dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #4e8a63; flex: 0 0 auto;
+}
+body.rd-scope .rd-settings-status.is-stale .rd-settings-status__dot { background: #c69134; }
+body.rd-scope .rd-settings-status__lead { font-size: 12.5px; font-weight: 600; color: #23362b; }
+body.rd-scope .rd-settings-status.is-stale .rd-settings-status__lead { color: #7a5c1e; }
+body.rd-scope .rd-settings-status__meta {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-top: 3px; font-size: 11.5px; color: #5f7466;
+}
+body.rd-scope .rd-settings-status.is-stale .rd-settings-status__meta { color: #8a7148; }
+body.rd-scope .rd-settings-status__meta b { color: inherit; font-weight: 600; }
+body.rd-scope .rd-settings-status__hint {
+  margin-top: 5px; font-size: 10.5px; color: #8a7e6b; line-height: 1.4;
+}
+body.rd-scope .rd-settings-pane {
+  margin: 12px 0 4px; padding-top: 8px; border-top: 1px solid #ece7dc;
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: #a99e88;
+}
+body.rd-scope .rd-settings-pane:first-child,
+body.rd-scope .rd-settings-status + .rd-settings-pane { border-top: 0; padding-top: 0; margin-top: 4px; }
+body.rd-scope.night .rd-settings-window .rd-settings-status,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-settings-status {
+  background: #17231b; border-color: #294435;
+}
+body.rd-scope.night .rd-settings-window .rd-settings-status.is-stale,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-settings-status.is-stale {
+  background: #241d10; border-color: #40341a;
+}
+body.rd-scope.night .rd-settings-status__lead,
+body.rd-scope[data-theme="night"] .rd-settings-status__lead { color: #cfe2d5; }
+body.rd-scope.night .rd-settings-status.is-stale .rd-settings-status__lead,
+body.rd-scope[data-theme="night"] .rd-settings-status.is-stale .rd-settings-status__lead { color: #e0c58a; }
+body.rd-scope.night .rd-settings-status__meta,
+body.rd-scope[data-theme="night"] .rd-settings-status__meta { color: #9fb1a4; }
+body.rd-scope.night .rd-settings-pane,
+body.rd-scope[data-theme="night"] .rd-settings-pane { border-top-color: #2e2e28; color: #8a8271; }
+
 @media (max-width: 900px) {
   body.rd-scope #panel-history .rd-hist-explainer { grid-template-columns: 1fr; }
 }

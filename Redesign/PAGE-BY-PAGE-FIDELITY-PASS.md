@@ -100,7 +100,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [36 · Get Started, Guide & FAQ](#section-36) — done on `cursor/dashboard-views-017e` — 10 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [37 · Viewer Preferences](#section-37) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [38 · Database Hub](#section-38) — done on `cursor/dashboard-views-017e` — 5 screens · 2 record drawers — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
-- [39 · App chrome, settings & record editor](#section-39) — queued — 8 screens · 5 record drawers — Full page · Record drawer tabs · Night theme
+- [39 · App chrome, settings & record editor](#section-39) — done on `cursor/dashboard-views-017e` — 8 screens · 5 record drawers — Full page · Record drawer tabs · Night theme
 - [40 · Vendor Portal](#section-40) — queued — 7 screens — Full page
 - [41 · House style & visual directions](#section-41) — queued — 11 screens — Full page · View switcher views · Night theme
 - [42 · System-wide patterns](#section-42) — queued — 40 screens — Full page · View switcher views · Night theme
@@ -4560,8 +4560,10 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s39` · slug `app-chrome-settings-record-editor`
 - **Header counts:** 8 screens · 5 record drawers
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §40. Mostly already realized by the chrome built in earlier sections; this pass closed the two genuine 49c deltas. See the implementation note below.
 - **Screen ids:** `49d`, `49a`, `49b`, `49c`
+
+> **Implementation note (§39).** This section is cross-cutting chrome, most of it already delivered when the shell was built. Verified already-done: **49d** — the two-row forest top bar (wordmark + sub-line, save status, global search with grouped results, photo cutout, Save, Alerts+badge, gold **Profile & Display**, Database Hub, Quick Jump, Dark Mode, and the overflow now the labelled **Settings** gear) built by `redesign-shell.js`; **49a** — Profile & Display drawer at **460px** with all six sections kept; **49b** — Theme Builder with **Card Corners defaulting to `None (square)`** and the twelve colour fields. **49c** had two genuine gaps, closed here in `js/settings-window-redesign.js` (additive — no control moved, renamed or rebound): the **green save-status banner** (“Saved on this device” + last backup date + edits since, both read live from `data.onboard`, refreshed on open, amber when a backup is overdue) and the **labelled panes** (the flat list now reads as History & trash · Display · Save & backup · Export · Print). Undo/Redo were already honest — the shell keeps them in the top-bar undo slot in their real `disabled` state on every screen, so they are visible, not hidden. Record-editor and per-tab drawer redraws (Profile·Display·Alerts·Access; the eleven Settings panes as standalone 1240px screens; Task/Vendor/Payment editors) are the app’s existing surfaces and were left as-is rather than re-authored into new load-bearing chrome.
 
 ### Five parts on this page
 
