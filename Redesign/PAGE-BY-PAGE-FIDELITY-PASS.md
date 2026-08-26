@@ -98,7 +98,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [34 · Planner History](#section-34) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [35 · Wedding Setup](#section-35) — done on `cursor/dashboard-views-017e` — 4 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [36 · Get Started, Guide & FAQ](#section-36) — done on `cursor/dashboard-views-017e` — 10 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
-- [37 · Viewer Preferences](#section-37) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
+- [37 · Viewer Preferences](#section-37) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [38 · Database Hub](#section-38) — queued — 5 screens · 2 record drawers — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [39 · App chrome, settings & record editor](#section-39) — queued — 8 screens · 5 record drawers — Full page · Record drawer tabs · Night theme
 - [40 · Vendor Portal](#section-40) — queued — 7 screens — Full page
@@ -4322,7 +4322,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s37` · slug `viewer-preferences`
 - **Header counts:** 6 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §38
 - **Screen ids:** `16a`, `48a`, `48b`
 
 ### Five parts on this page
