@@ -27408,6 +27408,30 @@ body.dark-mode #rd-va-overlay .rd-va-title { color: #e6e1d6; }
 :root[data-theme="dark"] #rd-va-overlay .rd-va-fielddrawer,
 body.dark-mode #rd-va-overlay .rd-va-fielddrawer { background: #141414; border-left-color: #2e2e28; }
 
+/* §38 Database Hub — 19o twenty-four table tabs (scrollable strip). */
+body.rd-scope #panel-data-hub .rd-dh-tabs {
+  display: flex; gap: 2px; overflow-x: auto; margin: 0 24px 4px; padding-bottom: 2px;
+  border-bottom: 1px solid #e7e1d4; scrollbar-width: thin;
+}
+body.rd-scope #panel-data-hub .rd-dh-tab {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px; font-size: 12px; font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+  color: #6b645d; border: 0; border-bottom: 2px solid transparent; background: none; cursor: pointer; white-space: nowrap;
+}
+body.rd-scope #panel-data-hub .rd-dh-tab:hover { color: #23211c; }
+body.rd-scope #panel-data-hub .rd-dh-tab.is-active { color: #20362D; border-bottom-color: #20362D; font-weight: 600; }
+body.rd-scope #panel-data-hub .rd-dh-tab.is-empty { color: #b3a894; }
+body.rd-scope #panel-data-hub .rd-dh-tab__n {
+  font-size: 10px; color: #8a7e6b; background: #f1ece2; border-radius: 8px; padding: 0 6px; min-width: 16px; text-align: center;
+}
+body.rd-scope #panel-data-hub .rd-dh-tab.is-active .rd-dh-tab__n { background: #dce6df; color: #20362D; }
+body.rd-scope.night #panel-data-hub .rd-dh-tabs,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tabs { border-bottom-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-tab.is-active,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab.is-active { color: #8FB99F; border-bottom-color: #8FB99F; }
+body.rd-scope.night #panel-data-hub .rd-dh-tab__n,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab__n { background: #23231c; color: #a79f92; }
+
 @media (max-width: 900px) {
   body.rd-scope #panel-history .rd-hist-explainer { grid-template-columns: 1fr; }
 }

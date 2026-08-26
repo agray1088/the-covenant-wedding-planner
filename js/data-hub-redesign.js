@@ -370,12 +370,12 @@
     const panel = document.getElementById('panel-data-hub');
     if (!panel) return;
     panel.classList.add('ued-scope', 'data-hub-mockup');
-    if (panel.dataset.uedShell === 'dh-rd7b') {
+    if (panel.dataset.uedShell === 'dh-rd-s38') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'dh-rd7b';
+    panel.dataset.uedShell = 'dh-rd-s38';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -387,6 +387,7 @@
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
       </div>
       <div class="rd-stats m-stats" id="data-hub-stats" aria-label="Database Hub summary"></div>
+      <div class="rd-sectiontabs rd-dh-tabs" id="data-hub-sectiontabs" role="tablist" aria-label="Tables" hidden></div>
       <div class="rd-toolbar" id="data-hub-toolbar"></div>
       <div class="rd-bulkbar" id="data-hub-bulk-bar" hidden></div>
       <div class="rd-surface">
@@ -402,6 +403,23 @@
     if (typeof window.covenantShell !== 'undefined' && window.covenantShell.drawer) {
       window.covenantShell.drawer();
     }
+  }
+
+  /* 19o — the twenty-four table tabs, shown in table mode as a scrollable
+     section-tab strip (the rail's table list, promoted to the drawn tab bar). */
+  function renderDhSectionTabs() {
+    const host = document.getElementById('data-hub-sectiontabs');
+    if (!host) return;
+    if ((window._dhMode || 'overview') !== 'table') { host.hidden = true; host.innerHTML = ''; return; }
+    host.hidden = false;
+    const f = figures();
+    const active = window._dhTableId || 'guests';
+    host.innerHTML = f.tables.map(t =>
+      `<button type="button" class="rd-sectiontabs__item rd-dh-tab${t.id === active ? ' is-active' : ''}${t.count ? '' : ' is-empty'}" role="tab" aria-selected="${t.id === active}" onclick="rdDhOpenTable('${esc(t.id)}')">` +
+      `${esc(t.id)}<span class="rd-dh-tab__n">${t.count}</span></button>`
+    ).join('');
+    const cur = host.querySelector('.is-active');
+    if (cur && cur.scrollIntoView) { try { cur.scrollIntoView({ inline: 'nearest', block: 'nearest' }); } catch (e) { /* noop */ } }
   }
 
   function renderDhStats() {
@@ -1088,6 +1106,7 @@
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('data-hub');
     applyViewMode();
     renderDhStats();
+    renderDhSectionTabs();
     renderDhToolbar();
     renderDhBulk();
     if (window._dhMode === 'table') renderTableBrowser();
