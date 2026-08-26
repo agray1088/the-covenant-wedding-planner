@@ -44,7 +44,7 @@
       meaning: 'Out loud, by name, even on the short nights.',
       cadence: 'Every night', cadenceKind: 'Daily', owner: 'Both', area: 'Spiritual',
       kept: '14 nights', since: '9 Nov', startISO: '2026-11-09', horizon: 'Ongoing',
-      source: { label: 'From the vision document', page: 'Vision & Foundation', go: "showPanel('vision')" }
+      source: { label: 'From the vision', page: 'Vision & Foundation', go: "showPanel('vision')" }
     },
     {
       id: 'screens', title: 'No screens after 10pm',
@@ -55,7 +55,7 @@
     {
       id: 'sabbath', title: 'Sabbath · Sunday afternoon, nothing scheduled',
       meaning: 'No errands, no wedding admin, no catching up on work.',
-      cadence: 'Weekly · Sun', cadenceKind: 'Weekly', owner: 'Both', area: 'Rest',
+      cadence: 'Weekly', cadenceKind: 'Weekly', owner: 'Both', area: 'Rest',
       kept: '2 of 2 weeks', since: '15 Nov', startISO: '2026-11-15', horizon: 'Ongoing'
     },
     {
@@ -80,14 +80,14 @@
       id: 'money', title: 'Money hour · every account open on the table',
       meaning: 'No purchase over $200 without both of us — the rule from counseling.',
       cadence: 'Monthly · 1st', cadenceKind: 'Monthly', owner: 'Kwesi prepares', area: 'Money',
-      kept: '', since: '1 Dec', startISO: '2026-12-01', horizon: 'Ongoing',
-      source: { label: 'From counseling · session 04', page: 'Premarital Counseling', go: "showPanel('counseling')" }
+      kept: '1 of 1', since: '1 Dec', startISO: '2026-12-01', horizon: 'Ongoing',
+      source: { label: 'From counseling 04', page: 'Premarital Counseling', go: "showPanel('counseling')" }
     },
     {
       id: 'nightout', title: 'A night out that costs something',
       meaning: 'Booked, paid for, on the calendar — not "sometime".',
       cadence: 'Monthly', cadenceKind: 'Monthly', owner: 'Alternating', area: 'Us',
-      kept: '', since: '1 Dec', startISO: '2026-12-01', horizon: 'First year'
+      kept: '0 of 1', since: '1 Dec', startISO: '2026-12-01', horizon: 'First year'
     },
     {
       id: 'vows', title: 'Read the vows aloud on the anniversary',
@@ -617,7 +617,9 @@
     const host = document.getElementById('fm-view-cards');
     if (!host) return;
     const rows = visibleRows();
-    const beginsLong = fmFigures().beginsLong;
+    /* Card number badges follow the record order (01…), per the 32g drawing. */
+    const posById = {};
+    allRows().forEach((r, i) => { posById[r.id] = i + 1; });
     host.innerHTML = `<div class="rd-fm-cards">${rows.map(r => {
       const kept = keptDisplay(r);
       const notYet = notBegun(r);
@@ -630,7 +632,7 @@
           }</p>`
         : '';
       return `<article class="rd-fm-card${r.paused ? ' is-paused' : ''}${notYet ? ' is-notyet' : ''}" onclick="rdFmOpenDrawer('${jsId(r.id)}')">` +
-        `<header><h3>${esc(r.title)}</h3><span class="rd-fm-card__cadence">${esc(r.cadence)}</span></header>` +
+        `<header><span class="rd-fm-card__num">${esc(pad2(posById[r.id] || 0))}</span><h3>${esc(r.title)}</h3><span class="rd-fm-card__cadence">${esc(r.cadence)}</span></header>` +
         (r.meaning ? `<p class="rd-fm-card__meaning">${esc(r.meaning)}</p>` : '') +
         `<div class="rd-fm-card__meta">` +
         `<span><b>Owner</b> ${esc(r.owner)}</span>` +

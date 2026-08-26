@@ -25640,6 +25640,11 @@ body.rd-scope #panel-firstmonth .rd-fm-card__source {
   margin: 10px 0 0; padding-top: 8px; border-top: 1px solid #f0ebe0;
   font-size: 11.5px; color: #8a7e6b;
 }
+body.rd-scope #panel-firstmonth .rd-fm-card__num {
+  font-size: 10px; font-weight: 700; color: #8a7e6b; letter-spacing: .04em;
+  align-self: center; margin-right: 2px;
+}
+body.rd-scope #panel-firstmonth .rd-fm-card header h3 { flex: 1; }
 body.rd-scope #panel-firstmonth .rd-fm-card__source-mark { color: #b89968; }
 body.rd-scope #panel-firstmonth .rd-fm-card__source-link {
   border: 0; background: none; padding: 0; cursor: pointer;
