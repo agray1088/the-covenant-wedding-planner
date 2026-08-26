@@ -27087,6 +27087,55 @@ body.rd-scope #panel-history .rd-surface__main {
 body.rd-scope #panel-history .rd-hist-date-hidden {
   position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;
 }
+
+/* §34 History entry drawer (Change · Record · Snapshot) + consequence chips. */
+body.rd-scope #panel-history #history-drawer-slot { display: none; }
+body.rd-scope #panel-history #history-drawer-slot.is-open {
+  display: flex; flex: 0 0 360px; width: 360px; max-width: 360px; min-height: 0;
+  border-left: 1px solid #e7e1d4; background: #fdfcfa;
+}
+body.rd-scope #panel-history #history-drawer-slot.is-open > .rd-drawer {
+  display: flex; flex-direction: column; width: 100%; min-height: 0; height: 100%; border: 0; box-shadow: none;
+}
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__head { padding: 18px 18px 12px; border-bottom: 1px solid #e7e1d4; position: relative; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__eyebrow { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__title { margin: 6px 0 10px; font-size: 16px; font-weight: 600; color: #20362D; line-height: 1.3; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__close { position: absolute; top: 12px; right: 12px; border: 0; background: transparent; font-size: 20px; color: #8a7e6b; cursor: pointer; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__tabs { display: flex; margin-top: 12px; border: 1px solid #e7e1d4; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__tab { flex: 1; text-align: center; padding: 6px 0; font-size: 12px; color: #6b645d; border-left: 1px solid #e7e1d4; background: none; cursor: pointer; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__tab:first-child { border-left: 0; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__tab.is-active { background: #20362D; color: #F4EFE6; font-weight: 600; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__body { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; min-height: 0; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__field { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__field span { color: #8a7e6b; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__section-title { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #8a7e6b; font-weight: 700; margin-top: 4px; padding-top: 10px; border-top: 1px solid #f0ebe0; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__note { font-size: 12px; color: #6b645d; line-height: 1.45; margin: 4px 0 0; }
+body.rd-scope #panel-history .rd-hist-drawer .rd-drawer__foot { display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid #e7e1d4; flex: 0 0 auto; }
+body.rd-scope #panel-history .rd-hist-drawer__field { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: baseline; font-size: 12.5px; }
+body.rd-scope #panel-history .rd-hist-drawer__field b { font-weight: 600; color: #23211c; }
+body.rd-scope #panel-history .rd-hist-row { cursor: pointer; }
+body.rd-scope #panel-history .rd-hist-row:hover > td { background: #faf7f1; }
+body.rd-scope #panel-history .rd-hist-row.is-open > td { background: #f4efe4; }
+body.rd-scope #panel-history .rd-hist-conseq {
+  display: inline-block; margin-left: 6px; padding: 1px 7px;
+  font-size: 11px; font-weight: 600; color: #8a640f;
+  background: #fff7df; border: 1px solid #e7ce80; border-radius: 2px;
+  vertical-align: middle;
+}
+body.rd-scope.night #panel-history #history-drawer-slot.is-open,
+body.rd-scope[data-theme="night"] #panel-history #history-drawer-slot.is-open { border-left-color: #2e2e28; background: #141414; }
+body.rd-scope.night #panel-history .rd-hist-drawer .rd-drawer__head,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-drawer .rd-drawer__head,
+body.rd-scope.night #panel-history .rd-hist-drawer .rd-drawer__tabs,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-drawer .rd-drawer__tabs,
+body.rd-scope.night #panel-history .rd-hist-drawer .rd-drawer__foot,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-drawer .rd-drawer__foot { border-color: #2e2e28; }
+body.rd-scope.night #panel-history .rd-hist-drawer .rd-drawer__title,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-drawer .rd-drawer__title { color: #e6e1d6; }
+body.rd-scope.night #panel-history .rd-hist-conseq,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-conseq { background: rgba(201,162,74,.12); border-color: #6b5738; color: #cbab6b; }
+
 body.rd-scope #panel-history .rd-hist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 body.rd-scope #panel-history .rd-hist-table th,
 body.rd-scope #panel-history .rd-hist-table td {

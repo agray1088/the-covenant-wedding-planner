@@ -14,6 +14,10 @@
   window._histPageSize = window._histPageSize || 50;
   window._histVisible = window._histVisible || 50;
   window._histSel = window._histSel instanceof Set ? window._histSel : new Set();
+  window._histDrawerId = window._histDrawerId || null;
+  window._histDrawerTab = window._histDrawerTab || 0;
+
+  const DRAWER_TABS = ['Change', 'Record', 'Snapshot'];
 
   const RECORD_FILTERS = [
     { id: 'all', label: 'Everything', match: null },
@@ -98,6 +102,20 @@
       return { label: m[1].trim(), from: '', to: m[2].trim() };
     });
   }
+  /* Consequence chips (31i): a change that caused a derived effect is chipped
+     with the effect, not just the field. Derived from the entry text, since
+     the effect is not stored separately. */
+  function entryConsequence(item) {
+    if (item.consequence) return String(item.consequence);
+    const hay = (entryChange(item) + ' ' + (item.details || '') + ' ' +
+      entryFields(item).map(f => f.label + ' ' + f.from + ' ' + f.to).join(' ')).toLowerCase();
+    if (/\+\s*\d+\s*cover|cover added|extra cover/.test(hay)) return '+1 cover';
+    if (/-\s*\d+\s*cover|cover removed|fewer cover/.test(hay)) return '−1 cover';
+    if (/clash|conflict|double[-\s]?book/.test(hay)) return 'created a clash';
+    if (/over budget|category over|over the target|over target/.test(hay)) return 'category over';
+    if (/(accepted|declined|rsvp).*(seat|meal|cover)|(seat|meal|cover).*(accepted|declined|rsvp)/.test(hay)) return 'seating affected';
+    return '';
+  }
   function recordBucket(item) {
     const hay = (entryRecord(item) + ' ' + entryChange(item) + ' ' + (item.source || '') + ' ' + (item.details || '')).toLowerCase();
     for (let i = 1; i < RECORD_FILTERS.length - 1; i++) {
@@ -173,12 +191,12 @@
     const panel = document.getElementById('panel-history');
     if (!panel) return;
     panel.classList.add('ued-scope', 'history-mockup');
-    if (panel.dataset.uedShell === 'history-rd18b') {
+    if (panel.dataset.uedShell === 'history-rd-s34') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'history-rd18b';
+    panel.dataset.uedShell = 'history-rd-s34';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -190,8 +208,9 @@
       <div class="rd-stats m-stats" id="history-stats" aria-label="History summary"></div>
       <div class="rd-toolbar" id="history-toolbar"></div>
       <div class="rd-surface">
-        <div class="rd-surface__row">
+        <div class="rd-surface__row" id="history-surface-row">
           <div class="rd-surface__main" id="history-view-host"></div>
+          <div id="history-drawer-slot"></div>
         </div>
       </div>
       <input type="date" id="history-date-filter" class="rd-hist-date-hidden" aria-hidden="true" tabindex="-1">
@@ -242,8 +261,8 @@
       (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('history') : '') +
       `<div class="rd-viewswitch" role="group" aria-label="History view">` +
       `<button type="button" class="rd-viewswitch__item${mode === 'day' ? ' is-active' : ''}" onclick="rdSetHistoryView('day')">By day</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'record' ? ' is-active' : ''}" onclick="rdSetHistoryView('record')">By record</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'fields' ? ' is-active' : ''}" onclick="rdSetHistoryView('fields')">Field detail</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'record' ? ' is-active' : ''}" onclick="rdSetHistoryView('record')">By record view</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'fields' ? ' is-active' : ''}" onclick="rdSetHistoryView('fields')">Field detail view</button>` +
       `</div></div>`;
   }
 
@@ -338,9 +357,13 @@
     const id = r.id || ('h' + x.index);
     const sel = window._histSel.has(id);
     const fields = entryFields(r);
-    return `<tr class="${sel ? 'is-selected' : ''}" data-hist-id="${esc(id)}" onclick="rdHistOpenEntry('${esc(id)}')">` +
+    const consequence = entryConsequence(r);
+    const open = window._histDrawerId === id;
+    return `<tr class="rd-hist-row${sel ? ' is-selected' : ''}${open ? ' is-open' : ''}" data-hist-id="${esc(id)}" onclick="rdHistOpenEntry('${esc(id)}')">` +
       `<td><input type="checkbox" ${sel ? 'checked' : ''} onclick="event.stopPropagation()" onchange="rdHistToggleSel('${esc(id)}')"></td>` +
-      `<td><div class="rd-hist-change">${esc(entryChange(r))}</div>${fieldDiffHtml(fields)}</td>` +
+      `<td><div class="rd-hist-change">${esc(entryChange(r))}` +
+      (consequence ? ` <span class="rd-hist-conseq" title="Downstream effect of this change">${esc(consequence)}</span>` : '') +
+      `</div>${fieldDiffHtml(fields)}</td>` +
       `<td>${esc(entryRecord(r))}</td>` +
       `<td>${esc(entryWho(r))}</td>` +
       `<td>${esc(r.time || '')}</td>` +
@@ -593,35 +616,95 @@
       else break;
     }
   }
-  function rdHistOpenEntry(id) {
-    const d = ensureData();
-    const item = d._historyLog.find(r => r.id === id);
-    if (!item) return;
-    const slot = document.getElementById('history-drawer-body') || document.getElementById('record-drawer-body');
-    if (typeof openHistoryDrawer === 'function') {
-      openHistoryDrawer();
-      const body = document.getElementById('history-drawer-body');
-      if (body) {
-        const fields = entryFields(item);
-        body.innerHTML =
-          `<div class="rd-hist-drawer">` +
-          `<div class="rd-pagehead__eyebrow">Change</div>` +
-          `<h3>${esc(entryChange(item))}</h3>` +
-          `<p class="rd-help">${esc(entryRecord(item))} · ${esc(entryWho(item))} · ${esc(item.date || '')} ${esc(item.time || '')}</p>` +
-          (fields.length ? `<ul class="rd-hist-drawer__fields">${fields.map(f =>
-            `<li><b>${esc(f.label)}</b> ${esc(f.from || '—')} → ${esc(f.to || '—')}</li>`).join('')}</ul>` : `<p>${esc(item.details || '')}</p>`) +
-          `<p class="rd-help">Undo restores the whole planner, not this row alone.</p>` +
-          (item.undoable
-            ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHistUndoEntry(${d._historyLog.indexOf(item)})">Undo this change</button>`
-            : `<span class="rd-hist-aged">${item.hasSnapshot ? 'Snapshot aged out' : 'Nothing to undo'}</span>`) +
-          `</div>`;
-      }
-      return;
-    }
-    if (slot) {
-      /* fallback */
+  function parkSharedDrawerAway(slot) {
+    const shared = document.getElementById('record-drawer');
+    if (shared && slot && slot.contains(shared)) {
+      (document.getElementById('layout') || document.body).appendChild(shared);
     }
   }
+  const BUCKET_PANEL = { guests: 'guests', budget: 'budget', tasks: 'tasks', vendors: 'vendors', tables: 'tables', other: 'dashboard' };
+
+  function renderHistDrawer() {
+    const slot = document.getElementById('history-drawer-slot');
+    if (!slot) return;
+    const d = ensureData();
+    markUndoability();
+    const item = d._historyLog.find(r => (r.id || '') === window._histDrawerId);
+    if (!item) {
+      parkSharedDrawerAway(slot);
+      slot.innerHTML = '';
+      slot.classList.remove('is-open');
+      return;
+    }
+    parkSharedDrawerAway(slot);
+    const idx = d._historyLog.indexOf(item);
+    const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._histDrawerTab, 10) || 0));
+    const fields = entryFields(item);
+    const consequence = entryConsequence(item);
+    const panel = BUCKET_PANEL[recordBucket(item)] || 'dashboard';
+    const depth = (item.undoRank || 0) + 1;
+    let body = '';
+    if (tab === 0) {
+      body =
+        `<div class="rd-drawer__field"><span>Change</span><strong>${esc(entryChange(item))}</strong></div>` +
+        `<div class="rd-drawer__field"><span>When</span><strong>${esc((item.date || '') + (item.time ? ' · ' + item.time : ''))}</strong></div>` +
+        (consequence ? `<div class="rd-drawer__field"><span>Downstream effect</span><strong><span class="rd-hist-conseq">${esc(consequence)}</span></strong></div>` : '') +
+        (fields.length ? `<div class="rd-drawer__section-title">Fields</div>` + fields.map(fl =>
+          `<div class="rd-hist-drawer__field"><b>${esc(fl.label)}</b><span>${esc(fl.from || '—')}</span><span class="rd-hist-diff__arrow">→</span><span>${esc(fl.to || '—')}</span></div>`
+        ).join('') : `<p class="rd-drawer__note">${esc(item.details || 'No field diff captured.')}</p>`) +
+        `<p class="rd-drawer__note">Three edits in three seconds are one entry. Changes are grouped by time, because intent cannot be known.</p>`;
+    } else if (tab === 1) {
+      body =
+        `<div class="rd-drawer__field"><span>Record</span><strong>${esc(entryRecord(item))}</strong></div>` +
+        `<div class="rd-drawer__field"><span>Edited by</span><strong>${esc(entryWho(item))}</strong></div>` +
+        `<div class="rd-drawer__field"><span>Area</span><strong>${esc((RECORD_FILTERS.find(f => f.id === recordBucket(item)) || {}).label || 'Everything else')}</strong></div>` +
+        `<p class="rd-drawer__note">The entry names the record rather than copying it — so it survives the record being deleted.</p>` +
+        `<button type="button" class="rd-btn" onclick="rdHistCloseDrawer();typeof showPanel==='function'&&showPanel('${panel}',true)">Open the record →</button>`;
+    } else {
+      body =
+        `<div class="rd-drawer__field"><span>Undo state</span><strong>${item.undoable ? 'Available' : (item.hasSnapshot ? 'Snapshot aged out' : 'Nothing to undo')}</strong></div>` +
+        (item.undoable ? `<div class="rd-drawer__field"><span>Rolls back</span><strong>${depth} change${depth === 1 ? '' : 's'}</strong></div>` : '') +
+        `<p class="rd-drawer__note">Undo is not per-field. It rolls the whole planner back to this snapshot, and moves everything changed since — not this row alone.</p>` +
+        (item.undoable
+          ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdHistUndoEntry(${idx})">Undo to this change</button>`
+          : `<span class="rd-hist-aged">Only the last ${snapLimit()} snapshots are kept.</span>`);
+    }
+    slot.classList.add('is-open');
+    slot.innerHTML =
+      `<aside class="rd-drawer rd-hist-drawer" aria-label="History entry">` +
+      `<div class="rd-drawer__head">` +
+      `<button type="button" class="rd-drawer__close" onclick="rdHistCloseDrawer()" aria-label="Close">×</button>` +
+      `<div class="rd-drawer__eyebrow">History entry</div>` +
+      `<h2 class="rd-drawer__title">${esc(entryChange(item))}</h2>` +
+      `<div class="rd-drawer__chips">` +
+      `<span class="status-pill" data-pillscheme="${item.undoable ? 'green' : 'muted'}">${item.undoable ? 'Undoable' : 'Read-only'}</span>` +
+      (consequence ? `<span class="status-pill" data-pillscheme="gold">${esc(consequence)}</span>` : '') +
+      `</div>` +
+      `<div class="rd-drawer__tabs" role="tablist">` +
+      DRAWER_TABS.map((label, i) =>
+        `<button type="button" class="rd-drawer__tab${i === tab ? ' is-active' : ''}" onclick="rdHistSetDrawerTab(${i})">${esc(label)}</button>`
+      ).join('') +
+      `</div></div>` +
+      `<div class="rd-drawer__body">${body}</div>` +
+      `<div class="rd-drawer__foot">` +
+      `<button type="button" class="rd-btn" onclick="rdHistCloseDrawer()">Close</button>` +
+      `<button type="button" class="rd-btn" onclick="rdHistExport()">Export the log</button>` +
+      `</div></aside>`;
+  }
+
+  function rdHistOpenEntry(id) {
+    window._histDrawerId = id;
+    window._histDrawerTab = 0;
+    renderView();
+    renderHistDrawer();
+  }
+  function rdHistCloseDrawer() {
+    window._histDrawerId = null;
+    const slot = document.getElementById('history-drawer-slot');
+    if (slot) { parkSharedDrawerAway(slot); slot.innerHTML = ''; slot.classList.remove('is-open'); }
+    renderView();
+  }
+  function rdHistSetDrawerTab(i) { window._histDrawerTab = i; renderHistDrawer(); }
 
   function renderHistoryRd() {
     ensureData();
@@ -635,6 +718,7 @@
     renderStats();
     renderToolbar();
     renderView();
+    renderHistDrawer();
     refreshRail();
     if (typeof updateHistoryControls === 'function') updateHistoryControls();
     if (typeof uxRevealPanel === 'function') uxRevealPanel('history');
@@ -660,6 +744,8 @@
   window.rdHistUndoLast = rdHistUndoLast;
   window.rdHistUndoEntry = rdHistUndoEntry;
   window.rdHistOpenEntry = rdHistOpenEntry;
+  window.rdHistCloseDrawer = rdHistCloseDrawer;
+  window.rdHistSetDrawerTab = rdHistSetDrawerTab;
   window.openHistoryDatePicker = rdHistJumpDate;
   window.exportHistoryLog = rdHistExport;
 

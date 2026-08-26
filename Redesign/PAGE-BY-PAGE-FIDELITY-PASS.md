@@ -95,7 +95,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [31 · Essentials Checklist](#section-31) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [32 · Honeymoon & After](#section-32) — done on `cursor/dashboard-views-017e` — 7 screens · 1 record drawer — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [33 · Newlywed Homecoming](#section-33) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
-- [34 · Planner History](#section-34) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
+- [34 · Planner History](#section-34) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [35 · Wedding Setup](#section-35) — queued — 4 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [36 · Get Started, Guide & FAQ](#section-36) — queued — 10 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [37 · Viewer Preferences](#section-37) — queued — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
@@ -3980,7 +3980,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s34` · slug `planner-history`
 - **Header counts:** 6 screens · 1 record drawer
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §35
 - **Screen ids:** `18b`, `31i`, `31j`
 
 ### Five parts on this page
