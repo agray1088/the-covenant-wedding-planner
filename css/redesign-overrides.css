@@ -27434,11 +27434,11 @@ body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab__n { background: #2
 
 /* §39 Settings window — 49c · the gear pop-out read as a Settings window:
    the green save-status banner (last backup + edits since) and labelled panes. */
-body.rd-scope .rd-settings-window .rd-settings-status {
+body.rd-scope #rd-prefs .rd-settings-status {
   margin: 0 0 10px; padding: 10px 12px; border-radius: 2px;
   background: #eef5ef; border: 1px solid #cfe2d5;
 }
-body.rd-scope .rd-settings-window .rd-settings-status.is-stale {
+body.rd-scope #rd-prefs .rd-settings-status.is-stale {
   background: #fbf3e4; border-color: #ecdcbb;
 }
 body.rd-scope .rd-settings-status__row { display: flex; align-items: center; gap: 8px; }
@@ -27464,12 +27464,12 @@ body.rd-scope .rd-settings-pane {
 }
 body.rd-scope .rd-settings-pane:first-child,
 body.rd-scope .rd-settings-status + .rd-settings-pane { border-top: 0; padding-top: 0; margin-top: 4px; }
-body.rd-scope.night .rd-settings-window .rd-settings-status,
-body.rd-scope[data-theme="night"] .rd-settings-window .rd-settings-status {
+body.rd-scope.night #rd-prefs .rd-settings-status,
+body.rd-scope[data-theme="night"] #rd-prefs .rd-settings-status {
   background: #17231b; border-color: #294435;
 }
-body.rd-scope.night .rd-settings-window .rd-settings-status.is-stale,
-body.rd-scope[data-theme="night"] .rd-settings-window .rd-settings-status.is-stale {
+body.rd-scope.night #rd-prefs .rd-settings-status.is-stale,
+body.rd-scope[data-theme="night"] #rd-prefs .rd-settings-status.is-stale {
   background: #241d10; border-color: #40341a;
 }
 body.rd-scope.night .rd-settings-status__lead,
@@ -27918,5 +27918,92 @@ body.rd-scope[data-theme="night"] #panel-print-centre .rd-pc-proof { background:
   }
   body.rd-scope #panel-print-centre .rd-pc-dayof__row {
     grid-template-columns: 1fr 1fr; 
+  }
+}
+
+/* ═══ §39 follow-up · the gear menu as an actual pop-out ═══════════════════
+   #rd-prefs is built by redesign-shell.js as a direct child of .rd-topbar and
+   toggled with the [hidden] attribute, but it never had any styling: opened,
+   it rendered as an unstyled block flowing inline down the page. (It also
+   briefly borrowed .rd-settings-window — a pre-existing batch-47 class whose
+   display:flex defeated [hidden] and pinned it to 1240px; that class is now
+   .rd-prefs-settings.) This gives it the 49c pop-out shape. */
+body.rd-scope .rd-topbar { position: relative; }
+/* [hidden] is only a UA-level display:none, and the relocated planner buttons
+   inside carry !important display rules — state it explicitly and loudly. */
+body.rd-scope #rd-prefs[hidden] { display: none !important; }
+body.rd-scope #rd-prefs {
+  position: absolute;
+  top: 100%;
+  right: 12px;
+  z-index: 1200;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  max-height: min(72vh, 640px);
+  overflow-y: auto;
+  display: block;
+  padding: 12px 14px 14px;
+  background: #fff;
+  border: 1px solid #e7e1d4;
+  box-shadow: 0 18px 48px rgba(20, 22, 18, .26);
+  text-align: left;
+}
+/* menu rows: the relocated top-bar buttons must read as list items here,
+   not as the gold bars they are in the bar itself. */
+body.rd-scope #rd-prefs .btn,
+body.rd-scope #rd-prefs button:not(.rd-settings-pane),
+body.rd-scope #rd-prefs select {
+  display: flex !important;
+  align-items: center;
+  gap: 9px;
+  width: 100% !important;
+  min-height: 34px;
+  margin: 1px 0 !important;
+  padding: 7px 9px !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #2f3a33 !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  cursor: pointer;
+}
+body.rd-scope #rd-prefs .btn:hover,
+body.rd-scope #rd-prefs button:not(.rd-settings-pane):hover {
+  background: #f4f0e8 !important;
+  color: #20362D !important;
+}
+body.rd-scope #rd-prefs select {
+  border: 1px solid #e0d8c8 !important;
+  background: #fff !important;
+  font-size: 12px !important;
+  cursor: pointer;
+}
+body.rd-scope #rd-prefs .btn svg,
+body.rd-scope #rd-prefs button svg {
+  width: 15px; height: 15px; flex: 0 0 auto; opacity: .75;
+}
+body.rd-scope #rd-prefs .btn-text { font: inherit; }
+/* the quick-jump wrapper is parked in here by the shell */
+body.rd-scope #rd-prefs #quick-jump-wrap { width: 100%; margin: 2px 0; }
+body.rd-scope.night #rd-prefs,
+body.rd-scope[data-theme="night"] #rd-prefs {
+  background: #1c1c18; border-color: #2e2e28;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .5);
+}
+body.rd-scope.night #rd-prefs .btn,
+body.rd-scope[data-theme="night"] #rd-prefs .btn,
+body.rd-scope.night #rd-prefs button:not(.rd-settings-pane),
+body.rd-scope[data-theme="night"] #rd-prefs button:not(.rd-settings-pane) { color: #cbd8cf !important; }
+body.rd-scope.night #rd-prefs .btn:hover,
+body.rd-scope[data-theme="night"] #rd-prefs .btn:hover { background: #26261f !important; }
+/* on a phone the menu becomes a full-width sheet under the bar (42a) */
+@media (max-width: 720px) {
+  body.rd-scope #rd-prefs {
+    right: 0; left: 0; width: auto; max-width: 100%;
+    max-height: 76vh; border-left: 0; border-right: 0;
   }
 }

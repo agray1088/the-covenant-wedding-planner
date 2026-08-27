@@ -137,7 +137,7 @@
   function enhance() {
     var prefs = document.getElementById('rd-prefs');
     if (!prefs) return;
-    prefs.classList.add('rd-settings-window');
+    prefs.classList.add('rd-prefs-settings');
     refreshBanner();
     paneLabels();
   }
