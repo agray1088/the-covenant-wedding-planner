@@ -103,7 +103,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [39 · App chrome, settings & record editor](#section-39) — done on `cursor/dashboard-views-017e` — 8 screens · 5 record drawers — Full page · Record drawer tabs · Night theme
 - [40 · Vendor Portal](#section-40) — done on `cursor/dashboard-views-017e` — 7 screens — Full page
 - [41 · House style & visual directions](#section-41) — realized by the redesign on `cursor/dashboard-views-017e` — 11 screens — Full page · View switcher views · Night theme
-- [42 · System-wide patterns](#section-42) — queued — 40 screens — Full page · View switcher views · Night theme
+- [42 · System-wide patterns](#section-42) — done on `cursor/dashboard-views-017e` — 40 screens — Full page · View switcher views · Night theme
 
 ---
 
@@ -4839,8 +4839,14 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s42` · slug `system-wide-patterns`
 - **Header counts:** 40 screens
-- **Status:** not started — do not implement until every earlier section is reviewed
+- **Status:** done on `cursor/dashboard-views-017e` — the final section. See the implementation note below.
 - **Screen ids:** `43a`, `41a`, `42a`, `42b`, `38a`, `39a`, `40a`, `37a`, `37b`, `37c`, `34a`, `34b`, `34c`, `34d`, `35a`, `35b`, `35c`, `35d`, `36a`, `36b`
+
+> **Implementation note (§42).** These twenty patterns are cross-cutting, and an audit found the *behaviour* for all of them already built and wired: role views (`43a`, `js/roles-redesign.js`), the 1240px and 720px breakpoints and Day-of mode (`41a`/`42a`/`42b`, `js/responsive-redesign.js`), table / drawer / stat-strip depth (`38a`/`39a`/`40a`, `js/rd-depth.js`), the state library (`37a`–`37c`, `js/ux-kit.js` + per-page empties), the ⌘K command palette (`34a`, `js/planner.js` — verified opening on ⌘K with the drawn footer `↑↓ navigate · ↵ open · ⌘↵ drawer · esc close`), CSV import with field mapping, create/match/conflict/skip/untouched pre-flight counts and amber value-mapping chips (`35a`), the notification centre behind the bell (`35c`), and the ten `js/rd-furniture.js` overlays covering `34b`–`36b`.
+>
+> **The real gap was styling.** Every one of those ten furniture overlays — filter builder, saved-views manager, keyboard shortcuts, bulk edit, share dialog, undo toast, template picker, trash, merge review, notification centre — shipped with correct markup and **no CSS whatsoever** (the only `.rd-kbd` rule in the tree was an unrelated one scoped to `#panel-venue`). `overlayShell()` appends a bare `<div>` to `document.body`, and the app's own button and panel rules are scoped `#main#main`, so they could never reach it: each sheet rendered as unstyled content dumped at the end of the page rather than as a modal. New `css/redesign-furniture.css` supplies the missing layer in the §41 house style — forest as the action colour, **gold only ever as a hairline, never a button fill**, 13px Inter, 8px spacing, square corners — at the Master's drawn widths (filter builder and bulk edit 620px, saved views and trash 640px, share 560px, templates 600px, merge 720px, shortcuts 760px), with night tokens and full-screen sheets below 720px per `42a`. Button rules are scoped to the eight overlay ids so they cannot leak into the app.
+>
+> Drawn details honoured rather than approximated: `34b`'s nested group is indented with a gold left rule — *the indentation is the parenthesis* — joins internally with amber `or` chips, and keeps the plain-English restatement and the match count visible before applying; `35b` lays out as the three drawn contexts (Everywhere · In a table · In a drawer) with the consistency rule stated on the sheet; `35d` renders the *They see* chips green and the fixed *Never* list red with the live-records and honest-revocation note; `36a`'s undo toast states the derived consequence in dotted gold. Verified in a headless browser: every overlay mounts fixed and centred at its drawn width, night mode swaps correctly, in-app buttons are unchanged, and a sample of pages still renders with no console errors.
 
 ### Five parts on this page
 
