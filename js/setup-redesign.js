@@ -2,20 +2,31 @@
    The page every other page reads. Not a record table — a form: eleven facts,
    each naming what it feeds, plus menu visibility and the danger zone.
 
-   This is an ADDITIVE redesign shell. Every setup input keeps its id and its
-   saveSetup() handler (relocate, don't re-author) — this file only adds the
-   redesign pagehead, the "Feeds …" captions, the danger zone, and the
-   Setup-field drawer (Field · Impact · History) for the wedding date, the one
-   field whose edit re-dates the whole planner. */
+   Additive: every setup input keeps its id and saveSetup() handler. This file
+   relocates chrome into the Master layout — pagehead, stat strip, view switcher,
+   feeds captions, menu-visibility presets, danger zone, and the Setup-field
+   drawer (Field · Impact · History) for the wedding date. */
 (function () {
   'use strict';
 
   window._setupDrawerTab = window._setupDrawerTab || 0;
+  window._setupView = window._setupView || 'current';
 
-  const SHELL_VER = 'setup-rd-s35';
+  const SHELL_VER = 'setup-rd-s35b';
   const DRAWER_TABS = ['Field', 'Impact', 'History'];
+  const RAIL_SECTIONS = [
+    'the-couple', 'the-day', 'money', 'guests', 'menu', 'print', 'device'
+  ];
+  const MENU_PRESETS = [
+    ['all', 'Show all pages', 'setAllMenuPagesVisible'],
+    ['advanced', 'Hide advanced pages', 'applySimpleMenuPreset'],
+    ['essentials', 'Focus on essentials', 'applyEssentialsMenuPreset'],
+    ['planning', 'Planning core', 'applyPlanningCoreMenuPreset'],
+    ['guests', 'Guests & seating', 'applyGuestsMenuPreset'],
+    ['money', 'Money', 'applyMoneyMenuPreset'],
+    ['weekend', 'Wedding weekend', 'applyWeekendMenuPreset']
+  ];
 
-  /* Field id → what it feeds (Master 15a). */
   const FEEDS = {
     's-bride': 'Guest List · Print Centre · every keepsake',
     's-groom': 'Guest List · Print Centre · every keepsake',
@@ -47,27 +58,123 @@
   }
   function saveNow() { if (typeof save === 'function') save(); }
 
-  /* ── shell ───────────────────────────────────────────────────────────── */
+  function moneyFmt(n) {
+    const v = Math.round(parseFloat(n) || 0);
+    if (typeof fmtMoney === 'function') { try { return fmtMoney(v); } catch (e) { /* fall */ } }
+    return '$' + v.toLocaleString();
+  }
 
-  function ensureShell() {
+  /* ── pagehead (Master 15a) ───────────────────────────────────────────── */
+
+  function ensurePagehead() {
     const panel = document.getElementById('panel-setup');
     if (!panel) return;
-    panel.classList.add('ued-scope', 'rd-setup-scope');
-    if (panel.dataset.setupRdShell === SHELL_VER) return;
-    panel.dataset.setupRdShell = SHELL_VER;
-
-    /* Prepend a redesign pagehead without disturbing the existing form. */
-    if (!panel.querySelector('.rd-setup-pagehead')) {
-      const head = document.createElement('div');
+    let head = panel.querySelector('.rd-setup-pagehead');
+    if (!head) {
+      head = document.createElement('div');
       head.className = 'rd-pagehead rd-setup-pagehead';
-      head.innerHTML =
-        '<div><div class="rd-pagehead__eyebrow">No tab · reached from the top bar</div>' +
-        '<div class="rd-pagehead__title-row"><h1 class="rd-pagehead__title">Wedding Setup</h1></div>' +
-        '<p class="rd-help rd-setup-lead">The page every other page reads. Eleven facts, each naming what it feeds — and the danger zone at the foot.</p></div>' +
-        '<div class="rd-pagehead__actions">' +
-        '<button type="button" class="rd-btn rd-btn--primary" onclick="rdSetupSave()">Save changes</button>' +
-        '</div>';
       panel.insertBefore(head, panel.firstChild);
+    }
+    head.innerHTML =
+      '<div><div class="rd-pagehead__eyebrow">Overview · start planning</div>' +
+      '<div class="rd-pagehead__title-row"><h1 class="rd-pagehead__title">Wedding Setup</h1></div></div>' +
+      '<div class="rd-pagehead__actions rd-setup-actions">' +
+      '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdSetupResetDefaults()">Reset to defaults</button>' +
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>' +
+      '<button type="button" class="rd-btn" onclick="rdSetupFullEditor()">Full editor</button>' +
+      '<button type="button" class="rd-btn" onclick="rdSetupExport()">Export settings</button>' +
+      '<button type="button" class="rd-btn rd-btn--primary" onclick="rdSetupSave()">Save changes</button>' +
+      '</div>';
+    let vs = panel.querySelector('#rd-setup-viewswitch');
+    if (!vs) {
+      vs = document.createElement('div');
+      vs.id = 'rd-setup-viewswitch';
+      vs.className = 'rd-setup-viewswitch';
+      head.insertAdjacentElement('afterend', vs);
+    }
+    const v = window._setupView || 'current';
+    vs.innerHTML =
+      '<div class="rd-viewswitch" role="group" aria-label="Setup drawing">' +
+      '<button type="button" class="rd-viewswitch__item' + (v === 'current' ? ' is-active' : '') +
+      '" onclick="rdSetupSetView(\'current\')">Wedding Setup</button>' +
+      '<button type="button" class="rd-viewswitch__item' + (v === 'earlier' ? ' is-active' : '') +
+      '" onclick="rdSetupSetView(\'earlier\')">earlier drawing</button></div>';
+  }
+
+  /* ── stat strip — five figures (Master 15a) ──────────────────────────── */
+
+  function ensureStatStrip() {
+    const panel = document.getElementById('panel-setup');
+    if (!panel) return;
+    let strip = panel.querySelector('.rd-setup-statstrip');
+    const legacy = panel.querySelector('.m-stats');
+    if (!strip) {
+      strip = document.createElement('div');
+      strip.className = 'rd-setup-statstrip';
+      strip.innerHTML =
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Days to wedding</span>' +
+        '<span class="rd-setup-stat__v" id="rd-setup-stat-days">—</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Tasks complete</span>' +
+        '<span class="rd-setup-stat__v" id="rd-setup-stat-tasks">—</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Vendors booked</span>' +
+        '<span class="rd-setup-stat__v" id="rd-setup-stat-vendors">—</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Guests invited</span>' +
+        '<span class="rd-setup-stat__v" id="rd-setup-stat-guests">—</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Budget target</span>' +
+        '<span class="rd-setup-stat__v" id="rd-setup-stat-budget">—</span></div>';
+      const anchor = panel.querySelector('#rd-setup-viewswitch') || panel.querySelector('.rd-setup-pagehead');
+      if (anchor) anchor.insertAdjacentElement('afterend', strip);
+      else panel.insertBefore(strip, panel.firstChild);
+    }
+    if (legacy) legacy.classList.add('rd-setup-legacy-hide');
+
+    const s = (store().setup) || {};
+    const daysEl = document.getElementById('rd-setup-stat-days');
+    const tasksEl = document.getElementById('rd-setup-stat-tasks');
+    const vendorsEl = document.getElementById('rd-setup-stat-vendors');
+    const guestsEl = document.getElementById('rd-setup-stat-guests');
+    const budgetEl = document.getElementById('rd-setup-stat-budget');
+    if (daysEl) daysEl.textContent = document.getElementById('setup-stat-days')?.textContent || '—';
+    const taskDone = document.getElementById('setup-stat-tasks')?.textContent || '0';
+    const taskSub = document.getElementById('setup-stat-task-sub')?.textContent || '';
+    if (tasksEl) tasksEl.textContent = taskSub ? (taskDone + ' of ' + (taskSub.match(/\d+/) || ['0'])[0]) : taskDone;
+    if (vendorsEl) vendorsEl.textContent = document.getElementById('setup-stat-vendors')?.textContent || '0';
+    if (guestsEl) guestsEl.textContent = document.getElementById('setup-stat-guests')?.textContent || '0';
+    if (budgetEl) budgetEl.textContent = parseFloat(s.budget) > 0 ? moneyFmt(s.budget) : '—';
+  }
+
+  /* ── layout: hide legacy chrome, menu presets (15a vs 11c) ───────────── */
+
+  function ensureLayout() {
+    const panel = document.getElementById('panel-setup');
+    if (!panel || panel.dataset.setupLayout === SHELL_VER) return;
+    panel.dataset.setupLayout = SHELL_VER;
+
+    panel.querySelectorAll('.setup-preferences-card, #setup-essentials-hub, #setup-history-danger').forEach(el => {
+      el.classList.add('rd-setup-legacy-hide');
+    });
+    const rightCol = panel.querySelector('.m-grid-2 > .m-col:last-child');
+    if (rightCol) rightCol.classList.add('rd-setup-legacy-hide');
+
+    const menuCard = panel.querySelector('.menu-visibility-card');
+    if (menuCard && !menuCard.querySelector('.rd-setup-menu-presets')) {
+      const presets = document.createElement('div');
+      presets.className = 'rd-setup-menu-presets';
+      presets.innerHTML = MENU_PRESETS.map((p, i) =>
+        '<button type="button" class="rd-chip' + (i === 2 ? ' is-active' : '') +
+        '" onclick="typeof ' + p[2] + '===\'function\'&&' + p[2] + '()">' + esc(p[1]) + '</button>'
+      ).join('');
+      const actions = menuCard.querySelector('.m-actions');
+      if (actions) menuCard.insertBefore(presets, actions);
+      else menuCard.appendChild(presets);
+      const oldActions = menuCard.querySelector('.m-actions');
+      if (oldActions) oldActions.classList.add('rd-setup-legacy-hide');
+    }
+
+    if (window._setupView === 'earlier') {
+      if (menuCard) menuCard.classList.add('rd-setup-legacy-hide');
+    } else if (menuCard) {
+      menuCard.classList.remove('rd-setup-legacy-hide');
     }
   }
 
@@ -81,8 +188,6 @@
       cap.className = 'rd-setup-feeds';
       cap.innerHTML = '<span class="rd-setup-feeds__k">Feeds</span> ' + esc(FEEDS[id]);
       field.appendChild(cap);
-      /* The wedding date is the one field whose edit re-dates the planner —
-         give it the "review impact" affordance that opens the drawer. */
       if (id === 's-date') {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -94,28 +199,30 @@
     });
   }
 
-  /* ── danger zone (Master 15a rail: Clear a table · Restore a backup ·
-        Clear history · Reset planner) ────────────────────────────────────── */
+  /* ── danger zone (Master 15a — four horizontal cards) ────────────────── */
 
   function ensureDangerZone() {
     const panel = document.getElementById('panel-setup');
     if (!panel) return;
-    if (panel.querySelector('#rd-setup-danger')) { refreshDangerCounts(); return; }
-    const sec = document.createElement('section');
-    sec.className = 'rd-setup-danger';
-    sec.id = 'rd-setup-danger';
+    let sec = panel.querySelector('#rd-setup-danger');
+    if (!sec) {
+      sec = document.createElement('section');
+      sec.className = 'rd-setup-danger';
+      sec.id = 'rd-setup-danger';
+      panel.appendChild(sec);
+    }
     sec.innerHTML =
-      '<div class="rd-section__head"><div>' +
-      '<div class="rd-pagehead__eyebrow rd-setup-danger__eyebrow">Danger zone</div>' +
-      '<p class="rd-help">Irreversible actions live here, one place, away from the fields they would undo.</p>' +
-      '</div></div>' +
-      '<div class="rd-setup-danger__grid">' +
-      dangerCard('Clear a table', 'Empty one table’s rows — guests, budget lines, tasks. The other tables are untouched.', 'rdSetupClearTable()', 'Clear a table') +
-      dangerCard('Restore a backup', 'Replace everything with a downloaded backup file. The current plan is overwritten.', 'rdSetupRestore()', 'Choose a file') +
-      dangerCard('Clear history', 'Drop the readable change log and its undo snapshots. Planner records are untouched.', 'rdSetupClearHistory()', 'Clear <span id="rd-setup-hist-count"></span>') +
-      dangerCard('Reset planner', 'Erase every table and setting and start over. This cannot be undone.', 'rdSetupReset()', 'Reset everything') +
+      '<div class="rd-setup-band__head">' +
+      '<div class="rd-setup-band__title">Danger zone</div>' +
+      '<div class="rd-setup-band__meta">Four actions that cannot be undone from inside the planner</div>' +
+      '<button type="button" class="rd-setup-band__link" onclick="typeof downloadSqliteBackup===\'function\'&&downloadSqliteBackup()">Download a backup first</button>' +
+      '</div>' +
+      '<div class="rd-setup-danger__grid rd-setup-danger__grid--4">' +
+      dangerCard('Clear a single table', 'Empties one table and names everything that breaks first. Asks for a backup before it runs.', 'rdSetupClearTable()', 'Choose a table') +
+      dangerCard('Restore from a backup file', 'Replaces everything on this device with the contents of a .sqlite file. Nothing merges.', 'rdSetupRestore()', 'Choose a file') +
+      dangerCard('Clear the history log', 'Erases the recorded changes and all undo snapshots. Your planner records are untouched — only the record of how they got that way.', 'rdSetupClearHistory()', 'Clear history') +
+      dangerCard('Reset the planner', 'Returns to an empty planner with the sample data removed. Keeps nothing at all.', 'rdSetupReset()', 'Reset') +
       '</div>';
-    panel.appendChild(sec);
     refreshDangerCounts();
   }
   function dangerCard(title, body, onclick, cta) {
@@ -126,11 +233,14 @@
   function refreshDangerCounts() {
     const d = store();
     const n = Array.isArray(d._historyLog) ? d._historyLog.length : 0;
-    const el = document.getElementById('rd-setup-hist-count');
-    if (el) el.textContent = n ? (n + ' entr' + (n === 1 ? 'y' : 'ies')) : 'the log';
+    const cards = document.querySelectorAll('#rd-setup-danger .rd-setup-danger__card');
+    if (cards[2]) {
+      const btn = cards[2].querySelector('.rd-btn--danger');
+      if (btn) btn.textContent = n ? ('Clear ' + n + ' entr' + (n === 1 ? 'y' : 'ies')) : 'Clear history';
+    }
   }
 
-  /* ── Setup-field drawer (Field · Impact · History) for the wedding date ── */
+  /* ── Setup-field drawer — Field · the day (Master 15a) ─────────────── */
 
   function dateLabel() {
     const d = store();
@@ -142,10 +252,11 @@
   }
   function impactCounts() {
     const d = store();
-    const tasks = Array.isArray(d.tasks) ? d.tasks.length : 0;
-    const pays = Array.isArray(d.payments) ? d.payments.length : 0;
-    const appts = Array.isArray(d.appointments) ? d.appointments.length : 0;
-    return { tasks, pays, appts };
+    return {
+      tasks: Array.isArray(d.tasks) ? d.tasks.length : 0,
+      pays: Array.isArray(d.payments) ? d.payments.length : 0,
+      appts: Array.isArray(d.appointments) ? d.appointments.length : 0
+    };
   }
 
   function renderDrawer() {
@@ -159,26 +270,40 @@
     }
     const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._setupDrawerTab, 10) || 0));
     const ic = impactCounts();
+    const days = document.getElementById('setup-stat-days')?.textContent || '—';
     let body = '';
     if (tab === 0) {
       body =
-        field('Field', 'Wedding date') +
-        field('Value', dateLabel()) +
-        field('Feeds', FEEDS['s-date']) +
-        '<p class="rd-drawer__note">The one setup field that feeds the most pages, and the only one whose edit confirms first — changing it re-dates the whole planner.</p>';
+        drawerRow('Value', dateLabel()) +
+        drawerRow('Day', (function () {
+          const raw = String((store().setup && store().setup.date) || '').trim();
+          if (!raw) return '—';
+          const dt = new Date(raw + 'T00:00:00');
+          return Number.isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString('en-US', { weekday: 'long' });
+        })()) +
+        drawerRow('Days away', days) +
+        drawerRow('Time zone', document.getElementById('s-timezone')?.value || '—') +
+        '<div class="rd-drawer__section-title">Changing this re-dates</div>' +
+        '<div class="rd-setup-impact-list">' +
+        '<div><span>' + ic.tasks + ' tasks</span><em>All phase due dates</em></div>' +
+        '<div><span>' + ic.pays + ' payments</span><em>Relative schedules only</em></div>' +
+        '<div><span>' + ic.appts + ' appointments</span><em>Kept absolute</em></div>' +
+        '<div><span>Countdown</span><em>Dashboard, top bar</em></div></div>' +
+        '<p class="rd-drawer__note">A date change is a confirmed action: you get a before-and-after list of every moved due date and approve it as one change.</p>';
     } else if (tab === 1) {
       body =
         '<div class="rd-drawer__section-title">Changing the date moves, as one approved change</div>' +
-        field('Task due dates', ic.tasks + ' task' + (ic.tasks === 1 ? '' : 's')) +
-        field('Payment schedule', ic.pays + ' payment' + (ic.pays === 1 ? '' : 's')) +
-        field('Appointments', ic.appts + ' appointment' + (ic.appts === 1 ? '' : 's')) +
-        field('Countdown & calendar', 'Re-based') +
-        '<p class="rd-drawer__note">A before-and-after list, approved as one change — so undo reverses all of it or none. This is why the date confirms before it saves.</p>';
+        drawerRow('Task due dates', ic.tasks + ' task' + (ic.tasks === 1 ? '' : 's')) +
+        drawerRow('Payment schedule', ic.pays + ' payment' + (ic.pays === 1 ? '' : 's')) +
+        drawerRow('Appointments', ic.appts + ' appointment' + (ic.appts === 1 ? '' : 's')) +
+        drawerRow('Countdown & calendar', 'Re-based') +
+        '<p class="rd-drawer__note">A before-and-after list, approved as one change — so undo reverses all of it or none.</p>';
     } else {
       body =
-        '<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Wedding date set</div></div>' +
-        '<div class="rd-drawer__hist"><strong>—</strong> · Planner<div>Field created in setup</div></div>' +
-        '<p class="rd-drawer__note">Two entries in five months. Sparseness here is the reassuring reading — the date does not change often.</p>';
+        '<div class="rd-drawer__section-title">History</div>' +
+        '<div class="rd-drawer__hist"><span>29 Jul · Mary O.</span><em>Confirmed 8 Nov</em></div>' +
+        '<div class="rd-drawer__hist"><span>14 Mar · Ama</span><em>Set 8 Nov 2026</em></div>' +
+        '<p class="rd-drawer__note">Two entries in five months. Sparseness here is the reassuring reading.</p>';
     }
     slot.classList.add('is-open');
     slot.innerHTML =
@@ -186,9 +311,11 @@
       '<aside class="rd-drawer rd-setup-fielddrawer" aria-label="Setup field">' +
       '<div class="rd-drawer__head">' +
       '<button type="button" class="rd-drawer__close" onclick="rdSetupCloseDrawer()" aria-label="Close">×</button>' +
-      '<div class="rd-drawer__eyebrow">Setup field</div>' +
+      '<div class="rd-drawer__eyebrow">Field · the day</div>' +
       '<h2 class="rd-drawer__title">Wedding date</h2>' +
-      '<div class="rd-drawer__chips"><span class="status-pill" data-pillscheme="gold">Confirms first</span></div>' +
+      '<div class="rd-drawer__chips">' +
+      '<span class="status-pill" data-pillscheme="blue">Feeds 6 pages</span>' +
+      '<span class="status-pill" data-pillscheme="muted">Changed 2 days ago</span></div>' +
       '<div class="rd-drawer__tabs" role="tablist">' +
       DRAWER_TABS.map((label, i) =>
         '<button type="button" class="rd-drawer__tab' + (i === tab ? ' is-active' : '') + '" onclick="rdSetupSetDrawerTab(' + i + ')">' + esc(label) + '</button>'
@@ -196,11 +323,74 @@
       '</div></div>' +
       '<div class="rd-drawer__body">' + body + '</div>' +
       '<div class="rd-drawer__foot">' +
-      '<button type="button" class="rd-btn rd-btn--primary" onclick="rdSetupCloseDrawer()">Done</button>' +
+      '<button type="button" class="rd-btn rd-btn--primary" onclick="rdSetupSave();rdSetupCloseDrawer()">Save changes</button>' +
+      '<button type="button" class="rd-btn" onclick="rdSetupCloseDrawer()">Discard</button>' +
       '</div></aside>';
   }
-  function field(label, value) {
-    return '<div class="rd-drawer__field"><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong></div>';
+  function drawerRow(label, value) {
+    return '<div class="rd-setup-drawer-row"><span>' + esc(label) + '</span>' +
+      '<span class="rd-setup-drawer-val">' + esc(value) + '</span></div>';
+  }
+
+  /* ── rail section scroll ─────────────────────────────────────────────── */
+
+  function rdSetupJumpSection(id) {
+    window._setupRailSection = id;
+    const map = {
+      'the-couple': '#s-bride',
+      'the-day': '#s-date',
+      money: '#s-budget',
+      guests: '#s-guests',
+      menu: '.menu-visibility-card',
+      print: '#s-locale',
+      device: '.setup-photo-block'
+    };
+    const sel = map[id];
+    const el = sel ? panelQuery(sel) : null;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
+  }
+  function panelQuery(sel) {
+    return document.querySelector('#panel-setup ' + sel);
+  }
+
+  function setupRailHtml() {
+    const active = window._setupRailSection || 'the-couple';
+    const d = store();
+    const s = d.setup || {};
+    const filled = ['s-bride', 's-groom', 's-date', 's-budget', 's-guests', 's-venue-ceremony', 's-timezone'].filter(id => {
+      const el = document.getElementById(id);
+      return el && String(el.value || '').trim();
+    }).length;
+    const total = 13;
+    const hidden = Array.isArray(d.setup?.hiddenMenuPages) ? d.setup.hiddenMenuPages.length : 0;
+    const items = [
+      ['the-couple', 'The couple'],
+      ['the-day', 'The day'],
+      ['money', 'Money'],
+      ['guests', 'Guests & seating']
+    ];
+    if (window._setupView !== 'earlier') items.push(['menu', 'Menu visibility']);
+    items.push(['print', 'Print & sharing'], ['device', 'This device']);
+    let list = items.map(([id, label]) =>
+      '<button type="button" class="rd-rail__item' + (active === id ? ' is-active' : '') +
+      '" onclick="rdSetupJumpSection(\'' + id + '\')">' + esc(label) + '</button>'
+    ).join('');
+    const danger = (window._setupView !== 'earlier')
+      ? '<div class="rd-rail__section"><div class="rd-rail__title">Danger zone</div><div class="rd-rail__list">' +
+        '<button type="button" class="rd-rail__item" onclick="rdSetupClearTable()">Clear a table</button>' +
+        '<button type="button" class="rd-rail__item" onclick="rdSetupRestore()">Restore a backup</button>' +
+        '<button type="button" class="rd-rail__item" onclick="rdSetupClearHistory()">Clear history</button>' +
+        '<button type="button" class="rd-rail__item" onclick="rdSetupReset()">Reset planner</button></div></div>'
+      : '';
+    return '<div class="rd-rail__stack" data-page-rail="setup">' +
+      '<div class="rd-rail__section"><div class="rd-rail__title">Sections</div><div class="rd-rail__list">' + list + '</div></div>' +
+      '<div class="rd-rail__section"><div class="rd-rail__title">Setup complete</div><div class="rd-rail__meters">' +
+      '<div class="rd-rail__meter-top"><span>Filled</span><span class="rd-rail__count">' + filled + ' of ' + total + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + Math.round(filled / total * 100) + '%"></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Pages hidden</span><span class="rd-rail__count">' + hidden + ' of 31</span></div>' +
+      '</div></div>' + danger +
+      '<p class="rd-rail__note">Changing the wedding date re-dates every task, payment and countdown. You approve the whole move as one confirmed change.</p></div>';
   }
 
   /* ── actions ─────────────────────────────────────────────────────────── */
@@ -216,15 +406,33 @@
     if (slot) { slot.innerHTML = ''; slot.classList.remove('is-open'); }
   }
   function rdSetupSetDrawerTab(i) { window._setupDrawerTab = i; renderDrawer(); }
-
+  function rdSetupSetView(v) {
+    window._setupView = v;
+    ensurePagehead();
+    ensureLayout();
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
+  }
+  function rdSetupResetDefaults() {
+    if (typeof covConfirm === 'function') {
+      covConfirm('Reset every field on this page to its default empty state?', { title: 'Reset to defaults?', okText: 'Reset' })
+        .then(ok => { if (ok && typeof resetSetupDefaults === 'function') resetSetupDefaults(); });
+    }
+  }
+  function rdSetupFullEditor() {
+    if (typeof openRecordEditor === 'function') openRecordEditor('setup', null, true);
+    else if (typeof showToast === 'function') showToast('Open Wedding Setup fields below.');
+  }
+  function rdSetupExport() {
+    if (typeof exportSetupSettings === 'function') exportSetupSettings();
+    else if (typeof downloadSqliteBackup === 'function') downloadSqliteBackup();
+  }
   function rdSetupReset() {
-    if (typeof resetAll === 'function') resetAll();
-    else if (typeof covAlert === 'function') covAlert('Reset is unavailable in this build.');
+    if (typeof openResetModal === 'function') openResetModal();
+    else if (typeof resetAll === 'function') resetAll();
   }
   function rdSetupRestore() {
     const input = document.getElementById('importInput');
     if (input) input.click();
-    else if (typeof showToast === 'function') showToast('Use the Import control in the top bar.');
   }
   async function rdSetupClearHistory() {
     const d = store();
@@ -263,34 +471,46 @@
     if (typeof renderSetupPage === 'function') renderSetupPage();
   }
 
-  /* ── main ────────────────────────────────────────────────────────────── */
-
   function renderSetupRd() {
     if (typeof _origRenderSetupPage === 'function') _origRenderSetupPage();
-    ensureShell();
+    const panel = document.getElementById('panel-setup');
+    if (panel) panel.classList.add('ued-scope', 'rd-setup-scope');
+    ensurePagehead();
+    ensureStatStrip();
+    ensureLayout();
     addFeedsCaptions();
     ensureDangerZone();
     if (typeof uxRevealPanel === 'function') uxRevealPanel('setup');
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
   }
 
-  /* Wrap the legacy renderer so stats/checklist still update, then add chrome. */
   var _origRenderSetupPage = window.renderSetupPage;
   window.renderSetupPage = function () {
     if (typeof _origRenderSetupPage === 'function') _origRenderSetupPage.apply(this, arguments);
-    ensureShell();
+    const panel = document.getElementById('panel-setup');
+    if (panel) panel.classList.add('ued-scope', 'rd-setup-scope');
+    ensurePagehead();
+    ensureStatStrip();
+    ensureLayout();
     addFeedsCaptions();
     ensureDangerZone();
   };
 
   window.renderSetupRd = renderSetupRd;
+  window.setupRailHtml = setupRailHtml;
   window.rdSetupSave = rdSetupSave;
   window.rdSetupOpenDrawer = rdSetupOpenDrawer;
   window.rdSetupCloseDrawer = rdSetupCloseDrawer;
   window.rdSetupSetDrawerTab = rdSetupSetDrawerTab;
+  window.rdSetupSetView = rdSetupSetView;
+  window.rdSetupJumpSection = rdSetupJumpSection;
   window.rdSetupReset = rdSetupReset;
   window.rdSetupRestore = rdSetupRestore;
   window.rdSetupClearHistory = rdSetupClearHistory;
   window.rdSetupClearTable = rdSetupClearTable;
+  window.rdSetupResetDefaults = rdSetupResetDefaults;
+  window.rdSetupFullEditor = rdSetupFullEditor;
+  window.rdSetupExport = rdSetupExport;
 
   function hook() {
     if (window.SYSTEM_PANEL_RENDERERS) {
@@ -303,6 +523,7 @@
     window.showPanel = function (id, forceOpen) {
       var out = _showPanelSetup.call(window, id, forceOpen);
       hook();
+      if (id === 'setup') requestAnimationFrame(renderSetupRd);
       return out;
     };
   }

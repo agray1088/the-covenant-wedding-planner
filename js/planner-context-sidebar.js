@@ -1802,6 +1802,94 @@
       '</div>';
   }
 
+  function buildSetupContext() {
+    if (typeof window.setupRailHtml === 'function') return window.setupRailHtml();
+    return buildGenericContext('setup');
+  }
+
+  function buildTocRail(panelId, title, items, note) {
+    var active = window['_railToc_' + panelId] || items[0][0];
+    var list = items.map(function (pair) {
+      return '<button type="button" class="rd-rail__item' + (active === pair[0] ? ' is-active' : '') +
+        '" onclick="rdRailTocJump(\'' + panelId + '\',\'' + pair[0] + '\')">' + esc(pair[1]) + '</button>';
+    }).join('');
+    return '<div class="rd-rail__stack" data-page-rail="' + panelId + '">' +
+      '<div class="rd-rail__section"><div class="rd-rail__title">' + esc(title) + '</div>' +
+      '<div class="rd-rail__list" role="list">' + list + '</div></div>' +
+      (note ? '<p class="rd-rail__note">' + note + '</p>' : '') +
+      '</div>';
+  }
+
+  function buildInstructionsContext() {
+    return buildTocRail('instructions', 'On this page', [
+      ['before', 'Before anything else'],
+      ['connects', 'How the planner connects'],
+      ['editing', 'Editing & navigation'],
+      ['partner', 'Planning with your partner'],
+      ['cannot', 'What it cannot do'],
+      ['firsthour', 'Your first hour'],
+      ['guide', 'Page-by-Page Guide'],
+      ['faq', 'FAQ'],
+      ['setup', 'Wedding Setup']
+    ], 'The rail is a table of contents — scroll the page to each section.');
+  }
+
+  function buildGuidePageContext() {
+    return buildTocRail('guide', 'Every page', [
+      ['all', 'Every page'],
+      ['overview', 'Overview'],
+      ['planning', 'Planning'],
+      ['people', 'People'],
+      ['money', 'Money'],
+      ['vendors', 'Vendors'],
+      ['theday', 'The Day'],
+      ['covenant', 'Covenant'],
+      ['documents', 'Documents'],
+      ['started', 'Get Started'],
+      ['faq', 'FAQ'],
+      ['setup', 'Wedding Setup']
+    ], 'Counts per tab update as entries are added to the guide.');
+  }
+
+  function buildFaqContext() {
+    return buildTocRail('faq', 'Categories', [
+      ['all', 'Everything'],
+      ['saving', 'Saving & backups'],
+      ['guests', 'Guests & RSVPs'],
+      ['money', 'Money'],
+      ['printing', 'Printing'],
+      ['sharing', 'Sharing'],
+      ['trouble', 'Troubleshooting'],
+      ['started', 'Get Started'],
+      ['guide', 'Page-by-Page Guide'],
+      ['setup', 'Wedding Setup']
+    ], 'Six categories and a quick-answers column — no record is open behind the aside.');
+  }
+
+  function rdRailTocJump(panelId, sectionId) {
+    window['_railToc_' + panelId] = sectionId;
+    var panel = document.getElementById('panel-' + panelId);
+    if (!panel) return;
+    var map = {
+      instructions: {
+        before: '.inst-welcome', connects: '.inst-grid-3', editing: '.inst-grid-3 .inst-card:nth-child(2)',
+        partner: '.inst-partner-handoff', cannot: '.inst-grid-3', firsthour: '#start-here-checklist',
+        guide: null, faq: null, setup: null
+      },
+      guide: { all: '#guide-accordion', overview: '#guide-accordion' },
+      faq: { all: '#faq-list', saving: '#faq-list' }
+    };
+    if (sectionId === 'guide' && typeof showPanel === 'function') { showPanel('guide', true); return; }
+    if (sectionId === 'faq' && typeof showPanel === 'function') { showPanel('faq', true); return; }
+    if (sectionId === 'setup' && typeof showPanel === 'function') { showPanel('setup', true); return; }
+    var sel = map[panelId] && map[panelId][sectionId];
+    var el = sel ? panel.querySelector(sel) : panel.querySelector('.inst-card, .faq-list, #guide-accordion');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (sectionId === 'saving' && panelId === 'faq' && typeof setFaqCategory === 'function') setFaqCategory('Saving');
+    renderContextSidebar(panelId);
+  }
+  window.rdRailTocJump = rdRailTocJump;
+
   function buildGenericContext(panelId) {
     var title = panelLabel(panelId);
     /* §14 rail chrome without inventing page stats — section headers + links
@@ -2957,7 +3045,11 @@
     catering: buildCateringContext,
     entertainment: buildEntertainmentContext,
     shotlist: buildShotlistContext,
-    'data-hub': buildDataHubContext
+    'data-hub': buildDataHubContext,
+    setup: buildSetupContext,
+    instructions: buildInstructionsContext,
+    guide: buildGuidePageContext,
+    faq: buildFaqContext
   };
 
   function renderContextSidebarPageContext(panelId) {

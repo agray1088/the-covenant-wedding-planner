@@ -70,29 +70,40 @@
     ? escapeHtml(s == null ? '' : String(s))
     : String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])));
 
-  function ensureHead(panelId, eyebrow, title, primaryLabel, primaryOnclick) {
+  function hideLegacyChrome(panel) {
+    if (!panel) return;
+    panel.querySelectorAll('.inst-title-wrap, .faq-title-wrap, .inst-final-footer').forEach(el => {
+      el.classList.add('rd-guide-legacy-hide');
+    });
+  }
+
+  function ensureHead(panelId, eyebrow, title, primaryLabel, primaryOnclick, extraActions) {
     const panel = document.getElementById(panelId);
     if (!panel) return null;
     panel.classList.add('ued-scope', 'rd-guide-scope');
-    if (!panel.querySelector('.rd-guide-pagehead')) {
-      const head = document.createElement('div');
+    hideLegacyChrome(panel);
+    let head = panel.querySelector('.rd-guide-pagehead');
+    if (!head) {
+      head = document.createElement('div');
       head.className = 'rd-pagehead rd-guide-pagehead';
-      head.innerHTML =
-        '<div><div class="rd-pagehead__eyebrow">' + esc(eyebrow) + '</div>' +
-        '<div class="rd-pagehead__title-row"><h1 class="rd-pagehead__title">' + esc(title) + '</h1></div></div>' +
-        '<div class="rd-pagehead__actions">' +
-        '<button type="button" class="rd-btn rd-btn--primary" onclick="' + primaryOnclick + '">' + esc(primaryLabel) + '</button>' +
-        '</div>';
       panel.insertBefore(head, panel.firstChild);
     }
+    head.innerHTML =
+      '<div><div class="rd-pagehead__eyebrow">' + esc(eyebrow) + '</div>' +
+      '<div class="rd-pagehead__title-row"><h1 class="rd-pagehead__title">' + esc(title) + '</h1></div></div>' +
+      '<div class="rd-pagehead__actions">' + (extraActions || '') +
+      '<button type="button" class="rd-btn rd-btn--primary" onclick="' + primaryOnclick + '">' + esc(primaryLabel) + '</button>' +
+      '</div>';
     return panel;
   }
 
   /* ── Get Started (15b) ───────────────────────────────────────────────── */
 
   function renderGetStarted() {
-    const panel = ensureHead('panel-instructions', 'No tab · reached from the top bar',
-      'Get Started', 'Download backup', 'rdGuideBackup()');
+    const panel = ensureHead('panel-instructions', 'Overview · start planning',
+      'Get Started', 'Download backup', 'rdGuideBackup()',
+      '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'guide\',true)">Open the guide</button>' +
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>');
     if (!panel) return;
     if (!panel.querySelector('#rd-guide-backupwarn')) {
       const warn = document.createElement('div');
@@ -111,8 +122,9 @@
   /* ── Page-by-Page Guide (15d + 33i table + 33j print) ────────────────── */
 
   function renderGuide() {
-    const panel = ensureHead('panel-guide', 'No tab · reached from the top bar',
-      'Page-by-Page Guide', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)");
+    const panel = ensureHead('panel-guide', 'Overview · start planning',
+      'Page-by-Page Guide', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)",
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>');
     if (!panel) return;
     let host = panel.querySelector('#rd-guide-viewhost');
     if (!host) {
@@ -253,9 +265,12 @@
   /* ── FAQ (15c) ───────────────────────────────────────────────────────── */
 
   function renderFaq() {
-    const panel = ensureHead('panel-faq', 'No tab · reached from the top bar',
-      'FAQ', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)");
+    const panel = ensureHead('panel-faq', 'Overview · start planning',
+      'FAQ', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)",
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>');
     if (!panel) return;
+    const legacyAside = panel.querySelector('.faq-side');
+    if (legacyAside) legacyAside.classList.add('rd-guide-legacy-hide');
     if (!panel.querySelector('#rd-faq-quick')) {
       const aside = document.createElement('aside');
       aside.id = 'rd-faq-quick';
@@ -265,6 +280,7 @@
         '<p class="rd-faq-quick__note">The five things people ask most. This column is a plain aside — no record is open behind it.</p>';
       panel.appendChild(aside);
     }
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('faq');
   }
 
   /* ── actions ─────────────────────────────────────────────────────────── */
