@@ -4092,6 +4092,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §36
 - **Screen ids:** `15a`, `11c`
 
+> **Verified this pass (`bb4c5bb`).** `js/setup-redesign.js` now ships the Master pagehead (Overview · start planning + five actions), five-stat strip, Wedding Setup / earlier drawing view switcher (`11c` hides menu visibility), menu-visibility preset chips, Feeds captions + date impact drawer, four-card danger zone, and `setupRailHtml()` for the context rail. CSS: stat strip, legacy-hide, danger 4-col grid, drawer rows.
+
 ### Five parts on this page
 
 | Part | Applies | What to build |
@@ -4191,6 +4193,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Header counts:** 10 screens · 1 record drawer
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §37
 - **Screen ids:** `15b`, `15d`, `15c`, `33i`, `33j`
+
+> **Verified this pass (`bb4c5bb`).** `js/guide-redesign.js` hides legacy title wraps / FAQ side chrome, adds Master pageheads + backup warning (15b), Table/Print view switcher + entry drawer (33i/33j), and FAQ quick-answers aside (15c). `planner-context-sidebar.js` registers TOC rails for instructions, guide, and faq.
 
 ### Five parts on this page
 
@@ -4563,7 +4567,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §40. Mostly already realized by the chrome built in earlier sections; this pass closed the two genuine 49c deltas. See the implementation note below.
 - **Screen ids:** `49d`, `49a`, `49b`, `49c`
 
-> **Implementation note (§39).** This section is cross-cutting chrome, most of it already delivered when the shell was built. Verified already-done: **49d** — the two-row forest top bar (wordmark + sub-line, save status, global search with grouped results, photo cutout, Save, Alerts+badge, gold **Profile & Display**, Database Hub, Quick Jump, Dark Mode, and the overflow now the labelled **Settings** gear) built by `redesign-shell.js`; **49a** — Profile & Display drawer at **460px** with all six sections kept; **49b** — Theme Builder with **Card Corners defaulting to `None (square)`** and the twelve colour fields. **49c** had two genuine gaps, closed here in `js/settings-window-redesign.js` (additive — no control moved, renamed or rebound): the **green save-status banner** (“Saved on this device” + last backup date + edits since, both read live from `data.onboard`, refreshed on open, amber when a backup is overdue) and the **labelled panes** (the flat list now reads as History & trash · Display · Save & backup · Export · Print). Undo/Redo were already honest — the shell keeps them in the top-bar undo slot in their real `disabled` state on every screen, so they are visible, not hidden. Record-editor and per-tab drawer redraws (Profile·Display·Alerts·Access; the eleven Settings panes as standalone 1240px screens; Task/Vendor/Payment editors) are the app’s existing surfaces and were left as-is rather than re-authored into new load-bearing chrome.
+> **Implementation note (§39).** This section is cross-cutting chrome, most of it already delivered when the shell was built. Verified already-done: **49d** — the two-row forest top bar (wordmark + sub-line, save status, global search with grouped results, photo cutout, Save, Alerts+badge, gold **Profile & Display**, Database Hub, Quick Jump, Dark Mode, and the overflow now the labelled **Settings** gear) built by `redesign-shell.js`; **49a** — Profile & Display drawer at **460px** with all six sections kept — CSS shipped earlier; **`js/profile-drawer-redesign.js` now applies** the forest header, planning-view segmented control, and two-up category cards; **49b** — Theme Builder with **Card Corners defaulting to `None (square)`** and the twelve colour fields in a **4×3 grid** with component preview (same file + `rd-theme-builder` CSS). **49c** had two genuine gaps, closed here in `js/settings-window-redesign.js` (additive — no control moved, renamed or rebound): the **green save-status banner** (“Saved on this device” + last backup date + edits since, both read live from `data.onboard`, refreshed on open, amber when a backup is overdue) and the **labelled panes** (the flat list now reads as History & trash · Display · Save & backup · Export · Print). Undo/Redo were already honest — the shell keeps them in the top-bar undo slot in their real `disabled` state on every screen, so they are visible, not hidden. Record-editor and per-tab drawer redraws (Profile·Display·Alerts·Access; the eleven Settings panes as standalone 1240px screens; Task/Vendor/Payment editors) are the app’s existing surfaces and were left as-is rather than re-authored into new load-bearing chrome.
 
 ### Five parts on this page
 
