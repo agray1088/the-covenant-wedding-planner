@@ -26586,6 +26586,7 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 .rd-profile-drawer .rd-pd__head { padding: 16px 18px; border-bottom: 1px solid #e7e1d4; background: #f9f5ef; }
 body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-head {
   background: #2D4A3E; border-bottom: 1px solid rgba(212, 184, 150, .35); padding: 14px 18px 16px;
+  display: flex; flex-direction: column; gap: 0; position: relative;
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd__eyebrow {
   display: flex; align-items: center; width: 100%; margin-bottom: 8px;
