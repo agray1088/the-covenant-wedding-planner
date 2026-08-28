@@ -27432,55 +27432,6 @@ body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab.is-active { color: 
 body.rd-scope.night #panel-data-hub .rd-dh-tab__n,
 body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab__n { background: #23231c; color: #a79f92; }
 
-/* §39 Settings window — 49c · the gear pop-out read as a Settings window:
-   the green save-status banner (last backup + edits since) and labelled panes. */
-body.rd-scope #rd-prefs .rd-settings-status {
-  margin: 0 0 10px; padding: 10px 12px; border-radius: 2px;
-  background: #eef5ef; border: 1px solid #cfe2d5;
-}
-body.rd-scope #rd-prefs .rd-settings-status.is-stale {
-  background: #fbf3e4; border-color: #ecdcbb;
-}
-body.rd-scope .rd-settings-status__row { display: flex; align-items: center; gap: 8px; }
-body.rd-scope .rd-settings-status__dot {
-  width: 8px; height: 8px; border-radius: 50%; background: #4e8a63; flex: 0 0 auto;
-}
-body.rd-scope .rd-settings-status.is-stale .rd-settings-status__dot { background: #c69134; }
-body.rd-scope .rd-settings-status__lead { font-size: 12.5px; font-weight: 600; color: #23362b; }
-body.rd-scope .rd-settings-status.is-stale .rd-settings-status__lead { color: #7a5c1e; }
-body.rd-scope .rd-settings-status__meta {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  margin-top: 3px; font-size: 11.5px; color: #5f7466;
-}
-body.rd-scope .rd-settings-status.is-stale .rd-settings-status__meta { color: #8a7148; }
-body.rd-scope .rd-settings-status__meta b { color: inherit; font-weight: 600; }
-body.rd-scope .rd-settings-status__hint {
-  margin-top: 5px; font-size: 10.5px; color: #8a7e6b; line-height: 1.4;
-}
-body.rd-scope .rd-settings-pane {
-  margin: 12px 0 4px; padding-top: 8px; border-top: 1px solid #ece7dc;
-  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-  color: #a99e88;
-}
-body.rd-scope .rd-settings-pane:first-child,
-body.rd-scope .rd-settings-status + .rd-settings-pane { border-top: 0; padding-top: 0; margin-top: 4px; }
-body.rd-scope.night #rd-prefs .rd-settings-status,
-body.rd-scope[data-theme="night"] #rd-prefs .rd-settings-status {
-  background: #17231b; border-color: #294435;
-}
-body.rd-scope.night #rd-prefs .rd-settings-status.is-stale,
-body.rd-scope[data-theme="night"] #rd-prefs .rd-settings-status.is-stale {
-  background: #241d10; border-color: #40341a;
-}
-body.rd-scope.night .rd-settings-status__lead,
-body.rd-scope[data-theme="night"] .rd-settings-status__lead { color: #cfe2d5; }
-body.rd-scope.night .rd-settings-status.is-stale .rd-settings-status__lead,
-body.rd-scope[data-theme="night"] .rd-settings-status.is-stale .rd-settings-status__lead { color: #e0c58a; }
-body.rd-scope.night .rd-settings-status__meta,
-body.rd-scope[data-theme="night"] .rd-settings-status__meta { color: #9fb1a4; }
-body.rd-scope.night .rd-settings-pane,
-body.rd-scope[data-theme="night"] .rd-settings-pane { border-top-color: #2e2e28; color: #8a8271; }
-
 /* Vendor — planner-side portal manager + document library (Documents tab). */
 body.rd-scope #panel-vendor .rd-pagehead__sub {
   margin: 5px 0 0; font-size: 12px; color: #6f6a60; line-height: 1.5;
@@ -27921,89 +27872,56 @@ body.rd-scope[data-theme="night"] #panel-print-centre .rd-pc-proof { background:
   }
 }
 
-/* ═══ §39 follow-up · the gear menu as an actual pop-out ═══════════════════
-   #rd-prefs is built by redesign-shell.js as a direct child of .rd-topbar and
-   toggled with the [hidden] attribute, but it never had any styling: opened,
-   it rendered as an unstyled block flowing inline down the page. (It also
-   briefly borrowed .rd-settings-window — a pre-existing batch-47 class whose
-   display:flex defeated [hidden] and pinned it to 1240px; that class is now
-   .rd-prefs-settings.) This gives it the 49c pop-out shape. */
-body.rd-scope .rd-topbar { position: relative; }
-/* [hidden] is only a UA-level display:none, and the relocated planner buttons
-   inside carry !important display rules — state it explicitly and loudly. */
-body.rd-scope #rd-prefs[hidden] { display: none !important; }
-body.rd-scope #rd-prefs {
-  position: absolute;
-  top: 100%;
-  right: 12px;
-  z-index: 1200;
-  width: 320px;
-  max-width: calc(100vw - 24px);
-  max-height: min(72vh, 640px);
-  overflow-y: auto;
-  display: block;
-  padding: 12px 14px 14px;
-  background: #fff;
-  border: 1px solid #e7e1d4;
-  box-shadow: 0 18px 48px rgba(20, 22, 18, .26);
-  text-align: left;
-}
-/* menu rows: the relocated top-bar buttons must read as list items here,
-   not as the gold bars they are in the bar itself. */
-body.rd-scope #rd-prefs .btn,
-body.rd-scope #rd-prefs button:not(.rd-settings-pane),
-body.rd-scope #rd-prefs select {
-  display: flex !important;
-  align-items: center;
-  gap: 9px;
-  width: 100% !important;
-  min-height: 34px;
-  margin: 1px 0 !important;
-  padding: 7px 9px !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  color: #2f3a33 !important;
+/* ═══ §39 · 49d groundwork + 49c window slots ═════════════════════════════
+   The gear now opens the Settings window, so #rd-prefs is retired as a menu —
+   it stays in the DOM only as a parking bay for controls the window drives
+   (importInput and friends) and must never be visible. */
+body.rd-scope #rd-prefs { display: none !important; }
+
+/* Controls returned to the bar (49d: nothing hidden behind a chevron). */
+body.rd-scope .rd-topbar__right .rd-topbar__action { flex: 0 0 auto; }
+body.rd-scope .rd-topbar__right #quick-jump-wrap { position: relative; }
+
+/* 49c: live selects moved into the window keep their own sizing. */
+/* the relocated selects arrive wearing .btn.btn-gold from the top bar —
+   inside the window they are form controls, not gold buttons. */
+body.rd-scope .rd-settings-window .rd-set__slot select,
+body.rd-scope .rd-settings-window .rd-set__slot select.btn,
+body.rd-scope .rd-settings-window .rd-set__slot select.btn-gold,
+.rd-settings-window .rd-set__slot select {
+  font: inherit !important;
   font-size: 12.5px !important;
-  font-weight: 500 !important;
-  text-align: left !important;
-  justify-content: flex-start !important;
-  cursor: pointer;
-}
-body.rd-scope #rd-prefs .btn:hover,
-body.rd-scope #rd-prefs button:not(.rd-settings-pane):hover {
-  background: #f4f0e8 !important;
-  color: #20362D !important;
-}
-body.rd-scope #rd-prefs select {
-  border: 1px solid #e0d8c8 !important;
+  font-weight: 400 !important;
+  padding: 5px 8px !important;
+  min-width: 240px;
+  height: auto !important;
   background: #fff !important;
-  font-size: 12px !important;
-  cursor: pointer;
+  background-image: none !important;
+  border: 1px solid #e0d8c8 !important;
+  border-radius: 0 !important;
+  color: #23211c !important;
+  box-shadow: none !important;
+  text-align: left !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }
-body.rd-scope #rd-prefs .btn svg,
-body.rd-scope #rd-prefs button svg {
-  width: 15px; height: 15px; flex: 0 0 auto; opacity: .75;
+body.rd-scope.night .rd-settings-window .rd-set__slot select,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__slot select {
+  background: #23231c !important; border-color: #3a3a30 !important; color: #e6e1d6 !important;
 }
-body.rd-scope #rd-prefs .btn-text { font: inherit; }
-/* the quick-jump wrapper is parked in here by the shell */
-body.rd-scope #rd-prefs #quick-jump-wrap { width: 100%; margin: 2px 0; }
-body.rd-scope.night #rd-prefs,
-body.rd-scope[data-theme="night"] #rd-prefs {
-  background: #1c1c18; border-color: #2e2e28;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, .5);
-}
-body.rd-scope.night #rd-prefs .btn,
-body.rd-scope[data-theme="night"] #rd-prefs .btn,
-body.rd-scope.night #rd-prefs button:not(.rd-settings-pane),
-body.rd-scope[data-theme="night"] #rd-prefs button:not(.rd-settings-pane) { color: #cbd8cf !important; }
-body.rd-scope.night #rd-prefs .btn:hover,
-body.rd-scope[data-theme="night"] #rd-prefs .btn:hover { background: #26261f !important; }
-/* on a phone the menu becomes a full-width sheet under the bar (42a) */
-@media (max-width: 720px) {
-  body.rd-scope #rd-prefs {
-    right: 0; left: 0; width: auto; max-width: 100%;
-    max-height: 76vh; border-left: 0; border-right: 0;
-  }
-}
+.rd-settings-window .rd-set__pane-head:first-of-type { margin-top: 4px !important; }
+.rd-settings-window .rd-set__row:first-of-type { border-top: 0; }
+.rd-settings-window .rd-set__head .rd-set__saved { max-width: 520px; line-height: 1.45; }
+.rd-settings-window .rd-set__head .rd-set__link { margin-left: 8px; white-space: nowrap; }
+body.rd-scope.night .rd-settings-window,
+body.rd-scope[data-theme="night"] .rd-settings-window { background: #1c1c18; border-color: #2e2e28; }
+body.rd-scope.night .rd-settings-window .rd-set__head,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__head { background: #23231c; border-bottom-color: #2e2e28; }
+body.rd-scope.night .rd-settings-window .rd-set__title,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__title,
+body.rd-scope.night .rd-settings-window .rd-set__pane-title,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__pane-title,
+body.rd-scope.night .rd-settings-window .rd-set__row-title,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__row-title { color: #e6e1d6; }
+body.rd-scope.night .rd-settings-window .rd-set__row,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__row { border-top-color: #26261f; }

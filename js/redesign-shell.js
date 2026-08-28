@@ -122,9 +122,17 @@
        CSV, print, auto-fit. They keep their ids and their handlers. */
     var prefs = bar.querySelector('#rd-prefs');
     var overflow = document.getElementById('topbar-overflow');
-    ['profile-drawer-btn', 'dark-mode-btn', 'data-hub-btn', 'save-btn'].forEach(function (id) {
+    /* §39 · 49d: these five stay in the bar — "Nothing removed ... Save,
+       Alerts with badge, Profile & Display, Database Hub, Quick Jump, Dark
+       Mode", and "nothing is hidden behind a chevron". The gear now opens the
+       Settings window (49c) rather than a dropdown, so parking them in #rd-prefs
+       would strand them. */
+    var barSlot = bar.querySelector('.rd-topbar__right');
+    ['save-btn', 'profile-drawer-btn', 'data-hub-btn', 'dark-mode-btn'].forEach(function (id) {
       var b = document.getElementById(id);
-      if (b && prefs) prefs.appendChild(b);
+      if (!b || !barSlot) return;
+      b.classList.add('rd-topbar__action');
+      barSlot.insertBefore(b, barSlot.querySelector('#rd-gear-btn') || null);
     });
     if (overflow && prefs) {
       while (overflow.firstChild) prefs.appendChild(overflow.firstChild);
@@ -132,7 +140,10 @@
     /* the quick-jump dropdown is superseded by the command palette, but
        planner.js still writes into it — keep the node, park it in prefs. */
     var qj = document.getElementById('quick-jump-wrap');
-    if (qj && prefs) prefs.appendChild(qj);
+    if (qj && barSlot) {
+      qj.classList.add('rd-topbar__action');
+      barSlot.insertBefore(qj, barSlot.querySelector('#rd-gear-btn') || null);
+    }
 
     document.getElementById('rd-gear-btn').addEventListener('click', function (e) {
       e.stopPropagation();
