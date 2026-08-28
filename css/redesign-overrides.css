@@ -27314,7 +27314,8 @@ body.rd-scope #panel-setup .rd-setup-stat__k {
   color: #8a7e6b; font-weight: 700; margin-bottom: 4px;
 }
 body.rd-scope #panel-setup .rd-setup-stat__v {
-  font-size: 18px; font-weight: 600; color: #20362D; font-variant-numeric: tabular-nums;
+  font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #20362D;
+  line-height: 1; font-variant-numeric: tabular-nums; margin-top: 5px;
 }
 body.rd-scope #panel-setup .rd-setup-legacy-hide { display: none !important; }
 body.rd-scope #panel-setup .rd-setup-menu-presets {
@@ -27496,6 +27497,228 @@ body.rd-scope[data-theme="night"] #panel-faq .rd-faq-quick { background: #1c1c18
 body.rd-scope #panel-instructions .rd-guide-legacy-hide,
 body.rd-scope #panel-guide .rd-guide-legacy-hide,
 body.rd-scope #panel-faq .rd-guide-legacy-hide { display: none !important; }
+
+/* §35 Setup formhost — mockup grid (15a / 11c) */
+body.rd-scope #panel-setup .rd-setup-formhost {
+  margin: 0 24px 24px;
+}
+body.rd-scope #panel-setup .rd-setup-mockup-grid {
+  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+body.rd-scope #panel-setup .rd-setup-mockup-grid .rd-setup-section {
+  border-right: 1px solid #e7e1d4;
+  border-bottom: 1px solid #e7e1d4;
+  border-top: 0;
+  border-left: 0;
+  background: #fff;
+}
+body.rd-scope #panel-setup .rd-setup-mockup-grid .rd-setup-section:nth-child(even) {
+  border-right: 0;
+}
+body.rd-scope #panel-setup .rd-setup-mockup-grid .rd-setup-field__label {
+  flex: 0 0 138px;
+  color: #8a7e6b;
+  font-size: 13px;
+}
+body.rd-scope #panel-setup .rd-setup-menu-band {
+  margin-top: 0;
+  border: 1px solid #e7e1d4;
+  border-top: 0;
+}
+body.rd-scope #panel-setup #rd-setup-cleartable { display: none; }
+body.rd-scope #panel-setup #rd-setup-cleartable.is-open {
+  display: block; position: fixed; inset: 0; z-index: 1200;
+}
+body.rd-scope #panel-setup .rd-setup-cleartable-pick {
+  width: 100%; height: var(--component-input-height);
+  border: 1px solid #e0dbd1; background: #fff; padding: 0 8px; font-size: 13px;
+}
+
+/* §36 Get Started body (15b) — hero, bands, split panels, steps */
+body.rd-scope #panel-instructions .rd-getstarted-body {
+  display: flex; flex-direction: column;
+}
+body.rd-scope #panel-instructions .rd-getstarted-hero {
+  display: flex; gap: 32px; align-items: flex-start;
+  padding: 26px 40px 24px; border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-instructions .rd-getstarted-hero__main {
+  flex: 1; min-width: 0; max-width: 700px;
+}
+body.rd-scope #panel-instructions .rd-getstarted-hero__rule {
+  height: 1px; background: #B89968; width: 64px; margin-bottom: 18px;
+}
+body.rd-scope #panel-instructions .rd-getstarted-lead {
+  margin: 0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 23px; line-height: 1.5; color: #20362D;
+}
+body.rd-scope #panel-instructions .rd-getstarted-sub {
+  margin: 16px 0 0; font-size: 14px; line-height: 1.75; color: #3f3b34;
+}
+body.rd-scope #panel-instructions .rd-getstarted-readfirst {
+  flex: 0 0 300px; border: 1px solid #ebb4aa; background: #fff8f6;
+  padding: 16px 18px;
+}
+body.rd-scope #panel-instructions .rd-getstarted-readfirst__k {
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: #a33b28; font-weight: 700;
+}
+body.rd-scope #panel-instructions .rd-getstarted-readfirst p {
+  margin: 9px 0 0; font-size: 13px; line-height: 1.65; color: #3f3b34;
+}
+body.rd-scope #panel-instructions .rd-getstarted-readfirst__note { color: #6b645d !important; }
+body.rd-scope #panel-instructions .rd-getstarted-readfirst__actions {
+  display: flex; gap: 8px; margin-top: 12px;
+}
+body.rd-scope #panel-instructions .rd-setup-band {
+  border-bottom: 1px solid #e7e1d4; background: #fff;
+}
+body.rd-scope #panel-instructions .rd-setup-band__head {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding: 13px 20px; border-bottom: 1px solid #e7e1d4;
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+  color: #8a7e6b; font-weight: 700;
+}
+body.rd-scope #panel-instructions .rd-setup-band__meta {
+  text-transform: none; letter-spacing: 0; font-weight: 400;
+  font-size: 12px; color: #6b645d;
+}
+body.rd-scope #panel-instructions .rd-setup-band__link {
+  margin-left: auto; background: none; border: 0; padding: 0; cursor: pointer;
+  color: #946f33; font-size: 12px; text-transform: none; letter-spacing: 0;
+}
+body.rd-scope #panel-instructions .rd-grid-3.rd-getstarted-concepts {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px 32px; padding: 18px 40px;
+}
+body.rd-scope #panel-instructions .rd-concept__num {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px; color: #B89968;
+}
+body.rd-scope #panel-instructions .rd-concept__head {
+  display: flex; align-items: baseline; gap: 10px;
+}
+body.rd-scope #panel-instructions .rd-concept__mono {
+  display: block; margin-top: 7px;
+  font-family: ui-monospace, monospace; font-size: 12px; color: #946f33;
+}
+body.rd-scope #panel-instructions .rd-getstarted-split {
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+body.rd-scope #panel-instructions .rd-getstarted-panel {
+  border-right: 1px solid #e7e1d4; border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-instructions .rd-getstarted-panel:last-child { border-right: 0; }
+body.rd-scope #panel-instructions .rd-getstarted-panel__body {
+  padding: 16px 24px; display: flex; flex-direction: column; gap: 14px;
+}
+body.rd-scope #panel-instructions .rd-tip h4 {
+  margin: 0; font-size: 13px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #panel-instructions .rd-tip p {
+  margin: 5px 0 0; font-size: 13px; line-height: 1.65; color: #6b645d;
+}
+body.rd-scope #panel-instructions .rd-partner-flow {
+  display: flex; align-items: stretch; margin-bottom: 14px;
+}
+body.rd-scope #panel-instructions .rd-partner-flow > div {
+  flex: 1; padding: 10px 12px; border: 1px solid #e7e1d4;
+  border-right: 0; background: #fff;
+}
+body.rd-scope #panel-instructions .rd-partner-flow > div:nth-child(even) { background: #fdfcfa; }
+body.rd-scope #panel-instructions .rd-partner-flow > div:last-child { border-right: 1px solid #e7e1d4; }
+body.rd-scope #panel-instructions .rd-partner-flow__k {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: #8a7e6b; font-weight: 700;
+}
+body.rd-scope #panel-instructions .rd-partner-flow code {
+  font-family: ui-monospace, monospace; font-size: 11px; color: #b0a794;
+}
+body.rd-scope #panel-instructions .rd-getstarted-partner-note {
+  margin: 0; font-size: 13px; line-height: 1.7; color: #6b645d;
+}
+body.rd-scope #panel-instructions .rd-getstarted-cannot {
+  display: flex;
+}
+body.rd-scope #panel-instructions .rd-cannot-card {
+  flex: 1; padding: 15px 20px;
+  border-right: 1px solid #f0ebe0; border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-instructions .rd-cannot-card:last-child { border-right: 0; }
+body.rd-scope #panel-instructions .rd-cannot-card h4 {
+  margin: 0; font-size: 13px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #panel-instructions .rd-cannot-card p {
+  margin: 6px 0 0; font-size: 13px; line-height: 1.65; color: #6b645d;
+}
+body.rd-scope #panel-instructions .rd-steps {
+  border: 0; padding: 16px 40px 20px;
+}
+body.rd-scope #panel-instructions .rd-step {
+  align-items: center; padding: 10px 0; gap: 14px;
+}
+body.rd-scope #panel-instructions .rd-step__chip {
+  width: 22px; height: 22px; border-radius: 0; font-size: 11px;
+}
+body.rd-scope #panel-instructions .rd-step__chip--done {
+  background: #2D4A3E; color: #F4EFE6; border-color: #2D4A3E;
+}
+body.rd-scope #panel-instructions .rd-step__num {
+  flex: 0 0 26px; font-family: ui-monospace, monospace;
+  font-size: 11px; color: #b0a794;
+}
+body.rd-scope #panel-instructions .rd-step__body { display: contents; }
+body.rd-scope #panel-instructions .rd-step__title {
+  flex: 1; min-width: 0; font-size: 14px;
+}
+body.rd-scope #panel-instructions .rd-step__title--done {
+  color: #8a7e6b; text-decoration: line-through; font-weight: 400;
+}
+body.rd-scope #panel-instructions .rd-step__desc {
+  flex: 0 0 auto; margin-top: 0; font-size: 12px; color: #8a7e6b;
+}
+body.rd-scope #panel-instructions .rd-step__cta {
+  flex: 0 0 auto; height: 26px; padding: 0 11px; font-size: 12px;
+}
+@media (max-width: 1100px) {
+  body.rd-scope #panel-instructions .rd-getstarted-hero { flex-direction: column; padding: 20px 24px; }
+  body.rd-scope #panel-instructions .rd-getstarted-readfirst { flex: 1 1 auto; width: 100%; }
+  body.rd-scope #panel-instructions .rd-grid-3.rd-getstarted-concepts { grid-template-columns: 1fr; padding: 18px 24px; }
+  body.rd-scope #panel-instructions .rd-getstarted-split { grid-template-columns: 1fr; }
+  body.rd-scope #panel-instructions .rd-getstarted-cannot { flex-direction: column; }
+  body.rd-scope #panel-instructions .rd-cannot-card { border-right: 0; }
+}
+
+/* §36 Guide table (33i) + print (33j) refinements */
+body.rd-scope #panel-guide .rd-guide-table-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 12px 0 10px; border-bottom: 1px solid #e7e1d4; margin-bottom: 0;
+}
+body.rd-scope #panel-guide .rd-guide-table-head strong {
+  display: block; font-size: 14px; color: #20362D;
+}
+body.rd-scope #panel-guide .rd-guide-table-head span {
+  font-size: 12px; color: #8a7e6b;
+}
+body.rd-scope #panel-guide .rd-guide-th-page { width: 14%; min-width: 120px; }
+body.rd-scope #panel-guide .rd-guide-th-owns { width: 28%; min-width: 200px; }
+body.rd-scope #panel-guide .rd-guide-contract .rd-guide-cpage { width: 14%; }
+body.rd-scope #panel-guide .rd-guide-contract .rd-guide-owns { width: 28%; }
+body.rd-scope #panel-guide .rd-guide-printcount {
+  font-weight: 400; letter-spacing: 0; text-transform: none; color: #8a7e6b;
+}
+body.rd-scope #panel-guide .rd-guide-printfoot {
+  margin-top: 16px; padding-top: 8px; border-top: 1px solid #e7e1d4;
+  font-size: 11px; color: #8a7e6b;
+}
+body.rd-scope #panel-faq .rd-faq-layout .rd-faq-quick {
+  margin: 0; max-width: none;
+}
+body.rd-scope #panel-faq .rd-faq-layout {
+  margin: 0 24px 28px;
+}
 
 /* §39 Theme builder — 49b · 4×3 colour grid + component preview */
 body.rd-scope #theme-builder-overlay.rd-theme-builder .tb-modal { border-radius: 0; max-width: 720px; }

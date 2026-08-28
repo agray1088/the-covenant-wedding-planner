@@ -105,6 +105,9 @@
       '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'guide\',true)">Open the guide</button>' +
       '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>');
     if (!panel) return;
+    panel.querySelectorAll('.inst-title-wrap, .inst-grid-3, .inst-wide-row, .inst-partner-handoff, .inst-welcome, #start-here-card').forEach(el => {
+      el.classList.add('rd-guide-legacy-hide');
+    });
     if (!panel.querySelector('#rd-guide-backupwarn')) {
       const warn = document.createElement('div');
       warn.id = 'rd-guide-backupwarn';
@@ -117,6 +120,106 @@
       if (head && head.nextSibling) panel.insertBefore(warn, head.nextSibling);
       else panel.appendChild(warn);
     }
+    buildGetStartedBody(panel);
+  }
+
+  function buildGetStartedBody(panel) {
+    if (panel.querySelector('#rd-getstarted-body')) return;
+    const d = (typeof getCovenantPlannerData === 'function') ? getCovenantPlannerData() : (window.data || {});
+    const guests = Array.isArray(d.guests) ? d.guests.length : 0;
+    const target = parseInt((d.setup && d.setup.guests) || 0, 10) || 0;
+    const steps = [
+      ['Fill in Wedding Setup', 'Names, date, venues, budget, guest target', !!(d.setup && d.setup.bride && d.setup.date)],
+      ['Download your first backup', 'Before typing anything else', false],
+      ['Add your households', 'Addresses first, guests follow', Array.isArray(d.households) && d.households.length > 0],
+      ['Set the budget target and categories', 'Eight categories, one target', Array.isArray(d.budget) && d.budget.length > 0],
+      ['Enter the guest list', (target ? target + ' to go' : 'Guests') + ' · ' + guests + ' entered', guests > 0, 'guests'],
+      ['Book the venue and log the contract', 'Venue & Vendors', Array.isArray(d.vendors) && d.vendors.some(v => /book/i.test(String(v.status || '')))],
+      ['Print the day-of pack', 'Nine documents, one job', false, 'print']
+    ];
+    const done = steps.filter(s => s[2]).length;
+    let stepsHtml = '';
+    steps.forEach((s, i) => {
+      const isDone = s[2];
+      const isNext = !isDone && steps.slice(0, i).every(x => x[2]);
+      stepsHtml +=
+        '<div class="rd-step' + (isDone ? ' is-done' : '') + '">' +
+        '<span class="rd-step__chip' + (isDone ? ' rd-step__chip--done' : '') + '">' + (isDone ? '✓' : '') + '</span>' +
+        '<span class="rd-step__num">' + String(i + 1).padStart(2, '0') + '</span>' +
+        '<span class="rd-step__title' + (isDone ? ' rd-step__title--done' : '') + '">' + esc(s[0]) + '</span>' +
+        '<span class="rd-step__desc rd-step__detail">' + esc(s[1]) + '</span>' +
+        (isNext && s[3] === 'guests' ? '<button type="button" class="rd-btn rd-btn--primary rd-step__cta" onclick="typeof showPanel===\'function\'&&showPanel(\'guests\',true)">Start</button>' : '') +
+        (isNext && s[3] === 'print' ? '<button type="button" class="rd-btn rd-btn--primary rd-step__cta" onclick="typeof showPanel===\'function\'&&showPanel(\'print\',true)">Print</button>' : '') +
+        '</div>';
+    });
+    const host = document.createElement('div');
+    host.id = 'rd-getstarted-body';
+    host.className = 'rd-getstarted-body';
+    host.innerHTML =
+      '<div class="rd-getstarted-hero">' +
+      '<div class="rd-getstarted-hero__main">' +
+      '<div class="rd-getstarted-hero__rule"></div>' +
+      '<p class="rd-getstarted-lead">This planner runs entirely on your own computer. Everything you type saves automatically to a private database in this browser. Nothing is uploaded, and nothing is kept anywhere else unless you download a backup yourself.</p>' +
+      '<p class="rd-getstarted-sub">That is the whole promise of the product, and it is also the one risk. Read the backup warning above before you type anything you would be upset to lose.</p>' +
+      '</div>' +
+      '<aside class="rd-getstarted-readfirst">' +
+      '<div class="rd-getstarted-readfirst__k">Read this first</div>' +
+      '<p>If you clear your browser history, cookies or site data — or open the planner on another device without restoring a backup — <strong>your saved work will not be there.</strong></p>' +
+      '<p class="rd-getstarted-readfirst__note">Wait a few seconds after opening the planner before your first backup, so the database finishes loading.</p>' +
+      '<div class="rd-getstarted-readfirst__actions">' +
+      '<button type="button" class="rd-btn rd-btn--primary" onclick="rdGuideBackup()">Download backup</button>' +
+      '<button type="button" class="rd-btn" onclick="rdSetupRestore()">Restore</button></div></aside></div>' +
+      '<div class="rd-setup-band"><div class="rd-setup-band__head"><span>How the planner connects</span>' +
+      '<span class="rd-setup-band__meta">Six links that mean you never type the same detail twice</span>' +
+      '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'datahub\',true)">Open the Database Hub</button></div>' +
+      '<div class="rd-grid-3 rd-getstarted-concepts">' +
+      conceptCard('01', 'Setup personalises everything', 'Your names, date, venues, budget and time zone feed the Dashboard, the countdown, the calendar and every printable.', 'Wedding Setup → 31 pages') +
+      conceptCard('02', 'Money flows one direction', 'Payments feed Budget. Catering creates managed budget lines. Contracts carry their own instalments.', 'Payments → Budget') +
+      conceptCard('03', 'People fan outward', 'Guest List feeds Table Layout, catering headcount, meal counts, the calendar, share packets and the wedding party.', 'Guest List → 7 pages') +
+      conceptCard('04', 'Dates gather in one place', 'Tasks, appointments, payments and timeline items all appear together in Month, Week and Agenda views.', '5 sources → Smart Calendar') +
+      conceptCard('05', 'Data health watches the joins', 'The Dashboard flags a payment with no vendor, a guest on a deleted table, or a calendar item whose source is gone.', '6 checks · open alerts') +
+      conceptCard('06', 'Covenant pages sit alongside', 'Vision, Prayer Journal, Counseling and Marriage Rhythms are part of the plan, not an appendix to it.', '4 pages · Class B print') +
+      '</div></div>' +
+      '<div class="rd-getstarted-split">' +
+      '<section class="rd-getstarted-panel"><div class="rd-setup-band__head"><span>Editing &amp; navigation</span><span class="rd-setup-band__meta">How to use the planner like a workbook</span></div>' +
+      '<div class="rd-getstarted-panel__body">' +
+      tipBlock('Two ways to edit a record', 'Click a row to open the side drawer for a quick change, or Full editor for all the fields at once. Both write to the same record.') +
+      tipBlock('Tables edit in place', 'Type in a cell, tick rows for bulk edits, and use the last row to add. Long text wraps and can be dragged taller.') +
+      tipBlock('Focus when it feels big', 'Profile &amp; Display → Focus on essentials hides advanced pages without deleting anything.') +
+      tipBlock('Undo, redo and the change log', '<b>Planner History</b> keeps a day-by-day log of what changed — view-only, so it tells you what happened without offering to roll back.') +
+      '</div></section>' +
+      '<section class="rd-getstarted-panel"><div class="rd-setup-band__head"><span>Planning with your partner</span><span class="rd-setup-band__meta">No account, no cloud — three files</span>' +
+      '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'packets\',true)">Open Share Packets</button></div>' +
+      '<div class="rd-getstarted-panel__body"><div class="rd-partner-flow">' +
+      '<div><div class="rd-partner-flow__k">You</div><div>Download backup</div><code>.sqlite</code></div>' +
+      '<div><div class="rd-partner-flow__k">Partner</div><div>Restores it</div><code>same file</code></div>' +
+      '<div><div class="rd-partner-flow__k">Partner</div><div>Sends one back</div><code>.sqlite</code></div>' +
+      '<div><div class="rd-partner-flow__k">You</div><div>Import packet</div><code>merges</code></div>' +
+      '</div><p class="rd-getstarted-partner-note">A partner packet merges RSVP updates and new tasks — it never deletes what you already have.</p></div></section></div>' +
+      '<div class="rd-setup-band"><div class="rd-setup-band__head"><span>What this planner cannot do</span><span class="rd-setup-band__meta">Said plainly, so it is not discovered late</span></div>' +
+      '<div class="rd-getstarted-cannot">' +
+      cannotCard('It cannot send email', 'No invitations, no RSVP reminders, no vendor mail. Email Templates writes the letters and you send them from your own mail app.') +
+      cannotCard('It cannot collect RSVPs', 'There is no web form. Replies are entered on the Guest List by whoever hears them.') +
+      cannotCard('It cannot sync between devices', 'Two devices means two planners. The backup file is the only bridge.') +
+      cannotCard('It cannot recover a cleared browser', 'If site data goes without a backup, the planner is gone. This is the only unrecoverable failure.') +
+      '</div></div>' +
+      '<div class="rd-setup-band"><div class="rd-setup-band__head"><span>Your first hour</span>' +
+      '<span class="rd-setup-band__meta">Seven steps · ' + done + ' done</span>' +
+      (done < 7 ? '<span class="rd-setup-band__link">Continue at step ' + (done + 1) + '</span>' : '') +
+      '</div><div class="rd-steps">' + stepsHtml + '</div></div>';
+    const warn = panel.querySelector('#rd-guide-backupwarn');
+    if (warn && warn.nextSibling) panel.insertBefore(host, warn.nextSibling);
+    else panel.appendChild(host);
+  }
+  function conceptCard(num, title, body, mono) {
+    return '<article class="rd-concept"><div class="rd-concept__head"><span class="rd-concept__num">' + num + '</span><h3 class="rd-concept__title">' + esc(title) + '</h3></div>' +
+      '<p class="rd-concept__body">' + esc(body) + '</p><code class="rd-concept__mono">' + esc(mono) + '</code></article>';
+  }
+  function tipBlock(title, body) {
+    return '<div class="rd-tip"><h4>' + esc(title) + '</h4><p>' + body + '</p></div>';
+  }
+  function cannotCard(title, body) {
+    return '<article class="rd-cannot-card"><h4>' + esc(title) + '</h4><p>' + esc(body) + '</p></article>';
   }
 
   /* ── Page-by-Page Guide (15d + 33i table + 33j print) ────────────────── */
@@ -166,8 +269,8 @@
     bar.innerHTML =
       '<span class="rd-guide-count">' + PAGE_CONTRACT.length + ' pages · only one page owns any given field</span>' +
       '<div class="rd-toolbar__right"><div class="rd-viewswitch" role="group" aria-label="Guide view">' +
-      '<button type="button" class="rd-viewswitch__item' + (v === 'entries' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'entries\')">Entries</button>' +
-      '<button type="button" class="rd-viewswitch__item' + (v === 'table' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'table\')">Table view</button>' +
+      '<button type="button" class="rd-viewswitch__item' + (v === 'entries' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'entries\')">Accordion</button>' +
+      '<button type="button" class="rd-viewswitch__item' + (v === 'table' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'table\')">Table</button>' +
       '<button type="button" class="rd-viewswitch__item' + (v === 'print' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'print\')">Print view</button>' +
       '</div></div>';
   }
@@ -181,8 +284,10 @@
   function renderGuideTable() {
     const host = document.getElementById('rd-guide-table');
     if (!host) return;
-    let html = '<div class="ued-table-wrap"><table class="rd-guide-contract"><thead><tr>' +
-      '<th>Page</th><th>Tab</th><th>Owns</th><th>Reads from</th><th>Feeds</th><th>Prints</th>' +
+    let html = '<div class="rd-guide-table-head"><div><strong>Every page, one row</strong>' +
+      '<span>' + PAGE_CONTRACT.length + ' pages · what each owns versus what it borrows</span></div></div>' +
+      '<div class="ued-table-wrap rd-guide-table-wrap"><table class="rd-guide-contract"><thead><tr>' +
+      '<th class="rd-guide-th-page">Page</th><th>Tab</th><th class="rd-guide-th-owns">Owns</th><th>Reads from</th><th>Feeds</th><th>Prints</th>' +
       '</tr></thead><tbody>';
     PAGE_CONTRACT.forEach((row, i) => {
       html += '<tr class="rd-guide-crow" onclick="rdGuideOpenEntry(' + i + ')">' +
@@ -204,14 +309,15 @@
     const byTab = {};
     PAGE_CONTRACT.forEach(r => { (byTab[r[1]] = byTab[r[1]] || []).push(r); });
     let html = '<div class="rd-guide-printsheet"><div class="rd-guide-printsheet__head">' +
-      '<span>Page-by-Page Guide</span><span>Class A · working reference · grouped by tab</span></div>';
-    Object.keys(byTab).forEach(tab => {
-      html += '<div class="rd-guide-printgroup"><h4>' + esc(tab) + '</h4>';
+      '<span>Page-by-Page Guide</span><span>Class A · working reference · grouped by tab · one line per page</span></div>';
+    Object.keys(byTab).sort().forEach(tab => {
+      html += '<div class="rd-guide-printgroup"><h4>' + esc(tab) + ' <span class="rd-guide-printcount">· ' + byTab[tab].length + ' pages</span></h4>';
       byTab[tab].forEach(r => {
         html += '<div class="rd-guide-printrow"><b>' + esc(r[0]) + '</b><span>Owns ' + esc(r[2]) + '</span></div>';
       });
       html += '</div>';
     });
+    html += '<div class="rd-guide-printfoot">Printed ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + '</div>';
     html += '</div>';
     host.innerHTML = html;
   }
@@ -269,8 +375,18 @@
       'FAQ', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)",
       '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>');
     if (!panel) return;
-    const legacyAside = panel.querySelector('.faq-side');
-    if (legacyAside) legacyAside.classList.add('rd-guide-legacy-hide');
+    panel.querySelectorAll('.faq-title-wrap, .faq-side').forEach(el => el.classList.add('rd-guide-legacy-hide'));
+    if (!panel.querySelector('.rd-faq-layout')) {
+      const search = panel.querySelector('.faq-search-wrap');
+      const cat = panel.querySelector('#faq-cat-bar');
+      const list = panel.querySelector('#faq-list');
+      const layout = document.createElement('div');
+      layout.className = 'rd-faq-layout';
+      if (list && list.parentElement) {
+        list.parentElement.insertBefore(layout, list);
+        layout.appendChild(list);
+      }
+    }
     if (!panel.querySelector('#rd-faq-quick')) {
       const aside = document.createElement('aside');
       aside.id = 'rd-faq-quick';
@@ -278,7 +394,9 @@
       aside.innerHTML = '<div class="rd-faq-quick__title">Quick answers</div>' +
         FAQ_QUICK.map(q => '<div class="rd-faq-quick__item"><b>' + esc(q[0]) + '</b><p>' + esc(q[1]) + '</p></div>').join('') +
         '<p class="rd-faq-quick__note">The five things people ask most. This column is a plain aside — no record is open behind it.</p>';
-      panel.appendChild(aside);
+      const layout = panel.querySelector('.rd-faq-layout');
+      if (layout) layout.appendChild(aside);
+      else panel.appendChild(aside);
     }
     if (typeof renderContextSidebar === 'function') renderContextSidebar('faq');
   }

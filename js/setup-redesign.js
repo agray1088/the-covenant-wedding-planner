@@ -12,7 +12,20 @@
   window._setupDrawerTab = window._setupDrawerTab || 0;
   window._setupView = window._setupView || 'current';
 
-  const SHELL_VER = 'setup-rd-s35b';
+  const SHELL_VER = 'setup-rd-s35c';
+  const SETUP_FIELD_IDS = [
+    's-bride', 's-groom', 's-pastor', 's-church', 's-date', 's-engaged',
+    's-venue-ceremony', 's-venue-reception', 's-timezone', 's-budget', 's-currency',
+    's-guests', 's-locale', 's-dateformat', 's-style', 's-colors', 's-verse', 's-mission'
+  ];
+  const GRID_SECTIONS = [
+    { id: 'the-couple', title: 'The couple', fields: ['s-bride', 's-groom', 's-pastor', 's-church'] },
+    { id: 'the-day', title: 'The day', fields: ['s-date', 's-engaged', 's-venue-ceremony', 's-venue-reception', 's-timezone'] },
+    { id: 'money', title: 'Money', fields: ['s-budget', 's-currency'] },
+    { id: 'guests', title: 'Guests & seating', fields: ['s-guests'] },
+    { id: 'print', title: 'Print & sharing', fields: ['s-locale', 's-dateformat', 's-style', 's-colors'] },
+    { id: 'device', title: 'This device', photo: true }
+  ];
   const DRAWER_TABS = ['Field', 'Impact', 'History'];
   const RAIL_SECTIONS = [
     'the-couple', 'the-day', 'money', 'guests', 'menu', 'print', 'device'
@@ -101,27 +114,31 @@
       '" onclick="rdSetupSetView(\'earlier\')">earlier drawing</button></div>';
   }
 
-  /* ── stat strip — five figures (Master 15a) ──────────────────────────── */
+  /* ── stat strip — 15a (five figures) vs 11c (earlier drawing) ─────────── */
+
+  function seatCount() {
+    const d = store();
+    if (!Array.isArray(d.tables)) return '—';
+    let n = 0;
+    d.tables.forEach(t => { n += parseInt(t.seats || t.capacity || 0, 10) || 0; });
+    return n > 0 ? String(n) : '—';
+  }
+  function shortDate(raw) {
+    if (!raw) return '—';
+    const dt = new Date(String(raw).trim() + 'T00:00:00');
+    if (Number.isNaN(dt.getTime())) return raw;
+    return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
 
   function ensureStatStrip() {
     const panel = document.getElementById('panel-setup');
     if (!panel) return;
     let strip = panel.querySelector('.rd-setup-statstrip');
     const legacy = panel.querySelector('.m-stats');
+    const earlier = window._setupView === 'earlier';
     if (!strip) {
       strip = document.createElement('div');
       strip.className = 'rd-setup-statstrip';
-      strip.innerHTML =
-        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Days to wedding</span>' +
-        '<span class="rd-setup-stat__v" id="rd-setup-stat-days">—</span></div>' +
-        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Tasks complete</span>' +
-        '<span class="rd-setup-stat__v" id="rd-setup-stat-tasks">—</span></div>' +
-        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Vendors booked</span>' +
-        '<span class="rd-setup-stat__v" id="rd-setup-stat-vendors">—</span></div>' +
-        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Guests invited</span>' +
-        '<span class="rd-setup-stat__v" id="rd-setup-stat-guests">—</span></div>' +
-        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Budget target</span>' +
-        '<span class="rd-setup-stat__v" id="rd-setup-stat-budget">—</span></div>';
       const anchor = panel.querySelector('#rd-setup-viewswitch') || panel.querySelector('.rd-setup-pagehead');
       if (anchor) anchor.insertAdjacentElement('afterend', strip);
       else panel.insertBefore(strip, panel.firstChild);
@@ -129,53 +146,163 @@
     if (legacy) legacy.classList.add('rd-setup-legacy-hide');
 
     const s = (store().setup) || {};
-    const daysEl = document.getElementById('rd-setup-stat-days');
-    const tasksEl = document.getElementById('rd-setup-stat-tasks');
-    const vendorsEl = document.getElementById('rd-setup-stat-vendors');
-    const guestsEl = document.getElementById('rd-setup-stat-guests');
-    const budgetEl = document.getElementById('rd-setup-stat-budget');
-    if (daysEl) daysEl.textContent = document.getElementById('setup-stat-days')?.textContent || '—';
-    const taskDone = document.getElementById('setup-stat-tasks')?.textContent || '0';
-    const taskSub = document.getElementById('setup-stat-task-sub')?.textContent || '';
-    if (tasksEl) tasksEl.textContent = taskSub ? (taskDone + ' of ' + (taskSub.match(/\d+/) || ['0'])[0]) : taskDone;
-    if (vendorsEl) vendorsEl.textContent = document.getElementById('setup-stat-vendors')?.textContent || '0';
-    if (guestsEl) guestsEl.textContent = document.getElementById('setup-stat-guests')?.textContent || '0';
-    if (budgetEl) budgetEl.textContent = parseFloat(s.budget) > 0 ? moneyFmt(s.budget) : '—';
+    const days = document.getElementById('setup-stat-days')?.textContent || '—';
+    if (earlier) {
+      strip.innerHTML =
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Days to go</span>' +
+        '<span class="rd-setup-stat__v">' + esc(days) + '</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Wedding date</span>' +
+        '<span class="rd-setup-stat__v">' + esc(shortDate(s.date)) + '</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Budget target</span>' +
+        '<span class="rd-setup-stat__v">' + esc(parseFloat(s.budget) > 0 ? moneyFmt(s.budget) : '—') + '</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Guest cap</span>' +
+        '<span class="rd-setup-stat__v">' + esc(s.guests || '—') + '</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Seats</span>' +
+        '<span class="rd-setup-stat__v">' + esc(seatCount()) + '</span></div>';
+    } else {
+      const taskDone = document.getElementById('setup-stat-tasks')?.textContent || '0';
+      const taskSub = document.getElementById('setup-stat-task-sub')?.textContent || '';
+      const tasks = taskSub ? (taskDone + ' of ' + (taskSub.match(/\d+/) || ['0'])[0]) : taskDone;
+      strip.innerHTML =
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Days to wedding</span>' +
+        '<span class="rd-setup-stat__v">' + esc(days) + '</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Tasks complete</span>' +
+        '<span class="rd-setup-stat__v">' + esc(tasks) + '</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Vendors booked</span>' +
+        '<span class="rd-setup-stat__v">' + esc(document.getElementById('setup-stat-vendors')?.textContent || '0') + '</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Guests invited</span>' +
+        '<span class="rd-setup-stat__v">' + esc(document.getElementById('setup-stat-guests')?.textContent || '0') + '</span></div>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Budget target</span>' +
+        '<span class="rd-setup-stat__v">' + esc(parseFloat(s.budget) > 0 ? moneyFmt(s.budget) : '—') + '</span></div>';
+    }
+  }
+
+  /* ── form grid (Master 15a / 11c — rd-setup-grid section bands) ─────── */
+
+  function convertSetupField(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return null;
+    let mField = input.closest('.m-field');
+    if (!mField) return null;
+    if (mField.classList.contains('rd-setup-field')) return mField;
+    const label = mField.querySelector('label');
+    const labelText = label ? label.textContent.replace(/:$/, '').trim() : inputId;
+    if (label) label.remove();
+    const row = document.createElement('div');
+    row.className = 'rd-setup-field';
+    row.innerHTML =
+      '<span class="rd-setup-field__label">' + esc(labelText) + '</span>' +
+      '<div class="rd-setup-field__control"></div>';
+    const control = row.querySelector('.rd-setup-field__control');
+    while (mField.firstChild) control.appendChild(mField.firstChild);
+    mField.replaceWith(row);
+    return row;
+  }
+
+  function ensureSetupGrid() {
+    const panel = document.getElementById('panel-setup');
+    if (!panel || panel.querySelector('#rd-setup-formhost')) return;
+
+    const legacyGrid = panel.querySelector('.m-grid-2');
+    if (legacyGrid) legacyGrid.classList.add('rd-setup-legacy-hide');
+
+    const host = document.createElement('div');
+    host.id = 'rd-setup-formhost';
+    host.className = 'rd-setup-formhost';
+    const grid = document.createElement('div');
+    grid.className = 'rd-setup-grid rd-setup-mockup-grid';
+    host.appendChild(grid);
+
+    GRID_SECTIONS.forEach(sec => {
+      const cell = document.createElement('section');
+      cell.className = 'rd-setup-section';
+      cell.id = 'setup-sec-' + sec.id;
+      cell.innerHTML =
+        '<div class="rd-setup-section__head">' + esc(sec.title) + '</div>' +
+        '<div class="rd-setup-section__body"></div>';
+      const body = cell.querySelector('.rd-setup-section__body');
+      if (sec.photo) {
+        const photoBlock = panel.querySelector('.setup-photo-block');
+        const photoCard = photoBlock ? photoBlock.closest('.m-block') : null;
+        if (photoCard) {
+          photoCard.classList.remove('rd-setup-legacy-hide');
+          body.appendChild(photoCard);
+        }
+      } else {
+        (sec.fields || []).forEach(fid => {
+          const row = convertSetupField(fid);
+          if (row) body.appendChild(row);
+        });
+      }
+      grid.appendChild(cell);
+    });
+
+    const faithBlock = panel.querySelector('.m-block:has(#s-verse)') ||
+      Array.from(panel.querySelectorAll('.m-block')).find(b => b.querySelector('#s-verse'));
+    if (faithBlock) {
+      faithBlock.classList.remove('rd-setup-legacy-hide');
+      const verseField = faithBlock.querySelector('#s-verse')?.closest('.m-field');
+      const missionField = faithBlock.querySelector('#s-mission')?.closest('.m-field');
+      if (verseField) convertSetupField('s-verse');
+      if (missionField) convertSetupField('s-mission');
+      host.appendChild(faithBlock);
+    }
+    const license = document.getElementById('marriage-license-card');
+    if (license && license.innerHTML.trim()) host.appendChild(license);
+
+    const menuCard = panel.querySelector('.menu-visibility-card');
+    if (menuCard) {
+      menuCard.classList.add('rd-setup-menu-band');
+      host.appendChild(menuCard);
+    }
+
+    const anchor = panel.querySelector('.rd-setup-statstrip') ||
+      panel.querySelector('#rd-setup-viewswitch') ||
+      panel.querySelector('.rd-setup-pagehead');
+    if (anchor) anchor.insertAdjacentElement('afterend', host);
+    else panel.appendChild(host);
+  }
+
+  function applySetupView() {
+    const menuCard = panelQuery('.menu-visibility-card');
+    if (menuCard) {
+      menuCard.classList.toggle('rd-setup-legacy-hide', window._setupView === 'earlier');
+    }
+    ensureStatStrip();
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
   }
 
   /* ── layout: hide legacy chrome, menu presets (15a vs 11c) ───────────── */
 
   function ensureLayout() {
     const panel = document.getElementById('panel-setup');
-    if (!panel || panel.dataset.setupLayout === SHELL_VER) return;
-    panel.dataset.setupLayout = SHELL_VER;
+    if (!panel) return;
+    const firstRun = panel.dataset.setupLayout !== SHELL_VER;
+    if (firstRun) {
+      panel.dataset.setupLayout = SHELL_VER;
+      panel.querySelectorAll('.setup-preferences-card, #setup-essentials-hub, #setup-history-danger').forEach(el => {
+        el.classList.add('rd-setup-legacy-hide');
+      });
+      const rightCol = panel.querySelector('.m-grid-2 > .m-col:last-child');
+      if (rightCol) rightCol.classList.add('rd-setup-legacy-hide');
 
-    panel.querySelectorAll('.setup-preferences-card, #setup-essentials-hub, #setup-history-danger').forEach(el => {
-      el.classList.add('rd-setup-legacy-hide');
-    });
-    const rightCol = panel.querySelector('.m-grid-2 > .m-col:last-child');
-    if (rightCol) rightCol.classList.add('rd-setup-legacy-hide');
-
-    const menuCard = panel.querySelector('.menu-visibility-card');
-    if (menuCard && !menuCard.querySelector('.rd-setup-menu-presets')) {
-      const presets = document.createElement('div');
-      presets.className = 'rd-setup-menu-presets';
-      presets.innerHTML = MENU_PRESETS.map((p, i) =>
-        '<button type="button" class="rd-chip' + (i === 2 ? ' is-active' : '') +
-        '" onclick="typeof ' + p[2] + '===\'function\'&&' + p[2] + '()">' + esc(p[1]) + '</button>'
-      ).join('');
-      const actions = menuCard.querySelector('.m-actions');
-      if (actions) menuCard.insertBefore(presets, actions);
-      else menuCard.appendChild(presets);
-      const oldActions = menuCard.querySelector('.m-actions');
-      if (oldActions) oldActions.classList.add('rd-setup-legacy-hide');
+      const menuCard = panel.querySelector('.menu-visibility-card');
+      if (menuCard && !menuCard.querySelector('.rd-setup-menu-presets')) {
+        const presets = document.createElement('div');
+        presets.className = 'rd-setup-menu-presets';
+        presets.innerHTML = MENU_PRESETS.map((p, i) =>
+          '<button type="button" class="rd-chip' + (i === 2 ? ' is-active' : '') +
+          '" onclick="typeof ' + p[2] + '===\'function\'&&' + p[2] + '()">' + esc(p[1]) + '</button>'
+        ).join('');
+        const actions = menuCard.querySelector('.m-actions');
+        if (actions) menuCard.insertBefore(presets, actions);
+        else menuCard.appendChild(presets);
+        const oldActions = menuCard.querySelector('.m-actions');
+        if (oldActions) oldActions.classList.add('rd-setup-legacy-hide');
+      }
+      ensureSetupGrid();
     }
-
-    if (window._setupView === 'earlier') {
-      if (menuCard) menuCard.classList.add('rd-setup-legacy-hide');
-    } else if (menuCard) {
-      menuCard.classList.remove('rd-setup-legacy-hide');
-    }
+    applySetupView();
   }
 
   function addFeedsCaptions() {
@@ -250,6 +377,38 @@
     const dt = new Date(raw + 'T00:00:00');
     return Number.isNaN(dt.getTime()) ? raw : dt.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
   }
+  function setupHistoryRows() {
+    const log = Array.isArray(store()._historyLog) ? store()._historyLog : [];
+    const dateRows = log.filter(e => {
+      const t = String(e.field || e.path || e.label || e.summary || '').toLowerCase();
+      return /date|wedding|setup/.test(t);
+    }).slice(-6).reverse();
+    if (!dateRows.length) return '<p class="rd-drawer__note">No date changes recorded yet.</p>';
+    return dateRows.map(e => {
+      const when = e.at || e.ts || e.time || '';
+      const who = e.user || e.who || e.actor || 'Planner';
+      const detail = e.after || e.value || e.summary || e.action || 'Changed';
+      const whenStr = when ? (typeof fmtDate === 'function' ? fmtDate(when) : String(when).slice(0, 10)) : '—';
+      return '<div class="rd-drawer__hist"><span>' + esc(whenStr + ' · ' + who) + '</span><em>' + esc(detail) + '</em></div>';
+    }).join('');
+  }
+  function setupLastChanged() {
+    const log = Array.isArray(store()._historyLog) ? store()._historyLog : [];
+    const setupRows = log.filter(e => {
+      const t = String(e.field || e.path || e.table || '').toLowerCase();
+      return t === 'setup' || SETUP_FIELD_IDS.some(id => t.includes(id.replace('s-', '')));
+    });
+    const last = setupRows[setupRows.length - 1];
+    if (!last) return '—';
+    const when = last.at || last.ts || last.time;
+    if (!when) return '—';
+    const mins = Math.round((Date.now() - new Date(when).getTime()) / 60000);
+    if (mins < 60) return mins + ' min ago';
+    const hrs = Math.round(mins / 60);
+    if (hrs < 48) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+    const days = Math.round(hrs / 24);
+    return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  }
   function impactCounts() {
     const d = store();
     return {
@@ -301,9 +460,8 @@
     } else {
       body =
         '<div class="rd-drawer__section-title">History</div>' +
-        '<div class="rd-drawer__hist"><span>29 Jul · Mary O.</span><em>Confirmed 8 Nov</em></div>' +
-        '<div class="rd-drawer__hist"><span>14 Mar · Ama</span><em>Set 8 Nov 2026</em></div>' +
-        '<p class="rd-drawer__note">Two entries in five months. Sparseness here is the reassuring reading.</p>';
+        setupHistoryRows() +
+        '<p class="rd-drawer__note">Sparseness here is the reassuring reading.</p>';
     }
     slot.classList.add('is-open');
     slot.innerHTML =
@@ -358,11 +516,12 @@
     const active = window._setupRailSection || 'the-couple';
     const d = store();
     const s = d.setup || {};
-    const filled = ['s-bride', 's-groom', 's-date', 's-budget', 's-guests', 's-venue-ceremony', 's-timezone'].filter(id => {
+    const filled = SETUP_FIELD_IDS.filter(id => {
       const el = document.getElementById(id);
       return el && String(el.value || '').trim();
     }).length;
-    const total = 13;
+    const total = SETUP_FIELD_IDS.length;
+    const empty = total - filled;
     const hidden = Array.isArray(d.setup?.hiddenMenuPages) ? d.setup.hiddenMenuPages.length : 0;
     const items = [
       ['the-couple', 'The couple'],
@@ -388,7 +547,9 @@
       '<div class="rd-rail__section"><div class="rd-rail__title">Setup complete</div><div class="rd-rail__meters">' +
       '<div class="rd-rail__meter-top"><span>Filled</span><span class="rd-rail__count">' + filled + ' of ' + total + '</span></div>' +
       '<div class="rd-track"><div class="rd-fill" style="width:' + Math.round(filled / total * 100) + '%"></div></div>' +
+      '<div class="rd-rail__meter-top"><span>Empty</span><span class="rd-rail__count">' + empty + '</span></div>' +
       '<div class="rd-rail__meter-top"><span>Pages hidden</span><span class="rd-rail__count">' + hidden + ' of 31</span></div>' +
+      '<div class="rd-rail__meter-top"><span>Last changed</span><span class="rd-rail__count">' + esc(setupLastChanged()) + '</span></div>' +
       '</div></div>' + danger +
       '<p class="rd-rail__note">Changing the wedding date re-dates every task, payment and countdown. You approve the whole move as one confirmed change.</p></div>';
   }
@@ -409,8 +570,7 @@
   function rdSetupSetView(v) {
     window._setupView = v;
     ensurePagehead();
-    ensureLayout();
-    if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
+    applySetupView();
   }
   function rdSetupResetDefaults() {
     if (typeof covConfirm === 'function') {
@@ -456,9 +616,49 @@
       ['vendors', 'Vendors'], ['budget', 'Budget lines'], ['gifts', 'Gifts'],
       ['contracts', 'Contracts'], ['appointments', 'Appointments']
     ].filter(([k]) => Array.isArray(d[k]));
-    const menu = TABLES.map((t, i) => (i + 1) + '. ' + t[1] + ' (' + d[t[0]].length + ')').join('\n');
-    const pick = window.prompt('Clear which table? Type the number:\n' + menu);
-    const idx = parseInt(pick, 10) - 1;
+    let slot = document.getElementById('rd-setup-cleartable');
+    const panel = document.getElementById('panel-setup');
+    if (!slot && panel) {
+      slot = document.createElement('div');
+      slot.id = 'rd-setup-cleartable';
+      panel.appendChild(slot);
+    }
+    if (!slot) return;
+    const options = TABLES.map(([key, label], i) =>
+      '<option value="' + i + '">' + esc(label) + ' (' + d[key].length + ' row' + (d[key].length === 1 ? '' : 's') + ')</option>'
+    ).join('');
+    slot.classList.add('is-open');
+    slot.innerHTML =
+      '<div class="rd-setup-drawer__scrim" onclick="rdSetupCloseClearTable()"></div>' +
+      '<aside class="rd-drawer rd-setup-fielddrawer" aria-label="Clear a table">' +
+      '<div class="rd-drawer__head">' +
+      '<button type="button" class="rd-drawer__close" onclick="rdSetupCloseClearTable()" aria-label="Close">×</button>' +
+      '<div class="rd-drawer__eyebrow">Danger zone</div>' +
+      '<h2 class="rd-drawer__title">Clear a single table</h2>' +
+      '<p class="rd-drawer__note">Empties one table and names everything that breaks first. Download a backup before you run this.</p>' +
+      '</div>' +
+      '<div class="rd-drawer__body">' +
+      '<label class="rd-setup-field__label" for="rd-setup-cleartable-pick">Table</label>' +
+      '<select id="rd-setup-cleartable-pick" class="rd-setup-cleartable-pick">' + options + '</select>' +
+      '</div>' +
+      '<div class="rd-drawer__foot">' +
+      '<button type="button" class="rd-btn rd-btn--danger" onclick="rdSetupConfirmClearTable()">Clear the table</button>' +
+      '<button type="button" class="rd-btn" onclick="rdSetupCloseClearTable()">Cancel</button>' +
+      '</div></aside>';
+  }
+  function rdSetupCloseClearTable() {
+    const slot = document.getElementById('rd-setup-cleartable');
+    if (slot) { slot.innerHTML = ''; slot.classList.remove('is-open'); }
+  }
+  async function rdSetupConfirmClearTable() {
+    const d = store();
+    const TABLES = [
+      ['guests', 'Guest List'], ['tasks', 'Tasks'], ['payments', 'Payments'],
+      ['vendors', 'Vendors'], ['budget', 'Budget lines'], ['gifts', 'Gifts'],
+      ['contracts', 'Contracts'], ['appointments', 'Appointments']
+    ].filter(([k]) => Array.isArray(d[k]));
+    const pick = document.getElementById('rd-setup-cleartable-pick');
+    const idx = pick ? parseInt(pick.value, 10) : -1;
     if (Number.isNaN(idx) || !TABLES[idx]) return;
     const [key, label] = TABLES[idx];
     const ok = typeof covConfirm === 'function'
@@ -467,6 +667,7 @@
     if (!ok) return;
     d[key] = [];
     saveNow();
+    rdSetupCloseClearTable();
     if (typeof showToast === 'function') showToast(label + ' cleared.');
     if (typeof renderSetupPage === 'function') renderSetupPage();
   }
@@ -508,6 +709,8 @@
   window.rdSetupRestore = rdSetupRestore;
   window.rdSetupClearHistory = rdSetupClearHistory;
   window.rdSetupClearTable = rdSetupClearTable;
+  window.rdSetupConfirmClearTable = rdSetupConfirmClearTable;
+  window.rdSetupCloseClearTable = rdSetupCloseClearTable;
   window.rdSetupResetDefaults = rdSetupResetDefaults;
   window.rdSetupFullEditor = rdSetupFullEditor;
   window.rdSetupExport = rdSetupExport;
