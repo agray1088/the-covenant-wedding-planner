@@ -58,25 +58,40 @@
     if (!legacyBar) return;
 
     /* ─── top bar ─────────────────────────────────────────────────────── */
+    /* §39 · 49d — two rows, not one. "Nine controls plus a wordmark and a
+       search field do not fit on one 1440px line. Identity, photo, save status
+       and the countdown take the upper row; search and the nine action buttons
+       take the lower. Nothing is hidden behind a chevron." */
     var bar = el(
-      '<header class="rd-topbar">' +
-        '<div class="rd-topbar__brand">' +
-          '<span class="rd-topbar__mark">&#10022;</span>' +
-          '<span class="rd-topbar__name">The Covenant Wedding Planner</span>' +
-        '</div>' +
-        '<button type="button" class="rd-topbar__wedding" id="rd-wedding-btn">' +
-          '<span class="rd-topbar__avatar" id="rd-profile-initials">--</span>' +
-          '<span id="rd-wedding-label">Your wedding</span>' +
-          '<svg ' + SVG + '><path d="m6 9 6 6 6-6"/></svg>' +
-        '</button>' +
-        '<div class="rd-topbar__searchslot"></div>' +
-        '<div class="rd-topbar__right">' +
-          '<div class="rd-topbar__undoslot"></div>' +
-          '<div class="rd-topbar__saveslot"></div>' +
-          '<div class="rd-topbar__bellslot"></div>' +
-          '<button type="button" class="rd-topbar__gear" id="rd-gear-btn" aria-label="Viewer preferences" aria-haspopup="true" aria-expanded="false">' +
-            '<svg ' + SVG + '><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>' +
+      '<header class="rd-topbar rd-topbar--tworow">' +
+        '<div class="rd-topbar__row rd-topbar__row--identity">' +
+          '<div class="rd-topbar__brand">' +
+            '<span class="rd-topbar__mark">&#10022;</span>' +
+            '<span class="rd-topbar__names">' +
+              '<span class="rd-topbar__name">The Covenant Wedding Planner</span>' +
+              '<span class="rd-topbar__sub">Christ-centered planning &middot; M3 planner</span>' +
+            '</span>' +
+          '</div>' +
+          '<button type="button" class="rd-topbar__wedding" id="rd-wedding-btn">' +
+            '<span class="rd-topbar__avatar" id="rd-profile-initials">--</span>' +
+            '<span id="rd-wedding-label">Your wedding</span>' +
+            '<svg ' + SVG + '><path d="m6 9 6 6 6-6"/></svg>' +
           '</button>' +
+          '<div class="rd-topbar__idright">' +
+            '<div class="rd-topbar__saveslot"></div>' +
+            '<div class="rd-topbar__countdown" id="rd-topbar-countdown"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rd-topbar__row rd-topbar__row--actions">' +
+          '<div class="rd-topbar__searchslot"></div>' +
+          '<div class="rd-topbar__right">' +
+            '<div class="rd-topbar__undoslot"></div>' +
+            '<div class="rd-topbar__bellslot"></div>' +
+            '<button type="button" class="rd-topbar__gear" id="rd-gear-btn" aria-label="Settings" aria-haspopup="dialog">' +
+              '<svg ' + SVG + '><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>' +
+              '<span class="rd-topbar__gear-label">Settings</span>' +
+            '</button>' +
+          '</div>' +
         '</div>' +
         '<div class="rd-prefs" id="rd-prefs" hidden></div>' +
       '</header>');
@@ -127,13 +142,24 @@
        Mode", and "nothing is hidden behind a chevron". The gear now opens the
        Settings window (49c) rather than a dropdown, so parking them in #rd-prefs
        would strand them. */
-    var barSlot = bar.querySelector('.rd-topbar__right');
+    var barSlot = bar.querySelector('.rd-topbar__row--actions .rd-topbar__right');
     ['save-btn', 'profile-drawer-btn', 'data-hub-btn', 'dark-mode-btn'].forEach(function (id) {
       var b = document.getElementById(id);
       if (!b || !barSlot) return;
       b.classList.add('rd-topbar__action');
       barSlot.insertBefore(b, barSlot.querySelector('#rd-gear-btn') || null);
     });
+    /* 49d draws the lower row in one order: Undo/Redo, Save, Alerts, Profile &
+       Display, Database Hub, Quick Jump, Dark Mode, then Settings. */
+    function orderActions() {
+      if (!barSlot) return;
+      var gear = barSlot.querySelector('#rd-gear-btn');
+      ['.rd-topbar__undoslot', '#save-btn', '.rd-topbar__bellslot', '#profile-drawer-btn',
+       '#data-hub-btn', '#quick-jump-wrap', '#dark-mode-btn'].forEach(function (sel) {
+        var n = barSlot.querySelector(sel) || document.querySelector(sel);
+        if (n) barSlot.insertBefore(n, gear || null);
+      });
+    }
     if (overflow && prefs) {
       while (overflow.firstChild) prefs.appendChild(overflow.firstChild);
     }
@@ -144,6 +170,7 @@
       qj.classList.add('rd-topbar__action');
       barSlot.insertBefore(qj, barSlot.querySelector('#rd-gear-btn') || null);
     }
+    orderActions();
 
     document.getElementById('rd-gear-btn').addEventListener('click', function (e) {
       e.stopPropagation();
@@ -241,8 +268,47 @@
     sync();
   }
 
+  /* ─── 49d identity row: photo cutout + countdown ───────────────────── */
+  function syncIdentityRow() {
+    try {
+      var setup = (typeof data !== 'undefined' && data && data.setup) ? data.setup : {};
+
+      /* photo cutout — the drawn bar carries the couple's photo, falling back
+         to initials when none is set. */
+      var av = document.getElementById('rd-profile-initials');
+      if (av) {
+        if (setup.photo) {
+          av.style.backgroundImage = 'url("' + String(setup.photo).replace(/"/g, '\\"') + '")';
+          av.classList.add('has-photo');
+        } else {
+          av.style.backgroundImage = '';
+          av.classList.remove('has-photo');
+        }
+      }
+
+      /* countdown — "102 days to 7 Nov 2026", derived from the wedding date,
+         never typed twice. */
+      var cd = document.getElementById('rd-topbar-countdown');
+      if (!cd) return;
+      var iso = setup.date;
+      if (!iso) { cd.textContent = ''; cd.hidden = true; return; }
+      var d = new Date(String(iso).slice(0, 10) + 'T00:00:00');
+      if (isNaN(d.getTime())) { cd.textContent = ''; cd.hidden = true; return; }
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var days = Math.round((d - today) / 86400000);
+      var when = d.getDate() + ' ' +
+        ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()] +
+        ' ' + d.getFullYear();
+      cd.hidden = false;
+      cd.textContent = days > 0 ? (days + ' day' + (days === 1 ? '' : 's') + ' to ' + when)
+        : days === 0 ? ('Today · ' + when)
+        : (Math.abs(days) + ' day' + (days === -1 ? '' : 's') + ' since ' + when);
+    } catch (e) { /* the bar must never break on identity data */ }
+  }
+
   /* ─── keep tabs + sub-nav in step with showPanel() ─────────────────── */
   function sync() {
+    syncIdentityRow();
     var active = document.body.getAttribute('data-active-panel') || 'dashboard';
     var tab = tabFor(active);
     var tabsEl = document.querySelector('.rd-tabs');

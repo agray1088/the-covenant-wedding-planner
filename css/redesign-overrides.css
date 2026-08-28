@@ -27925,3 +27925,131 @@ body.rd-scope.night .rd-settings-window .rd-set__row-title,
 body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__row-title { color: #e6e1d6; }
 body.rd-scope.night .rd-settings-window .rd-set__row,
 body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__row { border-top-color: #26261f; }
+
+/* ═══ §39 · 49d — Chrome top bar, two rows ════════════════════════════════
+   "Nine controls plus a wordmark and a search field do not fit on one 1440px
+   line. Identity, photo, save status and the countdown take the upper row;
+   search and the nine action buttons take the lower. Nothing is hidden behind
+   a chevron." Forest bar, gold accents, Cormorant wordmark; Profile & Display
+   is the one solid-gold button. */
+body.rd-scope .rd-topbar.rd-topbar--tworow {
+  height: auto;
+  display: block;
+  padding: 0;
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__row--identity {
+  height: 46px;
+  border-bottom: 1px solid rgba(212, 184, 150, .18);
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__row--actions { height: 48px; }
+
+/* identity row */
+body.rd-scope .rd-topbar--tworow .rd-topbar__names {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__name { font-size: 17px; }
+/* the sub-line the drawing keeps under the wordmark */
+body.rd-scope .rd-topbar__sub {
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  color: rgba(244, 239, 230, .58);
+  white-space: nowrap;
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__idright {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 18px;
+}
+/* countdown — derived from the wedding date, never typed twice */
+body.rd-scope .rd-topbar__countdown {
+  font-size: 12px;
+  color: var(--gold-lt, #d4b896);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+body.rd-scope .rd-topbar__countdown[hidden] { display: none; }
+/* photo cutout */
+body.rd-scope .rd-topbar__avatar.has-photo {
+  background-size: cover; background-position: center; color: transparent;
+  width: 26px; height: 26px;
+}
+
+/* actions row — search left, the nine controls right */
+body.rd-scope .rd-topbar--tworow .rd-topbar__searchslot { flex: 1 1 auto; max-width: 420px; }
+body.rd-scope .rd-topbar--tworow .rd-topbar__right {
+  margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+}
+/* the relocated planner buttons read as bar controls again */
+body.rd-scope .rd-topbar--tworow .rd-topbar__right .btn.rd-topbar__action,
+body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-topbar__action > .btn {
+  height: 30px !important;
+  padding: 0 11px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 0 !important;
+  background: rgba(255, 255, 255, .07) !important;
+  border: 1px solid rgba(212, 184, 150, .3) !important;
+  color: rgba(244, 239, 230, .9) !important;
+  box-shadow: none !important;
+  white-space: nowrap;
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__right .btn.rd-topbar__action:hover {
+  background: rgba(255, 255, 255, .14) !important;
+}
+/* "Profile & Display is the one solid-gold button, because it is the
+   most-used control in the bar." */
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #profile-drawer-btn.rd-topbar__action {
+  background: var(--gold, #B89968) !important;
+  border-color: var(--gold, #B89968) !important;
+  color: #20362D !important;
+  font-weight: 600 !important;
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #profile-drawer-btn.rd-topbar__action:hover {
+  background: #c9aa79 !important; border-color: #c9aa79 !important;
+}
+/* gear now carries its label — "More" becomes "Settings" */
+body.rd-scope .rd-topbar__gear {
+  align-items: center; gap: 6px;
+  height: 30px; padding: 0 11px;
+  border: 1px solid rgba(212, 184, 150, .3) !important;
+  font-size: 12px; font-weight: 500;
+}
+body.rd-scope .rd-topbar__gear:hover { background: rgba(255, 255, 255, .12); }
+body.rd-scope .rd-topbar__gear-label { white-space: nowrap; }
+
+/* quick-jump keeps its dropdown anchor inside the bar */
+body.rd-scope .rd-topbar--tworow #quick-jump-wrap.rd-topbar__action { display: inline-flex; }
+
+/* narrow: the action row scrolls rather than wrapping or hiding controls */
+@media (max-width: 1100px) {
+  body.rd-scope .rd-topbar--tworow .rd-topbar__row--actions {
+    overflow-x: auto; scrollbar-width: none;
+  }
+  body.rd-scope .rd-topbar--tworow .rd-topbar__row--actions::-webkit-scrollbar { display: none; }
+  body.rd-scope .rd-topbar--tworow .rd-topbar__searchslot { max-width: 240px; }
+}
+@media (max-width: 720px) {
+  body.rd-scope .rd-topbar--tworow .rd-topbar__sub,
+  body.rd-scope .rd-topbar__countdown { display: none; }
+}
+/* the identity-row wedding button is chrome, not a form control — it was
+   rendering with the UA's grey button background. */
+body.rd-scope .rd-topbar--tworow .rd-topbar__wedding {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 2px 6px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  max-width: 320px;
+  color: rgba(244, 239, 230, .9) !important;
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__wedding:hover { background: rgba(255, 255, 255, .07) !important; }
+body.rd-scope .rd-topbar--tworow .rd-topbar__wedding #rd-wedding-label {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
