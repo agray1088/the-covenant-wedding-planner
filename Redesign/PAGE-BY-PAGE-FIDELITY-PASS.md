@@ -4331,6 +4331,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §38
 - **Screen ids:** `16a`, `48a`, `48b`
 
+> **Verified this pass (`viewer-s37b`).** Full §37 inventory vs Master: 16a avatar menu (MO button in action bar — appearance Light/Dark/Auto, font, display size, menu focus presets, preview mode, keyboard shortcuts, backup/history/setup/get-started links, honesty note); Overview · Viewer preferences page with Invite viewer + Access log/Active links chips; view switcher Summary · By viewer · By permission; 48a banded viewer table (Full · Partial · Revoked) with honesty counts; 48b permission groups (Money first, Notes watch flag); Viewer drawer · Viewer · Access · Alerts · History; night tokens on avatar menu + page drawer.
+
 ### Five parts on this page
 
 | Part | Applies | What to build |

@@ -22,7 +22,7 @@
      Households / Contacts / Vision / First-Month / Homecoming / Print Centre
      are first-class panels — derive, never store duplicates. ───────────── */
   var TABS = [
-    { id: 'overview',  label: 'Overview',  pages: [['dashboard','Dashboard'], ['notes','Notes']] },
+    { id: 'overview',  label: 'Overview',  pages: [['dashboard','Dashboard'], ['notes','Notes'], ['viewer-prefs','Viewer preferences']] },
     { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments'], ['data-hub','Database Hub']] },
     { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['households','Households'], ['contacts','Contacts'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
     { id: 'money',     label: 'Money',     pages: [['budget','Budget'], ['payments','Payments'], ['contracts','Contracts & Invoices']] },
