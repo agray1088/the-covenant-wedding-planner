@@ -19069,6 +19069,181 @@ body.rd-scope #panel-honeymoon .rd-hm-journal__grateful {
   font-size: 12px !important;
 }
 
+/* §32 · 47a Itinerary view — day-by-day list */
+body.rd-scope #panel-honeymoon .rd-hm-daylist {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0 8px 12px;
+  border: 1px solid #e7e1d4;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+body.rd-scope #panel-honeymoon .rd-hm-daylist__week {
+  padding: 10px 14px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  background: #f7f3eb;
+  border-bottom: 1px solid #e7e1d4;
+  font-weight: 600;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day {
+  padding: 14px 16px;
+  border-bottom: 1px solid #efe9dc;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day:last-child { border-bottom: 0; }
+body.rd-scope #panel-honeymoon .rd-hm-day.is-gap { background: #fdfcfa; }
+body.rd-scope #panel-honeymoon .rd-hm-day__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #23211c;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day__gap {
+  margin: 0;
+  font-size: 13px;
+  color: #8a7e6b;
+  font-style: italic;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day__note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #a89a84;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day__plan {
+  font-size: 13px;
+  color: #3f3b34;
+  line-height: 1.5;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day__time,
+body.rd-scope #panel-honeymoon .rd-hm-day__through {
+  display: block;
+  font-size: 12px;
+  color: #8a7e6b;
+  margin-top: 2px;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day__booking {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid #efe9dc;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  background: #faf7f1;
+}
+body.rd-scope #panel-honeymoon .rd-hm-day__booking:hover { border-color: #c9b896; }
+body.rd-scope #panel-honeymoon .rd-hm-day__meta {
+  display: block;
+  color: #8a7e6b;
+  margin-top: 2px;
+}
+
+/* §32 · 47b Budget view */
+body.rd-scope #panel-honeymoon .rd-hm-budgetsum {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 8px 16px;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetsum__card {
+  padding: 12px 14px;
+  border: 1px solid #e7e1d4;
+  border-radius: 6px;
+  background: #fff;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetsum__card span {
+  display: block;
+  font-size: 11px;
+  color: #8a7e6b;
+  margin-bottom: 4px;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetsum__card strong {
+  font-size: 18px;
+  color: #23211c;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetsum__card--gift {
+  border-color: #d4c4a8;
+  background: #faf6ee;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetgrp {
+  margin: 0 8px 14px;
+  border: 1px solid #e7e1d4;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetgrp--gift {
+  border-color: #d4c4a8;
+  background: #faf6ee;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetgrp__head {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #23211c;
+  background: #f7f3eb;
+  border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetgrp .rd-help {
+  margin: 8px 14px 0;
+  font-size: 12px;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow {
+  display: grid;
+  grid-template-columns: 1.4fr 1.2fr auto auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid #efe9dc;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow:last-child { border-bottom: 0; }
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow:hover { background: #faf7f1; }
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow--static { cursor: default; }
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow--static:hover { background: transparent; }
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow__name {
+  font-size: 13px;
+  color: #23211c;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow__meta {
+  font-size: 12px;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow__amt {
+  font-size: 12px;
+  color: #3f3b34;
+  white-space: nowrap;
+}
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-daylist,
+body.rd-scope.night #panel-honeymoon .rd-hm-daylist,
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-budgetgrp,
+body.rd-scope.night #panel-honeymoon .rd-hm-budgetgrp,
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-budgetsum__card,
+body.rd-scope.night #panel-honeymoon .rd-hm-budgetsum__card {
+  background: #17180f;
+  border-color: #33332c;
+}
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-day__title,
+body.rd-scope.night #panel-honeymoon .rd-hm-day__title,
+body.rd-scope[data-theme="night"] #panel-honeymoon .rd-hm-budgetrow__name,
+body.rd-scope.night #panel-honeymoon .rd-hm-budgetrow__name {
+  color: #e6e1d6;
+}
+
 body.rd-scope #panel-honeymoon .rd-hm-drawer .rd-drawer__head {
   position: relative;
   padding: 16px 18px 0;
