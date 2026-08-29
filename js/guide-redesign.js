@@ -337,6 +337,14 @@
       '</div></div>';
   }
 
+  function renderClosingSection() {
+    return '<div class="rd-getstarted-closing" id="rd-sec-closing">' +
+      '<div class="rd-getstarted-closing__rule"></div>' +
+      '<p class="rd-getstarted-closing__quote">“Commit thy works unto the Lord, and thy thoughts shall be established.”</p>' +
+      '<p class="rd-getstarted-closing__ref">Proverbs 16:3</p>' +
+      '<p class="rd-getstarted-closing__note">This planner is a personal planning tool — not legal, financial, pastoral, or professional counseling advice.</p></div>';
+  }
+
   function buildGetStartedHtml() {
     const d = (typeof getCovenantPlannerData === 'function') ? getCovenantPlannerData() : (window.data || {});
     const hourSteps = firstHourSteps(d);
@@ -398,7 +406,8 @@
       renderPathSection() +
       renderBeforeStartSection() +
       renderOrganisedSection() +
-      renderActionsSection();
+      renderActionsSection() +
+      renderClosingSection();
   }
 
   function buildGetStartedBody(panel) {
