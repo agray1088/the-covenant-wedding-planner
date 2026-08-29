@@ -264,10 +264,11 @@
   }
 
   function applySetupView() {
+    const earlier = window._setupView === 'earlier';
     const menuCard = panelQuery('.menu-visibility-card');
-    if (menuCard) {
-      menuCard.classList.toggle('rd-setup-legacy-hide', window._setupView === 'earlier');
-    }
+    if (menuCard) menuCard.classList.toggle('rd-setup-legacy-hide', earlier);
+    const danger = panelQuery('#rd-setup-danger');
+    if (danger) danger.classList.toggle('rd-setup-legacy-hide', earlier);
     ensureStatStrip();
     if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
   }
@@ -309,7 +310,8 @@
     Object.keys(FEEDS).forEach(id => {
       const input = document.getElementById(id);
       if (!input) return;
-      const field = input.closest('.m-field') || input.parentElement;
+      const field = input.closest('.rd-setup-field') || input.closest('.m-field') ||
+        input.closest('.rd-setup-field__control')?.parentElement || input.parentElement;
       if (!field || field.querySelector('.rd-setup-feeds')) return;
       const cap = document.createElement('div');
       cap.className = 'rd-setup-feeds';

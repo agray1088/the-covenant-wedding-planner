@@ -99,6 +99,36 @@
 
   /* ── Get Started (15b) ───────────────────────────────────────────────── */
 
+  function backupMetaHtml() {
+    let last = null;
+    let size = null;
+    let records = null;
+    try {
+      const ob = (typeof getCovenantPlannerData === 'function' ? getCovenantPlannerData() : window.data)?.onboard || {};
+      if (ob.lastBackupTime) {
+        const t = new Date(ob.lastBackupTime);
+        if (!Number.isNaN(t.getTime())) {
+          const mins = Math.round((Date.now() - t.getTime()) / 60000);
+          if (mins < 60) last = mins + ' minute' + (mins === 1 ? '' : 's') + ' ago';
+          else if (mins < 1440) last = Math.round(mins / 60) + ' hour' + (Math.round(mins / 60) === 1 ? '' : 's') + ' ago';
+          else last = Math.round(mins / 1440) + ' day' + (Math.round(mins / 1440) === 1 ? '' : 's') + ' ago';
+        }
+      }
+      if (ob.lastBackupSize) size = ob.lastBackupSize;
+      if (typeof countPlannerRecords === 'function') records = countPlannerRecords();
+      else {
+        const d = (typeof getCovenantPlannerData === 'function') ? getCovenantPlannerData() : (window.data || {});
+        records = ['guests', 'tasks', 'payments', 'vendors', 'budget', 'gifts', 'contracts', 'appointments']
+          .reduce((n, k) => n + (Array.isArray(d[k]) ? d[k].length : 0), 0);
+      }
+    } catch (e) { /* optional meta */ }
+    if (!last) return '';
+    const parts = ['Last backup', last];
+    if (size) parts.push(size);
+    if (records != null) parts.push(records + ' record' + (records === 1 ? '' : 's'));
+    return '<p class="rd-getstarted-readfirst__backup">' + esc(parts.join(' · ')) + '</p>';
+  }
+
   function renderGetStarted() {
     const panel = ensureHead('panel-instructions', 'Overview · start planning',
       'Get Started', 'Download backup', 'rdGuideBackup()',
@@ -165,8 +195,9 @@
       '<aside class="rd-getstarted-readfirst">' +
       '<div class="rd-getstarted-readfirst__k">Read this first</div>' +
       '<p>If you clear your browser history, cookies or site data — or open the planner on another device without restoring a backup — <strong>your saved work will not be there.</strong></p>' +
-      '<p class="rd-getstarted-readfirst__note">Wait a few seconds after opening the planner before your first backup, so the database finishes loading.</p>' +
-      '<div class="rd-getstarted-readfirst__actions">' +
+        '<p class="rd-getstarted-readfirst__note">Wait a few seconds after opening the planner before your first backup, so the database finishes loading.</p>' +
+        backupMetaHtml() +
+        '<div class="rd-getstarted-readfirst__actions">' +
       '<button type="button" class="rd-btn rd-btn--primary" onclick="rdGuideBackup()">Download backup</button>' +
       '<button type="button" class="rd-btn" onclick="rdSetupRestore()">Restore</button></div></aside></div>' +
       '<div class="rd-setup-band"><div class="rd-setup-band__head"><span>How the planner connects</span>' +
@@ -227,7 +258,9 @@
   function renderGuide() {
     const panel = ensureHead('panel-guide', 'Overview · start planning',
       'Page-by-Page Guide', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)",
-      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>');
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print guide</button>' +
+      '<button type="button" class="rd-btn" onclick="rdGuideExportMap()">Export</button>' +
+      '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'datahub\',true)">Open the spec</button>');
     if (!panel) return;
     let host = panel.querySelector('#rd-guide-viewhost');
     if (!host) {
@@ -262,13 +295,44 @@
     renderGuideDrawer();
   }
 
+  function guidePrintClassCounts() {
+    let a = 0;
+    let b = 0;
+    PAGE_CONTRACT.forEach(r => {
+      if (/class a/i.test(r[5])) a++;
+      else if (/class b/i.test(r[5])) b++;
+    });
+    return { a: a, b: b };
+  }
+
   function renderGuideToolbar() {
     const bar = document.getElementById('rd-guide-toolbar');
     if (!bar) return;
     const v = window._guideView || 'entries';
+    const cls = guidePrintClassCounts();
     bar.innerHTML =
+      '<div class="rd-guide-toolbar__left">' +
       '<span class="rd-guide-count">' + PAGE_CONTRACT.length + ' pages · only one page owns any given field</span>' +
-      '<div class="rd-toolbar__right"><div class="rd-viewswitch" role="group" aria-label="Guide view">' +
+      (v === 'table'
+        ? '<div class="rd-guide-filterrow">' +
+          '<span class="rd-guide-filterchip">Pages</span>' +
+          '<span class="rd-guide-filterchip">Tabs</span>' +
+          '<span class="rd-guide-filterchip is-on">Pages that own data</span>' +
+          '<span class="rd-guide-filterchip">Derived views</span>' +
+          '<span class="rd-guide-filterchip">Printables</span>' +
+          '<span class="rd-guide-filtermeta">' + cls.a + ' class A · ' + cls.b + ' class B</span>' +
+          '</div>'
+        : '') +
+      '</div>' +
+      '<div class="rd-toolbar__right">' +
+      (v === 'table'
+        ? '<div class="rd-guide-table-actions">' +
+          '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdGuideToggleOwnership()">Show ownership</button>' +
+          '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdGuideSortTab()">Sort by tab order</button>' +
+          '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdGuideExportMap()">Export the map</button>' +
+          '</div>'
+        : '') +
+      '<div class="rd-viewswitch" role="group" aria-label="Guide view">' +
       '<button type="button" class="rd-viewswitch__item' + (v === 'entries' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'entries\')">Accordion</button>' +
       '<button type="button" class="rd-viewswitch__item' + (v === 'table' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'table\')">Table</button>' +
       '<button type="button" class="rd-viewswitch__item' + (v === 'print' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'print\')">Print view</button>' +
@@ -281,16 +345,23 @@
       if (el) el.hidden = name !== v;
     });
   }
+  function guideTableRows() {
+    if (!window._guideSortTab) return PAGE_CONTRACT;
+    return PAGE_CONTRACT.slice().sort((a, b) => a[1].localeCompare(b[1]) || a[0].localeCompare(b[0]));
+  }
+
   function renderGuideTable() {
     const host = document.getElementById('rd-guide-table');
     if (!host) return;
+    const rows = guideTableRows();
     let html = '<div class="rd-guide-table-head"><div><strong>Every page, one row</strong>' +
-      '<span>' + PAGE_CONTRACT.length + ' pages · what each owns versus what it borrows</span></div></div>' +
+      '<span>' + PAGE_CONTRACT.length + ' pages · what each owns versus what it borrows · A = working print, B = keepsake</span></div></div>' +
       '<div class="ued-table-wrap rd-guide-table-wrap"><table class="rd-guide-contract"><thead><tr>' +
       '<th class="rd-guide-th-page">Page</th><th>Tab</th><th class="rd-guide-th-owns">Owns</th><th>Reads from</th><th>Feeds</th><th>Prints</th>' +
       '</tr></thead><tbody>';
-    PAGE_CONTRACT.forEach((row, i) => {
-      html += '<tr class="rd-guide-crow" onclick="rdGuideOpenEntry(' + i + ')">' +
+    rows.forEach((row, i) => {
+      const srcIdx = PAGE_CONTRACT.indexOf(row);
+      html += '<tr class="rd-guide-crow" onclick="rdGuideOpenEntry(' + srcIdx + ')">' +
         '<td class="rd-guide-cpage">' + esc(row[0]) + '</td>' +
         '<td>' + esc(row[1]) + '</td>' +
         '<td class="rd-guide-owns">' + esc(row[2]) + '</td>' +
@@ -403,6 +474,28 @@
 
   /* ── actions ─────────────────────────────────────────────────────────── */
 
+  function rdGuideExportMap() {
+    const rows = [['Page', 'Tab', 'Owns', 'Reads from', 'Feeds', 'Prints']]
+      .concat(PAGE_CONTRACT.map(r => r.slice()));
+    const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'page-by-page-guide-map.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    if (typeof showToast === 'function') showToast('Guide map exported.');
+  }
+  function rdGuideToggleOwnership() {
+    document.getElementById('panel-guide')?.classList.toggle('rd-guide-owning');
+    if (typeof showToast === 'function') showToast('Owns column highlighted.');
+  }
+  function rdGuideSortTab() {
+    window._guideSortTab = !window._guideSortTab;
+    renderGuideTable();
+    if (typeof showToast === 'function') showToast(window._guideSortTab ? 'Sorted by tab order.' : 'Default order restored.');
+  }
+
   function rdGuideBackup() {
     if (typeof downloadSqliteBackup === 'function') downloadSqliteBackup();
     else if (typeof exportData === 'function') exportData();
@@ -413,6 +506,9 @@
   function rdGuideCloseDrawer() { window._guideDrawer = null; const s = document.getElementById('rd-guide-drawer'); if (s) { s.innerHTML = ''; s.classList.remove('is-open'); } }
   function rdGuideSetDrawerTab(k) { window._guideDrawerTab = k; renderGuideDrawer(); }
 
+  window.rdGuideExportMap = rdGuideExportMap;
+  window.rdGuideToggleOwnership = rdGuideToggleOwnership;
+  window.rdGuideSortTab = rdGuideSortTab;
   window.rdGuideBackup = rdGuideBackup;
   window.rdGuideSetView = rdGuideSetView;
   window.rdGuideOpenEntry = rdGuideOpenEntry;
