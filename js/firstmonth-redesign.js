@@ -41,10 +41,17 @@
   const SEED_RHYTHMS = [
     {
       id: 'pray', title: 'Pray together before sleep',
-      meaning: 'Out loud, by name, even on the short nights.',
+      meaning: 'Out loud, by name, even on the short nights. If one of us is away we do it on the phone — the rhythm is the praying, not the being in the same room.',
       cadence: 'Every night', cadenceKind: 'Daily', owner: 'Both', area: 'Spiritual',
       kept: '14 nights', since: '9 Nov', startISO: '2026-11-09', horizon: 'Ongoing',
-      source: { label: 'From the vision', page: 'Vision & Foundation', go: "showPanel('vision')" }
+      reviewed: 'Each anniversary',
+      source: { label: 'From the vision', page: 'Vision & Foundation', go: "showPanel('vision')" },
+      links: [
+        { page: 'Vision & Foundation', detail: 'Value · rest is obedience', go: "showPanel('vision')" },
+        { page: 'Prayer Journal', detail: 'Entries written together', go: "showPanel('prayer')" },
+        { page: 'Counseling', detail: 'Session 06 · faith at home', go: "showPanel('counseling')" }
+      ],
+      streakDetail: { thisWeek: '7 of 7', lastWeek: '7 of 7', longest: '14 nights', missed: '0' }
     },
     {
       id: 'screens', title: 'No screens after 10pm',
@@ -188,11 +195,14 @@
         startISO: seed.startISO,
         horizon: seed.horizon,
         source: seed.source || null,
+        links: seed.links || null,
+        reviewed: seed.reviewed || (seed.horizon === 'Anniversary' ? 'Each anniversary' : 'Each anniversary'),
+        streakDetail: seed.streakDetail || null,
         paused: false,
         status: seed.kept && !/^0\b/.test(seed.kept) ? 'Kept' : 'Planned',
         history: [
-          { when: '2026-07', who: 'Ama', what: 'Written into the plan' },
-          { when: seed.startISO, who: '', what: 'Rhythm begins' }
+          { when: '2026-07-21', who: 'Both', what: 'Written, before the wedding' },
+          { when: seed.startISO, who: 'Both', what: 'Started' }
         ]
       }));
       d.firstmonth._fmS30Seeded = true;
@@ -208,8 +218,18 @@
         if (r.area == null) r.area = r.category || 'Other';
         if (r.paused == null) r.paused = false;
         if (r.horizon == null) r.horizon = horizonOf(r);
+        if (r.reviewed == null) r.reviewed = r.horizon === 'Anniversary' ? 'Each anniversary' : 'Each anniversary';
         if (!Array.isArray(r.history)) r.history = [];
       });
+      /* Patch pray rhythm prose + links when an older s30 seed is already on disk. */
+      const pray = d.rhythms.find(x => /pray together/i.test(String(x.title || x.name || '')));
+      if (pray) {
+        if (!/on the phone/i.test(String(pray.meaning || ''))) {
+          pray.meaning = SEED_RHYTHMS[0].meaning;
+        }
+        if (!Array.isArray(pray.links) || !pray.links.length) pray.links = SEED_RHYTHMS[0].links;
+        if (!pray.streakDetail) pray.streakDetail = SEED_RHYTHMS[0].streakDetail;
+      }
     }
     return d;
   }
@@ -233,6 +253,9 @@
         startDate: start,
         horizon: horizonOf({ horizon: row.horizon, cadence: row.cadence, cadenceKind: kind }),
         source: row.source || null,
+        links: Array.isArray(row.links) ? row.links : [],
+        reviewed: String(row.reviewed || 'Each anniversary'),
+        streakDetail: row.streakDetail || null,
         history: Array.isArray(row.history) ? row.history : [],
         paused: !!row.paused
       };
@@ -281,7 +304,42 @@
     const k = String(r.kept || '');
     if (!k) return false;
     if (/^0\b/.test(k)) return false;
+    if (k === '—') return false;
     return true;
+  }
+  function keptTone(r) {
+    const k = String(r.kept || '');
+    if (!k || notBegun(r)) return '';
+    if (/^0\b/.test(k)) return ' is-zero';
+    if (/of/.test(k)) {
+      const m = k.match(/(\d+)\s+of\s+(\d+)/);
+      if (m && Number(m[1]) < Number(m[2])) return ' is-partial';
+    }
+    return ' is-kept';
+  }
+  function fmTheNine() {
+    const f = fmFigures();
+    return [
+      { label: 'Daily', value: String(f.daily) },
+      { label: 'Weekly', value: String(f.weekly) },
+      { label: 'Monthly', value: String(f.monthly) },
+      { label: 'Yearly', value: String(f.yearly) }
+    ];
+  }
+  function fmAcrossNine() {
+    const rows = allRows();
+    const kept = rows.filter(isKept).length;
+    const atZero = rows.filter(r => /^0\b/.test(String(r.kept || ''))).length;
+    return { keptThisMonth: kept + ' of ' + rows.length, atZero: String(atZero) };
+  }
+  function streakDetailFor(r) {
+    if (r.streakDetail) return r.streakDetail;
+    if (notBegun(r)) return { thisWeek: '—', lastWeek: '—', longest: '—', missed: '—' };
+    const k = String(r.kept || '—');
+    return { thisWeek: k, lastWeek: k, longest: k, missed: /^0\b/.test(k) ? '1' : '0' };
+  }
+  function nightOutRhythm() {
+    return allRows().find(r => /night out/i.test(r.title));
   }
 
   function fmFigures() {
@@ -587,6 +645,7 @@
           const sel = window._fmSel.has(r.id);
           const sid = jsId(r.id);
           const open = window._fmDrawerId === r.id;
+          const keptCls = keptTone(r);
           html += `<tr class="rd-fm-row${sel ? ' is-selected' : ''}${r.paused ? ' is-paused' : ''}${open ? ' is-open' : ''}" data-fm-id="${esc(r.id)}" onclick="rdFmRowClick(event,'${sid}')">` +
             `<td onclick="event.stopPropagation()"><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdFmToggleSel('${sid}')"></td>` +
             `<td class="rd-fm-rhythmcell">` +
@@ -597,7 +656,7 @@
             `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" list="fm-cadence-list" value="${esc(r.cadence)}" oninput="rdFmSave(${r.index},'cadence',this.value)"></td>` +
             `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" list="fm-owner-list" value="${esc(r.owner)}" oninput="rdFmSave(${r.index},'owner',this.value)"></td>` +
             `<td onclick="event.stopPropagation()"><select onchange="rdFmSave(${r.index},'area',this.value)">${selectHtml(AREAS, r.area)}</select></td>` +
-            `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" value="${esc(r.kept)}" placeholder="—" oninput="rdFmSave(${r.index},'kept',this.value)"></td>` +
+            `<td class="rd-fm-kept${keptCls}" onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" value="${esc(r.kept)}" placeholder="—" oninput="rdFmSave(${r.index},'kept',this.value)"></td>` +
             `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" value="${esc(r.since)}" placeholder="—" oninput="rdFmSave(${r.index},'since',this.value)"></td>` +
             `</tr>`;
         });
@@ -666,6 +725,13 @@
     const shown = empty ? 'Add…' : value;
     return `<div class="rd-drawer__field"><span>${esc(label)}</span><strong${click}>${esc(shown)}</strong></div>`;
   }
+  function drawerKvRow(label, value, tone) {
+    const cls = tone ? ` rd-fm-kv__val--${tone}` : '';
+    return `<div class="rd-fm-kv"><span>${esc(label)}</span><span class="rd-fm-kv__val${cls}">${esc(value)}</span></div>`;
+  }
+  function drawerKvBlock(rows) {
+    return `<div class="rd-fm-kvblock">${rows.map(r => drawerKvRow(r[0], r[1], r[2])).join('')}</div>`;
+  }
 
   function renderDrawer() {
     const slot = document.getElementById('firstmonth-drawer-slot');
@@ -688,61 +754,93 @@
     const notYet = notBegun(r);
     const streakLabel = notYet ? '—' : (r.kept || '—');
     const inits = (typeof RdDepth !== 'undefined' && RdDepth.initials) ? RdDepth.initials(r.owner) : (r.owner || '?').slice(0, 2).toUpperCase();
+    const cadenceEyebrow = String(r.cadenceKind || 'Weekly').toLowerCase();
+    const streak = streakDetailFor(r);
+    const across = fmAcrossNine();
+    const nightOut = nightOutRhythm();
 
     let body = '';
     if (tab === 0) {
       /* Rhythm — the definition matters more than the field. */
       body =
-        `<label class="rd-drawer__inputlabel">Rhythm</label>` +
-        `<input class="rd-fm-drawer__input" value="${esc(r.title)}" placeholder="Name the rhythm" oninput="rdFmSave(${r.index},'title',this.value)">` +
-        `<label class="rd-drawer__inputlabel">What it means</label>` +
-        `<textarea class="rd-fm-drawer__input rd-fm-drawer__input--tall" rows="4" placeholder="Say it plainly enough that a slip is obvious." oninput="rdFmSave(${r.index},'meaning',this.value)">${esc(r.meaning)}</textarea>` +
-        `<div class="rd-drawer__field"><span>Area</span><strong>${esc(r.area)}</strong></div>` +
-        (r.source
-          ? `<div class="rd-drawer__section-title">Where it came from</div>` +
-            drawerField(r.source.page || 'Source', r.source.label, r.source.go || '')
-          : '') +
-        `<p class="rd-drawer__note">A vague rhythm gets redefined until it is always kept. The wording here is the rhythm — not the checkbox.</p>`;
+        drawerKvBlock([
+          ['Cadence', r.cadence],
+          ['Owner', r.owner],
+          ['Area', r.area],
+          ['Begins', r.startDate ? fmtLong(r.startDate) : (r.since || '—')],
+          ['Streak', streakLabel]
+        ]) +
+        `<div class="rd-drawer__section-title">What it means</div>` +
+        (r.meaning
+          ? `<blockquote class="rd-fm-meaning-quote">${esc(r.meaning)}</blockquote>`
+          : `<p class="rd-drawer__note">Say it plainly enough that a slip is obvious.</p>`) +
+        `<textarea class="rd-fm-drawer__input rd-fm-drawer__input--tall" rows="3" placeholder="Edit the meaning" oninput="rdFmSave(${r.index},'meaning',this.value)">${esc(r.meaning)}</textarea>` +
+        `<p class="rd-drawer__note">The definition matters more than the field. A rhythm with a vague meaning is a rhythm that gets quietly redefined until it is always kept.</p>` +
+        (r.links && r.links.length
+          ? `<div class="rd-drawer__section-title">Linked</div>` +
+            r.links.map(l => drawerField(l.page, l.detail, l.go || '')).join('')
+          : (r.source
+            ? `<div class="rd-drawer__section-title">Where it came from</div>` +
+              drawerField(r.source.page || 'Source', r.source.label, r.source.go || '')
+            : ''));
     } else if (tab === 1) {
       /* Cadence — begins the day after the wedding, never the Timeline. */
       body =
-        `<label class="rd-drawer__inputlabel">Cadence</label>` +
-        `<input class="rd-fm-drawer__input" list="fm-cadence-list" value="${esc(r.cadence)}" oninput="rdFmSave(${r.index},'cadence',this.value)">` +
-        `<div class="rd-drawer__field"><span>Owner</span><strong>${esc(r.owner)}</strong></div>` +
-        drawerField('Starts', r.startDate ? fmtLong(r.startDate) : (r.since || '—')) +
-        `<datalist id="fm-cadence-list-drawer">${CADENCE_LABELS.map(c => `<option value="${esc(c)}">`).join('')}</datalist>` +
-        `<p class="rd-drawer__note">Begins the day after the wedding and never touches the Timeline. This is not wedding work — nothing here appears on Timeline & Tasks.</p>`;
+        drawerKvBlock([
+          ['Frequency', r.cadence],
+          ['Begins', r.startDate ? fmtLong(r.startDate) : (r.since || '—')],
+          ['Reviewed', r.reviewed || 'Each anniversary'],
+          ['Paused', r.paused ? 'Yes' : 'Never']
+        ]) +
+        `<p class="rd-drawer__note">Rhythms begin the <b>day after the wedding</b> and never appear on the Timeline. They are not wedding work, and mixing them in would make the task list look unfinishable.</p>` +
+        `<div class="rd-drawer__section-title">The nine</div>` +
+        drawerKvBlock(fmTheNine().map(x => [x.label, x.value]));
     } else if (tab === 2) {
       /* Streak — counted, not scored. No target, no badge. */
       body =
-        `<div class="rd-fm-streak">` +
-        `<div class="rd-fm-streak__num">${esc(streakLabel)}</div>` +
-        `<div class="rd-fm-streak__cap">${notYet ? 'Has not begun' : 'kept'}</div>` +
-        `</div>` +
-        `<label class="rd-drawer__inputlabel">Kept</label>` +
-        `<input class="rd-fm-drawer__input" value="${esc(r.kept)}" placeholder="—" oninput="rdFmSave(${r.index},'kept',this.value)">` +
-        `<p class="rd-drawer__note">Counted, not scored. There is no target and no badge — the number exists only so a slip is visible. Before the start date it reads “—”, never “0”.</p>`;
+        drawerKvBlock([
+          ['This week', streak.thisWeek, /^0\b/.test(String(streak.thisWeek)) ? 'zero' : 'kept'],
+          ['Last week', streak.lastWeek, /^0\b/.test(String(streak.lastWeek)) ? 'zero' : 'kept'],
+          ['Longest run', streak.longest, 'kept'],
+          ['Missed', streak.missed, String(streak.missed) === '0' ? '' : 'zero']
+        ]) +
+        `<p class="rd-drawer__note">A streak is counted, not scored. There is no target and no badge — the number exists so a slip is visible, not so it can be won.</p>` +
+        (nightOut && /^0\b/.test(String(nightOut.kept || ''))
+          ? `<p class="rd-fm-streak-callout">One rhythm is at 0 of 1: “${esc(nightOut.title)}”. A monthly rhythm missed once is a rhythm missed for a month, which is why the page shows monthlies in red rather than amber.</p>`
+          : '') +
+        `<div class="rd-drawer__section-title">Across the nine</div>` +
+        drawerKvBlock([
+          ['Kept this month', across.keptThisMonth, 'kept'],
+          ['At zero', across.atZero, Number(across.atZero) > 0 ? 'zero' : '']
+        ]);
     } else {
       /* History — written in July, started in November. */
       const hist = (r.history && r.history.length) ? r.history : [
-        { when: '2026-07', who: 'Ama', what: 'Written into the plan' }
+        { when: '2026-07-21', who: 'Both', what: 'Written, before the wedding' }
       ];
+      const sinceLabel = r.since ? ('Since ' + r.since) : 'Since —';
       body =
         `<div class="rd-drawer__section-title">This rhythm</div>` +
-        hist.map(h => {
-          const w = h.when && /^\d{4}-\d{2}$/.test(String(h.when))
-            ? new Date(h.when + '-01T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            : (parseISO(h.when) ? fmtShort(parseISO(h.when)) : (h.when || '—'));
-          return `<div class="rd-drawer__hist"><strong>${esc(w)}${h.who ? ' · ' + esc(h.who) : ''}</strong><div>${esc(h.what)}</div></div>`;
-        }).join('') +
-        `<p class="rd-drawer__note">Written in July, started in November. The gap between the two dates is deliberate — the rhythm is decided long before it begins.</p>` +
+        drawerKvBlock([
+          [sinceLabel, notYet ? '—' : ((r.kept || '—') + ' kept'), notYet ? '' : 'kept'],
+          ...hist.slice().reverse().slice(0, 2).map(h => {
+            const w = h.when && /^\d{4}-\d{2}-\d{2}$/.test(String(h.when))
+              ? fmtShort(parseISO(h.when))
+              : (h.when && /^\d{4}-\d{2}$/.test(String(h.when))
+                ? new Date(h.when + '-01T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+                : (parseISO(h.when) ? fmtShort(parseISO(h.when)) : (h.when || '—')));
+            const who = h.who ? (' · ' + h.who) : '';
+            return [w + who, h.what];
+          })
+        ]) +
+        `<p class="rd-drawer__note">Written in July, started in November. The gap between defining a rhythm and beginning it is deliberate — deciding under no pressure, keeping it under real conditions.</p>` +
         (typeof RdDepth !== 'undefined' && RdDepth.provenanceLine
-          ? RdDepth.provenanceLine({ created: 'Jul 2026', createdBy: 'Ama', modified: r.startDate ? fmtShort(r.startDate) : 'Nov 2026', modifiedBy: r.owner || 'Both' })
+          ? RdDepth.provenanceLine({ created: 'Jul 2026', createdBy: 'Both', modified: r.startDate ? fmtShort(r.startDate) : 'Nov 2026', modifiedBy: r.owner || 'Both' })
           : '');
     }
 
     const chips =
-      `<span class="status-pill" data-pillscheme="forest">${esc(r.cadence)}</span>` +
+      `<span class="status-pill" data-pillscheme="forest">${esc(r.cadenceKind)}</span>` +
       `<span class="status-pill" data-pillscheme="gray">${esc(r.area)}</span>` +
       (notYet
         ? `<span class="status-pill" data-pillscheme="gray">Not begun</span>`
@@ -753,7 +851,7 @@
       `<aside class="rd-drawer rd-fm-drawer" aria-label="Rhythm">` +
       `<div class="rd-drawer__head">` +
       `<button type="button" class="rd-drawer__close" onclick="rdFmCloseDrawer()" aria-label="Close">×</button>` +
-      `<div class="rd-drawer__eyebrow">Rhythm · ${pos + 1} of ${total}</div>` +
+      `<div class="rd-drawer__eyebrow">Rhythm · ${esc(cadenceEyebrow)}</div>` +
       `<h2 class="rd-drawer__title">${esc(r.title || 'Untitled rhythm')}</h2>` +
       `<div class="rd-drawer__chips">${chips}</div>` +
       `<div class="rd-fm-drawer__nav">` +
