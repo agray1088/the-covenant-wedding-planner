@@ -3525,7 +3525,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s30` · slug `first-month-rhythms`
 - **Header counts:** 6 screens · 1 record drawer
-- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §31
+- **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §32
 - **Screen ids:** `13d`, `32g`, `32h`
 
 ### Five parts on this page

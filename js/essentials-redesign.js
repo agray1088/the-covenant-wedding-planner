@@ -316,12 +316,15 @@
     const mode = window._essMode || 'checklist';
     let stats;
     if (mode === 'byPerson') {
+      const unassignedItems = allItems().filter(x => x.unassigned);
+      const cardBoxUnassigned = unassignedItems.some(x => /card box|guest book/i.test([x.item, x.note, x.where].join(' ')));
+      const ringsCritical = allItems().some(x => x.critical && x.status !== 'In the bag' && /ring/i.test(x.item));
       stats = [
         { label: 'Items', value: String(f.items) },
         { label: 'Packed', value: String(f.packed) },
         { label: 'Carriers', value: String(f.carriers) },
-        { label: 'Unassigned', value: String(f.unassigned), attention: f.unassigned ? 'needs a name' : undefined },
-        { label: 'Day-of critical', value: String(f.criticalOpen), attention: f.criticalOpen ? 'open' : undefined }
+        { label: 'Unassigned', value: String(f.unassigned), attention: f.unassigned ? (cardBoxUnassigned ? 'incl. the card box' : 'needs a name') : undefined },
+        { label: 'Day-of critical', value: String(f.criticalOpen), attention: f.criticalOpen ? (ringsCritical ? 'the rings' : 'open') : undefined }
       ];
     } else if (mode === 'print') {
       stats = [
@@ -447,7 +450,6 @@
   function applyEssentialsRailView(viewId) {
     window._essRailView = viewId || 'all';
     if (typeof setSavedView === 'function') setSavedView('essentials', window._essRailView);
-    window._essMode = 'checklist';
     renderEssentialsRd();
   }
   function applyEssentialsGroupBy(id) {
