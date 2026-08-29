@@ -1,18 +1,30 @@
-/* Newlywed Homecoming — All.dc #18a
-   Stacked: Settling in · Name change · First month budget · What we noticed.
-   Viewswitch: Tasks | Name change | Budget (scrolls to section).
-   Rail: Sections · Progress (+ bars) · Group by · note.
-   Thank-you / post-wedding counts fold into Settling rows (Gifts-derived), not a separate tab. */
+/* Newlywed Homecoming — Master s33 · 18a · 31g · 31h
+   Views: Newlywed Homecoming (18a default) · Name change view (31g) · Budget view (31h).
+   18a: Settling in · Name change · First month budget · What we noticed (stacked).
+   31g: dependency-ordered name-change list with step bands.
+   31h: after-the-day budget cards (Budgeted · Committed · Paid) — separate from wedding budget.
+   Rail: Settling in · Name change · First month budget · What we noticed · Group by.
+   Drawer: Name-change step · Institution · Documents · Dates · History.
+   Thank-you counts fold into Settling rows (Gifts-derived), not typed twice. */
 (function () {
   'use strict';
 
+  window._hcPageView = window._hcPageView || 'tasksView';
   window._hcMode = window._hcMode || 'tasks';
   window._hcRailView = window._hcRailView || 'settling';
   window._hcGroupBy = window._hcGroupBy || 'area';
-  window._hcUiFilters = window._hcUiFilters || { area: 'all', owner: 'both', status: 'all' };
+  window._hcUiFilters = window._hcUiFilters || { area: 'all', owner: 'both', status: 'all', person: 'both', category: 'all' };
+  window._hcShowDeps = window._hcShowDeps !== false;
   window._hcSel = window._hcSel instanceof Set ? window._hcSel : new Set();
   window._hcDrawerId = window._hcDrawerId || null;
   window._hcDrawerTab = window._hcDrawerTab || 0;
+
+  /* View switcher (31g / 31h) — exact labels per fidelity pass §33. */
+  const PAGE_VIEWS = [
+    ['tasksView', 'Newlywed Homecoming'],
+    ['namechangeView', 'Name change view'],
+    ['budgetView', 'Budget view']
+  ];
 
   const AREAS = ['The home', 'Wedding wrap-up', 'Money', 'Church', 'Documents', 'Home Setup', 'Thank-You Notes', 'Other'];
   const OWNERS = ['Both', 'Bride', 'Groom', 'Ama', 'Kwesi', 'Akosua', 'Michael'];
@@ -54,13 +66,40 @@
     ['step4', 'Email, subscriptions, loyalty', '14 small accounts', '—', '', 0, 'Ready']
   ];
   const MASTER_BUDGET = [
-    ['Setting up the home', 'First month rent', 600, 0, 'Due day 1 of the month'],
-    ['Setting up the home', 'Utilities connection', 120, 0, ''],
-    ['Admin', 'Passport reissue', 110, 0, 'Government fee · after-the-day budget'],
-    ['Admin', 'Ghana Card + licence + certificate copies', 100, 0, 'Name-change government fees'],
-    ["Living", 'Groceries above the usual', 340, 0, 'Hosting in the first month'],
-    ['Living', 'Suit-return late fee', 0, 0, 'Contingent · $40 only if returned after 12 Nov, not a budget line']
+    ['Setting up the home', 'First month rent', 600, 600, 0, 'Due day 1 of the month', 'Committed'],
+    ['Setting up the home', 'Utilities connection', 120, 120, 0, '', 'Committed'],
+    ['Admin', 'Passport reissue', 110, 110, 0, 'Government fee · after-the-day budget', 'Committed'],
+    ['Admin', 'Ghana Card + licence + certificate copies', 100, 100, 0, 'Name-change government fees', 'Committed'],
+    ['Living', 'Groceries above the usual', 340, 340, 0, 'Hosting in the first month', 'Underway'],
+    ['Living', 'Suit-return late fee', 0, 0, 0, 'Contingent · $40 only if returned after 12 Nov, not a budget line', 'Contingent']
   ];
+  /* 31h card ledger — same records as firstMonthBudget; card rows are the canonical set. */
+  const MASTER_BUDGET_CARDS = [
+    ['Admin', 'Name change fees', '4 government offices', 250, 210, 0, 'Committed'],
+    ['Wedding wrap-up', 'Thank-you notes', 'Cards, stamps, printing', 180, 145, 95, 'Underway'],
+    ['Wedding wrap-up', 'Dress preservation', 'Clean and box', 300, 0, 0, 'Quote needed'],
+    ['Wedding wrap-up', 'Album and prints', 'From Nii Photography', 400, 400, 0, 'In contract'],
+    ['Wedding wrap-up', 'Suit and dress returns', 'Kingsway hire · late fees risk', 0, 540, 200, 'Unowned'],
+    ['Living', 'Homecoming dinner', 'First meal as a household', 200, 200, 0, 'Planned'],
+    ['Setting up the home', 'First month rent', 'Due day 1 of the month', 600, 600, 0, 'Committed'],
+    ['Setting up the home', 'Utilities connection', '', 120, 120, 0, 'Committed'],
+    ['Living', 'Groceries above the usual', 'Hosting in the first month', 340, 340, 0, 'Underway']
+  ];
+  const BUDGET_STATUSES = ['Committed', 'Underway', 'Quote needed', 'In contract', 'Unowned', 'Planned', 'Contingent', 'Not started'];
+  const NAME_LIST_TITLES = {
+    'registrar, accra': 'Collect certified copies · 3',
+    'ghana card update': 'Ghana Card update',
+    'passport reissue': 'Passport reissue',
+    "driver's licence": "Driver's licence",
+    'voter register': 'Voter register',
+    'bank · primary current account': 'Bank · primary current account',
+    'mobile money account': 'Mobile money account',
+    'pension and ssnit': 'Pension and SSNIT',
+    'employer hr record': 'Employer HR record',
+    'insurance policies · 3': 'Insurance policies · 3',
+    'utilities and landlord': 'Utilities and landlord',
+    'email, subscriptions, loyalty': 'Email, subscriptions, loyalty'
+  };
   const BUDGET_CATS = ['Setting up the home', 'Admin', 'Living'];
   const NOTICED_PROMPTS = [
     { id: 'surprised', n: '01', q: 'What surprised us about living together', hint: 'Left blank until the first month ends' },
@@ -108,18 +147,35 @@
       if (r.blocks == null) r.blocks = '';
       if (!r.status) r.status = r.done ? 'Complete' : 'Not Started';
     });
+    d.firstMonthBudget.forEach(r => {
+      if (r.spent == null && r.paid != null) r.spent = r.paid;
+      if (r.committed == null) r.committed = r.budgeted != null ? r.budgeted : 0;
+      if (!r.status) {
+        if (/contingent/i.test(String(r.note || ''))) r.status = 'Contingent';
+        else if ((parseFloat(r.spent) || 0) > 0) r.status = 'Underway';
+        else r.status = 'Committed';
+      }
+    });
     return d;
+  }
+  function budgetRow(category, line, note, budgeted, committed, spent, status) {
+    return {
+      category: category, line: line, item: line, note: note || '',
+      budgeted: budgeted, committed: committed, spent: spent, paid: spent, status: status || 'Committed'
+    };
   }
   function ensureMasterHomecoming() {
     const d = store();
-    if (d._hcMasterS33) return;
     const legacyNames = Array.isArray(d.nameChange) && d.nameChange.length > 0 &&
       !d.nameChange.some(r => /registrar|ghana card|ssnit|dvla/i.test(String(r.institution || r.task || '')));
     if (!Array.isArray(d.homecoming)) d.homecoming = [];
     if (!Array.isArray(d.nameChange)) d.nameChange = [];
     if (!Array.isArray(d.firstMonthBudget)) d.firstMonthBudget = [];
+    const legacyBudget = d.firstMonthBudget.length > 0 &&
+      !d.firstMonthBudget.some(r => /thank-you|dress preservation|homecoming dinner|name change fees/i.test(String(r.line || r.item || '')));
     const emptyAll = !d.homecoming.length && !d.nameChange.length && !d.firstMonthBudget.length;
-    if (emptyAll || legacyNames) {
+    if (d._hcMasterS33 && !legacyNames && !legacyBudget && !emptyAll) return;
+    if (emptyAll || legacyNames || legacyBudget || !d._hcMasterS33) {
       d.homecoming = MASTER_SETTLING.map(([task, area, owner, due, dependsOn, status]) => {
         const row = { task: task, item: task, area: area, cat: area, owner: owner, due: due, dependsOn: dependsOn, status: status, notes: '' };
         if (typeof nextRecordId === 'function') row._id = nextRecordId('homecoming');
@@ -130,7 +186,8 @@
         if (typeof nextRecordId === 'function') row._id = nextRecordId('nameChange');
         return row;
       });
-      d.firstMonthBudget = MASTER_BUDGET.map(([category, line, budgeted, spent, note]) => ({ category: category, line: line, item: line, budgeted: budgeted, spent: spent, note: note }));
+      d.firstMonthBudget = MASTER_BUDGET_CARDS.map(([category, line, note, budgeted, committed, spent, status]) =>
+        budgetRow(category, line, note, budgeted, committed, spent, status));
     }
     d._hcMasterS33 = true;
     if (typeof save === 'function') save();
@@ -217,8 +274,15 @@
     const budget = d.firstMonthBudget;
     const homeDone = home.filter(r => completeStatus(r.status) || r.done).length;
     const nameDone = names.filter(r => r.done || completeStatus(r.status) || /confirmed/i.test(String(r.confirmed || ''))).length;
+    const nameReady = names.filter(r => /ready/i.test(String(r.status || ''))).length;
+    const nameBlocked = names.filter(r => /blocked/i.test(String(r.status || ''))).length;
+    const nameFees = names.reduce((s, r) => s + (parseFloat(r.cost) || 0), 0);
     const budgeted = budget.reduce((s, r) => s + (parseFloat(r.budgeted) || 0), 0);
-    const spent = budget.reduce((s, r) => s + (parseFloat(r.spent) || 0), 0);
+    const committed = budget.reduce((s, r) => s + (parseFloat(r.committed != null ? r.committed : r.budgeted) || 0), 0);
+    const spent = budget.reduce((s, r) => s + (parseFloat(r.spent != null ? r.spent : r.paid) || 0), 0);
+    const noQuote = budget.filter(r => /quote needed/i.test(String(r.status || ''))).length;
+    const contingentTotal = budget.filter(r => /contingent|late fee|returns/i.test(String(r.line || '') + String(r.note || '')))
+      .reduce((s, r) => s + Math.max(parseFloat(r.committed) || 0, parseFloat(r.budgeted) || 0, 120), 0);
     const begins = beginsDate();
     const totalTasks = home.length + names.length + budget.length;
     const totalDone = homeDone + nameDone + budget.filter(r => (parseFloat(r.spent) || 0) > 0).length;
@@ -227,9 +291,15 @@
       homeDone,
       nameChange: names.length,
       nameDone,
+      nameReady,
+      nameBlocked,
+      nameFees,
       budgetRows: budget.length,
       budgeted,
+      committed,
       spent,
+      noQuote,
+      contingentTotal,
       tasksTotal: totalTasks,
       tasksDone: totalDone,
       beginsShort: fmtShort(begins),
@@ -249,24 +319,39 @@
   }
 
   function pageheadActionsHtml() {
+    const view = window._hcPageView || 'tasksView';
+    if (view === 'namechangeView') {
+      return ''
+        + '<button type="button" class="rd-btn" onclick="rdHcPrintNamePack()">Print checklist</button>'
+        + '<button type="button" class="rd-btn" onclick="rdHcFullEditor()">Full editor</button>'
+        + '<button type="button" class="rd-btn" onclick="rdHcExport()">Export</button>'
+        + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdHcMarkStepDone()">Mark step done</button>';
+    }
+    if (view === 'budgetView') {
+      return ''
+        + '<button type="button" class="rd-btn" onclick="rdHcPrint()">Print summary</button>'
+        + '<button type="button" class="rd-btn" onclick="rdHcFullEditor()">Full editor</button>'
+        + '<button type="button" class="rd-btn" onclick="rdHcExport()">Export</button>'
+        + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdHcAddBudget()">Add a line</button>';
+    }
     return ''
       + '<button type="button" class="rd-btn" onclick="rdHcLoadPreset()">Load a starter list</button>'
       + '<button type="button" class="rd-btn" onclick="rdHcPrint()">Print section</button>'
       + '<button type="button" class="rd-btn" onclick="rdHcFullEditor()">Full editor</button>'
       + '<button type="button" class="rd-btn" onclick="rdHcExport()">Export</button>'
-      + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdHcAddTask()">+ Add task</button>';
+      + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdHcAddTask()">Add task</button>';
   }
 
   function ensureShell() {
     const panel = document.getElementById('panel-homecoming');
     if (!panel) return;
     panel.classList.add('ued-scope', 'homecoming-mockup');
-    if (panel.dataset.uedShell === 'homecoming-rd-s33') {
+    if (panel.dataset.uedShell === 'homecoming-rd-s33v2') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'homecoming-rd-s33';
+    panel.dataset.uedShell = 'homecoming-rd-s33v2';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -281,10 +366,14 @@
       <div class="rd-surface">
         <div class="rd-surface__row" id="homecoming-surface-row">
           <div class="rd-surface__main" id="homecoming-view-host">
-            <section class="rd-hc-block" id="hc-sec-settling" data-hc-sec="settling"></section>
-            <section class="rd-hc-block" id="hc-sec-namechange" data-hc-sec="namechange"></section>
-            <section class="rd-hc-block" id="hc-sec-budget" data-hc-sec="budget"></section>
-            <section class="rd-hc-block" id="hc-sec-noticed" data-hc-sec="noticed"></section>
+            <div class="rd-view" id="hc-view-tasksView">
+              <section class="rd-hc-block" id="hc-sec-settling" data-hc-sec="settling"></section>
+              <section class="rd-hc-block" id="hc-sec-namechange" data-hc-sec="namechange"></section>
+              <section class="rd-hc-block" id="hc-sec-budget" data-hc-sec="budget"></section>
+              <section class="rd-hc-block" id="hc-sec-noticed" data-hc-sec="noticed"></section>
+            </div>
+            <div class="rd-view" id="hc-view-namechangeView" hidden></div>
+            <div class="rd-view" id="hc-view-budgetView" hidden></div>
           </div>
           <div id="homecoming-drawer-slot"></div>
         </div>
@@ -292,32 +381,65 @@
     </div>`;
   }
 
+  function applyPageViewMode() {
+    const mode = window._hcPageView || 'tasksView';
+    PAGE_VIEWS.forEach(([id]) => {
+      const el = document.getElementById('hc-view-' + id);
+      if (el) el.hidden = id !== mode;
+    });
+  }
+
   function renderStats() {
     const host = document.getElementById('homecoming-stats');
     if (!host) return;
     const f = hcFigures();
-    const spend = money0(f.spent) + ' of ' + money0(f.budgeted || 2400);
-    const stats = [
-      { label: 'Tasks', value: String(f.tasksTotal) },
-      { label: 'Done', value: String(f.tasksDone) },
-      { label: 'Name change', value: f.nameDone + ' of ' + f.nameChange },
-      { label: 'First month spend', value: spend },
-      { label: 'Begins', value: f.beginsShort }
-    ];
+    const view = window._hcPageView || 'tasksView';
+    let stats = [];
+    if (view === 'namechangeView') {
+      stats = [
+        { label: 'Steps', value: String(f.nameChange) },
+        { label: 'Ready now', value: String(f.nameReady) },
+        { label: 'Blocked', value: String(f.nameBlocked), sub: 'all on the certificate chain' },
+        { label: 'Longest lead', value: '8 weeks', sub: 'passport reissue' },
+        { label: 'Fees', value: money0(f.nameFees), sub: 'after-the-day budget' }
+      ];
+    } else if (view === 'budgetView') {
+      stats = [
+        { label: 'Budgeted', value: money0(f.budgeted) },
+        { label: 'Committed', value: money0(f.committed), bar: f.budgeted ? Math.round((f.committed / f.budgeted) * 100) : 0 },
+        { label: 'Paid', value: money0(f.spent) },
+        { label: 'No quote yet', value: String(f.noQuote), sub: f.noQuote === 1 ? 'dress preservation' : '', tone: 'warn' },
+        { label: 'Contingent', value: money0(f.contingentTotal || 120), sub: 'suit return, 10 Nov', tone: 'risk' }
+      ];
+    } else {
+      const spend = money0(f.spent) + ' of ' + money0(f.budgeted || 1730);
+      stats = [
+        { label: 'Tasks', value: String(f.tasksTotal) },
+        { label: 'Done', value: String(f.tasksDone) },
+        { label: 'Name change', value: f.nameDone + ' of ' + f.nameChange },
+        { label: 'First month spend', value: spend },
+        { label: 'Begins', value: f.beginsShort }
+      ];
+    }
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, stats);
+      RdDepth.renderStats(host, stats.map(s => ({ label: s.label, value: s.value })));
       return;
     }
-    host.innerHTML = stats.map(s =>
-      `<div class="m-stat"><div class="m-stat-label">${esc(s.label)}</div><div class="m-stat-val">${esc(s.value)}</div></div>`
-    ).join('');
+    host.innerHTML = stats.map(s => {
+      let html = `<div class="m-stat${s.tone === 'warn' ? ' m-stat--warn' : ''}${s.tone === 'risk' ? ' m-stat--risk' : ''}">` +
+        `<div class="m-stat-label">${esc(s.label)}</div><div class="m-stat-val">${esc(s.value)}</div>`;
+      if (s.sub) html += `<div class="m-stat-sub">${esc(s.sub)}</div>`;
+      if (s.bar != null) html += `<div class="rd-track m-stat-bar"><div class="rd-fill" style="width:${s.bar}%"></div></div>`;
+      html += `</div>`;
+      return html;
+    }).join('');
   }
 
   function filterChip(label, field) {
     const ui = window._hcUiFilters || {};
     const cur = ui[field] || 'all';
-    const on = cur && cur !== 'all' && !(field === 'owner' && cur === 'both');
-    const display = field === 'owner' && (!cur || cur === 'all') ? 'both' : cur;
+    const on = cur && cur !== 'all' && !(field === 'owner' && cur === 'both') && !(field === 'person' && cur === 'both');
+    const display = (field === 'owner' || field === 'person') && (!cur || cur === 'all') ? 'both' : cur;
     const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg>';
     return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="rdHcCycleFilter('${field}')">${esc(label + ': ' + display)}`
       + (on ? `<span class="rd-chip__clear" onclick="event.stopPropagation();rdHcClearFilter('${field}')">&#10005;</span>` : chev)
@@ -327,20 +449,29 @@
   function renderToolbar() {
     const host = document.getElementById('homecoming-toolbar');
     if (!host) return;
-    const mode = window._hcMode || 'tasks';
-    host.innerHTML =
-      filterChip('Area', 'area') +
-      filterChip('Owner', 'owner') +
-      filterChip('Status', 'status') +
-      (typeof rdSortChipHtml === 'function'
-        ? rdSortChipHtml('Sort by due date', "rdHcSortDue()")
-        : '<button type="button" class="rd-chip rd-chip--ghost" onclick="rdHcSortDue()">Sort by due date</button>') +
+    const view = window._hcPageView || 'tasksView';
+    let left = '';
+    if (view === 'namechangeView') {
+      left = filterChip('Person', 'person') + filterChip('Status', 'status') +
+        `<button type="button" class="rd-chip${window._hcShowDeps ? ' is-active' : ''}" onclick="rdHcToggleDeps()">Show dependencies${window._hcShowDeps ? '<span class="rd-chip__clear" onclick="event.stopPropagation();rdHcToggleDeps()">&#10005;</span>' : ''}</button>` +
+        `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdHcSortDeps()">Sort by dependency order</button>`;
+    } else if (view === 'budgetView') {
+      left = filterChip('Category', 'category') + filterChip('Status', 'status') +
+        `<span class="rd-ess-toolbar-note">Separate from the wedding budget</span>`;
+    } else {
+      left = filterChip('Area', 'area') + filterChip('Owner', 'owner') + filterChip('Status', 'status') +
+        (typeof rdSortChipHtml === 'function'
+          ? rdSortChipHtml('Sort by due date', "rdHcSortDue()")
+          : '<button type="button" class="rd-chip rd-chip--ghost" onclick="rdHcSortDue()">Sort by due date</button>');
+    }
+    const pv = view || 'tasksView';
+    host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
-      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('homecoming') : '') +
+      (view === 'tasksView' && typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('homecoming') : '') +
       `<div class="rd-viewswitch" role="group" aria-label="Homecoming view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'tasks' ? ' is-active' : ''}" onclick="rdSetHomecomingView('tasks')">Tasks</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'namechange' ? ' is-active' : ''}" onclick="rdSetHomecomingView('namechange')">Name change</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'budget' ? ' is-active' : ''}" onclick="rdSetHomecomingView('budget')">Budget</button>` +
+      PAGE_VIEWS.map(([id, label]) =>
+        `<button type="button" class="rd-viewswitch__item${pv === id ? ' is-active' : ''}" onclick="rdSetHomecomingView('${id}')">${esc(label)}</button>`
+      ).join('') +
       `</div></div>`;
   }
 
@@ -369,30 +500,39 @@
   }
 
   function rdSetHomecomingView(mode) {
-    if (mode === 'nameChange') mode = 'namechange';
-    if (mode === 'after' || mode === 'settling') mode = 'tasks';
-    window._hcMode = (mode === 'namechange' || mode === 'budget') ? mode : 'tasks';
-    window._hcRailView = window._hcMode === 'tasks' ? 'settling' : window._hcMode;
-    if (typeof setSavedView === 'function') setSavedView('homecoming', window._hcRailView);
-    renderToolbar();
-    scrollToSection(window._hcMode === 'tasks' ? 'settling' : window._hcMode);
-    if (typeof renderContextSidebar === 'function'
-      && document.body.getAttribute('data-active-panel') === 'homecoming') {
-      renderContextSidebar('homecoming');
+    if (mode === 'tasks' || mode === 'after' || mode === 'settling') mode = 'tasksView';
+    if (mode === 'namechange' || mode === 'nameChange') mode = 'namechangeView';
+    if (mode === 'budget') mode = 'budgetView';
+    window._hcPageView = PAGE_VIEWS.some(([id]) => id === mode) ? mode : 'tasksView';
+    window._hcMode = window._hcPageView === 'tasksView' ? 'tasks'
+      : (window._hcPageView === 'namechangeView' ? 'namechange' : 'budget');
+    if (window._hcPageView === 'tasksView') {
+      /* keep rail section when returning to stacked view */
+    } else if (window._hcPageView === 'namechangeView') {
+      window._hcRailView = 'namechange';
+    } else if (window._hcPageView === 'budgetView') {
+      window._hcRailView = 'budget';
     }
+    if (typeof setSavedView === 'function') setSavedView('homecoming', window._hcRailView);
+    window._hcDrawerId = null;
+    renderHomecomingRd();
   }
   function applyHomecomingRailView(viewId) {
     window._hcRailView = ['settling', 'namechange', 'budget', 'noticed'].includes(viewId) ? viewId : 'settling';
     if (typeof setSavedView === 'function') setSavedView('homecoming', window._hcRailView);
-    window._hcMode = window._hcRailView === 'settling' || window._hcRailView === 'noticed'
-      ? 'tasks'
-      : window._hcRailView;
-    renderToolbar();
-    scrollToSection(window._hcRailView);
-    if (typeof renderContextSidebar === 'function'
-      && document.body.getAttribute('data-active-panel') === 'homecoming') {
-      renderContextSidebar('homecoming');
+    if (viewId === 'namechange') {
+      window._hcPageView = 'namechangeView';
+      window._hcMode = 'namechange';
+    } else if (viewId === 'budget') {
+      window._hcPageView = 'budgetView';
+      window._hcMode = 'budget';
+    } else {
+      window._hcPageView = 'tasksView';
+      window._hcMode = 'tasks';
     }
+    window._hcDrawerId = null;
+    renderHomecomingRd();
+    if (window._hcPageView === 'tasksView') scrollToSection(viewId);
   }
   function applyHomecomingGroupBy(id) {
     window._hcGroupBy = ['area', 'owner', 'due'].includes(id) ? id : 'area';
@@ -619,6 +759,110 @@
     host.innerHTML = html;
   }
 
+  function nameListTitle(row) {
+    const key = String(row.institution || row.task || '').trim().toLowerCase();
+    if (NAME_LIST_TITLES[key]) return NAME_LIST_TITLES[key];
+    if (/registrar/i.test(key)) return 'Collect certified copies · 3';
+    return row.institution || row.task || '';
+  }
+  function nameDepNote(row) {
+    const doc = String(row.document || '').trim();
+    if (doc && !/^needs/i.test(doc)) return doc;
+    return row.blocks || row.document || '—';
+  }
+  function statusPill(status) {
+    const s = String(status || 'Not Started');
+    let scheme = 'muted';
+    if (/complete|confirmed|ready|committed|underway|planned|in contract/i.test(s)) scheme = /ready|underway|planned|in contract/i.test(s) ? 'green' : 'green';
+    else if (/blocked|quote needed|unowned|waiting|not started/i.test(s)) scheme = /blocked|quote needed|unowned/i.test(s) ? 'gold' : 'muted';
+    else if (/contingent|risk|late/i.test(s)) scheme = 'red';
+    return `<span class="status-pill" data-pillscheme="${scheme}">${esc(s)}</span>`;
+  }
+  function bandHint(bandId) {
+    if (bandId === 'step1') return 'marriage certificate · blocks 11 downstream steps';
+    if (bandId === 'step2') return 'passport before bank, bank before everything else';
+    if (bandId === 'step3') return 'each needs the passport, not the certificate';
+    if (bandId === 'step4') return 'no dependency, do in any order';
+    return '';
+  }
+
+  function renderNamechangeViewPage() {
+    const host = document.getElementById('hc-view-namechangeView');
+    if (!host) return;
+    const d = ensureData();
+    const ui = window._hcUiFilters || {};
+    const seenBands = {};
+    const bandOrder = NAME_BANDS.filter(b => { if (seenBands[b.label]) return false; seenBands[b.label] = 1; return true; });
+    let html = '<div class="rd-hc-nameview">';
+    bandOrder.forEach(band => {
+      const labelSet = new Set(NAME_BANDS.filter(b => b.label === band.label).map(b => b.id));
+      const rows = d.nameChange
+        .map((row, index) => ({ row, index }))
+        .filter(x => labelSet.has(x.row.band || mapNameBand(x.row.category, x.row.status)))
+        .filter(x => {
+          if (ui.status && ui.status !== 'all' && String(x.row.status || '') !== ui.status) return false;
+          return true;
+        });
+      if (!rows.length) return;
+      html += `<div class="rd-hc-nameview__band"><div class="rd-hc-nameview__bandhead">` +
+        `<span class="rd-hc-nameview__bandtitle">${esc(band.label)}</span>` +
+        `<span class="rd-hc-nameview__bandhint">${esc(bandHint(band.id))}</span></div>`;
+      rows.forEach(x => {
+        const r = x.row;
+        const blocked = /blocked/i.test(String(r.status || ''));
+        const id = 'nameChange:' + x.index;
+        html += `<button type="button" class="rd-hc-nameview__row${blocked ? ' is-blocked' : ''}" onclick="rdHcOpenDrawer('${esc(id)}')">` +
+          `<div class="rd-hc-nameview__main"><div class="rd-hc-nameview__title">${esc(nameListTitle(r))}</div>` +
+          (r.office ? `<div class="rd-hc-nameview__sub">${esc(r.office)}</div>` : '') + `</div>` +
+          (window._hcShowDeps ? `<div class="rd-hc-nameview__dep">${esc(nameDepNote(r))}</div>` : '') +
+          `<div class="rd-hc-nameview__cost">${esc(Number(r.cost) > 0 ? money0(r.cost) : '—')}</div>` +
+          `<div class="rd-hc-nameview__pill">${statusPill(r.status)}</div>` +
+          `</button>`;
+      });
+      html += `</div>`;
+    });
+    if (!d.nameChange.length) {
+      html += `<div class="rd-empty">No institutions yet. Add the registry first — everything else waits on the certificate.</div>`;
+    }
+    html += `<button type="button" class="rd-hc-addbtn" onclick="rdHcAddNameChange()"><span>+</span> Add an institution</button></div>`;
+    host.innerHTML = html;
+  }
+
+  function renderBudgetViewPage() {
+    const host = document.getElementById('hc-view-budgetView');
+    if (!host) return;
+    const d = ensureData();
+    const ui = window._hcUiFilters || {};
+    const rows = d.firstMonthBudget.map((row, index) => ({ row, index })).filter(x => {
+      if (ui.category && ui.category !== 'all' && String(x.row.category || '') !== ui.category) return false;
+      if (ui.status && ui.status !== 'all' && String(x.row.status || '') !== ui.status) return false;
+      return true;
+    });
+    let html = `<div class="rd-hc-budgetview"><div class="rd-hc-budgetview__grid">`;
+    if (!rows.length) {
+      html += `<div class="rd-empty">No after-the-day budget lines yet. Add rent, admin, and living — this total never appears on the wedding Budget page.</div>`;
+    }
+    rows.forEach(x => {
+      const r = x.row;
+      const budgeted = parseFloat(r.budgeted) || 0;
+      const committed = parseFloat(r.committed != null ? r.committed : r.budgeted) || 0;
+      const paid = parseFloat(r.spent != null ? r.spent : r.paid) || 0;
+      const pct = budgeted > 0 ? Math.round((committed / budgeted) * 100) : (committed > 0 ? 100 : 0);
+      html += `<article class="rd-hc-budgetcard">` +
+        `<div class="rd-hc-budgetcard__head"><div><div class="rd-hc-budgetcard__title">${esc(r.line || r.item || '')}</div>` +
+        (r.note ? `<div class="rd-hc-budgetcard__sub">${esc(r.note)}</div>` : '') + `</div></div>` +
+        `<div class="rd-hc-budgetcard__pills">${statusPill(r.status || 'Committed')}</div>` +
+        `<div class="rd-hc-budgetcard__lines">` +
+        `<div><span>Budgeted</span><strong>${esc(money0(budgeted))}</strong></div>` +
+        `<div><span>Committed</span><strong>${esc(money0(committed))}</strong></div>` +
+        `<div><span>Paid</span><strong>${esc(money0(paid))}</strong></div>` +
+        `</div><div class="rd-track rd-hc-budgetcard__bar"><div class="rd-fill" style="width:${Math.min(pct, 100)}%"></div></div>` +
+        `</article>`;
+    });
+    html += `</div><button type="button" class="rd-hc-addbtn" onclick="rdHcAddBudget()"><span>+</span> Add a budget line</button></div>`;
+    host.innerHTML = html;
+  }
+
   /* ── Name-change step drawer (Institution · Documents · Dates · History) ── */
 
   function parkSharedDrawerAway(slot) {
@@ -787,10 +1031,11 @@
   }
   function rdHcAddBudget() {
     const d = ensureData();
-    d.firstMonthBudget.push({ line: '', category: 'Living', budgeted: '', spent: '', note: '' });
+    d.firstMonthBudget.push({ line: '', category: 'Living', budgeted: '', committed: '', spent: '', paid: '', note: '', status: 'Planned' });
     saveNow();
+    window._hcPageView = 'budgetView';
+    window._hcRailView = 'budget';
     renderHomecomingRd();
-    scrollToSection('budget');
   }
   async function rdHcLoadPreset() {
     if (typeof loadHCPreset === 'function') {
@@ -823,15 +1068,8 @@
       }));
     }
     if (!d.firstMonthBudget.length) {
-      [
-        ['Setting up the home', 'First month rent', 600, 'Due day 1 of the month'],
-        ['Setting up the home', 'Utilities connection', 120, ''],
-        ['Admin', 'Passport renewal', 180, ''],
-        ['Admin', 'Marriage certificate copies', 40, 'Institutions keep the original'],
-        ['Living', 'Groceries above the usual', 340, 'Hosting in the first month']
-      ].forEach(([category, line, budgeted, note]) => d.firstMonthBudget.push({
-        category, line, budgeted, spent: 0, note
-      }));
+      MASTER_BUDGET_CARDS.forEach(([category, line, note, budgeted, committed, spent, status]) =>
+        d.firstMonthBudget.push(budgetRow(category, line, note, budgeted, committed, spent, status)));
     }
     saveNow();
     renderHomecomingRd();
@@ -876,18 +1114,40 @@
     const d = ensureData();
     if (field === 'area') d.homecoming.forEach(r => { opts[r.area || mapLegacyArea(r.cat) || 'Other'] = true; });
     if (field === 'owner') { opts.both = true; d.homecoming.forEach(r => { opts[r.owner || 'Both'] = true; }); }
-    if (field === 'status') d.homecoming.forEach(r => { opts[r.status || 'Not Started'] = true; });
+    if (field === 'person') { opts.both = true; opts.bride = true; opts.groom = true; }
+    if (field === 'category') d.firstMonthBudget.forEach(r => { opts[r.category || 'Other'] = true; });
+    if (field === 'status') {
+      if ((window._hcPageView || 'tasksView') === 'namechangeView') d.nameChange.forEach(r => { opts[r.status || 'Not Started'] = true; });
+      else if ((window._hcPageView || 'tasksView') === 'budgetView') BUDGET_STATUSES.forEach(s => { opts[s] = true; });
+      else d.homecoming.forEach(r => { opts[r.status || 'Not Started'] = true; });
+    }
     const list = Object.keys(opts);
-    const cur = (window._hcUiFilters || {})[field] || (field === 'owner' ? 'both' : 'all');
+    const cur = (window._hcUiFilters || {})[field] || (field === 'owner' || field === 'person' ? 'both' : 'all');
     const i = Math.max(0, list.indexOf(cur));
     window._hcUiFilters[field] = list[(i + 1) % list.length];
     renderToolbar();
-    renderSettling();
+    if ((window._hcPageView || 'tasksView') === 'namechangeView') renderNamechangeViewPage();
+    else if ((window._hcPageView || 'tasksView') === 'budgetView') renderBudgetViewPage();
+    else renderSettling();
   }
   function rdHcClearFilter(field) {
-    window._hcUiFilters[field] = field === 'owner' ? 'both' : 'all';
+    window._hcUiFilters[field] = (field === 'owner' || field === 'person') ? 'both' : 'all';
     renderToolbar();
-    renderSettling();
+    if ((window._hcPageView || 'tasksView') === 'namechangeView') renderNamechangeViewPage();
+    else if ((window._hcPageView || 'tasksView') === 'budgetView') renderBudgetViewPage();
+    else renderSettling();
+  }
+  function rdHcToggleDeps() {
+    window._hcShowDeps = !window._hcShowDeps;
+    renderToolbar();
+    renderNamechangeViewPage();
+  }
+  function rdHcSortDeps() { /* order is fixed by dependency bands in Master 31g */ renderNamechangeViewPage(); }
+  function rdHcMarkStepDone() {
+    const d = ensureData();
+    const next = d.nameChange.find(r => !completeStatus(r.status) && !/blocked/i.test(String(r.status || '')));
+    if (next) { next.status = 'Complete'; next.done = true; saveNow(); renderHomecomingRd(); }
+    else if (typeof showToast === 'function') showToast('Every step that can move is already done.');
   }
   function rdHcSortDue() {
     const d = ensureData();
@@ -951,11 +1211,22 @@
       if (saved === 'after') saved = 'settling';
       window._hcRailView = ['settling', 'namechange', 'budget', 'noticed'].includes(saved) ? saved : 'settling';
     }
-    if (window._hcMode === 'after') window._hcMode = 'tasks';
-    if (window._hcRailView === 'namechange') window._hcMode = 'namechange';
-    else if (window._hcRailView === 'budget') window._hcMode = 'budget';
-    else window._hcMode = 'tasks';
+    if (window._hcRailView === 'namechange' && !window._hcPageView) window._hcPageView = 'namechangeView';
+    if (window._hcRailView === 'budget' && !window._hcPageView) window._hcPageView = 'budgetView';
+    if (!window._hcPageView) window._hcPageView = 'tasksView';
+    if (window._hcPageView === 'tasksView') {
+      window._hcMode = 'tasks';
+    } else if (window._hcPageView === 'namechangeView') {
+      window._hcMode = 'namechange';
+      window._hcRailView = 'namechange';
+    } else if (window._hcPageView === 'budgetView') {
+      window._hcMode = 'budget';
+      window._hcRailView = 'budget';
+    }
     ensureShell();
+    applyPageViewMode();
+    const actions = document.querySelector('#panel-homecoming .rd-pagehead__actions');
+    if (actions) actions.innerHTML = pageheadActionsHtml();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('homecoming');
     renderStats();
     renderToolbar();
@@ -964,6 +1235,8 @@
     renderNameChange();
     renderBudget();
     renderNoticed();
+    renderNamechangeViewPage();
+    renderBudgetViewPage();
     renderNameDrawer();
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'homecoming'
@@ -1006,7 +1279,9 @@
   window.rdHcOpenDrawer = rdHcOpenDrawer;
   window.rdHcCloseDrawer = rdHcCloseDrawer;
   window.rdHcSetDrawerTab = rdHcSetDrawerTab;
-  window.rdHcNameFullEditor = rdHcNameFullEditor;
+  window.rdHcMarkStepDone = rdHcMarkStepDone;
+  window.rdHcToggleDeps = rdHcToggleDeps;
+  window.rdHcSortDeps = rdHcSortDeps;
 
   function hookHomecomingPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) window.SYSTEM_PANEL_RENDERERS.homecoming = function () { renderHomecomingRd(); };

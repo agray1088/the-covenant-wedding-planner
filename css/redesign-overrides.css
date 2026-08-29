@@ -26251,6 +26251,80 @@ body.rd-scope #panel-homecoming .rd-hc-keepsake__body textarea {
   resize: vertical;
 }
 
+/* §33 · 31g Name change view — dependency list */
+body.rd-scope #panel-homecoming .rd-hc-nameview { display: flex; flex-direction: column; gap: 0; }
+body.rd-scope #panel-homecoming .rd-hc-nameview__band { border-bottom: 1px solid #e7e1d4; }
+body.rd-scope #panel-homecoming .rd-hc-nameview__bandhead {
+  display: flex; align-items: baseline; gap: 12px; padding: 12px 20px 7px;
+  background: #f9f5ef; border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-homecoming .rd-hc-nameview__bandtitle {
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #20362D; font-weight: 700;
+}
+body.rd-scope #panel-homecoming .rd-hc-nameview__bandhint { font-size: 12px; color: #8a7e6b; }
+body.rd-scope #panel-homecoming .rd-hc-nameview__row {
+  display: flex; align-items: center; gap: 16px; width: 100%; text-align: left;
+  padding: 11px 20px; border: 0; border-bottom: 1px solid #f0ebe0; background: #fff; cursor: pointer;
+}
+body.rd-scope #panel-homecoming .rd-hc-nameview__row:hover { background: #faf7f1; }
+body.rd-scope #panel-homecoming .rd-hc-nameview__row.is-blocked {
+  box-shadow: inset 3px 0 0 #b8860b;
+}
+body.rd-scope #panel-homecoming .rd-hc-nameview__main { flex: 1 1 auto; min-width: 0; }
+body.rd-scope #panel-homecoming .rd-hc-nameview__title { font-size: 14px; color: #23211c; }
+body.rd-scope #panel-homecoming .rd-hc-nameview__sub { font-size: 12px; color: #8a7e6b; margin-top: 2px; }
+body.rd-scope #panel-homecoming .rd-hc-nameview__dep {
+  flex: 0 0 170px; font-size: 12px; color: #6b645d;
+}
+body.rd-scope #panel-homecoming .rd-hc-nameview__cost {
+  flex: 0 0 130px; font-size: 13px; color: #3f3b34; text-align: right; font-variant-numeric: tabular-nums;
+}
+body.rd-scope #panel-homecoming .rd-hc-nameview__pill { flex: 0 0 auto; }
+
+/* §33 · 31h Budget view — after-the-day cards */
+body.rd-scope #panel-homecoming .rd-hc-budgetview__grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; padding: 12px 4px 16px;
+}
+body.rd-scope #panel-homecoming .rd-hc-budgetcard {
+  border: 1px solid #e7e1d4; background: #fff; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+body.rd-scope #panel-homecoming .rd-hc-budgetcard__title {
+  font-size: 14px; font-weight: 600; color: #20362D; line-height: 1.3;
+}
+body.rd-scope #panel-homecoming .rd-hc-budgetcard__sub { font-size: 12px; color: #8a7e6b; margin-top: 2px; }
+body.rd-scope #panel-homecoming .rd-hc-budgetcard__pills { display: flex; flex-wrap: wrap; gap: 5px; }
+body.rd-scope #panel-homecoming .rd-hc-budgetcard__lines {
+  display: flex; flex-direction: column; gap: 4px; margin-top: 2px;
+}
+body.rd-scope #panel-homecoming .rd-hc-budgetcard__lines > div {
+  display: flex; justify-content: space-between; font-size: 12px;
+}
+body.rd-scope #panel-homecoming .rd-hc-budgetcard__lines span { color: #8a7e6b; }
+body.rd-scope #panel-homecoming .rd-hc-budgetcard__lines strong {
+  color: #3f3b34; font-variant-numeric: tabular-nums; font-weight: 500;
+}
+body.rd-scope #panel-homecoming .rd-hc-budgetcard__bar { margin-top: 2px; }
+body.rd-scope #panel-homecoming .m-stat-sub { font-size: 11px; color: #8a640f; margin-top: 4px; }
+body.rd-scope #panel-homecoming .m-stat--warn .m-stat-val { color: #8a640f; }
+body.rd-scope #panel-homecoming .m-stat--risk .m-stat-val { color: #9c3b34; }
+body.rd-scope #panel-homecoming .m-stat-bar { margin-top: 6px; height: 4px; }
+
+body.rd-scope.night #panel-homecoming .rd-hc-nameview__bandhead,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-nameview__bandhead { background: #1c1d13; border-color: #2e2e28; }
+body.rd-scope.night #panel-homecoming .rd-hc-nameview__bandtitle,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-nameview__bandtitle { color: #e6e1d6; }
+body.rd-scope.night #panel-homecoming .rd-hc-nameview__row,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-nameview__row { background: #14150f; border-color: #2e2e28; }
+body.rd-scope.night #panel-homecoming .rd-hc-nameview__row:hover,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-nameview__row:hover { background: #1c1d13; }
+body.rd-scope.night #panel-homecoming .rd-hc-nameview__title,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-nameview__title { color: #e6e1d6; }
+body.rd-scope.night #panel-homecoming .rd-hc-budgetcard,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-budgetcard { background: #14150f; border-color: #2e2e28; }
+body.rd-scope.night #panel-homecoming .rd-hc-budgetcard__title,
+body.rd-scope[data-theme="night"] #panel-homecoming .rd-hc-budgetcard__title { color: #e6e1d6; }
+
 @media (max-width: 900px) {
   body.rd-scope #panel-households #households-drawer-slot.is-open,
   body.rd-scope #panel-contacts #contacts-drawer-slot.is-open,
