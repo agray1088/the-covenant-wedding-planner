@@ -27969,6 +27969,34 @@ body.rd-scope #panel-setup .rd-setup-menu-presets .rd-chip {
 body.rd-scope #panel-setup .rd-setup-menu-presets .rd-chip.is-active {
   background: #2D4A3E; color: #F4EFE6; border-color: #2D4A3E; font-weight: 600;
 }
+body.rd-scope #panel-setup .rd-setup-field--display .rd-setup-display-val {
+  padding: 7px 10px; border: 1px solid #e0dbd1; background: #fff; font-size: 13px; color: #23211c;
+}
+body.rd-scope #panel-setup .rd-setup-display-val.is-inline {
+  display: inline-block; margin-top: 4px; padding: 0; border: 0; background: transparent; color: #6b645d; font-size: 12px;
+}
+body.rd-scope #panel-setup .rd-setup-field__time {
+  font-size: 12px; color: #6b645d; margin-top: 4px; display: block;
+}
+body.rd-scope #panel-setup .rd-setup-menu-caption {
+  margin: 0 0 10px; font-size: 12px; line-height: 1.45; color: #6b645d;
+}
+body.rd-scope #panel-setup .rd-setup-danger__grid--3 {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+}
+@media (max-width: 1100px) {
+  body.rd-scope #panel-setup .rd-setup-danger__grid--3 { grid-template-columns: 1fr; }
+}
+body.rd-scope #panel-setup .rd-rail__item .rd-rail__count {
+  font-variant-numeric: tabular-nums; color: #8a7e6b; margin-left: 4px;
+}
+body.rd-scope #panel-setup .rd-setup-fielddrawer .rd-drawer__hist em {
+  display: block; color: #6b645d; font-style: normal; margin-top: 2px;
+}
+body.rd-scope.night #panel-setup .rd-setup-field--display .rd-setup-display-val,
+body.rd-scope[data-theme="night"] #panel-setup .rd-setup-field--display .rd-setup-display-val {
+  background: #1c1c18; border-color: #2e2e28; color: #e6e1d6;
+}
 body.rd-scope #panel-setup .rd-setup-danger__grid--4 {
   grid-template-columns: repeat(4, 1fr);
 }

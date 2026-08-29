@@ -4094,7 +4094,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §36
 - **Screen ids:** `15a`, `11c`
 
-> **Verified this pass (`bb4c5bb`).** `js/setup-redesign.js` now ships the Master pagehead (Overview · start planning + five actions), five-stat strip, Wedding Setup / earlier drawing view switcher (`11c` hides menu visibility), menu-visibility preset chips, Feeds captions + date impact drawer, four-card danger zone, and `setupRailHtml()` for the context rail. CSS: stat strip, legacy-hide, danger 4-col grid, drawer rows.
+> **Verified this pass.** `js/setup-redesign.js` ships Master 15a/11c pagehead (Overview · start planning + five actions), view switcher (`Wedding Setup` · `earlier drawing`), five-stat strips (15a: Days to wedding · Tasks complete · Vendors · Guests · Budget; 11c: Days to go · Wedding date · Budget · Guest cap · Seats), section grid (The couple through This device) with Feeds captions on every field, derived rows (Shown as · Seats · Adult/child rate · RSVP deadline · Paper size · Keepsake accent · Share expiry · Storage · Last backup · Weekly reminder), menu-visibility caption + seven preset chips + page list, danger zone (15a: four cards; 11c: three cards), Setup-field drawer (Field · Impact · History) with counseling-session impact + live history chips, and `setupRailHtml()` (13-field meter · danger-zone counts). CSS: display fields, menu caption, 3-col danger grid, drawer history, night tokens.
 
 ### Five parts on this page
 

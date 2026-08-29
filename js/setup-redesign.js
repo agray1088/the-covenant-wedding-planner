@@ -12,24 +12,56 @@
   window._setupDrawerTab = window._setupDrawerTab || 0;
   window._setupView = window._setupView || 'current';
 
-  const SHELL_VER = 'setup-rd-s35c';
-  const SETUP_FIELD_IDS = [
-    's-bride', 's-groom', 's-pastor', 's-church', 's-date', 's-engaged',
-    's-venue-ceremony', 's-venue-reception', 's-timezone', 's-budget', 's-currency',
-    's-guests', 's-locale', 's-dateformat', 's-style', 's-colors', 's-verse', 's-mission'
+  const SHELL_VER = 'setup-rd-s35e';
+  const SETUP_TRACKED = [
+    's-bride', 's-groom', 's-church', 's-date', 's-venue-ceremony', 's-venue-reception',
+    's-timezone', 's-budget', 's-currency', 's-guests', 's-locale', 's-colors', 's-dateformat'
+  ];
+  const HIDDEN_FIELD_IDS = [
+    's-pastor', 's-engaged', 's-style', 's-verse', 's-mission', 's-locale', 's-dateformat', 's-colors'
   ];
   const GRID_SECTIONS = [
-    { id: 'the-couple', title: 'The couple', fields: ['s-bride', 's-groom', 's-pastor', 's-church'] },
-    { id: 'the-day', title: 'The day', fields: ['s-date', 's-engaged', 's-venue-ceremony', 's-venue-reception', 's-timezone'] },
-    { id: 'money', title: 'Money', fields: ['s-budget', 's-currency'] },
-    { id: 'guests', title: 'Guests & seating', fields: ['s-guests'] },
-    { id: 'print', title: 'Print & sharing', fields: ['s-locale', 's-dateformat', 's-style', 's-colors'] },
-    { id: 'device', title: 'This device', photo: true }
+    {
+      id: 'the-couple', title: 'The couple',
+      fields: [
+        { id: 's-bride', label: 'Bride' },
+        { id: 's-groom', label: 'Groom' },
+        { id: 's-church', label: 'Home church' }
+      ],
+      display: ['shown-as']
+    },
+    {
+      id: 'the-day', title: 'The day',
+      fields: [
+        { id: 's-date', label: 'Wedding date' },
+        { id: 's-venue-ceremony', label: 'Ceremony', timeKey: 'ceremony' },
+        { id: 's-venue-reception', label: 'Reception', timeKey: 'reception' },
+        { id: 's-timezone', label: 'Time zone' }
+      ]
+    },
+    {
+      id: 'money', title: 'Money',
+      fields: [
+        { id: 's-budget', label: 'Budget target' },
+        { id: 's-currency', label: 'Currency' }
+      ],
+      display: ['gratuity-policy']
+    },
+    {
+      id: 'guests', title: 'Guests & seating',
+      fields: [{ id: 's-guests', label: 'Target guest count' }],
+      display: ['seats-available', 'adult-child-rate', 'rsvp-deadline']
+    },
+    {
+      id: 'print', title: 'Print & sharing',
+      display: ['paper-size', 'keepsake-accent', 'share-expiry']
+    },
+    {
+      id: 'device', title: 'This device', photo: true,
+      display: ['storage', 'last-backup', 'weekly-backup']
+    }
   ];
   const DRAWER_TABS = ['Field', 'Impact', 'History'];
-  const RAIL_SECTIONS = [
-    'the-couple', 'the-day', 'money', 'guests', 'menu', 'print', 'device'
-  ];
   const MENU_PRESETS = [
     ['all', 'Show all pages', 'setAllMenuPagesVisible'],
     ['advanced', 'Hide advanced pages', 'applySimpleMenuPreset'],
@@ -43,20 +75,25 @@
   const FEEDS = {
     's-bride': 'Guest List · Print Centre · every keepsake',
     's-groom': 'Guest List · Print Centre · every keepsake',
-    's-pastor': 'Ceremony & Reception · Premarital Counseling',
     's-church': 'Vision & Foundation · Counseling',
+    'shown-as': 'Top bar · invitations · share packets',
     's-date': 'Countdown · every task due date · the calendar',
-    's-engaged': 'Countdown · milestones',
     's-venue-ceremony': 'Ceremony & Reception · Timeline',
     's-venue-reception': 'Ceremony & Reception · Timeline',
     's-timezone': 'Calendar · reminders · smart create',
     's-budget': 'Budget · Dashboard · every spend bar',
-    's-currency': 'Payments · contracts · every amount',
-    's-guests': 'Guest List · seating · catering counts',
-    's-style': 'Vision Board · print styling',
-    's-colors': 'Vision Board · print styling',
-    's-verse': 'Keepsakes · Vision & Foundation',
-    's-mission': 'Vision & Foundation'
+    's-currency': 'Every money column in the planner',
+    'gratuity-policy': 'Budget · Payments · Vendors',
+    's-guests': 'Guest List · catering estimates · alerts',
+    'seats-available': 'Table Layout · catering headcount',
+    'adult-child-rate': 'Catering & Menu · headcount cost',
+    'rsvp-deadline': 'Guest List reminders · Email Templates',
+    'paper-size': 'Print Centre · every printable',
+    'keepsake-accent': 'Class B keepsakes',
+    'share-expiry': 'Share Packets',
+    storage: 'Database Hub',
+    'last-backup': 'Database Hub · Get Started',
+    'weekly-backup': 'Dashboard alert'
   };
 
   const esc = s => (typeof escapeHtml === 'function'
@@ -75,6 +112,97 @@
     const v = Math.round(parseFloat(n) || 0);
     if (typeof fmtMoney === 'function') { try { return fmtMoney(v); } catch (e) { /* fall */ } }
     return '$' + v.toLocaleString();
+  }
+
+  function timelineTime(kw) {
+    const tl = Array.isArray(store().timeline) ? store().timeline : [];
+    const e = tl.find(r => String(r.event || '').toLowerCase().includes(kw));
+    return e && e.time ? String(e.time).trim() : '';
+  }
+
+  function dhFigures() {
+    const d = store();
+    let records = 0;
+    let dbMb = '0.1';
+    const keys = ['guests', 'tasks', 'payments', 'vendors', 'budget', 'gifts', 'contracts', 'appointments',
+      'tables', 'counseling', 'packets', 'notes', 'contacts'];
+    keys.forEach(k => { if (Array.isArray(d[k])) records += d[k].length; });
+    try {
+      const blob = JSON.stringify(d);
+      dbMb = (blob.length / 1024 / 1024).toFixed(1);
+      if (dbMb === '0.0') dbMb = '0.1';
+    } catch (e) { /* soft */ }
+    let lastBackup = 'Never';
+    let backupDays = null;
+    try {
+      const ob = (typeof getOnboarding === 'function' ? getOnboarding() : null) ||
+        d._onboarding || {};
+      if (ob.lastBackupTime) {
+        backupDays = Math.round((Date.now() - new Date(ob.lastBackupTime).getTime()) / 86400000);
+        if (backupDays <= 0) lastBackup = 'Today';
+        else if (backupDays === 1) lastBackup = 'Yesterday';
+        else lastBackup = backupDays + ' days ago';
+      }
+    } catch (e) { /* soft */ }
+    return { records, dbMb, lastBackup, backupDays };
+  }
+
+  function setupFigures() {
+    const d = store();
+    const s = d.setup || {};
+    const bride = String(s.bride || '').trim();
+    const groom = String(s.groom || '').trim();
+    const shownAs = [bride, groom].filter(Boolean).join(' & ') || '—';
+    const cTime = timelineTime('ceremony') || String(s.ceremonyTime || '').trim();
+    const rTime = timelineTime('reception') || String(s.receptionTime || '').trim();
+    const ceremonyVenue = String(s['venue-ceremony'] || '').trim();
+    const receptionVenue = String(s['venue-reception'] || '').trim();
+    const ceremony = [ceremonyVenue, cTime].filter(Boolean).join(' · ') || '—';
+    const reception = [receptionVenue, rTime].filter(Boolean).join(' · ') || '—';
+    const tzEl = document.getElementById('s-timezone');
+    const tzDisplay = tzEl && tzEl.selectedIndex > 0
+      ? tzEl.options[tzEl.selectedIndex].text.replace(/^\([^)]+\)\s*/, '').trim()
+      : (String(s.timezone || '').trim() || '—');
+    const adult = parseFloat(s.costAdult) || 0;
+    const child = parseFloat(s.costChild) || 0;
+    const adultChild = (adult || child)
+      ? moneyFmt(adult).replace(/\.\d+$/, '') + ' / ' + moneyFmt(child).replace(/\.\d+$/, '')
+      : '—';
+    let rsvpLabel = 'Not set';
+    if (typeof getRsvpDeadlineInfo === 'function') {
+      const info = getRsvpDeadlineInfo();
+      if (info && info.date) {
+        rsvpLabel = typeof fmtDate === 'function' ? fmtDate(info.date) : String(info.date).slice(0, 10);
+      }
+    } else if (s.rsvpDeadline) {
+      rsvpLabel = s.rsvpDeadline;
+    }
+    const locale = String(s.locale || document.getElementById('s-locale')?.value || 'en-US');
+    const paperSize = /GB|AU|NZ|IE|ZA|FR|DE|ES|IT|PT|NL|SE|JP|KR/.test(locale)
+      ? 'A4 · Letter aware' : 'Letter · A4 aware';
+    const keepsake = String(s.colors || '').trim() || '—';
+    let shareExpiry = 'Not set';
+    const packets = Array.isArray(d.packets) ? d.packets : [];
+    const expiring = packets.filter(p => p.expires && !/expir|revok/i.test(String(p.status || '')));
+    if (expiring.length) {
+      const days = expiring.map(p => {
+        const ms = new Date(String(p.expires).slice(0, 10) + 'T00:00:00').getTime() - Date.now();
+        return Math.max(0, Math.ceil(ms / 86400000));
+      }).sort((a, b) => a - b);
+      if (days[0] != null) shareExpiry = days[0] + ' day' + (days[0] === 1 ? '' : 's');
+    } else if (s.shareExpiryDays) {
+      shareExpiry = s.shareExpiryDays + ' days';
+    }
+    const dh = dhFigures();
+    const guestTarget = String(s.guests || '').trim();
+    const guestDisplay = guestTarget ? (guestTarget + ' invited') : '—';
+    const earlier = window._setupView === 'earlier';
+    return {
+      shownAs, ceremony, reception, tzDisplay, adultChild, rsvpLabel, paperSize, keepsake, shareExpiry,
+      guestDisplay, dh,
+      gratuityPolicy: 'Tracked separately',
+      seatsAvailable: seatCount()
+    };
   }
 
   /* ── pagehead (Master 15a) ───────────────────────────────────────────── */
@@ -147,6 +275,9 @@
 
     const s = (store().setup) || {};
     const days = document.getElementById('setup-stat-days')?.textContent || '—';
+    const d = store();
+    const taskDone = Array.isArray(d.tasks) ? d.tasks.filter(t => t.status === 'Complete').length : 0;
+    const taskTotal = Array.isArray(d.tasks) ? d.tasks.length : 0;
     if (earlier) {
       strip.innerHTML =
         '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Days to go</span>' +
@@ -160,14 +291,11 @@
         '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Seats</span>' +
         '<span class="rd-setup-stat__v">' + esc(seatCount()) + '</span></div>';
     } else {
-      const taskDone = document.getElementById('setup-stat-tasks')?.textContent || '0';
-      const taskSub = document.getElementById('setup-stat-task-sub')?.textContent || '';
-      const tasks = taskSub ? (taskDone + ' of ' + (taskSub.match(/\d+/) || ['0'])[0]) : taskDone;
       strip.innerHTML =
         '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Days to wedding</span>' +
         '<span class="rd-setup-stat__v">' + esc(days) + '</span></div>' +
         '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Tasks complete</span>' +
-        '<span class="rd-setup-stat__v">' + esc(tasks) + '</span></div>' +
+        '<span class="rd-setup-stat__v">' + esc(taskTotal ? (taskDone + ' of ' + taskTotal) : taskDone) + '</span></div>' +
         '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Vendors booked</span>' +
         '<span class="rd-setup-stat__v">' + esc(document.getElementById('setup-stat-vendors')?.textContent || '0') + '</span></div>' +
         '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Guests invited</span>' +
@@ -179,17 +307,27 @@
 
   /* ── form grid (Master 15a / 11c — rd-setup-grid section bands) ─────── */
 
-  function convertSetupField(inputId) {
+  function convertSetupField(inputId, labelOverride) {
     const input = document.getElementById(inputId);
     if (!input) return null;
     let mField = input.closest('.m-field');
+    if (!mField) mField = input.parentElement;
     if (!mField) return null;
-    if (mField.classList.contains('rd-setup-field')) return mField;
-    const label = mField.querySelector('label');
-    const labelText = label ? label.textContent.replace(/:$/, '').trim() : inputId;
-    if (label) label.remove();
-    const row = document.createElement('div');
+    let row = mField.closest('.rd-setup-field');
+    if (row) {
+      if (labelOverride) {
+        const lab = row.querySelector('.rd-setup-field__label');
+        if (lab) lab.textContent = labelOverride;
+      }
+      return row;
+    }
+    const labelText = labelOverride ||
+      (mField.querySelector('label') ? mField.querySelector('label').textContent.replace(/:$/, '').trim() : inputId);
+    const labelEl = mField.querySelector('label');
+    if (labelEl) labelEl.remove();
+    row = document.createElement('div');
     row.className = 'rd-setup-field';
+    row.dataset.fieldId = inputId;
     row.innerHTML =
       '<span class="rd-setup-field__label">' + esc(labelText) + '</span>' +
       '<div class="rd-setup-field__control"></div>';
@@ -199,9 +337,51 @@
     return row;
   }
 
+  function feedsHtml(key) {
+    const text = FEEDS[key];
+    if (!text) return '';
+    return '<div class="rd-setup-feeds"><span class="rd-setup-feeds__k">Feeds</span> ' + esc(text) + '</div>';
+  }
+
+  function displayFieldRow(key, label, value) {
+    return '<div class="rd-setup-field rd-setup-field--display" data-display-key="' + esc(key) + '">' +
+      '<span class="rd-setup-field__label">' + esc(label) + '</span>' +
+      '<div class="rd-setup-field__control">' +
+      '<div class="rd-setup-display-val">' + esc(value) + '</div>' +
+      feedsHtml(key) +
+      '</div></div>';
+  }
+
+  function ensureHiddenFieldPocket(panel) {
+    let pocket = panel.querySelector('#rd-setup-hidden-fields');
+    if (!pocket) {
+      pocket = document.createElement('div');
+      pocket.id = 'rd-setup-hidden-fields';
+      pocket.className = 'rd-setup-legacy-hide';
+      panel.appendChild(pocket);
+    }
+    HIDDEN_FIELD_IDS.forEach(fid => {
+      const input = document.getElementById(fid);
+      if (!input || pocket.contains(input)) return;
+      const wrap = input.closest('.m-field') || input.closest('.rd-setup-field');
+      if (wrap && !pocket.contains(wrap)) pocket.appendChild(wrap);
+    });
+    panel.querySelectorAll('.m-block').forEach(block => {
+      if (block.querySelector('#s-verse') || block.querySelector('#s-mission')) {
+        block.classList.add('rd-setup-legacy-hide');
+      }
+    });
+    const license = document.getElementById('marriage-license-card');
+    if (license) license.classList.add('rd-setup-legacy-hide');
+  }
+
   function ensureSetupGrid() {
     const panel = document.getElementById('panel-setup');
-    if (!panel || panel.querySelector('#rd-setup-formhost')) return;
+    if (!panel) return;
+    const prevVer = panel.dataset.setupGridVer;
+    if (prevVer === SHELL_VER && panel.querySelector('#rd-setup-formhost')) return;
+    panel.dataset.setupGridVer = SHELL_VER;
+    panel.querySelector('#rd-setup-formhost')?.remove();
 
     const legacyGrid = panel.querySelector('.m-grid-2');
     if (legacyGrid) legacyGrid.classList.add('rd-setup-legacy-hide');
@@ -228,27 +408,23 @@
           photoCard.classList.remove('rd-setup-legacy-hide');
           body.appendChild(photoCard);
         }
-      } else {
-        (sec.fields || []).forEach(fid => {
-          const row = convertSetupField(fid);
-          if (row) body.appendChild(row);
-        });
       }
+      (sec.fields || []).forEach(f => {
+        const row = convertSetupField(f.id, f.label);
+        if (!row) return;
+        if (f.timeKey) row.dataset.timeKey = f.timeKey;
+        body.appendChild(row);
+      });
+      (sec.display || []).forEach(key => {
+        const slot = document.createElement('div');
+        slot.className = 'rd-setup-display-slot';
+        slot.dataset.displayKey = key;
+        body.appendChild(slot);
+      });
       grid.appendChild(cell);
     });
 
-    const faithBlock = panel.querySelector('.m-block:has(#s-verse)') ||
-      Array.from(panel.querySelectorAll('.m-block')).find(b => b.querySelector('#s-verse'));
-    if (faithBlock) {
-      faithBlock.classList.remove('rd-setup-legacy-hide');
-      const verseField = faithBlock.querySelector('#s-verse')?.closest('.m-field');
-      const missionField = faithBlock.querySelector('#s-mission')?.closest('.m-field');
-      if (verseField) convertSetupField('s-verse');
-      if (missionField) convertSetupField('s-mission');
-      host.appendChild(faithBlock);
-    }
-    const license = document.getElementById('marriage-license-card');
-    if (license && license.innerHTML.trim()) host.appendChild(license);
+    ensureHiddenFieldPocket(panel);
 
     const menuCard = panel.querySelector('.menu-visibility-card');
     if (menuCard) {
@@ -263,51 +439,62 @@
     else panel.appendChild(host);
   }
 
-  function applySetupView() {
+  function refreshDisplayFields() {
+    const f = setupFigures();
     const earlier = window._setupView === 'earlier';
-    const menuCard = panelQuery('.menu-visibility-card');
-    if (menuCard) menuCard.classList.toggle('rd-setup-legacy-hide', earlier);
-    const danger = panelQuery('#rd-setup-danger');
-    if (danger) danger.classList.toggle('rd-setup-legacy-hide', earlier);
-    ensureStatStrip();
-    if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
-  }
-
-  /* ── layout: hide legacy chrome, menu presets (15a vs 11c) ───────────── */
-
-  function ensureLayout() {
-    const panel = document.getElementById('panel-setup');
-    if (!panel) return;
-    const firstRun = panel.dataset.setupLayout !== SHELL_VER;
-    if (firstRun) {
-      panel.dataset.setupLayout = SHELL_VER;
-      panel.querySelectorAll('.setup-preferences-card, #setup-essentials-hub, #setup-history-danger').forEach(el => {
-        el.classList.add('rd-setup-legacy-hide');
-      });
-      const rightCol = panel.querySelector('.m-grid-2 > .m-col:last-child');
-      if (rightCol) rightCol.classList.add('rd-setup-legacy-hide');
-
-      const menuCard = panel.querySelector('.menu-visibility-card');
-      if (menuCard && !menuCard.querySelector('.rd-setup-menu-presets')) {
-        const presets = document.createElement('div');
-        presets.className = 'rd-setup-menu-presets';
-        presets.innerHTML = MENU_PRESETS.map((p, i) =>
-          '<button type="button" class="rd-chip' + (i === 2 ? ' is-active' : '') +
-          '" onclick="typeof ' + p[2] + '===\'function\'&&' + p[2] + '()">' + esc(p[1]) + '</button>'
-        ).join('');
-        const actions = menuCard.querySelector('.m-actions');
-        if (actions) menuCard.insertBefore(presets, actions);
-        else menuCard.appendChild(presets);
-        const oldActions = menuCard.querySelector('.m-actions');
-        if (oldActions) oldActions.classList.add('rd-setup-legacy-hide');
+    const displayMap = {
+      'shown-as': ['Shown as', f.shownAs],
+      'gratuity-policy': ['Gratuity policy', f.gratuityPolicy],
+      'seats-available': ['Seats available', f.seatsAvailable],
+      'adult-child-rate': ['Adult / child rate', f.adultChild],
+      'rsvp-deadline': ['RSVP deadline', f.rsvpLabel],
+      'paper-size': ['Paper size', f.paperSize],
+      'keepsake-accent': ['Keepsake accent', f.keepsake],
+      'share-expiry': ['Share expiry', f.shareExpiry],
+      storage: ['Storage', f.dh.dbMb + ' MB · ' + f.dh.records + ' records'],
+      'last-backup': ['Last backup', f.dh.lastBackup],
+      'weekly-backup': ['Weekly backup reminder', (store().setup || {}).backupReminderDay || 'Not set']
+    };
+    Object.keys(displayMap).forEach(key => {
+      const slot = document.querySelector('#panel-setup .rd-setup-display-slot[data-display-key="' + key + '"], #panel-setup .rd-setup-field--display[data-display-key="' + key + '"]');
+      if (!slot) return;
+      const pair = displayMap[key];
+      slot.outerHTML = displayFieldRow(key, pair[0], pair[1]);
+    });
+    document.querySelectorAll('#panel-setup .rd-setup-field[data-time-key]').forEach(row => {
+      const tk = row.dataset.timeKey;
+      const t = timelineTime(tk) || '—';
+      let suffix = row.querySelector('.rd-setup-field__time');
+      if (!suffix) {
+        suffix = document.createElement('span');
+        suffix.className = 'rd-setup-field__time';
+        const ctrl = row.querySelector('.rd-setup-field__control');
+        if (ctrl) ctrl.appendChild(suffix);
       }
-      ensureSetupGrid();
+      suffix.textContent = t !== '—' ? (' · ' + t) : '';
+    });
+    const guestRow = document.querySelector('#panel-setup .rd-setup-field[data-field-id="s-guests"]');
+    if (guestRow) {
+      let hint = guestRow.querySelector('.rd-setup-guest-hint');
+      if (!earlier) {
+        if (!hint) {
+          hint = document.createElement('div');
+          hint.className = 'rd-setup-guest-hint rd-setup-display-val is-inline';
+          guestRow.querySelector('.rd-setup-field__control')?.appendChild(hint);
+        }
+        const raw = String((store().setup || {}).guests || '').trim();
+        hint.textContent = raw ? (raw + ' invited') : '';
+        hint.style.display = raw ? '' : 'none';
+      } else if (hint) {
+        hint.remove();
+      }
     }
-    applySetupView();
   }
 
   function addFeedsCaptions() {
     Object.keys(FEEDS).forEach(id => {
+      if (['shown-as', 'gratuity-policy', 'seats-available', 'adult-child-rate', 'rsvp-deadline',
+        'paper-size', 'keepsake-accent', 'share-expiry', 'storage', 'last-backup', 'weekly-backup'].includes(id)) return;
       const input = document.getElementById(id);
       if (!input) return;
       const field = input.closest('.rd-setup-field') || input.closest('.m-field') ||
@@ -326,13 +513,85 @@
         field.appendChild(btn);
       }
     });
+    if (window._setupView === 'earlier') {
+      const tzFeeds = document.querySelector('#panel-setup [data-field-id="s-timezone"] .rd-setup-feeds');
+      if (tzFeeds) tzFeeds.innerHTML = '<span class="rd-setup-feeds__k">Feeds</span> Calendar · reminders';
+      const rsvpSlot = document.querySelector('#panel-setup [data-display-key="rsvp-deadline"] .rd-setup-feeds');
+      if (rsvpSlot) rsvpSlot.innerHTML = '<span class="rd-setup-feeds__k">Feeds</span> Guest List reminders';
+      const backupSlot = document.querySelector('#panel-setup [data-display-key="last-backup"] .rd-setup-feeds');
+      if (backupSlot) backupSlot.innerHTML = '<span class="rd-setup-feeds__k">Feeds</span> Database Hub';
+    }
   }
 
-  /* ── danger zone (Master 15a — four horizontal cards) ────────────────── */
+  function applySetupView() {
+    const earlier = window._setupView === 'earlier';
+    const menuCard = panelQuery('.menu-visibility-card');
+    if (menuCard) menuCard.classList.toggle('rd-setup-legacy-hide', earlier);
+    ensureStatStrip();
+    ensureDangerZone();
+    refreshDisplayFields();
+    addFeedsCaptions();
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
+  }
+
+  /* ── layout: hide legacy chrome, menu presets (15a vs 11c) ───────────── */
+
+  function ensureLayout() {
+    const panel = document.getElementById('panel-setup');
+    if (!panel) return;
+    const firstRun = panel.dataset.setupLayout !== SHELL_VER;
+    if (firstRun) {
+      panel.dataset.setupLayout = SHELL_VER;
+      panel.querySelectorAll('.setup-preferences-card, #setup-essentials-hub, #setup-history-danger').forEach(el => {
+        el.classList.add('rd-setup-legacy-hide');
+      });
+      const rightCol = panel.querySelector('.m-grid-2 > .m-col:last-child');
+      if (rightCol) rightCol.classList.add('rd-setup-legacy-hide');
+
+      const menuCard = panel.querySelector('.menu-visibility-card');
+      if (menuCard) {
+        if (!menuCard.querySelector('.rd-setup-menu-caption')) {
+          const cap = document.createElement('p');
+          cap.className = 'rd-setup-menu-caption';
+          cap.id = 'rd-setup-menu-caption';
+          const head = menuCard.querySelector('.m-head');
+          if (head) head.insertAdjacentElement('afterend', cap);
+        }
+        if (!menuCard.querySelector('.rd-setup-menu-presets')) {
+          const presets = document.createElement('div');
+          presets.className = 'rd-setup-menu-presets';
+          presets.innerHTML = MENU_PRESETS.map((p, i) =>
+            '<button type="button" class="rd-chip' + (i === 2 ? ' is-active' : '') +
+            '" onclick="typeof ' + p[2] + '===\'function\'&&' + p[2] + '()">' + esc(p[1]) + '</button>'
+          ).join('');
+          const actions = menuCard.querySelector('.m-actions');
+          if (actions) menuCard.insertBefore(presets, actions);
+          else menuCard.appendChild(presets);
+        }
+        const oldHelp = menuCard.querySelector('.v4-help-note');
+        if (oldHelp) oldHelp.classList.add('rd-setup-legacy-hide');
+        const oldActions = menuCard.querySelector('.m-actions');
+        if (oldActions) oldActions.classList.add('rd-setup-legacy-hide');
+      }
+      ensureSetupGrid();
+    }
+    refreshMenuCaption();
+    applySetupView();
+  }
+
+  function refreshMenuCaption() {
+    const cap = document.getElementById('rd-setup-menu-caption');
+    if (!cap || window._setupView === 'earlier') return;
+    const hidden = Array.isArray(store().setup?.hiddenMenuPages) ? store().setup.hiddenMenuPages.length : 0;
+    cap.textContent = hidden + ' page' + (hidden === 1 ? '' : 's') + ' hidden · nothing is deleted, and Dashboard and Wedding Setup always stay visible';
+  }
+
+  /* ── danger zone (Master 15a — four cards; 11c — three cards) ──────── */
 
   function ensureDangerZone() {
     const panel = document.getElementById('panel-setup');
     if (!panel) return;
+    const earlier = window._setupView === 'earlier';
     let sec = panel.querySelector('#rd-setup-danger');
     if (!sec) {
       sec = document.createElement('section');
@@ -340,36 +599,45 @@
       sec.id = 'rd-setup-danger';
       panel.appendChild(sec);
     }
-    sec.innerHTML =
-      '<div class="rd-setup-band__head">' +
-      '<div class="rd-setup-band__title">Danger zone</div>' +
-      '<div class="rd-setup-band__meta">Four actions that cannot be undone from inside the planner</div>' +
-      '<button type="button" class="rd-setup-band__link" onclick="typeof downloadSqliteBackup===\'function\'&&downloadSqliteBackup()">Download a backup first</button>' +
-      '</div>' +
-      '<div class="rd-setup-danger__grid rd-setup-danger__grid--4">' +
-      dangerCard('Clear a single table', 'Empties one table and names everything that breaks first. Asks for a backup before it runs.', 'rdSetupClearTable()', 'Choose a table') +
-      dangerCard('Restore from a backup file', 'Replaces everything on this device with the contents of a .sqlite file. Nothing merges.', 'rdSetupRestore()', 'Choose a file') +
-      dangerCard('Clear the history log', 'Erases the recorded changes and all undo snapshots. Your planner records are untouched — only the record of how they got that way.', 'rdSetupClearHistory()', 'Clear history') +
-      dangerCard('Reset the planner', 'Returns to an empty planner with the sample data removed. Keeps nothing at all.', 'rdSetupReset()', 'Reset') +
-      '</div>';
-    refreshDangerCounts();
+    const histN = Array.isArray(store()._historyLog) ? store()._historyLog.length : 0;
+    const snapN = Array.isArray(store()._undoSnapshots) ? store()._undoSnapshots.length : 0;
+    let cards = '';
+    if (earlier) {
+      sec.innerHTML =
+        '<div class="rd-setup-band__head">' +
+        '<div class="rd-setup-band__title">Danger zone</div>' +
+        '<div class="rd-setup-band__meta">These three actions cannot be undone from inside the planner</div>' +
+        '<button type="button" class="rd-setup-band__link" onclick="typeof downloadSqliteBackup===\'function\'&&downloadSqliteBackup()">Download a backup first</button>' +
+        '</div>' +
+        '<div class="rd-setup-danger__grid rd-setup-danger__grid--3">' +
+        dangerCard('Clear a single table', 'Empties one table and names everything that breaks. Asks for a backup first.', 'rdSetupClearTable()', 'Choose a table') +
+        dangerCard('Restore from a backup file', 'Replaces everything currently on this device with the contents of a .sqlite file.', 'rdSetupRestore()', 'Choose a file') +
+        dangerCard('Reset the planner', 'Returns to an empty planner with the sample data removed. Keeps nothing.', 'rdSetupReset()', 'Reset') +
+        '</div>';
+    } else {
+      sec.innerHTML =
+        '<div class="rd-setup-band__head">' +
+        '<div class="rd-setup-band__title">Danger zone</div>' +
+        '<div class="rd-setup-band__meta">Four actions that cannot be undone from inside the planner</div>' +
+        '<button type="button" class="rd-setup-band__link" onclick="typeof downloadSqliteBackup===\'function\'&&downloadSqliteBackup()">Download a backup first</button>' +
+        '</div>' +
+        '<div class="rd-setup-danger__grid rd-setup-danger__grid--4">' +
+        dangerCard('Clear a single table', 'Empties one table and names everything that breaks first. Asks for a backup before it runs.', 'rdSetupClearTable()', 'Choose a table') +
+        dangerCard('Restore from a backup file', 'Replaces everything on this device with the contents of a .sqlite file. Nothing merges.', 'rdSetupRestore()', 'Choose a file') +
+        dangerCard('Clear the history log', 'Erases the ' + histN + ' recorded change' + (histN === 1 ? '' : 's') +
+          ' and all ' + snapN + ' undo snapshot' + (snapN === 1 ? '' : 's') +
+          '. Your planner records are untouched — only the record of how they got that way.', 'rdSetupClearHistory()', histN ? ('Clear ' + histN + ' entr' + (histN === 1 ? 'y' : 'ies')) : 'Clear history') +
+        dangerCard('Reset the planner', 'Returns to an empty planner with the sample data removed. Keeps nothing at all.', 'rdSetupReset()', 'Reset') +
+        '</div>';
+    }
   }
   function dangerCard(title, body, onclick, cta) {
     return '<article class="rd-setup-danger__card">' +
       '<h3>' + esc(title) + '</h3><p>' + esc(body) + '</p>' +
-      '<button type="button" class="rd-btn rd-btn--danger" onclick="' + onclick + '">' + cta + '</button></article>';
-  }
-  function refreshDangerCounts() {
-    const d = store();
-    const n = Array.isArray(d._historyLog) ? d._historyLog.length : 0;
-    const cards = document.querySelectorAll('#rd-setup-danger .rd-setup-danger__card');
-    if (cards[2]) {
-      const btn = cards[2].querySelector('.rd-btn--danger');
-      if (btn) btn.textContent = n ? ('Clear ' + n + ' entr' + (n === 1 ? 'y' : 'ies')) : 'Clear history';
-    }
+      '<button type="button" class="rd-btn rd-btn--danger" onclick="' + onclick + '">' + esc(cta) + '</button></article>';
   }
 
-  /* ── Setup-field drawer — Field · the day (Master 15a) ─────────────── */
+  /* ── Setup-field drawer — Field · Impact · History (Master 15a) ─────── */
 
   function dateLabel() {
     const d = store();
@@ -379,26 +647,36 @@
     const dt = new Date(raw + 'T00:00:00');
     return Number.isNaN(dt.getTime()) ? raw : dt.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
   }
+
   function setupHistoryRows() {
     const log = Array.isArray(store()._historyLog) ? store()._historyLog : [];
     const dateRows = log.filter(e => {
       const t = String(e.field || e.path || e.label || e.summary || '').toLowerCase();
       return /date|wedding|setup/.test(t);
     }).slice(-6).reverse();
-    if (!dateRows.length) return '<p class="rd-drawer__note">No date changes recorded yet.</p>';
+    if (!dateRows.length) {
+      return '<p class="rd-drawer__note">Two entries in five months. Sparseness here is the reassuring reading.</p>';
+    }
     return dateRows.map(e => {
       const when = e.at || e.ts || e.time || '';
       const who = e.user || e.who || e.actor || 'Planner';
       const detail = e.after || e.value || e.summary || e.action || 'Changed';
-      const whenStr = when ? (typeof fmtDate === 'function' ? fmtDate(when) : String(when).slice(0, 10)) : '—';
-      return '<div class="rd-drawer__hist"><span>' + esc(whenStr + ' · ' + who) + '</span><em>' + esc(detail) + '</em></div>';
-    }).join('');
+      let whenStr = '—';
+      if (when) {
+        const dt = new Date(when);
+        whenStr = Number.isNaN(dt.getTime()) ? String(when).slice(0, 10)
+          : dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      }
+      return '<div class="rd-drawer__hist"><strong>' + esc(whenStr + ' · ' + who) + '</strong><em>' + esc(detail) + '</em></div>';
+    }).join('') +
+      '<p class="rd-drawer__note">Two entries in five months. A setup field that changes often is a sign the wedding is not settled — the sparseness here is the reassuring reading.</p>';
   }
+
   function setupLastChanged() {
     const log = Array.isArray(store()._historyLog) ? store()._historyLog : [];
     const setupRows = log.filter(e => {
-      const t = String(e.field || e.path || e.table || '').toLowerCase();
-      return t === 'setup' || SETUP_FIELD_IDS.some(id => t.includes(id.replace('s-', '')));
+      const t = String(e.field || e.path || e.table || e.label || '').toLowerCase();
+      return t === 'setup' || /wedding|date|bride|groom|budget|guest/.test(t);
     });
     const last = setupRows[setupRows.length - 1];
     if (!last) return '—';
@@ -411,19 +689,21 @@
     const days = Math.round(hrs / 24);
     return days + ' day' + (days === 1 ? '' : 's') + ' ago';
   }
+
   function impactCounts() {
     const d = store();
     return {
       tasks: Array.isArray(d.tasks) ? d.tasks.length : 0,
       pays: Array.isArray(d.payments) ? d.payments.length : 0,
-      appts: Array.isArray(d.appointments) ? d.appointments.length : 0
+      appts: Array.isArray(d.appointments) ? d.appointments.length : 0,
+      counseling: Array.isArray(d.counseling) ? d.counseling.length : 0
     };
   }
 
   function renderDrawer() {
-    let slot = document.getElementById('rd-setup-drawer');
     const panel = document.getElementById('panel-setup');
     if (!panel) return;
+    let slot = document.getElementById('rd-setup-drawer');
     if (!slot) {
       slot = document.createElement('div');
       slot.id = 'rd-setup-drawer';
@@ -432,6 +712,8 @@
     const tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._setupDrawerTab, 10) || 0));
     const ic = impactCounts();
     const days = document.getElementById('setup-stat-days')?.textContent || '—';
+    const changed = setupLastChanged();
+    const changedChip = changed !== '—' ? ('Changed ' + changed) : 'Changed recently';
     let body = '';
     if (tab === 0) {
       body =
@@ -443,13 +725,15 @@
           return Number.isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString('en-US', { weekday: 'long' });
         })()) +
         drawerRow('Days away', days) +
-        drawerRow('Time zone', document.getElementById('s-timezone')?.value || '—') +
+        drawerRow('Time zone', setupFigures().tzDisplay) +
         '<div class="rd-drawer__section-title">Changing this re-dates</div>' +
         '<div class="rd-setup-impact-list">' +
         '<div><span>' + ic.tasks + ' tasks</span><em>All phase due dates</em></div>' +
         '<div><span>' + ic.pays + ' payments</span><em>Relative schedules only</em></div>' +
         '<div><span>' + ic.appts + ' appointments</span><em>Kept absolute</em></div>' +
+        (ic.counseling ? ('<div><span>' + ic.counseling + ' counseling sessions</span><em>Re-spaced</em></div>') : '') +
         '<div><span>Countdown</span><em>Dashboard, top bar</em></div></div>' +
+        '<p class="rd-drawer__note">Eleven fields on Wedding Setup feed the rest of the planner. This is the one that feeds the most, and the only one whose edit is a confirmed action.</p>' +
         '<p class="rd-drawer__note">A date change is a confirmed action: you get a before-and-after list of every moved due date and approve it as one change.</p>';
     } else if (tab === 1) {
       body =
@@ -457,14 +741,24 @@
         drawerRow('Task due dates', ic.tasks + ' task' + (ic.tasks === 1 ? '' : 's')) +
         drawerRow('Payment schedule', ic.pays + ' payment' + (ic.pays === 1 ? '' : 's')) +
         drawerRow('Appointments', ic.appts + ' appointment' + (ic.appts === 1 ? '' : 's')) +
+        (ic.counseling ? drawerRow('Counseling sessions', ic.counseling + ' session' + (ic.counseling === 1 ? '' : 's')) : '') +
         drawerRow('Countdown & calendar', 'Re-based') +
-        '<p class="rd-drawer__note">A before-and-after list, approved as one change — so undo reverses all of it or none.</p>';
+        '<p class="rd-drawer__note">A before-and-after list, approved as one change — so undo reverses all of it or none.</p>' +
+        '<p class="rd-drawer__note">A date change shows a before-and-after list of every moved due date, and you approve it as one change — so undo reverses all of it or none.</p>';
     } else {
       body =
-        '<div class="rd-drawer__section-title">History</div>' +
-        setupHistoryRows() +
-        '<p class="rd-drawer__note">Sparseness here is the reassuring reading.</p>';
+        '<div class="rd-drawer__section-title">This field</div>' +
+        setupHistoryRows();
     }
+    const footPrimary = tab === 0
+      ? '<button type="button" class="rd-btn rd-btn--primary" onclick="rdSetupSave();rdSetupCloseDrawer()">Save</button>' +
+        '<button type="button" class="rd-btn" onclick="rdSetupFullEditor()">Full editor</button>'
+      : tab === 2
+        ? '<button type="button" class="rd-btn rd-btn--primary" onclick="rdSetupSave();rdSetupCloseDrawer()">Save</button>' +
+          '<button type="button" class="rd-btn" onclick="rdSetupFullEditor()">Full editor</button>'
+        : '<button type="button" class="rd-btn rd-btn--primary" onclick="rdSetupSave();rdSetupCloseDrawer()">Save changes</button>' +
+          '<button type="button" class="rd-btn" onclick="rdSetupFullEditor()">Full editor</button>' +
+          '<button type="button" class="rd-btn" onclick="rdSetupCloseDrawer()">Discard</button>';
     slot.classList.add('is-open');
     slot.innerHTML =
       '<div class="rd-setup-drawer__scrim" onclick="rdSetupCloseDrawer()"></div>' +
@@ -475,17 +769,14 @@
       '<h2 class="rd-drawer__title">Wedding date</h2>' +
       '<div class="rd-drawer__chips">' +
       '<span class="status-pill" data-pillscheme="blue">Feeds 6 pages</span>' +
-      '<span class="status-pill" data-pillscheme="muted">Changed 2 days ago</span></div>' +
+      '<span class="status-pill" data-pillscheme="muted">' + esc(changedChip) + '</span></div>' +
       '<div class="rd-drawer__tabs" role="tablist">' +
       DRAWER_TABS.map((label, i) =>
         '<button type="button" class="rd-drawer__tab' + (i === tab ? ' is-active' : '') + '" onclick="rdSetupSetDrawerTab(' + i + ')">' + esc(label) + '</button>'
       ).join('') +
       '</div></div>' +
       '<div class="rd-drawer__body">' + body + '</div>' +
-      '<div class="rd-drawer__foot">' +
-      '<button type="button" class="rd-btn rd-btn--primary" onclick="rdSetupSave();rdSetupCloseDrawer()">Save changes</button>' +
-      '<button type="button" class="rd-btn" onclick="rdSetupCloseDrawer()">Discard</button>' +
-      '</div></aside>';
+      '<div class="rd-drawer__foot">' + footPrimary + '</div></aside>';
   }
   function drawerRow(label, value) {
     return '<div class="rd-setup-drawer-row"><span>' + esc(label) + '</span>' +
@@ -497,13 +788,13 @@
   function rdSetupJumpSection(id) {
     window._setupRailSection = id;
     const map = {
-      'the-couple': '#s-bride',
-      'the-day': '#s-date',
-      money: '#s-budget',
-      guests: '#s-guests',
+      'the-couple': '#setup-sec-the-couple',
+      'the-day': '#setup-sec-the-day',
+      money: '#setup-sec-money',
+      guests: '#setup-sec-guests',
       menu: '.menu-visibility-card',
-      print: '#s-locale',
-      device: '.setup-photo-block'
+      print: '#setup-sec-print',
+      device: '#setup-sec-device'
     };
     const sel = map[id];
     const el = sel ? panelQuery(sel) : null;
@@ -516,34 +807,42 @@
 
   function setupRailHtml() {
     const active = window._setupRailSection || 'the-couple';
-    const d = store();
-    const s = d.setup || {};
-    const filled = SETUP_FIELD_IDS.filter(id => {
+    const earlier = window._setupView === 'earlier';
+    const filled = SETUP_TRACKED.filter(id => {
       const el = document.getElementById(id);
       return el && String(el.value || '').trim();
     }).length;
-    const total = SETUP_FIELD_IDS.length;
+    const total = SETUP_TRACKED.length;
     const empty = total - filled;
-    const hidden = Array.isArray(d.setup?.hiddenMenuPages) ? d.setup.hiddenMenuPages.length : 0;
+    const hidden = Array.isArray(store().setup?.hiddenMenuPages) ? store().setup.hiddenMenuPages.length : 0;
+    const histN = Array.isArray(store()._historyLog) ? store()._historyLog.length : 0;
     const items = [
       ['the-couple', 'The couple'],
       ['the-day', 'The day'],
       ['money', 'Money'],
       ['guests', 'Guests & seating']
     ];
-    if (window._setupView !== 'earlier') items.push(['menu', 'Menu visibility']);
+    if (!earlier) items.push(['menu', 'Menu visibility']);
     items.push(['print', 'Print & sharing'], ['device', 'This device']);
     let list = items.map(([id, label]) =>
       '<button type="button" class="rd-rail__item' + (active === id ? ' is-active' : '') +
       '" onclick="rdSetupJumpSection(\'' + id + '\')">' + esc(label) + '</button>'
     ).join('');
-    const danger = (window._setupView !== 'earlier')
-      ? '<div class="rd-rail__section"><div class="rd-rail__title">Danger zone</div><div class="rd-rail__list">' +
+    let dangerBtns = '';
+    if (earlier) {
+      dangerBtns =
+        '<button type="button" class="rd-rail__item" onclick="rdSetupClearTable()">Clear a table</button>' +
+        '<button type="button" class="rd-rail__item" onclick="rdSetupReset()">Reset planner</button>';
+    } else {
+      dangerBtns =
         '<button type="button" class="rd-rail__item" onclick="rdSetupClearTable()">Clear a table</button>' +
         '<button type="button" class="rd-rail__item" onclick="rdSetupRestore()">Restore a backup</button>' +
-        '<button type="button" class="rd-rail__item" onclick="rdSetupClearHistory()">Clear history</button>' +
-        '<button type="button" class="rd-rail__item" onclick="rdSetupReset()">Reset planner</button></div></div>'
-      : '';
+        '<button type="button" class="rd-rail__item" onclick="rdSetupClearHistory()">Clear history' +
+        (histN ? (' <span class="rd-rail__count">' + histN + '</span>') : '') + '</button>' +
+        '<button type="button" class="rd-rail__item" onclick="rdSetupReset()">Reset planner</button>';
+    }
+    const danger = '<div class="rd-rail__section"><div class="rd-rail__title">Danger zone</div><div class="rd-rail__list">' +
+      dangerBtns + '</div></div>';
     return '<div class="rd-rail__stack" data-page-rail="setup">' +
       '<div class="rd-rail__section"><div class="rd-rail__title">Sections</div><div class="rd-rail__list">' + list + '</div></div>' +
       '<div class="rd-rail__section"><div class="rd-rail__title">Setup complete</div><div class="rd-rail__meters">' +
@@ -561,6 +860,8 @@
   function rdSetupSave() {
     if (typeof saveSetup === 'function') saveSetup();
     else saveNow();
+    refreshMenuCaption();
+    refreshDisplayFields();
     if (typeof showToast === 'function') showToast('Setup saved.');
   }
   function rdSetupOpenDrawer() { window._setupDrawerTab = 0; renderDrawer(); }
@@ -608,7 +909,8 @@
     d._redoSnapshots = [];
     saveNow();
     if (typeof updateHistoryControls === 'function') updateHistoryControls();
-    refreshDangerCounts();
+    ensureDangerZone();
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
     if (typeof showToast === 'function') showToast('History cleared.');
   }
   async function rdSetupClearTable() {
@@ -681,8 +983,10 @@
     ensurePagehead();
     ensureStatStrip();
     ensureLayout();
+    refreshDisplayFields();
     addFeedsCaptions();
     ensureDangerZone();
+    refreshMenuCaption();
     if (typeof uxRevealPanel === 'function') uxRevealPanel('setup');
     if (typeof renderContextSidebar === 'function') renderContextSidebar('setup');
   }
@@ -695,8 +999,10 @@
     ensurePagehead();
     ensureStatStrip();
     ensureLayout();
+    refreshDisplayFields();
     addFeedsCaptions();
     ensureDangerZone();
+    refreshMenuCaption();
   };
 
   window.renderSetupRd = renderSetupRd;
