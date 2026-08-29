@@ -3983,6 +3983,8 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §35
 - **Screen ids:** `18b`, `31i`, `31j`
 
+> **Verified this pass.** `js/history-redesign.js` ships the no-tab 18b page (Reached from the top bar · Planner History · Undo last change), five-stat retention strip, day log table with Change·Record·Who·Time·Undo, view switcher (`Planner History` · `By record view` · `Field detail view`), 31i record groups (`record · change count · last change · distinct editors` + consequence chips), 31j field-detail stats + value timeline + “What this field touches” right panel, History entry drawer (Change · Record · Snapshot), and `histJumpDates()` rail jumps from live log dates. CSS: by-record groups, field stats/layout/panel, night tokens.
+
 ### Five parts on this page
 
 | Part | Applies | What to build |

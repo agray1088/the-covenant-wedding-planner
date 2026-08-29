@@ -1,6 +1,6 @@
-/* Planner History — All.dc #18b
+/* Planner History — All.dc #18b / Master s34
    No-tab page reached from the top-bar undo/redo cluster and prefs.
-   Views: By day | By record | Field detail.
+   Views: Planner History (day) · By record view (31i) · Field detail view (31j).
    Rail: Filter by record · Retention · Jump to.
    Log capped at HISTORY_LOG_LIMIT (200). Undo snapshots stay at HISTORY_SNAPSHOT_LIMIT. */
 (function () {
@@ -16,8 +16,15 @@
   window._histSel = window._histSel instanceof Set ? window._histSel : new Set();
   window._histDrawerId = window._histDrawerId || null;
   window._histDrawerTab = window._histDrawerTab || 0;
+  window._histFieldRecord = window._histFieldRecord || '';
+  window._histFieldName = window._histFieldName || '';
 
   const DRAWER_TABS = ['Change', 'Record', 'Snapshot'];
+  const PAGE_VIEWS = [
+    ['day', 'Planner History'],
+    ['record', 'By record view'],
+    ['fields', 'Field detail view']
+  ];
 
   const RECORD_FILTERS = [
     { id: 'all', label: 'Everything', match: null },
@@ -122,6 +129,135 @@
       if (RECORD_FILTERS[i].match && RECORD_FILTERS[i].match.test(hay)) return RECORD_FILTERS[i].id;
     }
     return 'other';
+  }
+  function recordParts(recordStr) {
+    const raw = String(recordStr || 'Planner').trim();
+    const i = raw.indexOf(' · ');
+    if (i < 0) return { type: raw, name: raw };
+    return { type: raw.slice(0, i).trim(), name: raw.slice(i + 3).trim() };
+  }
+  function distinctEditors(rows) {
+    const set = new Set();
+    rows.forEach(x => set.add(entryWho(x.row)));
+    return set.size;
+  }
+  function editorCountLabel(n) {
+    if (n <= 1) return '1 person has edited it';
+    return n + ' people have edited it';
+  }
+  function lastChangeLabel(row) {
+    if (!row) return '—';
+    if (row.date === todayISO()) return 'last today' + (row.time ? ' ' + row.time : '');
+    return 'last ' + fmtDayShort(row.date) + (row.time ? ' ' + row.time : '');
+  }
+  function fieldCatalog() {
+    const map = {};
+    ensureData()._historyLog.forEach(item => {
+      const rec = entryRecord(item);
+      entryFields(item).forEach(fld => {
+        const label = String(fld.label || '').trim();
+        if (!label) return;
+        const key = rec + '\u0000' + label;
+        if (!map[key]) map[key] = { record: rec, field: label, key };
+      });
+    });
+    return Object.values(map).sort((a, b) => a.record.localeCompare(b.record) || a.field.localeCompare(b.field));
+  }
+  function ensureFieldSelection() {
+    const catalog = fieldCatalog();
+    if (!catalog.length) {
+      window._histFieldRecord = '';
+      window._histFieldName = '';
+      return null;
+    }
+    const cur = catalog.find(c => c.record === window._histFieldRecord && c.field === window._histFieldName);
+    if (cur) return cur;
+    window._histFieldRecord = catalog[0].record;
+    window._histFieldName = catalog[0].field;
+    return catalog[0];
+  }
+  function fieldTimeline(record, fieldName) {
+    const rows = [];
+    filteredEntries().forEach(x => {
+      if (entryRecord(x.row) !== record) return;
+      entryFields(x.row).forEach(fld => {
+        if (String(fld.label || '').trim() !== fieldName) return;
+        rows.push({
+          index: x.index,
+          row: x.row,
+          from: fld.from || '',
+          to: fld.to || '',
+          who: entryWho(x.row),
+          date: x.row.date,
+          time: x.row.time || '',
+          iso: x.row.iso || x.row.date || '',
+          undoable: !!x.row.undoable,
+          consequence: entryConsequence(x.row)
+        });
+      });
+    });
+    rows.sort((a, b) => String(b.iso).localeCompare(String(a.iso)));
+    return rows;
+  }
+  function fieldTouchRows(fieldName, consequence) {
+    const label = String(fieldName || '').toLowerCase();
+    const rows = [];
+    if (/time|date|start|end/.test(label)) {
+      rows.push(['Smart Calendar block', 'moves']);
+      rows.push(['Travel allowance window', 're-derives']);
+      if (/clash|conflict/.test(consequence || '') || consequence === 'created a clash') {
+        rows.push(['Clash check vs other appointments', 'fails at current value']);
+      }
+    } else if (/meal|diet|cover|rsvp|reply|guest|seat/.test(label)) {
+      rows.push(['Catering · dietary summary', 're-derives']);
+      rows.push(['Table Layout · meal assignment', 'may change']);
+      if (consequence === '+1 cover' || consequence === '−1 cover') {
+        rows.push(['Guest count · covers', consequence]);
+      }
+    } else if (/budget|amount|cost|fee|payment/.test(label)) {
+      rows.push(['Budget totals', 're-derives']);
+      rows.push(['Category committed %', 'may change']);
+      if (consequence === 'category over') rows.push(['Category cap check', 'over target']);
+    } else {
+      rows.push(['Linked planner views', 'may refresh']);
+    }
+    rows.push(['Other planner records', 'unaffected']);
+    return rows;
+  }
+  function fieldRestoreNote(fieldName, targetValue, consequence) {
+    const field = String(fieldName || 'this field');
+    const val = targetValue ? ('Restoring ' + targetValue) : ('Restoring ' + field);
+    const bits = [val];
+    if (consequence === 'created a clash') bits.push('clears the clash');
+    else if (consequence === '+1 cover') bits.push('may reduce cover count');
+    else if (consequence === 'category over') bits.push('may bring the category back under target');
+    else bits.push('updates derived summaries that read this field');
+    bits.push('It does not undo other fields on the same record, and it does not replace a whole-record rollback — that remains a confirmed snapshot action.');
+    return bits.join('. ') + '.';
+  }
+  function histJumpDates() {
+    const counts = {};
+    ensureData()._historyLog.forEach(item => {
+      if (!item.date) return;
+      counts[item.date] = (counts[item.date] || 0) + 1;
+    });
+    const today = todayISO();
+    const yest = (() => {
+      const dt = parseISODate(today);
+      if (!dt) return '';
+      dt.setDate(dt.getDate() - 1);
+      return dt.toISOString().slice(0, 10);
+    })();
+    const out = [];
+    if (counts[today]) out.push({ id: 'today', label: 'Today', count: counts[today] });
+    const others = Object.keys(counts)
+      .filter(iso => iso !== today && iso !== yest)
+      .sort((a, b) => b.localeCompare(a))
+      .slice(0, 3)
+      .map(iso => ({ id: iso, label: fmtDayShort(iso), count: counts[iso] }));
+    out.push(...others);
+    if (counts[yest]) out.splice(Math.min(1, out.length), 0, { id: 'yesterday', label: 'Yesterday', count: counts[yest] });
+    return out;
   }
   function markUndoability() {
     const d = ensureData();
@@ -252,17 +388,28 @@
     const host = document.getElementById('history-toolbar');
     if (!host) return;
     const mode = window._histMode || 'day';
+    let left = '';
+    if (mode === 'fields') {
+      ensureFieldSelection();
+      left =
+        `<button type="button" class="rd-chip${window._histFieldRecord ? ' is-active' : ''}" onclick="rdHistCycleFieldFilter('record')">Record: ${esc(window._histFieldRecord || '—')}</button>` +
+        `<button type="button" class="rd-chip${window._histFieldName ? ' is-active' : ''}" onclick="rdHistCycleFieldFilter('field')">Field: ${esc(window._histFieldName || '—')}</button>` +
+        `<span class="rd-chip rd-chip--ghost">Newest value first</span>`;
+    } else {
+      left =
+        filterChip('Record', 'record') +
+        filterChip('Who', 'who') +
+        filterChip('Date', 'date') +
+        `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdHistToggleSort()">${window._histSortNewest ? 'Newest first' : 'Oldest first'}</button>`;
+    }
     host.innerHTML =
-      filterChip('Record', 'record') +
-      filterChip('Who', 'who') +
-      filterChip('Date', 'date') +
-      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdHistToggleSort()">${window._histSortNewest ? 'Newest first' : 'Oldest first'}</button>` +
+      left +
       `<div class="rd-toolbar__right">` +
       (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('history') : '') +
       `<div class="rd-viewswitch" role="group" aria-label="History view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'day' ? ' is-active' : ''}" onclick="rdSetHistoryView('day')">By day</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'record' ? ' is-active' : ''}" onclick="rdSetHistoryView('record')">By record view</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'fields' ? ' is-active' : ''}" onclick="rdSetHistoryView('fields')">Field detail view</button>` +
+      PAGE_VIEWS.map(([id, label]) =>
+        `<button type="button" class="rd-viewswitch__item${mode === id ? ' is-active' : ''}" onclick="rdSetHistoryView('${id}')">${esc(label)}</button>`
+      ).join('') +
       `</div></div>`;
   }
 
@@ -434,22 +581,42 @@
       map[key].push(x);
     });
     let html = retentionCalloutHtml(f);
-    html += `<div class="ued-table-wrap"><table class="ued-table rd-table rd-hist-table"><thead><tr>` +
-      `<th style="width:34px"></th><th>Change</th><th>Record</th><th>Who</th><th>Time</th><th>Undo</th>` +
-      `</tr></thead><tbody>`;
+    html += `<div class="rd-hist-byrecord">`;
     const keys = Object.keys(map).sort((a, b) => map[b].length - map[a].length);
     if (!keys.length) {
-      html += `<tr><td colspan="6" class="rd-empty">No changes were recorded for this view.</td></tr>`;
+      html += `<p class="rd-empty">No changes were recorded for this view.</p>`;
     } else {
       keys.forEach(key => {
         const rows = map[key];
+        const parts = recordParts(key);
+        const editors = distinctEditors(rows);
         const last = rows[0];
-        const lastLabel = last.row.date === todayISO() ? 'last today' : ('last ' + fmtDayShort(last.row.date));
-        html += `<tr class="rd-group-row rd-hist-group"><td colspan="6">${esc(key)} · ${rows.length} change${rows.length === 1 ? '' : 's'} · ${esc(lastLabel)}</td></tr>`;
-        rows.forEach(x => { html += rowHtml(x); });
+        html += `<div class="rd-hist-recgroup">` +
+          `<div class="rd-hist-recgroup__head">` +
+          `<span class="rd-hist-recgroup__title">${esc(parts.type + ' · ' + parts.name)}</span>` +
+          `<span class="rd-hist-recgroup__meta">${rows.length} change${rows.length === 1 ? '' : 's'} · ${esc(lastChangeLabel(last.row))} · ${esc(editorCountLabel(editors))}</span>` +
+          `</div>`;
+        rows.forEach(x => {
+          const r = x.row;
+          const fields = entryFields(r);
+          const consequence = entryConsequence(r);
+          const prior = fields.length ? (fields[0].from || fields.map(fl => fl.label).join(', ')) : '';
+          const chip = consequence
+            ? `<span class="rd-hist-chip rd-hist-chip--derived">${esc(consequence === '+1 cover' ? 'Derived +1' : consequence)}</span>`
+            : `<span class="rd-hist-chip">Field</span>`;
+          const when = (r.date === todayISO() ? 'Today ' : fmtDayShort(r.date) + ' ') + (r.time || '');
+          html += `<div class="rd-hist-recrow" onclick="rdHistOpenEntry('${esc(r.id || ('h' + x.index))}')">` +
+            `<div class="rd-hist-recrow__main"><div class="rd-hist-recrow__change">${esc(entryChange(r))}</div>` +
+            `<div class="rd-hist-recrow__who">${esc(entryWho(r))}</div></div>` +
+            `<div class="rd-hist-recrow__when">${esc(when.trim())}</div>` +
+            `<div class="rd-hist-recrow__prior">${esc(prior ? (consequence || prior) : '—')}</div>` +
+            `<div class="rd-hist-recrow__chip">${chip}</div>` +
+            `</div>`;
+        });
+        html += `</div>`;
       });
     }
-    html += `</tbody></table></div>` + explainerHtml();
+    html += `</div>` + explainerHtml();
     host.innerHTML = html;
   }
 
@@ -457,27 +624,87 @@
     const host = document.getElementById('history-view-host');
     if (!host) return;
     const f = histFigures();
-    const all = filteredEntries().slice(0, window._histVisible || 50);
+    const sel = ensureFieldSelection();
     let html = retentionCalloutHtml(f);
-    html += `<div class="rd-hist-fields">`;
-    if (!all.length) {
-      html += `<p class="rd-empty">No field-level changes in this view.</p>`;
+    if (!sel) {
+      html += `<p class="rd-empty">No field-level changes in this view.</p>` + explainerHtml();
+      host.innerHTML = html;
+      return;
+    }
+    const timeline = fieldTimeline(sel.record, sel.field);
+    const values = [];
+    const seen = new Set();
+    timeline.forEach(t => {
+      const val = String(t.to || '').trim();
+      if (!val || seen.has(val)) return;
+      seen.add(val);
+      values.push(t);
+    });
+    const current = timeline[0];
+    const currentSince = current ? fmtDayShort(current.date) : '—';
+    const downstream = timeline.filter(t => entryConsequence(t.row)).length;
+    const openClash = timeline.some(t => entryConsequence(t.row) === 'created a clash');
+    const editors = distinctEditors(timeline.map(t => ({ row: t.row })));
+    const restoreTarget = current && current.from ? current.from : (values[1] ? values[1].to : '');
+    html += `<div class="rd-hist-fieldstats">` +
+      statCell('Field', sel.field) +
+      statCell('Values held', String(values.length || timeline.length)) +
+      statCell('Current since', currentSince) +
+      statCell('Downstream effects', String(downstream), downstream ? 'rd-hist-stat--warn' : '') +
+      statCell('Open clash', openClash ? 'Yes' : 'No', openClash ? 'rd-hist-stat--danger' : '') +
+      `</div>`;
+    html += `<div class="rd-hist-fieldlayout">` +
+      `<div class="rd-hist-fieldlist">` +
+      `<div class="rd-hist-fieldlist__head">` +
+      `<div class="rd-hist-fieldlist__eyebrow">Field · ${esc(recordParts(sel.record).type)} · ${esc(recordParts(sel.record).name)} · ${esc(sel.field)}</div>` +
+      `<div class="rd-hist-fieldlist__note">Every value this one field has held, newest first</div>` +
+      `<div class="rd-hist-fieldlist__action">Restore a value</div>` +
+      `</div>`;
+    if (!timeline.length) {
+      html += `<p class="rd-empty">No values recorded for this field.</p>`;
     } else {
-      all.forEach(x => {
-        const fields = entryFields(x.row);
-        html += `<article class="rd-hist-fieldcard">` +
-          `<header><div class="rd-hist-fieldcard__title">${esc(entryChange(x.row))}</div>` +
-          `<div class="rd-hist-fieldcard__meta">${esc(entryRecord(x.row))} · ${esc(entryWho(x.row))} · ${esc(x.row.time || '')}</div></header>` +
-          (fields.length ? `<ul>${fields.map(fld =>
-            `<li><span>${esc(fld.label)}</span><span>${esc(fld.from || '—')}</span><span>→</span><span>${esc(fld.to || '—')}</span>` +
-            (x.row.undoable ? `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdHistUndoEntry(${x.index})">Restore</button>` : `<span class="rd-hist-aged">Unavailable</span>`) +
-            `</li>`
-          ).join('')}</ul>` : `<p class="rd-help">No field diffs were captured for this change. Restore acts on one field when diffs are present — never a whole record from this view.</p>`) +
-          `</article>`;
+      timeline.forEach((t, i) => {
+        const isCurrent = i === 0;
+        const note = isCurrent && t.consequence
+          ? ('Current value · ' + (t.consequence === 'created a clash' ? 'created the clash with a linked appointment' : t.consequence))
+          : (t.from ? ('was ' + t.from) : 'Set at change');
+        html += `<div class="rd-hist-fieldval${isCurrent ? ' is-current' : ''}">` +
+          `<div class="rd-hist-fieldval__value">${esc(t.to || '—')}</div>` +
+          `<div class="rd-hist-fieldval__meta"><div>${esc(fmtDayShort(t.date) + (t.time ? ' · ' + t.time : '') + ' · ' + t.who)}</div>` +
+          `<div class="rd-hist-fieldval__note">${esc(note)}</div></div>` +
+          (t.undoable
+            ? `<button type="button" class="rd-hist-fieldval__restore" onclick="event.stopPropagation();rdHistUndoEntry(${t.index})">Restore</button>`
+            : `<span class="rd-hist-aged rd-hist-fieldval__restore">Unavailable</span>`) +
+          `</div>`;
       });
     }
-    html += `</div>` + explainerHtml();
+    html += `</div>`;
+    const touches = fieldTouchRows(sel.field, current && current.consequence);
+    html += `<aside class="rd-hist-fieldpanel">` +
+      `<div class="rd-hist-fieldpanel__title">What this field touches</div>` +
+      `<div class="rd-hist-fieldpanel__list">` +
+      touches.map(([name, effect]) =>
+        `<div><span>${esc(name)}</span><span class="rd-hist-fieldpanel__effect${/fail|over|\+1|−1|clash/i.test(effect) ? ' is-warn' : ''}">${esc(effect)}</span></div>`
+      ).join('') +
+      `</div>` +
+      `<div class="rd-hist-fieldpanel__callout">${esc(fieldRestoreNote(sel.field, restoreTarget, current && current.consequence))}</div>` +
+      `<div class="rd-hist-fieldpanel__title">Field facts</div>` +
+      `<div class="rd-hist-fieldpanel__facts">` +
+      `<div><span>Type</span><span>${esc(/time|date/.test(sel.field) ? 'Time range' : 'Text')}</span></div>` +
+      `<div><span>Times changed</span><span>${timeline.length}</span></div>` +
+      `<div><span>Editors</span><span>${editors <= 1 ? esc(timeline[0] ? entryWho(timeline[0].row) + ' only' : '—') : editors + ' people'}</span></div>` +
+      `<div><span>Derived from</span><span>Typed</span></div>` +
+      `</div></aside></div>`;
+    html += explainerHtml();
     host.innerHTML = html;
+  }
+
+  function statCell(label, value, extraClass) {
+    return `<div class="rd-hist-fieldstats__cell${extraClass ? ' ' + extraClass : ''}">` +
+      `<div class="rd-hist-fieldstats__k">${esc(label)}</div>` +
+      `<div class="rd-hist-fieldstats__v">${esc(value)}</div>` +
+      (label === 'Open clash' && value === 'Yes' ? `<div class="rd-hist-fieldstats__sub">clears if restored</div>` : '') +
+      `</div>`;
   }
 
   function renderView() {
@@ -488,7 +715,8 @@
   }
 
   function rdSetHistoryView(mode) {
-    window._histMode = (mode === 'record' || mode === 'fields') ? mode : 'day';
+    window._histMode = PAGE_VIEWS.some(([id]) => id === mode) ? mode : 'day';
+    if (window._histMode === 'fields') ensureFieldSelection();
     if (typeof setSavedView === 'function') setSavedView('history', window._histMode);
     renderToolbar();
     renderView();
@@ -520,6 +748,24 @@
     }
   }
 
+  function rdHistCycleFieldFilter(which) {
+    const catalog = fieldCatalog();
+    if (!catalog.length) return;
+    if (which === 'record') {
+      const records = [...new Set(catalog.map(c => c.record))];
+      const i = Math.max(0, records.indexOf(window._histFieldRecord));
+      window._histFieldRecord = records[(i + 1) % records.length];
+      const fields = catalog.filter(c => c.record === window._histFieldRecord).map(c => c.field);
+      if (!fields.includes(window._histFieldName)) window._histFieldName = fields[0] || '';
+    } else {
+      const fields = catalog.filter(c => c.record === window._histFieldRecord).map(c => c.field);
+      if (!fields.length) return;
+      const i = Math.max(0, fields.indexOf(window._histFieldName));
+      window._histFieldName = fields[(i + 1) % fields.length];
+    }
+    renderToolbar();
+    renderView();
+  }
   function rdHistCycleFilter(field) {
     const d = ensureData();
     const opts = { all: true };
@@ -732,7 +978,9 @@
   window.applyHistoryJump = applyHistoryJump;
   window.histFigures = histFigures;
   window.histRailCounts = histRailCounts;
+  window.histJumpDates = histJumpDates;
   window.rdHistCycleFilter = rdHistCycleFilter;
+  window.rdHistCycleFieldFilter = rdHistCycleFieldFilter;
   window.rdHistClearFilter = rdHistClearFilter;
   window.rdHistToggleSort = rdHistToggleSort;
   window.rdHistLoadMore = rdHistLoadMore;

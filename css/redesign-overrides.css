@@ -27800,6 +27800,127 @@ body.rd-scope #panel-history .rd-hist-fieldcard li {
   display: grid; grid-template-columns: 1.2fr 1fr auto 1fr auto; gap: 8px; align-items: center;
   padding: 8px 0; border-top: 1px solid #f0ebe0; font-size: 13px;
 }
+
+/* §34 · 31i By record view — record groups + change rows */
+body.rd-scope #panel-history .rd-hist-byrecord { display: flex; flex-direction: column; gap: 0; margin-bottom: 18px; }
+body.rd-scope #panel-history .rd-hist-recgroup { border: 1px solid #e7e1d4; background: #fff; margin-bottom: 14px; }
+body.rd-scope #panel-history .rd-hist-recgroup__head {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding: 12px 20px 7px; background: #f9f5ef; border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-history .rd-hist-recgroup__title {
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #20362D; font-weight: 700;
+}
+body.rd-scope #panel-history .rd-hist-recgroup__meta { font-size: 12px; color: #8a7e6b; }
+body.rd-scope #panel-history .rd-hist-recrow {
+  display: flex; align-items: center; gap: 16px; padding: 11px 20px; border-bottom: 1px solid #f0ebe0; cursor: pointer;
+}
+body.rd-scope #panel-history .rd-hist-recrow:hover { background: #faf7f1; }
+body.rd-scope #panel-history .rd-hist-recrow__main { flex: 1; min-width: 0; }
+body.rd-scope #panel-history .rd-hist-recrow__change { font-size: 14px; color: #23211c; }
+body.rd-scope #panel-history .rd-hist-recrow__who { font-size: 12px; color: #8a7e6b; margin-top: 2px; }
+body.rd-scope #panel-history .rd-hist-recrow__when { flex: 0 0 170px; font-size: 12px; color: #6b645d; }
+body.rd-scope #panel-history .rd-hist-recrow__prior {
+  flex: 0 0 130px; font-size: 13px; color: #3f3b34; font-variant-numeric: tabular-nums; text-align: right;
+}
+body.rd-scope #panel-history .rd-hist-recrow__chip { flex: 0 0 auto; }
+body.rd-scope #panel-history .rd-hist-chip {
+  display: inline-block; white-space: nowrap; padding: 2px 8px;
+  background: #eef1f2; color: #626d74; border: 1px solid #dde3e4; font-size: 12px;
+}
+body.rd-scope #panel-history .rd-hist-chip--derived {
+  background: #eef6f0; color: #2f6b45; border-color: #cfe3d5;
+}
+
+/* §34 · 31j Field detail view — stats strip + value list + right panel */
+body.rd-scope #panel-history .rd-hist-fieldstats {
+  display: flex; border-bottom: 1px solid #e7e1d4; margin-bottom: 0;
+}
+body.rd-scope #panel-history .rd-hist-fieldstats__cell {
+  flex: 1; padding: 14px 24px; border-right: 1px solid #f0ebe0;
+}
+body.rd-scope #panel-history .rd-hist-fieldstats__cell:last-child { border-right: 0; }
+body.rd-scope #panel-history .rd-hist-fieldstats__k {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+}
+body.rd-scope #panel-history .rd-hist-fieldstats__v {
+  font-size: 24px; font-weight: 600; letter-spacing: -.015em; color: #20362D;
+  margin-top: 5px; line-height: 1; font-variant-numeric: tabular-nums;
+}
+body.rd-scope #panel-history .rd-hist-fieldstats__cell.rd-hist-stat--warn .rd-hist-fieldstats__v { color: #8a640f; }
+body.rd-scope #panel-history .rd-hist-fieldstats__cell.rd-hist-stat--danger .rd-hist-fieldstats__v { color: #9c3b34; }
+body.rd-scope #panel-history .rd-hist-fieldstats__sub { font-size: 11px; color: #8a640f; margin-top: 5px; }
+body.rd-scope #panel-history .rd-hist-fieldlayout {
+  display: flex; align-items: stretch; min-height: 320px; border: 1px solid #e7e1d4; border-top: 0; margin-bottom: 18px;
+}
+body.rd-scope #panel-history .rd-hist-fieldlist { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: #fff; }
+body.rd-scope #panel-history .rd-hist-fieldlist__head {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding: 13px 20px; border-bottom: 1px solid #e7e1d4; background: #fff;
+}
+body.rd-scope #panel-history .rd-hist-fieldlist__eyebrow {
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+}
+body.rd-scope #panel-history .rd-hist-fieldlist__note { font-size: 12px; color: #6b645d; }
+body.rd-scope #panel-history .rd-hist-fieldlist__action { margin-left: auto; font-size: 12px; color: #946f33; }
+body.rd-scope #panel-history .rd-hist-fieldval {
+  display: flex; align-items: center; gap: 16px; padding: 13px 20px; border-bottom: 1px solid #f0ebe0;
+}
+body.rd-scope #panel-history .rd-hist-fieldval.is-current .rd-hist-fieldval__value { color: #9c3b34; }
+body.rd-scope #panel-history .rd-hist-fieldval__value {
+  flex: 0 0 110px; font-size: 15px; font-weight: 600; color: #20362D; font-variant-numeric: tabular-nums;
+}
+body.rd-scope #panel-history .rd-hist-fieldval__meta { flex: 1; min-width: 0; }
+body.rd-scope #panel-history .rd-hist-fieldval__meta > div:first-child { font-size: 12px; color: #8a7e6b; }
+body.rd-scope #panel-history .rd-hist-fieldval__note { font-size: 13px; color: #3f3b34; margin-top: 3px; line-height: 1.5; }
+body.rd-scope #panel-history .rd-hist-fieldval__restore {
+  flex: 0 0 90px; text-align: right; border: 0; background: transparent; color: #946f33; font: inherit; cursor: pointer;
+}
+body.rd-scope #panel-history .rd-hist-fieldpanel {
+  flex: 0 0 340px; border-left: 1px solid #e7e1d4; background: #f9f5ef; padding: 18px 20px; overflow: auto;
+}
+body.rd-scope #panel-history .rd-hist-fieldpanel__title {
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+  padding-bottom: 8px; border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-history .rd-hist-fieldpanel__list {
+  display: flex; flex-direction: column; gap: 9px; margin-top: 12px; font-size: 13px; color: #6b645d;
+}
+body.rd-scope #panel-history .rd-hist-fieldpanel__list > div {
+  display: flex; justify-content: space-between; gap: 10px;
+}
+body.rd-scope #panel-history .rd-hist-fieldpanel__effect { color: #946f33; }
+body.rd-scope #panel-history .rd-hist-fieldpanel__effect.is-warn { color: #9c3b34; }
+body.rd-scope #panel-history .rd-hist-fieldpanel__callout {
+  margin-top: 20px; padding: 11px 12px; border: 1px solid #e7ce80; background: #fff7df;
+  color: #8a640f; font-size: 12px; line-height: 1.6;
+}
+body.rd-scope #panel-history .rd-hist-fieldpanel__facts {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 13px; color: #6b645d;
+}
+body.rd-scope #panel-history .rd-hist-fieldpanel__facts > div {
+  display: flex; justify-content: space-between;
+}
+body.rd-scope #panel-history .rd-hist-fieldpanel__facts span:last-child { color: #23211c; }
+body.rd-scope.night #panel-history .rd-hist-recgroup,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-recgroup { border-color: #2e2e28; background: #1a1a1a; }
+body.rd-scope.night #panel-history .rd-hist-recgroup__head,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-recgroup__head { background: #141414; border-color: #2e2e28; }
+body.rd-scope.night #panel-history .rd-hist-recgroup__title,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-recgroup__title { color: #e6e1d6; }
+body.rd-scope.night #panel-history .rd-hist-recrow,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-recrow { border-color: #262626; }
+body.rd-scope.night #panel-history .rd-hist-recrow__change,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-recrow__change { color: #e6e1d6; }
+body.rd-scope.night #panel-history .rd-hist-fieldlayout,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-fieldlayout { border-color: #2e2e28; }
+body.rd-scope.night #panel-history .rd-hist-fieldlist,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-fieldlist { background: #1a1a1a; }
+body.rd-scope.night #panel-history .rd-hist-fieldpanel,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-fieldpanel { background: #141414; border-color: #2e2e28; }
+body.rd-scope.night #panel-history .rd-hist-fieldstats__v,
+body.rd-scope[data-theme="night"] #panel-history .rd-hist-fieldstats__v { color: #e6e1d6; }
+
 body.rd-scope .rd-prefs__history {
   display: block; width: 100%; text-align: left; border: 0; background: transparent;
   padding: 8px 12px; font: inherit; color: inherit; cursor: pointer;

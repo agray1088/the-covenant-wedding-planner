@@ -2891,12 +2891,11 @@
         (count != null && count !== '' ? '<span class="rd-rail__count">' + count + '</span>' : '') +
         '</button>';
     }
+    var jumpDates = typeof window.histJumpDates === 'function' ? window.histJumpDates() : [];
     var jumpHtml =
       '<div class="rd-rail__section"><div class="rd-rail__title">Jump to</div><div class="rd-rail__list" role="list">' +
-      jumpItem('today', 'Today', figures.today || 0) +
-      jumpItem('yesterday', 'Yesterday', '') +
+      jumpDates.map(function (j) { return jumpItem(j.id, j.label, j.count); }).join('') +
       jumpItem('week', 'This week', '') +
-      jumpItem('all', 'Everything', figures.total || 0) +
       '<button type="button" class="rd-rail__item" onclick="rdHistJumpDate()">Pick a date…</button>' +
       '</div></div>';
     var noteHtml = '<p class="rd-rail__note">Undo and redo restore whole snapshots. This log is the readable record of what changed — it keeps going after a snapshot has aged out.</p>';
