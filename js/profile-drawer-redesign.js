@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var VER = 'pd-rd-49a2';
+  var VER = 'pd-rd-49a3';
   var CHEVRON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
 
   var PLANNING_VIEWS = [
@@ -133,30 +133,26 @@
     var select = document.getElementById(selectId);
     if (!select) return;
     var field = select.closest('.pd-field');
-    if (!field || field.querySelector('.rd-pd-select-row')) return;
+    if (!field) return;
+
+    var row = field.querySelector('.rd-pd-select-row');
+    if (row && row.tagName === 'BUTTON') row.remove();
+    if (field.querySelector('.rd-pd-select-row')) {
+      syncSelectRow(selectId, metaFn);
+      return;
+    }
 
     select.classList.add('rd-pd-native-hide');
 
-    var row = document.createElement('button');
-    row.type = 'button';
+    var row = document.createElement('div');
     row.className = 'rd-pd-select-row';
-    row.setAttribute('aria-haspopup', 'listbox');
+    row.setAttribute('aria-hidden', 'true');
     row.innerHTML =
       '<span class="rd-pd-select-row__val"></span>' +
       '<span class="rd-pd-select-row__meta"></span>' +
       '<span class="rd-pd-select-row__chev">' + CHEVRON + '</span>';
 
     field.appendChild(row);
-
-    row.addEventListener('click', function () {
-      select.focus();
-      try {
-        if (typeof select.showPicker === 'function') select.showPicker();
-        else select.click();
-      } catch (e) {
-        select.click();
-      }
-    });
 
     select.addEventListener('change', function () { syncSelectRow(selectId, metaFn); });
     syncSelectRow(selectId, metaFn);

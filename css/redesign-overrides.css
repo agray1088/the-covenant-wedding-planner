@@ -26685,10 +26685,17 @@ body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-native-hide {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
+/* Profile / focus preset: invisible native select over the mock row (clip-hide breaks showPicker). */
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-field:has(.rd-pd-select-row) select.rd-pd-native-hide {
+  position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 34px;
+  margin: 0; padding: 0; opacity: 0; cursor: pointer; z-index: 2;
+  clip: auto; overflow: visible; white-space: normal; border: 0;
+  -webkit-appearance: none; appearance: none;
+}
 body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-select-row {
   display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 10px;
-  border: 1px solid #E7E1D4; background: #fff; border-radius: 0; cursor: pointer;
-  font: inherit; text-align: left;
+  border: 1px solid #E7E1D4; background: #fff; border-radius: 0;
+  font: inherit; text-align: left; pointer-events: none; position: relative; z-index: 1;
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-select-row__val {
   flex: 1; font-size: 13px; color: #3F3B34; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
