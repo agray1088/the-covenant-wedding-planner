@@ -123,7 +123,9 @@
 
       + paneHead('Help & tools', '')
       + row('Auto-fit columns', 'Fits the table you are looking at', btn('Auto-fit', 'autoFitActivePanelTables'))
-      + row('Open planner help', 'Get started, page guide and FAQ', btn('Open help', 'openPlannerHelp'))
+      + row('Get Started', 'How the planner works and your first steps', btn('Open', 'rdSetGetStarted'))
+      + row('Page-by-Page Guide', 'What each page does and what syncs', btn('Open', 'rdSetGuide'))
+      + row('FAQ', 'Answers to common questions', btn('Open', 'rdSetFaq'))
       + '<div class="rd-set__note" style="margin-top:16px">Auto-fit acts on one table. '
       + 'Pages with two or three tables fit the one you last touched.</div>';
   }
@@ -179,6 +181,14 @@
       if (name === 'rdSetProfile') {
         close();
         if (typeof toggleProfileDrawer === 'function') toggleProfileDrawer();
+        return;
+      }
+      if (name === 'rdSetGetStarted' || name === 'rdSetGuide' || name === 'rdSetFaq') {
+        var panel = name === 'rdSetGetStarted' ? 'instructions'
+          : name === 'rdSetGuide' ? 'guide' : 'faq';
+        close();
+        if (typeof showPanel === 'function') showPanel(panel, true);
+        requestAnimationFrame(function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
         return;
       }
       if (typeof window[name] === 'function') window[name]();
