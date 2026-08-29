@@ -152,19 +152,19 @@
       '<button type="button" class="rd-btn" onclick="typeof rdOpenFullEditor===\'function\'&&rdOpenFullEditor()">Full editor</button>' +
       '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print this page</button>');
     if (!panel) return;
-    panel.querySelectorAll('.inst-title-wrap, .inst-grid-3, .inst-wide-row, .inst-partner-handoff, .inst-welcome, #start-here-card, #rd-guide-backupwarn').forEach(el => {
-      el.classList.add('rd-guide-legacy-hide');
-    });
+    panel.querySelectorAll(
+      '.inst-title-wrap, .inst-grid-3, .inst-wide-row, .inst-partner-handoff, .inst-welcome, .inst-actions-row, .inst-final-footer, ' +
+      '#start-here-card, #rd-guide-backupwarn, #next-steps-path, #start-here-backup-edu, #start-here-templates, ' +
+      '#start-here-essentials-hub, #start-here-checklist'
+    ).forEach(el => { el.classList.add('rd-guide-legacy-hide'); });
     buildGetStartedBody(panel);
     if (typeof renderContextSidebar === 'function') renderContextSidebar('instructions');
   }
 
-  function buildGetStartedBody(panel) {
-    if (panel.querySelector('#rd-getstarted-body')) return;
-    const d = (typeof getCovenantPlannerData === 'function') ? getCovenantPlannerData() : (window.data || {});
+  function firstHourSteps(d) {
     const guests = Array.isArray(d.guests) ? d.guests.length : 0;
     const target = parseInt((d.setup && d.setup.guests) || 0, 10) || 0;
-    const steps = [
+    return [
       ['Fill in Wedding Setup', 'Names, date, venues, budget, guest target', !!(d.setup && d.setup.bride && d.setup.date)],
       ['Download your first backup', 'Before typing anything else', false],
       ['Add your households', 'Addresses first, guests follow', Array.isArray(d.households) && d.households.length > 0],
@@ -173,12 +173,14 @@
       ['Book the venue and log the contract', 'Venue & Vendors', Array.isArray(d.vendors) && d.vendors.some(v => /book/i.test(String(v.status || '')))],
       ['Print the day-of pack', 'Nine documents, one job', false, 'print']
     ];
-    const done = steps.filter(s => s[2]).length;
-    let stepsHtml = '';
+  }
+
+  function firstHourStepsHtml(steps) {
+    let html = '';
     steps.forEach((s, i) => {
       const isDone = s[2];
       const isNext = !isDone && steps.slice(0, i).every(x => x[2]);
-      stepsHtml +=
+      html +=
         '<div class="rd-step' + (isDone ? ' is-done' : '') + '">' +
         '<span class="rd-step__chip' + (isDone ? ' rd-step__chip--done' : '') + '">' + (isDone ? '✓' : '') + '</span>' +
         '<span class="rd-step__num">' + String(i + 1).padStart(2, '0') + '</span>' +
@@ -188,10 +190,166 @@
         (isNext && s[3] === 'print' ? '<button type="button" class="rd-btn rd-btn--primary rd-step__cta" onclick="typeof showPanel===\'function\'&&showPanel(\'print\',true)">Print</button>' : '') +
         '</div>';
     });
-    const host = document.createElement('div');
-    host.id = 'rd-getstarted-body';
-    host.className = 'rd-getstarted-body';
-    host.innerHTML =
+    return html;
+  }
+
+  function pathStepsData() {
+    if (typeof nspSteps === 'function') return nspSteps();
+    const s = ((typeof getCovenantPlannerData === 'function' ? getCovenantPlannerData() : window.data) || {}).setup || {};
+    const budgetSet = parseFloat(s.budget) > 0;
+    const d = (typeof getCovenantPlannerData === 'function' ? getCovenantPlannerData() : window.data) || {};
+    return [
+      { title: 'Start with your foundation', body: 'Set your vision & verse, and begin premarital counseling.', cta: 'Open Vision & Foundation', act: "showReflectTabPage('vision')", done: !!(s.verse || s.mission) },
+      { title: 'Shape your budget', body: 'Confirm categories, mark gifts, and log deposits as you book.', cta: 'Open Budget', act: "showPanel('budget')", done: budgetSet },
+      { title: 'Build your guest list', body: 'Add guests & RSVPs, then choose your wedding party.', cta: 'Open Guest List', act: "showPanel('guests')", done: Array.isArray(d.guests) && d.guests.length > 0 },
+      { title: 'Book your team & place', body: 'Compare venues, book vendors, and plan catering & menu.', cta: 'Open Vendors', act: "showPanel('vendors')", done: Array.isArray(d.vendors) && d.vendors.length > 0 },
+      { title: 'Plan the day', body: 'Order of service, day-of timeline, music & shot lists.', cta: 'Open Ceremony & Reception', act: "showPanel('ceremony')", done: Array.isArray(d.timeline) && d.timeline.length > 0 }
+    ];
+  }
+
+  function renderPathSection() {
+    const steps = pathStepsData();
+    const doneCount = steps.filter(s => s.done).length;
+    const currentIdx = steps.findIndex(s => !s.done);
+    const pct = steps.length ? Math.round(doneCount / steps.length * 100) : 0;
+    let rows = '';
+    steps.forEach((s, i) => {
+      const isCur = i === currentIdx;
+      const chip = isCur ? '<span class="rd-path-step__chip">Start here</span>'
+        : (s.done ? '<span class="rd-path-step__chip rd-path-step__chip--done">Done</span>' : '');
+      rows +=
+        '<button type="button" class="rd-path-step' + (isCur ? ' is-current' : '') + (s.done ? ' is-done' : '') + '" onclick="' + s.act + '">' +
+        '<span class="rd-path-step__badge' + (s.done ? ' rd-path-step__badge--done' : (isCur ? ' rd-path-step__badge--cur' : '')) + '">' +
+        (s.done ? '✓' : String(i + 1)) + '</span>' +
+        '<span class="rd-path-step__main">' +
+        '<span class="rd-path-step__title">' + esc(s.title) + '</span>' +
+        '<span class="rd-path-step__body">' + esc(s.body) + '</span>' +
+        '<span class="rd-path-step__cta">' + esc(s.cta) + ' →</span></span>' + chip + '</button>';
+    });
+    return '<div class="rd-setup-band rd-getstarted-path" id="rd-sec-path">' +
+      '<div class="rd-setup-band__head">' +
+      '<span>Your path</span>' +
+      '<span class="rd-setup-band__meta">You\'re all set — here\'s what\'s next</span>' +
+      '<span class="rd-setup-band__meta rd-getstarted-path__count">' + doneCount + ' of ' + steps.length + ' areas started</span></div>' +
+      '<div class="rd-getstarted-path__intro">' +
+      '<p>Work down this path at your own pace. Each step opens the page you need — nothing has to be done today. Steps check off automatically as you fill each area.</p>' +
+      '<div class="rd-progressmeter">' +
+      '<div class="rd-progressmeter__top"><span>Planning progress</span><span>' + doneCount + ' of ' + steps.length + '</span></div>' +
+      '<div class="rd-track"><div class="rd-fill" style="width:' + pct + '%"></div></div></div></div>' +
+      '<div class="rd-path-flow">' + rows +
+      '<button type="button" class="rd-path-step rd-path-step--finish" onclick="typeof showPanel===\'function\'&&showPanel(\'packets\')">' +
+      '<span class="rd-path-step__badge rd-path-step__badge--finish">◆</span>' +
+      '<span class="rd-path-step__main"><span class="rd-path-step__title">Hand off when it\'s rolling</span>' +
+      '<span class="rd-path-step__body">Use <b>Share Packets</b> &amp; <b>Print Centre</b> to give your coordinator and vendors what they need.</span></span></button></div></div>';
+  }
+
+  function renderBeforeStartSection() {
+    const d = (typeof getCovenantPlannerData === 'function' ? getCovenantPlannerData() : window.data) || {};
+    const simpleOn = !!(d.setup && d.setup.simpleMode);
+    const toggleLabel = simpleOn ? 'Switch to Full Planner' : 'Turn On Essentials View';
+    const hubLinks = (typeof ESSENTIALS_HUB_LINKS !== 'undefined' ? ESSENTIALS_HUB_LINKS : [
+      { id: 'setup', label: 'Wedding Setup', note: 'Names, date & budget' },
+      { id: 'guests', label: 'Guest List', note: 'RSVPs & headcount' },
+      { id: 'budget', label: 'Budget', note: 'Spending & categories' },
+      { id: 'calendar', label: 'Smart Calendar', note: 'Dates in one place' },
+      { action: 'startHereBackup()', label: 'Download Backup', note: 'Protect your work' }
+    ]).map(l => {
+      const action = l.action || "typeof showPanel==='function'&&showPanel('" + l.id + "')";
+      return '<button type="button" class="rd-hub-link" onclick="' + action + '"><span class="rd-hub-link__label">' + esc(l.label) + '</span><span class="rd-hub-link__note">' + esc(l.note) + '</span></button>';
+    }).join('');
+    let checklistHtml = '';
+    if (typeof computeSetupChecklist === 'function') {
+      const st = computeSetupChecklist();
+      const rows = st.steps.map(s => {
+        const action = s.action || "typeof showPanel==='function'&&showPanel('" + s.page + "')";
+        return '<button type="button" class="rd-checklist-step' + (s.done ? ' is-done' : '') + '" onclick="' + action + '">' +
+          '<span class="rd-checklist-step__box">' + (s.done ? '✓' : '') + '</span>' +
+          '<span class="rd-checklist-step__label">' + esc(s.label) + '</span></button>';
+      }).join('');
+      checklistHtml =
+        '<div class="rd-progressmeter rd-getstarted-checklist__meter">' +
+        '<div class="rd-progressmeter__top"><span>Essentials ready</span><span>' + st.done + ' of ' + st.total + '</span></div>' +
+        '<div class="rd-track"><div class="rd-fill" style="width:' + st.pct + '%"></div></div></div>' +
+        '<div class="rd-checklist-grid">' + rows + '</div>';
+    }
+    return '<div class="rd-getstarted-split rd-getstarted-beforestart" id="rd-sec-beforestart">' +
+      '<section class="rd-getstarted-panel">' +
+      '<div class="rd-setup-band__head"><span>Before you start</span><span class="rd-setup-band__meta">Essentials View when the menu feels big</span></div>' +
+      '<div class="rd-getstarted-panel__body">' +
+      '<p class="rd-getstarted-beforestart__lead">Hide advanced pages and focus on guests, budget, timeline, and backup. Nothing is deleted — open <b>Profile &amp; Display</b> anytime for a Focus preset.</p>' +
+      '<div class="rd-getstarted-beforestart__actions">' +
+      '<button type="button" class="rd-btn rd-btn--primary" onclick="typeof toggleSimpleMode===\'function\'&&toggleSimpleMode()">' + esc(toggleLabel) + '</button></div>' +
+      '<div class="rd-hub-grid">' + hubLinks + '</div></div></section>' +
+      '<section class="rd-getstarted-panel">' +
+      '<div class="rd-setup-band__head"><span>Setup checklist</span><span class="rd-setup-band__meta">Horizontal completion tracker</span>' +
+      '<button type="button" class="rd-setup-band__link" onclick="typeof openSetupWizard===\'function\'&&openSetupWizard()">Run setup wizard</button></div>' +
+      '<div class="rd-getstarted-panel__body">' + (checklistHtml || '<p class="rd-getstarted-beforestart__lead">Open Wedding Setup to begin the essentials checklist.</p>') +
+      '</div></section></div>';
+  }
+
+  function renderOrganisedSection() {
+    const tabs = [
+      ['Overview', 'Dashboard · Get Started · Notes'],
+      ['Planning', 'Timeline · Calendar · Appointments'],
+      ['People', 'Guests · Party · Tables'],
+      ['Money', 'Budget · Payments · Contracts'],
+      ['Vendors', 'Venue · Catering · Entertainment'],
+      ['The Day', 'Ceremony · Timeline · Logistics'],
+      ['Covenant', 'Vision · Prayer · Counseling'],
+      ['Documents', 'Print · Packets · Email']
+    ];
+    const tabHtml = tabs.map(t =>
+      '<div class="rd-organised-tab"><span class="rd-organised-tab__k">' + esc(t[0]) + '</span><span class="rd-organised-tab__v">' + esc(t[1]) + '</span></div>'
+    ).join('');
+    const templates = (typeof STYLE_TEMPLATES !== 'undefined' ? STYLE_TEMPLATES : []).slice(0, 4);
+    const catHtml = templates.map(t =>
+      '<article class="rd-organised-cat">' +
+      '<div class="rd-organised-cat__head"><span class="rd-organised-cat__icon">' + esc(t.icon || '◆') + '</span><h4>' + esc(t.name) + '</h4></div>' +
+      '<p>' + esc(t.purpose || t.desc || '') + '</p>' +
+      '<button type="button" class="rd-setup-band__link" onclick="typeof applyStyleTemplate===\'function\'&&applyStyleTemplate(\'' + String(t.id).replace(/'/g, "\\'") + '\')">Apply category</button></article>'
+    ).join('');
+    return '<div class="rd-setup-band rd-getstarted-organised" id="rd-sec-organised">' +
+      '<div class="rd-setup-band__head"><span>How the planner is organised</span>' +
+      '<span class="rd-setup-band__meta">Eight tabs · thirty-one pages · one database</span>' +
+      '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'guide\',true)">Open the Page-by-Page Guide</button></div>' +
+      '<div class="rd-organised-tabs">' + tabHtml + '</div>' +
+      (catHtml ? '<div class="rd-setup-band__head rd-getstarted-organised__sub"><span>Planning categories</span>' +
+        '<span class="rd-setup-band__meta">Starter rows — not colour themes</span></div><div class="rd-organised-cats">' + catHtml + '</div>' : '') +
+      '</div>';
+  }
+
+  function renderActionsSection() {
+    return '<div class="rd-setup-band rd-getstarted-actions" id="rd-sec-actions">' +
+      '<div class="rd-setup-band__head"><span>Try, reset &amp; continue</span>' +
+      '<span class="rd-setup-band__meta">Optional — your real work stays until you reset</span></div>' +
+      '<div class="rd-grid-3 rd-getstarted-actions__grid">' +
+      '<article class="rd-cta-card"><h3>See a filled-in example</h3>' +
+      '<p>Load sample wedding data to see how every section works together.</p>' +
+      '<button type="button" class="rd-btn rd-btn--primary" onclick="typeof loadSampleData===\'function\'&&loadSampleData()">Load sample data</button>' +
+      '<p class="rd-help">Replaces current planner contents.</p></article>' +
+      '<article class="rd-cta-card"><h3>Reset all data</h3>' +
+      '<p>Clear the planner and begin fresh when you are ready for your own plan.</p>' +
+      '<button type="button" class="rd-btn" onclick="typeof openResetModal===\'function\'&&openResetModal()">Reset all data</button>' +
+      '<p class="rd-help">Download a backup first — this cannot be undone.</p></article>' +
+      '<article class="rd-cta-card"><h3>Compatibility &amp; privacy</h3>' +
+      '<p>Runs offline in Chrome, Edge, Firefox, and Safari. No login, no cloud, no uploads.</p>' +
+      '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'dashboard\')">Continue to Dashboard →</button></article>' +
+      '</div></div>';
+  }
+
+  function renderClosingSection() {
+    return '<div class="rd-getstarted-closing" id="rd-sec-closing">' +
+      '<div class="rd-getstarted-closing__rule"></div>' +
+      '<p class="rd-getstarted-closing__quote">“Commit thy works unto the Lord, and thy thoughts shall be established.”</p>' +
+      '<p class="rd-getstarted-closing__ref">Proverbs 16:3</p>' +
+      '<p class="rd-getstarted-closing__note">This planner is a personal planning tool — not legal, financial, pastoral, or professional counseling advice.</p></div>';
+  }
+
+  function buildGetStartedHtml() {
+    const d = (typeof getCovenantPlannerData === 'function') ? getCovenantPlannerData() : (window.data || {});
+    const hourSteps = firstHourSteps(d);
+    const hourDone = hourSteps.filter(s => s[2]).length;
+    return '' +
       '<div class="rd-getstarted-hero" id="rd-sec-before">' +
       '<div class="rd-getstarted-hero__main">' +
       '<div class="rd-getstarted-hero__rule"></div>' +
@@ -201,9 +359,9 @@
       '<aside class="rd-getstarted-readfirst">' +
       '<div class="rd-getstarted-readfirst__k">Read this first</div>' +
       '<p>If you clear your browser history, cookies or site data — or open the planner on another device without restoring a backup — <strong>your saved work will not be there.</strong></p>' +
-        '<p class="rd-getstarted-readfirst__note">Wait a few seconds after opening the planner before your first backup, so the database finishes loading.</p>' +
-        backupMetaHtml() +
-        '<div class="rd-getstarted-readfirst__actions">' +
+      '<p class="rd-getstarted-readfirst__note">Wait a few seconds after opening the planner before your first backup, so the database finishes loading.</p>' +
+      backupMetaHtml() +
+      '<div class="rd-getstarted-readfirst__actions">' +
       '<button type="button" class="rd-btn rd-btn--primary" onclick="rdGuideBackup()">Download backup</button>' +
       '<button type="button" class="rd-btn" onclick="rdSetupRestore()">Restore</button></div></aside></div>' +
       '<div class="rd-setup-band" id="rd-sec-connects"><div class="rd-setup-band__head"><span>How the planner connects</span>' +
@@ -242,12 +400,27 @@
       cannotCard('It cannot recover a cleared browser', 'If site data goes without a backup, the planner is gone. This is the only unrecoverable failure.') +
       '</div></div>' +
       '<div class="rd-setup-band" id="rd-sec-firsthour"><div class="rd-setup-band__head"><span>Your first hour</span>' +
-      '<span class="rd-setup-band__meta">Seven steps · ' + done + ' done</span>' +
-      (done < 7 ? '<span class="rd-setup-band__link">Continue at step ' + (done + 1) + '</span>' : '') +
-      '</div><div class="rd-steps">' + stepsHtml + '</div></div>';
-    const head = panel.querySelector('.rd-guide-pagehead');
-    if (head && head.nextSibling) panel.insertBefore(host, head.nextSibling);
-    else panel.appendChild(host);
+      '<span class="rd-setup-band__meta">Seven steps · ' + hourDone + ' done</span>' +
+      (hourDone < 7 ? '<span class="rd-setup-band__link">Continue at step ' + (hourDone + 1) + '</span>' : '') +
+      '</div><div class="rd-steps">' + firstHourStepsHtml(hourSteps) + '</div></div>' +
+      renderPathSection() +
+      renderBeforeStartSection() +
+      renderOrganisedSection() +
+      renderActionsSection() +
+      renderClosingSection();
+  }
+
+  function buildGetStartedBody(panel) {
+    let host = panel.querySelector('#rd-getstarted-body');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'rd-getstarted-body';
+      host.className = 'rd-getstarted-body';
+      const head = panel.querySelector('.rd-guide-pagehead');
+      if (head && head.nextSibling) panel.insertBefore(host, head.nextSibling);
+      else panel.appendChild(host);
+    }
+    host.innerHTML = buildGetStartedHtml();
   }
   function conceptCard(num, title, body, mono) {
     return '<article class="rd-concept"><div class="rd-concept__head"><span class="rd-concept__num">' + num + '</span><h3 class="rd-concept__title">' + esc(title) + '</h3></div>' +
