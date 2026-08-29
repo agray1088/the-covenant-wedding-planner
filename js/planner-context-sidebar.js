@@ -1807,11 +1807,17 @@
     return buildGenericContext('setup');
   }
 
-  function buildTocRail(panelId, title, items, note) {
+  function buildTocRail(panelId, title, items, note, opts) {
+    opts = opts || {};
     var active = window['_railToc_' + panelId] || items[0][0];
     var list = items.map(function (pair) {
+      var countHtml = opts.counts && opts.counts[pair[0]] != null
+        ? ' <span class="rd-rail__count">' + opts.counts[pair[0]] + '</span>' : '';
+      var onclick = opts.onJump
+        ? opts.onJump.replace('__ID__', pair[0])
+        : 'rdRailTocJump(\'' + panelId + '\',\'' + pair[0] + '\')';
       return '<button type="button" class="rd-rail__item' + (active === pair[0] ? ' is-active' : '') +
-        '" onclick="rdRailTocJump(\'' + panelId + '\',\'' + pair[0] + '\')">' + esc(pair[1]) + '</button>';
+        '" onclick="' + onclick + '">' + esc(pair[1]) + countHtml + '</button>';
     }).join('');
     return '<div class="rd-rail__stack" data-page-rail="' + panelId + '">' +
       '<div class="rd-rail__section"><div class="rd-rail__title">' + esc(title) + '</div>' +
@@ -1835,6 +1841,24 @@
   }
 
   function buildGuidePageContext() {
+    var counts = { all: 0, overview: 0, planning: 0, people: 0, money: 0, vendors: 0, theday: 0, covenant: 0, documents: 0 };
+    if (typeof PAGE_GUIDE !== 'undefined') {
+      counts.all = PAGE_GUIDE.length;
+      PAGE_GUIDE.forEach(function (entry) {
+        var title = entry[0];
+        var cat = entry[1];
+        var tab = cat === 'Finances' ? 'money' : String(cat || '').toLowerCase();
+        if (/dashboard|get started|faq|wedding setup|notes/i.test(title)) counts.overview += 1;
+        else if (tab === 'planning') counts.planning += 1;
+        else if (tab === 'people') counts.people += 1;
+        else if (tab === 'finances' || tab === 'money') counts.money += 1;
+        else if (tab === 'vendors') counts.vendors += 1;
+        else if (/day|weekend|honeymoon|ceremony|shot|entertainment/i.test(title)) counts.theday += 1;
+        else if (/vision|prayer|counsel|rhythm|homecoming|covenant/i.test(title)) counts.covenant += 1;
+        else if (/print|packet|email|essential|document|hub/i.test(title)) counts.documents += 1;
+        else counts.planning += 1;
+      });
+    }
     return buildTocRail('guide', 'Every page', [
       ['all', 'Every page'],
       ['overview', 'Overview'],
@@ -1848,7 +1872,10 @@
       ['started', 'Get Started'],
       ['faq', 'FAQ'],
       ['setup', 'Wedding Setup']
-    ], 'Counts per tab update as entries are added to the guide.');
+    ], 'Counts per tab update as entries are added to the guide.', {
+      counts: counts,
+      onJump: 'rdGuideFilterRail(\'__ID__\')'
+    });
   }
 
   function buildFaqContext() {
@@ -1872,8 +1899,8 @@
     if (!panel) return;
     var map = {
       instructions: {
-        before: '.inst-welcome', connects: '.inst-grid-3', editing: '.inst-grid-3 .inst-card:nth-child(2)',
-        partner: '.inst-partner-handoff', cannot: '.inst-grid-3', firsthour: '#start-here-checklist',
+        before: '#rd-sec-before', connects: '#rd-sec-connects', editing: '#rd-sec-editing',
+        partner: '#rd-sec-partner', cannot: '#rd-sec-cannot', firsthour: '#rd-sec-firsthour',
         guide: null, faq: null, setup: null
       },
       guide: { all: '#guide-accordion', overview: '#guide-accordion' },
@@ -1882,6 +1909,11 @@
     if (sectionId === 'guide' && typeof showPanel === 'function') { showPanel('guide', true); return; }
     if (sectionId === 'faq' && typeof showPanel === 'function') { showPanel('faq', true); return; }
     if (sectionId === 'setup' && typeof showPanel === 'function') { showPanel('setup', true); return; }
+    if (sectionId === 'started' && typeof showPanel === 'function') { showPanel('instructions', true); return; }
+    if (panelId === 'guide' && typeof rdGuideFilterRail === 'function') {
+      rdGuideFilterRail(sectionId);
+      return;
+    }
     var sel = map[panelId] && map[panelId][sectionId];
     var el = sel ? panel.querySelector(sel) : panel.querySelector('.inst-card, .faq-list, #guide-accordion');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });

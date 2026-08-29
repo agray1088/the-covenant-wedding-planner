@@ -4196,7 +4196,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 - **Status:** done on `cursor/dashboard-views-017e` — review, then say “next” for §37
 - **Screen ids:** `15b`, `15d`, `15c`, `33i`, `33j`
 
-> **Verified this pass (`bb4c5bb`).** `js/guide-redesign.js` hides legacy title wraps / FAQ side chrome, adds Master pageheads + backup warning (15b), Table/Print view switcher + entry drawer (33i/33j), and FAQ quick-answers aside (15c). `planner-context-sidebar.js` registers TOC rails for instructions, guide, and faq.
+> **Verified this pass (`guide-s36e`).** Full §36 inventory vs Master: Get Started hero + read-first backup box (no duplicate banner), section anchors + rail TOC jumps, Page-by-Page Guide Master accordion (Page·Tab·What it does + 3-column expand), Table view stat strip + dark header + ownership toggle, Print view grouped by tab, FAQ two-column layout with Master quick-answers aside + Still stuck links, guide-entry drawer (Entry·Steps·Links·History).
 
 ### Five parts on this page
 

@@ -59,12 +59,27 @@
   ];
 
   const FAQ_QUICK = [
-    ['Is my data saved?', 'Yes — automatically, in this browser. Download a backup from Get Started to keep a copy or move devices.'],
-    ['How do I move to a new device?', 'Download a backup here, then Restore it on the other device from Wedding Setup.'],
-    ['Why can’t I edit this number?', 'It is derived — another page owns it. The Page-by-Page Guide names the owner of every field.'],
-    ['How do I print a clean copy?', 'Every page has Print section; the Print Centre collects the whole day-of pack.'],
-    ['Who can see a share link?', 'Only people you send it to, until you revoke it. Covenant pages are never shared.']
+    ['Auto-save', 'Your work saves automatically in this browser as you type. There is no save button to forget.'],
+    ['Back up regularly', 'Download a .sqlite file weekly. It is the only copy that leaves this browser.'],
+    ['Print beautifully', 'Every page has Print section. Working documents print plain; keepsakes keep the serif.'],
+    ['Edit anywhere', 'Every table edits in place and every total re-derives immediately.'],
+    ['Nothing is uploaded', 'No account, no cloud, no tracking. The trade-off is that backups are your job.']
   ];
+
+  const GUIDE_BLURBS = {
+    Dashboard: 'Shows what needs attention today and the single next best step.',
+    'Wedding Setup': 'Holds the eleven facts every other page reads, plus menu visibility.',
+    'Guest List': 'The 24-field guest record — the ledger every people figure is counted from.',
+    Budget: 'Eight categories against a target, itemised, with pledges tracked separately.',
+    Payments: 'Every instalment grouped by due month, with what is owed next.',
+    'Table Layout': 'The floor plan, the seat assignments, and a card per table.',
+    'Catering & Menu': 'Nine sections from menu builder to dietary summary, owning food budget lines.',
+    'Database Hub': 'Data health plus a raw browser for all 24 tables.',
+    'Print Centre': 'Every printable, sorted into working documents and keepsakes.'
+  };
+
+  window._guideExpanded = window._guideExpanded || new Set();
+  window._guideFilterTab = window._guideFilterTab || 'all';
 
   const esc = s => (typeof escapeHtml === 'function'
     ? escapeHtml(s == null ? '' : String(s))
@@ -133,24 +148,15 @@
     const panel = ensureHead('panel-instructions', 'Overview · start planning',
       'Get Started', 'Download backup', 'rdGuideBackup()',
       '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'guide\',true)">Open the guide</button>' +
-      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>');
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>' +
+      '<button type="button" class="rd-btn" onclick="typeof rdOpenFullEditor===\'function\'&&rdOpenFullEditor()">Full editor</button>' +
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print this page</button>');
     if (!panel) return;
-    panel.querySelectorAll('.inst-title-wrap, .inst-grid-3, .inst-wide-row, .inst-partner-handoff, .inst-welcome, #start-here-card').forEach(el => {
+    panel.querySelectorAll('.inst-title-wrap, .inst-grid-3, .inst-wide-row, .inst-partner-handoff, .inst-welcome, #start-here-card, #rd-guide-backupwarn').forEach(el => {
       el.classList.add('rd-guide-legacy-hide');
     });
-    if (!panel.querySelector('#rd-guide-backupwarn')) {
-      const warn = document.createElement('div');
-      warn.id = 'rd-guide-backupwarn';
-      warn.className = 'rd-guide-backupwarn';
-      warn.innerHTML =
-        '<div><strong>Everything saves in this browser only.</strong>' +
-        '<p>Clear the site data or lose the device and the plan is gone. Download a <code>.sqlite</code> backup now, and again after every big session — it is the one step nothing else can undo.</p></div>' +
-        '<button type="button" class="rd-btn rd-btn--primary" onclick="rdGuideBackup()">Download backup</button>';
-      const head = panel.querySelector('.rd-guide-pagehead');
-      if (head && head.nextSibling) panel.insertBefore(warn, head.nextSibling);
-      else panel.appendChild(warn);
-    }
     buildGetStartedBody(panel);
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('instructions');
   }
 
   function buildGetStartedBody(panel) {
@@ -186,11 +192,11 @@
     host.id = 'rd-getstarted-body';
     host.className = 'rd-getstarted-body';
     host.innerHTML =
-      '<div class="rd-getstarted-hero">' +
+      '<div class="rd-getstarted-hero" id="rd-sec-before">' +
       '<div class="rd-getstarted-hero__main">' +
       '<div class="rd-getstarted-hero__rule"></div>' +
       '<p class="rd-getstarted-lead">This planner runs entirely on your own computer. Everything you type saves automatically to a private database in this browser. Nothing is uploaded, and nothing is kept anywhere else unless you download a backup yourself.</p>' +
-      '<p class="rd-getstarted-sub">That is the whole promise of the product, and it is also the one risk. Read the backup warning above before you type anything you would be upset to lose.</p>' +
+      '<p class="rd-getstarted-sub">That is the whole promise of the product, and it is also the one risk. Read the next box before you type anything you would be upset to lose.</p>' +
       '</div>' +
       '<aside class="rd-getstarted-readfirst">' +
       '<div class="rd-getstarted-readfirst__k">Read this first</div>' +
@@ -200,46 +206,47 @@
         '<div class="rd-getstarted-readfirst__actions">' +
       '<button type="button" class="rd-btn rd-btn--primary" onclick="rdGuideBackup()">Download backup</button>' +
       '<button type="button" class="rd-btn" onclick="rdSetupRestore()">Restore</button></div></aside></div>' +
-      '<div class="rd-setup-band"><div class="rd-setup-band__head"><span>How the planner connects</span>' +
+      '<div class="rd-setup-band" id="rd-sec-connects"><div class="rd-setup-band__head"><span>How the planner connects</span>' +
       '<span class="rd-setup-band__meta">Six links that mean you never type the same detail twice</span>' +
       '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'datahub\',true)">Open the Database Hub</button></div>' +
       '<div class="rd-grid-3 rd-getstarted-concepts">' +
       conceptCard('01', 'Setup personalises everything', 'Your names, date, venues, budget and time zone feed the Dashboard, the countdown, the calendar and every printable.', 'Wedding Setup → 31 pages') +
-      conceptCard('02', 'Money flows one direction', 'Payments feed Budget. Catering creates managed budget lines. Contracts carry their own instalments.', 'Payments → Budget') +
+      conceptCard('02', 'Money flows one direction', 'Payments feed Budget. Catering creates managed budget lines. Contracts carry their own instalments. Nothing is typed twice.', 'Payments → Budget') +
       conceptCard('03', 'People fan outward', 'Guest List feeds Table Layout, catering headcount, meal counts, the calendar, share packets and the wedding party.', 'Guest List → 7 pages') +
       conceptCard('04', 'Dates gather in one place', 'Tasks, appointments, payments and timeline items all appear together in Month, Week and Agenda views.', '5 sources → Smart Calendar') +
-      conceptCard('05', 'Data health watches the joins', 'The Dashboard flags a payment with no vendor, a guest on a deleted table, or a calendar item whose source is gone.', '6 checks · open alerts') +
+      conceptCard('05', 'Data health watches the joins', 'The Dashboard flags a payment with no vendor, a guest on a deleted table, or a calendar item whose source is gone.', '6 checks · 4 open') +
       conceptCard('06', 'Covenant pages sit alongside', 'Vision, Prayer Journal, Counseling and Marriage Rhythms are part of the plan, not an appendix to it.', '4 pages · Class B print') +
       '</div></div>' +
       '<div class="rd-getstarted-split">' +
-      '<section class="rd-getstarted-panel"><div class="rd-setup-band__head"><span>Editing &amp; navigation</span><span class="rd-setup-band__meta">How to use the planner like a workbook</span></div>' +
+      '<section class="rd-getstarted-panel" id="rd-sec-editing"><div class="rd-setup-band__head"><span>Editing &amp; navigation</span><span class="rd-setup-band__meta">How to use the planner like a workbook</span></div>' +
       '<div class="rd-getstarted-panel__body">' +
       tipBlock('Two ways to edit a record', 'Click a row to open the side drawer for a quick change, or Full editor for all the fields at once. Both write to the same record.') +
       tipBlock('Tables edit in place', 'Type in a cell, tick rows for bulk edits, and use the last row to add. Long text wraps and can be dragged taller.') +
-      tipBlock('Focus when it feels big', 'Profile &amp; Display → Focus on essentials hides advanced pages without deleting anything.') +
-      tipBlock('Undo, redo and the change log', '<b>Planner History</b> keeps a day-by-day log of what changed — view-only, so it tells you what happened without offering to roll back.') +
+      tipBlock('Focus when it feels big', 'Profile &amp; Display → Focus on essentials hides advanced pages without deleting anything. Wedding Setup has the full list.') +
+      tipBlock('Undo, redo and the change log', 'Undo and redo cover the last 15 changes. <b>Planner History</b> keeps a day-by-day log of what changed — it is view-only, so it tells you what happened without offering to roll back.') +
       '</div></section>' +
-      '<section class="rd-getstarted-panel"><div class="rd-setup-band__head"><span>Planning with your partner</span><span class="rd-setup-band__meta">No account, no cloud — three files</span>' +
+      '<section class="rd-getstarted-panel" id="rd-sec-partner"><div class="rd-setup-band__head"><span>Planning with your partner</span><span class="rd-setup-band__meta">No account, no cloud — three files</span>' +
       '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'packets\',true)">Open Share Packets</button></div>' +
       '<div class="rd-getstarted-panel__body"><div class="rd-partner-flow">' +
       '<div><div class="rd-partner-flow__k">You</div><div>Download backup</div><code>.sqlite</code></div>' +
       '<div><div class="rd-partner-flow__k">Partner</div><div>Restores it</div><code>same file</code></div>' +
       '<div><div class="rd-partner-flow__k">Partner</div><div>Sends one back</div><code>.sqlite</code></div>' +
       '<div><div class="rd-partner-flow__k">You</div><div>Import packet</div><code>merges</code></div>' +
-      '</div><p class="rd-getstarted-partner-note">A partner packet merges RSVP updates and new tasks — it never deletes what you already have.</p></div></section></div>' +
-      '<div class="rd-setup-band"><div class="rd-setup-band__head"><span>What this planner cannot do</span><span class="rd-setup-band__meta">Said plainly, so it is not discovered late</span></div>' +
+      '</div><p class="rd-getstarted-partner-note">A partner packet merges RSVP updates and new tasks — it never deletes what you already have. Use a <b>Share Packet</b> instead when someone only needs to read details, not edit them.</p></div></section></div>' +
+      '<div class="rd-setup-band" id="rd-sec-cannot"><div class="rd-setup-band__head"><span>What this planner cannot do</span><span class="rd-setup-band__meta">Said plainly, so it is not discovered late</span>' +
+      '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'emails\',true)">Open Email Templates</button></div>' +
       '<div class="rd-getstarted-cannot">' +
       cannotCard('It cannot send email', 'No invitations, no RSVP reminders, no vendor mail. Email Templates writes the letters and you send them from your own mail app.') +
       cannotCard('It cannot collect RSVPs', 'There is no web form. Replies are entered on the Guest List by whoever hears them.') +
       cannotCard('It cannot sync between devices', 'Two devices means two planners. The backup file is the only bridge.') +
       cannotCard('It cannot recover a cleared browser', 'If site data goes without a backup, the planner is gone. This is the only unrecoverable failure.') +
       '</div></div>' +
-      '<div class="rd-setup-band"><div class="rd-setup-band__head"><span>Your first hour</span>' +
+      '<div class="rd-setup-band" id="rd-sec-firsthour"><div class="rd-setup-band__head"><span>Your first hour</span>' +
       '<span class="rd-setup-band__meta">Seven steps · ' + done + ' done</span>' +
       (done < 7 ? '<span class="rd-setup-band__link">Continue at step ' + (done + 1) + '</span>' : '') +
       '</div><div class="rd-steps">' + stepsHtml + '</div></div>';
-    const warn = panel.querySelector('#rd-guide-backupwarn');
-    if (warn && warn.nextSibling) panel.insertBefore(host, warn.nextSibling);
+    const head = panel.querySelector('.rd-guide-pagehead');
+    if (head && head.nextSibling) panel.insertBefore(host, head.nextSibling);
     else panel.appendChild(host);
   }
   function conceptCard(num, title, body, mono) {
@@ -255,12 +262,103 @@
 
   /* ── Page-by-Page Guide (15d + 33i table + 33j print) ────────────────── */
 
+  function contractForPage(name) {
+    return PAGE_CONTRACT.find(r => String(r[0]).toLowerCase() === String(name).toLowerCase()) || null;
+  }
+
+  function guideTabLabel(cat, title) {
+    const row = contractForPage(title);
+    if (row) return row[1] === 'no-tab' ? 'Overview' : row[1];
+    if (cat === 'Finances') return 'Money';
+    return cat || 'Overview';
+  }
+
+  function guideDoesLine(title, body, row) {
+    if (GUIDE_BLURBS[title]) return GUIDE_BLURBS[title];
+    if (row && row[2] && row[2] !== '—') {
+      const owns = row[2];
+      if (/^Nothing/i.test(owns)) return owns.replace(/^Nothing — /, '').replace(/^Nothing · /, '');
+      return owns.length > 96 ? owns.slice(0, 93) + '…' : owns;
+    }
+    const text = String(body || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const m = text.match(/(?:Overview[^.]*\.\s*)?([^.]{20,120}\.)/);
+    return m ? m[1] : (text.slice(0, 96) + (text.length > 96 ? '…' : ''));
+  }
+
+  function guideContractStats() {
+    const tabs = new Set(PAGE_CONTRACT.map(r => r[1]).filter(t => t !== 'no-tab'));
+    const owning = PAGE_CONTRACT.filter(r => r[2] && !/^Nothing/i.test(r[2])).length;
+    const derived = PAGE_CONTRACT.filter(r => r[2] && /^Nothing/i.test(r[2])).length;
+    const cls = guidePrintClassCounts();
+    const printables = PAGE_CONTRACT.filter(r => /class [ab]/i.test(r[5])).length;
+    return { pages: PAGE_CONTRACT.length, tabs: tabs.size, owning, derived, printables, classA: cls.a, classB: cls.b };
+  }
+
+  function renderGuideAccordion() {
+    const host = document.getElementById('guide-accordion');
+    if (!host || typeof PAGE_GUIDE === 'undefined') return;
+    const filter = window._guideFilterTab || 'all';
+    const filterMap = {
+      overview: 'Overview', planning: 'Planning', people: 'People', money: 'Money',
+      vendors: 'Vendors', theday: 'The Day', covenant: 'Covenant', documents: 'Documents'
+    };
+    const expanded = window._guideExpanded || new Set();
+    let entries = PAGE_GUIDE.map((entry, i) => ({ entry: entry, i: i }));
+    if (window._guideSortTab) {
+      entries.sort((a, b) => {
+        const ta = guideTabLabel(a.entry[1], a.entry[0]);
+        const tb = guideTabLabel(b.entry[1], b.entry[0]);
+        return ta.localeCompare(tb) || a.entry[0].localeCompare(b.entry[0]);
+      });
+    }
+    let html =
+      '<div class="rd-guide-acc-head">' +
+      '<span class="rd-guide-acc-head__sp"></span>' +
+      '<span class="rd-guide-acc-head__page">Page</span>' +
+      '<span class="rd-guide-acc-head__tab">Tab</span>' +
+      '<span class="rd-guide-acc-head__does">What it does</span></div>';
+    entries.forEach(({ entry, i }) => {
+      const title = entry[0];
+      const cat = entry[1];
+      const body = entry[2];
+      const tab = guideTabLabel(cat, title);
+      if (filter !== 'all' && filterMap[filter] && tab !== filterMap[filter]) return;
+      const row = contractForPage(title);
+      const oneLine = guideDoesLine(title, body, row);
+      const isOpen = expanded.has(i);
+      html +=
+        '<div class="rd-guide-acc-item' + (isOpen ? ' is-open' : '') + '">' +
+        '<button type="button" class="rd-guide-acc-row" onclick="rdGuideToggleEntry(' + i + ')">' +
+        '<span class="rd-guide-acc-caret" aria-hidden="true">' + (isOpen ? '▾' : '▸') + '</span>' +
+        '<span class="rd-guide-acc-page">' + esc(title) + '</span>' +
+        '<span class="rd-guide-acc-tab">' + esc(tab) + '</span>' +
+        '<span class="rd-guide-acc-does">' + esc(oneLine) + '</span></button>';
+      if (isOpen) {
+        const syncItems = row && row[4] && row[4] !== '—'
+          ? row[4].split(',').map(s => s.trim()).filter(Boolean) : [];
+        html +=
+          '<div class="rd-guide-acc-detail">' +
+          '<div><div class="rd-guide-acc-k">What it does</div><p>' + esc(oneLine) + '</p></div>' +
+          '<div><div class="rd-guide-acc-k">What syncs</div>' +
+          (syncItems.length
+            ? '<div class="rd-guide-acc-syncs">' + syncItems.map(s =>
+              '<div class="rd-guide-acc-sync"><span>' + esc(s) + '</span></div>').join('') + '</div>'
+            : '<p class="rd-guide-acc-empty">—</p>') +
+          '</div><div><div class="rd-guide-acc-k">When to use it</div><div class="rd-guide-acc-when">' + body + '</div></div></div>';
+      }
+      html += '</div>';
+    });
+    host.innerHTML = html;
+    host.className = 'rd-guide-accordion';
+  }
+
   function renderGuide() {
     const panel = ensureHead('panel-guide', 'Overview · start planning',
       'Page-by-Page Guide', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)",
+      '<button type="button" class="rd-btn" onclick="rdGuideExpandAll()">Expand all</button>' +
       '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print guide</button>' +
-      '<button type="button" class="rd-btn" onclick="rdGuideExportMap()">Export</button>' +
-      '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'datahub\',true)">Open the spec</button>');
+      '<button type="button" class="rd-btn" onclick="typeof rdOpenFullEditor===\'function\'&&rdOpenFullEditor()">Full editor</button>' +
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print the guide</button>');
     if (!panel) return;
     let host = panel.querySelector('#rd-guide-viewhost');
     if (!host) {
@@ -290,9 +388,12 @@
     }
     renderGuideToolbar();
     applyGuideView();
+    if (typeof renderPageGuide === 'function') renderPageGuide();
+    renderGuideAccordion();
     renderGuideTable();
     renderGuidePrint();
     renderGuideDrawer();
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('guide');
   }
 
   function guidePrintClassCounts() {
@@ -310,27 +411,28 @@
     if (!bar) return;
     const v = window._guideView || 'entries';
     const cls = guidePrintClassCounts();
+    const stats = guideContractStats();
     bar.innerHTML =
       '<div class="rd-guide-toolbar__left">' +
-      '<span class="rd-guide-count">' + PAGE_CONTRACT.length + ' pages · only one page owns any given field</span>' +
-      (v === 'table'
+      (v === 'entries'
         ? '<div class="rd-guide-filterrow">' +
-          '<span class="rd-guide-filterchip">Pages</span>' +
-          '<span class="rd-guide-filterchip">Tabs</span>' +
-          '<span class="rd-guide-filterchip is-on">Pages that own data</span>' +
-          '<span class="rd-guide-filterchip">Derived views</span>' +
-          '<span class="rd-guide-filterchip">Printables</span>' +
-          '<span class="rd-guide-filtermeta">' + cls.a + ' class A · ' + cls.b + ' class B</span>' +
+          '<span class="rd-guide-filterchip">Tab: all</span>' +
+          '<span class="rd-guide-filterchip">Type: all</span>' +
+          '<button type="button" class="rd-guide-sortlink" onclick="rdGuideSortTab()">Sort by tab</button>' +
           '</div>'
-        : '') +
+        : v === 'table'
+          ? '<div class="rd-guide-filterrow">' +
+            '<span class="rd-guide-filterchip">Tab: all</span>' +
+            '<span class="rd-guide-filterchip">Prints: all</span>' +
+            '<button type="button" class="rd-guide-filterchip' + (document.getElementById('panel-guide')?.classList.contains('rd-guide-owning') ? ' is-on' : '') + '" onclick="rdGuideToggleOwnership()">Show ownership</button>' +
+            '<button type="button" class="rd-guide-sortlink" onclick="rdGuideSortTab()">Sort by tab order</button>' +
+            '<span class="rd-guide-filtermeta">' + stats.classA + ' class A · ' + stats.classB + ' class B</span>' +
+            '</div>'
+          : '<span class="rd-guide-count">' + PAGE_CONTRACT.length + ' pages · only one page owns any given field</span>') +
       '</div>' +
       '<div class="rd-toolbar__right">' +
       (v === 'table'
-        ? '<div class="rd-guide-table-actions">' +
-          '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdGuideToggleOwnership()">Show ownership</button>' +
-          '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdGuideSortTab()">Sort by tab order</button>' +
-          '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdGuideExportMap()">Export the map</button>' +
-          '</div>'
+        ? '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdGuideExportMap()">Export the map</button>'
         : '') +
       '<div class="rd-viewswitch" role="group" aria-label="Guide view">' +
       '<button type="button" class="rd-viewswitch__item' + (v === 'entries' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'entries\')">Accordion</button>' +
@@ -354,16 +456,26 @@
     const host = document.getElementById('rd-guide-table');
     if (!host) return;
     const rows = guideTableRows();
-    let html = '<div class="rd-guide-table-head"><div><strong>Every page, one row</strong>' +
-      '<span>' + PAGE_CONTRACT.length + ' pages · what each owns versus what it borrows · A = working print, B = keepsake</span></div></div>' +
-      '<div class="ued-table-wrap rd-guide-table-wrap"><table class="rd-guide-contract"><thead><tr>' +
+    const stats = guideContractStats();
+    let html =
+      '<div class="rd-guide-stats">' +
+      statCell('Pages', stats.pages) +
+      statCell('Tabs', stats.tabs) +
+      statCell('Pages that own data', stats.owning) +
+      statCell('Derived views', stats.derived, 'own nothing') +
+      statCell('Printables', stats.printables, stats.classA + ' class A · ' + stats.classB + ' class B') +
+      '</div>' +
+      '<div class="rd-guide-table-head"><div><strong>Every page, one row</strong>' +
+      '<span>' + PAGE_CONTRACT.length + ' pages · what each owns versus what it borrows · A = working print, B = keepsake</span></div>' +
+      '<button type="button" class="rd-setup-band__link" onclick="rdGuideExportMap()">Export the map</button></div>' +
+      '<div class="ued-table-wrap rd-guide-table-wrap"><table class="rd-guide-contract rd-guide-contract--map"><thead><tr>' +
       '<th class="rd-guide-th-page">Page</th><th>Tab</th><th class="rd-guide-th-owns">Owns</th><th>Reads from</th><th>Feeds</th><th>Prints</th>' +
       '</tr></thead><tbody>';
     rows.forEach((row, i) => {
       const srcIdx = PAGE_CONTRACT.indexOf(row);
       html += '<tr class="rd-guide-crow" onclick="rdGuideOpenEntry(' + srcIdx + ')">' +
         '<td class="rd-guide-cpage">' + esc(row[0]) + '</td>' +
-        '<td>' + esc(row[1]) + '</td>' +
+        '<td>' + esc(row[1] === 'no-tab' ? 'Overview' : row[1]) + '</td>' +
         '<td class="rd-guide-owns">' + esc(row[2]) + '</td>' +
         '<td>' + esc(row[3]) + '</td>' +
         '<td>' + esc(row[4]) + '</td>' +
@@ -373,6 +485,12 @@
     html += '</tbody></table></div>' +
       '<p class="rd-help rd-guide-tablenote">The most common misuse is typing a number into a page that only reads it. The <b>Owns</b> column names the one page that may.</p>';
     host.innerHTML = html;
+  }
+  function statCell(label, value, sub) {
+    return '<div class="rd-guide-stat"><div class="rd-guide-stat__k">' + esc(label) + '</div>' +
+      '<div class="rd-guide-stat__v">' + esc(String(value)) + '</div>' +
+      (sub ? '<div class="rd-guide-stat__sub">' + esc(sub) + '</div>' : '') +
+      '</div>';
   }
   function renderGuidePrint() {
     const host = document.getElementById('rd-guide-print');
@@ -444,31 +562,43 @@
   function renderFaq() {
     const panel = ensureHead('panel-faq', 'Overview · start planning',
       'FAQ', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)",
-      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>');
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>' +
+      '<button type="button" class="rd-btn" onclick="typeof rdOpenFullEditor===\'function\'&&rdOpenFullEditor()">Full editor</button>' +
+      '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print this page</button>');
     if (!panel) return;
-    panel.querySelectorAll('.faq-title-wrap, .faq-side').forEach(el => el.classList.add('rd-guide-legacy-hide'));
-    if (!panel.querySelector('.rd-faq-layout')) {
-      const search = panel.querySelector('.faq-search-wrap');
-      const cat = panel.querySelector('#faq-cat-bar');
-      const list = panel.querySelector('#faq-list');
-      const layout = document.createElement('div');
+    panel.querySelectorAll('.faq-title-wrap').forEach(el => el.classList.add('rd-guide-legacy-hide'));
+    const search = panel.querySelector('.faq-search-wrap');
+    const cat = panel.querySelector('#faq-cat-bar');
+    let layout = panel.querySelector('.rd-faq-layout');
+    const list = panel.querySelector('#faq-list');
+    const aside = panel.querySelector('.faq-side');
+    if (!layout && list) {
+      layout = document.createElement('div');
       layout.className = 'rd-faq-layout';
-      if (list && list.parentElement) {
-        list.parentElement.insertBefore(layout, list);
-        layout.appendChild(list);
-      }
+      list.parentElement.insertBefore(layout, list);
+      layout.appendChild(list);
     }
-    if (!panel.querySelector('#rd-faq-quick')) {
-      const aside = document.createElement('aside');
-      aside.id = 'rd-faq-quick';
-      aside.className = 'rd-faq-quick';
-      aside.innerHTML = '<div class="rd-faq-quick__title">Quick answers</div>' +
-        FAQ_QUICK.map(q => '<div class="rd-faq-quick__item"><b>' + esc(q[0]) + '</b><p>' + esc(q[1]) + '</p></div>').join('') +
-        '<p class="rd-faq-quick__note">The five things people ask most. This column is a plain aside — no record is open behind it.</p>';
-      const layout = panel.querySelector('.rd-faq-layout');
-      if (layout) layout.appendChild(aside);
-      else panel.appendChild(aside);
+    if (layout && aside && !layout.contains(aside)) layout.appendChild(aside);
+    if (aside) {
+      aside.classList.remove('rd-guide-legacy-hide');
+      aside.innerHTML =
+        '<div class="rd-faq-quick rd-faq-quick--master">' +
+        '<div class="rd-faq-quick__head"><div class="rd-faq-quick__title">Quick answers</div>' +
+        '<div class="rd-faq-quick__subtitle">The five things everyone asks</div></div>' +
+        FAQ_QUICK.map(q =>
+          '<div class="rd-faq-quick__item rd-faq-quick__item--check">' +
+          '<span class="rd-faq-quick__icon" aria-hidden="true">✓</span>' +
+          '<div><b>' + esc(q[0]) + '</b><p>' + esc(q[1]) + '</p></div></div>').join('') +
+        '<div class="rd-faq-quick__stuck">' +
+        '<div class="rd-faq-quick__title">Still stuck</div>' +
+        '<div class="rd-faq-quick__links">' +
+        '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'instructions\',true)">Read Get Started →</button>' +
+        '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'guide\',true)">Open the Page-by-Page Guide →</button>' +
+        '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'datahub\',true)">Check the Database Hub for broken links →</button>' +
+        '<button type="button" class="rd-setup-band__link" onclick="typeof openFooterConnect===\'function\'&&openFooterConnect(\'support\')">Contact support →</button>' +
+        '</div></div></div>';
     }
+    if (typeof renderFAQ === 'function') renderFAQ();
     if (typeof renderContextSidebar === 'function') renderContextSidebar('faq');
   }
 
@@ -488,12 +618,35 @@
   }
   function rdGuideToggleOwnership() {
     document.getElementById('panel-guide')?.classList.toggle('rd-guide-owning');
+    renderGuideToolbar();
     if (typeof showToast === 'function') showToast('Owns column highlighted.');
   }
   function rdGuideSortTab() {
     window._guideSortTab = !window._guideSortTab;
     renderGuideTable();
+    renderGuideAccordion();
     if (typeof showToast === 'function') showToast(window._guideSortTab ? 'Sorted by tab order.' : 'Default order restored.');
+  }
+  function rdGuideToggleEntry(i) {
+    const set = window._guideExpanded || new Set();
+    if (set.has(i)) set.delete(i); else set.add(i);
+    window._guideExpanded = set;
+    renderGuideAccordion();
+  }
+  function rdGuideExpandAll() {
+    if (typeof PAGE_GUIDE === 'undefined') return;
+    window._guideExpanded = new Set(PAGE_GUIDE.map((_, i) => i));
+    renderGuideAccordion();
+    if (typeof showToast === 'function') showToast('All guide entries expanded.');
+  }
+  function rdGuideFilterRail(sectionId) {
+    if (sectionId === 'started' && typeof showPanel === 'function') { showPanel('instructions', true); return; }
+    if (sectionId === 'faq' && typeof showPanel === 'function') { showPanel('faq', true); return; }
+    if (sectionId === 'setup' && typeof showPanel === 'function') { showPanel('setup', true); return; }
+    window._guideFilterTab = sectionId;
+    window._railToc_guide = sectionId;
+    renderGuideAccordion();
+    if (typeof renderContextSidebar === 'function') renderContextSidebar('guide');
   }
 
   function rdGuideBackup() {
@@ -507,6 +660,9 @@
   function rdGuideSetDrawerTab(k) { window._guideDrawerTab = k; renderGuideDrawer(); }
 
   window.rdGuideExportMap = rdGuideExportMap;
+  window.rdGuideToggleEntry = rdGuideToggleEntry;
+  window.rdGuideExpandAll = rdGuideExpandAll;
+  window.rdGuideFilterRail = rdGuideFilterRail;
   window.rdGuideToggleOwnership = rdGuideToggleOwnership;
   window.rdGuideSortTab = rdGuideSortTab;
   window.rdGuideBackup = rdGuideBackup;
