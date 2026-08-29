@@ -153,7 +153,7 @@
       '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print this page</button>');
     if (!panel) return;
     panel.querySelectorAll(
-      '.inst-title-wrap, .inst-grid-3, .inst-wide-row, .inst-partner-handoff, .inst-welcome, .inst-actions-row, .inst-final-footer, ' +
+      '.inst-title-wrap, .inst-grid-3, .inst-wide-row, .inst-partner-handoff, .inst-welcome, .inst-actions-row, .inst-final-footer, .inst-alone, ' +
       '#start-here-card, #rd-guide-backupwarn, #next-steps-path, #start-here-backup-edu, #start-here-templates, ' +
       '#start-here-essentials-hub, #start-here-checklist'
     ).forEach(el => { el.classList.add('rd-guide-legacy-hide'); });
@@ -337,14 +337,6 @@
       '</div></div>';
   }
 
-  function renderClosingSection() {
-    return '<div class="rd-getstarted-closing" id="rd-sec-closing">' +
-      '<div class="rd-getstarted-closing__rule"></div>' +
-      '<p class="rd-getstarted-closing__quote">“Commit thy works unto the Lord, and thy thoughts shall be established.”</p>' +
-      '<p class="rd-getstarted-closing__ref">Proverbs 16:3</p>' +
-      '<p class="rd-getstarted-closing__note">This planner is a personal planning tool — not legal, financial, pastoral, or professional counseling advice.</p></div>';
-  }
-
   function buildGetStartedHtml() {
     const d = (typeof getCovenantPlannerData === 'function') ? getCovenantPlannerData() : (window.data || {});
     const hourSteps = firstHourSteps(d);
@@ -406,8 +398,7 @@
       renderPathSection() +
       renderBeforeStartSection() +
       renderOrganisedSection() +
-      renderActionsSection() +
-      renderClosingSection();
+      renderActionsSection();
   }
 
   function buildGetStartedBody(panel) {
