@@ -26578,98 +26578,335 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 .rd-set__faq-a { display: none; padding: 0 0 12px 18px; font-size: 12.5px; line-height: 1.6; color: #6b645d; }
 .rd-set__faq.is-open .rd-set__faq-a { display: block; }
 
-/* ═══════════════════════ PROFILE DRAWER (batch 48) ═════════════════════ */
-.rd-profile-drawer.profile-drawer {
+/* ═══════════════════════ PROFILE DRAWER · 49a / 49a-n ═══════════════════ */
+body.rd-scope #profile-drawer.rd-profile-drawer.profile-drawer {
   display: flex; flex-direction: column; padding: 0; width: 460px; max-width: 94vw;
-  border-radius: 0 !important;
+  border-radius: 0 !important; background: #fff; border-left: 1px solid #E7E1D4;
+  box-shadow: -18px 0 40px rgba(32, 54, 45, .14);
 }
-.rd-profile-drawer .rd-pd__head { padding: 16px 18px; border-bottom: 1px solid #e7e1d4; background: #f9f5ef; }
-body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-head {
-  background: #2D4A3E; border-bottom: 1px solid rgba(212, 184, 150, .35); padding: 14px 18px 16px;
-  display: flex; flex-direction: column; gap: 0; position: relative;
+body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-head.rd-pd__head {
+  flex: 0 0 auto; background: #2D4A3E !important; border-bottom: none !important;
+  padding: 16px 20px; display: flex; flex-direction: row; align-items: flex-start; gap: 14px;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd__eyebrow {
-  display: flex; align-items: center; width: 100%; margin-bottom: 8px;
-  font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #B89968; font-weight: 700;
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd__head-copy {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-title {
-  margin: 0; font-size: 17px; font-weight: 600; color: #F4EFE6; letter-spacing: -.01em;
+  margin: 0; font-size: 16px; font-weight: 600; color: #fff; letter-spacing: -.01em;
+  font-family: var(--font-sans, system-ui, sans-serif);
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-sub {
-  margin: 4px 0 0; font-size: 12px; line-height: 1.45; color: rgba(244, 239, 230, .72);
+  margin: 0; font-size: 12px; line-height: 1.5; color: #B89968;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-close,
-body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd__x {
-  color: rgba(244, 239, 230, .85); font-size: 22px; line-height: 1;
+body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-close.rd-pd__x {
+  flex: 0 0 auto; width: 26px; height: 26px; margin: 0; padding: 0;
+  border: 1px solid rgba(184, 153, 104, .5) !important; border-radius: 0 !important;
+  background: transparent !important; color: #B89968 !important; font-size: 15px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-body { padding: 0; }
+body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-close.rd-pd__x:hover {
+  background: rgba(184, 153, 104, .12) !important;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .profile-drawer-body {
+  flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0 !important; background: #F9F5EF;
+}
 body.rd-scope #profile-drawer.rd-profile-drawer .pd-sec {
-  margin: 0; padding: 16px 18px; border-bottom: 1px solid #e7e1d4; border-radius: 0;
+  margin: 0 !important; padding: 18px 20px !important; border: 0 !important;
+  border-bottom: 1px solid #F0EBE0 !important; border-radius: 0 !important;
+  background: transparent !important;
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .pd-sec-head {
-  font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+  display: flex; align-items: center; gap: 9px; padding: 0 0 10px; margin: 0 !important;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700;
+  color: #20362D; font-family: var(--font-sans, system-ui, sans-serif);
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-hint {
-  display: block; margin: 4px 0 0; font-size: 11px; letter-spacing: 0; text-transform: none;
-  font-weight: 400; color: #8a7e6b; line-height: 1.4;
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-sec-head svg {
+  width: 15px; height: 15px; stroke: #2D4A3E !important; fill: none; stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer #profile-templates-gallery .templates-gallery-intro { display: none; }
-body.rd-scope #profile-drawer.rd-profile-drawer #profile-templates-gallery .templates-gallery-stack {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-sec-head .pd-hint {
+  margin-left: auto; font-size: 11px; letter-spacing: 0; text-transform: none;
+  font-weight: 400; color: #8A7E6B;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .template-detail-card--compact {
-  border: 1px solid #e7e1d4; background: #fff; border-radius: 0;
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-hint:not(.pd-sec-head .pd-hint) {
+  margin: 0 0 12px; font-size: 11.5px; line-height: 1.55; color: #8A7E6B; font-weight: 400;
+  letter-spacing: 0; text-transform: none;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .template-detail-card--compact[open] {
-  grid-column: 1 / -1; border-color: #2D4A3E; box-shadow: inset 0 0 0 1px #2D4A3E;
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-hint strong { color: #3F3B34; font-weight: 600; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-identity { display: flex; gap: 14px; align-items: flex-start; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-photo {
+  flex: 0 0 88px; width: 88px !important; height: 88px !important; min-height: 0 !important;
+  border-radius: 0 !important; border: 1px dashed #E7E1D4; background: #F4F1EA !important;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .template-detail-summary {
-  padding: 10px; cursor: pointer; list-style: none;
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-photo .setup-photo-placeholder {
+  gap: 5px; color: #8A7E6B;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .template-detail-summary::-webkit-details-marker { display: none; }
-body.rd-scope #profile-drawer.rd-profile-drawer .template-detail-summary-main strong {
-  display: block; font-size: 12.5px; color: #20362D;
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-photo .setup-photo-placeholder span { font-size: 10.5px; }
+body.rd-scope #profile-drawer.rd-profile-drawer .setup-photo-plus {
+  width: 20px; height: 20px; background: #2D4A3E; color: #fff; border-radius: 0;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .template-detail-summary-sub {
-  display: block; font-size: 11px; color: #8a7e6b; line-height: 1.35; margin-top: 2px;
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-id-names {
+  margin: 0; font-size: 15px; font-weight: 600; color: #20362D;
+  font-family: var(--font-sans, system-ui, sans-serif);
 }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-id-date {
+  margin: 0; font-size: 12px; color: #8A7E6B;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-id-links { display: flex; gap: 14px; padding-top: 6px; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-link {
+  font-size: 12px; font-weight: 600; color: #2D4A3E; text-decoration: underline;
+  text-underline-offset: 3px; text-decoration-color: #2D4A3E;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-link.danger {
+  color: #9C3B34; text-decoration-color: #9C3B34;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-field { margin: 0; position: relative; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-field + .pd-field { padding-top: 10px; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-field > label {
+  display: block; margin: 0 0 6px; font-size: 12px; font-weight: 600; color: #3F3B34;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-field > label em {
+  font-weight: 400; color: #8A7E6B; font-style: normal;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-row-actions {
+  display: flex; gap: 7px; padding-top: 11px; margin: 0;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-mini {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px;
+  border: 1px solid #E7E1D4; background: #fff; border-radius: 0;
+  font-size: 12px; font-weight: 500; color: #3F3B34;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-mini svg { width: 15px; height: 15px; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-mini.danger {
+  border-color: #EBB4AA; color: #9C3B34;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-mini:hover { border-color: #cfc6b4; background: #fff; }
 body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-native-hide {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-select-row {
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 10px;
+  border: 1px solid #E7E1D4; background: #fff; border-radius: 0; cursor: pointer;
+  font: inherit; text-align: left;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-select-row__val {
+  flex: 1; font-size: 13px; color: #3F3B34; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-select-row__meta {
+  font-size: 11px; color: #8A7E6B; flex-shrink: 0;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-select-row__chev { color: #8A7E6B; display: inline-flex; flex-shrink: 0; }
 body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-planning-seg {
-  display: flex; margin-top: 8px; border: 1px solid #d9cfba; width: 100%;
+  display: flex; width: 100%; border: 1px solid #E7E1D4; background: #fff;
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt {
-  flex: 1; text-align: center; padding: 6px 4px; font-size: 12px; color: #6b645d;
-  background: #fff; border: 0; border-left: 1px solid #e7e1d4; cursor: pointer;
+  flex: 1; text-align: center; padding: 8px 0; font-size: 12.5px; font-weight: 500;
+  color: #3F3B34; background: transparent; border: 0; border-left: 1px solid #E7E1D4; cursor: pointer;
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt:first-child { border-left: 0; }
 body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt.is-active {
-  background: #2D4A3E; color: #F4EFE6; font-weight: 600;
+  background: #2D4A3E; color: #fff; font-weight: 600;
 }
-body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-profile-count {
-  margin-top: 4px; font-size: 11.5px; color: #8a7e6b;
+body.rd-scope #profile-drawer.rd-profile-drawer #profile-templates-gallery .templates-gallery-intro,
+body.rd-scope #profile-drawer.rd-profile-drawer #profile-templates-gallery .templates-gallery-stack,
+body.rd-scope #profile-drawer.rd-profile-drawer #profile-templates-gallery .template-detail-card { display: none !important; }
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
 }
-body.rd-scope.night #profile-drawer.rd-profile-drawer,
-body.rd-scope[data-theme="night"] #profile-drawer.rd-profile-drawer {
-  background: #141414; border-left-color: #2e2e28;
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-card {
+  display: flex; flex-direction: column; gap: 4px; padding: 10px 11px; text-align: left;
+  border: 1px solid #E7E1D4; background: #fff; border-radius: 0; cursor: pointer; font: inherit;
 }
-body.rd-scope.night #profile-drawer.rd-profile-drawer .profile-drawer-head,
-body.rd-scope[data-theme="night"] #profile-drawer.rd-profile-drawer .profile-drawer-head {
-  background: #1a2e26; border-bottom-color: rgba(184, 153, 104, .28);
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-card.is-active {
+  border-color: #2D4A3E; background: #EEF3EF;
 }
-body.rd-scope.night #profile-drawer.rd-profile-drawer .pd-sec,
-body.rd-scope[data-theme="night"] #profile-drawer.rd-profile-drawer .pd-sec {
-  border-bottom-color: #2e2e28; background: #141414;
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-card__top {
+  display: flex; align-items: center; gap: 7px;
 }
-body.rd-scope.night #profile-drawer.rd-profile-drawer .template-detail-card--compact,
-body.rd-scope[data-theme="night"] #profile-drawer.rd-profile-drawer .template-detail-card--compact {
-  background: #1c1c18; border-color: #2e2e28;
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-card__check {
+  width: 13px; height: 13px; border: 1px solid #CFC6B4; background: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 9px; color: #fff; flex-shrink: 0;
 }
-.rd-pd__eyebrow {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-card.is-active .rd-pd-cat-card__check {
+  border-color: #2D4A3E; background: #2D4A3E;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-card__name {
+  font-size: 12.5px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-cat-card__desc {
+  font-size: 11px; line-height: 1.45; color: #8A7E6B; padding-left: 20px;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .theme-picker-btn,
+body.rd-scope #profile-drawer.rd-profile-drawer .font-picker-btn {
+  width: 100%; height: 34px; padding: 0 10px; border-radius: 0 !important;
+  border: 1px solid #E7E1D4 !important; background: #fff !important;
+  color: #3F3B34 !important; font-size: 13px; display: flex; align-items: center; gap: 8px;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .theme-picker-label,
+body.rd-scope #profile-drawer.rd-profile-drawer .font-picker-label { flex: 1; min-width: 0; }
+body.rd-scope #profile-drawer.rd-profile-drawer .theme-picker-swatches { display: inline-flex; gap: 3px; flex-shrink: 0; }
+body.rd-scope #profile-drawer.rd-profile-drawer .theme-picker-swatches span,
+body.rd-scope #profile-drawer.rd-profile-drawer .theme-swatch {
+  width: 12px; height: 12px; border: 1px solid rgba(32, 54, 45, .16);
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd-font-meta {
+  font-size: 11px; color: #8A7E6B; flex-shrink: 0;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .theme-picker-chevron,
+body.rd-scope #profile-drawer.rd-profile-drawer .font-picker-chevron {
+  color: #8A7E6B; display: inline-flex; flex-shrink: 0;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-custom-colors {
+  width: 100%; height: 36px; margin-top: 13px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid #2D4A3E; background: #fff; border-radius: 0;
+  font-size: 12.5px; font-weight: 600; color: #2D4A3E; cursor: pointer;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-custom-colors svg { width: 15px; height: 15px; stroke-width: 1.6; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-toggle-row {
+  display: flex; align-items: center; gap: 11px; padding: 11px 0;
+  border-top: 1px solid #F0EBE0; margin: 0;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-sec > .pd-toggle-row:first-of-type { border-top: 0; padding-top: 0; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-tr-icon {
+  flex: 0 0 auto; width: 28px; height: 28px; border: 1px solid #E7E1D4; background: #F9F5EF;
+  border-radius: 0; display: inline-flex; align-items: center; justify-content: center; color: #2D4A3E;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-tr-icon svg { width: 15px; height: 15px; stroke: #2D4A3E; }
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-tr-text strong {
+  display: block; font-size: 13px; font-weight: 600; color: #20362D;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-tr-text span {
+  display: block; font-size: 11.5px; line-height: 1.45; color: #8A7E6B; margin-top: 2px;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-switch {
+  flex: 0 0 auto; width: 38px; height: 21px; border-radius: 0;
+  border: 1px solid #E7E1D4; background: #F4F1EA; padding: 2px;
+  display: inline-flex; align-items: center; justify-content: flex-start;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-switch::after {
+  width: 15px; height: 15px; border-radius: 0; background: #CFC6B4;
+  position: static; transform: none; box-shadow: none;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-switch.on {
+  border-color: #2D4A3E; background: #2D4A3E; justify-content: flex-end;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .pd-switch.on::after { background: #fff; }
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd__save-note {
+  padding: 13px 20px 20px; display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: #8A7E6B; background: #F9F5EF;
+}
+body.rd-scope #profile-drawer.rd-profile-drawer .rd-pd__save-note svg { flex-shrink: 0; stroke: #8A7E6B; }
+
+/* 49a-n night */
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer {
+  background: #1a1a1a; border-left-color: #2e2e2e;
+  box-shadow: -18px 0 40px rgba(22, 36, 30, .14);
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .profile-drawer-head,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .profile-drawer-head {
+  background: #2f5645 !important;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .profile-drawer-title,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .profile-drawer-title { color: #e6e6e6; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .profile-drawer-sub,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .profile-drawer-sub { color: #b08d55; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .profile-drawer-close.rd-pd__x,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .profile-drawer-close.rd-pd__x { color: #b08d55 !important; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .profile-drawer-body,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .profile-drawer-body { background: #1c1c1c; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-sec,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-sec { border-bottom-color: #262626 !important; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-sec-head,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-sec-head { color: #ede8de; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-sec-head svg,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-sec-head svg { stroke: #6e9c84 !important; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-hint,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-sec-head .pd-hint { color: #8a8a8a; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-hint strong,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-hint strong { color: #d2d2d2; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-photo,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-photo { border-color: #2e2e2e; background: #222 !important; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-id-names,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-tr-text strong { color: #ede8de; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-id-date,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-tr-text span { color: #8a8a8a; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-link { color: #6e9c84; text-decoration-color: #6e9c84; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-link.danger { color: #d98a80; text-decoration-color: #d98a80; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-field > label,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-field > label { color: #d2d2d2; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-select-row,
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .theme-picker-btn,
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .font-picker-btn,
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-mini,
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-select-row,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .theme-picker-btn,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .font-picker-btn,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-mini,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-planning-seg {
+  border-color: #2e2e2e; background: #1a1a1a; color: #d2d2d2;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-select-row__val,
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .theme-picker-label,
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .font-picker-label,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-select-row__val,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .theme-picker-label,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .font-picker-label { color: #d2d2d2; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt {
+  color: #d2d2d2; border-left-color: #2e2e2e; background: transparent;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt.is-active,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt.is-active {
+  background: #2f5645; color: #e6e6e6;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-cat-card,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-cat-card {
+  border-color: #2e2e2e; background: #1a1a1a;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-cat-card.is-active,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-cat-card.is-active {
+  border-color: #2f5645; background: #1f2a24;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-cat-card__name,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-cat-card__name { color: #ede8de; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-cat-card__check,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-cat-card__check {
+  border-color: #4a4a4a; background: #1a1a1a;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-cat-card.is-active .rd-pd-cat-card__check,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-cat-card.is-active .rd-pd-cat-card__check {
+  border-color: #2f5645; background: #2f5645; color: #e6e6e6;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-custom-colors,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-custom-colors {
+  border-color: #2f5645; background: #1a1a1a; color: #6e9c84;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-tr-icon,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-tr-icon {
+  border-color: #2e2e2e; background: #1c1c1c; color: #6e9c84;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-toggle-row,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-toggle-row { border-top-color: #262626; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-switch,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-switch {
+  border-color: #2e2e2e; background: #222;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-switch::after,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-switch::after { background: #5a5a5a; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-switch.on,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-switch.on {
+  border-color: #2f5645; background: #2f5645;
+}
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-switch.on::after,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-switch.on::after { background: #1a1a1a; }
+body.rd-scope.night #profile-drawer, body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd__save-note,
+body.rd-scope[data-theme="night"] #profile-drawer, body.rd-scope[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd__save-note {
+  background: #1c1c1c; color: #8a8a8a;
 }
 .rd-pd__x { margin-left: auto; border: 0; background: transparent; cursor: pointer; color: #b0a794; font-size: 15px; line-height: 1; }
 .rd-pd__person { display: flex; align-items: center; gap: 11px; margin-top: 10px; }
