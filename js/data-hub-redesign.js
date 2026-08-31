@@ -306,7 +306,129 @@
     else if (view === 'edited') list = list.filter(t => t.editedWeek && t.count > 0);
     if (window._dhSort === 'name') list.sort((a, b) => a.id.localeCompare(b.id));
     else list.sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
+    const q = String(window._dhSearch || '').trim().toLowerCase();
+    if (q) {
+      list = list.filter(t =>
+        String(t.id || '').toLowerCase().indexOf(q) >= 0
+        || String(t.owner || '').toLowerCase().indexOf(q) >= 0
+        || String(t.status.label || '').toLowerCase().indexOf(q) >= 0
+        || String(t.lastEdited || '').toLowerCase().indexOf(q) >= 0
+      );
+    }
     return list;
+  }
+
+  /* ── toolbar table chrome (search · columns · autofit · row height) ─── */
+
+  function dhViewKey() {
+    const mode = window._dhMode || 'overview';
+    if (mode === 'table') {
+      const surface = window._dhTableSurface || 'rows';
+      return 'dh-' + (window._dhTableId || 'guests') + '-' + surface;
+    }
+    return 'dh-overview-' + (window._dhSurface || 'tables');
+  }
+
+  function dhActiveTable() {
+    const panel = document.getElementById('panel-data-hub');
+    if (!panel) return null;
+    const mode = window._dhMode || 'overview';
+    if (mode === 'table' && (window._dhTableSurface || 'rows') === 'sql') return null;
+    if (mode === 'overview' && (window._dhSurface || 'tables') === 'activity') return null;
+    return panel.querySelector('#dh-view-table table.rd-dh-table, #dh-view-overview table.rd-dh-table');
+  }
+
+  function syncDhColumnRegistry() {
+    if (!window.rdColumns) return dhViewKey();
+    const scope = dhViewKey();
+    const mode = window._dhMode || 'overview';
+    let cols = [];
+    if (mode === 'overview') {
+      const surface = window._dhSurface || 'tables';
+      if (surface === 'links') {
+        cols = [
+          { key: 'from', label: 'From' },
+          { key: 'to', label: 'To' },
+          { key: 'rows', label: 'Rows' },
+          { key: 'health', label: 'Health' }
+        ];
+      } else if (surface !== 'activity') {
+        cols = [
+          { key: 'table', label: 'Table' },
+          { key: 'records', label: 'Records' },
+          { key: 'owner', label: 'Owner page' },
+          { key: 'lastEdited', label: 'Last edited' },
+          { key: 'status', label: 'Status' }
+        ];
+      }
+    } else {
+      const meta = figures().tables.find(t => t.id === window._dhTableId) || figures().tables[0];
+      const surface = window._dhTableSurface || 'rows';
+      if (surface === 'schema') {
+        cols = [
+          { key: 'field', label: 'Field' },
+          { key: 'sample', label: 'Sample' },
+          { key: 'type', label: 'Type' }
+        ];
+      } else if (surface === 'rows') {
+        cols = [{ key: '_check', label: '', fixed: true }].concat(
+          columnsFor(meta.rows, meta.def).map(c => ({ key: c, label: c }))
+        );
+      }
+    }
+    if (cols.length) {
+      window.rdColumns.register(scope, cols, function () { renderDataHubRd(); });
+    }
+    return scope;
+  }
+
+  function dhVisibleDataCols(scope, fallbackCols) {
+    if (!window.rdColumns) return fallbackCols;
+    syncDhColumnRegistry();
+    return window.rdColumns.visible(scope)
+      .map(c => c.key)
+      .filter(k => k !== '_check');
+  }
+
+  function dhStandardRightHtml() {
+    syncDhColumnRegistry();
+    if (typeof rdStandardRightHtml !== 'function') return '';
+    const scope = dhViewKey();
+    return rdStandardRightHtml(scope, {
+      openColumns: "rdDhOpenColumns(this)",
+      autofit: "rdDhAutoFit(this)",
+      rowHeight: "rdDhCycleRowHeight()"
+    });
+  }
+
+  function dhApplyTableChrome() {
+    const scope = dhViewKey();
+    const table = dhActiveTable();
+    if (!table) return;
+    const h = typeof window.rdStdHeightLabel === 'function' ? window.rdStdHeightLabel(scope) : 'default';
+    table.classList.remove('rd-table--compact', 'rd-table--default', 'rd-table--tall');
+    if (h === 'compact') table.classList.add('rd-table--compact');
+    else if (h === 'tall') table.classList.add('rd-table--tall');
+    else table.classList.add('rd-table--default');
+    table.setAttribute('data-rd-scope', scope);
+  }
+
+  function searchChipHtml(def) {
+    const q = String(window._dhSearch || '').trim();
+    let label = 'Search';
+    if (def && def.id) {
+      const meta = figures().tables.find(t => t.id === def.id) || null;
+      const rowCount = meta ? filteredRows(meta).length : 0;
+      label = def.id === 'guests' ? ('Search ' + rowCount + ' rows') : ('Search ' + rowCount + ' rows');
+    } else if ((window._dhMode || 'overview') === 'overview') {
+      label = 'Search tables';
+    }
+    if (q) {
+      return `<button type="button" class="rd-chip is-active" onclick="rdDhOpenSearch(this)">`
+        + esc('Search: ' + (q.length > 24 ? q.slice(0, 24) + '…' : q))
+        + `<span class="rd-chip__clear" onclick="event.stopPropagation();rdDhClearSearch()">&#10005;</span></button>`;
+    }
+    return `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdDhOpenSearch(this)">${esc(label)}</button>`;
   }
 
   function columnsFor(rows, def) {
@@ -483,7 +605,7 @@
       const def = hubDef(window._dhTableId);
       const surface = window._dhTableSurface || 'rows';
       const left = filterChipForTable(def) +
-        `<span class="rd-dh-toolbar-note">Table: ${esc(def.id)}</span>` + (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml(def.id || 'datahub') : '');
+        `<span class="rd-dh-toolbar-note">Table: ${esc(def.id)}</span>` + dhStandardRightHtml();
       host.innerHTML = left +
         `<div class="rd-toolbar__right">` +
         pageViewSwitcherHtml() +
@@ -496,8 +618,9 @@
     }
     const surface = window._dhSurface || 'tables';
     host.innerHTML =
+      searchChipHtml(null) +
       `<button type="button" class="rd-chip" onclick="rdDhCycleSort()">Sort by ${esc(window._dhSort === 'name' ? 'name' : 'records')}</button>` +
-      (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('datahub') : '') +
+      dhStandardRightHtml() +
       `<div class="rd-toolbar__right">` +
       pageViewSwitcherHtml() +
       `<div class="rd-viewswitch" role="group" aria-label="Hub surface">` +
@@ -508,11 +631,8 @@
   }
 
   function filterChipForTable(def) {
-    const meta = figures().tables.find(t => t.id === (def && def.id)) || null;
-    const rowCount = meta ? filteredRows(meta).length : 0;
-    const searchLabel = def.id === 'guests' ? ('Search ' + rowCount + ' rows') : 'Search';
     const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7"><path d="m6 9 6 6 6-6"/></svg>';
-    let chips = `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdDhClearSearch()">${esc(searchLabel)}</button>`;
+    let chips = searchChipHtml(def);
     if (def.id !== 'guests') return chips;
     const fields = ['side', 'rsvp', 'table_id', 'dietary'];
     return chips + fields.map(field => {
@@ -574,6 +694,18 @@
   }
 
   function inventoryHtml(list) {
+    const scope = dhViewKey();
+    const cols = dhVisibleDataCols(scope, ['table', 'records', 'owner', 'lastEdited', 'status']);
+    const colDefs = {
+      table: { head: 'Table', cell: t => `<code>${esc(t.id)}</code>`, cls: 'rd-dh-name' },
+      records: { head: 'Records', cell: t => String(t.count) },
+      owner: { head: 'Owner page', cell: t => `<button type="button" class="rd-dh-owner" onclick="event.stopPropagation();showPanel('${esc(t.ownerPanel)}')">${esc(t.owner)}</button>` },
+      lastEdited: { head: 'Last edited', cell: t => esc(t.lastEdited) },
+      status: { head: 'Status', cell: t => {
+        const stClass = t.status.warn ? ' is-warn' : (t.status.empty ? ' is-empty' : '');
+        return `<span class="rd-dh-status${stClass}">${esc(t.status.label)}</span>`;
+      } }
+    };
     const byGroup = {};
     GROUP_ORDER.forEach(g => { byGroup[g] = []; });
     list.forEach(t => {
@@ -581,9 +713,9 @@
       if (!byGroup[g]) byGroup[g] = [];
       byGroup[g].push(t);
     });
-    let html = `<div class="rd-table-wrap"><table class="rd-dh-table"><thead><tr>
-      <th>Table</th><th>Records</th><th>Owner page</th><th>Last edited</th><th>Status</th>
-    </tr></thead><tbody>`;
+    let html = `<div class="rd-table-wrap"><table class="rd-dh-table" data-rd-scope="${esc(scope)}"><thead><tr>`
+      + cols.map(c => `<th data-col="${esc(c)}">${esc(colDefs[c] ? colDefs[c].head : c)}</th>`).join('')
+      + `</tr></thead><tbody>`;
     GROUP_ORDER.forEach(g => {
       const rows = byGroup[g] || [];
       if (!rows.length) return;
@@ -591,16 +723,15 @@
       const label = g === 'Empty / not started'
         ? (rows.length + ' empty tables')
         : (g + ' · ' + sum + ' records');
-      html += `<tr class="rd-dh-group"><td colspan="5">${esc(label)}</td></tr>`;
+      html += `<tr class="rd-dh-group"><td colspan="${cols.length}">${esc(label)}</td></tr>`;
       rows.forEach(t => {
-        const stClass = t.status.warn ? ' is-warn' : (t.status.empty ? ' is-empty' : '');
-        html += `<tr class="rd-dh-row" onclick="rdDhOpenTable('${t.id}')">
-          <td class="rd-dh-name"><code>${esc(t.id)}</code></td>
-          <td>${t.count}</td>
-          <td><button type="button" class="rd-dh-owner" onclick="event.stopPropagation();showPanel('${esc(t.ownerPanel)}')">${esc(t.owner)}</button></td>
-          <td>${esc(t.lastEdited)}</td>
-          <td><span class="rd-dh-status${stClass}">${esc(t.status.label)}</span></td>
-        </tr>`;
+        html += `<tr class="rd-dh-row" onclick="rdDhOpenTable('${t.id}')">`
+          + cols.map(c => {
+            const def = colDefs[c];
+            const cls = def && def.cls ? ` class="${def.cls}"` : '';
+            return `<td${cls}>${def ? def.cell(t) : ''}</td>`;
+          }).join('')
+          + `</tr>`;
       });
     });
     html += '</tbody></table></div>';
@@ -633,17 +764,29 @@
   }
 
   function linksSurfaceHtml(f) {
+    const scope = dhViewKey();
+    const cols = dhVisibleDataCols(scope, ['from', 'to', 'rows', 'health']);
+    const rows = [
+      { from: 'guests', to: 'tables', rows: orphanGuestCount() ? orphanGuestCount() + ' orphaned' : 'Healthy', health: orphanGuestCount() ? 'warn' : 'ok' },
+      { from: 'guests', to: 'gifts', rows: '—', health: 'ok' },
+      { from: 'payments', to: 'vendors', rows: '—', health: 'ok' },
+      { from: 'contracts', to: 'payments', rows: '—', health: 'ok' }
+    ];
+    const q = String(window._dhSearch || '').trim().toLowerCase();
+    const filtered = q ? rows.filter(r => JSON.stringify(r).toLowerCase().indexOf(q) >= 0) : rows;
     return `<div class="rd-dh-links">
       <p class="rd-help">Cross-table links are owned by the source table. Orphans appear in Needs attention and on each table&rsquo;s Links drawer tab.</p>
-      <div class="rd-table-wrap"><table class="rd-dh-table"><thead><tr>
-        <th>From</th><th>To</th><th>Rows</th><th>Health</th>
-      </tr></thead><tbody>
-        <tr><td><code>guests</code></td><td><code>tables</code></td><td>${orphanGuestCount() ? orphanGuestCount() + ' orphaned' : 'Healthy'}</td>
-          <td>${orphanGuestCount() ? '<span class="rd-dh-status is-warn">Needs fix</span>' : '<span class="rd-dh-status">Healthy</span>'}</td></tr>
-        <tr><td><code>guests</code></td><td><code>gifts</code></td><td>—</td><td><span class="rd-dh-status">Healthy</span></td></tr>
-        <tr><td><code>payments</code></td><td><code>vendors</code></td><td>—</td><td><span class="rd-dh-status">Healthy</span></td></tr>
-        <tr><td><code>contracts</code></td><td><code>payments</code></td><td>—</td><td><span class="rd-dh-status">Healthy</span></td></tr>
-      </tbody></table></div>
+      <div class="rd-table-wrap"><table class="rd-dh-table" data-rd-scope="${esc(scope)}"><thead><tr>`
+      + cols.map(c => `<th data-col="${esc(c)}">${esc(c === 'from' ? 'From' : c === 'to' ? 'To' : c === 'rows' ? 'Rows' : 'Health')}</th>`).join('')
+      + `</tr></thead><tbody>`
+      + filtered.map(r => `<tr>`
+        + cols.map(c => {
+          if (c === 'from' || c === 'to') return `<td><code>${esc(r[c])}</code></td>`;
+          if (c === 'rows') return `<td>${esc(r.rows)}</td>`;
+          return `<td>${r.health === 'warn' ? '<span class="rd-dh-status is-warn">Needs fix</span>' : '<span class="rd-dh-status">Healthy</span>'}</td>`;
+        }).join('')
+        + `</tr>`).join('')
+      + `</tbody></table></div>
     </div>`;
   }
 
@@ -670,6 +813,7 @@
       body = backupCardHtml(f) + inventoryHtml(filteredInventory()) + attentionHtml(f);
     }
     host.innerHTML = body;
+    dhApplyTableChrome();
   }
 
   /* ── table browser ───────────────────────────────────────────────────── */
@@ -700,23 +844,30 @@
   }
 
   function schemaHtml(meta) {
-    const cols = columnsFor(meta.rows, meta.def);
+    const scope = dhViewKey();
+    const allCols = columnsFor(meta.rows, meta.def);
+    const cols = dhVisibleDataCols(scope, ['field', 'sample', 'type']);
     const sample = meta.rows[0] || {};
     return `<div class="rd-dh-schema">
-      <p class="rd-help">${cols.length} fields on <code>${esc(meta.id)}</code>. Raw names below — the owner page may render the same values as pills.</p>
-      <div class="rd-table-wrap"><table class="rd-dh-table"><thead><tr>
-        <th>Field</th><th>Sample</th><th>Type</th>
-      </tr></thead><tbody>
-        ${cols.map(c => {
+      <p class="rd-help">${allCols.length} fields on <code>${esc(meta.id)}</code>. Raw names below — the owner page may render the same values as pills.</p>
+      <div class="rd-table-wrap"><table class="rd-dh-table" data-rd-scope="${esc(scope)}"><thead><tr>`
+      + cols.map(c => `<th data-col="${esc(c)}">${esc(c === 'field' ? 'Field' : c === 'sample' ? 'Sample' : 'Type')}</th>`).join('')
+      + `</tr></thead><tbody>`
+      + allCols.map(c => {
           const v = sample[c];
           let typ = 'text';
           if (typeof v === 'number') typ = 'number';
           else if (typeof v === 'boolean') typ = 'boolean';
           else if (v && typeof v === 'object') typ = 'json';
           else if (/date|when|due/i.test(c)) typ = 'date';
-          return `<tr><td><code>${esc(c)}</code></td><td>${esc(cellVal(sample, c))}</td><td>${typ}</td></tr>`;
-        }).join('')}
-      </tbody></table></div>
+          const cells = {
+            field: `<code>${esc(c)}</code>`,
+            sample: esc(cellVal(sample, c)),
+            type: typ
+          };
+          return `<tr>${cols.map(col => `<td>${cells[col] || ''}</td>`).join('')}</tr>`;
+        }).join('')
+      + `</tbody></table></div>
     </div>`;
   }
 
@@ -734,14 +885,16 @@
 
   function rowsGridHtml(meta) {
     const rows = filteredRows(meta);
-    const cols = columnsFor(meta.rows, meta.def);
+    const scope = dhViewKey();
+    const allCols = columnsFor(meta.rows, meta.def);
+    const cols = dhVisibleDataCols(scope, allCols);
     if (!rows.length) {
       return `<div class="rd-dh-empty"><h3>No rows in ${esc(meta.id)}</h3>
         <p>This table is empty on the owner page too. Add records there, or restore a backup.</p>
         <button type="button" class="rd-btn" onclick="showPanel('${esc(meta.ownerPanel)}')">Open ${esc(meta.owner)}</button></div>`;
     }
-    let html = `<div class="rd-table-wrap rd-dh-raw-wrap"><table class="rd-dh-table rd-dh-raw"><thead><tr>
-      <th class="rd-dh-check"></th>${cols.map(c => `<th>${esc(c)}</th>`).join('')}
+    let html = `<div class="rd-table-wrap rd-dh-raw-wrap"><table class="rd-dh-table rd-dh-raw" data-rd-scope="${esc(scope)}"><thead><tr>
+      <th class="rd-dh-check" data-col="_check" data-autofit="off"></th>${cols.map(c => `<th data-col="${esc(c)}">${esc(c)}</th>`).join('')}
     </tr></thead><tbody>`;
     rows.forEach((row, i) => {
       const id = String(row._id || row.id || (meta.id + ':' + i));
@@ -777,6 +930,7 @@
     else if (surface === 'sql') body = sqlHtml(meta);
     else body = rowsGridHtml(meta);
     host.innerHTML = body;
+    dhApplyTableChrome();
   }
 
   /* ── drawers ─────────────────────────────────────────────────────────── */
@@ -999,9 +1153,46 @@
     window._dhUiFilters[field] = 'all';
     renderDataHubRd();
   }
+  async function rdDhOpenSearch() {
+    const cur = window._dhSearch || '';
+    let q = cur;
+    if (typeof covPrompt === 'function') {
+      q = await covPrompt('Search', cur);
+      if (q === null) return;
+    } else {
+      q = window.prompt('Search', cur);
+      if (q === null) return;
+    }
+    window._dhSearch = String(q || '').trim();
+    renderDataHubRd();
+  }
   function rdDhClearSearch() {
     window._dhSearch = '';
     renderDataHubRd();
+  }
+  function rdDhOpenColumns(btn) {
+    syncDhColumnRegistry();
+    if (window.rdColumns) window.rdColumns.openChooser(btn, dhViewKey());
+  }
+  function rdDhAutoFit(btn) {
+    const table = dhActiveTable();
+    if (!table) {
+      if (typeof showToast === 'function') showToast('No table to fit on this view', 'info');
+      return 0;
+    }
+    let n = 0;
+    if (typeof window.rdAutoFitTable === 'function') n = window.rdAutoFitTable(btn || table);
+    if (typeof showToast === 'function') showToast(n ? 'Auto-fitted columns' : 'Could not auto-fit columns', n ? 'ok' : 'info');
+    return n;
+  }
+  function rdDhCycleRowHeight() {
+    const scope = dhViewKey();
+    const root = document.getElementById('panel-data-hub');
+    if (typeof window.rdStdCycleRowHeight === 'function') {
+      window.rdStdCycleRowHeight(scope, root);
+    }
+    dhApplyTableChrome();
+    renderDhToolbar();
   }
   function rdDhToggleSel(id) {
     if (window._dhSel.has(id)) window._dhSel.delete(id);
@@ -1188,7 +1379,11 @@
   window.rdDhCycleSort = rdDhCycleSort;
   window.rdDhCycleFilter = rdDhCycleFilter;
   window.rdDhClearFilter = rdDhClearFilter;
+  window.rdDhOpenSearch = rdDhOpenSearch;
   window.rdDhClearSearch = rdDhClearSearch;
+  window.rdDhOpenColumns = rdDhOpenColumns;
+  window.rdDhAutoFit = rdDhAutoFit;
+  window.rdDhCycleRowHeight = rdDhCycleRowHeight;
   window.rdDhToggleSel = rdDhToggleSel;
   window.rdDhBulkClear = rdDhBulkClear;
   window.rdDhBulk = rdDhBulk;

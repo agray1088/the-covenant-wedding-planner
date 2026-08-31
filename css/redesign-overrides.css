@@ -22523,6 +22523,16 @@ body.rd-scope #panel-data-hub .rd-dh-table td {
   color: #3f3b34;
   vertical-align: top;
 }
+body.rd-scope #panel-data-hub .rd-dh-table.rd-table--compact td,
+body.rd-scope #panel-data-hub .rd-dh-table.rd-table--compact th {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+body.rd-scope #panel-data-hub .rd-dh-table.rd-table--tall td,
+body.rd-scope #panel-data-hub .rd-dh-table.rd-table--tall th {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
 body.rd-scope #panel-data-hub .rd-dh-group td {
   font-size: 10px;
   letter-spacing: .14em;
