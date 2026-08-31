@@ -45,13 +45,13 @@ a:hover { color: var(--forest); }
   display: flex; align-items: center; gap: 10px;
   padding-right: 18px; border-right: 1px solid rgba(212,184,150,.25);
 }
-.rd-topbar__mark { color: var(--gold-lt); font-size: 13.5px; }
-.rd-topbar__name { font: 500 17.1px/1 var(--font-display); letter-spacing: .04em; color: var(--text-on-dark); }
+.rd-topbar__mark { color: var(--gold-lt); font-size: 15px; }
+.rd-topbar__name { font: 500 19px/1 var(--font-display); letter-spacing: .04em; color: var(--text-on-dark); }
 .rd-topbar__wedding { display: flex; align-items: center; gap: var(--space-2); font-size: var(--type-body); color: rgba(244,239,230,.85); }
 .rd-topbar__avatar {
   width: 20px; height: 20px; border-radius: 3px;
   background: rgba(212,184,150,.22); color: var(--gold-lt);
-  font: 700 9px/1 var(--font-ui);
+  font: 700 10px/1 var(--font-ui);
   display: inline-flex; align-items: center; justify-content: center;
 }
 .rd-search {
