@@ -30622,7 +30622,7 @@ body.rd-scope .rd-topbar--tworow .rd-topbar__row {
 }
 body.rd-scope .rd-topbar--tworow .rd-topbar__row--identity {
   height: 46px;
-  border-bottom: 1px solid rgba(212, 184, 150, .18);
+  border-bottom: none;
 }
 body.rd-scope .rd-topbar--tworow .rd-topbar__row--actions { height: 48px; }
 
