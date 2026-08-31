@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var VER = 'pd-rd-49a4';
+  var VER = 'pd-rd-49a5';
   var CHEVRON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
 
   var PLANNING_VIEWS = [
@@ -72,10 +72,7 @@
   /* ── Hide extras not drawn in 49a ────────────────────────────────────── */
 
   function hideNonMockExtras(drawer) {
-    drawer.querySelector('.rd-roles-block')?.setAttribute('hidden', '');
-    drawer.querySelectorAll('.pd-toggle-row').forEach(function (row) {
-      if (row.querySelector('[onclick*="rdEnterDayOf"]')) row.setAttribute('hidden', '');
-    });
+    drawer.querySelector('.rd-roles-block')?.removeAttribute('hidden');
   }
 
   /* ── Planning view segmented control ─────────────────────────────────── */
@@ -258,6 +255,110 @@
     }
   }
 
+  /* ── Four tabs · Profile · Display · Alerts · Access (§39) ───────────── */
+
+  var PD_TABS = [
+    ['profile', 'Profile'],
+    ['display', 'Display'],
+    ['alerts', 'Alerts'],
+    ['access', 'Access']
+  ];
+
+  function buildAlertsPanel() {
+    var sec = document.createElement('section');
+    sec.className = 'pd-sec rd-pd-alerts-panel';
+    sec.innerHTML =
+      '<div class="pd-sec-head">Alerts</div>'
+      + '<p class="pd-hint">What reaches you on this device — not what the planner generates for everyone.</p>'
+      + '<div class="rd-pd-alert-list">'
+      + '<div class="rd-pd-alert-row"><span>Payment due · 7 days + morning</span><span class="is-on">on</span></div>'
+      + '<div class="rd-pd-alert-row"><span>Contract window closing</span><span class="is-on">on</span></div>'
+      + '<div class="rd-pd-alert-row"><span>RSVP deadline digest</span><span class="is-on">on</span></div>'
+      + '<div class="rd-pd-alert-row"><span>Task unblocked</span><span class="is-on">on</span></div>'
+      + '<div class="rd-pd-alert-row"><span>Vendor uploaded a document</span><span class="is-off">off</span></div>'
+      + '</div>'
+      + '<p class="rd-pd-alert-note">Your unread count is never shown to anyone else — it is not a productivity signal.</p>'
+      + '<div class="rd-pd-alert-actions">'
+      + '<button type="button" class="pd-mini" onclick="rdPdOpenNotifications(event)">Open notifications</button>'
+      + '<button type="button" class="pd-mini" onclick="if(typeof openSettingsWindow===\'function\')openSettingsWindow()">Planner alert rules</button>'
+      + '</div>';
+    return sec;
+  }
+
+  function panelForSection(sec) {
+    if (sec.querySelector('#theme-select') || sec.querySelector('#planning-view-select')) return 'display';
+    if (sec.querySelector('#read-only-btn') || sec.querySelector('[data-rd-roles-block]')) return 'access';
+    return 'profile';
+  }
+
+  function ensureDrawerTabs(drawer) {
+    var body = drawer.querySelector('.profile-drawer-body');
+    if (!body) return;
+
+    if (drawer.dataset.pdTabs !== '1') {
+      var sections = Array.from(body.querySelectorAll(':scope > .pd-sec'));
+      var footer = body.querySelector('.rd-pd__save-note');
+      var panels = {};
+      PD_TABS.forEach(function (pair) {
+        panels[pair[0]] = document.createElement('div');
+        panels[pair[0]].className = 'rd-pd-tabpanel';
+        panels[pair[0]].dataset.pdTab = pair[0];
+      });
+      sections.forEach(function (sec) {
+        panels[panelForSection(sec)].appendChild(sec);
+      });
+      panels.alerts.appendChild(buildAlertsPanel());
+
+      var tabs = document.createElement('div');
+      tabs.className = 'rd-pd-tabs';
+      tabs.setAttribute('role', 'tablist');
+      tabs.setAttribute('aria-label', 'Profile drawer');
+      tabs.innerHTML = PD_TABS.map(function (pair) {
+        return '<button type="button" class="rd-pd-tab" role="tab" data-pd-tab="' + pair[0]
+          + '" onclick="rdPdSetTab(\'' + pair[0] + '\')">' + pair[1] + '</button>';
+      }).join('');
+
+      var wrap = document.createElement('div');
+      wrap.className = 'rd-pd-tabpanels';
+      PD_TABS.forEach(function (pair) { wrap.appendChild(panels[pair[0]]); });
+
+      body.textContent = '';
+      body.appendChild(tabs);
+      body.appendChild(wrap);
+      if (footer) body.appendChild(footer);
+      drawer.dataset.pdTabs = '1';
+    }
+    syncPdTab();
+  }
+
+  function syncPdTab() {
+    var tab = window._pdDrawerTab || 'profile';
+    document.querySelectorAll('#profile-drawer .rd-pd-tab').forEach(function (btn) {
+      var on = btn.getAttribute('data-pd-tab') === tab;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('#profile-drawer .rd-pd-tabpanel').forEach(function (panel) {
+      panel.hidden = panel.getAttribute('data-pd-tab') !== tab;
+    });
+  }
+
+  function rdPdSetTab(tab) {
+    window._pdDrawerTab = tab || 'profile';
+    syncPdTab();
+  }
+
+  function rdPdOpenNotifications(e) {
+    if (typeof window.toggleTopbarNotifications === 'function') {
+      window.toggleTopbarNotifications(e || { preventDefault: function () {} });
+    } else if (typeof window.closeProfileDrawer === 'function') {
+      window.closeProfileDrawer();
+    }
+  }
+
+  window.rdPdSetTab = rdPdSetTab;
+  window.rdPdOpenNotifications = rdPdOpenNotifications;
+
   /* ── Apply all 49a chrome ────────────────────────────────────────────── */
 
   function applyProfileDrawerRd() {
@@ -271,6 +372,7 @@
     drawer.classList.add('rd-profile-drawer');
 
     fixProfileHeader(drawer);
+    ensureDrawerTabs(drawer);
     hideNonMockExtras(drawer);
     ensureFooter(drawer);
     ensurePlanningSeg();
