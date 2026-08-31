@@ -18839,9 +18839,10 @@ body.rd-scope #panel-honeymoon .rd-surface__main {
   overflow: auto;
   padding: 4px 4px 24px;
 }
-body.rd-scope #panel-honeymoon #honeymoon-stats .rd-stat__target-fill.is-forest {
+body.rd-scope #panel-honeymoon #honeymoon-stats .rd-stat__target-fill {
   background: #2D4A3E;
 }
+body.rd-scope #panel-honeymoon #honeymoon-drawer-slot { display: none; }
 body.rd-scope #panel-honeymoon #honeymoon-drawer-slot.is-open {
   display: flex;
   flex: 0 0 360px;
