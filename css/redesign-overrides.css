@@ -2550,7 +2550,10 @@ body.rd-scope .rd-pagehead .m-page-guide-dismiss {
   color: var(--text-muted) !important;
   font-family: var(--font-ui) !important;
 }
-/* No full-width rule between couple meta and Colossians / page scripture */
+/* Scripture band — same type empty or seeded (do not require .rd-page-meta;
+   empty planners skip the couple band and used to fall back to large italic legacy). */
+#main#main .page-scripture-footer,
+#main#main .rd-pagehead + .page-scripture-footer,
 #main#main .rd-page-meta + .page-scripture-footer {
   margin: 0 !important;
   padding: 4px 24px 14px !important;
@@ -2558,31 +2561,28 @@ body.rd-scope .rd-pagehead .m-page-guide-dismiss {
   border-bottom: 1px solid var(--border-subtle) !important;
   box-shadow: none !important;
 }
-#main#main .page-scripture-footer {
-  border-top: none !important;
-  box-shadow: none !important;
-}
-#main#main .rd-page-meta + .page-scripture-footer .psf-text {
+#main#main .page-scripture-footer .psf-text,
+#main#main .page-scripture-footer .psf-text em,
+#main#main .page-scripture-footer .psf-text cite {
   font-style: normal !important;
   font-size: var(--type-meta) !important;
+  line-height: 1.45 !important;
+  font-family: var(--font-ui) !important;
+}
+#main#main .page-scripture-footer .psf-text {
   color: var(--text-muted) !important;
-  font-family: var(--font-ui) !important;
 }
-#main#main .rd-page-meta + .page-scripture-footer .psf-text em {
-  font-style: normal !important;
-  font-family: var(--font-ui) !important;
-  font-size: inherit !important;
+#main#main .page-scripture-footer .psf-text em {
   display: inline !important;
+  color: inherit !important;
 }
-#main#main .rd-page-meta + .page-scripture-footer .psf-text cite {
+#main#main .page-scripture-footer .psf-text cite {
   display: inline !important;
   margin-left: 0.4em !important;
   margin-top: 0 !important;
-  font-size: inherit !important;
   letter-spacing: 0.02em !important;
   text-transform: none !important;
   color: var(--text-subtle) !important;
-  font-family: var(--font-ui) !important;
   font-weight: 500 !important;
 }
 /* Tasks: stats should not sit above couple band (flex source order). */
