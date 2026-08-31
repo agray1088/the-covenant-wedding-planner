@@ -23,8 +23,10 @@
   window._dhSort = window._dhSort || 'records';
 
   const TABLE_DRAWER_TABS = ['Table', 'Fields', 'Links', 'Activity'];
-  const ROW_DRAWER_TABS = ['Row', 'Fields', 'Links', 'Raw', 'History'];
+  /* Hub row · 7c — exact Master tabs (no Fields; raw JSON covers every column). */
+  const ROW_DRAWER_TABS = ['Row', 'Links', 'Raw', 'History'];
   const PAGE_VIEWS = [['overview', 'Database Hub'], ['table', 'all tables']];
+  const ENUM_FIELDS = new Set(['rsvp', 'side', 'meal', 'dietary', 'relationship', 'group', 'status', 'priority']);
   const DH_CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg>';
   const DH_FILTER_LABELS = { side: 'Side', rsvp: 'RSVP', table_id: 'Table', dietary: 'Dietary' };
 
@@ -958,6 +960,79 @@
     dhApplyTableChrome();
   }
 
+  function kvRow(label, value, tone) {
+    const cls = tone === 'warn' ? ' is-warn' : (tone === 'ok' ? ' is-ok' : (tone === 'gold' ? ' is-gold' : ''));
+    return `<div class="rd-drawer__kv${cls}"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`;
+  }
+
+  function fieldTypeSummary(cols, sample) {
+    let text = 0, enumerated = 0, dates = 0, numbers = 0, links = 0;
+    cols.forEach(c => {
+      const v = sample ? sample[c] : null;
+      if (/_id$|Id$|^table$|^household$|^gift|^menu|^party/.test(c)) links += 1;
+      else if (ENUM_FIELDS.has(c) || ENUM_FIELDS.has(String(c).toLowerCase())) enumerated += 1;
+      else if (/date|when|due|edited|created/i.test(c)) dates += 1;
+      else if (typeof v === 'number') numbers += 1;
+      else text += 1;
+    });
+    return [
+      ['Text', String(text)],
+      ['Enumerated', String(enumerated)],
+      ['Dates', String(dates)],
+      ['Numbers', String(numbers)],
+      ['Links to other tables', String(links), links ? 'gold' : '']
+    ];
+  }
+
+  function emptyFieldStats(meta) {
+    const cols = columnsFor(meta.rows, meta.def);
+    const out = [];
+    cols.forEach(c => {
+      let empty = 0;
+      meta.rows.forEach(r => {
+        const v = r[c];
+        if (v == null || String(v).trim() === '') empty += 1;
+      });
+      if (empty > 0 && empty < meta.rows.length) out.push({ field: c, empty: empty });
+    });
+    out.sort((a, b) => b.empty - a.empty);
+    return out.slice(0, 6);
+  }
+
+  function tableLinksOut(meta) {
+    if (meta.id === 'guests') {
+      return [
+        { label: '→ tables', value: Math.max(0, meta.count - orphanGuestCount()) + ' rows', tone: 'ok' },
+        { label: '→ households', value: (figures().tables.find(t => t.id === 'households') || { count: 0 }).count + ' rows', tone: 'ok' },
+        { label: '→ gifts', value: (figures().tables.find(t => t.id === 'gifts') || { count: 0 }).count + ' rows', tone: 'ok' },
+        { label: '→ menu_items', value: '—', tone: 'ok' }
+      ];
+    }
+    return [
+      { label: '→ related tables', value: meta.status.warn ? 'Needs fix' : 'Healthy', tone: meta.status.warn ? 'warn' : 'ok' }
+    ];
+  }
+
+  function rowLinksOut(row, meta) {
+    if (meta.id !== 'guests') {
+      return [
+        { label: '→ related', value: 'Healthy', tone: 'ok' }
+      ];
+    }
+    const tid = String(row.table || row.table_id || row.tableId || '').trim();
+    const meal = String(row.meal || row.dietary || '').trim();
+    const gift = String(row.gift || row.gift_id || row.giftId || '').trim();
+    const party = String(row.party || row.role || '').trim();
+    const tableNames = new Set(arr(data && data.tables).map(t => String(t.name || t.id || '').toLowerCase()));
+    const tableOk = !tid || tableNames.has(tid.toLowerCase()) || tableNames.has(('table ' + tid).toLowerCase());
+    return [
+      { label: '→ tables · ' + (tid || '—'), value: tid ? (tableOk ? 'Healthy' : 'Missing table') : 'Unseated', tone: tid && tableOk ? 'ok' : 'warn' },
+      { label: '→ menu_items · ' + (meal || '—'), value: meal ? 'Healthy' : 'Dish not chosen', tone: meal ? 'ok' : 'warn' },
+      { label: '→ gifts · ' + (gift || '—'), value: gift ? 'Healthy' : 'None', tone: gift ? 'ok' : '' },
+      { label: '→ wedding_party', value: party || '—', tone: party ? 'ok' : '' }
+    ];
+  }
+
   /* ── drawers ─────────────────────────────────────────────────────────── */
 
   function parkSharedDrawerAway(slot) {
@@ -982,6 +1057,7 @@
       const meta = f.tables.find(t => t.id === id) || f.tables[0];
       const tab = window._dhDrawerTab || 0;
       const tabs = TABLE_DRAWER_TABS;
+      const orphans = meta.id === 'guests' ? orphanGuestCount() : 0;
       let body = '';
       if (tab === 0) {
         body = fieldRow('Owner page', `<button type="button" class="rd-drawer__link" onclick="showPanel('${esc(meta.ownerPanel)}')">${esc(meta.owner)} →</button>`)
@@ -992,28 +1068,46 @@
           + `<p class="rd-drawer__note">Every table has exactly one owner page. The hub is a second way in, not a second copy — an edit here is an edit there.</p>`;
       } else if (tab === 1) {
         const cols = columnsFor(meta.rows, meta.def);
+        const summary = fieldTypeSummary(cols, meta.rows[0]);
+        const empties = emptyFieldStats(meta);
         body = `<div class="rd-drawer__section-title">Fields · ${cols.length}</div>`
-          + cols.slice(0, 24).map(c => `<div class="rd-drawer__guest"><strong><code>${esc(c)}</code></strong><span>field</span></div>`).join('')
-          + `<p class="rd-drawer__note">Twenty-four fields, six of them enumerated — raw here, pills on the owner page.</p>`;
+          + summary.map(row => kvRow(row[0], row[1], row[2])).join('')
+          + `<div class="rd-dh-drawer__callout">Six fields are enumerated when this is the guests table — rsvp, side, meal and three more. The hub shows their raw values; the owner page shows them as pills. Same data, two renderings.</div>`
+          + (empties.length
+            ? `<div class="rd-drawer__section-title">Empty in some rows</div>`
+              + empties.map(e => kvRow(e.field, e.empty + ' rows', e.empty > 20 ? 'warn' : 'gold')).join('')
+            : '');
       } else if (tab === 2) {
-        const orphans = meta.id === 'guests' ? orphanGuestCount() : 0;
-        body = `<div class="rd-drawer__section-title">Links out</div>`
-          + `<div class="rd-drawer__guest"><strong>→ related tables</strong><span>${orphans ? orphans + ' orphaned' : 'Healthy'}</span></div>`
-          + (orphans ? `<p class="rd-drawer__note rd-dh-drawer__warn">${orphans} rows point at a table that no longer exists.</p>
-            <button type="button" class="rd-btn" onclick="rdDhFixOrphans()">Fix all ${orphans}</button>` : '');
+        const outs = tableLinksOut(meta);
+        body = `<div class="rd-drawer__section-title">Links out · ${outs.length}</div>`
+          + outs.map(l => kvRow(l.label, l.value, l.tone)).join('')
+          + (orphans
+            ? `<div class="rd-dh-drawer__warnbox"><b>${orphans} rows point at a table that no longer exists.</b> They read as unseated everywhere else in the planner — this is the only page that can say why.</div>`
+            : `<p class="rd-drawer__note">Four links out from this table. Orphans appear here when a target row is gone.</p>`)
+          + `<div class="rd-drawer__section-title">Linked from</div>`
+          + (meta.id === 'guests'
+            ? kvRow('wedding_party', (f.tables.find(t => t.id === 'wedding_party') || { count: 0 }).count + ' rows')
+              + kvRow('shot_lists', (f.tables.find(t => t.id === 'shot_lists') || { count: 0 }).count + ' rows')
+            : kvRow('owner page', meta.owner));
       } else {
         body = `<div class="rd-drawer__hist">${esc(meta.lastEdited)} · Edited this table</div>`
           + `<div class="rd-drawer__hist">Created with the planner profile</div>`
           + `<p class="rd-drawer__note">Table-level activity, not row-level. For a single row&rsquo;s history, open the row and use its History tab.</p>`;
       }
-      const foot = `<button type="button" class="rd-btn" onclick="rdDhExportTable()">Export CSV</button>`
-        + `<button type="button" class="rd-btn rd-btn--primary" onclick="rdDhOpenOwner('${esc(meta.ownerPanel)}')">Open ${esc(meta.owner)}</button>`;
+      const foot = orphans && tab === 2
+        ? `<button type="button" class="rd-btn rd-btn--primary" onclick="rdDhFixOrphans()">Fix all ${orphans}</button>`
+          + `<button type="button" class="rd-btn" onclick="rdDhFullEditor()">Full editor</button>`
+        : `<button type="button" class="rd-btn" onclick="rdDhExportTable()">Export CSV</button>`
+          + `<button type="button" class="rd-btn rd-btn--primary" onclick="rdDhOpenOwner('${esc(meta.ownerPanel)}')">Open ${esc(meta.owner)}</button>`;
+      const badge = orphans
+        ? orphans + ' orphaned links'
+        : meta.status.label;
       slot.innerHTML = drawerChrome('Table · ' + (meta.group || 'hub').toLowerCase().split(' ')[0], meta.id,
-        meta.count + ' records', meta.status.label, tabs, tab, body, foot, 'rdDhSetDrawerTab', 'rdDhCloseDrawer');
+        meta.count + ' records', badge, tabs, tab, body, foot, 'rdDhSetDrawerTab', 'rdDhCloseDrawer');
       slot.classList.add('is-open');
       return;
     }
-    /* row drawer */
+    /* row drawer — Master tabs: Row · Links · Raw · History */
     const meta = f.tables.find(t => t.id === window._dhTableId) || f.tables[0];
     const row = meta.rows.find((r, i) => String(r._id || r.id || (meta.id + ':' + i)) === id) || meta.rows[0];
     if (!row) {
@@ -1022,23 +1116,26 @@
       slot.classList.remove('is-open');
       return;
     }
-    const tab = window._dhDrawerTab || 0;
+    const tab = Math.max(0, Math.min(ROW_DRAWER_TABS.length - 1, parseInt(window._dhDrawerTab, 10) || 0));
     const tabs = ROW_DRAWER_TABS;
     const cols = columnsFor([row], meta.def);
     const allCols = allColumnsFor(row);
     let body = '';
     if (tab === 0) {
       body = cols.slice(0, 7).map(c => fieldRow(c, esc(cellVal(row, c)))).join('')
-        + `<p class="rd-drawer__note">${Math.max(0, allCols.length - 7)} more fields on the Fields tab. This view writes to the same record the owner page writes to.</p>`;
+        + `<p class="rd-drawer__note">Seven of ${allCols.length} fields. The same record the owner page edits, not a copy. Open Raw for every column name.</p>`;
     } else if (tab === 1) {
-      body = `<div class="rd-drawer__section-title">Fields · ${allCols.length}</div>`
-        + allCols.map(c => fieldRow(c, esc(cellVal(row, c)))).join('')
-        + `<p class="rd-drawer__note">Every column on this row. Same record the owner page edits — not a separate copy.</p>`;
+      const outs = rowLinksOut(row, meta);
+      const incomplete = outs.some(l => l.tone === 'warn');
+      body = `<div class="rd-drawer__section-title">Links out · ${outs.length}</div>`
+        + outs.map(l => kvRow(l.label, l.value, l.tone)).join('')
+        + (incomplete
+          ? `<div class="rd-dh-drawer__callout">One link points at something incomplete. The link itself is valid; the thing it points at is incomplete, and the tab distinguishes those two failures.</div>`
+          : `<p class="rd-drawer__note">A valid link pointing at an incomplete thing is distinguished from a broken link.</p>`)
+        + `<div class="rd-drawer__section-title">Linked from</div>`
+        + kvRow('shot_lists', '—')
+        + kvRow('wedding_party', '—');
     } else if (tab === 2) {
-      body = `<div class="rd-drawer__section-title">Links out</div>`
-        + `<div class="rd-drawer__guest"><strong>→ related</strong><span>Healthy</span></div>`
-        + `<p class="rd-drawer__note">A valid link pointing at an incomplete thing is distinguished from a broken link.</p>`;
-    } else if (tab === 3) {
       let json = {};
       allCols.forEach(c => { json[c] = row[c]; });
       body = `<pre class="rd-dh-sql__pre">${esc(JSON.stringify(json, null, 2))}</pre>`
@@ -1081,9 +1178,11 @@
   function rdDhSetPageView(view) {
     if (view === 'table') {
       if ((window._dhMode || 'overview') !== 'table') rdDhOpenTable(window._dhTableId || 'guests');
+      if (typeof setSavedView === 'function') setSavedView('data-hub-page', 'table');
       return;
     }
     if ((window._dhMode || 'overview') === 'table') rdDhBackOverview();
+    if (typeof setSavedView === 'function') setSavedView('data-hub-page', 'overview');
   }
   function rdDhSetSurface(s) {
     window._dhSurface = s || 'tables';
@@ -1393,6 +1492,17 @@
       const saved = getSavedView('data-hub', window._dhRailView || 'all');
       if (saved && ['all', 'with', 'empty', 'attention', 'edited'].indexOf(saved) >= 0) {
         window._dhRailView = saved;
+      }
+      const page = getSavedView('data-hub-page', window._dhMode || 'overview');
+      if (page === 'table' || page === 'overview') {
+        /* Only restore overview→table on first paint of the panel; don't fight an
+           in-progress table open from a rail click. */
+        if (!window._dhPageRestored) {
+          window._dhPageRestored = true;
+          if (page === 'table' && (window._dhMode || 'overview') !== 'table') {
+            window._dhMode = 'table';
+          }
+        }
       }
     }
     uedDataHubShellRd();
