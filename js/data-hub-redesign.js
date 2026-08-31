@@ -23,8 +23,9 @@
   window._dhSort = window._dhSort || 'records';
 
   const TABLE_DRAWER_TABS = ['Table', 'Fields', 'Links', 'Activity'];
-  /* Hub row · 7c — exact Master tabs (no Fields; raw JSON covers every column). */
-  const ROW_DRAWER_TABS = ['Row', 'Links', 'Raw', 'History'];
+  /* Hub row · 7c — Master draws Row · Links · Raw · History; Fields kept as a
+     deliberate product addition (all columns as fields, not only Raw JSON). */
+  const ROW_DRAWER_TABS = ['Row', 'Fields', 'Links', 'Raw', 'History'];
   const PAGE_VIEWS = [['overview', 'Database Hub'], ['table', 'all tables']];
   const ENUM_FIELDS = new Set(['rsvp', 'side', 'meal', 'dietary', 'relationship', 'group', 'status', 'priority']);
   const DH_CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg>';
@@ -1107,7 +1108,7 @@
       slot.classList.add('is-open');
       return;
     }
-    /* row drawer — Master tabs: Row · Links · Raw · History */
+    /* row drawer — Master: Row · Links · Raw · History; Fields kept (product). */
     const meta = f.tables.find(t => t.id === window._dhTableId) || f.tables[0];
     const row = meta.rows.find((r, i) => String(r._id || r.id || (meta.id + ':' + i)) === id) || meta.rows[0];
     if (!row) {
@@ -1123,8 +1124,12 @@
     let body = '';
     if (tab === 0) {
       body = cols.slice(0, 7).map(c => fieldRow(c, esc(cellVal(row, c)))).join('')
-        + `<p class="rd-drawer__note">Seven of ${allCols.length} fields. The same record the owner page edits, not a copy. Open Raw for every column name.</p>`;
+        + `<p class="rd-drawer__note">${Math.max(0, allCols.length - 7)} more fields on the Fields tab. This view writes to the same record the owner page writes to.</p>`;
     } else if (tab === 1) {
+      body = `<div class="rd-drawer__section-title">Fields · ${allCols.length}</div>`
+        + allCols.map(c => fieldRow(c, esc(cellVal(row, c)))).join('')
+        + `<p class="rd-drawer__note">Every column on this row. Same record the owner page edits — not a separate copy.</p>`;
+    } else if (tab === 2) {
       const outs = rowLinksOut(row, meta);
       const incomplete = outs.some(l => l.tone === 'warn');
       body = `<div class="rd-drawer__section-title">Links out · ${outs.length}</div>`
@@ -1135,7 +1140,7 @@
         + `<div class="rd-drawer__section-title">Linked from</div>`
         + kvRow('shot_lists', '—')
         + kvRow('wedding_party', '—');
-    } else if (tab === 2) {
+    } else if (tab === 3) {
       let json = {};
       allCols.forEach(c => { json[c] = row[c]; });
       body = `<pre class="rd-dh-sql__pre">${esc(JSON.stringify(json, null, 2))}</pre>`

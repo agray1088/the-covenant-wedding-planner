@@ -99,7 +99,7 @@ Then **Ctrl+Shift+R**. Refresh alone does not pull GitHub.
 - [35 · Wedding Setup](#section-35) — done on `cursor/dashboard-views-017e` — 4 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [36 · Get Started, Guide & FAQ](#section-36) — done on `cursor/dashboard-views-017e` — 10 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
 - [37 · Viewer Preferences](#section-37) — done on `cursor/dashboard-views-017e` — 6 screens · 1 record drawer — Full page · View switcher views · Record drawer tabs · Night theme
-- [38 · Database Hub](#section-38) — done on `cursor/dashboard-views-017e` — verified `dh-s38f` — 5 screens · 2 record drawers — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
+- [38 · Database Hub](#section-38) — done on `cursor/dashboard-views-017e` — verified `dh-s38g` — 5 screens · 2 record drawers — Full page · View switcher views · Section tabs · Record drawer tabs · Night theme
 - [39 · App chrome, settings & record editor](#section-39) — done on `cursor/dashboard-views-017e` — 8 screens · 5 record drawers — Full page · Record drawer tabs · Night theme
 - [40 · Vendor Portal](#section-40) — done on `cursor/dashboard-views-017e` — 7 screens — Full page
 - [41 · House style & visual directions](#section-41) — realized by the redesign on `cursor/dashboard-views-017e` — 11 screens — Full page · View switcher views · Night theme
@@ -4443,10 +4443,10 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 - **Master section:** `s38` · slug `database-hub`
 - **Header counts:** 5 screens · 2 record drawers
-- **Status:** done on `cursor/dashboard-views-017e` — verified `dh-s38f`; review, then say “next” for §39
+- **Status:** done on `cursor/dashboard-views-017e` — verified `dh-s38g`; review, then say “next” for §39
 - **Screen ids:** `7b`, `7c`, `19o`
 
-> **Verified this pass (`dh-s38f`).** Full §38 inventory vs Master: Documents tab + sub-nav Database Hub (moved out of Planning per 7b); page view switcher **Database Hub · all tables**; 7b overview (backup card, grouped inventory table, Needs attention with inline fixes, Tables/Links/Activity surface switcher, five-stat strip, rail Views + Storage); 7c all-tables browser (guest filter chips + Search N rows, Columns/Auto-fit/Row height, All rows/Schema/SQL, bulk bar, raw grid); 19o twenty-four scrollable table tabs; Hub table drawer (Table · Fields · Links · Activity) with type summary + orphan callout; Hub row drawer (**Row · Links · Raw · History** — Fields removed to match Master); night tokens on tabs, backup, attention, drawer, and row selection.
+> **Verified this pass (`dh-s38g`).** Full §38 inventory vs Master: Documents tab + sub-nav Database Hub (moved out of Planning per 7b); page view switcher **Database Hub · all tables**; 7b overview (backup card, grouped inventory table, Needs attention with inline fixes, Tables/Links/Activity surface switcher, five-stat strip, rail Views + Storage); 7c all-tables browser (guest filter chips + Search N rows, Columns/Auto-fit/Row height, All rows/Schema/SQL, bulk bar, raw grid); 19o twenty-four scrollable table tabs; Hub table drawer (Table · Fields · Links · Activity) with type summary + orphan callout; Hub row drawer (**Row · Fields · Links · Raw · History** — Fields kept as intentional product addition beyond the four Master tabs); night tokens on tabs, backup, attention, drawer, and row selection.
 
 ### Five parts on this page
 
@@ -4462,7 +4462,7 @@ Night theme is the same page and views in dark surfaces. Do not block a section 
 
 **Record drawers:**
 - Hub table · 7b · 4 drawers: Table · Fields · Links · Activity
-- Hub row · 7c · 4 drawers: Row · Links · Raw · History
+- Hub row · 7c · 5 drawers: Row · Fields · Links · Raw · History (Fields is a kept product addition; Master draws four)
 
 **Stat strips:**
 - `7b` Tables: 24 · Records: 359 · Database size: 1.8 MB · Last backup: 3 days ago · Needs attention: 4
