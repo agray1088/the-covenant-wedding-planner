@@ -52,7 +52,96 @@
     if (!Array.isArray(d._undoSnapshots)) d._undoSnapshots = [];
     if (!Array.isArray(d._redoSnapshots)) d._redoSnapshots = [];
     if (!d._historyPrefs || typeof d._historyPrefs !== 'object') d._historyPrefs = {};
+    ensureMasterHistory();
     return d;
+  }
+  function shiftISO(days) {
+    const dt = parseISODate(todayISO());
+    if (!dt) return todayISO();
+    dt.setDate(dt.getDate() + days);
+    return dt.toISOString().slice(0, 10);
+  }
+  function histSeedEntry(id, date, time, who, record, change, opts) {
+    opts = opts || {};
+    return {
+      id: id,
+      iso: date + 'T12:00:00',
+      date: date,
+      time: time,
+      who: who,
+      record: record,
+      source: record,
+      change: change,
+      action: change,
+      details: opts.details || '',
+      fields: opts.fields || [],
+      hasSnapshot: opts.hasSnapshot !== false,
+      groupKey: opts.groupKey || change
+    };
+  }
+  /* Master 18b/31i/31j demo log — representative rows when the history log is empty. */
+  function ensureMasterHistory() {
+    const d = store();
+    if (d._histMasterS34) return;
+    if (Array.isArray(d._historyLog) && d._historyLog.length > 0) {
+      d._histMasterS34 = true;
+      return;
+    }
+    const today = todayISO();
+    const yest = shiftISO(-1);
+    const twoAgo = shiftISO(-2);
+    const curated = [
+      histSeedEntry('h-s34-1', today, '4:38pm', 'Ama', 'Budget · Catering', 'Added a line item · Three-tier cake', {
+        fields: [{ label: 'Line', from: '', to: 'Three-tier cake' }]
+      }),
+      histSeedEntry('h-s34-2', today, '2:15pm', 'Mary O.', 'Tasks · phase 3', 'Marked 2 tasks complete', {
+        details: 'Status: In progress → Complete'
+      }),
+      histSeedEntry('h-s34-3', today, '11:07am', 'Ama', 'Table Layout', 'Seated 4 guests at T10', {
+        details: 'Table: — → T10; cover added for 4 guests'
+      }),
+      histSeedEntry('h-s34-4', today, '5:52pm', 'Mary O.', 'Vendors · Grace Hall', 'Changed 1 field on Grace Hall', {
+        fields: [{ label: 'Status', from: 'Quoted', to: 'Booked' }]
+      }),
+      histSeedEntry('h-s34-5', today, '3:30pm', 'Ama', 'Table Layout', 'Deleted Table 9 · 6 guests unseated', {
+        details: 'Table removed; 6 guests returned to unseated'
+      }),
+      histSeedEntry('h-s34-6', today, '10:02am', 'Ama', 'Email Templates', 'Sent 17 RSVP reminders', {
+        hasSnapshot: false
+      }),
+      histSeedEntry('h-s34-7', yest, '4:02pm', 'Ama', 'Budget', 'Imported 34 budget lines', {
+        details: 'Imported from spreadsheet'
+      }),
+      histSeedEntry('h-s34-8', yest, '2:00pm', 'Mary O.', 'Appointment · Menu tasting', 'Changed the appointment time', {
+        fields: [{ label: 'Time', from: '2:00pm', to: '3:30pm' }],
+        details: 'Time: 2:00pm → 3:30pm; created a clash with another appointment'
+      }),
+      histSeedEntry('h-s34-9', yest, '1:15pm', 'Ama', 'Guests · Efua Mensah', 'RSVP changed to Accepted', {
+        fields: [{ label: 'RSVP', from: 'Pending', to: 'Accepted' }],
+        details: 'RSVP: Pending → Accepted; seating affected'
+      }),
+      histSeedEntry('h-s34-10', yest, '3:58pm', 'Mary O.', 'Wedding Setup', 'Changed the wedding date', {
+        fields: [{ label: 'Date', from: '14 Nov 2026', to: '15 Nov 2026' }]
+      }),
+      histSeedEntry('h-s34-11', twoAgo, '11:40am', 'Ama', 'Guests', 'Added 12 households', {
+        details: 'Imported from contacts'
+      })
+    ];
+    const filler = [];
+    const limit = logLimit();
+    const target = Math.max(0, Math.min(limit - curated.length, 172 - curated.length));
+    for (let i = 0; i < target; i++) {
+      const dayOff = -3 - Math.floor(i / 6);
+      filler.push(histSeedEntry('h-s34-f' + i, shiftISO(dayOff), '9:00am', i % 2 ? 'Mary O.' : 'Ama', 'Tasks · phase 2', 'Updated a task', {
+        hasSnapshot: false,
+        details: 'Status: Not started → In progress'
+      }));
+    }
+    d._historyLog = curated.concat(filler);
+    d._undoSnapshots = Array(8).fill('{}');
+    d._redoSnapshots = [];
+    d._histMasterS34 = true;
+    if (typeof save === 'function') save();
   }
   function logLimit() {
     return (typeof HISTORY_LOG_LIMIT === 'number' && HISTORY_LOG_LIMIT > 0) ? HISTORY_LOG_LIMIT : 200;
@@ -357,20 +446,29 @@
     const host = document.getElementById('history-stats');
     if (!host) return;
     const f = histFigures();
+    const snapPct = f.snapLimit ? Math.min(100, Math.round((f.undo / f.snapLimit) * 100)) : 0;
     const stats = [
       { label: 'Recorded changes', value: String(f.total) },
       { label: 'Today', value: String(f.today) },
-      { label: 'Undo available', value: String(f.undo) },
+      { label: 'Undo available', value: String(f.undo), bar: snapPct },
       { label: 'Redo available', value: String(f.redo) },
-      { label: 'Log capacity', value: f.capacity + '%' }
+      { label: 'Log capacity', value: f.capacity + '%', bar: f.capacity, tone: f.warn ? 'warn' : '' }
     ];
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, stats);
+      RdDepth.renderStats(host, stats.map(s => {
+        const it = { label: s.label, value: s.value };
+        if (s.bar != null) it.target = { pct: s.bar };
+        if (s.tone === 'warn') it.attention = 'export before it fills';
+        return it;
+      }));
       return;
     }
-    host.innerHTML = stats.map(s =>
-      `<div class="m-stat"><div class="m-stat-label">${esc(s.label)}</div><div class="m-stat-val">${esc(s.value)}</div></div>`
-    ).join('');
+    host.innerHTML = stats.map(s => {
+      let html = `<div class="m-stat${s.tone === 'warn' ? ' m-stat--warn' : ''}">` +
+        `<div class="m-stat-label">${esc(s.label)}</div><div class="m-stat-val">${esc(s.value)}</div>`;
+      if (s.bar != null) html += `<div class="rd-track m-stat-bar"><div class="rd-fill" style="width:${s.bar}%"></div></div>`;
+      return html + `</div>`;
+    }).join('');
   }
 
   function filterChip(label, field) {
