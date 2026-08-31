@@ -284,7 +284,7 @@
         '<span class="rd-setup-stat__v">' + esc(days) + '</span></div>' +
         '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Wedding date</span>' +
         '<span class="rd-setup-stat__v">' + esc(shortDate(s.date)) + '</span></div>' +
-        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Budget target</span>' +
+        '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Budget</span>' +
         '<span class="rd-setup-stat__v">' + esc(parseFloat(s.budget) > 0 ? moneyFmt(s.budget) : '—') + '</span></div>' +
         '<div class="rd-setup-stat"><span class="rd-setup-stat__k">Guest cap</span>' +
         '<span class="rd-setup-stat__v">' + esc(s.guests || '—') + '</span></div>' +
@@ -648,25 +648,56 @@
     return Number.isNaN(dt.getTime()) ? raw : dt.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  function historyEntryWhen(e) {
+    if (!e) return null;
+    if (e.iso) {
+      const dt = new Date(e.iso);
+      if (!Number.isNaN(dt.getTime())) return dt;
+    }
+    if (e.at || e.ts) {
+      const dt = new Date(e.at || e.ts);
+      if (!Number.isNaN(dt.getTime())) return dt;
+    }
+    if (e.date) {
+      const dt = new Date(String(e.date).slice(0, 10) + 'T' + (e.time || '12:00'));
+      if (!Number.isNaN(dt.getTime())) return dt;
+    }
+    return null;
+  }
+  function historyEntryHaystack(e) {
+    const fields = Array.isArray(e.fields) ? e.fields : [];
+    return [
+      e.change, e.action, e.record, e.source, e.details, e.summary, e.label, e.field, e.path,
+      fields.map(f => [f.label, f.from, f.to].join(' ')).join(' ')
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+  function isSetupHistoryEntry(e) {
+    return /wedding setup|setup|wedding date|bride|groom|budget target|guest count|\bdate\b/.test(historyEntryHaystack(e));
+  }
+  function isWeddingDateHistoryEntry(e) {
+    const hay = historyEntryHaystack(e);
+    if (/wedding date|changed the wedding date|changed the date/.test(hay)) return true;
+    const fields = Array.isArray(e.fields) ? e.fields : [];
+    return fields.some(f => /wedding date|^date$/i.test(String(f.label || '').trim()));
+  }
+
   function setupHistoryRows() {
     const log = Array.isArray(store()._historyLog) ? store()._historyLog : [];
-    const dateRows = log.filter(e => {
-      const t = String(e.field || e.path || e.label || e.summary || '').toLowerCase();
-      return /date|wedding|setup/.test(t);
-    }).slice(-6).reverse();
+    const dateRows = log.filter(isWeddingDateHistoryEntry).slice(0, 6);
     if (!dateRows.length) {
       return '<p class="rd-drawer__note">Two entries in five months. Sparseness here is the reassuring reading.</p>';
     }
     return dateRows.map(e => {
-      const when = e.at || e.ts || e.time || '';
-      const who = e.user || e.who || e.actor || 'Planner';
-      const detail = e.after || e.value || e.summary || e.action || 'Changed';
-      let whenStr = '—';
-      if (when) {
-        const dt = new Date(when);
-        whenStr = Number.isNaN(dt.getTime()) ? String(when).slice(0, 10)
-          : dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-      }
+      const who = e.who || e.user || e.actor || 'Planner';
+      const fields = Array.isArray(e.fields) ? e.fields : [];
+      const detail = e.change || e.action || e.summary ||
+        (fields[0] && (fields[0].from || fields[0].to)
+          ? ((fields[0].from || '—') + ' → ' + (fields[0].to || '—'))
+          : (e.details || 'Changed'));
+      const dt = historyEntryWhen(e);
+      const whenStr = dt
+        ? dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+        : (e.date ? String(e.date).slice(0, 10) : '—');
       return '<div class="rd-drawer__hist"><strong>' + esc(whenStr + ' · ' + who) + '</strong><em>' + esc(detail) + '</em></div>';
     }).join('') +
       '<p class="rd-drawer__note">Two entries in five months. A setup field that changes often is a sign the wedding is not settled — the sparseness here is the reassuring reading.</p>';
@@ -674,15 +705,13 @@
 
   function setupLastChanged() {
     const log = Array.isArray(store()._historyLog) ? store()._historyLog : [];
-    const setupRows = log.filter(e => {
-      const t = String(e.field || e.path || e.table || e.label || '').toLowerCase();
-      return t === 'setup' || /wedding|date|bride|groom|budget|guest/.test(t);
-    });
-    const last = setupRows[setupRows.length - 1];
+    const setupRows = log.filter(isSetupHistoryEntry);
+    const last = setupRows[0];
     if (!last) return '—';
-    const when = last.at || last.ts || last.time;
-    if (!when) return '—';
-    const mins = Math.round((Date.now() - new Date(when).getTime()) / 60000);
+    const when = historyEntryWhen(last);
+    if (!when || Number.isNaN(when.getTime())) return '—';
+    const mins = Math.round((Date.now() - when.getTime()) / 60000);
+    if (mins < 1) return 'just now';
     if (mins < 60) return mins + ' min ago';
     const hrs = Math.round(mins / 60);
     if (hrs < 48) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
