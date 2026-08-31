@@ -25345,161 +25345,297 @@ body.rd-scope[data-theme="night"] #panel-contacts .rd-ct-drawer .rd-ct-input {
   }
 }
 
-/* Vision keepsake read surface — Master s27 / 13a */
+/* Vision keepsake read surface — Master s27 / 13a editorial grid */
+body.rd-scope #panel-vision .rd-surface__main:has(.rd-vis-read) {
+  padding: 0 0 28px;
+}
 body.rd-scope #panel-vision .rd-keepsake,
 body.rd-scope #panel-vision .rd-vis-keepsake,
 body.rd-scope #panel-vision .rd-vis-read {
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 12px 8px 48px;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 18px;
-  line-height: 1.6;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   color: #2a2620;
+  text-align: left;
 }
-body.rd-scope #panel-vision .rd-vis-block {
-  margin: 0 0 36px;
-  padding-bottom: 8px;
+body.rd-scope #panel-vision .rd-vis-hero {
+  padding: 34px 56px 30px;
+  border-bottom: 1px solid #e7e1d4;
+  cursor: pointer;
 }
-body.rd-scope #panel-vision .rd-vis-block__head {
+body.rd-scope #panel-vision .rd-vis-hero__inner {
+  max-width: 760px;
+}
+body.rd-scope #panel-vision .rd-vis-eyebrow,
+body.rd-scope #panel-vision .rd-vis-secbar__eyebrow,
+body.rd-scope #panel-vision .rd-vis-promises__head {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #8a7e6b;
+  font-weight: 700;
+}
+body.rd-scope #panel-vision .rd-vis-hairline {
+  height: 1px;
+  width: 64px;
+  background: #B89968;
+  margin: 14px 0 18px;
+}
+body.rd-scope #panel-vision .rd-vis-hero__lead {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 26px;
+  line-height: 1.45;
+  color: #20362D;
+  text-wrap: pretty;
+}
+body.rd-scope #panel-vision .rd-vis-hero__body {
+  margin: 20px 0 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #3f3b34;
+  text-wrap: pretty;
+}
+body.rd-scope #panel-vision .rd-vis-hero__empty {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-vision .rd-vis-secbar {
   display: flex;
   align-items: baseline;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  padding: 13px 20px;
+  border-bottom: 1px solid #e7e1d4;
+  background: #fff;
 }
-body.rd-scope #panel-vision .rd-vis-block h2 {
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 26px;
-  font-weight: 500;
-  margin: 0;
-  color: #20362D;
-}
-body.rd-scope #panel-vision .rd-vis-block__sub {
-  margin: 0;
-  flex: 1;
+body.rd-scope #panel-vision .rd-vis-secbar__sub {
   font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
-  color: #8a7e6b;
+  color: #6b645d;
 }
-body.rd-scope #panel-vision .rd-vis-prose p {
-  margin: 0 0 14px;
+body.rd-scope #panel-vision .rd-vis-secbar__act {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  color: #946f33;
+  cursor: pointer;
+  white-space: nowrap;
 }
-body.rd-scope #panel-vision .rd-vis-values {
+body.rd-scope #panel-vision .rd-vis-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-vision .rd-vis-pair--solo {
+  grid-template-columns: 1fr;
+}
+body.rd-scope #panel-vision .rd-vis-pane {
+  min-width: 0;
+}
+body.rd-scope #panel-vision .rd-vis-pane--values {
+  border-right: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-vision .rd-vis-pair--solo .rd-vis-pane--values {
+  border-right: 0;
+}
+body.rd-scope #panel-vision .rd-vis-pane__body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+body.rd-scope #panel-vision .rd-vis-values,
+body.rd-scope #panel-vision .rd-vis-scriptures {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 body.rd-scope #panel-vision .rd-vis-value {
-  display: grid;
-  grid-template-columns: 36px 1fr;
-  gap: 12px;
-  padding: 12px 4px 14px;
-  border-top: 1px solid #efe6cf;
+  display: flex;
+  gap: 16px;
   cursor: pointer;
 }
 body.rd-scope #panel-vision .rd-vis-value.is-open,
 body.rd-scope #panel-vision .rd-vis-scripture.is-open,
 body.rd-scope #panel-vision .rd-vis-promises li.is-open {
   background: #fbf6ea;
+  margin: 0 -8px;
+  padding: 8px;
+  border-radius: 2px;
 }
 body.rd-scope #panel-vision .rd-vis-value__n {
-  font-family: Inter, system-ui, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  color: #b89968;
-  padding-top: 4px;
+  flex: 0 0 auto;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 22px;
+  line-height: 1.2;
+  color: #B89968;
 }
-body.rd-scope #panel-vision .rd-vis-value strong {
-  display: block;
-  font-size: 20px;
-  font-weight: 600;
+body.rd-scope #panel-vision .rd-vis-value__title {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 19px;
   color: #20362D;
 }
 body.rd-scope #panel-vision .rd-vis-value p {
-  margin: 4px 0 0;
-  font-size: 16px;
+  margin: 5px 0 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #4a453e;
 }
 body.rd-scope #panel-vision .rd-vis-add {
-  display: inline-block;
-  margin-top: 10px;
+  display: block;
   border: 0;
   background: none;
   padding: 0;
   font-family: Inter, system-ui, sans-serif;
   font-size: 13px;
-  color: #946f33;
+  color: #b09f80;
   cursor: pointer;
-}
-body.rd-scope #panel-vision .rd-vis-scriptures {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  text-align: left;
 }
 body.rd-scope #panel-vision .rd-vis-scripture {
-  padding: 14px 4px 16px;
-  border-top: 1px solid #efe6cf;
   cursor: pointer;
 }
-body.rd-scope #panel-vision .rd-vis-scripture strong {
-  display: block;
-  font-size: 15px;
-  letter-spacing: .04em;
+body.rd-scope #panel-vision .rd-vis-scripture__ref {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 17px;
   color: #20362D;
 }
 body.rd-scope #panel-vision .rd-vis-scripture blockquote {
-  margin: 8px 0;
-  font-size: 20px;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 17px;
   font-style: italic;
-  color: #2a2620;
+  line-height: 1.65;
+  color: #4a453e;
 }
 body.rd-scope #panel-vision .rd-vis-scripture__note {
+  margin-top: 6px;
   font-family: Inter, system-ui, sans-serif;
   font-size: 12px;
   color: #8a7e6b;
 }
+body.rd-scope #panel-vision .rd-vis-promises-wrap {
+  border-bottom: 1px solid #e7e1d4;
+}
 body.rd-scope #panel-vision .rd-vis-promises {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 28px;
 }
-body.rd-scope #panel-vision .rd-vis-promises h3 {
-  margin: 0 0 10px;
-  font-size: 18px;
-  color: #20362D;
+body.rd-scope #panel-vision .rd-vis-promises__col {
+  padding: 20px 24px;
+}
+body.rd-scope #panel-vision .rd-vis-promises__col:first-child {
+  border-right: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-vision .rd-vis-promises__head {
+  margin-bottom: 14px;
 }
 body.rd-scope #panel-vision .rd-vis-promises ol {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 body.rd-scope #panel-vision .rd-vis-promises li {
-  display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: 8px;
-  padding: 8px 0;
-  border-top: 1px solid #efe6cf;
+  display: flex;
+  gap: 12px;
   cursor: pointer;
-  font-size: 16px;
 }
 body.rd-scope #panel-vision .rd-vis-promises li span {
-  font-family: Inter, system-ui, sans-serif;
+  flex: 0 0 auto;
+  font-family: ui-monospace, monospace;
   font-size: 11px;
-  font-weight: 700;
-  color: #b89968;
-  padding-top: 4px;
+  color: #b0a794;
+  padding-top: 6px;
 }
-body.rd-scope #panel-vision .rd-vis-promises li p { margin: 0; }
-body.rd-scope #panel-vision .rd-vis-unfinished {
+body.rd-scope #panel-vision .rd-vis-promises li p {
   margin: 0;
-  padding: 16px 0 8px;
-  color: #6b645d;
-  font-size: 17px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #3f3b34;
 }
-body.rd-scope #panel-vision .rd-vis-block--unfinished {
-  border-top: 1px solid #e7ce80;
-  padding-top: 18px;
+body.rd-scope #panel-vision .rd-vis-building {
+  border-bottom: 1px solid #e7e1d4;
+}
+body.rd-scope #panel-vision .rd-vis-building__body {
+  padding: 22px 24px;
+}
+body.rd-scope #panel-vision .rd-vis-building__placeholder {
+  max-width: 700px;
+  padding: 18px 20px;
+  border: 1px dashed #d9cfba;
+  background: #fdfcfa;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #8a7e6b;
+}
+body.rd-scope #panel-vision .rd-vis-building__written {
+  max-width: 760px;
+  cursor: pointer;
+}
+body.rd-scope #panel-vision .rd-vis-building__written p {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #3f3b34;
+}
+@media (max-width: 900px) {
+  body.rd-scope #panel-vision .rd-vis-pair,
+  body.rd-scope #panel-vision .rd-vis-promises {
+    grid-template-columns: 1fr;
+  }
+  body.rd-scope #panel-vision .rd-vis-pane--values,
+  body.rd-scope #panel-vision .rd-vis-promises__col:first-child {
+    border-right: 0;
+    border-bottom: 1px solid #e7e1d4;
+  }
+  body.rd-scope #panel-vision .rd-vis-hero {
+    padding: 28px 24px 24px;
+  }
+}
+body.rd-scope.night #panel-vision .rd-vis-secbar,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-secbar {
+  background: #1c1c18;
+  border-bottom-color: #2e2e28;
+}
+body.rd-scope.night #panel-vision .rd-vis-hero,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-pair,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-promises-wrap,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-building,
+body.rd-scope.night #panel-vision .rd-vis-pane--values,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-promises__col:first-child {
+  border-color: #2e2e28;
+}
+body.rd-scope.night #panel-vision .rd-vis-hero__lead,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-value__title,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-scripture__ref {
+  color: #e6e1d6;
+}
+body.rd-scope.night #panel-vision .rd-vis-building__placeholder,
+body.rd-scope[data-theme="night"] #panel-vision .rd-vis-building__placeholder {
+  background: #23231c;
+  border-color: #3a3a32;
+  color: #8a7e6b;
 }
 
 /* Edit view 32a — blocks, not fields */

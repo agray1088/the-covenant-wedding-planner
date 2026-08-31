@@ -520,7 +520,30 @@
     return true;
   }
 
-  /* ── read view ─────────────────────────────────────────────────────── */
+  /* ── read view · Master 13a editorial grid ─────────────────────────── */
+
+  function visSecBar(eyebrow, sub, actionHtml) {
+    return '<div class="rd-vis-secbar">'
+      + '<div class="rd-vis-secbar__eyebrow">' + esc(eyebrow) + '</div>'
+      + (sub ? '<div class="rd-vis-secbar__sub">' + esc(sub) + '</div>' : '')
+      + (actionHtml || '')
+      + '</div>';
+  }
+
+  function visSecAct(label, onclick, extra) {
+    return '<button type="button" class="rd-vis-secbar__act"' + (extra || '')
+      + ' onclick="' + onclick + '">' + esc(label) + '</button>';
+  }
+
+  function visionHeroHtml(body) {
+    const paras = body ? body.split(/\n\n+/).map(p => p.trim()).filter(Boolean) : [];
+    if (!paras.length) {
+      return '<p class="rd-vis-hero__empty">Write the covenant vision you want to return to when planning gets loud.</p>';
+    }
+    const lead = '<p class="rd-vis-hero__lead">' + esc(paras[0]) + '</p>';
+    const rest = paras.slice(1).map(p => '<p class="rd-vis-hero__body">' + esc(p) + '</p>').join('');
+    return lead + rest;
+  }
 
   function renderReadView() {
     const host = document.getElementById('vis-view-read');
@@ -533,91 +556,92 @@
     const scriptures = allScriptures().filter(x => authorMatches(x.author));
     const promises = allPromises();
     const building = String(v.building || '').trim();
+    const showValues = sectionVisible('values');
+    const showScriptures = sectionVisible('scriptures');
+    const pairCols = (showValues ? 1 : 0) + (showScriptures ? 1 : 0);
 
     let html = '<div class="rd-vis-read">';
 
     if (sectionVisible('vision')) {
-      html += `<section class="rd-vis-block" id="vis-section-vision" onclick="rdVisOpenDrawer('doc-believe')">
-        <div class="rd-vis-block__head"><h2>Our vision</h2></div>
-        <div class="rd-vis-prose">${visionBody
-          ? visionBody.split(/\n\n+/).map(p => `<p>${esc(p)}</p>`).join('')
-          : '<p class="rd-empty">Write the covenant vision you want to return to when planning gets loud.</p>'}</div>
-      </section>`;
+      html += '<section class="rd-vis-hero" id="vis-section-vision" onclick="rdVisOpenDrawer(\'doc-believe\')">'
+        + '<div class="rd-vis-hero__inner">'
+        + '<div class="rd-vis-eyebrow">Our vision</div>'
+        + '<div class="rd-vis-hairline" aria-hidden="true"></div>'
+        + visionHeroHtml(visionBody)
+        + '</div></section>';
     }
 
-    if (sectionVisible('values')) {
-      html += `<section class="rd-vis-block" id="vis-section-values">
-        <div class="rd-vis-block__head">
-          <h2>Our values · ${f.values}</h2>
-          <p class="rd-vis-block__sub">Named by both of us, in the order we argued them into place</p>
-          <button type="button" class="rd-btn rd-btn--quiet" onclick="event.stopPropagation();rdVisReorderValues()">Reorder</button>
-        </div>
-        <ol class="rd-vis-values">`;
-      values.forEach((val, i) => {
-        html += `<li class="rd-vis-value${window._visDrawerId === val.id ? ' is-open' : ''}" onclick="rdVisOpenDrawer('${esc(val.id)}')">
-          <span class="rd-vis-value__n">${String(i + 1).padStart(2, '0')}</span>
-          <div><strong>${esc(val.title || 'Untitled value')}</strong>
-          <p>${esc(val.body || '')}</p></div>
-        </li>`;
-      });
-      html += `</ol>
-        <button type="button" class="rd-vis-add" onclick="rdVisAddValue()">+ Add a value</button>
-      </section>`;
-    }
-
-    if (sectionVisible('scriptures')) {
-      html += `<section class="rd-vis-block" id="vis-section-scriptures">
-        <div class="rd-vis-block__head">
-          <h2>Scriptures we are standing on · ${f.scriptures}</h2>
-          <p class="rd-vis-block__sub">Read at the ceremony or carried privately</p>
-          <button type="button" class="rd-btn rd-btn--quiet" onclick="event.stopPropagation();rdVisAddScripture()">Add</button>
-        </div>
-        <ul class="rd-vis-scriptures">`;
-      scriptures.forEach(s => {
-        html += `<li class="rd-vis-scripture${window._visDrawerId === s.id ? ' is-open' : ''}" onclick="rdVisOpenDrawer('${esc(s.id)}')">
-          <strong>${esc(s.ref)}</strong>
-          <blockquote>${s.quote ? '“' + esc(s.quote).replace(/^[“"]+|["”]+$/g, '') + '”' : ''}</blockquote>
-          <span class="rd-vis-scripture__note">${esc(s.note || '')}</span>
-        </li>`;
-      });
-      html += `</ul>
-        <button type="button" class="rd-vis-add" onclick="rdVisAddScripture()">+ Add a scripture</button>
-      </section>`;
+    if (pairCols) {
+      html += '<div class="rd-vis-pair' + (pairCols === 1 ? ' rd-vis-pair--solo' : '') + '">';
+      if (showValues) {
+        html += '<section class="rd-vis-pane rd-vis-pane--values" id="vis-section-values">'
+          + visSecBar('Our values · ' + f.values, 'Named by both of us, in the order we argued them into place',
+            visSecAct('Reorder', 'event.stopPropagation();rdVisReorderValues()'))
+          + '<div class="rd-vis-pane__body"><ol class="rd-vis-values">';
+        values.forEach((val, i) => {
+          html += '<li class="rd-vis-value' + (window._visDrawerId === val.id ? ' is-open' : '')
+            + '" onclick="rdVisOpenDrawer(\'' + esc(val.id) + '\')">'
+            + '<span class="rd-vis-value__n">' + String(i + 1).padStart(2, '0') + '</span>'
+            + '<div><div class="rd-vis-value__title">' + esc(val.title || 'Untitled value') + '</div>'
+            + '<p>' + esc(val.body || '') + '</p></div></li>';
+        });
+        html += '</ol>'
+          + '<button type="button" class="rd-vis-add" onclick="rdVisAddValue()">+ Add a value</button>'
+          + '</div></section>';
+      }
+      if (showScriptures) {
+        html += '<section class="rd-vis-pane rd-vis-pane--scriptures" id="vis-section-scriptures">'
+          + visSecBar('Scriptures we are standing on · ' + f.scriptures, 'Read at the ceremony or carried privately',
+            visSecAct('Add', 'event.stopPropagation();rdVisAddScripture()'))
+          + '<div class="rd-vis-pane__body"><ul class="rd-vis-scriptures">';
+        scriptures.forEach(s => {
+          const quote = s.quote ? '“' + esc(s.quote).replace(/^[“"]+|["”]+$/g, '') + '”' : '';
+          html += '<li class="rd-vis-scripture' + (window._visDrawerId === s.id ? ' is-open' : '')
+            + '" onclick="rdVisOpenDrawer(\'' + esc(s.id) + '\')">'
+            + '<div class="rd-vis-scripture__ref">' + esc(s.ref) + '</div>'
+            + (quote ? '<blockquote>' + quote + '</blockquote>' : '')
+            + '<div class="rd-vis-scripture__note">' + esc(s.note || '') + '</div></li>';
+        });
+        html += '</ul>'
+          + '<button type="button" class="rd-vis-add" onclick="rdVisAddScripture()">+ Add a scripture</button>'
+          + '</div></section>';
+      }
+      html += '</div>';
     }
 
     if (sectionVisible('promises')) {
       const ama = promises.ama.filter(x => authorMatches(x.author || brideName()));
       const kwesi = promises.kwesi.filter(x => authorMatches(x.author || groomName()));
-      html += `<section class="rd-vis-block" id="vis-section-promises">
-        <div class="rd-vis-block__head">
-          <h2>Promises · ${f.promises}</h2>
-          <p class="rd-vis-block__sub">Three each · these become the vows</p>
-          <button type="button" class="rd-btn rd-btn--quiet" onclick="event.stopPropagation();rdVisMoveToVows()">Move to vows</button>
-        </div>
-        <div class="rd-vis-promises">
-          <div><h3>${esc(brideName())}’s promises</h3><ol>`;
+      html += '<section class="rd-vis-promises-wrap" id="vis-section-promises">'
+        + visSecBar('Promises · ' + f.promises, 'Three each · these become the vows',
+          visSecAct('Move to vows', 'event.stopPropagation();rdVisMoveToVows()'))
+        + '<div class="rd-vis-promises">'
+        + '<div class="rd-vis-promises__col"><div class="rd-vis-promises__head">' + esc(brideName()) + '’s promises</div><ol>';
       ama.forEach((p, i) => {
-        html += `<li class="${window._visDrawerId === p.id ? 'is-open' : ''}" onclick="rdVisOpenDrawer('${esc(p.id)}')"><span>${String(i + 1).padStart(2, '0')}</span><p>${esc(p.text)}</p></li>`;
+        html += '<li class="' + (window._visDrawerId === p.id ? 'is-open' : '')
+          + '" onclick="rdVisOpenDrawer(\'' + esc(p.id) + '\')"><span>' + String(i + 1).padStart(2, '0')
+          + '</span><p>' + esc(p.text) + '</p></li>';
       });
-      html += `</ol></div><div><h3>${esc(groomName())}’s promises</h3><ol>`;
+      html += '</ol></div><div class="rd-vis-promises__col"><div class="rd-vis-promises__head">' + esc(groomName())
+        + '’s promises</div><ol>';
       kwesi.forEach((p, i) => {
-        html += `<li class="${window._visDrawerId === p.id ? 'is-open' : ''}" onclick="rdVisOpenDrawer('${esc(p.id)}')"><span>${String(i + 1).padStart(2, '0')}</span><p>${esc(p.text)}</p></li>`;
+        html += '<li class="' + (window._visDrawerId === p.id ? 'is-open' : '')
+          + '" onclick="rdVisOpenDrawer(\'' + esc(p.id) + '\')"><span>' + String(i + 1).padStart(2, '0')
+          + '</span><p>' + esc(p.text) + '</p></li>';
       });
-      html += `</ol></div></div>
-      </section>`;
+      html += '</ol></div></div></section>';
     }
 
     if (sectionVisible('building')) {
-      html += `<section class="rd-vis-block rd-vis-block--unfinished" id="vis-section-building">
-        <div class="rd-vis-block__head">
-          <h2>What we are building${building ? '' : ' · unfinished'}</h2>
-          ${building ? '' : '<p class="rd-vis-block__sub">One section still empty — it prints as a blank ruled page until it is written</p>'}
-          <button type="button" class="rd-btn rd-btn--quiet" onclick="event.stopPropagation();rdVisWriteBuilding()">Write it</button>
-        </div>
-        ${building
-          ? `<div class="rd-vis-prose" onclick="rdVisOpenDrawer('doc-building')"><p>${esc(building)}</p></div>`
-          : `<p class="rd-vis-unfinished">A paragraph on the family you hope to be in twenty years. Left deliberately for last — write it after the counseling sessions finish, and it prints as the closing page of the keepsake.</p>`}
-      </section>`;
+      html += '<section class="rd-vis-building' + (building ? '' : ' rd-vis-building--unfinished') + '" id="vis-section-building">'
+        + visSecBar('What we are building' + (building ? '' : ' · unfinished'),
+          building ? '' : 'One section still empty — it prints as a blank ruled page until it is written',
+          visSecAct('Write it', 'event.stopPropagation();rdVisWriteBuilding()'))
+        + '<div class="rd-vis-building__body">'
+        + (building
+          ? '<div class="rd-vis-building__written" onclick="rdVisOpenDrawer(\'doc-building\')"><p>' + esc(building) + '</p></div>'
+          : '<div class="rd-vis-building__placeholder">A paragraph on the family you hope to be in twenty years. Left deliberately for last — write it after the counseling sessions finish, and it prints as the closing page of the keepsake.</div>')
+        + '</div></section>';
     }
 
     html += '</div>';
