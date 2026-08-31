@@ -72,13 +72,15 @@
   --font-display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
   --font-mono:   ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --type-page-title:  20px;   --type-page-title-lh:  1.2;
-  --type-section:     10px;   /* eyebrow: uppercase, .16em, 700 */
-  --type-stat:        24px;
-  --type-body:        13px;   --type-body-lh: 1.6;
-  --type-table:       13px;
-  --type-meta:        12px;
-  --type-micro:       11px;
+  /* Type scale ~10% denser than Master baseline (--type-scale). */
+  --type-scale:       0.9;
+  --type-page-title:  calc(20px * var(--type-scale));   --type-page-title-lh:  1.2;
+  --type-section:     calc(10px * var(--type-scale));   /* eyebrow: uppercase, .16em, 700 */
+  --type-stat:        calc(24px * var(--type-scale));
+  --type-body:        calc(13px * var(--type-scale));   --type-body-lh: 1.6;
+  --type-table:       calc(13px * var(--type-scale));
+  --type-meta:        calc(12px * var(--type-scale));
+  --type-micro:       calc(11px * var(--type-scale));
   --tracking-eyebrow: .16em;
   --tracking-header:  .12em;  /* table header cells */
   --tracking-tab:     .1em;
@@ -117,9 +119,9 @@
 
   /* ---- buttons ----------------------------------------------------------- */
   --btn-pad-y: 0;         --btn-pad-x: 16px;
-  --btn-font-size: 13px;  --btn-font-weight: 600;
+  --btn-font-size: calc(13px * var(--type-scale, 0.9));  --btn-font-weight: 600;
   --btn-toolbar-pad-y: 0; --btn-toolbar-pad-x: 11px;
-  --btn-toolbar-font-size: 12px;
+  --btn-toolbar-font-size: calc(12px * var(--type-scale, 0.9));
 
   /* ---- progress ---------------------------------------------------------- */
   --progress-track-height: 4px;      /* rail meters; 12px for page-level bars */
