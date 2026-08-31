@@ -26,7 +26,7 @@
   window._fmDrawerId = window._fmDrawerId || null;
   window._fmDrawerTab = window._fmDrawerTab || 0;
 
-  const SHELL_VER = 'firstmonth-rd-s30';
+  const SHELL_VER = 'firstmonth-rd-s30b';
   const DRAWER_TABS = ['Rhythm', 'Cadence', 'Streak', 'History'];
   const CADENCE_ORDER = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
   const CADENCE_LABELS = ['Every night', 'Weekly', 'Weekly · Thu', 'Weekly · Sun', 'Monthly', 'Monthly · 1st', 'Yearly · 8 Nov'];
@@ -492,8 +492,8 @@
       `<div class="rd-toolbar__right">` +
       (mode === 'table' && typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('firstmonth') : '') +
       `<div class="rd-viewswitch" role="group" aria-label="First-month view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetFirstmonthView('table')">Table</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'cards' ? ' is-active' : ''}" onclick="rdSetFirstmonthView('cards')">Cards</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetFirstmonthView('table')">First-Month Rhythms</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'cards' ? ' is-active' : ''}" onclick="rdSetFirstmonthView('cards')">Cards view</button>` +
       `<button type="button" class="rd-viewswitch__item${mode === 'year' ? ' is-active' : ''}" onclick="rdSetFirstmonthView('year')">Year view</button>` +
       `</div></div>`;
   }
@@ -557,7 +557,7 @@
     return keys.map(k => ({ key: k, rows: map[k] }));
   }
 
-  /* ── Year plot (32h) — a horizon, not a density ──────────────────────── */
+  /* ── Year plots — density under 13d table · horizon marks in 32h ─────── */
 
   function yearMonths() {
     const start = beginsDate() || new Date();
@@ -596,7 +596,53 @@
     return { ch: '●', cls: ' is-committed' };
   }
 
-  function yearplotHtml(rows) {
+  /* 13d density strip — cadence-coloured bars, not horizon marks. */
+  function densityMark(r, monthDate) {
+    const start = r.startDate || beginsDate();
+    const startMonth = start ? new Date(start.getFullYear(), start.getMonth(), 1) : null;
+    const k = monthsBetween(startMonth, monthDate);
+    if (k == null || k < 0) return { cls: ' is-beyond' };
+    if (r.cadenceKind === 'Yearly') {
+      const same = startMonth
+        && monthDate.getFullYear() === startMonth.getFullYear()
+        && monthDate.getMonth() === startMonth.getMonth();
+      return { cls: same ? ' is-year' : ' is-beyond' };
+    }
+    if (r.cadenceKind === 'Daily') return { cls: ' is-daily' };
+    if (r.cadenceKind === 'Monthly') return { cls: ' is-month' };
+    return { cls: ' is-weekly' };
+  }
+
+  function densityYearplotHtml(rows) {
+    const months = yearMonths();
+    const legend =
+      '<span class="rd-yearplot__leg rd-yearplot__leg--daily">Daily</span>' +
+      '<span class="rd-yearplot__leg rd-yearplot__leg--weekly">Weekly</span>' +
+      '<span class="rd-yearplot__leg rd-yearplot__leg--monthly">Monthly</span>' +
+      '<span class="rd-yearplot__leg rd-yearplot__leg--yearly">Yearly</span>';
+    let html = `<div class="rd-section__head">` +
+      `<div><div class="rd-pagehead__eyebrow">The first year</div>` +
+      `<p class="rd-help">Nine rhythms, plotted from the day after the wedding</p></div>` +
+      `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="rdFmPrintCard()">Print the card</button>` +
+      `</div>`;
+    html += `<div class="rd-yearplot rd-yearplot--density" id="firstmonth-year-plot">`;
+    html += `<div class="rd-yearplot__months"><span></span>${months.map(m => `<b>${esc(m.label)}</b>`).join('')}</div>`;
+    rows.forEach(r => {
+      const short = r.title.length > 28 ? r.title.slice(0, 26) + '…' : r.title;
+      html += `<div class="rd-yearplot__row" onclick="rdFmOpenDrawer('${jsId(r.id)}')"><strong title="${esc(r.title)}">${esc(short)}</strong>`;
+      months.forEach(m => {
+        const mark = densityMark(r, m.dt);
+        html += `<span class="rd-yearplot__cell${mark.cls}" title="${esc(r.title + ' · ' + m.label)}"></span>`;
+      });
+      html += `</div>`;
+    });
+    if (!rows.length) html += `<div class="rd-empty">No rhythms match this view.</div>`;
+    html += `<div class="rd-yearplot__legend">${legend}</div></div>`;
+    return html;
+  }
+
+  /* 32h horizon plot — ● committed · ○ intended · — beyond. */
+  function horizonYearplotHtml(rows) {
     const months = yearMonths();
     const legend =
       '<span class="rd-yearplot__leg rd-yearplot__leg--committed">Committed</span>' +
@@ -607,7 +653,7 @@
       `<p class="rd-help">${rows.length} rhythm${rows.length === 1 ? '' : 's'}, plotted from the day after the wedding — how long each is meant to last, not whether it was kept</p></div>` +
       `<button type="button" class="rd-btn rd-btn--quiet" style="margin-left:auto" onclick="rdFmPrintCard()">Print the card</button>` +
       `</div>`;
-    html += `<div class="rd-yearplot" id="firstmonth-year-plot">`;
+    html += `<div class="rd-yearplot rd-yearplot--horizon" id="firstmonth-year-plot">`;
     html += `<div class="rd-yearplot__months"><span></span>${months.map(m => `<b>${esc(m.label)}</b>`).join('')}</div>`;
     rows.forEach(r => {
       const short = r.title.length > 28 ? r.title.slice(0, 26) + '…' : r.title;
@@ -656,7 +702,7 @@
             `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" list="fm-cadence-list" value="${esc(r.cadence)}" oninput="rdFmSave(${r.index},'cadence',this.value)"></td>` +
             `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" list="fm-owner-list" value="${esc(r.owner)}" oninput="rdFmSave(${r.index},'owner',this.value)"></td>` +
             `<td onclick="event.stopPropagation()"><select onchange="rdFmSave(${r.index},'area',this.value)">${selectHtml(AREAS, r.area)}</select></td>` +
-            `<td class="rd-fm-kept${keptCls}" onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" value="${esc(r.kept)}" placeholder="—" oninput="rdFmSave(${r.index},'kept',this.value)"></td>` +
+            `<td class="rd-fm-kept${keptCls}${notBegun(r) ? ' is-notyet' : ''}" onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" value="${esc(keptDisplay(r))}" placeholder="—" oninput="rdFmSave(${r.index},'kept',this.value)"></td>` +
             `<td onclick="event.stopPropagation()"><input class="no-currency" data-currency="false" value="${esc(r.since)}" placeholder="—" oninput="rdFmSave(${r.index},'since',this.value)"></td>` +
             `</tr>`;
         });
@@ -666,7 +712,7 @@
     html += `<datalist id="fm-cadence-list">${CADENCE_LABELS.map(c => `<option value="${esc(c)}">`).join('')}</datalist>`;
     html += `<datalist id="fm-owner-list">${OWNERS.map(c => `<option value="${esc(c)}">`).join('')}</datalist>`;
     html += `<button type="button" class="rd-fm-addbtn" onclick="rdFmAdd()"><span>+</span> Add a rhythm</button>`;
-    html += yearplotHtml(all);
+    html += densityYearplotHtml(all);
     host.innerHTML = html;
   }
 
@@ -707,7 +753,7 @@
   function renderYearView() {
     const host = document.getElementById('fm-view-year');
     if (!host) return;
-    host.innerHTML = yearplotHtml(visibleRows());
+    host.innerHTML = horizonYearplotHtml(visibleRows());
   }
 
   /* ── Drawer (Rhythm · Cadence · Streak · History) ────────────────────── */

@@ -771,7 +771,7 @@
     if (!els.length) {
       html += `<tr class="rd-cou-empty-row"><td colspan="6">No sessions in this view yet.</td></tr>`;
     }
-    html += `</tbody></table>`;
+    html += '</tbody></table></div>';
     html += `<button type="button" class="rd-cou-addbtn" onclick="rdCouAdd()"><span>+</span> Book a session with ${esc(counselorName())}</button>`;
 
     const noted = allSessions().filter(e => e.takeaway);
