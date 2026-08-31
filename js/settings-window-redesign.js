@@ -177,8 +177,138 @@
       + '<div class="rd-set__footnote">Auto-fit acts on one table. Pages with two or three tables fit the one you last touched.</div>';
   }
 
-  function bodyHtml() {
+  var SETTING_NAV = [
+    { group: 'This device', items: [
+      { id: 'overview', label: 'Overview' },
+      { id: 'display', label: 'Display & density' },
+      { id: 'dayof', label: 'Day-of mode' },
+      { id: 'notifications', label: 'Notifications' }
+    ]},
+    { group: 'The planner', items: [
+      { id: 'setup', label: 'Wedding setup' },
+      { id: 'people', label: 'People & roles' },
+      { id: 'money', label: 'Money rules' },
+      { id: 'documents', label: 'Documents & printing' }
+    ]},
+    { group: 'This file', items: [
+      { id: 'backup', label: 'Backup & restore' },
+      { id: 'import', label: 'Import' },
+      { id: 'trash', label: 'Trash' },
+      { id: 'about', label: 'About' }
+    ]},
+    { group: 'Help', items: [
+      { id: 'getstarted', label: 'Get started' },
+      { id: 'guide', label: 'Page-by-page guide' },
+      { id: 'faq', label: 'FAQ' }
+    ]}
+  ];
+
+  function paneShell(title, lead, body) {
+    return '<div class="rd-set__pane">'
+      + '<div class="rd-set__pane-head"><h3>' + esc(title) + '</h3>'
+      + (lead ? '<p>' + esc(lead) + '</p>' : '') + '</div>'
+      + '<div class="rd-set__pane-body">' + body + '</div></div>';
+  }
+
+  function navHtml(active) {
+    return '<nav class="rd-set__nav" aria-label="Settings panes">'
+      + SETTING_NAV.map(function (g) {
+        return '<div class="rd-set__nav-grp">' + esc(g.group) + '</div>'
+          + g.items.map(function (it) {
+            return '<button type="button" class="rd-set__nav-item' + (it.id === active ? ' is-active' : '')
+              + '" data-set-pane="' + esc(it.id) + '">' + esc(it.label) + '</button>';
+          }).join('');
+      }).join('')
+      + '</nav>';
+  }
+
+  function paneHtml(id) {
+    if (id === 'overview' || !id) return bannerHtml() + cardsHtml();
+    if (id === 'display') {
+      return paneShell('Display & density',
+        'Look & feel lives in Profile & Display — density is the one people change hourly.',
+        cardRow('Open Profile & Display', 'Appearance, font, planning view, density', btn('Open', 'rdSetProfile'))
+        + cardRow('Region & format', 'Locale, currency, date order', '<span class="rd-set__muted">On Overview</span>'));
+    }
+    if (id === 'dayof') {
+      return paneShell('Day-of mode',
+        'On the day nobody edits records. They check the time, read the next cue, and phone somebody.',
+        cardRow('Open day-of timeline', 'Wedding Day Timeline · current cue', btn('Open timeline', 'rdSetTimeline'))
+        + '<div class="rd-set__note">Day-of mode hides edit chrome. It does not delete anything.</div>');
+    }
+    if (id === 'notifications') {
+      return paneShell('Notifications',
+        'What earns an interruption. A notification is for something with a deadline and a consequence.',
+        alertRulesCard());
+    }
+    if (id === 'setup') {
+      return paneShell('Wedding setup',
+        'The eleven facts every other page reads — couple, date, venues, budget target, timezone.',
+        cardRow('Open Wedding Setup', 'Couple, date, venues, menu visibility', btn('Open', 'rdSetSetup')));
+    }
+    if (id === 'people') {
+      return paneShell('People & roles',
+        'Who can reach which pages. Viewer preferences hold the link list; Profile Access holds this person.',
+        cardRow('Viewer preferences', 'Who has a way in', btn('Open', 'rdSetViewerPrefs'))
+        + cardRow('Your Access tab', 'What you can reach on this device', btn('Open Access', 'rdSetAccessTab')));
+    }
+    if (id === 'money') {
+      return paneShell('Money rules',
+        'Currency and date format apply to every money figure. Budget target lives on Wedding Setup.',
+        cardRow('Currency & locale', 'On Overview · Region & format', '<span class="rd-set__muted">On Overview</span>')
+        + cardRow('Budget target', 'Owned by Wedding Setup', btn('Open Setup', 'rdSetSetup')));
+    }
+    if (id === 'documents') {
+      return paneShell('Documents & printing',
+        'Print a page as it appears. Export one list at a time as CSV.',
+        cardRow('Print page', '30 pages', btn('Print', 'printSelectedSection'))
+        + cardRow('Export CSV', '13 lists', btn('Export', 'exportSelectedListCSV'))
+        + cardRow('Auto-fit columns', 'Fits the table you last touched', btn('Auto-fit', 'autoFitActivePanelTables')));
+    }
+    if (id === 'backup') {
+      return paneShell('Backup & restore',
+        'A backup is the only copy that survives a cleared browser.',
+        cardRow('Download backup', 'Single .sqlite file', btn('Download backup', 'downloadSqliteBackup'))
+        + cardRow('Restore from backup', 'Accepts .sqlite, .db or .json', btn('Restore', 'rdSetRestore'))
+        + cardRow('Save now', '', btn('Save now', 'saveNow')));
+    }
+    if (id === 'import') {
+      return paneShell('Import',
+        'Restore replaces this browser\'s copy with the file you choose.',
+        cardRow('Restore from file', 'Same path as backup restore', btn('Choose file', 'rdSetRestore')));
+    }
+    if (id === 'trash') {
+      return paneShell('Trash',
+        'The planner does not keep a separate trash bin. Deleted rows leave Planner History.',
+        '<div class="rd-set__note">Undo covers recent deletes on this device. Older deletes stay in Planner History as a record of what changed — they are not recoverable from a trash list.</div>'
+        + cardRow('Open Planner History', '', btn('Open history', 'rdSetHistory')));
+    }
+    if (id === 'about') {
+      return paneShell('About',
+        'The Covenant Wedding Planner — offline-first, one file per wedding.',
+        '<div class="rd-set__note">No account, no cloud, no tracking. The trade-off is that backups are your job. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
+    }
+    if (id === 'getstarted') {
+      return paneShell('Get started', 'How the planner works and your first steps.',
+        cardRow('Open Get Started', '', btn('Open', 'rdSetGetStarted')));
+    }
+    if (id === 'guide') {
+      return paneShell('Page-by-page guide', 'What each page does and what syncs.',
+        cardRow('Open guide', '', btn('Open', 'rdSetGuide')));
+    }
+    if (id === 'faq') {
+      return paneShell('FAQ', 'Answers to common questions.',
+        cardRow('Open FAQ', '', btn('Open', 'rdSetFaq')));
+    }
     return bannerHtml() + cardsHtml();
+  }
+
+  function bodyHtml(pane) {
+    var active = pane || window._rdSetPane || 'overview';
+    return '<div class="rd-set__grid">'
+      + navHtml(active)
+      + '<div class="rd-set__main" id="rd-set-main">' + paneHtml(active) + '</div>'
+      + '</div>';
   }
 
   function wireAlertRules(ov) {
@@ -208,9 +338,32 @@
     });
   }
 
+  function wireNav(ov) {
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-set-pane]'), function (btn) {
+      btn.addEventListener('click', function () {
+        window._rdSetPane = btn.getAttribute('data-set-pane') || 'overview';
+        var main = ov.querySelector('#rd-set-main');
+        if (main) {
+          main.innerHTML = paneHtml(window._rdSetPane);
+          moveSlots(ov);
+          wireActions(ov);
+        }
+        Array.prototype.forEach.call(ov.querySelectorAll('[data-set-pane]'), function (b) {
+          b.classList.toggle('is-active', b === btn);
+        });
+      });
+    });
+  }
+
   function wireActions(ov) {
-    ov.querySelector('.rd-set__close').addEventListener('click', close);
+    var closeBtn = ov.querySelector('.rd-set__close');
+    if (closeBtn && !closeBtn.dataset.bound) {
+      closeBtn.dataset.bound = '1';
+      closeBtn.addEventListener('click', close);
+    }
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
+      if (b.dataset.actBound) return;
+      b.dataset.actBound = '1';
       b.addEventListener('click', function () { run(b.getAttribute('data-act')); });
     });
     wireAlertRules(ov);
@@ -244,11 +397,12 @@
       + '<button type="button" class="rd-set__profile-chip" data-act="rdSetProfile">Profile &amp; Display</button>'
       + '<button type="button" class="rd-set__close" aria-label="Close settings">&times;</button>'
       + '</div>'
-      + '<div class="rd-set__panebody">' + bodyHtml() + '</div>'
+      + '<div class="rd-set__panebody">' + bodyHtml(window._rdSetPane || 'overview') + '</div>'
       + '</div>';
 
     moveSlots(ov);
     wireActions(ov);
+    wireNav(ov);
     return ov;
   }
 
@@ -270,6 +424,29 @@
         if (typeof toggleProfileDrawer === 'function') toggleProfileDrawer();
         return;
       }
+      if (name === 'rdSetAccessTab') {
+        close();
+        window._pdDrawerTab = 'access';
+        if (typeof openProfileDrawer === 'function') openProfileDrawer();
+        else if (typeof toggleProfileDrawer === 'function') toggleProfileDrawer();
+        if (typeof rdPdSetTab === 'function') rdPdSetTab('access');
+        return;
+      }
+      if (name === 'rdSetSetup') {
+        close();
+        if (typeof showPanel === 'function') showPanel('setup', true);
+        return;
+      }
+      if (name === 'rdSetTimeline') {
+        close();
+        if (typeof showPanel === 'function') showPanel('timeline', true);
+        return;
+      }
+      if (name === 'rdSetViewerPrefs') {
+        close();
+        if (typeof showPanel === 'function') showPanel('viewer-prefs', true);
+        return;
+      }
       if (name === 'rdSetGetStarted' || name === 'rdSetGuide' || name === 'rdSetFaq') {
         var panel = name === 'rdSetGetStarted' ? 'instructions'
           : name === 'rdSetGuide' ? 'guide' : 'faq';
@@ -284,6 +461,22 @@
 
   function focusSection(section) {
     if (!section) return;
+    if (section === 'alerts' || section === 'notifications') {
+      window._rdSetPane = 'notifications';
+      var ov = document.getElementById(OVERLAY_ID);
+      if (ov) {
+        var main = ov.querySelector('#rd-set-main');
+        if (main) {
+          main.innerHTML = paneHtml('notifications');
+          moveSlots(ov);
+          wireActions(ov);
+        }
+        Array.prototype.forEach.call(ov.querySelectorAll('[data-set-pane]'), function (b) {
+          b.classList.toggle('is-active', b.getAttribute('data-set-pane') === 'notifications');
+        });
+      }
+      return;
+    }
     var target = document.getElementById(section === 'alerts' ? 'rd-set-alert-rules' : section);
     if (!target) return;
     requestAnimationFrame(function () {

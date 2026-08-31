@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var VER = 'pd-rd-49a5';
+  var VER = 'pd-rd-49a7';
   var CHEVRON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
 
   var PLANNING_VIEWS = [
@@ -264,6 +264,28 @@
     ['access', 'Access']
   ];
 
+  function buildAccessSummary() {
+    var wrap = document.createElement('section');
+    wrap.className = 'pd-sec rd-pd-access-summary';
+    wrap.innerHTML =
+      '<div class="pd-sec-head">Can reach</div>'
+      + '<div class="rd-pd-access-list">'
+      + '<div class="rd-pd-access-row"><span>Overview · Planning · People</span><strong class="is-ok">full</strong></div>'
+      + '<div class="rd-pd-access-row"><span>Money · Vendors · The Day</span><strong class="is-ok">full</strong></div>'
+      + '<div class="rd-pd-access-row"><span>Documents</span><strong class="is-ok">full</strong></div>'
+      + '<div class="rd-pd-access-row"><span>Covenant</span><strong class="is-gold">granted</strong></div>'
+      + '</div>'
+      + '<div class="rd-pd-access-callout">Covenant access was granted by the couple and can be revoked by them at any time, without warning and without explanation. That asymmetry is the point of the category.</div>'
+      + '<div class="pd-sec-head">Cannot</div>'
+      + '<div class="rd-pd-access-list">'
+      + '<div class="rd-pd-access-row"><span>Delete the planner</span><strong>couple only</strong></div>'
+      + '<div class="rd-pd-access-row"><span>Change who is the owner</span><strong>couple only</strong></div>'
+      + '<div class="rd-pd-access-row"><span>Revoke the couple&rsquo;s own access</span><strong>never</strong></div>'
+      + '</div>'
+      + '<p class="pd-hint">What this person can reach, who granted it, and the one category that can be taken back. Preview Mode below only changes what <b>you</b> see on this device.</p>';
+    return wrap;
+  }
+
   function buildAlertsPanel() {
     var rules = (typeof window.rdGetPlannerAlertRules === 'function')
       ? window.rdGetPlannerAlertRules()
@@ -328,6 +350,10 @@
         panels[panelForSection(sec)].appendChild(sec);
       });
       panels.alerts.appendChild(buildAlertsPanel());
+      /* Additive Master Access summary — keep existing Preview / roles controls below. */
+      if (!panels.access.querySelector('.rd-pd-access-summary')) {
+        panels.access.insertBefore(buildAccessSummary(), panels.access.firstChild);
+      }
 
       var tabs = document.createElement('div');
       tabs.className = 'rd-pd-tabs';
