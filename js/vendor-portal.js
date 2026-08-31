@@ -39,7 +39,7 @@
 
   var LIFECYCLE_STEPS = [
     { n: 1, title: 'Planner builds the packet', body: 'From Share Packets. Picks the vendor; the portal decides the contents from the scope contract — there is no content picker.' },
-    { n: 2, title: 'Link is sent', body: 'A URL with an embedded token. No account, no password — the same trust model as a calendar invite.' },
+    { n: 2, title: 'Link is sent', body: 'A URL with an embedded token. No account, no password — the vendor is a caterer, not a user we are trying to acquire. Same trust model as a calendar invite.' },
     { n: 3, title: 'Vendor opens it', body: "Provenance banner names who shared it and when access ends. First open is logged and surfaces in the couple's Share Packets · Activity view." },
     { n: 4, title: 'Vendor works from it', body: 'Reads their brief, accepts the schedule, uploads what they owe. Every write is attributed and lands as a note on their vendor record.' },
     { n: 5, title: 'Access expires', body: 'Four days after the wedding, automatically. Downloaded files stay theirs; the live view closes.' }
@@ -186,8 +186,12 @@
         contractValue: '$12,780',
         paid: '$3,000',
         outstanding: '$9,780',
-        nextDue: 'On final headcount',
-        contract: { title: 'Catering agreement', meta: 'Signed by both parties 2 Apr' },
+        nextDue: '1 Nov',
+        contract: {
+          title: 'Service agreement',
+          meta: 'Signed by both parties 2 Apr',
+          headMeta: 'signed 2 April · 6 pages'
+        },
         clauses: [
           { title: 'Final headcount clause', meta: 'Numbers lock 1 November', chip: '1 Nov', tone: 'warn' },
           { title: 'Cancellation terms', meta: '60 days · clause 9', chip: 'View', tone: '' }
@@ -314,6 +318,7 @@
       vendor: { name: vendorName, category: (vendor && (vendor.type || vendor.category)) || 'Vendor' },
       counts: counts,
       slice: slice,
+      scheduleGantt: slice === demo.slice ? demo.scheduleGantt : null,
       deps: demo.deps,
       owed: demo.owed,
       contacts: contacts,
@@ -414,11 +419,19 @@
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   }
 
+  /* Provenance banner (Master): “access expires 12 November” — day + month, no year. */
+  function fmtExpiresBanner(iso) {
+    var d = new Date(String(iso).slice(0, 10) + 'T00:00:00');
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+  }
+
   function firstOverdueOwed(s) {
     return (s.owed || []).find(function (r) { return r.tone === 'danger'; }) || (s.owed || [])[0] || null;
   }
 
   function renderExpired(s) {
+    var first = String(s.sharedBy || 'the planner').split(' ')[0];
     return ''
       + '<div class="vp-topbar">'
       + '<span class="vp-topbar__mark">✦</span>'
@@ -429,9 +442,11 @@
       + '<div class="vp-expired">'
       + '<div class="vp-eyebrow">Access ended</div>'
       + '<h1>This link has expired</h1>'
-      + '<p>Access ended by design four days after the wedding. Your contract, invoices, and anything you uploaded still belong to you — ask '
-      + esc(s.sharedBy) + ' if you need a copy.</p>'
-      + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="message">Message ' + esc(s.sharedBy.split(' ')[0]) + '</button>'
+      + '<p>Access ran to ' + esc(fmtLong(s.expires)) + ', four days after the wedding. Anything you downloaded while it was live is still yours — this only closes the live view.</p>'
+      + '<div class="vp-expired__acts">'
+      + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="request-access">Request access from ' + esc(s.sharedBy) + '</button>'
+      + '<button type="button" class="vp-btn" data-vp-act="message">Message ' + esc(first) + '</button>'
+      + '</div>'
       + '</div>';
   }
 
@@ -543,24 +558,25 @@
 
   function renderPaperwork(s) {
     var p = s.paperwork;
+    var contractHead = p.contract.headMeta || '1';
     return ''
       + '<div class="vp-pagehead"><div class="vp-eyebrow">Your paperwork</div>'
-      + '<h1 class="vp-title">Contract, instalments, invoices</h1>'
-      + '<p class="vp-sub">Your figures only</p></div>'
+      + '<h1 class="vp-title">' + esc(s.vendor.name) + '</h1>'
+      + '<p class="vp-sub">Your contract and your invoices — no other vendor\'s</p></div>'
       + '<div class="vp-stats">'
-      + '<div class="vp-stat"><span>Contract</span><strong>' + esc(p.contractValue) + '</strong></div>'
+      + '<div class="vp-stat"><span>Contract value</span><strong>' + esc(p.contractValue) + '</strong></div>'
       + '<div class="vp-stat"><span>Paid</span><strong>' + esc(p.paid) + '</strong></div>'
       + '<div class="vp-stat"><span>Outstanding</span><strong class="is-warn">' + esc(p.outstanding) + '</strong></div>'
       + '<div class="vp-stat"><span>Next due</span><strong style="font-size:13px">' + esc(p.nextDue) + '</strong></div>'
       + '</div>'
-      + '<div class="vp-section-head"><strong>Your contract</strong><span>1</span></div>'
+      + '<div class="vp-section-head"><strong>Your contract</strong><span>' + esc(contractHead) + '</span></div>'
       + '<div class="vp-row"><div><strong>' + esc(p.contract.title) + '</strong><em>' + esc(p.contract.meta)
       + '</em></div><span class="vp-meta">View · Download</span></div>'
       + p.clauses.map(function (c) {
         return '<div class="vp-row"><div><strong>' + esc(c.title) + '</strong><em>' + esc(c.meta)
           + '</em></div><span class="' + chipClass(c.tone) + '">' + esc(c.chip) + '</span></div>';
       }).join('')
-      + '<div class="vp-section-head"><strong>Your instalments</strong><span>' + p.instalments.length + ' · derived from the contract</span></div>'
+      + '<div class="vp-section-head"><strong>Your instalments</strong><span>' + p.instalments.length + ' · derived from the contract, not typed</span></div>'
       + p.instalments.map(function (r) {
         return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
           + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.amount) + '</span></div>';
@@ -570,7 +586,7 @@
         return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
           + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.amount) + '</span></div>';
       }).join('')
-      + '<p class="vp-note">You see your own figures only. The couple\'s total budget, their targets, and what any other vendor charges are not part of this view.</p>'
+      + '<p class="vp-note">You see your own figures only. The couple\'s total budget, their targets, and what any other vendor charges are not part of this view and cannot be added to it.</p>'
       + '<div class="vp-foot">'
       + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="invoice">Raise an invoice</button>'
       + '<button type="button" class="vp-btn" data-vp-act="download">Download all</button>'
@@ -640,7 +656,7 @@
           + '<div><strong>' + esc(st.title) + '</strong><em>' + esc(st.body) + '</em></div></li>';
       }).join('')
       + '</ol>'
-      + '<div class="vp-section-head"><strong>What revoking actually achieves</strong><span>stated in the revoke dialog too</span></div>'
+      + '<div class="vp-section-head"><strong>What revocation can and cannot do</strong><span>said plainly in the revoke dialog too</span></div>'
       + REVOKE_ROWS.map(function (r) {
         return '<div class="vp-row"><div><strong>' + esc(r.label) + '</strong></div>'
           + '<span class="' + (r.tone === 'ok' ? 'vp-chip is-ok' : 'vp-chip is-danger') + '">' + esc(r.val) + '</span></div>';
@@ -682,7 +698,7 @@
 
     var shellCls = 'vp-shell' + (narrow ? ' vp-shell--mobile' : '');
     var bannerLong = 'Shared by ' + esc(s.sharedBy) + ' on ' + esc(s.sharedOn)
-      + ' · access expires ' + esc(fmtLong(s.expires))
+      + ' · access expires ' + esc(fmtExpiresBanner(s.expires))
       + ' · you are seeing ' + (s.mode === 'Live' ? 'live records, not a copy' : 'a snapshot');
     var bannerShort = 'Expires ' + esc(fmtExpiresShort(s.expires)) + ' · live records';
 
@@ -733,6 +749,7 @@
         else if (act === 'invoice') toast('Draft invoice prepared for the couple to review.');
         else if (act === 'upload') toast('Upload received. It will clear on Contracts once reviewed.');
         else if (act === 'message') toast('Message sent to ' + (state.session.sharedBy || 'the planner') + '.');
+        else if (act === 'request-access') toast('Access request sent to ' + (state.session.sharedBy || 'the planner') + '.');
         else if (act === 'download') toast('Brief prepared for download.');
         else if (act === 'rules-open') { state.rulesOpen = true; render(); }
         else if (act === 'rules-close') { state.rulesOpen = false; render(); }
