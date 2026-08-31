@@ -161,7 +161,13 @@ html, html body, html body.editorial-v4 { background-color: var(--surface-canvas
 /* ?? 2b. TOKENS THE LEGACY CSS REDEFINES ????????????????????????????????????
    planner.css re-declares a few of the redesign's own token names further
    down its 48,013 lines, so the later declaration wins on equal specificity.
-   Re-assert them here, at two ids, from the authored primitives. */
+   Re-assert them here, at two ids, from the authored primitives.
+
+   §41 house style (Master 2a · Neutral Records × Editorial chrome):
+   Forest is the brand and the action colour; gold is a hairline and an accent,
+   never a button fill. Working software below the stat strip: 13px Inter,
+   8px spacing scale, one primary button per view. Cormorant is display /
+   wordmark only. Do not invent rejected directions (1a–1d comparison UI). */
 body.editorial-v4,
 #main#main,
 #topbar#topbar {
@@ -169,12 +175,16 @@ body.editorial-v4,
   --table-header-rule: var(--gold);
   --shell-topbar-bg: var(--forest);
 }
-/* The dark values must be asserted on the SAME elements at higher specificity,
-   or the light block above (two ids) beats the theme block and the header
-   flattens back to forest. Two ids plus the theme class. */
+/* Master 2b · night: keep a deep forest bar and a dimmed gold rule so the
+   product still reads as Covenant — not greyscale brand strip. Asserted on
+   the SAME elements at higher specificity (two ids + theme), including the
+   rd-scope night aliases used elsewhere in this file. */
 body.dark-mode, body[data-theme="dark"],
+body.rd-scope.night, body.rd-scope[data-theme="night"],
 body.dark-mode #main#main, body[data-theme="dark"] #main#main,
-body.dark-mode #topbar#topbar, body[data-theme="dark"] #topbar#topbar {
+body.rd-scope.night #main#main, body.rd-scope[data-theme="night"] #main#main,
+body.dark-mode #topbar#topbar, body[data-theme="dark"] #topbar#topbar,
+body.rd-scope.night #topbar#topbar, body.rd-scope[data-theme="night"] #topbar#topbar {
   --table-header-bg: #1D2F27;
   --table-header-rule: #6B5738;
   --shell-topbar-bg: #16241E;
