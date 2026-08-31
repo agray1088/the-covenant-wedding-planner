@@ -26767,7 +26767,70 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 .rd-set__nav-item.is-active {
   color: #20362D; font-weight: 600; background: #fff; border-left: 2px solid #B89968;
 }
-.rd-set__panebody { flex: 1 1 auto; padding: 26px 30px; overflow: auto; }
+.rd-set__panebody { flex: 1 1 auto; padding: 0; overflow: auto; }
+
+/* §39 · 49c — forest header, green banner, 3×2 pane cards */
+.rd-set__head--forest {
+  background: #2D4A3E !important; border-bottom-color: rgba(184, 153, 104, .22) !important;
+  padding: 15px 22px !important; gap: 14px !important;
+}
+.rd-set__head--forest .rd-set__mark { color: #B89968; display: inline-flex; line-height: 0; }
+.rd-set__head--forest .rd-set__head-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.rd-set__head--forest .rd-set__title { font-size: 16px; color: #fff !important; letter-spacing: -.01em; }
+.rd-set__head--forest .rd-set__saved { color: #B89968 !important; font-size: 12px; max-width: none; }
+.rd-set__head--forest .rd-set__close { color: #D9C7A4; margin-left: 0; }
+.rd-set__profile-chip {
+  height: 28px; padding: 0 11px; border: 1px solid rgba(184, 153, 104, .5);
+  background: transparent; color: #D9C7A4; font-size: 12.5px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+}
+.rd-set__profile-chip:hover { background: rgba(255, 255, 255, .08); }
+.rd-set__banner {
+  display: flex; align-items: center; gap: 10px; padding: 11px 22px;
+  background: #EEF6F0; border-bottom: 1px solid #CFE3D5; color: #2F6B45;
+}
+.rd-set__banner--amber { background: #fff7df; border-bottom-color: #e7ce80; color: #8a640f; }
+.rd-set__banner-icon { flex: 0 0 auto; display: inline-flex; color: inherit; }
+.rd-set__banner-text { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.5; }
+.rd-set__banner-meta { flex: 0 0 auto; font-size: 11.5px; white-space: nowrap; }
+.rd-set__cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  padding: 18px 22px 24px; align-items: start;
+}
+@media (max-width: 980px) {
+  .rd-set__cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .rd-set__cards { grid-template-columns: 1fr; }
+  .rd-set__banner { flex-wrap: wrap; }
+  .rd-set__banner-meta { white-space: normal; }
+}
+.rd-set__card {
+  border: 1px solid #E7E1D4; background: #fff; display: flex; flex-direction: column;
+}
+.rd-set__card-head {
+  display: flex; align-items: center; gap: 9px; padding: 12px 15px;
+  border-bottom: 1px solid #F0EBE0; background: #F9F5EF;
+}
+.rd-set__card-title {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  font-weight: 700; color: #20362D;
+}
+.rd-set__card-desc {
+  margin: 0; padding: 11px 15px 0; font-size: 11.5px; line-height: 1.55; color: #8A7E6B;
+}
+.rd-set__card-body { padding: 11px 15px 15px; display: flex; flex-direction: column; gap: 8px; }
+.rd-set__card-row {
+  display: flex; align-items: center; gap: 10px; padding: 9px 11px;
+  border: 1px solid #E7E1D4; background: #fff;
+}
+.rd-set__card-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.rd-set__card-row-title { font-size: 12.5px; font-weight: 600; color: #20362D; }
+.rd-set__card-row-desc { font-size: 11px; color: #8A7E6B; }
+.rd-set__card-row-control { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; }
+.rd-set__footnote {
+  padding: 0 22px 20px; font-size: 12px; line-height: 1.55; color: #8a7e6b;
+}
 
 .rd-set__pane-head { margin-bottom: 18px; }
 .rd-set__pane-title { font-size: 17px; font-weight: 600; color: #20362D; }
@@ -29560,16 +29623,32 @@ body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__slot select {
 .rd-settings-window .rd-set__head .rd-set__link { margin-left: 8px; white-space: nowrap; }
 body.rd-scope.night .rd-settings-window,
 body.rd-scope[data-theme="night"] .rd-settings-window { background: #1c1c18; border-color: #2e2e28; }
-body.rd-scope.night .rd-settings-window .rd-set__head,
-body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__head { background: #23231c; border-bottom-color: #2e2e28; }
+body.rd-scope.night .rd-settings-window .rd-set__head:not(.rd-set__head--forest),
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__head:not(.rd-set__head--forest) { background: #23231c; border-bottom-color: #2e2e28; }
+body.rd-scope.night .rd-settings-window .rd-set__head--forest,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__head--forest { background: #243d32 !important; }
 body.rd-scope.night .rd-settings-window .rd-set__title,
 body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__title,
 body.rd-scope.night .rd-settings-window .rd-set__pane-title,
 body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__pane-title,
 body.rd-scope.night .rd-settings-window .rd-set__row-title,
-body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__row-title { color: #e6e1d6; }
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__row-title,
+body.rd-scope.night .rd-settings-window .rd-set__card-title,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__card-title,
+body.rd-scope.night .rd-settings-window .rd-set__card-row-title,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__card-row-title { color: #e6e1d6; }
 body.rd-scope.night .rd-settings-window .rd-set__row,
 body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__row { border-top-color: #26261f; }
+body.rd-scope.night .rd-settings-window .rd-set__card,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__card { background: #1c1c18; border-color: #2e2e28; }
+body.rd-scope.night .rd-settings-window .rd-set__card-head,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__card-head { background: #23231c; border-bottom-color: #2e2e28; }
+body.rd-scope.night .rd-settings-window .rd-set__card-row,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__card-row { background: #1c1c18; border-color: #2e2e28; }
+body.rd-scope.night .rd-settings-window .rd-set__banner,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__banner { background: #1a2e24; border-bottom-color: #2a4a38; color: #6e9c84; }
+body.rd-scope.night .rd-settings-window .rd-set__banner--amber,
+body.rd-scope[data-theme="night"] .rd-settings-window .rd-set__banner--amber { background: #2e2818; border-bottom-color: #4a4020; color: #c9a24a; }
 
 /* ═══ §39 · 49d — Chrome top bar, two rows ════════════════════════════════
    "Nine controls plus a wordmark and a search field do not fit on one 1440px
