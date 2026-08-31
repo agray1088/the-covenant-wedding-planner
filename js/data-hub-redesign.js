@@ -25,6 +25,8 @@
   const TABLE_DRAWER_TABS = ['Table', 'Fields', 'Links', 'Activity'];
   const ROW_DRAWER_TABS = ['Row', 'Fields', 'Links', 'Raw', 'History'];
   const PAGE_VIEWS = [['overview', 'Database Hub'], ['table', 'all tables']];
+  const DH_CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg>';
+  const DH_FILTER_LABELS = { side: 'Side', rsvp: 'RSVP', table_id: 'Table', dietary: 'Dietary' };
 
   /* Mock 24-table inventory mapped onto live entities. */
   const HUB_TABLES = [
@@ -397,7 +399,7 @@
     return rdStandardRightHtml(scope, {
       openColumns: "rdDhOpenColumns(this)",
       autofit: "rdDhAutoFit(this)",
-      rowHeight: "rdDhCycleRowHeight()"
+      rowHeight: "rdDhOpenRowHeight(this)"
     });
   }
 
@@ -619,7 +621,7 @@
     const surface = window._dhSurface || 'tables';
     host.innerHTML =
       searchChipHtml(null) +
-      `<button type="button" class="rd-chip" onclick="rdDhCycleSort()">Sort by ${esc(window._dhSort === 'name' ? 'name' : 'records')}</button>` +
+      `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdDhOpenSort(this)">Sort by ${esc(window._dhSort === 'name' ? 'name' : 'records')}${DH_CHEV}</button>` +
       dhStandardRightHtml() +
       `<div class="rd-toolbar__right">` +
       pageViewSwitcherHtml() +
@@ -630,17 +632,40 @@
       `</div></div>`;
   }
 
+  function filterChipLabel(field, cur) {
+    const label = DH_FILTER_LABELS[field] || field;
+    return cur && cur !== 'all' ? label + ': ' + cur : label + ': all';
+  }
+
+  function dhFilterOptions(field) {
+    const meta = figures().tables.find(t => t.id === window._dhTableId);
+    const opts = [{ value: 'all', label: 'All' }];
+    if (!meta) return opts;
+    const seen = new Set(['all']);
+    meta.rows.forEach(r => {
+      let v = '';
+      if (field === 'side') v = r.side;
+      else if (field === 'rsvp') v = r.rsvp;
+      else if (field === 'table_id') v = r.table || r.table_id || r.tableId;
+      else if (field === 'dietary') v = r.dietary || r.allergies || r.meal;
+      const key = String(v || '').trim();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        opts.push({ value: key, label: key });
+      }
+    });
+    return opts;
+  }
+
   function filterChipForTable(def) {
-    const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7"><path d="m6 9 6 6 6-6"/></svg>';
     let chips = searchChipHtml(def);
     if (def.id !== 'guests') return chips;
     const fields = ['side', 'rsvp', 'table_id', 'dietary'];
     return chips + fields.map(field => {
       const cur = (window._dhUiFilters || {})[field] || 'all';
       const on = cur && cur !== 'all';
-      const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.2"><path d="m6 9 6 6 6-6"/></svg>';
-      return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="rdDhCycleFilter('${field}')">${esc(on ? field + ': ' + cur : field + ': all')}`
-        + (on ? `<span class="rd-chip__clear" onclick="event.stopPropagation();rdDhClearFilter('${field}')">&#10005;</span>` : chev)
+      return `<button type="button" class="rd-chip${on ? ' is-active' : ''}" onclick="rdDhOpenFilter(this,'${field}')">${esc(filterChipLabel(field, cur))}`
+        + (on ? `<span class="rd-chip__clear" onclick="event.stopPropagation();rdDhClearFilter('${field}')">&#10005;</span>` : DH_CHEV)
         + '</button>';
     }).join('');
   }
@@ -1129,25 +1154,39 @@
     window._dhSort = window._dhSort === 'name' ? 'records' : 'name';
     renderDataHubRd();
   }
-  function rdDhCycleFilter(field) {
-    const meta = figures().tables.find(t => t.id === window._dhTableId);
-    const options = { all: true };
-    if (meta) {
-      filteredRows(meta); /* ensure */
-      meta.rows.forEach(r => {
-        let v = '';
-        if (field === 'side') v = r.side;
-        else if (field === 'rsvp') v = r.rsvp;
-        else if (field === 'table_id') v = r.table || r.table_id || r.tableId;
-        else if (field === 'dietary') v = r.dietary || r.allergies || r.meal;
-        if (v) options[String(v)] = true;
-      });
+  function rdDhOpenSort(btn) {
+    if (typeof window.rdPickOne !== 'function') {
+      rdDhCycleSort();
+      return;
     }
-    const list = Object.keys(options);
+    window.rdPickOne(btn, [
+      { value: 'records', label: 'Sort by records' },
+      { value: 'name', label: 'Sort by name' }
+    ], window._dhSort || 'records', val => {
+      window._dhSort = val || 'records';
+      renderDataHubRd();
+    });
+  }
+  function rdDhCycleFilter(field) {
+    const list = dhFilterOptions(field).map(o => o.value);
     const cur = (window._dhUiFilters || {})[field] || 'all';
     const i = list.indexOf(cur);
-    window._dhUiFilters[field] = list[(i + 1) % list.length];
+    window._dhUiFilters = window._dhUiFilters || {};
+    window._dhUiFilters[field] = list[(i < 0 ? 0 : i + 1) % list.length];
     renderDataHubRd();
+  }
+  function rdDhOpenFilter(btn, field) {
+    const opts = dhFilterOptions(field);
+    const cur = (window._dhUiFilters || {})[field] || 'all';
+    if (typeof window.rdPickOne !== 'function') {
+      rdDhCycleFilter(field);
+      return;
+    }
+    window.rdPickOne(btn, opts, cur, val => {
+      window._dhUiFilters = window._dhUiFilters || {};
+      window._dhUiFilters[field] = val || 'all';
+      renderDataHubRd();
+    });
   }
   function rdDhClearFilter(field) {
     window._dhUiFilters[field] = 'all';
@@ -1172,7 +1211,35 @@
   }
   function rdDhOpenColumns(btn) {
     syncDhColumnRegistry();
-    if (window.rdColumns) window.rdColumns.openChooser(btn, dhViewKey());
+    if (window.rdColumns && typeof window.rdColumns.openChooser === 'function') {
+      window.rdColumns.openChooser(btn, dhViewKey());
+    }
+  }
+  function dhHeightStorageKey(scope) {
+    const profile = typeof window.activeProfile !== 'undefined' && window.activeProfile != null
+      ? window.activeProfile : 'default';
+    return 'rdRowHeight:' + profile + ':' + scope;
+  }
+  function rdDhSetRowHeight(val) {
+    const scope = dhViewKey();
+    try { localStorage.setItem(dhHeightStorageKey(scope), val || 'default'); } catch (e) { /* private mode */ }
+    const root = document.getElementById('panel-data-hub');
+    if (typeof window.rdStdApplyRowHeight === 'function') window.rdStdApplyRowHeight(scope, root);
+    dhApplyTableChrome();
+    renderDhToolbar();
+  }
+  function rdDhOpenRowHeight(btn) {
+    const scope = dhViewKey();
+    const cur = typeof window.rdStdHeightLabel === 'function' ? window.rdStdHeightLabel(scope) : 'default';
+    if (typeof window.rdPickOne !== 'function') {
+      rdDhCycleRowHeight();
+      return;
+    }
+    window.rdPickOne(btn, [
+      { value: 'compact', label: 'Compact' },
+      { value: 'default', label: 'Default' },
+      { value: 'tall', label: 'Tall' }
+    ], cur, rdDhSetRowHeight);
   }
   function rdDhAutoFit(btn) {
     const table = dhActiveTable();
@@ -1377,13 +1444,16 @@
   window.rdDhSetRailView = rdDhSetRailView;
   window.rdDhSelectRailTable = rdDhSelectRailTable;
   window.rdDhCycleSort = rdDhCycleSort;
+  window.rdDhOpenSort = rdDhOpenSort;
   window.rdDhCycleFilter = rdDhCycleFilter;
+  window.rdDhOpenFilter = rdDhOpenFilter;
   window.rdDhClearFilter = rdDhClearFilter;
   window.rdDhOpenSearch = rdDhOpenSearch;
   window.rdDhClearSearch = rdDhClearSearch;
   window.rdDhOpenColumns = rdDhOpenColumns;
   window.rdDhAutoFit = rdDhAutoFit;
   window.rdDhCycleRowHeight = rdDhCycleRowHeight;
+  window.rdDhOpenRowHeight = rdDhOpenRowHeight;
   window.rdDhToggleSel = rdDhToggleSel;
   window.rdDhBulkClear = rdDhBulkClear;
   window.rdDhBulk = rdDhBulk;
