@@ -6598,8 +6598,11 @@ function renderTopbarNotificationsDrop(){
     const settings = drop.querySelector('[data-notif-settings]');
     if (settings) settings.onclick = () => {
       closeTopbarNotifications();
-      const gear = document.getElementById('rd-gear-btn');
-      if (gear) gear.click();
+      if (typeof openSettingsWindow === 'function') openSettingsWindow('alerts');
+      else {
+        const gear = document.getElementById('rd-gear-btn');
+        if (gear) gear.click();
+      }
     };
     return;
   }

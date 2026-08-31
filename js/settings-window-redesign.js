@@ -7,8 +7,16 @@
   'use strict';
 
   var OVERLAY_ID = 'rd-settings-overlay';
+  var ALERT_RULES_KEY = 'rd-planner-alert-rules';
   var CHECK_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg>';
   var GEAR_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M4.6 7.4l2.3 1.3M17.1 15.3l2.3 1.3M4.6 16.6l2.3-1.3M17.1 8.7l2.3-1.3"/></svg>';
+  var ALERT_RULE_DEFAULTS = {
+    paymentDue: '7+1',
+    contractWindow: true,
+    rsvpDigest: true,
+    taskUnblocked: true,
+    vendorUpload: false
+  };
 
   function esc(s) {
     return (typeof escapeHtml === 'function')
@@ -64,11 +72,68 @@
       + '</div><div class="rd-set__card-row-control">' + control + '</div></div>';
   }
 
-  function card(title, desc, inner) {
-    return '<section class="rd-set__card"><div class="rd-set__card-head">'
+  function card(title, desc, inner, extraClass, id) {
+    return '<section class="rd-set__card' + (extraClass ? ' ' + extraClass : '') + '"'
+      + (id ? ' id="' + esc(id) + '"' : '') + '><div class="rd-set__card-head">'
       + '<span class="rd-set__card-title">' + esc(title) + '</span></div>'
       + '<p class="rd-set__card-desc">' + esc(desc) + '</p>'
       + '<div class="rd-set__card-body">' + inner + '</div></section>';
+  }
+
+  function alertRules() {
+    try {
+      var raw = localStorage.getItem(ALERT_RULES_KEY);
+      if (raw) return Object.assign({}, ALERT_RULE_DEFAULTS, JSON.parse(raw));
+    } catch (e) { /* ignore */ }
+    return Object.assign({}, ALERT_RULE_DEFAULTS);
+  }
+
+  function saveAlertRules(next) {
+    try { localStorage.setItem(ALERT_RULES_KEY, JSON.stringify(next)); } catch (e) { /* ignore */ }
+    if (typeof window.rdSyncProfileAlertSummary === 'function') window.rdSyncProfileAlertSummary();
+  }
+
+  function segControl(ruleKey, options, active) {
+    return '<div class="rd-seg rd-set__seg" role="group" data-alert-rule="' + esc(ruleKey) + '">'
+      + options.map(function (opt) {
+        return '<button type="button" class="rd-seg__opt' + (opt.value === active ? ' is-active' : '')
+          + '" data-value="' + esc(opt.value) + '">' + esc(opt.label) + '</button>';
+      }).join('')
+      + '</div>';
+  }
+
+  function switchControl(ruleKey, on, locked) {
+    return '<button type="button" class="rd-gaps-switch' + (on ? ' is-on' : '') + (locked ? ' is-locked' : '')
+      + '" role="switch" aria-checked="' + (on ? 'true' : 'false') + '" data-alert-toggle="' + esc(ruleKey) + '"'
+      + (locked ? ' disabled' : '') + '><span class="rd-gaps-switch__dot"></span></button>';
+  }
+
+  function alertRulesCard() {
+    var rules = alertRules();
+    return card('Planner alert rules',
+      'What earns an interruption. A notification is for something with a deadline and a consequence — never for activity.',
+      cardRow('Payment due', 'Two reminders: seven days out and the morning of. A missed instalment can release a venue date.',
+        segControl('paymentDue', [
+          { value: 'off', label: 'Off' },
+          { value: '7', label: '7 days' },
+          { value: '7+1', label: '7 + 1 day' }
+        ], rules.paymentDue))
+      + cardRow('Contract expiring or unsigned', 'Fires on the cancellation window closing, not on the signature being late.',
+        switchControl('contractWindow', rules.contractWindow))
+      + cardRow('RSVP deadline passing', 'One digest of who has not answered, on the deadline. Not one per guest.',
+        switchControl('rsvpDigest', rules.rsvpDigest))
+      + cardRow('Blocked task became unblocked', 'The moment work can start is worth an interruption; the moment it was blocked is not.',
+        switchControl('taskUnblocked', rules.taskUnblocked))
+      + cardRow('Vendor uploaded a document', 'Off by default. It arrives in Planner History either way.',
+        switchControl('vendorUpload', rules.vendorUpload))
+      + cardRow('Someone else edited a record', 'Deliberately absent. A shared file that narrates itself teaches you to ignore it.',
+        '<span class="rd-set__na">Not available</span>')
+      + cardRow('Where they appear', 'No email, no push. The planner has no mail account and no server to send from.',
+        segControl('delivery', [{ value: 'topbar', label: 'Top bar only' }], 'topbar'))
+      + '<div class="rd-set__note">The notification panel behind the bell decides what needs you today. '
+      + 'This pane decides what is allowed to reach it. Device settings live in this browser — restoring a backup '
+      + 'on another machine brings the wedding, not these preferences.</div>',
+      'rd-set__card--wide', 'rd-set-alert-rules');
   }
 
   function undoControl(which) {
@@ -107,6 +172,7 @@
         + cardRow('Get Started', 'How the planner works and your first steps', btn('Open', 'rdSetGetStarted'))
         + cardRow('Page-by-Page Guide', 'What each page does and what syncs', btn('Open', 'rdSetGuide'))
         + cardRow('FAQ', 'Answers to common questions', btn('Open', 'rdSetFaq')))
+      + alertRulesCard()
       + '</div>'
       + '<div class="rd-set__footnote">Auto-fit acts on one table. Pages with two or three tables fit the one you last touched.</div>';
   }
@@ -115,11 +181,39 @@
     return bannerHtml() + cardsHtml();
   }
 
+  function wireAlertRules(ov) {
+    var rules = alertRules();
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-alert-rule]'), function (group) {
+      var key = group.getAttribute('data-alert-rule');
+      if (key === 'delivery') return;
+      Array.prototype.forEach.call(group.querySelectorAll('.rd-seg__opt'), function (opt) {
+        opt.addEventListener('click', function () {
+          rules[key] = opt.getAttribute('data-value');
+          saveAlertRules(rules);
+          Array.prototype.forEach.call(group.querySelectorAll('.rd-seg__opt'), function (o) {
+            o.classList.toggle('is-active', o === opt);
+          });
+        });
+      });
+    });
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-alert-toggle]'), function (sw) {
+      sw.addEventListener('click', function () {
+        if (sw.disabled || sw.classList.contains('is-locked')) return;
+        var key = sw.getAttribute('data-alert-toggle');
+        rules[key] = !rules[key];
+        saveAlertRules(rules);
+        sw.classList.toggle('is-on', rules[key]);
+        sw.setAttribute('aria-checked', rules[key] ? 'true' : 'false');
+      });
+    });
+  }
+
   function wireActions(ov) {
     ov.querySelector('.rd-set__close').addEventListener('click', close);
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
       b.addEventListener('click', function () { run(b.getAttribute('data-act')); });
     });
+    wireAlertRules(ov);
   }
 
   function moveSlots(ov) {
@@ -188,11 +282,23 @@
     } catch (e) { /* never let one control break the window */ }
   }
 
-  function open() {
+  function focusSection(section) {
+    if (!section) return;
+    var target = document.getElementById(section === 'alerts' ? 'rd-set-alert-rules' : section);
+    if (!target) return;
+    requestAnimationFrame(function () {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.classList.add('rd-set__card--focus');
+      setTimeout(function () { target.classList.remove('rd-set__card--focus'); }, 1400);
+    });
+  }
+
+  function open(section) {
     build();
     var ov = document.getElementById(OVERLAY_ID);
     if (ov) ov.classList.add('is-open');
     document.addEventListener('keydown', onEsc, true);
+    focusSection(section);
   }
   function close() {
     var ov = document.getElementById(OVERLAY_ID);
@@ -203,6 +309,7 @@
 
   window.openSettingsWindow = open;
   window.closeSettingsWindow = close;
+  window.rdGetPlannerAlertRules = alertRules;
 
   function bindGear() {
     var gear = document.getElementById('rd-gear-btn');

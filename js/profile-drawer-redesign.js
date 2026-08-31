@@ -265,25 +265,45 @@
   ];
 
   function buildAlertsPanel() {
+    var rules = (typeof window.rdGetPlannerAlertRules === 'function')
+      ? window.rdGetPlannerAlertRules()
+      : {
+        paymentDue: '7+1', contractWindow: true, rsvpDigest: true,
+        taskUnblocked: true, vendorUpload: false
+      };
+    function onOff(val, mode) {
+      if (mode === 'payment') {
+        if (val === 'off') return 'off';
+        if (val === '7') return '7 days';
+        return '7 days + morning';
+      }
+      return val ? 'on' : 'off';
+    }
     var sec = document.createElement('section');
     sec.className = 'pd-sec rd-pd-alerts-panel';
     sec.innerHTML =
       '<div class="pd-sec-head">Alerts</div>'
       + '<p class="pd-hint">What reaches you on this device — not what the planner generates for everyone.</p>'
       + '<div class="rd-pd-alert-list">'
-      + '<div class="rd-pd-alert-row"><span>Payment due · 7 days + morning</span><span class="is-on">on</span></div>'
-      + '<div class="rd-pd-alert-row"><span>Contract window closing</span><span class="is-on">on</span></div>'
-      + '<div class="rd-pd-alert-row"><span>RSVP deadline digest</span><span class="is-on">on</span></div>'
-      + '<div class="rd-pd-alert-row"><span>Task unblocked</span><span class="is-on">on</span></div>'
-      + '<div class="rd-pd-alert-row"><span>Vendor uploaded a document</span><span class="is-off">off</span></div>'
+      + '<div class="rd-pd-alert-row"><span>Payment due · ' + esc(onOff(rules.paymentDue, 'payment')) + '</span><span class="' + (rules.paymentDue === 'off' ? 'is-off' : 'is-on') + '">' + esc(rules.paymentDue === 'off' ? 'off' : 'on') + '</span></div>'
+      + '<div class="rd-pd-alert-row"><span>Contract window closing</span><span class="' + (rules.contractWindow ? 'is-on' : 'is-off') + '">' + esc(onOff(rules.contractWindow)) + '</span></div>'
+      + '<div class="rd-pd-alert-row"><span>RSVP deadline digest</span><span class="' + (rules.rsvpDigest ? 'is-on' : 'is-off') + '">' + esc(onOff(rules.rsvpDigest)) + '</span></div>'
+      + '<div class="rd-pd-alert-row"><span>Task unblocked</span><span class="' + (rules.taskUnblocked ? 'is-on' : 'is-off') + '">' + esc(onOff(rules.taskUnblocked)) + '</span></div>'
+      + '<div class="rd-pd-alert-row"><span>Vendor uploaded a document</span><span class="' + (rules.vendorUpload ? 'is-on' : 'is-off') + '">' + esc(onOff(rules.vendorUpload)) + '</span></div>'
       + '</div>'
       + '<p class="rd-pd-alert-note">Your unread count is never shown to anyone else — it is not a productivity signal.</p>'
       + '<div class="rd-pd-alert-actions">'
       + '<button type="button" class="pd-mini" onclick="rdPdOpenNotifications(event)">Open notifications</button>'
-      + '<button type="button" class="pd-mini" onclick="if(typeof openSettingsWindow===\'function\')openSettingsWindow()">Planner alert rules</button>'
+      + '<button type="button" class="pd-mini" onclick="if(typeof openSettingsWindow===\'function\')openSettingsWindow(\'alerts\')">Planner alert rules</button>'
       + '</div>';
     return sec;
   }
+
+  window.rdSyncProfileAlertSummary = function () {
+    var panel = document.querySelector('#profile-drawer .rd-pd-alerts-panel');
+    if (!panel || !panel.parentNode) return;
+    panel.parentNode.replaceChild(buildAlertsPanel(), panel);
+  };
 
   function panelForSection(sec) {
     if (sec.querySelector('#theme-select') || sec.querySelector('#planning-view-select')) return 'display';
