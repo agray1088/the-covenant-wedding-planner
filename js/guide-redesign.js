@@ -15,6 +15,12 @@
   window._guideDrawerTab = window._guideDrawerTab || 0;
 
   const DRAWER_TABS = ['Entry', 'Steps', 'Links', 'History'];
+  /* View switcher (33i / 33j) — exact labels per fidelity pass §36. */
+  const PAGE_VIEWS = [
+    ['entries', 'Page-by-Page Guide'],
+    ['table', 'Table view'],
+    ['print', 'Print view']
+  ];
 
   /* 33i data contract — one row per page. "Owns" is the important column:
      only one page owns any given field; every other page reads it. */
@@ -526,6 +532,10 @@
   }
 
   function renderGuide() {
+    if (typeof getSavedView === 'function') {
+      const saved = getSavedView('guide', window._guideView || 'entries');
+      window._guideView = PAGE_VIEWS.some(([id]) => id === saved) ? saved : 'entries';
+    }
     const panel = ensureHead('panel-guide', 'Overview · start planning',
       'Page-by-Page Guide', 'Open Get Started', "typeof showPanel==='function'&&showPanel('instructions',true)",
       '<button type="button" class="rd-btn" onclick="rdGuideExpandAll()">Expand all</button>' +
@@ -608,9 +618,10 @@
         ? '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdGuideExportMap()">Export the map</button>'
         : '') +
       '<div class="rd-viewswitch" role="group" aria-label="Guide view">' +
-      '<button type="button" class="rd-viewswitch__item' + (v === 'entries' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'entries\')">Accordion</button>' +
-      '<button type="button" class="rd-viewswitch__item' + (v === 'table' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'table\')">Table</button>' +
-      '<button type="button" class="rd-viewswitch__item' + (v === 'print' ? ' is-active' : '') + '" onclick="rdGuideSetView(\'print\')">Print view</button>' +
+      PAGE_VIEWS.map(([id, label]) =>
+        '<button type="button" class="rd-viewswitch__item' + (v === id ? ' is-active' : '') +
+        '" onclick="rdGuideSetView(\'' + id + '\')">' + esc(label) + '</button>'
+      ).join('') +
       '</div></div>';
   }
   function applyGuideView() {
@@ -827,7 +838,12 @@
     else if (typeof exportData === 'function') exportData();
     else if (typeof showToast === 'function') showToast('Use Backup in the top bar to download a copy.');
   }
-  function rdGuideSetView(v) { window._guideView = v; renderGuideToolbar(); applyGuideView(); }
+  function rdGuideSetView(v) {
+    window._guideView = PAGE_VIEWS.some(([id]) => id === v) ? v : 'entries';
+    if (typeof setSavedView === 'function') setSavedView('guide', window._guideView);
+    renderGuideToolbar();
+    applyGuideView();
+  }
   function rdGuideOpenEntry(i) { window._guideDrawer = i; window._guideDrawerTab = 0; renderGuideDrawer(); }
   function rdGuideCloseDrawer() { window._guideDrawer = null; const s = document.getElementById('rd-guide-drawer'); if (s) { s.innerHTML = ''; s.classList.remove('is-open'); } }
   function rdGuideSetDrawerTab(k) { window._guideDrawerTab = k; renderGuideDrawer(); }
