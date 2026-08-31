@@ -1259,13 +1259,13 @@ button.rd-stat {
   text-align: left;
 }
 .rd-state__heading {
-  font: 600 16.2px/1.3 var(--font-ui);
+  font: 600 var(--type-body)/1.35 var(--font-ui);
   color: var(--text-heading);
   letter-spacing: -.01em;
 }
 .rd-state__body {
   margin-top: 8px;
-  font: 400 12.2px/1.55 var(--font-ui);
+  font: 400 var(--type-meta)/1.55 var(--font-ui);
   color: var(--text-muted);
 }
 .rd-state__actions {
@@ -1297,7 +1297,7 @@ button.rd-stat {
     linear-gradient(135deg, color-mix(in srgb, var(--forest) 4%, transparent) 0%, transparent 40%),
     var(--surface-content);
 }
-.rd-state--form .rd-state__heading { font-size: 18px; }
+.rd-state--form .rd-state__heading { font-size: var(--type-body); }
 .rd-state--reference .rd-state__inner { max-width: 520px; }
 .rd-table-wrap.has-rd-state > table,
 .cwp-table-wrap.has-rd-state > table,
