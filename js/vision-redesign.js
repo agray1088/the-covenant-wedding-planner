@@ -22,7 +22,7 @@
   window._visPaper = window._visPaper || 'A5';
   window._visCursorPartner = window._visCursorPartner || '';
 
-  const SHELL_VER = 'vis-rd13a-s27';
+  const SHELL_VER = 'vis-rd32-s27';
   const DRAWER_TABS = ['Section', 'Wording', 'Print', 'History'];
   const RAIL_VIEWS = ['vision', 'values', 'scriptures', 'promises', 'building'];
   const BLOCK_TYPES = [
@@ -98,6 +98,11 @@
     const d = parseDate(value);
     if (!d) return '—';
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  }
+  function fmtDayMonth(value) {
+    const d = parseDate(value);
+    if (!d) return String(value || '—');
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
   }
   function nid(prefix) {
     return prefix + '-' + Math.random().toString(36).slice(2, 8);
@@ -413,10 +418,19 @@
         { label: 'Print class', value: 'B · keepsake' }
       ];
     } else if (mode === 'print') {
+      const printPct = f.docsTotal ? Math.round((f.printing / f.docsTotal) * 100) : 0;
       stats = [
         { label: 'Pages', value: String(f.pages) },
-        { label: 'Sections printing', value: f.printing + ' of ' + f.docsTotal },
-        { label: 'Suppressed', value: String(f.suppressed), attention: f.suppressed ? 'no body text' : undefined },
+        {
+          label: 'Sections printing',
+          value: f.printing + ' of ' + f.docsTotal,
+          target: { pct: printPct, tick: 0 }
+        },
+        {
+          label: 'Suppressed',
+          value: String(f.suppressed),
+          attention: f.suppressed ? 'no body text' : undefined
+        },
         { label: 'Paper', value: f.paper + ' · portrait' },
         { label: 'Renders', value: 'Light always', attention: 'even in dark mode' }
       ];
@@ -429,8 +443,21 @@
         { label: 'Version', value: f.versionLabel }
       ];
     }
-    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats && mode !== 'print') {
       RdDepth.renderStats(host, stats);
+      return;
+    }
+    if (mode === 'print') {
+      const printPct = f.docsTotal ? Math.round((f.printing / f.docsTotal) * 100) : 0;
+      host.innerHTML = stats.map(s => {
+        let valCls = 'm-stat-val';
+        if (s.label === 'Suppressed' && Number(s.value) > 0) valCls += ' is-amber';
+        return '<div class="m-stat"><div class="m-stat-label">' + esc(s.label) + '</div>'
+          + '<div class="' + valCls + '">' + esc(s.value) + '</div>'
+          + (s.target ? '<div class="rd-stat__target" aria-hidden="true"><div class="rd-stat__target-fill" style="width:' + printPct + '%"></div></div>' : '')
+          + (s.attention ? '<div class="m-stat-note">' + esc(s.attention) + '</div>' : '')
+          + '</div>';
+      }).join('');
       return;
     }
     host.innerHTML = stats.map(s =>
@@ -648,7 +675,47 @@
     host.innerHTML = html;
   }
 
-  /* ── edit view ─────────────────────────────────────────────────────── */
+  /* ── edit view · Master 32a ─────────────────────────────────────────── */
+
+  function editRailJump(viewId) {
+    const map = { vision: 0, values: 1, scriptures: 4, promises: 5, building: 6 };
+    if (map[viewId] != null) window._visEditSection = map[viewId];
+    renderVisionRd();
+  }
+
+  function editRailHtml(activeIdx) {
+    const counts = visRailCounts();
+    const f = visFigures();
+    const items = [
+      { id: 'vision', label: 'Our vision', count: '' },
+      { id: 'values', label: 'Values', count: counts.values || 0 },
+      { id: 'scriptures', label: 'Scriptures', count: counts.scriptures || 0 },
+      { id: 'promises', label: 'Promises', count: counts.promises || 0 },
+      { id: 'building', label: 'What we are building', count: '' }
+    ];
+    const map = { vision: 0, values: 1, scriptures: 4, promises: 5, building: 6 };
+    let list = items.map(it => {
+      const on = activeIdx === map[it.id];
+      const label = it.count !== '' ? (it.label + ' · ' + it.count) : it.label;
+      return '<button type="button" class="rd-vis-edit-rail__item' + (on ? ' is-active' : '') + '" onclick="rdVisEditRailJump(\'' + it.id + '\')">' + esc(label) + '</button>';
+    }).join('');
+    const docs = docSections();
+    let docList = docs.map((d, i) =>
+      '<button type="button" class="rd-vis-edit-rail__doc' + (i === activeIdx ? ' is-active' : '') + '" onclick="rdVisJumpSection(' + i + ')">' +
+      '<span>' + esc(String(i + 1) + '. ' + (d.title || 'Untitled')) + '</span></button>'
+    ).join('');
+    return '<aside class="rd-vis-edit-rail" aria-label="Vision sections">'
+      + '<div class="rd-vis-edit-rail__section"><div class="rd-vis-edit-rail__title">Sections</div><div class="rd-vis-edit-rail__list">' + list + '</div></div>'
+      + '<div class="rd-vis-edit-rail__section"><div class="rd-vis-edit-rail__title">Keepsake · ' + docs.length + ' sections</div><div class="rd-vis-edit-rail__docs">' + docList + '</div></div>'
+      + '<div class="rd-vis-edit-rail__section"><div class="rd-vis-edit-rail__title">Written</div>'
+      + '<div class="rd-vis-edit-rail__meters">'
+      + '<div class="rd-vis-edit-rail__meter"><span>Sections complete</span><strong>' + f.docsWritten + ' of ' + f.docsTotal + '</strong></div>'
+      + '<div class="rd-vis-edit-rail__meter"><span>Words</span><strong>' + f.words.toLocaleString('en-US') + '</strong></div>'
+      + '<div class="rd-vis-edit-rail__meter"><span>Last written</span><strong>' + esc(f.lastWritten) + '</strong></div>'
+      + '</div></div>'
+      + '<p class="rd-vis-edit-rail__note">Class B · serif headings, gold hairline, generous measure. Nothing here posts to a budget or a guest count.</p>'
+      + '</aside>';
+  }
 
   function renderEditView() {
     const host = document.getElementById('vis-view-edit');
@@ -659,58 +726,73 @@
     const sec = docs[idx] || { title: '', body: '', blocks: [] };
     const blocks = Array.isArray(sec.blocks) ? sec.blocks : [];
     const partner = groomName();
-    const otherSec = docs[4] || docs[docs.length - 1];
-    htmlBlocks(host, sec, blocks, idx, docs.length, partner, otherSec);
+    htmlBlocks(host, sec, blocks, idx, docs.length, partner, editRailHtml(idx));
   }
 
-  function htmlBlocks(host, sec, blocks, idx, total, partner, otherSec) {
-    let body = `<div class="rd-vis-edit">
-      <div class="rd-vis-edit__banner">
-        <strong>Editing · Section ${idx + 1} of ${total}</strong>
-        <span>· ${esc(autosaveLabel())}</span>
-        <button type="button" class="rd-btn rd-btn--quiet" onclick="rdSetVisionView('read')">Read view</button>
-      </div>
-      <label class="rd-vis-edit__title"><span>Section title</span>
-        <input type="text" value="${esc(sec.title || '')}" oninput="rdVisSaveDocTitle(this.value)">
-      </label>
-      <label class="rd-vis-edit__body"><span>Body · written together${sec.editedAt ? ', ' + esc(fmtLong(sec.editedAt)) : ''}</span>
-        <textarea oninput="rdVisSaveDocBody(this.value)">${esc(sec.body || '')}</textarea>
-      </label>
-      <div class="rd-vis-blocks">`;
+  function htmlBlocks(host, sec, blocks, idx, total, partner, railHtml) {
+    const bodyDate = sec.editedAt ? fmtDayMonth(sec.editedAt) : '';
+    const bodyLabel = 'Body · written together' + (bodyDate ? ', ' + bodyDate : '');
+    let body = '<div class="rd-vis-edit-wrap">' + railHtml
+      + '<div class="rd-vis-edit-main"><div class="rd-vis-edit">'
+      + '<div class="rd-vis-edit__banner">'
+      + '<span class="rd-vis-edit__banner-strong">Editing</span>'
+      + '<span>Section ' + (idx + 1) + ' of ' + total + '</span>'
+      + '<span class="rd-vis-edit__banner-dot">·</span>'
+      + '<span>' + esc(autosaveLabel()) + '</span>'
+      + '<span class="rd-vis-edit__banner-nav">'
+      + '<button type="button" class="rd-vis-edit__navbtn" onclick="rdVisPrevSection()" aria-label="Previous section"' + (idx <= 0 ? ' disabled' : '') + '>‹</button>'
+      + '<button type="button" class="rd-vis-edit__navbtn" onclick="rdVisNextSection()" aria-label="Next section"' + (idx >= total - 1 ? ' disabled' : '') + '>›</button>'
+      + '</span>'
+      + '<button type="button" class="rd-vis-edit__readlink" onclick="rdSetVisionView(\'read\')">Read view</button>'
+      + '</div>'
+      + '<div class="rd-vis-edit__label">Section title</div>'
+      + '<div class="rd-vis-edit__titlebox"><input type="text" class="rd-vis-edit__titleinput" value="' + esc(sec.title || '') + '" oninput="rdVisSaveDocTitle(this.value)" aria-label="Section title"></div>'
+      + '<div class="rd-vis-edit__label rd-vis-edit__label--body">' + esc(bodyLabel) + '</div>'
+      + '<div class="rd-vis-edit__bodybox"><textarea class="rd-vis-edit__bodyinput" oninput="rdVisSaveDocBody(this.value)" aria-label="Section body">' + esc(sec.body || '') + '</textarea></div>'
+      + '<div class="rd-vis-blocks">';
     blocks.forEach((b, i) => {
       if (b.type === 'divider') {
-        body += `<div class="rd-vis-blockinsert rd-vis-blockinsert--rule" data-i="${i}"><hr><button type="button" class="rd-btn rd-btn--quiet" onclick="rdVisRemoveBlock(${i})">Remove</button></div>`;
+        body += '<div class="rd-vis-blockinsert rd-vis-blockinsert--rule" data-i="' + i + '"><hr><button type="button" class="rd-vis-blockinsert__remove" onclick="rdVisRemoveBlock(' + i + ')">Remove</button></div>';
       } else {
         const lab = (BLOCK_TYPES.find(t => t.id === b.type) || { label: b.type }).label;
-        body += `<label class="rd-vis-blockinsert"><span>${esc(lab)}</span>
-          <textarea oninput="rdVisSaveBlock(${i}, this.value)">${esc(b.text || '')}</textarea>
-          <button type="button" class="rd-btn rd-btn--quiet" onclick="rdVisRemoveBlock(${i})">Remove</button>
-        </label>`;
+        body += '<label class="rd-vis-blockinsert"><span class="rd-vis-edit__label">' + esc(lab) + '</span>'
+          + '<textarea class="rd-vis-blockinsert__input" oninput="rdVisSaveBlock(' + i + ', this.value)">' + esc(b.text || '') + '</textarea>'
+          + '<button type="button" class="rd-vis-blockinsert__remove" onclick="rdVisRemoveBlock(' + i + ')">Remove</button></label>';
       }
     });
-    body += `</div>
-      <div class="rd-vis-blockset" role="group" aria-label="Block set">`;
+    body += '</div><div class="rd-vis-blockset" role="group" aria-label="Block set">';
     BLOCK_TYPES.forEach(t => {
-      body += `<button type="button" class="rd-chip" onclick="rdVisInsertBlock('${t.id}')">${esc(t.label)}</button>`;
+      body += '<button type="button" class="rd-vis-blockchip" onclick="rdVisInsertBlock(\'' + t.id + '\')">' + esc(t.label) + '</button>';
     });
-    body += `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdVisInsertBlock('scripture')">+ Insert block</button>
-      </div>
-      <p class="rd-vis-coedit">Both of you can edit this page. ${esc(partner)} last wrote in section ${Math.min(total, 5)} on 2 July. Two people editing the same section at once is shown, not merged silently — you will see a cursor and a name label.</p>
-      ${window._visCursorPartner ? `<div class="rd-vis-cursor" aria-hidden="true"><i></i>${esc(window._visCursorPartner)}</div>` : ''}
-      <nav class="rd-vis-edit__nav">`;
-    docSections().forEach((d, i) => {
-      body += `<button type="button" class="rd-chip${i === idx ? ' is-active' : ''}" onclick="rdVisJumpSection(${i})">${i + 1}. ${esc(d.title)}</button>`;
-    });
-    body += `</nav></div>`;
+    body += '<button type="button" class="rd-vis-blockchip rd-vis-blockchip--add" onclick="rdVisInsertBlock(\'scripture\')">+ Insert block</button>'
+      + '</div>'
+      + '<div class="rd-vis-coedit"><strong>Both of you can edit this page.</strong> '
+      + esc(partner) + ' last wrote in section ' + Math.min(total, 5) + ' on 2 July. Two people editing the same section at once is shown, not merged silently — you will see a cursor and a name label.</div>'
+      + (window._visCursorPartner ? '<div class="rd-vis-cursor" aria-hidden="true"><i></i>' + esc(window._visCursorPartner) + '</div>' : '')
+      + '</div></div></div>';
     host.innerHTML = body;
   }
 
-  /* ── print preview ─────────────────────────────────────────────────── */
+  /* ── print preview · Master 32b ─────────────────────────────────────── */
 
-  function printSections() {
-    const docs = docSections();
-    if (window._visWrittenOnly === false) return docs.slice();
-    return docs.filter(s => String(s.body || '').trim());
+  function printSheetBlockHtml(b) {
+    if (!b || b.type === 'divider') return '<hr class="rd-vis-sheet__gold">';
+    const text = String(b.text || '').trim();
+    if (!text) return '';
+    if (b.type === 'scripture') {
+      const lines = text.split(/\n+/).map(x => x.trim()).filter(Boolean);
+      const ref = lines.length > 1 ? lines[lines.length - 1] : '';
+      const quote = lines.length > 1 ? lines.slice(0, -1).join(' ') : text;
+      return '<div class="rd-vis-sheet__scripture"><div class="rd-vis-sheet__scripture-quote">“' + esc(quote.replace(/^["“]|["”]$/g, '')) + '”</div>'
+        + (ref ? '<div class="rd-vis-sheet__scripture-ref">' + esc(ref) + '</div>' : '') + '</div>';
+    }
+    if (b.type === 'quote') {
+      return '<blockquote class="rd-vis-sheet__quote">“' + esc(text.replace(/^["“]|["”]$/g, '')) + '”</blockquote>';
+    }
+    if (b.type === 'prayer') {
+      return '<p class="rd-vis-sheet__prayer">' + esc(text) + '</p>';
+    }
+    return '<p class="rd-vis-sheet__block">' + esc(text) + '</p>';
   }
 
   function renderPrintView() {
@@ -718,41 +800,34 @@
     if (!host) return;
     const f = visFigures();
     const docs = docSections();
-    const printing = printSections();
     const paper = (window._visPaper || 'A5').toLowerCase();
-    let sheet = `<div class="rd-vis-proof">
-      <div class="rd-vis-sheet rd-vis-sheet--${esc(paper)}" data-print-light="1">
-        <div class="rd-vis-sheet__kicker">${esc(coupleLine())}</div>
-        <div class="rd-vis-sheet__titlepage">
-          <div class="rd-vis-sheet__orn">✦</div>
-          <h2>Our Foundation</h2>
-          <p class="rd-vis-sheet__names">${esc(brideName())} &amp; ${esc(groomName())}</p>
-          <hr class="rd-vis-sheet__gold">
-          <p class="rd-vis-sheet__sub">Our Foundation</p>
-        </div>`;
+    const namesUpper = esc(brideName()) + ' &amp; ' + esc(groomName());
+    let sheet = '<div class="rd-vis-proof">'
+      + '<div class="rd-vis-sheet rd-vis-sheet--' + esc(paper) + '" data-print-light="1">'
+      + '<div class="rd-vis-sheet__headrule"><span>' + esc(coupleLine()) + '</span><span>Our Foundation</span></div>'
+      + '<div class="rd-vis-sheet__titlepage">'
+      + '<div class="rd-vis-sheet__names-upper">' + namesUpper + '</div>'
+      + '<h2 class="rd-vis-sheet__maintitle">Our Foundation</h2>'
+      + '<div class="rd-vis-sheet__gold" aria-hidden="true"></div>'
+      + '</div><div class="rd-vis-sheet__body">';
     docs.forEach((s, i) => {
       const written = String(s.body || '').trim();
-      const shown = window._visWrittenOnly === false || written;
-      if (!shown && window._visWrittenOnly !== false) return;
-      sheet += `<section class="rd-vis-sheet__sec">
-        <h3>${roman(i + 1)}. ${esc(s.title)}</h3>`;
+      const suppressed = !written && window._visWrittenOnly !== false;
+      sheet += '<section class="rd-vis-sheet__sec' + (suppressed ? ' rd-vis-sheet__sec--gap' : '') + '">'
+        + '<h3 class="rd-vis-sheet__sectitle">' + roman(i + 1) + '. ' + esc(s.title) + '</h3>';
       if (written) {
-        written.split(/\n\n+/).forEach(p => { sheet += `<p>${esc(p)}</p>`; });
-        (s.blocks || []).forEach(b => {
-          if (b.type === 'divider') sheet += '<hr class="rd-vis-sheet__gold">';
-          else if (b.type === 'scripture') sheet += `<blockquote class="rd-vis-sheet__q">${esc(b.text || '')}</blockquote>`;
-          else if (b.text) sheet += `<p class="rd-vis-sheet__block">${esc(b.text)}</p>`;
-        });
+        written.split(/\n\n+/).forEach(p => { sheet += '<p class="rd-vis-sheet__para">' + esc(p) + '</p>'; });
+        (s.blocks || []).forEach(b => { sheet += printSheetBlockHtml(b); });
       } else {
-        sheet += `<p class="rd-vis-sheet__gap">[Not written yet — this section will not print until it has text.]</p>`;
+        sheet += '<p class="rd-vis-sheet__gap"><em>[Not written yet — this section will not print until it has text.]</em></p>';
       }
-      sheet += `</section>`;
+      sheet += '</section>';
     });
-    sheet += `<div class="rd-vis-sheet__foot"><span>Proof · ${esc(fmtLong(new Date().toISOString()))}</span>
-      <span>Page 1 of ${f.pages}</span></div>
-      </div>
-      <p class="rd-vis-proof__note">Print always renders light, even when the app is in dark mode. Empty sections are flagged here rather than printing a heading over blank paper. Class B — serif, centred title page, gold rule, generous measure, no UI chrome.</p>
-    </div>`;
+    sheet += '</div><div class="rd-vis-sheet__foot"><span>Proof · ' + esc(fmtLong(new Date().toISOString())) + '</span>'
+      + '<span>Page 1 of ' + esc(String(f.pages)) + '</span></div>'
+      + '</div>'
+      + '<p class="rd-vis-proof__note">Print always renders light, even when the app is in dark mode. Empty sections are flagged here rather than printing a heading over blank paper. Class B — serif, centred title page, gold rule, generous measure, no UI chrome.</p>'
+      + '</div>';
     host.innerHTML = sheet;
   }
 
@@ -980,6 +1055,18 @@
     window._visEditSection = i;
     renderVisionRd();
   }
+  function rdVisPrevSection() {
+    const i = Math.max(0, (window._visEditSection || 0) - 1);
+    rdVisJumpSection(i);
+  }
+  function rdVisNextSection() {
+    const total = docSections().length;
+    const i = Math.min(total - 1, (window._visEditSection || 0) + 1);
+    rdVisJumpSection(i);
+  }
+  function rdVisEditRailJump(viewId) {
+    editRailJump(viewId);
+  }
 
   function rdVisSaveDrawerWording(val) {
     const found = recordById(window._visDrawerId.replace(/^doc-/, '')) || recordById(window._visDrawerId);
@@ -1198,6 +1285,9 @@
   window.rdVisInsertBlock = rdVisInsertBlock;
   window.rdVisRemoveBlock = rdVisRemoveBlock;
   window.rdVisJumpSection = rdVisJumpSection;
+  window.rdVisPrevSection = rdVisPrevSection;
+  window.rdVisNextSection = rdVisNextSection;
+  window.rdVisEditRailJump = rdVisEditRailJump;
   window.rdVisSaveDrawerWording = rdVisSaveDrawerWording;
   window.rdVisCycleFilter = rdVisCycleFilter;
   window.rdVisClearFilter = rdVisClearFilter;
