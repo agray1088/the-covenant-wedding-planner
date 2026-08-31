@@ -30669,10 +30669,12 @@ body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-undo,
 body.rd-scope .rd-topbar--tworow .rd-topbar__right #undo-btn,
 body.rd-scope .rd-topbar--tworow .rd-topbar__right #redo-btn,
 body.rd-scope .rd-topbar--tworow .rd-topbar__right #save-btn,
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #topbar-notifications-btn,
 body.rd-scope .rd-topbar .rd-undo,
 body.rd-scope .rd-topbar #undo-btn,
 body.rd-scope .rd-topbar #redo-btn,
-body.rd-scope .rd-topbar #save-btn {
+body.rd-scope .rd-topbar #save-btn,
+body.rd-scope .rd-topbar #topbar-notifications-btn {
   height: var(--component-button-height) !important;
   min-height: var(--component-button-height) !important;
   max-height: var(--component-button-height) !important;
