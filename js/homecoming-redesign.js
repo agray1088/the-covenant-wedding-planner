@@ -79,7 +79,7 @@
     ['Wedding wrap-up', 'Thank-you notes', 'Cards, stamps, printing', 180, 145, 95, 'Underway'],
     ['Wedding wrap-up', 'Dress preservation', 'Clean and box', 300, 0, 0, 'Quote needed'],
     ['Wedding wrap-up', 'Album and prints', 'From Nii Photography', 400, 400, 0, 'In contract'],
-    ['Wedding wrap-up', 'Suit and dress returns', 'Kingsway hire · late fees risk', 0, 540, 200, 'Unowned'],
+    ['Wedding wrap-up', 'Suit and dress returns', 'Kingsway hire · late fees risk', 0, 120, 0, 'Unowned'],
     ['Living', 'Homecoming dinner', 'First meal as a household', 200, 200, 0, 'Planned'],
     ['Setting up the home', 'First month rent', 'Due day 1 of the month', 600, 600, 0, 'Committed'],
     ['Setting up the home', 'Utilities connection', '', 120, 120, 0, 'Committed'],
@@ -174,7 +174,16 @@
     const legacyBudget = d.firstMonthBudget.length > 0 &&
       !d.firstMonthBudget.some(r => /thank-you|dress preservation|homecoming dinner|name change fees/i.test(String(r.line || r.item || '')));
     const emptyAll = !d.homecoming.length && !d.nameChange.length && !d.firstMonthBudget.length;
-    if (d._hcMasterS33 && !legacyNames && !legacyBudget && !emptyAll) return;
+    if (d._hcMasterS33 && !legacyNames && !legacyBudget && !emptyAll) {
+      const suitRow = d.firstMonthBudget.find(r => /suit and dress returns/i.test(String(r.line || r.item || '')));
+      if (suitRow && (parseFloat(suitRow.committed) || 0) > 120) {
+        suitRow.committed = 120;
+        suitRow.spent = 0;
+        suitRow.budgeted = 0;
+        suitRow.status = 'Unowned';
+      }
+      return;
+    }
     if (emptyAll || legacyNames || legacyBudget || !d._hcMasterS33) {
       d.homecoming = MASTER_SETTLING.map(([task, area, owner, due, dependsOn, status]) => {
         const row = { task: task, item: task, area: area, cat: area, owner: owner, due: due, dependsOn: dependsOn, status: status, notes: '' };
@@ -422,7 +431,13 @@
       ];
     }
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, stats.map(s => ({ label: s.label, value: s.value })));
+      const depthStats = stats.map(s => {
+        const it = { label: s.label, value: s.value };
+        if (s.bar != null) it.target = { pct: s.bar };
+        if (s.sub) it.attention = s.sub;
+        return it;
+      });
+      RdDepth.renderStats(host, depthStats);
       return;
     }
     host.innerHTML = stats.map(s => {
@@ -773,10 +788,25 @@
   function statusPill(status) {
     const s = String(status || 'Not Started');
     let scheme = 'muted';
-    if (/complete|confirmed|ready|committed|underway|planned|in contract/i.test(s)) scheme = /ready|underway|planned|in contract/i.test(s) ? 'green' : 'green';
-    else if (/blocked|quote needed|unowned|waiting|not started/i.test(s)) scheme = /blocked|quote needed|unowned/i.test(s) ? 'gold' : 'muted';
-    else if (/contingent|risk|late/i.test(s)) scheme = 'red';
+    if (/complete|confirmed/i.test(s)) scheme = 'green';
+    else if (/ready|committed|underway|planned|in contract/i.test(s)) scheme = 'green';
+    else if (/blocked/i.test(s)) scheme = 'gold';
+    else if (/quote needed|unowned|contingent|late|overdue|risk/i.test(s)) scheme = 'red';
+    else if (/waiting|not started/i.test(s)) scheme = 'muted';
     return `<span class="status-pill" data-pillscheme="${scheme}">${esc(s)}</span>`;
+  }
+  function isLateFeeCard(r) {
+    const blob = String(r.line || r.item || '') + String(r.note || '');
+    return (/unowned|contingent/i.test(String(r.status || '')) || (parseFloat(r.budgeted) || 0) === 0) &&
+      /suit|dress returns|late fee/i.test(blob);
+  }
+  function budgetDueLabel(r) {
+    const raw = r.dueLabel || r.due || '10 Nov';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(raw))) {
+      const dt = new Date(raw + 'T00:00:00');
+      return isNaN(dt.getTime()) ? raw : fmtShort(dt);
+    }
+    return String(raw);
   }
   function bandHint(bandId) {
     if (bandId === 'step1') return 'marriage certificate · blocks 11 downstream steps';
@@ -848,6 +878,20 @@
       const committed = parseFloat(r.committed != null ? r.committed : r.budgeted) || 0;
       const paid = parseFloat(r.spent != null ? r.spent : r.paid) || 0;
       const pct = budgeted > 0 ? Math.round((committed / budgeted) * 100) : (committed > 0 ? 100 : 0);
+      if (isLateFeeCard(r)) {
+        const lateFee = committed || 120;
+        html += `<article class="rd-hc-budgetcard is-latefee">` +
+          `<div class="rd-hc-budgetcard__head"><div><div class="rd-hc-budgetcard__title">${esc(r.line || r.item || '')}</div>` +
+          (r.note ? `<div class="rd-hc-budgetcard__sub">${esc(r.note)}</div>` : '') + `</div></div>` +
+          `<div class="rd-hc-budgetcard__pills">${statusPill(r.status || 'Unowned')}</div>` +
+          `<div class="rd-hc-budgetcard__lines">` +
+          `<div><span>Budgeted</span><strong>${esc(money0(0))}</strong></div>` +
+          `<div><span>Late fee if missed</span><strong>${esc(money0(lateFee))}</strong></div>` +
+          `<div><span>Due</span><strong>${esc(budgetDueLabel(r))}</strong></div>` +
+          `</div><div class="rd-track rd-hc-budgetcard__bar is-risk"><div class="rd-fill" style="width:0%"></div></div>` +
+          `</article>`;
+        return;
+      }
       html += `<article class="rd-hc-budgetcard">` +
         `<div class="rd-hc-budgetcard__head"><div><div class="rd-hc-budgetcard__title">${esc(r.line || r.item || '')}</div>` +
         (r.note ? `<div class="rd-hc-budgetcard__sub">${esc(r.note)}</div>` : '') + `</div></div>` +
