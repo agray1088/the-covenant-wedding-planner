@@ -62,7 +62,7 @@
    The raw view: every column, pinned checkbox + id, horizontal scroll in the
    pane only. This is the escape hatch — it must never feel styled-down.     */
 .rd-page--datahub .rd-table-wrap { max-width: 100%; overflow-x: auto; }
-.rd-page--datahub .rd-table { min-width: 100%; width: max-content; font-size: 12.5px; }
+.rd-page--datahub .rd-table { min-width: 100%; width: max-content; font-size: 11.2px; }
 .rd-page--datahub .rd-table td, .rd-page--datahub .rd-table th {
   white-space: nowrap; border-right: 1px solid var(--border-hairline); padding: 8px 10px;
 }
@@ -167,7 +167,7 @@
 
 /* the Covenant tab's gold dot, and the rail's inline add */
 .rd-tab__dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
-.rd-rail__add { background: none; border: 0; font-size: 14px; color: var(--text-faint); cursor: pointer; padding: 0; }
+.rd-rail__add { background: none; border: 0; font-size: 12.6px; color: var(--text-faint); cursor: pointer; padding: 0; }
 .rd-pagehead__sub { padding: 0 var(--shell-gutter); }
 .rd-chip--ghost { border-color: transparent; }
 .rd-chip--ghost:hover { border-color: var(--border-control); }
@@ -215,7 +215,7 @@
 .rd-main--keepsake .rd-surface { padding-inline: clamp(24px, 5vw, 64px); }
 .rd-keepsake {
   max-width: 74ch;
-  font-family: var(--font-display); font-size: 20px; line-height: 1.55;
+  font-family: var(--font-display); font-size: 18px; line-height: 1.55;
   color: var(--text-heading); text-wrap: pretty;
 }
 .rd-keepsake p { margin: 0 0 var(--space-4); }
@@ -259,7 +259,7 @@
 .rd-yearplot [data-cell][data-on] { background: var(--forest); }
 
 /* help pages — prose, numbered steps, accordion */
-.rd-prose { max-width: 72ch; font-size: 15px; line-height: 1.75; color: var(--text-body); text-wrap: pretty; }
+.rd-prose { max-width: 72ch; font-size: 13.5px; line-height: 1.75; color: var(--text-body); text-wrap: pretty; }
 .rd-prose > * + * { margin-top: var(--space-4); }
 
 .rd-steps { counter-reset: rd-step; display: flex; flex-direction: column; gap: var(--space-4); max-width: 72ch; }
@@ -267,7 +267,7 @@
 .rd-steps > *::before {
   content: counter(rd-step, decimal-leading-zero);
   position: absolute; left: 0; top: 2px;
-  font-family: var(--font-display); font-size: 20px; color: var(--gold);
+  font-family: var(--font-display); font-size: 18px; color: var(--gold);
 }
 
 .rd-faq { display: flex; flex-direction: column; max-width: 80ch; border-top: 1px solid var(--border-subtle); }
