@@ -2407,6 +2407,35 @@ body.rd-scope .rd-hist__arrow { color: var(--text-faint); }
 body.rd-scope .rd-hist__to    { color: var(--text-primary); }
 body.rd-scope #record-drawer .rd-empty { padding: var(--space-4) 0; }
 
+/* Empty planner: same type scale as populated tables (no oversized empty headings). */
+body.rd-scope .rd-state__heading,
+#main#main .rd-state__heading,
+body.rd-scope .rd-state--form .rd-state__heading,
+#main#main .rd-state--form .rd-state__heading {
+  font: 600 var(--type-body) / 1.35 var(--font-ui) !important;
+  letter-spacing: -.01em !important;
+  color: var(--text-heading) !important;
+}
+body.rd-scope .rd-state__body,
+#main#main .rd-state__body {
+  font: 400 var(--type-meta) / 1.55 var(--font-ui) !important;
+  color: var(--text-muted) !important;
+}
+#main#main .table-empty-state .tes-title,
+body.rd-scope .table-empty-state .tes-title {
+  font-family: var(--font-ui) !important;
+  font-size: var(--type-body) !important;
+  font-weight: 600 !important;
+  color: var(--text-heading) !important;
+}
+#main#main .table-empty-state .tes-msg,
+body.rd-scope .table-empty-state .tes-msg {
+  font-family: var(--font-ui) !important;
+  font-size: var(--type-meta) !important;
+  line-height: 1.55 !important;
+  color: var(--text-muted) !important;
+}
+
 /* ??????????????????????????????????????????????????????????????????????
    TASKS PAGE ? screen 9a (Planner Screens All.dc.html) + Design Spec
    ?07 page anatomy, ?11 drawer, ?12 header actions.
