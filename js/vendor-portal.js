@@ -314,7 +314,6 @@
       vendor: { name: vendorName, category: (vendor && (vendor.type || vendor.category)) || 'Vendor' },
       counts: counts,
       slice: slice,
-      scheduleGantt: demo.scheduleGantt,
       deps: demo.deps,
       owed: demo.owed,
       contacts: contacts,
@@ -397,7 +396,15 @@
       crew: 10,
       setup: '90 min',
       lanes: lanes,
-      footnote: 'Hatched is load-in and clear-down; solid is service. Accept confirms you can meet these times. Request a change proposes; it does not write through — the couple confirms.'
+      footnote: (function () {
+        var base = 'Hatched is load-in and clear-down; solid is service.';
+        var deps = (s.deps || []).filter(Boolean);
+        if (deps.length) {
+          return base + ' ' + deps.length + ' dependenc' + (deps.length === 1 ? 'y' : 'ies')
+            + ' shown both ways: ' + deps.join(' ');
+        }
+        return base + ' Accept confirms you can meet these times. Request a change proposes; it does not write through — the couple confirms.';
+      })()
     };
   }
 
