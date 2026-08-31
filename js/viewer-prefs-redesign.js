@@ -7,11 +7,18 @@
 (function () {
   'use strict';
 
-  window._vaView = window._vaView || 'summary';
+  window._vaView = window._vaView || 'viewer';
   window._vaDrawer = window._vaDrawer || null;
   window._vaDrawerTab = window._vaDrawerTab || 0;
+  window._vaChip = window._vaChip || 'active';
 
   var DRAWER_TABS = ['Viewer', 'Access', 'Alerts', 'History'];
+  /* View switcher — exact labels per fidelity pass §37. */
+  var PAGE_VIEWS = [
+    ['summary', 'Summary'],
+    ['viewer', 'By viewer'],
+    ['permission', 'By permission']
+  ];
   var FOCUS_OPTS = [
     { key: 'full', label: 'Full planner', run: function () { if (typeof applyFocusPreset === 'function') applyFocusPreset('full'); } },
     { key: 'essentials', label: 'Essentials', run: function () { if (typeof applyPlanningView === 'function') applyPlanningView('essentials'); } },
@@ -34,6 +41,58 @@
     { id: 'adom', name: 'Adom Bakery', role: 'Vendor · portal, not the planner', band: 'Partial', pages: 'Portal only', money: '—', access: ['Vendors'], expiry: 'Portal link', last: '5 days ago', status: 'Vendor' },
     { id: 'yaa', name: 'Yaa Boateng', role: 'Revoked 2 Jul · link emailed in error', band: 'Revoked', pages: '—', money: '—', access: [], expiry: 'Revoked', last: '—', status: 'Revoked' },
     { id: 'oldphoto', name: 'Old photographer shortlist', role: 'Revoked 28 Jun · vendor not booked', band: 'Revoked', pages: '—', money: '—', access: [], expiry: 'Revoked', last: '—', status: 'Revoked' }
+  ];
+
+  var DRAWER_DETAIL = {
+    efua: {
+      relationship: 'Mother of the bride',
+      pages: [
+        ['Dashboard', 'Visible'], ['Guest List', 'Visible, no addresses'], ['Budget', 'Hidden'],
+        ['Payments', 'Hidden'], ['Notes', 'Hidden'], ['Wedding Day Timeline', 'Visible'],
+        ['Ceremony & Reception', 'Visible'], ['Share Packets', 'Hidden']
+      ],
+      alerts: [
+        ['Weekly summary', 'On, Mondays'], ['Task assigned to them', 'On'],
+        ['Money pages change', 'Off'], ['RSVP changes on Guest List', 'Off']
+      ],
+      history: [
+        { text: 'Invited as Viewer', meta: 'Ama · 12 May · 10:30' },
+        { text: 'Guest List addresses hidden', meta: 'Ama · 12 May · 10:31' },
+        { text: 'First opened the link', meta: 'Efua · 13 May · 19:02' },
+        { text: 'Money pages hidden', meta: 'Kwesi · 20 Jun · 22:41', warn: true },
+        { text: 'Expiry set to 15 Nov 2026', meta: 'Ama · 1 Aug · 08:10' }
+      ]
+    },
+    adjei: {
+      relationship: 'Officiant',
+      pages: [
+        ['Ceremony & Reception', 'Visible'], ['Wedding Day Timeline', 'Visible — ceremony rows only'],
+        ['Premarital Counseling', 'Visible'], ['Budget', 'Hidden'], ['Guest List', 'Hidden']
+      ],
+      alerts: [['Weekly summary', 'Off'], ['Task assigned to them', 'Off'], ['Ceremony time change', 'On']],
+      history: [
+        { text: 'Invited as Viewer', meta: 'Ama · 3 Jun · 14:10' },
+        { text: 'Ceremony pages only', meta: 'Ama · 3 Jun · 14:11' },
+        { text: 'Link not yet opened', meta: '—', warn: true }
+      ]
+    },
+    yaa: {
+      relationship: 'Family — link emailed in error',
+      pages: [['All pages', 'Revoked']],
+      alerts: [['All sends', 'Off']],
+      history: [
+        { text: 'Link revoked', meta: 'Ama · 2 Jul · 09:15', warn: true },
+        { text: 'Invited in error', meta: 'Ama · 28 Jun · 16:40' }
+      ]
+    }
+  };
+
+  var ACCESS_LOG = [
+    { text: 'Efua opened Guest List', meta: '2 days ago · 9 of 37 pages' },
+    { text: 'Adom Bakery opened vendor portal', meta: '5 days ago · portal only' },
+    { text: 'Rev. Adjei link not yet opened', meta: 'Expires 9 Nov', warn: true },
+    { text: 'Yaa Boateng link revoked', meta: '2 Jul · kept for the record', warn: true },
+    { text: 'Kwesi reviewed Money pages', meta: 'Today · full access' }
   ];
 
   var PERM_GROUPS = [
@@ -73,7 +132,67 @@
   function counts() {
     var active = VIEWERS.filter(function (v) { return v.band !== 'Revoked'; });
     var revoked = VIEWERS.filter(function (v) { return v.band === 'Revoked'; });
-    return { active: active.length, revoked: revoked.length };
+    var partial = VIEWERS.filter(function (v) { return v.band === 'Partial'; });
+    var full = VIEWERS.filter(function (v) { return v.band === 'Full'; });
+    return { active: active.length, revoked: revoked.length, partial: partial.length, full: full.length };
+  }
+
+  function pillHtml(status, band) {
+    var scheme = band === 'Full' ? 'green' : band === 'Revoked' ? 'muted' : 'gold';
+    return '<span class="status-pill" data-pillscheme="' + scheme + '">' + esc(status) + '</span>';
+  }
+
+  function drawerDetail(vw) {
+    var d = DRAWER_DETAIL[vw.id];
+    if (d) return d;
+    if (vw.band === 'Full') {
+      return {
+        relationship: vw.role.split('·')[0].trim(),
+        pages: [['All pages', 'Visible'], ['Money', 'Full'], ['Notes', 'Full']],
+        alerts: [['Weekly summary', 'On'], ['Task assigned to them', 'On'], ['Money pages change', 'On']],
+        history: [{ text: 'Owner access — no link', meta: vw.last }]
+      };
+    }
+    if (vw.band === 'Revoked') {
+      return {
+        relationship: vw.role.split('·')[0].trim(),
+        pages: [['All pages', 'Revoked']],
+        alerts: [['All sends', 'Off']],
+        history: [{ text: 'Link revoked', meta: vw.expiry, warn: true }]
+      };
+    }
+    return {
+      relationship: vw.role.split('·')[0].trim(),
+      pages: vw.access.length
+        ? vw.access.map(function (g) { return [g, 'Visible']; })
+        : [['Portal', 'Visible']],
+      alerts: [['Weekly summary', 'Off'], ['Task assigned to them', 'Off']],
+      history: [{ text: 'Last opened', meta: vw.last + ' · ' + vw.expiry }]
+    };
+  }
+
+  function renderVaStats() {
+    var host = document.getElementById('va-stats');
+    if (!host) return;
+    var c = counts();
+    var stats = [
+      { label: 'Active viewers', value: String(c.active) },
+      { label: 'Full access', value: String(c.full) },
+      { label: 'Partial', value: String(c.partial) },
+      { label: 'Revoked', value: String(c.revoked), tone: c.revoked ? 'warn' : '' }
+    ];
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, stats.map(function (s) {
+        var it = { label: s.label, value: s.value };
+        if (s.tone === 'warn') it.attention = 'kept for the record';
+        return it;
+      }));
+      return;
+    }
+    host.innerHTML = stats.map(function (s) {
+      return '<div class="m-stat' + (s.tone === 'warn' ? ' m-stat--warn' : '') + '">' +
+        '<div class="m-stat-label">' + esc(s.label) + '</div><div class="m-stat-val">' + esc(s.value) + '</div></div>';
+    }).join('');
   }
 
   function viewerPerson() {
@@ -251,11 +370,18 @@
 
   /* ── 48a/48b · Viewer preferences page ─────────────────────────────────── */
   function renderViewerPrefsPage() {
+    if (typeof getSavedView === 'function') {
+      var saved = getSavedView('viewer-prefs', window._vaView || 'viewer');
+      window._vaView = PAGE_VIEWS.some(function (p) { return p[0] === saved; }) ? saved : 'viewer';
+    }
     var panel = document.getElementById('panel-viewer-prefs');
     if (!panel) return;
     var c = counts();
-    var v = window._vaView || 'summary';
-    var viewBody = (v === 'permission') ? byPermissionHtml() : byViewerHtml();
+    var v = window._vaView || 'viewer';
+    var chip = window._vaChip || 'active';
+    var viewBody = v === 'permission' ? byPermissionHtml()
+      : v === 'summary' ? summaryHtml()
+        : byViewerHtml();
 
     panel.innerHTML =
       '<div class="rd-va-page">' +
@@ -265,16 +391,60 @@
       '<p class="rd-help">' + c.active + ' viewers · ' + c.revoked + ' revoked · the link, not the login</p></div>' +
       '<div class="rd-va-pagehead__actions">' +
       '<button type="button" class="rd-btn">Invite viewer</button>' +
-      '<span class="rd-va-pagehead__chip">Access log</span>' +
-      '<span class="rd-va-pagehead__chip is-active">Active links</span></div></div>' +
+      '<button type="button" class="rd-va-pagehead__chip' + (chip === 'log' ? ' is-active' : '') + '" onclick="rdVaSetChip(\'log\')">Access log</button></div></div>' +
+      '<div class="rd-va-page__subbar">' +
+      '<button type="button" class="rd-va-pagehead__chip' + (chip === 'active' ? ' is-active' : '') + '" onclick="rdVaSetChip(\'active\')">Active links' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>' +
+      '<span class="rd-va-page__count">' + c.active + ' viewers · ' + c.revoked + ' revoked</span>' +
       '<div class="rd-va-page__switch">' +
       '<div class="rd-viewswitch" role="group" aria-label="Access view">' +
-      '<button type="button" class="rd-viewswitch__item' + (v === 'summary' ? ' is-active' : '') + '" onclick="rdVaSetView(\'summary\')">Summary</button>' +
-      '<button type="button" class="rd-viewswitch__item' + (v === 'viewer' ? ' is-active' : '') + '" onclick="rdVaSetView(\'viewer\')">By viewer</button>' +
-      '<button type="button" class="rd-viewswitch__item' + (v === 'permission' ? ' is-active' : '') + '" onclick="rdVaSetView(\'permission\')">By permission</button>' +
-      '</div></div>' +
-      '<div class="rd-va-page__body">' + viewBody + '</div></div>' +
+      PAGE_VIEWS.map(function (pair) {
+        var id = pair[0]; var label = pair[1];
+        return '<button type="button" class="rd-viewswitch__item' + (v === id ? ' is-active' : '') +
+          '" onclick="rdVaSetView(\'' + id + '\')">' + esc(label) + '</button>';
+      }).join('') +
+      '</div></div></div>' +
+      '<div class="rd-va-page__body">' + (chip === 'log' ? accessLogHtml() : viewBody) + '</div></div>' +
       pageDrawerHtml();
+    renderVaStats();
+  }
+
+  function accessLogHtml() {
+    var html = '<p class="rd-help rd-va-permnote">Recent access across every link — the part you will want in writing later.</p>' +
+      '<div class="rd-va-activity">';
+    ACCESS_LOG.forEach(function (ev) {
+      html += '<div class="rd-va-activity__row">' +
+        '<span class="rd-va-activity__dot' + (ev.warn ? ' is-warn' : '') + '"></span>' +
+        '<div><div class="rd-va-activity__text">' + esc(ev.text) + '</div>' +
+        '<div class="rd-va-activity__meta">' + esc(ev.meta) + '</div></div></div>';
+    });
+    return html + '</div>';
+  }
+
+  function summaryHtml() {
+    var html = '<div class="rd-stats m-stats rd-va-stats" id="va-stats" aria-label="Viewer summary"></div>' +
+      '<p class="rd-help rd-va-permnote">Who has a way in, at a glance — open a row for pages, alerts, and the full access history.</p>' +
+      '<div class="rd-va-cards">' + viewerCardsHtml(false) + '</div>';
+    return html;
+  }
+
+  function viewerCardsHtml(includeRevokedNote) {
+    var html = '';
+    ['Full', 'Partial', 'Revoked'].forEach(function (band) {
+      var rows = VIEWERS.filter(function (vw) { return vw.band === band; });
+      if (!rows.length) return;
+      var label = band === 'Full' ? 'Full access' : band;
+      var sub = band === 'Revoked' && includeRevokedNote !== false ? ' · kept for the record; the link no longer opens' : '';
+      html += '<div class="rd-va-cards__band">' + esc(label) + ' · ' + rows.length + esc(sub) + '</div>';
+      rows.forEach(function (vw) {
+        html += '<div class="rd-va-cards__row' + (vw.band === 'Revoked' ? ' is-revoked' : '') + '" onclick="rdVaOpen(\'' + vw.id + '\')">' +
+          '<div class="rd-va-cards__main"><div class="rd-va-cards__name">' + esc(vw.name) + '</div>' +
+          '<div class="rd-va-cards__role">' + esc(vw.role) + '</div></div>' +
+          '<div class="rd-va-cards__pages">' + esc(vw.pages) + '</div>' +
+          '<div class="rd-va-cards__pill">' + pillHtml(vw.status, vw.band) + '</div></div>';
+      });
+    });
+    return html;
   }
 
   function byViewerHtml() {
@@ -328,20 +498,34 @@
     var vw = VIEWERS.find(function (v) { return v.id === window._vaDrawer; });
     if (!vw) return '';
     var tab = Math.max(0, Math.min(DRAWER_TABS.length - 1, parseInt(window._vaDrawerTab, 10) || 0));
+    var detail = drawerDetail(vw);
     var body = '';
     if (tab === 0) {
-      body = field('Name', vw.name) + field('Role', vw.role) + field('Sees', vw.pages) +
+      body = '<div class="rd-drawer__section">The person</div>' +
+        field('Name', vw.name) + field('Relationship', detail.relationship || vw.role) +
+        field('Sees', vw.pages) + field('Money', vw.money) +
         '<p class="rd-drawer__note">A person who has been given a way in, and what they see when they use it.</p>';
     } else if (tab === 1) {
-      body = field('Pages', vw.pages) + field('Money', vw.money) +
-        field('Groups', vw.access.length ? vw.access.join(', ') : '—') + field('Link expiry', vw.expiry) +
+      body = '<div class="rd-drawer__section">Pages</div>' +
+        detail.pages.map(function (row) {
+          return '<div class="rd-drawer__kv"><span>' + esc(row[0]) + '</span><strong>' + esc(row[1]) + '</strong></div>';
+        }).join('') +
+        field('Link expiry', vw.expiry) + field('Last opened', vw.last) +
         '<p class="rd-drawer__note">Exactly which pages and which fields, and when the link stops working. Pages this viewer cannot use are absent from the count, not greyed out.</p>';
     } else if (tab === 2) {
-      body = field('RSVP changes', vw.band === 'Full' ? 'On' : 'Off') +
-        field('New shared packet', vw.band === 'Revoked' ? '—' : 'On') +
+      body = '<div class="rd-drawer__section">Sends</div>' +
+        detail.alerts.map(function (row) {
+          return '<div class="rd-drawer__kv"><span>' + esc(row[0]) + '</span><strong>' + esc(row[1]) + '</strong></div>';
+        }).join('') +
         '<p class="rd-drawer__note">What reaches them without them opening anything.</p>';
     } else {
-      body = '<div class="rd-drawer__hist"><strong>' + esc(vw.expiry) + '</strong><div>' + esc(vw.role) + '</div></div>' +
+      body = '<div class="rd-drawer__section">Activity</div><div class="rd-va-activity rd-va-activity--drawer">' +
+        detail.history.map(function (ev) {
+          return '<div class="rd-va-activity__row">' +
+            '<span class="rd-va-activity__dot' + (ev.warn ? ' is-warn' : '') + '"></span>' +
+            '<div><div class="rd-va-activity__text">' + esc(ev.text) + '</div>' +
+            '<div class="rd-va-activity__meta">' + esc(ev.meta) + '</div></div></div>';
+        }).join('') + '</div>' +
         '<p class="rd-drawer__note">Every access change, which is the part you will want in writing later.</p>';
     }
     return '<div class="rd-va-pagedrawer' + (window._vaDrawer ? ' is-open' : '') + '">' +
@@ -365,8 +549,13 @@
 
   /* ── actions ─────────────────────────────────────────────────────────────── */
   function rdVaSetView(v) {
-    window._vaView = v;
+    window._vaView = PAGE_VIEWS.some(function (p) { return p[0] === v; }) ? v : 'viewer';
     window._vaDrawer = null;
+    if (typeof setSavedView === 'function') setSavedView('viewer-prefs', window._vaView);
+    renderViewerPrefsPage();
+  }
+  function rdVaSetChip(chip) {
+    window._vaChip = chip === 'log' ? 'log' : 'active';
     renderViewerPrefsPage();
   }
   function rdVaOpen(id) {
@@ -442,6 +631,7 @@
   }
 
   window.rdVaSetView = rdVaSetView;
+  window.rdVaSetChip = rdVaSetChip;
   window.rdVaOpen = rdVaOpen;
   window.rdVaClose = rdVaClose;
   window.rdVaSetTab = rdVaSetTab;

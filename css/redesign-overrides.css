@@ -29697,8 +29697,54 @@ body.rd-scope #panel-viewer-prefs .rd-va-pagehead__chip {
   border: 1px solid #d9cfba; padding: 5px 10px; background: #fff;
 }
 body.rd-scope #panel-viewer-prefs .rd-va-pagehead__chip.is-active { background: #2D4A3E; color: #F4EFE6; border-color: #2D4A3E; font-weight: 600; }
+body.rd-scope #panel-viewer-prefs .rd-va-pagehead__chip svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+body.rd-scope #panel-viewer-prefs .rd-va-page__subbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 0 0 12px; border-bottom: 1px solid #e7e1d4; margin-bottom: 12px;
+}
+body.rd-scope #panel-viewer-prefs .rd-va-page__count { font-size: 12px; color: #6b645d; }
+body.rd-scope #panel-viewer-prefs .rd-va-page__subbar .rd-va-page__switch { margin-left: auto; padding: 0; }
+body.rd-scope #panel-viewer-prefs .rd-va-stats { margin-bottom: 12px; }
 body.rd-scope #panel-viewer-prefs .rd-va-page__switch { padding: 0 0 12px; }
 body.rd-scope #panel-viewer-prefs .rd-va-page__body { position: relative; }
+
+/* 48a summary · card list (master banded rows) */
+body.rd-scope #panel-viewer-prefs .rd-va-cards { border: 1px solid #e7e1d4; background: #fff; }
+body.rd-scope #panel-viewer-prefs .rd-va-cards__band {
+  padding: 12px 20px 7px; background: #f9f5ef; border-bottom: 1px solid #e7e1d4;
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #20362D; font-weight: 700;
+}
+body.rd-scope #panel-viewer-prefs .rd-va-cards__row {
+  display: flex; align-items: center; gap: 16px; padding: 11px 20px; border-bottom: 1px solid #f0ebe0; cursor: pointer;
+}
+body.rd-scope #panel-viewer-prefs .rd-va-cards__row:hover { background: #faf7f1; }
+body.rd-scope #panel-viewer-prefs .rd-va-cards__row.is-revoked { color: #a79f92; }
+body.rd-scope #panel-viewer-prefs .rd-va-cards__main { flex: 1; min-width: 0; }
+body.rd-scope #panel-viewer-prefs .rd-va-cards__name { font-size: 14px; color: #23211c; font-weight: 600; }
+body.rd-scope #panel-viewer-prefs .rd-va-cards__role { font-size: 12px; color: #8a7e6b; margin-top: 2px; }
+body.rd-scope #panel-viewer-prefs .rd-va-cards__pages {
+  flex: 0 0 130px; font-size: 13px; color: #3f3b34; text-align: right; font-variant-numeric: tabular-nums;
+}
+body.rd-scope #panel-viewer-prefs .rd-va-cards__pill { flex: 0 0 auto; }
+
+/* Access log + drawer History activity */
+body.rd-scope #panel-viewer-prefs .rd-va-activity,
+body.rd-scope #panel-viewer-prefs .rd-va-fielddrawer .rd-va-activity { display: flex; flex-direction: column; gap: 10px; }
+body.rd-scope #panel-viewer-prefs .rd-va-activity__row { display: flex; gap: 9px; align-items: flex-start; }
+body.rd-scope #panel-viewer-prefs .rd-va-activity__dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #2D4A3E; margin-top: 5px; flex: 0 0 auto;
+}
+body.rd-scope #panel-viewer-prefs .rd-va-activity__dot.is-warn { background: #B89968; }
+body.rd-scope #panel-viewer-prefs .rd-va-activity__text { font-size: 12.5px; color: #3f3b34; line-height: 1.5; }
+body.rd-scope #panel-viewer-prefs .rd-va-activity__meta { font-size: 11px; color: #b0a794; margin-top: 1px; }
+body.rd-scope #panel-viewer-prefs .rd-va-fielddrawer .rd-drawer__section {
+  font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8a7e6b; font-weight: 700;
+  padding-bottom: 7px; border-bottom: 1px solid #e7e1d4; margin-bottom: 2px;
+}
+body.rd-scope #panel-viewer-prefs .rd-va-fielddrawer .rd-drawer__kv {
+  display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: #6b645d;
+}
+body.rd-scope #panel-viewer-prefs .rd-va-fielddrawer .rd-drawer__kv strong { color: #3f3b34; font-weight: 500; text-align: right; }
 
 /* shared tables + drawer (page + legacy overlay) */
 #panel-viewer-prefs .rd-va-table,
