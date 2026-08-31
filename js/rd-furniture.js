@@ -423,7 +423,7 @@
           ['⌘Z', 'Undo'],
           ['⇧⌘Z', 'Redo'],
           ['⌘S', 'Force a save'],
-          ['esc', 'Close drawer/overlay']
+          ['esc', 'Close drawer or overlay']
         ]
       },
       {
@@ -477,12 +477,12 @@
       '<div class="rd-kbd" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">' +
         '<div class="rd-kbd__head">' +
         '<div class="rd-kbd__title">Keyboard shortcuts</div>' +
-        '<div class="rd-kbd__sub">Press ? anywhere to open this sheet. esc to close.</div>' +
+        '<div class="rd-kbd__sub">Press ? anywhere to open this. Press esc to close it.</div>' +
         '</div>' +
         '<div class="rd-kbd__body">' +
         body +
         '</div>' +
-        '<div class="rd-kbd__rule">Shortcuts are the same on every page — nothing here is page-specific.</div>' +
+        '<div class="rd-kbd__rule">Consistency rule: no page-specific shortcuts. A key means the same thing everywhere.</div>' +
         '<div class="rd-kbd__foot">' +
         '<span>18 shortcuts</span>' +
         '<span class="rd-filter-builder__spacer"></span>' +
@@ -503,6 +503,13 @@
     var fields = opts.fields || [{ key: 'meal', label: 'Meal choice', options: ['Beef', 'Chicken', 'Fish', 'Vegetarian'] }];
     var more = Math.max(0, count - Math.min(names.length, 6));
     var named = names.slice(0, 6).join(', ') + (more ? ' and ' + more + ' more' : '');
+    var conflictCount = opts.conflictCount || 0;
+    var changeCount = Math.max(0, count - conflictCount);
+    var downstream =
+      opts.downstream ||
+      ('Downstream: ' +
+        changeCount +
+        ' rows update live counts on linked pages. It does not change the budget — figures elsewhere stay owned by their own records.');
 
     var fieldRows = fields
       .map(function (f, i) {
@@ -526,7 +533,24 @@
       })
       .join('');
 
-    var changeCount = Math.max(0, count - (opts.conflictCount || 0));
+    var conflictBlock = '';
+    if (conflictCount) {
+      conflictBlock =
+        '<div class="rd-bulk-edit__conflict">' +
+        '<div class="rd-bulk-edit__conflict-note">' +
+        esc(
+          opts.conflictNote ||
+            (conflictCount +
+              ' of the ' +
+              count +
+              ' already have a value. Overwriting is a choice, not a side effect.')
+        ) +
+        '</div>' +
+        '<label><input type="checkbox" checked data-be-skip> Skip the ' +
+        conflictCount +
+        ' rows that already have a value</label></div>';
+    }
+
     var overlay = overlayShell(
       'rd-bulk-edit-overlay',
       'rd-bulk-edit-overlay',
@@ -539,24 +563,23 @@
         '</div>' +
         '<div class="rd-bulk-edit__eyebrow"><span>Editing ' +
         count +
-        ' guests</span><span>selected in Table view</span></div>' +
+        ' guests</span><span>selected in Table view · the list is shown so nobody edits blind</span></div>' +
         '<div class="rd-bulk-edit__names">' +
         esc(named || count + ' selected') +
         '</div>' +
         '<div class="rd-bulk-edit__fields">' +
         fieldRows +
         '<button type="button" class="rd-filter-builder__link">+ Set another field</button></div>' +
-        (opts.conflictCount
-          ? '<div class="rd-bulk-edit__conflict"><label><input type="checkbox" checked data-be-skip> Skip the ' +
-            opts.conflictCount +
-            ' rows that already have a value</label></div>'
-          : '') +
+        conflictBlock +
+        '<div class="rd-bulk-edit__downstream">' +
+        esc(downstream) +
+        '</div>' +
         '<div class="rd-bulk-edit__foot">' +
         '<button type="button" class="rd-btn rd-btn--quiet" data-be-cancel>Cancel</button>' +
         '<span class="rd-filter-builder__spacer"></span>' +
         '<span class="rd-bulk-edit__hint">' +
         changeCount +
-        ' rows will change</span>' +
+        ' rows will change · undoes as one ⌘Z</span>' +
         '<button type="button" class="rd-btn rd-btn--primary" data-be-apply>Apply to ' +
         changeCount +
         '</button>' +
@@ -575,11 +598,23 @@
     return overlay;
   }
 
-  /* ── Share dialog (Views · S8 · 580px) ───────────────────────────────── */
+  /* ── Share dialog (Views · S8 · 560px) ───────────────────────────────── */
   function openShareDialog(opts) {
     opts = opts || {};
     var pageLabel = opts.pageLabel || 'Guest List';
     var link = opts.link || (location.href.split('#')[0] + '#share/' + (opts.panelId || 'guests'));
+    /* Master 35d: Never list is fixed — no control to include budget, guest
+       names or Covenant. They-see chips stay page-specific via opts.see. */
+    var neverList =
+      opts.never ||
+      ['Guest names', 'Addresses', 'Budget', "Other vendors' pricing", 'Covenant', 'Notes'];
+    var seeList = opts.see || ['Names', 'RSVP', 'Table'];
+    var withName = opts.withName || 'Add a recipient';
+    var note =
+      opts.note ||
+      ('The link shows live records, not a copy. Editing this page updates what ' +
+        (withName.indexOf('Add a') === 0 ? 'they' : withName.split('·')[0].trim().split(' ')[0]) +
+        ' see. Revoking stops the link immediately — but it cannot recall a PDF already downloaded.');
     var overlay = overlayShell(
       'rd-share-overlay',
       'rd-share-overlay',
@@ -593,15 +628,15 @@
         esc(pageLabel) +
         '</strong></div>' +
         '<div class="rd-share__row"><span>With</span><span class="rd-share__chip">' +
-        esc(opts.withName || 'Add a recipient') +
+        esc(withName) +
         '</span></div>' +
         '<div class="rd-share__row"><span>They see</span><span class="rd-share__chips is-ok">' +
-        (opts.see || ['Names', 'RSVP', 'Table']).map(function (t) {
+        seeList.map(function (t) {
           return '<i>' + esc(t) + '</i>';
         }).join('') +
         '</span></div>' +
         '<div class="rd-share__row"><span>Never</span><span class="rd-share__chips is-never">' +
-        (opts.never || ['Phone', 'Email', 'Notes']).map(function (t) {
+        neverList.map(function (t) {
           return '<i>' + esc(t) + '</i>';
         }).join('') +
         '</span></div>' +
@@ -609,7 +644,9 @@
         '<div class="rd-share__link"><code>' +
         esc(link) +
         '</code><button type="button" class="rd-btn rd-btn--quiet" data-share-copy>Copy</button></div>' +
-        '<div class="rd-share__note">The link reads live records. Revoking access does not recall a PDF someone already saved.</div>' +
+        '<div class="rd-share__note">' +
+        esc(note) +
+        '</div>' +
         '</div>' +
         '<div class="rd-share__foot">' +
         '<button type="button" class="rd-btn rd-btn--quiet" data-share-cancel>Cancel</button>' +

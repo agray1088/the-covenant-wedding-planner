@@ -326,6 +326,15 @@ span.rd-filter-builder__chip.is-op {
   background: var(--rdf-warn-bg); border: 1px solid var(--rdf-warn-bd);
   font-size: 11.5px; line-height: 1.55; color: var(--rdf-warn);
 }
+.rd-bulk-edit__conflict-note { margin-bottom: 8px; color: var(--rdf-ink); }
+.rd-bulk-edit__conflict label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+/* will / will-not — the “will not” half matters as much (Master 34d) */
+.rd-bulk-edit__downstream {
+  margin-top: 12px; padding: 10px 12px;
+  background: var(--rdf-sunken); border: 1px solid var(--rdf-line);
+  border-left: 2px solid var(--rdf-forest);
+  font-size: 11.5px; line-height: 1.55; color: var(--rdf-soft);
+}
 .rd-bulk-edit__hint {
   margin-top: 10px; font-size: 11px; line-height: 1.55; color: var(--rdf-muted);
 }
