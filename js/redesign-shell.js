@@ -23,13 +23,13 @@
      are first-class panels — derive, never store duplicates. ───────────── */
   var TABS = [
     { id: 'overview',  label: 'Overview',  pages: [['dashboard','Dashboard'], ['notes','Notes'], ['viewer-prefs','Viewer preferences']] },
-    { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments'], ['data-hub','Database Hub']] },
+    { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments']] },
     { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['households','Households'], ['contacts','Contacts'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
     { id: 'money',     label: 'Money',     pages: [['budget','Budget'], ['payments','Payments'], ['contracts','Contracts & Invoices']] },
     { id: 'vendors',   label: 'Vendors',   pages: [['vendors','Venue & Vendors'], ['venue','Venue Comparison'], ['catering','Catering & Menu'], ['entertainment','Entertainment'], ['shotlist','Shot Lists']] },
     { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['logistics','Weekend Logistics'], ['honeymoon','Honeymoon']] },
     { id: 'covenant',  label: 'Covenant',  pages: [['vision','Vision & Foundation'], ['prayer','Prayer Journal'], ['counseling','Premarital Counseling'], ['firstmonth','First-Month Rhythms'], ['homecoming','Newlywed Homecoming']], dot: true },
-    { id: 'documents', label: 'Documents', pages: [['packets','Share Packets'], ['vendor','Vendor'], ['emails','Email Templates'], ['print-centre','Print Centre'], ['mood','Vision Board'], ['essentials','Essentials Checklist']] }
+    { id: 'documents', label: 'Documents', pages: [['packets','Share Packets'], ['vendor','Vendor'], ['emails','Email Templates'], ['print-centre','Print Centre'], ['mood','Vision Board'], ['essentials','Essentials Checklist'], ['data-hub','Database Hub']] }
   ];
 
   /* Reached from the top bar or help, never from a tab (§06). */

@@ -28955,6 +28955,36 @@ body.rd-scope.night #panel-data-hub .rd-dh-tab.is-active,
 body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab.is-active { color: #8FB99F; border-bottom-color: #8FB99F; }
 body.rd-scope.night #panel-data-hub .rd-dh-tab__n,
 body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-tab__n { background: #23231c; color: #a79f92; }
+body.rd-scope.night #panel-data-hub .rd-dh-backup,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-backup { background: #141414; border-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-backup__main,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-backup__main { border-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-backup__side,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-backup__side { background: #161616; }
+body.rd-scope.night #panel-data-hub .rd-dh-backup__title,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-backup__title { color: #e6e1d6; }
+body.rd-scope.night #panel-data-hub .rd-dh-attention,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-attention { background: #141414; border-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-attention__head,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-attention__head { border-bottom-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-attention__list li,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-attention__list li { border-bottom-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-attention__body strong,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-attention__body strong { color: #e6e1d6; }
+body.rd-scope.night #panel-data-hub #data-hub-drawer-slot.is-open,
+body.rd-scope[data-theme="night"] #panel-data-hub #data-hub-drawer-slot.is-open { background: #141414; border-left-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-drawer .rd-drawer__head,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-drawer .rd-drawer__head { border-bottom-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-drawer .rd-drawer__title,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-drawer .rd-drawer__title { color: #e6e1d6; }
+body.rd-scope.night #panel-data-hub .rd-dh-drawer .rd-drawer__foot,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-drawer .rd-drawer__foot { border-top-color: #2e2e28; }
+body.rd-scope.night #panel-data-hub .rd-dh-row.is-selected td,
+body.rd-scope.night #panel-data-hub .rd-dh-row.is-open td,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-row.is-selected td,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-row.is-open td { background: #1c1f1a; }
+body.rd-scope.night #panel-data-hub .rd-dh-row:hover td,
+body.rd-scope[data-theme="night"] #panel-data-hub .rd-dh-row:hover td { background: #1a1d18; }
 
 /* Vendor — planner-side portal manager + document library (Documents tab). */
 body.rd-scope #panel-vendor .rd-pagehead__sub {

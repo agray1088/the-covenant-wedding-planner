@@ -24,6 +24,7 @@
 
   const TABLE_DRAWER_TABS = ['Table', 'Fields', 'Links', 'Activity'];
   const ROW_DRAWER_TABS = ['Row', 'Links', 'Raw', 'History'];
+  const PAGE_VIEWS = [['overview', 'Database Hub'], ['table', 'all tables']];
 
   /* Mock 24-table inventory mapped onto live entities. */
   const HUB_TABLES = [
@@ -456,6 +457,15 @@
     ).join('');
   }
 
+  function pageViewSwitcherHtml() {
+    const mode = window._dhMode || 'overview';
+    return `<div class="rd-viewswitch" role="group" aria-label="Database Hub view">`
+      + PAGE_VIEWS.map(([id, label]) =>
+        `<button type="button" class="rd-viewswitch__item${(id === 'table' ? mode === 'table' : mode !== 'table') ? ' is-active' : ''}" onclick="rdDhSetPageView('${id}')">${esc(label)}</button>`
+      ).join('')
+      + `</div>`;
+  }
+
   function renderDhToolbar() {
     const host = document.getElementById('data-hub-toolbar');
     if (!host) return;
@@ -467,6 +477,7 @@
         `<span class="rd-dh-toolbar-note">Table: ${esc(def.id)}</span>` + (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml(def.id || 'datahub') : '');
       host.innerHTML = left +
         `<div class="rd-toolbar__right">` +
+        pageViewSwitcherHtml() +
         `<div class="rd-viewswitch" role="group" aria-label="Table view">` +
         `<button type="button" class="rd-viewswitch__item${surface === 'rows' ? ' is-active' : ''}" onclick="rdDhSetTableSurface('rows')">All rows</button>` +
         `<button type="button" class="rd-viewswitch__item${surface === 'schema' ? ' is-active' : ''}" onclick="rdDhSetTableSurface('schema')">Schema</button>` +
@@ -479,6 +490,7 @@
       `<button type="button" class="rd-chip" onclick="rdDhCycleSort()">Sort by ${esc(window._dhSort === 'name' ? 'name' : 'records')}</button>` +
       (typeof rdStandardRightHtml === 'function' ? rdStandardRightHtml('datahub') : '') +
       `<div class="rd-toolbar__right">` +
+      pageViewSwitcherHtml() +
       `<div class="rd-viewswitch" role="group" aria-label="Hub surface">` +
       `<button type="button" class="rd-viewswitch__item${surface === 'tables' ? ' is-active' : ''}" onclick="rdDhSetSurface('tables')">Tables</button>` +
       `<button type="button" class="rd-viewswitch__item${surface === 'links' ? ' is-active' : ''}" onclick="rdDhSetSurface('links')">Links</button>` +
@@ -487,11 +499,14 @@
   }
 
   function filterChipForTable(def) {
-    if (def.id !== 'guests') {
-      return `<button type="button" class="rd-chip" onclick="rdDhClearSearch()">Search<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7"><path d="m6 9 6 6 6-6"/></svg></button>`;
-    }
+    const meta = figures().tables.find(t => t.id === (def && def.id)) || null;
+    const rowCount = meta ? filteredRows(meta).length : 0;
+    const searchLabel = def.id === 'guests' ? ('Search ' + rowCount + ' rows') : 'Search';
+    const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7"><path d="m6 9 6 6 6-6"/></svg>';
+    let chips = `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdDhClearSearch()">${esc(searchLabel)}</button>`;
+    if (def.id !== 'guests') return chips;
     const fields = ['side', 'rsvp', 'table_id', 'dietary'];
-    return fields.map(field => {
+    return chips + fields.map(field => {
       const cur = (window._dhUiFilters || {})[field] || 'all';
       const on = cur && cur !== 'all';
       const chev = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.2"><path d="m6 9 6 6 6-6"/></svg>';
@@ -790,8 +805,8 @@
       } else if (tab === 1) {
         const cols = columnsFor(meta.rows, meta.def);
         body = `<div class="rd-drawer__section-title">Fields · ${cols.length}</div>`
-          + cols.slice(0, 16).map(c => `<div class="rd-drawer__guest"><strong><code>${esc(c)}</code></strong><span>field</span></div>`).join('')
-          + `<p class="rd-drawer__note">The hub shows raw values; the owner page may show pills. Same data, two renderings.</p>`;
+          + cols.slice(0, 24).map(c => `<div class="rd-drawer__guest"><strong><code>${esc(c)}</code></strong><span>field</span></div>`).join('')
+          + `<p class="rd-drawer__note">Twenty-four fields, six of them enumerated — raw here, pills on the owner page.</p>`;
       } else if (tab === 2) {
         const orphans = meta.id === 'guests' ? orphanGuestCount() : 0;
         body = `<div class="rd-drawer__section-title">Links out</div>`
@@ -824,8 +839,8 @@
     const cols = columnsFor([row], meta.def);
     let body = '';
     if (tab === 0) {
-      body = cols.slice(0, 8).map(c => fieldRow(c, esc(cellVal(row, c)))).join('')
-        + `<p class="rd-drawer__note">${Math.max(0, cols.length - 8)} more fields in Raw. This view writes to the same record the owner page writes to.</p>`;
+      body = cols.slice(0, 7).map(c => fieldRow(c, esc(cellVal(row, c)))).join('')
+        + `<p class="rd-drawer__note">${Math.max(0, cols.length - 7)} more fields in Raw. This view writes to the same record the owner page writes to.</p>`;
     } else if (tab === 1) {
       body = `<div class="rd-drawer__section-title">Links out</div>`
         + `<div class="rd-drawer__guest"><strong>→ related</strong><span>Healthy</span></div>`
@@ -871,6 +886,13 @@
 
   /* ── actions ─────────────────────────────────────────────────────────── */
 
+  function rdDhSetPageView(view) {
+    if (view === 'table') {
+      if ((window._dhMode || 'overview') !== 'table') rdDhOpenTable(window._dhTableId || 'guests');
+      return;
+    }
+    if ((window._dhMode || 'overview') === 'table') rdDhBackOverview();
+  }
   function rdDhSetSurface(s) {
     window._dhSurface = s || 'tables';
     renderDataHubRd();
@@ -1140,6 +1162,7 @@
   window.uedDataHubShell = uedDataHubShellRd;
   window.renderDataHubRd = renderDataHubRd;
   window.renderDataHubPage = renderDataHubRd;
+  window.rdDhSetPageView = rdDhSetPageView;
   window.rdDhSetSurface = rdDhSetSurface;
   window.rdDhSetTableSurface = rdDhSetTableSurface;
   window.rdDhOpenTable = rdDhOpenTable;
