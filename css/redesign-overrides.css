@@ -780,25 +780,42 @@ body.rd-scope #panel-tasks .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-
   border: 0 !important;
 }
 
-/* Cell controls sit flush in the cell. --component-input-height (32px) is for
-   toolbar and form controls; inside a 36px row it would force a 45px row.
-   In-cell controls are borderless and size to the line, per .rd-cell-input. */
+/* Cell selects share the same control height as toolbar buttons.
+   Status-pill wrappers fill to that height; row height stays roomy enough. */
 #main#main .cwp-table td input:not([type="checkbox"]):not([type="radio"]),
-#main#main .cwp-table td select {
-  height: auto !important;
-  min-height: 0 !important;
-  padding: 1px 4px !important;
-  line-height: 1.45 !important;
+#main#main .cwp-table td select,
+#main#main .rd-table td select,
+body.rd-scope table.rd-table td select,
+body.rd-scope table.cwp-table td select {
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
+  padding: 0 8px !important;
+  line-height: 1 !important;
   font-family: var(--font-ui) !important;
   font-size: var(--type-table) !important;
   background-color: transparent !important;
-  border-color: transparent !important;
+  border: 1px solid transparent !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+#main#main .cwp-table td .status-pill--interactive,
+#main#main .rd-table td .status-pill--interactive,
+body.rd-scope table td .status-pill--interactive {
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
 }
 /* Focus chrome is for text/select cells only ? never paint selection checkboxes.
    #main#main .cwp-table td input:focus was forcing surface-content on :checked
    row sels, wiping the forest fill so the white checkmark vanished (white-on-white). */
 #main#main .cwp-table td input:not([type="checkbox"]):not([type="radio"]):focus,
-#main#main .cwp-table td select:focus {
+#main#main .cwp-table td select:focus,
+#main#main .rd-table td select:focus {
   background-color: var(--surface-content) !important;
   border-color: var(--forest) !important;
   outline: none !important;
@@ -1247,7 +1264,13 @@ body.rd-scope [id^="panel-"] .rd-viewswitch > button.active {
   line-height: 1.35 !important;
 }
 #main#main .cwp-table td .status-pill--interactive select,
-#main#main .cwp-table td [data-pillscheme] select { padding: 2px 22px 2px 8px !important; }
+#main#main .cwp-table td [data-pillscheme] select {
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
+  padding: 0 22px 0 8px !important;
+  box-sizing: border-box !important;
+}
 
 /* ?? 6b. LEGACY PILL WRAPPERS ? neutralise ??????????????????????????????????
    The planner wraps status selects in its own pill spans. Each renders a pill
@@ -8787,15 +8810,17 @@ body.rd-scope #panel-guests .rd-empty {
   justify-content: space-between;
   gap: 12px;
   width: 100%;
+  min-height: var(--component-button-height, 32px) !important;
   border: 0;
   background: transparent;
   text-align: left;
   font: inherit;
   font-size: 13px;
   color: var(--text-body, #23211c);
-  padding: 9px 10px !important;
+  padding: 0 10px !important;
   cursor: pointer;
   border-radius: 0 !important;
+  box-sizing: border-box !important;
 }
 .rd-guest-filter-pop .cfp-item--select:hover {
   background: var(--surface-sunken, #fdfaf4) !important;
@@ -14719,6 +14744,13 @@ body.rd-scope #panel-payments .rd-pay-toolbar {
   display: inline-block;
   max-width: min(360px, calc(100vw - 16px));
 }
+.col-filter-pop button,
+.col-filter-pop .cfp-item,
+.field-picker-pop button,
+.shot-people-picker-pop button {
+  min-height: var(--component-button-height, 32px);
+  box-sizing: border-box;
+}
 .field-picker-pop,
 .rd-guest-filter-pop {
   width: max-content;
@@ -14729,14 +14761,16 @@ body.rd-scope #panel-payments .rd-pay-toolbar {
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 7px 9px;
+  min-height: var(--component-button-height, 32px);
+  padding: 0 9px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 0;
   background: none;
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  box-sizing: border-box;
 }
 .rd-picker__item:hover,
 .rd-pay-picker__item:hover { background: var(--surface-active, #f3efe7); }
@@ -27486,8 +27520,11 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 .rd-menu__div { height: 1px; background: #e7e1d4; margin: 5px 0; }
 .rd-menu__row {
   display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 8px 14px; font-size: 13px; color: #3f3b34;
+  min-height: var(--component-button-height, 32px);
+  height: auto;
+  padding: 0 14px; font-size: 13px; color: #3f3b34;
   background: transparent; border: 0; cursor: pointer; text-align: left;
+  box-sizing: border-box;
 }
 .rd-menu__row:hover { background: #f6f2ea; }
 .rd-menu__row.is-muted, .rd-menu__row[disabled] { color: #a49c90; cursor: default; }
@@ -27501,8 +27538,10 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
 /* undo flyout specifics */
 .rd-undo-flyout__list { padding: 4px 0; }
 .rd-undo-step {
-  display: flex; align-items: flex-start; gap: 10px; width: 100%;
-  padding: 9px 14px; background: #fff; border: 0; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: var(--component-button-height, 32px);
+  padding: 0 14px; background: #fff; border: 0; cursor: pointer; text-align: left;
+  box-sizing: border-box;
 }
 .rd-undo-step.is-top { background: #f6f2ea; }
 .rd-undo-step:hover { background: #f0ebe0; }
@@ -30622,9 +30661,18 @@ body.rd-scope .rd-topbar--tworow .rd-topbar__searchslot { flex: 1 1 auto; max-wi
 body.rd-scope .rd-topbar--tworow .rd-topbar__right {
   margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
 }
-/* the relocated planner buttons read as bar controls again */
+/* the relocated planner buttons read as bar controls again —
+   Undo / Redo (.rd-undo) + Save / Profile / etc. share one height. */
 body.rd-scope .rd-topbar--tworow .rd-topbar__right .btn.rd-topbar__action,
-body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-topbar__action > .btn {
+body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-topbar__action > .btn,
+body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-undo,
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #undo-btn,
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #redo-btn,
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #save-btn,
+body.rd-scope .rd-topbar .rd-undo,
+body.rd-scope .rd-topbar #undo-btn,
+body.rd-scope .rd-topbar #redo-btn,
+body.rd-scope .rd-topbar #save-btn {
   height: var(--component-button-height) !important;
   min-height: var(--component-button-height) !important;
   max-height: var(--component-button-height) !important;
@@ -30638,9 +30686,29 @@ body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-topbar__action > .btn {
   box-shadow: none !important;
   white-space: nowrap;
   box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  line-height: 1 !important;
 }
-body.rd-scope .rd-topbar--tworow .rd-topbar__right .btn.rd-topbar__action:hover {
+body.rd-scope .rd-topbar--tworow .rd-topbar__undoslot {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: var(--component-button-height) !important;
+}
+body.rd-scope .rd-topbar--tworow .rd-topbar__right .btn.rd-topbar__action:hover,
+body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-undo:hover:not([disabled]),
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #undo-btn:hover:not([disabled]),
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #redo-btn:hover:not([disabled]),
+body.rd-scope .rd-topbar--tworow .rd-topbar__right #save-btn:hover {
   background: rgba(255, 255, 255, .14) !important;
+}
+body.rd-scope .rd-topbar .rd-undo[disabled],
+body.rd-scope .rd-topbar #undo-btn[disabled],
+body.rd-scope .rd-topbar #redo-btn[disabled] {
+  opacity: .45 !important;
 }
 /* "Profile & Display is the one solid-gold button, because it is the
    most-used control in the bar." */

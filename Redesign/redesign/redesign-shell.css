@@ -78,7 +78,7 @@ a:hover { color: var(--forest); }
   display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
 }
 /* undo / redo cluster — links to Planner History */
-.rd-undo { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border: 1px solid rgba(212,184,150,.3); font-size: var(--type-meta); color: rgba(244,239,230,.85); background: none; cursor: pointer; }
+.rd-undo { display: inline-flex; align-items: center; height: var(--component-button-height, 32px); min-height: var(--component-button-height, 32px); padding: 0 10px; border: 1px solid rgba(212,184,150,.3); font-size: var(--type-meta); color: rgba(244,239,230,.85); background: none; cursor: pointer; box-sizing: border-box; }
 .rd-undo[disabled] { opacity: .4; }
 
 /* ── 2. TAB STRIP — 8 tabs, 46px, stable position ───────────────────────── */
