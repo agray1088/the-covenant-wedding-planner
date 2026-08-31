@@ -23,7 +23,7 @@
   window._dhSort = window._dhSort || 'records';
 
   const TABLE_DRAWER_TABS = ['Table', 'Fields', 'Links', 'Activity'];
-  const ROW_DRAWER_TABS = ['Row', 'Links', 'Raw', 'History'];
+  const ROW_DRAWER_TABS = ['Row', 'Fields', 'Links', 'Raw', 'History'];
   const PAGE_VIEWS = [['overview', 'Database Hub'], ['table', 'all tables']];
 
   /* Mock 24-table inventory mapped onto live entities. */
@@ -325,6 +325,15 @@
       if (ordered.indexOf(k) < 0) ordered.push(k);
     });
     return ordered.slice(0, 24);
+  }
+
+  function allColumnsFor(row) {
+    const keys = Object.keys(row || {}).filter(k => k !== 'history' && k !== '_history');
+    const prefer = ['_id', 'id', 'first', 'firstName', 'first_name', 'last', 'lastName', 'last_name', 'name', 'title', 'task', 'desc', 'vendor', 'status', 'rsvp', 'side', 'date', 'amount', 'due', 'notes'];
+    const ordered = [];
+    prefer.forEach(k => { if (keys.indexOf(k) >= 0 && ordered.indexOf(k) < 0) ordered.push(k); });
+    keys.forEach(k => { if (ordered.indexOf(k) < 0) ordered.push(k); });
+    return ordered;
   }
 
   function cellVal(row, key) {
@@ -837,18 +846,22 @@
     const tab = window._dhDrawerTab || 0;
     const tabs = ROW_DRAWER_TABS;
     const cols = columnsFor([row], meta.def);
+    const allCols = allColumnsFor(row);
     let body = '';
     if (tab === 0) {
       body = cols.slice(0, 7).map(c => fieldRow(c, esc(cellVal(row, c)))).join('')
-        + `<p class="rd-drawer__note">${Math.max(0, cols.length - 7)} more fields in Raw. This view writes to the same record the owner page writes to.</p>`;
+        + `<p class="rd-drawer__note">${Math.max(0, allCols.length - 7)} more fields on the Fields tab. This view writes to the same record the owner page writes to.</p>`;
     } else if (tab === 1) {
+      body = `<div class="rd-drawer__section-title">Fields · ${allCols.length}</div>`
+        + allCols.map(c => fieldRow(c, esc(cellVal(row, c)))).join('')
+        + `<p class="rd-drawer__note">Every column on this row. Same record the owner page edits — not a separate copy.</p>`;
+    } else if (tab === 2) {
       body = `<div class="rd-drawer__section-title">Links out</div>`
         + `<div class="rd-drawer__guest"><strong>→ related</strong><span>Healthy</span></div>`
         + `<p class="rd-drawer__note">A valid link pointing at an incomplete thing is distinguished from a broken link.</p>`;
-    } else if (tab === 2) {
+    } else if (tab === 3) {
       let json = {};
-      cols.forEach(c => { json[c] = row[c]; });
-      if (row._id) json.id = row._id;
+      allCols.forEach(c => { json[c] = row[c]; });
       body = `<pre class="rd-dh-sql__pre">${esc(JSON.stringify(json, null, 2))}</pre>`
         + `<p class="rd-drawer__note">Raw is read-only — so you can see the real field names before writing a migration.</p>`;
     } else {
@@ -859,7 +872,7 @@
     const foot = `<button type="button" class="rd-btn" onclick="rdDhOpenOwner('${esc(meta.ownerPanel)}')">Open in ${esc(meta.owner)}</button>`
       + `<button type="button" class="rd-btn rd-btn--primary" onclick="rdDhFullEditor()">Full editor</button>`;
     slot.innerHTML = drawerChrome('Row · ' + meta.id + ' · id ' + String(row._id || row.id || '—').slice(0, 8),
-      rowLabel(row, meta.def), cols.length + ' fields', cellVal(row, 'rsvp') !== '—' ? cellVal(row, 'rsvp') : (cellVal(row, 'status') !== '—' ? cellVal(row, 'status') : 'Record'),
+      rowLabel(row, meta.def), allCols.length + ' fields', cellVal(row, 'rsvp') !== '—' ? cellVal(row, 'rsvp') : (cellVal(row, 'status') !== '—' ? cellVal(row, 'status') : 'Record'),
       tabs, tab, body, foot, 'rdDhSetDrawerTab', 'rdDhCloseDrawer');
     slot.classList.add('is-open');
   }
