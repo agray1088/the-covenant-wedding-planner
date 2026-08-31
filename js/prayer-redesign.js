@@ -22,7 +22,7 @@
   window._prSearch = window._prSearch || '';
 
   const DRAWER_TABS = ['Entry', 'Answer', 'Privacy', 'History'];
-  const SHELL_VER = 'prayer-rd13b-s28';
+  const SHELL_VER = 'prayer-rd32-s28';
 
   /* Master-drawn entries from 13b + 32c (same records; figures derived). */
   const MASTER_PRAYER = [
@@ -515,16 +515,22 @@
       const attn = f.longestOpen && f.oldestOpenTitle
         ? f.oldestOpenTitle.replace(/^For\s+/i, '').replace(/\s+in the last month$/i, '')
         : undefined;
+      const answeredPct = f.entries ? Math.round((f.answered / f.entries) * 100) : 0;
       items = [
         { label: 'Entries', value: String(f.entries) },
-        { label: 'Answered', value: String(f.answered) },
+        {
+          label: 'Answered',
+          value: String(f.answered),
+          target: { pct: answeredPct, tick: 0 }
+        },
         { label: 'Still asking', value: String(f.open) },
         { label: 'Set down', value: String(f.laid) },
         { label: 'Longest open', value: f.longestOpen ? (f.longestOpen + ' days') : '—', attention: attn }
       ];
     } else if (mode === 'print') {
+      const printPct = f.entries ? Math.round((f.printCount / f.entries) * 100) : 0;
       items = [
-        { label: 'Entries printing', value: f.printCount + ' of ' + f.entries },
+        { label: 'Entries printing', value: f.printCount + ' of ' + f.entries, target: { pct: printPct, tick: 0 } },
         { label: 'Pages', value: String(f.printPages) },
         { label: 'Excluded', value: String(f.printExcluded), attention: 'open and set down' },
         { label: 'Paper', value: 'A5 · portrait' },
@@ -538,6 +544,22 @@
         { label: 'Laid down', value: String(f.laid) },
         { label: 'Words', value: f.words.toLocaleString() }
       ];
+    }
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats && mode !== 'print' && mode !== 'table') {
+      RdDepth.renderStats(host, items);
+      return;
+    }
+    if (mode === 'print' || mode === 'table') {
+      host.innerHTML = items.map(it => {
+        let valCls = 'm-stat-val';
+        if (it.label === 'Excluded' && Number(it.value) > 0) valCls += ' is-amber';
+        return '<div class="m-stat"><div class="m-stat-label">' + esc(it.label) + '</div>'
+          + '<div class="' + valCls + '">' + esc(String(it.value)) + '</div>'
+          + (it.target ? '<div class="rd-stat__target" aria-hidden="true"><div class="rd-stat__target-fill' + (it.label === 'Answered' ? ' is-forest' : '') + '" style="width:' + (it.target.pct || 0) + '%"></div></div>' : '')
+          + (it.attention ? '<div class="m-stat-note">' + esc(it.attention) + '</div>' : '')
+          + '</div>';
+      }).join('');
+      return;
     }
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
       RdDepth.renderStats(host, items);
@@ -593,8 +615,8 @@
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Prayer view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'journal' ? ' is-active' : ''}" onclick="rdSetPrayerView('journal')">Journal</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetPrayerView('table')">Table</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'journal' ? ' is-active' : ''}" onclick="rdSetPrayerView('journal')">Prayer Journal</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetPrayerView('table')">Table view</button>` +
       `<button type="button" class="rd-viewswitch__item${mode === 'print' ? ' is-active' : ''}" onclick="rdSetPrayerView('print')">Print preview</button>` +
       `</div></div>`;
   }
@@ -637,47 +659,57 @@
 
   /* ── Journal (#13b) ──────────────────────────────────────────────────── */
 
+  function journalChip(kind, label) {
+    if (kind === 'answered' || kind === 'answered-other') {
+      return '<span class="rd-pr-chip rd-pr-chip--answered">' + esc(label) + '</span>';
+    }
+    if (kind === 'laid') {
+      return '<span class="rd-pr-chip rd-pr-chip--laid">' + esc(label) + '</span>';
+    }
+    return '<span class="rd-pr-chip rd-pr-chip--open">' + esc(label) + '</span>';
+  }
+
   function renderJournalView() {
     const host = document.getElementById('pr-view-journal');
     if (!host) return;
     const els = filteredEntries();
     if (!els.length) {
-      host.innerHTML = `<p class="rd-pr-empty">No entries in this view yet.</p>` +
-        `<button type="button" class="rd-pr-addbtn" onclick="rdPrAdd()"><span>+</span> Write an entry</button>`;
+      host.innerHTML = '<div class="rd-pr-journal-wrap"><p class="rd-pr-empty">No entries in this view yet.</p>'
+        + '<button type="button" class="rd-pr-write" onclick="rdPrAdd()">+ Write an entry</button></div>';
       return;
     }
     const grouped = (window._prGroupBy && window._prGroupBy !== 'status');
     const pack = grouped ? groupedMap(els, false) : { groups: { _: els }, order: ['_'] };
-    let html = `<div class="rd-pr-journal">`;
+    let html = '<div class="rd-pr-journal-wrap"><div class="rd-pr-journal">';
     pack.order.forEach(g => {
       const rows = pack.groups[g] || [];
       if (!rows.length) return;
       if (grouped) {
-        html += `<div class="rd-section__head"><div class="rd-pagehead__eyebrow">${esc(g)} · ${rows.length}</div></div>`;
+        html += '<div class="rd-pr-journal__grouphead"><div class="rd-pagehead__eyebrow">' + esc(g) + ' · ' + rows.length + '</div></div>';
       }
       rows.forEach(e => {
         const closed = e.kind === 'answered' || e.kind === 'answered-other';
-        const scheme = e.kind === 'laid' ? 'muted' : (closed ? 'gold' : 'forest');
         const sid = jsId(e.id);
-        html += `<article class="rd-pr-entry${closed ? ' is-answered' : ''}${e.kind === 'laid' ? ' is-laid' : ''}${window._prDrawerId === e.id ? ' is-open' : ''}" onclick="rdPrOpenDrawer('${esc(sid)}')">` +
-          `<div class="rd-pr-entry__meta">` +
-          `<span class="status-pill" data-pillscheme="${scheme}">${esc(e.journalStatus)}</span>` +
-          `<span class="rd-pr-entry__when">${esc(fmtLong(e.written))} · ${esc(e.author)}</span>` +
-          `</div>` +
-          `<h3 class="rd-pr-entry__title">${esc(e.title)}</h3>` +
-          `<p class="rd-pr-entry__ask">${esc(e.request || '—')}</p>`;
+        html += '<article class="rd-pr-entry' + (closed ? ' is-answered' : '') + (e.kind === 'laid' ? ' is-laid' : '') + (window._prDrawerId === e.id ? ' is-open' : '') + '" onclick="rdPrOpenDrawer(\'' + esc(sid) + '\')">'
+          + '<div class="rd-pr-entry__meta">'
+          + journalChip(e.kind, e.journalStatus)
+          + '<span class="rd-pr-entry__when">' + esc(fmtLong(e.written)) + ' · ' + esc(e.author) + '</span>'
+          + '</div>'
+          + '<h3 class="rd-pr-entry__title">' + esc(e.title) + '</h3>'
+          + '<p class="rd-pr-entry__ask">' + esc(e.request || '—') + '</p>';
         if (closed && e.answer) {
-          const lead = e.answeredOn ? ('Answered ' + fmtChipDate(e.answeredOn).replace(/ (\d{4})?$/, '') + ' — ') : '';
-          html += `<div class="rd-pr-entry__answer">` +
-            `<div class="rd-pr-entry__answer-label">The answer</div>` +
-            `<p>${esc(lead + e.answer)}</p>` +
-            `</div>`;
+          const lead = e.answeredOn
+            ? ('Answered ' + fmtLong(e.answeredOn).replace(/ \d{4}$/, '') + ' — ')
+            : '';
+          html += '<div class="rd-pr-entry__answer">'
+            + '<div class="rd-pr-entry__answer-label">The answer</div>'
+            + '<p>' + esc(lead + e.answer) + '</p>'
+            + '</div>';
         }
-        html += `</article>`;
+        html += '</article>';
       });
     });
-    html += `</div>`;
-    html += `<button type="button" class="rd-pr-addbtn" onclick="rdPrAdd()"><span>+</span> Write an entry</button>`;
+    html += '</div><button type="button" class="rd-pr-write" onclick="rdPrAdd()">+ Write an entry</button></div>';
     host.innerHTML = html;
   }
 
@@ -695,6 +727,19 @@
     return e.request || e.author || '—';
   }
 
+  function tableChip(kind, label) {
+    if (kind === 'answered-other') {
+      return '<span class="rd-pr-chip rd-pr-chip--other">' + esc(label) + '</span>';
+    }
+    if (kind === 'answered') {
+      return '<span class="rd-pr-chip rd-pr-chip--answered">' + esc(label) + '</span>';
+    }
+    if (kind === 'laid') {
+      return '<span class="rd-pr-chip rd-pr-chip--laid">' + esc(label) + '</span>';
+    }
+    return '<span class="rd-pr-chip rd-pr-chip--open">' + esc(label) + '</span>';
+  }
+
   function renderTableView() {
     const host = document.getElementById('pr-view-table');
     if (!host) return;
@@ -707,34 +752,34 @@
       if (g === 'Set down') return 'no longer being asked · kept, not deleted';
       return rows.length + (rows.length === 1 ? ' entry' : ' entries');
     };
-    let html = `<div class="rd-grouplist">`;
+    let html = '<div class="rd-pr-table">';
     pack.order.forEach(g => {
       const rows = pack.groups[g] || [];
       if (!rows.length) return;
-      html += `<section class="rd-grouplist__group">` +
-        `<div class="rd-section__head"><div class="rd-pagehead__eyebrow">${esc(g)} · ${rows.length} ${rows.length === 1 ? 'entry' : 'entries'}</div>` +
-        `<p class="rd-help">${esc(helpFor(g, rows))}</p></div>`;
+      html += '<section class="rd-pr-table__group">'
+        + '<div class="rd-pr-table__head">'
+        + '<span class="rd-pr-table__head-title">' + esc(g) + ' · ' + rows.length + ' ' + (rows.length === 1 ? 'entry' : 'entries') + '</span>'
+        + '<span class="rd-pr-table__head-note">' + esc(helpFor(g, rows)) + '</span>'
+        + '</div>';
       rows.forEach(e => {
-        const scheme = e.kind === 'answered-other' ? 'red'
-          : (e.kind.indexOf('answered') === 0 ? 'gold' : (e.kind === 'laid' ? 'muted' : 'forest'));
         const sid = jsId(e.id);
         const daysCell = e.kind === 'laid'
           ? (e.laidOn ? ('Set down ' + fmtChipDate(e.laidOn)) : 'Set down')
           : (e.days != null ? (e.days + ' days') : '—');
-        html += `<button type="button" class="rd-grouplist__row${e.kind.indexOf('answered') === 0 ? ' is-answered' : ''}${window._prDrawerId === e.id ? ' is-open' : ''}" onclick="rdPrOpenDrawer('${esc(sid)}')">` +
-          `<div class="rd-grouplist__main">` +
-          `<strong>${esc(e.title)}</strong>` +
-          `<span>${esc(tableExcerpt(e))}</span>` +
-          `</div>` +
-          `<div class="rd-grouplist__meta">Asked ${esc(fmtShort(e.written).replace(/ \d{4}$/, ''))}</div>` +
-          `<div class="rd-grouplist__days">${esc(daysCell)}</div>` +
-          `<span class="status-pill" data-pillscheme="${scheme}">${esc(e.tableStatus)}</span>` +
-          `</button>`;
+        html += '<button type="button" class="rd-pr-table__row' + (e.kind.indexOf('answered') === 0 ? ' is-answered' : '') + (window._prDrawerId === e.id ? ' is-open' : '') + '" onclick="rdPrOpenDrawer(\'' + esc(sid) + '\')">'
+          + '<div class="rd-pr-table__main">'
+          + '<strong>' + esc(e.title) + '</strong>'
+          + '<span>' + esc(tableExcerpt(e)) + '</span>'
+          + '</div>'
+          + '<div class="rd-pr-table__asked">Asked ' + esc(fmtShort(e.written).replace(/ \d{4}$/, '')) + '</div>'
+          + '<div class="rd-pr-table__days">' + esc(daysCell) + '</div>'
+          + '<div class="rd-pr-table__chip">' + tableChip(e.kind, e.tableStatus) + '</div>'
+          + '</button>';
       });
-      html += `</section>`;
+      html += '</section>';
     });
-    if (!els.length) html += `<p class="rd-pr-empty">No entries in this view yet.</p>`;
-    html += `</div>`;
+    if (!els.length) html += '<p class="rd-pr-empty">No entries in this view yet.</p>';
+    html += '</div>';
     host.innerHTML = html;
   }
 
@@ -753,6 +798,15 @@
     return a + ' to ' + b;
   }
 
+  function printMetaLine(e) {
+    const asked = 'Asked ' + fmtLong(e.written).replace(/ \d{4}$/, '');
+    if (!e.answeredOn) return asked;
+    const ans = 'answered ' + fmtLong(e.answeredOn).replace(/ \d{4}$/, '');
+    if (e.kind === 'answered-other' || e.notAsAsked) return asked + ' · ' + ans + ' · not as asked';
+    const days = e.days != null ? spellNumber(e.days) + ' days' : '';
+    return asked + ' · ' + ans + (days ? (' · ' + days) : '');
+  }
+
   function renderPrintView() {
     const host = document.getElementById('pr-view-print');
     if (!host) return;
@@ -763,34 +817,31 @@
     els = els.filter(matchesRail).sort((a, b) => String(a.written || '').localeCompare(String(b.written || '')));
     const f = prayerFigures();
     const countLabel = capitalize(spellNumber(els.length)) + ' prayer' + (els.length === 1 ? '' : 's');
-    let html = `<article class="rd-pr-print rd-printsheet rd-pr-keepsake">` +
-      `<header class="rd-pr-print__head">` +
-      `<div class="rd-pr-print__names">${esc(coupleNames())}</div>` +
-      `<div class="rd-pr-print__kicker">Prayer journal</div>` +
-      `<div class="rd-pr-print__names rd-pr-print__names--small">${esc(coupleNames())}</div>` +
-      `<h2>Answered</h2>` +
-      `<p class="rd-pr-print__sub">${esc(countLabel + ', ' + printRangeLabel(els))}</p>` +
-      `</header>`;
+    let html = '<div class="rd-pr-proof">'
+      + '<article class="rd-pr-sheet" data-print-light="1">'
+      + '<div class="rd-pr-sheet__headrule"><span>' + esc(coupleNames()) + '</span><span>Prayer journal</span></div>'
+      + '<header class="rd-pr-sheet__titlepage">'
+      + '<div class="rd-pr-sheet__names-upper">' + esc(coupleNames()) + '</div>'
+      + '<h2 class="rd-pr-sheet__maintitle">Answered</h2>'
+      + '<div class="rd-pr-sheet__gold" aria-hidden="true"></div>'
+      + '<p class="rd-pr-sheet__sub">' + esc(countLabel + ', ' + printRangeLabel(els)) + '</p>'
+      + '</header><div class="rd-pr-sheet__body">';
     if (!els.length) {
-      html += `<p class="rd-pr-empty">No answered entries to print yet.</p>`;
+      html += '<p class="rd-pr-empty">No answered entries to print yet.</p>';
     } else {
       els.forEach(e => {
-        const daysLabel = e.kind === 'answered-other' || e.notAsAsked
-          ? 'not as asked'
-          : (e.days != null ? spellNumber(e.days) + ' days' : '');
-        html += `<section class="rd-pr-print__entry">` +
-          `<h3>${esc(e.title)}</h3>` +
-          `<div class="rd-pr-print__meta">Asked ${esc(fmtLong(e.written))}` +
-          (e.answeredOn ? ` · answered ${esc(fmtLong(e.answeredOn))}` : '') +
-          (daysLabel ? ` · ${esc(daysLabel)}` : '') +
-          `</div>` +
-          `<p class="rd-pr-print__ask">${esc(e.request || '')}</p>` +
-          (e.answer ? `<p class="rd-pr-print__answer">${esc(e.answer)}</p>` : '') +
-          `</section>`;
+        html += '<section class="rd-pr-sheet__entry">'
+          + '<h3 class="rd-pr-sheet__entry-title">' + esc(e.title) + '</h3>'
+          + '<div class="rd-pr-sheet__entry-meta">' + esc(printMetaLine(e)) + '</div>'
+          + '<p class="rd-pr-sheet__entry-text">' + esc(e.answer || e.request || '') + '</p>'
+          + '</section>';
       });
     }
-    html += `<footer class="rd-pr-print__foot">Proof · ${esc(fmtLong(todayISO()))}` +
-      `<span>Page 1 of ${esc(String(f.printPages))}</span></footer></article>`;
+    html += '</div><footer class="rd-pr-sheet__foot"><span>Proof · ' + esc(fmtLong(todayISO())) + '</span>'
+      + '<span>Page 1 of ' + esc(String(f.printPages)) + '</span></footer>'
+      + '</article>'
+      + '<p class="rd-pr-proof__note">Print always renders light, even when the app is in dark mode. Answered entries only by default — open prayers are excluded until you toggle the chip. Class B keepsake · serif throughout · dates spelled out · no UI chrome.</p>'
+      + '</div>';
     host.innerHTML = html;
   }
 
@@ -858,7 +909,6 @@
         field('Still praying', String(f.open)) +
         field('Laid down', String(f.laid)) +
         field('Longest wait', f.longestWait ? (f.longestWait + ' days') : '—');
-      void afterOpen;
     } else if (tab === 2) {
       body =
         field('Share packets', 'Never included') +
