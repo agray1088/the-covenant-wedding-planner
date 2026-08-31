@@ -934,7 +934,8 @@ body.rd-scope #panel-tasks .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-
   overflow: visible !important;
 }
 
-/* ?? 4. BUTTONS — same height + type as filter-bar chips (Auto-fit columns) */
+/* ?? 4. BUTTONS — same height as chips, selects, and dropdown triggers.
+   One control height everywhere: var(--component-button-height). */
 #main#main .ued-btn,
 #main#main .rd-btn,
 #main#main .cwp-btn,
@@ -953,6 +954,7 @@ body.rd-scope .tb-actions .btn,
 body.rd-scope #theme-builder-overlay .btn {
   height: var(--component-button-height) !important;
   min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
   padding: var(--btn-pad-y) var(--btn-pad-x) !important;
   font-family: var(--font-ui) !important;
   font-size: var(--btn-font-size) !important;
@@ -964,6 +966,49 @@ body.rd-scope #theme-builder-overlay .btn {
   justify-content: center !important;
   gap: 6px !important;
   box-sizing: border-box !important;
+}
+
+/* Toolbar / pagehead dropdowns and native selects sit at the same height
+   as .rd-btn / .rd-chip — including triggers that open a menu. */
+body.rd-scope,
+#main#main {
+  --component-chip-height: var(--component-button-height);
+  --component-input-height: var(--component-button-height);
+  --component-icon-button-size: var(--component-button-height);
+}
+body.rd-scope .rd-toolbar select,
+body.rd-scope .rd-toolbar__select,
+body.rd-scope .rd-toolbar .smart-filter,
+body.rd-scope .rd-pagehead__actions select,
+body.rd-scope .rd-pagehead__actions .btn,
+body.rd-scope [id^="panel-"] .rd-toolbar select,
+body.rd-scope [id^="panel-"] .rd-toolbar__select,
+body.rd-scope [id^="panel-"] .rd-bgt-toolbar select,
+body.rd-scope [id^="panel-"] .rd-bgt-toolbar .rd-toolbar__select,
+#main#main .rd-toolbar select,
+#main#main .rd-toolbar__select,
+#main#main .cwp-toolbar select,
+#main#main .ued-toolbar select,
+body.rd-scope .rd-topbar select,
+body.rd-scope #topbar select.btn,
+body.rd-scope #topbar select.btn-gold {
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
+  box-sizing: border-box !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+body.rd-scope .rd-toolbar .rd-chip,
+body.rd-scope [id^="panel-"] .rd-toolbar .rd-chip,
+#main#main .rd-toolbar .rd-chip,
+#main#main .ued-filter-preset {
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
 }
 #main#main .ued-btn,
 #main#main .rd-btn,
@@ -1007,7 +1052,9 @@ body.rd-scope .btn-forest:hover { background-color: var(--forest-deep) !importan
 /* ?? 5. CHIPS ?????????????????????????????????????????????????????????????? */
 #main#main .ued-filter-preset,
 #main#main .rd-chip {
-  height: var(--component-chip-height) !important;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
   padding: var(--btn-toolbar-pad-y) var(--btn-toolbar-pad-x) !important;
   font-family: var(--font-ui) !important;
   font-size: var(--btn-toolbar-font-size) !important;
@@ -1025,8 +1072,7 @@ body.rd-scope .btn-forest:hover { background-color: var(--forest-deep) !importan
   font-weight: 600 !important;
 }
 
-/* ALL sub-page view switchers — same outer height + type as Auto-fit columns.
-   Covers .rd-viewswitch, legacy .rd-sectiontabs, and settings .rd-seg. */
+/* ALL sub-page view switchers — same outer height as buttons / dropdowns. */
 #main#main .rd-viewswitch,
 #main#main .rd-sectiontabs,
 #main#main .rd-seg,
@@ -1038,9 +1084,9 @@ body.rd-scope [id^="panel-"] .rd-bgt-viewbar .rd-viewswitch {
   display: inline-flex !important;
   align-items: stretch !important;
   flex-wrap: nowrap !important;
-  height: var(--component-chip-height) !important;
-  min-height: var(--component-chip-height) !important;
-  max-height: var(--component-chip-height) !important;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
   box-sizing: border-box !important;
   border: 1px solid var(--border-control, #d9cfba) !important;
   overflow: hidden !important;
@@ -1961,11 +2007,12 @@ body.rd-scope #record-drawer .rd-drawer__toolbar,
 }
 body.rd-scope #record-drawer .rd-drawer__toolbar .rd-btn,
 #main#main #record-drawer .rd-drawer__toolbar .rd-btn {
-  height: 28px !important;
-  min-height: 28px !important;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
   padding: 0 10px !important;
   font-family: var(--font-ui) !important;
-  font-size: 12px !important;
+  font-size: var(--btn-font-size) !important;
   flex: 0 0 auto !important;
   white-space: nowrap !important;
 }
@@ -3565,7 +3612,9 @@ body.rd-scope #panel-calendar .rd-toolbar__right {
 }
 body.rd-scope #panel-calendar .rd-toolbar .smart-filter,
 body.rd-scope #panel-calendar .rd-toolbar__select {
-  height: 32px;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
   padding: 0 10px;
   border: 1px solid var(--border-control, #d9cfba);
   border-radius: 0 !important;
@@ -3573,9 +3622,11 @@ body.rd-scope #panel-calendar .rd-toolbar__select {
   color: var(--text-primary);
   font: 400 13px/1.3 var(--font-ui);
   max-width: 11rem;
+  box-sizing: border-box;
 }
 body.rd-scope #panel-calendar .rd-toolbar .rd-chip {
-  height: var(--component-chip-height);
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
   border-radius: 0 !important;
   font-family: var(--font-ui) !important;
   font-size: var(--btn-toolbar-font-size) !important;
@@ -3584,7 +3635,8 @@ body.rd-scope #panel-calendar .smart-month-nav {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
+  height: var(--component-button-height);
+  min-height: var(--component-button-height);
   padding: 0 4px 0 2px;
   border: 1px solid var(--border-control, #d9cfba);
   background: var(--surface-content);
@@ -3592,10 +3644,11 @@ body.rd-scope #panel-calendar .smart-month-nav {
   color: var(--text-primary);
   border-radius: 0 !important;
   position: relative;
+  box-sizing: border-box;
 }
 body.rd-scope #panel-calendar .smart-month-nav > button {
-  width: 28px;
-  height: 28px;
+  width: var(--component-button-height);
+  height: var(--component-button-height);
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -7388,13 +7441,16 @@ body.rd-scope #panel-logistics .rd-viewswitch > button { cursor: pointer; border
 body.rd-scope #panel-logistics .rd-btn { border-radius: 0 !important; }
 body.rd-scope #panel-logistics .rd-chip { border-radius: 0 !important; }
 body.rd-scope #panel-logistics .rd-toolbar__select {
-  height: 32px;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
   border: 1px solid var(--border-subtle, #e7e1d4);
   background: var(--surface-content, #fbfaf8);
   font-size: 13px;
   color: var(--text, #3f3b34);
   padding: 0 10px;
   border-radius: 0;
+  box-sizing: border-box;
 }
 
 body.rd-scope #panel-logistics .rd-bulkbar {
@@ -20673,7 +20729,9 @@ body.rd-scope #panel-mood .mood-season-picker {
   margin: 10px 0 14px;
 }
 body.rd-scope #panel-mood .mood-season-btn {
-  height: 30px;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
   padding: 0 12px;
   border: 1px solid #d9cfba;
   background: #fff;
@@ -20681,6 +20739,8 @@ body.rd-scope #panel-mood .mood-season-btn {
   font: inherit;
   font-size: 12.5px;
   cursor: pointer;
+  box-sizing: border-box;
+}
 }
 body.rd-scope #panel-mood .mood-season-btn.active {
   background: #2D4A3E;
@@ -27864,9 +27924,14 @@ body.rd-scope #profile-drawer.rd-profile-drawer .pd-row-actions {
   display: flex; gap: 7px; padding-top: 11px; margin: 0;
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .pd-mini {
-  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
+  padding: 0 11px;
   border: 1px solid #E7E1D4; background: #fff; border-radius: 0;
   font-size: 12px; font-weight: 500; color: #3F3B34;
+  box-sizing: border-box;
 }
 body.rd-scope #profile-drawer.rd-profile-drawer .pd-mini svg { width: 15px; height: 15px; }
 body.rd-scope #profile-drawer.rd-profile-drawer .pd-mini.danger {
@@ -30446,9 +30511,12 @@ body.rd-scope .rd-settings-window .rd-set__slot select.btn-gold,
   font: inherit !important;
   font-size: 12.5px !important;
   font-weight: 400 !important;
-  padding: 5px 8px !important;
+  padding: 0 8px !important;
   min-width: 240px;
-  height: auto !important;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
+  box-sizing: border-box !important;
   background: #fff !important;
   background-image: none !important;
   border: 1px solid #e0d8c8 !important;
@@ -30557,7 +30625,9 @@ body.rd-scope .rd-topbar--tworow .rd-topbar__right {
 /* the relocated planner buttons read as bar controls again */
 body.rd-scope .rd-topbar--tworow .rd-topbar__right .btn.rd-topbar__action,
 body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-topbar__action > .btn {
-  height: 30px !important;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
   padding: 0 11px !important;
   font-size: 12px !important;
   font-weight: 500 !important;
@@ -30567,6 +30637,7 @@ body.rd-scope .rd-topbar--tworow .rd-topbar__right .rd-topbar__action > .btn {
   color: rgba(244, 239, 230, .9) !important;
   box-shadow: none !important;
   white-space: nowrap;
+  box-sizing: border-box !important;
 }
 body.rd-scope .rd-topbar--tworow .rd-topbar__right .btn.rd-topbar__action:hover {
   background: rgba(255, 255, 255, .14) !important;
@@ -30585,9 +30656,13 @@ body.rd-scope .rd-topbar--tworow .rd-topbar__right #profile-drawer-btn.rd-topbar
 /* gear now carries its label — "More" becomes "Settings" */
 body.rd-scope .rd-topbar__gear {
   align-items: center; gap: 6px;
-  height: 30px; padding: 0 11px;
+  height: var(--component-button-height) !important;
+  min-height: var(--component-button-height) !important;
+  max-height: var(--component-button-height) !important;
+  padding: 0 11px;
   border: 1px solid rgba(212, 184, 150, .3) !important;
   font-size: 12px; font-weight: 500;
+  box-sizing: border-box !important;
 }
 body.rd-scope .rd-topbar__gear:hover { background: rgba(255, 255, 255, .12); }
 body.rd-scope .rd-topbar__gear-label { white-space: nowrap; }

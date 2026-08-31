@@ -100,8 +100,9 @@
   --component-table-row-height: 36px;
   --component-input-height:     32px;
   --component-button-height:    32px;
-  --component-chip-height:      28px;
-  --component-icon-button-size: 28px;
+  /* Same as buttons — toolbar continuity (chips, viewswitch, dropdowns). */
+  --component-chip-height:      32px;
+  --component-icon-button-size: 32px;
   --component-card-padding:     var(--space-5);
   --component-section-gap:      0px;   /* sections butt against hairlines */
 
