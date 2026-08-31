@@ -1,0 +1,295 @@
+/* ============================================================================
+   Covenant Wedding Planner — DARK MODE SWEEP
+   Loads after redesign-overrides.css. Closes gaps: scrollbars, calendar chips,
+   legacy white flashes, form controls, popovers. Uses redesign-tokens only.
+   Toggle: body.dark-mode / body[data-theme="dark"] (+ rd-scope.night alias).
+   ========================================================================= */
+
+/* Native controls + system scrollbars where supported */
+html body.editorial-v4.dark-mode,
+html body.editorial-v4[data-theme="dark"],
+html body.dark-mode,
+html body[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* ── Scrollbars (global + legacy planner wraps) ──────────────────────────── */
+body.dark-mode,
+body[data-theme="dark"],
+body.rd-scope.night,
+body.rd-scope[data-theme="night"] {
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+body.dark-mode *::-webkit-scrollbar,
+body[data-theme="dark"] *::-webkit-scrollbar,
+body.rd-scope.night *::-webkit-scrollbar,
+body.rd-scope[data-theme="night"] *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+body.dark-mode *::-webkit-scrollbar-track,
+body[data-theme="dark"] *::-webkit-scrollbar-track,
+body.rd-scope.night *::-webkit-scrollbar-track,
+body.rd-scope[data-theme="night"] *::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+
+body.dark-mode *::-webkit-scrollbar-thumb,
+body[data-theme="dark"] *::-webkit-scrollbar-thumb,
+body.rd-scope.night *::-webkit-scrollbar-thumb,
+body.rd-scope[data-theme="night"] *::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scroll-track);
+}
+
+body.dark-mode *::-webkit-scrollbar-thumb:hover,
+body[data-theme="dark"] *::-webkit-scrollbar-thumb:hover,
+body.rd-scope.night *::-webkit-scrollbar-thumb:hover,
+body.rd-scope[data-theme="night"] *::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+body.dark-mode .topbar-notifications-drop-scroll,
+body[data-theme="dark"] .topbar-notifications-drop-scroll {
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+/* ── Calendar: chips, cells, week, agenda ──────────────────────────────── */
+body.dark-mode #main#main #panel-calendar button.smart-event-chip,
+body.dark-mode #main#main #panel-calendar .smart-event-chip,
+body.dark-mode body.rd-scope #panel-calendar button.smart-event-chip,
+body.dark-mode body.rd-scope #panel-calendar .smart-event-chip,
+body[data-theme="dark"] #main#main #panel-calendar button.smart-event-chip,
+body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
+body[data-theme="dark"] body.rd-scope #panel-calendar button.smart-event-chip,
+body[data-theme="dark"] body.rd-scope #panel-calendar .smart-event-chip {
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
+  background: var(--smart-chip-fill) !important;
+  background-color: var(--smart-chip-fill) !important;
+  background-image: none !important;
+  border-top-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  border-right-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  border-bottom-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .rd-week__daycol,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__daycol,
+body.dark-mode body.rd-scope #panel-calendar .rd-week__daycol,
+body[data-theme="dark"] body.rd-scope #panel-calendar .rd-week__daycol {
+  background: var(--surface-content) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .smart-day,
+body[data-theme="dark"] #main#main #panel-calendar .smart-day,
+body.dark-mode body.rd-scope #panel-calendar .smart-day,
+body[data-theme="dark"] body.rd-scope #panel-calendar .smart-day {
+  background: var(--cal-cell-cream) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .smart-day.outside,
+body[data-theme="dark"] #main#main #panel-calendar .smart-day.outside,
+body.dark-mode body.rd-scope #panel-calendar .smart-day.outside,
+body[data-theme="dark"] body.rd-scope #panel-calendar .smart-day.outside {
+  background: var(--cal-cell-outside) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .smart-day.selected,
+body[data-theme="dark"] #main#main #panel-calendar .smart-day.selected,
+body.dark-mode body.rd-scope #panel-calendar .smart-day.selected,
+body[data-theme="dark"] body.rd-scope #panel-calendar .smart-day.selected {
+  background: var(--cal-cell-selected) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .rd-agenda,
+body[data-theme="dark"] #main#main #panel-calendar .rd-agenda,
+body.dark-mode body.rd-scope #panel-calendar .rd-agenda,
+body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda {
+  --rd-agenda-line-soft: var(--border-hairline);
+  --rd-agenda-date-bg: var(--surface-content);
+  --rd-agenda-date-today: var(--surface-sunken);
+  --rd-agenda-overdue-bg: var(--status-red-bg);
+  --rd-agenda-overdue-line: var(--status-red-border);
+  --rd-agenda-overdue-fg: var(--status-red-text);
+}
+
+body.dark-mode #main#main #panel-calendar .rd-agenda__date,
+body[data-theme="dark"] #main#main #panel-calendar .rd-agenda__date,
+body.dark-mode body.rd-scope #panel-calendar .rd-agenda__date,
+body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda__date {
+  background: var(--rd-agenda-date-bg) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .rd-agenda__date.is-today,
+body[data-theme="dark"] #main#main #panel-calendar .rd-agenda__date.is-today,
+body.dark-mode body.rd-scope #panel-calendar .rd-agenda__date.is-today,
+body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda__date.is-today {
+  background: var(--rd-agenda-date-today) !important;
+}
+
+/* ── Forms / inputs (legacy white fields) ────────────────────────────────── */
+body.dark-mode #main#main input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+body.dark-mode #main#main select,
+body.dark-mode #main#main textarea,
+body[data-theme="dark"] #main#main input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+body[data-theme="dark"] #main#main select,
+body[data-theme="dark"] #main#main textarea {
+  background-color: var(--surface-content) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-control) !important;
+}
+
+body.dark-mode #main#main #record-drawer .rd-field-row__value--link,
+body.dark-mode #main#main #record-drawer .rd-field-row__value--readonly,
+body[data-theme="dark"] #main#main #record-drawer .rd-field-row__value--link,
+body[data-theme="dark"] #main#main #record-drawer .rd-field-row__value--readonly,
+body.dark-mode #record-drawer .rd-field-row__value--link,
+body.dark-mode #record-drawer .rd-field-row__value--readonly,
+body[data-theme="dark"] #record-drawer .rd-field-row__value--link,
+body[data-theme="dark"] #record-drawer .rd-field-row__value--readonly {
+  background: var(--surface-content) !important;
+  color: var(--text-body) !important;
+}
+
+/* ── Cards, panels, modals, popovers ───────────────────────────────────── */
+body.dark-mode #main#main .ued-panel,
+body.dark-mode #main#main .ued-table-card,
+body.dark-mode #main#main .rd-panel,
+body.dark-mode #main#main .rd-card,
+body.dark-mode #main#main .rd-cardgrid__card,
+body.dark-mode #main#main .rd-settings-window,
+body.dark-mode #main#main .rd-settings-window .rd-set__card,
+body.dark-mode #main#main .rd-settings-window .rd-set__card-row,
+body.dark-mode #main#main .record-editor-overlay .record-editor,
+body.dark-mode #main#main .record-editor-drawer,
+body.dark-mode #main#main .rd-drawer,
+body.dark-mode #main#main .rd-popover,
+body.dark-mode #main#main .rd-dropdown,
+body.dark-mode #main#main .cmd-palette,
+body.dark-mode #main#main .rd-cmd-overlay .rd-cmd,
+body.dark-mode #main#main .topbar-notifications-drop,
+body.dark-mode #main#main .rd-seat-table-card,
+body.dark-mode #main#main .rd-party-speaking,
+body.dark-mode #main#main .rd-appt-cal__banner,
+body.dark-mode #main#main .rd-appt-agenda__banner,
+body[data-theme="dark"] #main#main .ued-panel,
+body[data-theme="dark"] #main#main .ued-table-card,
+body[data-theme="dark"] #main#main .rd-panel,
+body[data-theme="dark"] #main#main .rd-card,
+body[data-theme="dark"] #main#main .rd-cardgrid__card,
+body[data-theme="dark"] #main#main .rd-settings-window,
+body[data-theme="dark"] #main#main .rd-settings-window .rd-set__card,
+body[data-theme="dark"] #main#main .rd-settings-window .rd-set__card-row,
+body[data-theme="dark"] #main#main .record-editor-overlay .record-editor,
+body[data-theme="dark"] #main#main .record-editor-drawer,
+body[data-theme="dark"] #main#main .rd-drawer,
+body[data-theme="dark"] #main#main .rd-popover,
+body[data-theme="dark"] #main#main .rd-dropdown,
+body[data-theme="dark"] #main#main .cmd-palette,
+body[data-theme="dark"] #main#main .rd-cmd-overlay .rd-cmd,
+body[data-theme="dark"] #main#main .topbar-notifications-drop,
+body[data-theme="dark"] #main#main .rd-seat-table-card,
+body[data-theme="dark"] #main#main .rd-party-speaking,
+body[data-theme="dark"] #main#main .rd-appt-cal__banner,
+body[data-theme="dark"] #main#main .rd-appt-agenda__banner {
+  background-color: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body);
+}
+
+body.dark-mode #main#main .rd-stats,
+body.dark-mode #main#main .m-stats,
+body.dark-mode #main#main .rd-toolbar,
+body.dark-mode #main#main .rd-pagehead,
+body.dark-mode #main#main .rd-subnav,
+body.dark-mode #main#main .rd-tabs,
+body[data-theme="dark"] #main#main .rd-stats,
+body[data-theme="dark"] #main#main .m-stats,
+body[data-theme="dark"] #main#main .rd-toolbar,
+body[data-theme="dark"] #main#main .rd-pagehead,
+body[data-theme="dark"] #main#main .rd-subnav,
+body[data-theme="dark"] #main#main .rd-tabs {
+  background-color: var(--surface-raised) !important;
+}
+
+body.dark-mode #main#main .rd-state,
+body[data-theme="dark"] #main#main .rd-state {
+  background: var(--surface-content) !important;
+  border-color: var(--border-control) !important;
+}
+
+/* Legacy planner.css white flashes under redesign */
+body.dark-mode #main#main .table-empty-state,
+body[data-theme="dark"] #main#main .table-empty-state {
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode #main#main .table-empty-state .tes-title,
+body[data-theme="dark"] #main#main .table-empty-state .tes-title {
+  color: var(--text-heading) !important;
+}
+
+body.dark-mode #main#main .page-scripture-footer .psf-text,
+body[data-theme="dark"] #main#main .page-scripture-footer .psf-text {
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode #main#main .page-scripture-footer .psf-text cite,
+body[data-theme="dark"] #main#main .page-scripture-footer .psf-text cite {
+  color: var(--text-subtle) !important;
+}
+
+/* Context sidebar + legacy chrome */
+body.dark-mode #sidebar,
+body[data-theme="dark"] #sidebar {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #sidebar::-webkit-scrollbar-thumb,
+body[data-theme="dark"] #sidebar::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+}
+
+/* Setup wizard / modals from planner.css */
+body.dark-mode .setup-wizard-overlay,
+body.dark-mode .cov-modal-overlay,
+body.dark-mode .cov-alert-overlay,
+body[data-theme="dark"] .setup-wizard-overlay,
+body[data-theme="dark"] .cov-modal-overlay,
+body[data-theme="dark"] .cov-alert-overlay {
+  background: rgba(0, 0, 0, .62) !important;
+}
+
+body.dark-mode .setup-wizard,
+body.dark-mode .cov-modal,
+body.dark-mode .cov-alert,
+body[data-theme="dark"] .setup-wizard,
+body[data-theme="dark"] .cov-modal,
+body[data-theme="dark"] .cov-alert {
+  background: var(--surface-content) !important;
+  color: var(--text-body) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+/* Legacy panel shell from planner.css */
+body.dark-mode #main .panel,
+body.dark-mode #main > .panel.active,
+body[data-theme="dark"] #main .panel,
+body[data-theme="dark"] #main > .panel.active {
+  background: var(--surface-canvas) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #main#main .m-block,
+body.dark-mode #main#main .m-soft,
+body.dark-mode #main#main .ued-page,
+body[data-theme="dark"] #main#main .m-block,
+body[data-theme="dark"] #main#main .m-soft,
+body[data-theme="dark"] #main#main .ued-page {
+  background: transparent !important;
+}

@@ -66,6 +66,22 @@
     rulesOpen: false
   };
 
+  /** Match planner dark-mode preference (saved setup.darkMode or system). */
+  function applyVpDarkMode() {
+    var on = false;
+    try {
+      var data = loadPlannerData();
+      if (data && data.setup && typeof data.setup.darkMode === 'boolean') {
+        on = data.setup.darkMode;
+      } else if (window.matchMedia) {
+        on = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+    } catch (e) { /* ignore */ }
+    document.body.classList.toggle('dark-mode', on);
+    document.body.setAttribute('data-theme', on ? 'dark' : 'light');
+    document.documentElement.style.colorScheme = on ? 'dark' : 'light';
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
@@ -758,6 +774,7 @@
   }
 
   function boot() {
+    applyVpDarkMode();
     var token = qs('g') || qs('token') || '';
     var tab = qs('tab') || 'brief';
     state.forceExpired = qs('expired') === '1' || qs('expired') === 'true';

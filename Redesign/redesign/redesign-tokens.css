@@ -29,7 +29,8 @@
   --surface-canvas:  #F9F7F4;   /* app background behind the frame */
   --surface-content: #FFFFFF;   /* the work surface: tables, forms */
   --surface-raised:  #FDFCFA;   /* toolbars, page-header strip */
-  --surface-sunken:  #F9F5EF;   /* the 224px rail, group rows */
+  --surface-sunken:  #F9F5EF;   /* the 224px rail, recessed chrome */
+  --surface-group:   #EEE8DE;   /* table category / group bands (slightly deeper than sunken) */
   --surface-active:  #F4F1EA;   /* bulk bar, selected rail section */
   --surface-chrome:  #FDFCFA;   /* tab strip */
   --surface-footer:  #F3EFE8;
@@ -101,7 +102,8 @@
   --component-table-row-height: 36px;
   --component-input-height:     32px;
   --component-button-height:    32px;
-  --component-chip-height:      32px; /* same as buttons */
+  /* Same as buttons — toolbar continuity (chips, viewswitch, dropdowns). */
+  --component-chip-height:      32px;
   --component-icon-button-size: 32px;
   --component-card-padding:     var(--space-5);
   --component-section-gap:      0px;   /* sections butt against hairlines */
@@ -172,6 +174,7 @@ body.editorial-v4[data-theme="dark"],
   --surface-content: #1A1A1A;
   --surface-raised:  #1E1E1E;
   --surface-sunken:  #1C1C1C;
+  --surface-group:   #22201C;
   --surface-active:  #222222;
   --surface-chrome:  #1E1E1E;
   --surface-footer:  #181818;
@@ -219,6 +222,22 @@ body.editorial-v4[data-theme="dark"],
   --shell-topbar-bg:   var(--forest);
   --table-header-bg:   var(--forest-deep);
   --table-header-rule: var(--gold);
+
+  /* Scrollbars (light) */
+  --scroll-track:        transparent;
+  --scroll-thumb:        rgba(54, 39, 20, .28);
+  --scroll-thumb-hover:  rgba(54, 39, 20, .42);
+
+  /* Calendar / chip mix bases */
+  --smart-chip-mix-base: #fff;
+  --cal-cell-cream:        #FCFAF6;
+  --cal-cell-outside:      #F5F2EC;
+  --cal-cell-selected:     #F4F1EA;
+  --rd-agenda-line-soft:   #f0ebe0;
+  --rd-agenda-date-bg:     var(--surface-content);
+  --rd-agenda-date-today:  #f9f5ef;
+  --rd-agenda-overdue-bg:  #fff8f6;
+  --rd-week-today-cell:    #f9f5ef;
 }
 
 /* Print is light, always. Paper has no dark mode. */
