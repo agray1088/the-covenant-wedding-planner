@@ -23,7 +23,7 @@
   window._couCalMonth = window._couCalMonth || '2026-08';
 
   const DRAWER_TABS = ['Session', 'Homework', 'Notes', 'History'];
-  const SHELL_VER = 'counseling-rd13c-s29';
+  const SHELL_VER = 'counseling-rd32-s29';
   const REHEARSAL = '2026-11-06';
   const LEGACY_TOPIC = /Money & stewardship|Communication patterns|Family-of-origin/i;
 
@@ -534,9 +534,14 @@
     const mode = window._couMode || 'table';
     let items;
     if (mode === 'cards') {
+      const completePct = f.sessions ? Math.round((f.complete / f.sessions) * 100) : 0;
       items = [
         { label: 'Sessions', value: String(f.sessions) },
-        { label: 'Complete', value: String(f.complete) },
+        {
+          label: 'Complete',
+          value: String(f.complete),
+          target: { pct: completePct, tick: 0 }
+        },
         { label: 'Homework owed', value: String(f.homeworkDue || f.owedItems), attention: f.homeworkDue ? 'outstanding' : undefined },
         { label: 'Unscheduled', value: String(f.notbooked), attention: f.notbooked ? 'both due before 6 Nov' : undefined },
         { label: 'Next session', value: f.nextLabel, attention: f.nextTopic || undefined }
@@ -557,6 +562,24 @@
         { label: 'Next', value: f.nextLabel },
         { label: 'Counselor', value: f.counselor }
       ];
+    }
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats && mode === 'table') {
+      RdDepth.renderStats(host, items);
+      return;
+    }
+    if (mode === 'cards' || mode === 'calendar') {
+      host.innerHTML = items.map(it => {
+        let valCls = 'm-stat-val';
+        if ((it.label === 'Unscheduled' || it.label === 'Homework owed') && Number(String(it.value).replace(/\D/g, '')) > 0) {
+          valCls += ' is-amber';
+        }
+        return '<div class="m-stat"><div class="m-stat-label">' + esc(it.label) + '</div>'
+          + '<div class="' + valCls + '">' + esc(String(it.value)) + '</div>'
+          + (it.target ? '<div class="rd-stat__target" aria-hidden="true"><div class="rd-stat__target-fill' + (it.label === 'Complete' ? ' is-forest' : '') + '" style="width:' + (it.target.pct || 0) + '%"></div></div>' : '')
+          + (it.attention ? '<div class="m-stat-note">' + esc(it.attention) + '</div>' : '')
+          + '</div>';
+      }).join('');
+      return;
     }
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
       RdDepth.renderStats(host, items);
@@ -581,9 +604,9 @@
     const mode = window._couMode || 'table';
     return `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Counseling view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetCounselingView('table')">Table</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'cards' ? ' is-active' : ''}" onclick="rdSetCounselingView('cards')">Cards</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'calendar' ? ' is-active' : ''}" onclick="rdSetCounselingView('calendar')">Calendar</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdSetCounselingView('table')">Premarital Counseling</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'cards' ? ' is-active' : ''}" onclick="rdSetCounselingView('cards')">Cards view</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'calendar' ? ' is-active' : ''}" onclick="rdSetCounselingView('calendar')">Calendar view</button>` +
       `</div></div>`;
   }
 
@@ -668,6 +691,13 @@
     return 'forest';
   }
 
+  function couChip(kind, label) {
+    if (kind === 'complete') return '<span class="rd-cou-chip rd-cou-chip--complete">' + esc(label) + '</span>';
+    if (kind === 'homework') return '<span class="rd-cou-chip rd-cou-chip--due">' + esc(label) + '</span>';
+    if (kind === 'notbooked') return '<span class="rd-cou-chip rd-cou-chip--muted">' + esc(label) + '</span>';
+    return '<span class="rd-cou-chip rd-cou-chip--scheduled">' + esc(label) + '</span>';
+  }
+
   function renderTableView() {
     const host = document.getElementById('cou-view-table');
     if (!host) return;
@@ -687,7 +717,7 @@
     const order = by === 'status' ? ['Completed', 'Scheduled', 'Not booked'] : Object.keys(groups);
     const expanded = defaultExpandedId();
 
-    let html = `<table class="rd-cou-table rd-table--compact"><thead><tr>` +
+    let html = '<div class="rd-cou-table-wrap"><table class="rd-cou-table rd-table--compact"><thead><tr>' +
       `<th style="width:34px"></th><th>Session</th><th>Topic</th><th>Date</th><th>Homework</th><th>Status</th>` +
       `</tr></thead><tbody>`;
 
@@ -703,7 +733,6 @@
       rows.forEach(e => {
         const sel = window._couSel.has(e.id);
         const isExp = expanded === e.id;
-        const scheme = pillScheme(e.kind);
         const sid = jsId(e.id);
         html += `<tr class="rd-cou-row${sel ? ' is-selected' : ''}${e.kind === 'homework' ? ' is-due' : ''}" data-cou-id="${esc(e.id)}" onclick="rdCouOpenDrawer('${sid}')">` +
           `<td onclick="event.stopPropagation()"><input type="checkbox" ${sel ? 'checked' : ''} onchange="rdCouToggleSel('${sid}')"></td>` +
@@ -714,7 +743,7 @@
           `</span></td>` +
           `<td>${esc(e.category)}</td><td>${esc(e.dateLabel)}</td>` +
           `<td>${esc(e.hwDone + ' of ' + e.hwTotal)}</td>` +
-          `<td><span class="status-pill" data-pillscheme="${scheme}">${esc(e.status)}</span></td>` +
+          `<td>${couChip(e.kind, e.status)}</td>` +
           `</tr>`;
         if (isExp) {
           html += `<tr class="rd-cou-child"><td colspan="6">` +
@@ -774,35 +803,51 @@
     return 'With ' + e.counselor;
   }
 
+  function cardHeldLabel(e) {
+    if (!e.date) return 'Not scheduled';
+    if (e.kind === 'complete') return 'Held ' + fmtShort(e.date).replace(/ \d{4}$/, '');
+    return e.dateLabel.replace(/ · .*/, '');
+  }
+
+  function cardHwLabel(e) {
+    if (e.kind === 'notbooked' && !e.hwTotal) return '—';
+    if (e.hwTotal && e.hwDone === e.hwTotal) return e.hwDone + ' of ' + e.hwTotal + ' done';
+    if (!e.hwTotal) return '—';
+    return e.hwDone + ' of ' + e.hwTotal + (e.hwDone ? ' done' : ' set');
+  }
+
   function renderCardsView() {
     const host = document.getElementById('cou-view-cards');
     if (!host) return;
     const els = filteredSessions();
-    let html = `<div class="rd-cou-cardgrid">`;
+    let html = '<div class="rd-cou-cardgrid">';
     els.forEach(e => {
-      const scheme = pillScheme(e.kind === 'homework' ? 'homework' : e.kind);
       const pct = e.hwTotal ? Math.round((e.hwDone / e.hwTotal) * 100) : 0;
-      const hwLine = e.kind === 'notbooked' && !e.hwDone
-        ? 'Homework —'
-        : ('Homework ' + e.hwDone + ' of ' + e.hwTotal + (e.kind === 'complete' ? ' done' : (e.hwDone === 0 ? ' set' : ' done')));
-      const held = e.date
-        ? ((e.kind === 'complete' ? 'Held ' : '') + e.dateLabel.replace(/ · .*/, ''))
-        : 'Not scheduled';
-      html += `<article class="rd-cou-card${e.kind === 'homework' ? ' is-owed' : ''}${e.kind === 'notbooked' ? ' is-open' : ''}" onclick="rdCouOpenDrawer('${jsId(e.id)}')">` +
-        `<div class="rd-cou-card__top">` +
-        `<span class="rd-cou-card__num">${esc(pad2(e.num))}</span>` +
-        `<span class="status-pill" data-pillscheme="${scheme}">${esc(e.cardStatus)}</span>` +
-        `</div>` +
-        `<h3>${esc(pad2(e.num) + ' · ' + e.topic)}</h3>` +
-        `<div class="rd-cou-card__meta">${esc(held)}</div>` +
-        `<div class="rd-cou-card__bar" aria-hidden="true"><b style="width:${pct}%"></b></div>` +
-        `<div class="rd-cou-card__hw">${esc(hwLine)}</div>` +
-        `<div class="rd-cou-card__hw">Notes ${e.takeaway ? 'Written' : '—'}</div>` +
-        `<p class="rd-cou-card__note">${esc(cardNote(e))}</p>` +
-        `</article>`;
+      const note = cardNote(e);
+      const rehearsalNote = e.kind === 'notbooked' && (e.num === 6 || e.num === 7);
+      html += '<article class="rd-cou-card' + (e.kind === 'homework' ? ' is-owed' : '') + (e.kind === 'notbooked' ? ' is-unscheduled' : '') + '" onclick="rdCouOpenDrawer(\'' + jsId(e.id) + '\')">'
+        + '<div class="rd-cou-card__head">'
+        + '<span class="rd-cou-card__badge">' + esc(pad2(e.num)) + '</span>'
+        + '<div class="rd-cou-card__intro">'
+        + '<div class="rd-cou-card__title">' + esc(pad2(e.num) + ' · ' + e.topic) + '</div>'
+        + '<div class="rd-cou-card__held">' + esc(cardHeldLabel(e)) + '</div>'
+        + '</div></div>'
+        + '<div class="rd-cou-card__chips">' + couChip(e.kind === 'homework' ? 'homework' : e.kind, e.cardStatus) + '</div>'
+        + '<div class="rd-cou-card__rows">'
+        + '<div class="rd-cou-card__row"><span>Homework</span><span>' + esc(cardHwLabel(e)) + '</span></div>'
+        + '<div class="rd-cou-card__row"><span>Notes</span><span>' + esc(e.takeaway ? 'Written' : '—') + '</span></div>'
+        + '<div class="rd-cou-card__row"><span>With</span><span>' + esc(e.counselor) + '</span></div>'
+        + '</div>'
+        + '<div class="rd-cou-card__bar" aria-hidden="true"><b style="width:' + pct + '%"></b></div>';
+      if (rehearsalNote) {
+        html += '<div class="rd-cou-card__deadline"><span>Must be before</span><span>the rehearsal</span></div>';
+      } else if (note && e.kind !== 'complete') {
+        html += '<p class="rd-cou-card__note">' + esc(note) + '</p>';
+      }
+      html += '</article>';
     });
-    if (!els.length) html += `<p class="rd-cou-empty">No sessions in this view yet.</p>`;
-    html += `</div>`;
+    if (!els.length) html += '<p class="rd-cou-empty">No sessions in this view yet.</p>';
+    html += '</div>';
     host.innerHTML = html;
   }
 
@@ -833,17 +878,17 @@
       return d && d.getFullYear() === y && d.getMonth() === m && e.kind !== 'complete';
     }).length;
 
-    let html = `<div class="rd-cou-cal">` +
-      `<div class="rd-section__head">` +
-      `<div class="rd-pagehead__eyebrow">${esc(monthLabel)} · ${bookedThisMonth} session${bookedThisMonth === 1 ? '' : 's'} booked · ${f.notbooked} session${f.notbooked === 1 ? '' : 's'} still unscheduled before 6 November</div>` +
-      `<p class="rd-help">Click a day to add · drag an event to move it</p>` +
-      `<div style="margin-left:auto;display:flex;gap:6px">` +
-      `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouShiftMonth(-1)">‹</button>` +
-      `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouCalToday()">Today</button>` +
-      `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouShiftMonth(1)">›</button>` +
-      `</div></div>` +
-      `<div class="rd-cou-cal__grid">` +
-      ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<div class="rd-cou-cal__dow">${d}</div>`).join('');
+    let html = '<div class="rd-cou-cal">'
+      + '<div class="rd-cou-cal__banner">'
+      + '<div class="rd-cou-cal__banner-title">' + esc(monthLabel) + ' · ' + bookedThisMonth + ' session' + (bookedThisMonth === 1 ? '' : 's') + ' booked · ' + f.notbooked + ' session' + (f.notbooked === 1 ? '' : 's') + ' still unscheduled before 6 November</div>'
+      + '<p class="rd-cou-cal__banner-note">Sessions 06 and 07 must sit before the rehearsal on 6 November. Red entries are proposed, not booked. Amber blocks are other appointments — read-only here.</p>'
+      + '<div class="rd-cou-cal__nav">'
+      + '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouShiftMonth(-1)">‹</button>'
+      + '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouCalToday()">Today</button>'
+      + '<button type="button" class="rd-btn rd-btn--quiet" onclick="rdCouShiftMonth(1)">›</button>'
+      + '</div></div>'
+      + '<div class="rd-cou-cal__grid">'
+      + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => '<div class="rd-cou-cal__dow">' + d + '</div>').join('');
 
     for (let i = 0; i < mondayIndex; i++) html += `<div class="rd-cou-cal__day is-empty"></div>`;
     const today = todayISO();
