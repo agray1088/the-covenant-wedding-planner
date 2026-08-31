@@ -20,7 +20,7 @@
 
   /* View switcher (47a / 47b) — exact labels per fidelity pass. */
   const PAGE_VIEWS = [
-    ['bookings', 'Bookings'],
+    ['bookings', 'Honeymoon & After'],
     ['itineraryView', 'Itinerary view'],
     ['budgetView', 'Budget view']
   ];
@@ -379,12 +379,12 @@
     const panel = document.getElementById('panel-honeymoon');
     if (!panel) return;
     panel.classList.add('ued-scope', 'honeymoon-mockup');
-    if (panel.dataset.uedShell === 'honeymoon-rd-s32') {
+    if (panel.dataset.uedShell === 'honeymoon-rd-s32b') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'honeymoon-rd-s32';
+    panel.dataset.uedShell = 'honeymoon-rd-s32b';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -424,12 +424,19 @@
     const bookingsVal = f.bookingsComplete + ' of ' + Math.max(f.bookingsTotal, f.bookingsComplete);
     const postTasks = postWeddingTaskCounts();
     const thankDue = thankYouPending();
+    const bookingsPct = f.bookingsTotal
+      ? Math.round((f.bookingsComplete / f.bookingsTotal) * 100)
+      : 0;
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
       RdDepth.renderStats(host, [
         { label: 'Days until trip', value: daysVal },
-        { label: 'Bookings complete', value: bookingsVal },
+        {
+          label: 'Bookings complete',
+          value: bookingsVal,
+          target: { pct: bookingsPct }
+        },
         { label: 'Post-wedding tasks', value: postTasks.complete + ' of ' + Math.max(postTasks.total, postTasks.complete) },
-        { label: 'Thank-you notes due', value: String(thankDue) },
+        { label: 'Thank-you notes due', value: String(thankDue), attention: thankDue ? 'from Gifts' : undefined },
         { label: 'Trip budget', value: money0(f.budgetTarget) }
       ]);
       return;
