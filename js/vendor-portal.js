@@ -153,8 +153,23 @@
         { title: 'Canapés to the marquee', meta: '142 covers · passed, not stationed', time: '4:30pm', kind: 'service' },
         { title: 'Dinner service', meta: '142 covers · 9 vegetarian · 3 nut-free', time: '6:30pm', kind: 'service' },
         { title: 'Cake cut', meta: 'Coordinated with the band break', time: '9:15pm', kind: 'service' },
-        { title: 'Clear-down', meta: 'Kitchen and marquee', time: '11:00pm', kind: 'clear' }
+        { title: 'Clear-down', meta: 'Kitchen and marquee · out by 12:30am', time: '10:30pm', kind: 'clear' }
       ],
+      scheduleGantt: {
+        dayTitle: 'Sunday 8 November',
+        onSite: '1:00pm–12:30am',
+        obligations: 5,
+        crew: 10,
+        setup: '90 min',
+        lanes: [
+          { name: 'Kitchen', sub: '1:00pm · prep · Yaa + 6', bar: 'Load in', left: 4, width: 14, hatch: true },
+          { name: 'Canapés', sub: '4:30pm · 142 passed', bar: 'Canapés', left: 36, width: 14, hatch: false },
+          { name: 'Dinner', sub: '6:30pm · 142 covers', bar: 'Dinner', left: 52, width: 14, hatch: false },
+          { name: 'Cake', sub: '9:15pm · with the band break', bar: 'Cake', left: 74, width: 11, hatch: false },
+          { name: 'Clear down', sub: '10:30pm · out by 12:30am', bar: 'Clear down', left: 84, width: 14, hatch: true }
+        ],
+        footnote: 'Hatched is load-in and clear-down; solid is service. Two things depend on you and are shown so you can see them: the venue cannot flip the room until canapés are out, and the band break is set around your cake cut.'
+      },
       deps: [
         'Grace Hall waits on canapés before guests move from the lawn.',
         'The band holds the break until cake is cut.'
@@ -299,6 +314,7 @@
       vendor: { name: vendorName, category: (vendor && (vendor.type || vendor.category)) || 'Vendor' },
       counts: counts,
       slice: slice,
+      scheduleGantt: demo.scheduleGantt,
       deps: demo.deps,
       owed: demo.owed,
       contacts: contacts,
@@ -326,6 +342,73 @@
     if (tone === 'warn') return 'vp-chip is-warn';
     if (tone === 'ok') return 'vp-chip is-ok';
     return 'vp-chip';
+  }
+
+  function parseVpTime(str) {
+    var m = String(str || '').trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/i);
+    if (!m) return null;
+    var h = parseInt(m[1], 10);
+    var min = parseInt(m[2], 10);
+    var ap = (m[3] || '').toLowerCase();
+    if (ap === 'pm' && h < 12) h += 12;
+    if (ap === 'am' && h === 12) h = 0;
+    var total = h * 60 + min;
+    if (total < 12 * 60) total += 24 * 60;
+    return total - 12 * 60;
+  }
+
+  var GANTT_SPAN_MIN = 12.5 * 60;
+
+  function ganttPct(minFromNoon, widthMin) {
+    var left = Math.max(0, Math.min(92, (minFromNoon / GANTT_SPAN_MIN) * 100));
+    var width = Math.max(8, Math.min(92 - left, ((widthMin || 75) / GANTT_SPAN_MIN) * 100));
+    return { left: left, width: width };
+  }
+
+  function buildScheduleGantt(s) {
+    if (s.scheduleGantt) return s.scheduleGantt;
+    var lanes = (s.slice || []).map(function (r) {
+      var hatch = r.kind === 'loadin' || r.kind === 'clear';
+      var start = parseVpTime(r.time) || 0;
+      var widthMin = hatch ? 90 : 75;
+      var pos = ganttPct(start, widthMin);
+      var short = String(r.title || '').replace(/\s+to the marquee$/i, '').replace(/\s+service$/i, '').replace(/\s+cut$/i, ' cut');
+      return {
+        name: short.split(' ')[0] === 'Kitchen' ? 'Kitchen' : short.replace(/^Canapés.*/, 'Canapés').replace(/^Dinner.*/, 'Dinner').replace(/^Cake.*/, 'Cake').replace(/^Clear.*/, 'Clear down'),
+        sub: (r.time ? r.time + ' · ' : '') + String(r.meta || '').split('·')[0].trim(),
+        bar: hatch ? (r.kind === 'clear' ? 'Clear down' : 'Load in') : short.split(' ')[0],
+        left: pos.left,
+        width: pos.width,
+        hatch: hatch
+      };
+    });
+    return {
+      dayTitle: (function () {
+        if (s.wedding && s.wedding.date) {
+          var d = new Date(String(s.wedding.date).slice(0, 10) + 'T00:00:00');
+          if (!Number.isNaN(d.getTime())) {
+            return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+          }
+        }
+        return 'Your window on the day';
+      })(),
+      onSite: '1:00pm–12:30am',
+      obligations: lanes.length,
+      crew: 10,
+      setup: '90 min',
+      lanes: lanes,
+      footnote: 'Hatched is load-in and clear-down; solid is service. Accept confirms you can meet these times. Request a change proposes; it does not write through — the couple confirms.'
+    };
+  }
+
+  function fmtExpiresShort(iso) {
+    var d = new Date(String(iso).slice(0, 10) + 'T00:00:00');
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  }
+
+  function firstOverdueOwed(s) {
+    return (s.owed || []).find(function (r) { return r.tone === 'danger'; }) || (s.owed || [])[0] || null;
   }
 
   function renderExpired(s) {
@@ -378,23 +461,75 @@
       + '</div>';
   }
 
+  function renderBriefMobile(s) {
+    var counts = s.counts;
+    var next = (s.slice && s.slice[0]) || { title: 'Kitchen access', meta: 'Loading bay, rear', time: '1:00pm' };
+    var owed = firstOverdueOwed(s);
+    var overdueN = (s.owed || []).filter(function (r) { return r.tone === 'danger'; }).length || 1;
+    return ''
+      + '<div class="vp-m-stats">'
+      + '<div class="vp-m-stat"><span>Covers</span><strong>' + counts.covers + '</strong></div>'
+      + '<div class="vp-m-stat"><span>Veg</span><strong>' + counts.vegetarian + '</strong></div>'
+      + '<div class="vp-m-stat"><span>Nut</span><strong class="is-warn">' + counts.nutAllergy + '</strong></div>'
+      + '</div>'
+      + '<div class="vp-m-block">'
+      + '<div class="vp-m-eyebrow">Your next obligation</div>'
+      + '<div class="vp-m-title">' + esc(next.title) + '</div>'
+      + '<div class="vp-m-sub">' + esc(next.time) + ' · ' + esc(String(next.meta).split('·')[0].trim()) + '</div>'
+      + '</div>'
+      + (owed
+        ? '<div class="vp-m-block vp-m-block--danger">'
+          + '<div class="vp-m-eyebrow is-danger">You owe us · ' + overdueN + ' overdue</div>'
+          + '<div class="vp-m-title">' + esc(owed.title) + '</div>'
+          + '<div class="vp-m-sub is-danger">' + esc(owed.due) + ' · blocks venue keys</div>'
+          + '<button type="button" class="vp-m-cta" data-vp-act="upload">Upload now</button>'
+          + '</div>'
+        : '')
+      + '<div class="vp-m-block">'
+      + '<div class="vp-m-eyebrow">Call</div>'
+      + s.contacts.map(function (c) {
+        var role = String(c.role || '').replace(/\s*·.*$/, '');
+        return '<div class="vp-m-call">'
+          + '<div><div class="vp-m-call__name">' + esc(c.name) + '</div>'
+          + '<div class="vp-m-call__role">' + esc(role) + '</div></div>'
+          + '<a class="vp-m-call__btn" href="tel:' + esc(c.phone.replace(/\s+/g, '')) + '">Call</a>'
+          + '</div>';
+      }).join('')
+      + '</div>';
+  }
+
+  function renderGanttLane(lane) {
+    var barCls = 'vp-gantt__bar' + (lane.hatch ? ' is-hatch' : ' is-service');
+    return '<div class="vp-gantt__row">'
+      + '<div class="vp-gantt__label"><strong>' + esc(lane.name) + '</strong><em>' + esc(lane.sub) + '</em></div>'
+      + '<div class="vp-gantt__track">'
+      + '<div class="' + barCls + '" style="left:' + lane.left + '%;width:' + lane.width + '%">'
+      + esc(lane.bar) + '</div></div></div>';
+  }
+
   function renderSchedule(s) {
+    var g = buildScheduleGantt(s);
     return ''
       + '<div class="vp-pagehead"><div class="vp-eyebrow">Your schedule</div>'
-      + '<h1 class="vp-title">Your window on the day</h1>'
-      + '<p class="vp-sub">Only your rows · hatched bars are load-in or clear-down</p></div>'
-      + '<div class="vp-section-head"><strong>On the clock</strong><span>' + s.slice.length + ' · derived live</span></div>'
-      + s.slice.map(function (r) {
-        var hatch = r.kind === 'loadin' || r.kind === 'clear';
-        return '<div class="vp-row' + (hatch ? ' is-hatch' : '') + '"><div><strong>' + esc(r.title)
-          + '</strong><em>' + esc(r.meta) + (hatch ? ' · not service' : '') + '</em></div><span class="vp-meta">'
-          + esc(r.time) + '</span></div>';
+      + '<h1 class="vp-title">' + esc(g.dayTitle) + '</h1>'
+      + '<p class="vp-sub">Your window only — the rest of the day is not shown</p></div>'
+      + '<div class="vp-stats">'
+      + '<div class="vp-stat"><span>On site</span><strong style="font-size:15px">' + esc(g.onSite) + '</strong></div>'
+      + '<div class="vp-stat"><span>Obligations</span><strong>' + g.obligations + '</strong></div>'
+      + '<div class="vp-stat"><span>Crew</span><strong>' + g.crew + '</strong></div>'
+      + '<div class="vp-stat"><span>Setup</span><strong>' + esc(g.setup) + '</strong></div>'
+      + '</div>'
+      + '<div class="vp-gantt">'
+      + '<div class="vp-gantt__axis">'
+      + ['12pm', '2pm', '4pm', '6pm', '8pm', '10pm', '12am'].map(function (t) {
+        return '<span>' + t + '</span>';
       }).join('')
-      + '<div class="vp-section-head"><strong>Dependencies</strong><span>both ways</span></div>'
-      + s.deps.map(function (d) { return '<div class="vp-dep">' + esc(d) + '</div>'; }).join('')
-      + '<p class="vp-note">Accept confirms you can meet these times. Request a change proposes; it does not write through — the couple confirms.</p>'
+      + '</div>'
+      + g.lanes.map(renderGanttLane).join('')
+      + '</div>'
+      + '<p class="vp-note vp-note--gantt">' + esc(g.footnote) + '</p>'
       + '<div class="vp-foot">'
-      + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="accept">Accept schedule</button>'
+      + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="accept">Accept this schedule</button>'
       + '<button type="button" class="vp-btn" data-vp-act="change">Request a change</button>'
       + '</div>';
   }
@@ -535,15 +670,24 @@
     if (state.tab === 'schedule') body = renderSchedule(s);
     else if (state.tab === 'paperwork') body = renderPaperwork(s);
     else if (state.tab === 'upload') body = renderUpload(s);
+    else if (narrow) body = renderBriefMobile(s);
     else body = renderBrief(s);
 
+    var shellCls = 'vp-shell' + (narrow ? ' vp-shell--mobile' : '');
+    var bannerLong = 'Shared by ' + esc(s.sharedBy) + ' on ' + esc(s.sharedOn)
+      + ' · access expires ' + esc(fmtLong(s.expires))
+      + ' · you are seeing ' + (s.mode === 'Live' ? 'live records, not a copy' : 'a snapshot');
+    var bannerShort = 'Expires ' + esc(fmtExpiresShort(s.expires)) + ' · live records';
+
     root.innerHTML = ''
-      + '<div class="vp-shell">'
-      + '<div class="vp-topbar">'
+      + '<div class="' + shellCls + '">'
+      + '<div class="vp-topbar' + (narrow ? ' vp-topbar--mobile' : '') + '">'
       + '<span class="vp-topbar__mark">✦</span>'
-      + '<span class="vp-topbar__wedding">' + esc(s.wedding.coupleNames) + ' · ' + esc(s.wedding.dateLabel) + '</span>'
+      + (narrow
+        ? '<span class="vp-topbar__vendor-main">' + esc(s.vendor.name) + '</span>'
+        : '<span class="vp-topbar__wedding">' + esc(s.wedding.coupleNames) + ' · ' + esc(s.wedding.dateLabel) + '</span>')
       + '<span class="vp-topbar__badge">Vendor</span>'
-      + '<span class="vp-topbar__vendor">' + esc(s.vendor.name) + '</span>'
+      + (narrow ? '' : '<span class="vp-topbar__vendor">' + esc(s.vendor.name) + '</span>')
       + '</div>'
       + '<nav class="vp-tabs" aria-label="Vendor portal">'
       + TABS.map(function (t) {
@@ -551,9 +695,9 @@
           + '" data-vp-tab="' + t.id + '">' + esc(narrow ? t.short : t.label) + '</button>';
       }).join('')
       + '</nav>'
-      + '<div class="vp-banner">Shared by ' + esc(s.sharedBy) + ' on ' + esc(s.sharedOn)
-      + ' · access expires ' + esc(fmtLong(s.expires))
-      + ' · you are seeing ' + (s.mode === 'Live' ? 'live records, not a copy' : 'a snapshot') + '</div>'
+      + '<div class="vp-banner' + (narrow ? ' vp-banner--short' : '') + '">'
+      + (narrow ? bannerShort : bannerLong)
+      + '</div>'
       + '<div class="vp-body">' + body + '</div>'
       + '<div class="vp-rulebar"><button type="button" class="vp-rulebar__btn" data-vp-act="rules-open">'
       + 'Why you can see this — the scope &amp; lifecycle behind this link</button></div>'

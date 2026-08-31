@@ -561,6 +561,188 @@ html, body {
   color: var(--vp-soft);
 }
 
+/* V2 · Gantt schedule timeline */
+.vp-gantt {
+  padding: 14px 15px 18px;
+}
+.vp-gantt__axis {
+  display: flex;
+  padding-left: 96px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--vp-line);
+}
+.vp-gantt__axis span {
+  flex: 1;
+  font-size: 9.5px;
+  color: var(--vp-muted);
+  font-variant-numeric: tabular-nums;
+}
+.vp-gantt__row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--vp-hair);
+  min-height: 48px;
+}
+.vp-gantt__label {
+  flex: 0 0 96px;
+  padding: 10px 10px 10px 0;
+  min-width: 0;
+}
+.vp-gantt__label strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vp-ink);
+}
+.vp-gantt__label em {
+  display: block;
+  margin-top: 2px;
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--vp-muted);
+  line-height: 1.35;
+}
+.vp-gantt__track {
+  flex: 1;
+  position: relative;
+  border-left: 1px solid var(--vp-line);
+  min-height: 48px;
+}
+.vp-gantt__bar {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  padding: 5px 7px;
+  font-size: 10.5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.vp-gantt__bar.is-hatch {
+  background: repeating-linear-gradient(135deg, #cfdcd5 0 3px, transparent 3px 7px);
+  border-left: 1px dashed #9fb5aa;
+  color: var(--vp-soft);
+}
+.vp-gantt__bar.is-service {
+  border: 1px solid var(--vp-forest);
+  background: #eef4f1;
+  color: var(--vp-ink);
+  font-weight: 600;
+}
+.vp-note--gantt {
+  background: #fdfcfa;
+  border-top: 1px solid var(--vp-line);
+}
+
+/* V5 · Mobile brief stack */
+.vp-topbar--mobile {
+  height: 42px;
+  padding: 0 13px;
+  gap: 9px;
+}
+.vp-topbar--mobile .vp-topbar__mark { font-size: 12px; }
+.vp-topbar__vendor-main {
+  font-size: 11.5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vp-topbar--mobile .vp-topbar__badge {
+  margin-left: auto;
+  font-size: 10px;
+  opacity: .6;
+}
+.vp-banner--short {
+  padding: 9px 13px;
+  font-size: 10.5px;
+}
+.vp-m-stats {
+  display: flex;
+  border-bottom: 1px solid var(--vp-line);
+}
+.vp-m-stat {
+  flex: 1;
+  padding: 10px 13px;
+  border-right: 1px solid var(--vp-hair);
+}
+.vp-m-stat:last-child { border-right: 0; }
+.vp-m-stat span {
+  display: block;
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--vp-muted);
+  font-weight: 700;
+}
+.vp-m-stat strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--vp-ink);
+  font-variant-numeric: tabular-nums;
+}
+.vp-m-stat strong.is-warn { color: var(--vp-danger); }
+.vp-m-block {
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--vp-hair);
+}
+.vp-m-eyebrow {
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--vp-muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.vp-m-eyebrow.is-danger { color: var(--vp-danger); }
+.vp-m-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vp-ink);
+}
+.vp-m-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--vp-muted);
+}
+.vp-m-sub.is-danger { color: var(--vp-danger); }
+.vp-m-cta {
+  display: block;
+  width: 100%;
+  margin-top: 9px;
+  padding: 11px 0;
+  border: 0;
+  background: var(--vp-forest);
+  color: #F4EFE6;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+.vp-m-call {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--vp-hair);
+}
+.vp-m-call:last-child { border-bottom: 0; }
+.vp-m-call__name { font-size: 13px; color: var(--vp-body); }
+.vp-m-call__role { font-size: 11px; color: var(--vp-muted); margin-top: 2px; }
+.vp-m-call__btn {
+  margin-left: auto;
+  padding: 9px 15px;
+  background: var(--vp-forest);
+  color: #F4EFE6;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 @media (max-width: 520px) {
   .vp-app { padding: 0; background: #fff; }
   .vp-shell {
@@ -572,4 +754,7 @@ html, body {
   .vp-stats .vp-stat:nth-child(4) { display: none; }
   .vp-pagehead .vp-sub { display: none; }
   .vp-rules-sheet { width: 100%; height: 100%; max-height: 100vh; }
+  .vp-gantt__label { flex-basis: 72px; }
+  .vp-gantt__axis { padding-left: 72px; }
+  .vp-gantt__bar { font-size: 9.5px; padding: 4px 5px; }
 }
