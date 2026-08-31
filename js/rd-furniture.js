@@ -501,7 +501,10 @@
     var count = opts.count || 0;
     var names = opts.names || [];
     var fields = opts.fields || [{ key: 'meal', label: 'Meal choice', options: ['Beef', 'Chicken', 'Fish', 'Vegetarian'] }];
-    var more = Math.max(0, count - Math.min(names.length, 6));
+    var more =
+      opts.moreCount != null
+        ? opts.moreCount
+        : Math.max(0, names.length - 6);
     var named = names.slice(0, 6).join(', ') + (more ? ' and ' + more + ' more' : '');
     var conflictCount = opts.conflictCount || 0;
     var changeCount = Math.max(0, count - conflictCount);
@@ -610,11 +613,17 @@
       ['Guest names', 'Addresses', 'Budget', "Other vendors' pricing", 'Covenant', 'Notes'];
     var seeList = opts.see || ['Names', 'RSVP', 'Table'];
     var withName = opts.withName || 'Add a recipient';
+    var whoSees = (function () {
+      if (withName.indexOf('Add a') === 0) return 'they see';
+      var parts = withName.split('·');
+      var person = String(parts.length > 1 ? parts[1] : parts[0]).trim();
+      return (person || 'they') + ' sees';
+    })();
     var note =
       opts.note ||
       ('The link shows live records, not a copy. Editing this page updates what ' +
-        (withName.indexOf('Add a') === 0 ? 'they' : withName.split('·')[0].trim().split(' ')[0]) +
-        ' see. Revoking stops the link immediately — but it cannot recall a PDF already downloaded.');
+        whoSees +
+        '. Revoking stops the link immediately — but it cannot recall a PDF already downloaded.');
     var overlay = overlayShell(
       'rd-share-overlay',
       'rd-share-overlay',
