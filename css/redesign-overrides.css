@@ -2533,27 +2533,35 @@ body.rd-scope .rd-pagehead .m-page-guide-dismiss {
   border-top: none !important;
   box-shadow: none !important;
 }
-#main#main .rd-page-meta + .page-scripture-footer .psf-text {
-  font-style: normal !important;
+/* Verse + book/chapter/verse share one size (beats .88rem / 8.1px cite legacy). */
+#main#main .page-scripture-footer .psf-text,
+#main#main .page-scripture-footer .psf-text em,
+#main#main .page-scripture-footer .psf-text cite,
+#main#main .rd-page-meta + .page-scripture-footer .psf-text,
+#main#main .rd-page-meta + .page-scripture-footer .psf-text em,
+#main#main .rd-page-meta + .page-scripture-footer .psf-text cite {
   font-size: var(--type-meta) !important;
-  color: var(--text-muted) !important;
+  line-height: 1.45 !important;
   font-family: var(--font-ui) !important;
 }
-#main#main .rd-page-meta + .page-scripture-footer .psf-text em {
+#main#main .rd-page-meta + .page-scripture-footer .psf-text,
+#main#main .page-scripture-footer .psf-text {
   font-style: normal !important;
-  font-family: var(--font-ui) !important;
-  font-size: inherit !important;
+  color: var(--text-muted) !important;
+}
+#main#main .rd-page-meta + .page-scripture-footer .psf-text em,
+#main#main .page-scripture-footer .psf-text em {
+  font-style: normal !important;
   display: inline !important;
 }
-#main#main .rd-page-meta + .page-scripture-footer .psf-text cite {
+#main#main .rd-page-meta + .page-scripture-footer .psf-text cite,
+#main#main .page-scripture-footer .psf-text cite {
   display: inline !important;
   margin-left: 0.4em !important;
   margin-top: 0 !important;
-  font-size: inherit !important;
   letter-spacing: 0.02em !important;
   text-transform: none !important;
   color: var(--text-subtle) !important;
-  font-family: var(--font-ui) !important;
   font-weight: 500 !important;
 }
 /* Tasks: stats should not sit above couple band (flex source order). */
