@@ -272,12 +272,12 @@
     if (!panel) return;
     panel.classList.add('ued-scope', 'essentials-mockup');
     panel.removeAttribute('data-essentials-v2');
-    if (panel.dataset.uedShell === 'ess-rd17a') {
+    if (panel.dataset.uedShell === 'ess-rd-s31b') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'ess-rd17a';
+    panel.dataset.uedShell = 'ess-rd-s31b';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -368,8 +368,9 @@
     const mode = window._essMode || 'checklist';
     let left = '';
     if (mode === 'print') {
-      left = filterChip('Group by', 'kit') +
-        `<span class="rd-ess-toolbar-note">Paper: A4 · Tick boxes · ${essFigures().pages} pages</span>`;
+      left = `<button type="button" class="rd-chip is-active">Group by: bag</button>` +
+        `<button type="button" class="rd-chip">Paper: A4</button>` +
+        `<span class="rd-ess-toolbar-note">Tick boxes · ${essFigures().pages} pages</span>`;
     } else if (mode === 'byPerson') {
       left = filterChip('Person', 'person') + filterChip('Kit', 'kit') +
         `<button type="button" class="rd-chip${window._essShowUnassigned ? ' is-active' : ''}" onclick="rdEssToggleUnassigned()">Show unassigned${window._essShowUnassigned ? '<span class="rd-chip__clear">✕</span>' : ''}</button>` +
@@ -382,8 +383,8 @@
     host.innerHTML = left +
       `<div class="rd-toolbar__right">` +
       `<div class="rd-viewswitch" role="group" aria-label="Essentials view">` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'checklist' ? ' is-active' : ''}" onclick="rdSetEssView('checklist')">Checklist</button>` +
-      `<button type="button" class="rd-viewswitch__item${mode === 'byPerson' ? ' is-active' : ''}" onclick="rdSetEssView('byPerson')">By person</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'checklist' ? ' is-active' : ''}" onclick="rdSetEssView('checklist')">Essentials Checklist</button>` +
+      `<button type="button" class="rd-viewswitch__item${mode === 'byPerson' ? ' is-active' : ''}" onclick="rdSetEssView('byPerson')">By person view</button>` +
       `<button type="button" class="rd-viewswitch__item${mode === 'print' ? ' is-active' : ''}" onclick="rdSetEssView('print')">Print view</button>` +
       `</div></div>`;
   }
@@ -657,17 +658,19 @@
       return a.localeCompare(b);
     });
 
-    let html = `<div class="rd-ess-printsheet">` +
-      `<div class="rd-ess-printsheet__head">` +
+    let html = `<div class="rd-ess-printsheet__head">` +
       `<span>${esc(names.bride)} &amp; ${esc(names.groom)}${dateLabel ? ' · ' + esc(dateLabel) : ''}</span>` +
       `<span>Essentials · packing list</span></div>`;
 
     keys.forEach(key => {
       const g = printGroups.get(key);
       const outstanding = g.items.filter(x => x.status !== 'In the bag').length;
-      const meta = g.person === 'Nobody assigned'
+      let meta = g.person === 'Nobody assigned'
         ? (g.items.length + ' items · assign before the rehearsal')
         : (g.items.length + ' items' + (outstanding ? ' · ' + outstanding + ' outstanding' : ''));
+      const critical = g.person !== 'Nobody assigned'
+        && g.items.some(x => x.critical && x.status !== 'In the bag');
+      if (critical && !outstanding) meta = g.items.length + ' items · day-of critical';
       html += `<div class="rd-ess-printsheet__group">` +
         `<div class="rd-ess-printsheet__gtitle"><span>${esc(g.person)} · ${esc(g.bag)}</span><em>${esc(meta)}</em></div>`;
       g.items.forEach(x => {
@@ -686,8 +689,9 @@
       html += `<p class="rd-help">Nothing to print yet.</p>`;
     }
     html += `<div class="rd-ess-printsheet__foot"><span>Printed ${esc(new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }))}</span><span>Page 1 of ${essFigures().pages}</span></div>`;
-    html += `</div>`;
-    host.innerHTML = html;
+    host.innerHTML =
+      `<div class="rd-ess-proof"><div class="rd-ess-printsheet">${html}</div></div>` +
+      `<p class="rd-ess-proof__note">Print always renders light, even when the app is in dark mode. Unassigned items print under their own heading — a packing list that drops what nobody claimed is worse than no list. Class A · working · real ☐ boxes · grouped by bag.</p>`;
   }
 
   /* ── Drawer ──────────────────────────────────────────────────────────── */
@@ -774,7 +778,7 @@
     slot.innerHTML =
       `<aside class="rd-drawer rd-ess-drawer" aria-label="Essentials item">` +
       `<div class="rd-drawer__head">` +
-      `<div class="rd-drawer__eyebrow">Item · ${esc(x.kit.toLowerCase())}</div>` +
+      `<div class="rd-drawer__eyebrow">Essentials item · ${esc(x.kit.toLowerCase())}</div>` +
       `<h2 class="rd-drawer__title">${esc(x.item)}</h2>` +
       `<div class="rd-drawer__chips">` +
       statusPill(x.status) +
