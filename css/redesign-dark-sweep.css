@@ -479,6 +479,17 @@ body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd__save-note {
   background: var(--surface-sunken) !important;
   color: var(--text-muted) !important;
 }
+body.dark-mode #profile-drawer.rd-profile-drawer .btn-forest,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .btn-forest {
+  background: #2f5645 !important;
+  border-color: #2f5645 !important;
+  color: #f4efe6 !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .btn-forest:hover,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .btn-forest:hover {
+  background: #3a6b55 !important;
+  border-color: #3a6b55 !important;
+}
 
 /* ── Setup stat strip (night alias only in overrides; map dark-mode) ─────── */
 body.dark-mode #main#main #panel-setup .rd-setup-statstrip,
