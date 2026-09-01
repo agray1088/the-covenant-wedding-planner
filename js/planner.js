@@ -3437,6 +3437,7 @@ function applyDarkMode(on){
   const active = !!on;
   document.body.classList.toggle('dark-mode', active);
   document.body.setAttribute('data-theme', active ? 'dark' : 'light');
+  try { localStorage.setItem('covenant_dark_mode', active ? '1' : '0'); } catch (e) { /* private mode */ }
   const btn = document.getElementById('dark-mode-btn');
   if (btn) btn.innerHTML = active ? '☀️ <span class="btn-text">Light Mode</span>' : '🌙 <span class="btn-text">Dark Mode</span>';
   /* Re-apply the theme so inline theme colours are cleared in dark mode and

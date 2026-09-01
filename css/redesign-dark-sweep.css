@@ -293,3 +293,149 @@ body[data-theme="dark"] #main#main .m-soft,
 body[data-theme="dark"] #main#main .ued-page {
   background: transparent !important;
 }
+
+/* ── Essentials banner (planner-dark-editorial.css retired) ─────────────── */
+body.dark-mode .simple-mode-banner,
+body[data-theme="dark"] .simple-mode-banner {
+  background: var(--status-gold-bg) !important;
+  border-color: var(--status-gold-border) !important;
+  color: var(--text-body) !important;
+}
+body.dark-mode .simple-mode-banner strong,
+body[data-theme="dark"] .simple-mode-banner strong {
+  color: var(--status-gold-text) !important;
+}
+body.dark-mode .simple-mode-banner-dismiss,
+body[data-theme="dark"] .simple-mode-banner-dismiss {
+  background: transparent !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-muted) !important;
+}
+body.dark-mode .simple-mode-banner-dismiss:hover,
+body[data-theme="dark"] .simple-mode-banner-dismiss:hover {
+  background: var(--surface-active) !important;
+}
+
+/* ── Table rows: hardcoded #fdfaf4 / #f4f7fb in redesign-overrides ─────── */
+body.dark-mode #main#main table tbody tr.is-selected:not(.is-drawer-focus) > td,
+body.dark-mode #main#main table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
+body.dark-mode body.rd-scope table tbody tr.is-selected:not(.is-drawer-focus) > td,
+body.dark-mode body.rd-scope table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
+body[data-theme="dark"] #main#main table tbody tr.is-selected:not(.is-drawer-focus) > td,
+body[data-theme="dark"] #main#main table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
+body[data-theme="dark"] body.rd-scope table tbody tr.is-selected:not(.is-drawer-focus) > td,
+body[data-theme="dark"] body.rd-scope table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td {
+  background-color: var(--surface-selected) !important;
+}
+body.dark-mode #main#main table tbody tr.is-drawer-focus > td,
+body.dark-mode #main#main table tbody tr.is-open > td,
+body.dark-mode body.rd-scope table tbody tr.is-drawer-focus > td,
+body.dark-mode body.rd-scope table tbody tr.is-open > td,
+body[data-theme="dark"] #main#main table tbody tr.is-drawer-focus > td,
+body[data-theme="dark"] #main#main table tbody tr.is-open > td,
+body[data-theme="dark"] body.rd-scope table tbody tr.is-drawer-focus > td,
+body[data-theme="dark"] body.rd-scope table tbody tr.is-open > td {
+  background-color: var(--surface-focused) !important;
+}
+
+/* ── Calendar: week rail, agenda active, chip categories ───────────────── */
+body.dark-mode #main#main #panel-calendar .rd-week__times,
+body.dark-mode body.rd-scope #panel-calendar .rd-week__times,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__times,
+body[data-theme="dark"] body.rd-scope #panel-calendar .rd-week__times {
+  background: var(--surface-sunken) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .rd-agenda__row.is-active,
+body.dark-mode body.rd-scope #panel-calendar .rd-agenda__row.is-active,
+body[data-theme="dark"] #main#main #panel-calendar .rd-agenda__row.is-active,
+body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda__row.is-active {
+  background: var(--surface-focused) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .smart-event-chip,
+body.dark-mode body.rd-scope #panel-calendar .smart-event-chip,
+body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
+body[data-theme="dark"] body.rd-scope #panel-calendar .smart-event-chip {
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
+  background: var(--smart-chip-fill) !important;
+  background-color: var(--smart-chip-fill) !important;
+  color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
+}
+
+/* ── Appointments panel hardcoded row fills ────────────────────────────── */
+body.dark-mode #main#main #panel-appointments .cwp-table tbody tr.is-drawer-focus td,
+body.dark-mode body.rd-scope #panel-appointments .cwp-table tbody tr.is-drawer-focus td,
+body[data-theme="dark"] #main#main #panel-appointments .cwp-table tbody tr.is-drawer-focus td,
+body[data-theme="dark"] body.rd-scope #panel-appointments .cwp-table tbody tr.is-drawer-focus td {
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #main#main #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body.dark-mode body.rd-scope #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body[data-theme="dark"] #main#main #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body[data-theme="dark"] body.rd-scope #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
+  background: var(--surface-selected) !important;
+}
+body.dark-mode #main#main #panel-appointments .rd-appt-cal__dayrow.is-today,
+body.dark-mode body.rd-scope #panel-appointments .rd-appt-cal__dayrow.is-today,
+body[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__dayrow.is-today,
+body[data-theme="dark"] body.rd-scope #panel-appointments .rd-appt-cal__dayrow.is-today {
+  background: var(--surface-sunken) !important;
+}
+body.dark-mode #main#main #panel-appointments .rd-appt-agenda__row:hover,
+body.dark-mode body.rd-scope #panel-appointments .rd-appt-agenda__row:hover,
+body[data-theme="dark"] #main#main #panel-appointments .rd-appt-agenda__row:hover,
+body[data-theme="dark"] body.rd-scope #panel-appointments .rd-appt-agenda__row:hover {
+  background: var(--surface-focused) !important;
+}
+
+/* ── Guests / gifts / vendors: panel-specific hardcoded fills ───────────── */
+body.dark-mode #main#main #panel-guests .cwp-table tbody tr.is-drawer-focus td,
+body[data-theme="dark"] #main#main #panel-guests .cwp-table tbody tr.is-drawer-focus td {
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #main#main #panel-guests .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body[data-theme="dark"] #main#main #panel-guests .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
+  background: var(--surface-selected) !important;
+}
+
+body.dark-mode #main#main #panel-gifts .cwp-table tbody tr.is-drawer-focus td,
+body.dark-mode #main#main #panel-gifts .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body.dark-mode #main#main #panel-vendors .cwp-table tbody tr.is-drawer-focus td,
+body.dark-mode #main#main #panel-vendors .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body[data-theme="dark"] #main#main #panel-gifts .cwp-table tbody tr.is-drawer-focus td,
+body[data-theme="dark"] #main#main #panel-gifts .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body[data-theme="dark"] #main#main #panel-vendors .cwp-table tbody tr.is-drawer-focus td,
+body[data-theme="dark"] #main#main #panel-vendors .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #main#main #panel-gifts .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body.dark-mode #main#main #panel-vendors .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body[data-theme="dark"] #main#main #panel-gifts .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body[data-theme="dark"] #main#main #panel-vendors .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
+  background: var(--surface-selected) !important;
+}
+
+/* ── Setup page sections ───────────────────────────────────────────────── */
+body.dark-mode #main#main #panel-setup .rd-setup-section,
+body.dark-mode #main#main #panel-setup .rd-setup-band,
+body[data-theme="dark"] #main#main #panel-setup .rd-setup-section,
+body[data-theme="dark"] #main#main #panel-setup .rd-setup-band {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+/* ── Profile drawer ────────────────────────────────────────────────────── */
+body.dark-mode #profile-drawer.rd-profile-drawer,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-access-row:nth-child(even),
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-access-row:nth-child(even) {
+  background: var(--surface-sunken) !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab:hover,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tab:hover {
+  color: var(--text-body) !important;
+}
