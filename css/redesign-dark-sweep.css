@@ -1744,39 +1744,142 @@ body.rd-scope.dark-mode .rd-settings-window .rd-set__nav-item.is-active {
   border-left-color: var(--gold) !important;
 }
 
-/* Underline section tabs (ceremony, entertainment, mood, packets, logistics, shotlist) */
-body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs,
-body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs,
-body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs {
+/* Underline section tabs (ceremony, entertainment, mood, packets, logistics, shotlist)
+   Needs 3-ID specificity to beat #main#main #panel-* hardcoded hex in overrides. */
+body.dark-mode #main#main #panel-ceremony .rd-sectiontabs,
+body.dark-mode #main#main #panel-entertainment .rd-sectiontabs,
+body.dark-mode #main#main #panel-mood .rd-sectiontabs,
+body.dark-mode #main#main #panel-logistics .rd-sectiontabs,
+body.dark-mode #main#main #panel-packets .rd-sectiontabs,
+body.dark-mode #main#main #panel-shotlist .rd-sectiontabs,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-sectiontabs,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-sectiontabs,
+body[data-theme="dark"] #main#main #panel-mood .rd-sectiontabs,
+body[data-theme="dark"] #main#main #panel-logistics .rd-sectiontabs,
+body[data-theme="dark"] #main#main #panel-packets .rd-sectiontabs,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-sectiontabs,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-sectiontabs,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-sectiontabs,
+body.rd-scope.dark-mode #main#main #panel-mood .rd-sectiontabs,
+body.rd-scope.dark-mode #main#main #panel-logistics .rd-sectiontabs,
+body.rd-scope.dark-mode #main#main #panel-packets .rd-sectiontabs,
+body.rd-scope.dark-mode #main#main #panel-shotlist .rd-sectiontabs {
   background: transparent !important;
   border-bottom-color: var(--border-subtle) !important;
 }
-body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active),
-body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active),
-body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active) {
+body.dark-mode #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active),
+body.dark-mode #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active),
+body.dark-mode #main#main #panel-mood .rd-sectiontabs__item:not(.is-active),
+body.dark-mode #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active),
+body.dark-mode #main#main #panel-packets .rd-sectiontabs__item:not(.is-active),
+body.dark-mode #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active),
+body.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main #panel-mood .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main #panel-packets .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main #panel-mood .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main #panel-packets .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active) {
   background: transparent !important;
   color: var(--text-muted) !important;
   border-color: transparent !important;
 }
-body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):hover,
-body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):focus-visible,
-body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):hover,
-body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):focus-visible,
-body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):hover,
-body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):focus-visible {
+body.dark-mode #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.dark-mode #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.dark-mode #main#main #panel-mood .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main #panel-mood .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.dark-mode #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.dark-mode #main#main #panel-packets .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main #panel-packets .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.dark-mode #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main #panel-mood .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main #panel-mood .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main #panel-packets .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main #panel-packets .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main #panel-mood .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main #panel-mood .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main #panel-logistics .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main #panel-packets .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main #panel-packets .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item:not(.is-active):focus-visible {
   background: var(--surface-focused) !important;
   color: var(--text-body) !important;
 }
-body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item.is-active,
-body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__item.is-active,
-body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item.is-active {
+body.dark-mode #main#main #panel-ceremony .rd-sectiontabs__item.is-active,
+body.dark-mode #main#main #panel-entertainment .rd-sectiontabs__item.is-active,
+body.dark-mode #main#main #panel-mood .rd-sectiontabs__item.is-active,
+body.dark-mode #main#main #panel-logistics .rd-sectiontabs__item.is-active,
+body.dark-mode #main#main #panel-packets .rd-sectiontabs__item.is-active,
+body.dark-mode #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item.is-active,
+body.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main #panel-mood .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main #panel-logistics .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main #panel-packets .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main #panel-mood .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main #panel-logistics .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main #panel-packets .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main #panel-packets .rd-pkt-packettabs .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item.is-active {
   background: transparent !important;
   color: var(--forest-lt) !important;
   border-bottom-color: var(--forest) !important;
 }
-body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__count,
-body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__count,
-body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__count {
+body.dark-mode #main#main #panel-ceremony .rd-sectiontabs__count,
+body.dark-mode #main#main #panel-entertainment .rd-sectiontabs__count,
+body.dark-mode #main#main #panel-mood .rd-sectiontabs__count,
+body.dark-mode #main#main #panel-logistics .rd-sectiontabs__count,
+body.dark-mode #main#main #panel-packets .rd-sectiontabs__count,
+body.dark-mode #main#main #panel-shotlist .rd-sectiontabs__count,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-sectiontabs__count,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-sectiontabs__count,
+body[data-theme="dark"] #main#main #panel-mood .rd-sectiontabs__count,
+body[data-theme="dark"] #main#main #panel-logistics .rd-sectiontabs__count,
+body[data-theme="dark"] #main#main #panel-packets .rd-sectiontabs__count,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-sectiontabs__count,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-sectiontabs__count,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-sectiontabs__count,
+body.rd-scope.dark-mode #main#main #panel-mood .rd-sectiontabs__count,
+body.rd-scope.dark-mode #main#main #panel-logistics .rd-sectiontabs__count,
+body.rd-scope.dark-mode #main#main #panel-packets .rd-sectiontabs__count,
+body.rd-scope.dark-mode #main#main #panel-shotlist .rd-sectiontabs__count {
   color: var(--text-subtle) !important;
 }
 

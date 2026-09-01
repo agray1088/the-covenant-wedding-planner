@@ -297,7 +297,7 @@ async function scanLabelTabRegion(page, cdp, { panelId, rootSelector, label }) {
     await wait(400);
   }
 
-  const staticOffenders = await page.evaluate(({ panelId, rootSelector, threshold, labelTabSelector, brownFg, darkBg }) => {
+  const staticOffenders = await page.evaluate(({ panelId, rootSelector, threshold, labelTabSelector, brownFg, darkBg, label }) => {
     const root = rootSelector ? document.querySelector(rootSelector) : document.getElementById(`panel-${panelId}`);
     if (!root) return [];
     if (panelId && !root.classList.contains('active')) return [];
@@ -358,7 +358,7 @@ async function scanLabelTabRegion(page, cdp, { panelId, rootSelector, label }) {
   }, {
     panelId,
     rootSelector,
-    label,
+    label: label || panelId || rootSelector,
     labelTabSelector: LABEL_TAB_SELECTOR,
     threshold: LUMINANCE_THRESHOLD,
     brownFg: BROWN_FG_LUM_THRESHOLD,
