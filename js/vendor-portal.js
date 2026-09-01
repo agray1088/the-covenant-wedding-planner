@@ -66,18 +66,18 @@
     rulesOpen: false
   };
 
-  /** Match planner dark-mode preference (saved setup.darkMode, sync key, or system). */
+  /** Match planner dark-mode preference (sync key, saved setup.darkMode, or system). */
   function applyVpDarkMode() {
     var on = false;
     try {
-      var data = loadPlannerData();
-      if (data && data.setup && typeof data.setup.darkMode === 'boolean') {
-        on = data.setup.darkMode;
-      } else {
-        var sync = localStorage.getItem('covenant_dark_mode');
-        if (sync === '1') on = true;
-        else if (sync === '0') on = false;
-        else if (window.matchMedia) {
+      var sync = localStorage.getItem('covenant_dark_mode');
+      if (sync === '1') on = true;
+      else if (sync === '0') on = false;
+      else {
+        var data = loadPlannerData();
+        if (data && data.setup && typeof data.setup.darkMode === 'boolean') {
+          on = data.setup.darkMode;
+        } else if (window.matchMedia) {
           on = window.matchMedia('(prefers-color-scheme: dark)').matches;
         }
       }
