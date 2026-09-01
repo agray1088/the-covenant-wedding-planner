@@ -1404,3 +1404,389 @@ body.rd-scope.dark-mode.editorial-v4 #sidebar .nav-item:hover {
   background: var(--surface-active) !important;
   color: var(--text-body) !important;
 }
+
+/* ── dm-sweep8: Labels + tabs (all systems, all states) ───────────────────── */
+
+/* Labels — stat strips, field labels, eyebrows, captions, chip labels */
+body.dark-mode #main#main .m-stat-label,
+body.dark-mode #main#main .rd-stat__label,
+body.dark-mode #main#main .ued-stat-label,
+body.dark-mode #main#main .m-stat-sub,
+body.dark-mode #main#main .rd-stat__note,
+body.dark-mode #main#main .m-eyebrow,
+body.dark-mode #main#main .rd-pagehead__eyebrow,
+body.dark-mode #main#main .rd-drawer__eyebrow,
+body.dark-mode #main#main [class*="__eyebrow"],
+body.dark-mode #main#main .ued-caption,
+body.dark-mode #main#main [class*="caption"]:not(.vcmp-caption),
+body.dark-mode #main#main .setup-field-label,
+body.dark-mode #main#main .field-label,
+body.dark-mode #main#main .et-field-label,
+body.dark-mode #main#main .rd-field__label,
+body.dark-mode #main#main .rd-drawer__label,
+body.dark-mode #main#main .suggest-chips-label,
+body.dark-mode #main#main [class*="chip-label"],
+body.dark-mode #main#main .rd-setup-menu-caption,
+body.dark-mode #profile-drawer.rd-profile-drawer .pd-sec-head,
+body.dark-mode #profile-drawer.rd-profile-drawer .pd-sec-head .pd-hint,
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd__role,
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-alert-note,
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-access-row strong,
+body[data-theme="dark"] #main#main .m-stat-label,
+body[data-theme="dark"] #main#main .rd-stat__label,
+body[data-theme="dark"] #main#main .ued-stat-label,
+body[data-theme="dark"] #main#main .m-stat-sub,
+body[data-theme="dark"] #main#main .rd-stat__note,
+body[data-theme="dark"] #main#main .m-eyebrow,
+body[data-theme="dark"] #main#main .rd-pagehead__eyebrow,
+body[data-theme="dark"] #main#main .rd-drawer__eyebrow,
+body[data-theme="dark"] #main#main [class*="__eyebrow"],
+body[data-theme="dark"] #main#main .ued-caption,
+body[data-theme="dark"] #main#main [class*="caption"]:not(.vcmp-caption),
+body[data-theme="dark"] #main#main .setup-field-label,
+body[data-theme="dark"] #main#main .field-label,
+body[data-theme="dark"] #main#main .et-field-label,
+body[data-theme="dark"] #main#main .rd-field__label,
+body[data-theme="dark"] #main#main .rd-drawer__label,
+body[data-theme="dark"] #main#main .suggest-chips-label,
+body[data-theme="dark"] #main#main [class*="chip-label"],
+body[data-theme="dark"] #main#main .rd-setup-menu-caption,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-sec-head,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-sec-head .pd-hint,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd__role,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-alert-note,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-access-row strong,
+body.rd-scope.dark-mode #main#main .m-stat-label,
+body.rd-scope.dark-mode #main#main .rd-stat__label,
+body.rd-scope.dark-mode #main#main .ued-stat-label,
+body.rd-scope.dark-mode #main#main .m-stat-sub,
+body.rd-scope.dark-mode #main#main .rd-stat__note,
+body.rd-scope.dark-mode #main#main .m-eyebrow,
+body.rd-scope.dark-mode #main#main .rd-pagehead__eyebrow,
+body.rd-scope.dark-mode #main#main .rd-drawer__eyebrow,
+body.rd-scope.dark-mode #main#main [class*="__eyebrow"],
+body.rd-scope.dark-mode #main#main .ued-caption,
+body.rd-scope.dark-mode #main#main [class*="caption"]:not(.vcmp-caption),
+body.rd-scope.dark-mode #main#main .setup-field-label,
+body.rd-scope.dark-mode #main#main .field-label,
+body.rd-scope.dark-mode #main#main .et-field-label,
+body.rd-scope.dark-mode #main#main .rd-field__label,
+body.rd-scope.dark-mode #main#main .rd-drawer__label,
+body.rd-scope.dark-mode #main#main .suggest-chips-label,
+body.rd-scope.dark-mode #main#main [class*="chip-label"],
+body.rd-scope.dark-mode #main#main .rd-setup-menu-caption,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-sec-head,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-sec-head .pd-hint,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd__role,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-alert-note,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-access-row strong {
+  color: var(--text-subtle) !important;
+}
+
+/* Label/chip backgrounds that leak cream/white in overrides */
+body.dark-mode #main#main .suggest-chip,
+body.dark-mode #main#main .rd-sectiontabs__count,
+body[data-theme="dark"] #main#main .suggest-chip,
+body[data-theme="dark"] #main#main .rd-sectiontabs__count,
+body.rd-scope.dark-mode #main#main .suggest-chip,
+body.rd-scope.dark-mode #main#main .rd-sectiontabs__count {
+  background-color: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-muted) !important;
+}
+
+/* Tab strip containers — no cream/white shells */
+body.dark-mode #main#main .rd-sectiontabs,
+body.dark-mode #main#main .rd-viewswitch,
+body.dark-mode #main#main .rd-seg,
+body.dark-mode #main#main .rd-tabs,
+body.dark-mode #main#main .rd-subnav,
+body.dark-mode #main#main .rd-drawer__tabs,
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tabs,
+body.dark-mode .rd-settings-window .rd-set__nav,
+body[data-theme="dark"] #main#main .rd-sectiontabs,
+body[data-theme="dark"] #main#main .rd-viewswitch,
+body[data-theme="dark"] #main#main .rd-seg,
+body[data-theme="dark"] #main#main .rd-tabs,
+body[data-theme="dark"] #main#main .rd-subnav,
+body[data-theme="dark"] #main#main .rd-drawer__tabs,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tabs,
+body[data-theme="dark"] .rd-settings-window .rd-set__nav,
+body.rd-scope.dark-mode #main#main .rd-sectiontabs,
+body.rd-scope.dark-mode #main#main .rd-viewswitch,
+body.rd-scope.dark-mode #main#main .rd-seg,
+body.rd-scope.dark-mode #main#main .rd-tabs,
+body.rd-scope.dark-mode #main#main .rd-subnav,
+body.rd-scope.dark-mode #main#main .rd-drawer__tabs,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tabs,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__nav {
+  background-color: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+/* Chip-style tab items — default */
+body.dark-mode #main#main .rd-sectiontabs__item:not(.is-active),
+body.dark-mode #main#main .rd-viewswitch__item:not(.is-active):not(.active),
+body.dark-mode #main#main .rd-viewswitch > button:not(.is-active):not(.active),
+body.dark-mode #main#main .rd-viewswitch > *:not(.is-active):not(.active),
+body.dark-mode #main#main .rd-seg__opt:not(.is-active),
+body[data-theme="dark"] #main#main .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main .rd-viewswitch__item:not(.is-active):not(.active),
+body[data-theme="dark"] #main#main .rd-viewswitch > button:not(.is-active):not(.active),
+body[data-theme="dark"] #main#main .rd-viewswitch > *:not(.is-active):not(.active),
+body[data-theme="dark"] #main#main .rd-seg__opt:not(.is-active),
+body.rd-scope.dark-mode #main#main .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main .rd-viewswitch__item:not(.is-active):not(.active),
+body.rd-scope.dark-mode #main#main .rd-viewswitch > button:not(.is-active):not(.active),
+body.rd-scope.dark-mode #main#main .rd-viewswitch > *:not(.is-active):not(.active),
+body.rd-scope.dark-mode #main#main .rd-seg__opt:not(.is-active) {
+  background-color: transparent !important;
+  color: var(--text-muted) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+/* Chip-style tab items — hover / focus (not active) */
+body.dark-mode #main#main .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.dark-mode #main#main .rd-viewswitch__item:not(.is-active):hover,
+body.dark-mode #main#main .rd-viewswitch__item:not(.is-active):focus-visible,
+body.dark-mode #main#main .rd-viewswitch > button:not(.is-active):hover,
+body.dark-mode #main#main .rd-viewswitch > button:not(.is-active):focus-visible,
+body.dark-mode #main#main .rd-seg__opt:not(.is-active):hover,
+body.dark-mode #main#main .rd-seg__opt:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main .rd-viewswitch__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main .rd-viewswitch__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main .rd-viewswitch > button:not(.is-active):hover,
+body[data-theme="dark"] #main#main .rd-viewswitch > button:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main .rd-seg__opt:not(.is-active):hover,
+body[data-theme="dark"] #main#main .rd-seg__opt:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main .rd-viewswitch__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main .rd-viewswitch__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main .rd-viewswitch > button:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main .rd-viewswitch > button:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main .rd-seg__opt:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main .rd-seg__opt:not(.is-active):focus-visible {
+  background-color: var(--surface-focused) !important;
+  color: var(--text-body) !important;
+}
+
+/* Chip-style tab items — active (forest fill per tokens) */
+body.dark-mode #main#main .rd-sectiontabs__item.is-active,
+body.dark-mode #main#main .rd-viewswitch__item.is-active,
+body.dark-mode #main#main .rd-viewswitch__item.active,
+body.dark-mode #main#main .rd-viewswitch > .is-active,
+body.dark-mode #main#main .rd-viewswitch > .active,
+body.dark-mode #main#main .rd-viewswitch > button.is-active,
+body.dark-mode #main#main .rd-viewswitch > button.active,
+body.dark-mode #main#main .rd-seg__opt.is-active,
+body[data-theme="dark"] #main#main .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main .rd-viewswitch__item.is-active,
+body[data-theme="dark"] #main#main .rd-viewswitch__item.active,
+body[data-theme="dark"] #main#main .rd-viewswitch > .is-active,
+body[data-theme="dark"] #main#main .rd-viewswitch > .active,
+body[data-theme="dark"] #main#main .rd-viewswitch > button.is-active,
+body[data-theme="dark"] #main#main .rd-viewswitch > button.active,
+body[data-theme="dark"] #main#main .rd-seg__opt.is-active,
+body.rd-scope.dark-mode #main#main .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main .rd-viewswitch__item.is-active,
+body.rd-scope.dark-mode #main#main .rd-viewswitch__item.active,
+body.rd-scope.dark-mode #main#main .rd-viewswitch > .is-active,
+body.rd-scope.dark-mode #main#main .rd-viewswitch > .active,
+body.rd-scope.dark-mode #main#main .rd-viewswitch > button.is-active,
+body.rd-scope.dark-mode #main#main .rd-viewswitch > button.active,
+body.rd-scope.dark-mode #main#main .rd-seg__opt.is-active {
+  background-color: var(--forest) !important;
+  color: var(--text-on-dark) !important;
+  border-color: var(--forest) !important;
+}
+
+/* Top tab bar + subnav items */
+body.dark-mode #main#main .rd-tab:not(.is-active):not([aria-current="page"]),
+body.dark-mode #main#main .rd-subnav__item:not(.is-active):not([aria-current="page"]),
+body[data-theme="dark"] #main#main .rd-tab:not(.is-active):not([aria-current="page"]),
+body[data-theme="dark"] #main#main .rd-subnav__item:not(.is-active):not([aria-current="page"]),
+body.rd-scope.dark-mode #main#main .rd-tab:not(.is-active):not([aria-current="page"]),
+body.rd-scope.dark-mode #main#main .rd-subnav__item:not(.is-active):not([aria-current="page"]) {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main .rd-tab:hover,
+body.dark-mode #main#main .rd-subnav__item:hover,
+body[data-theme="dark"] #main#main .rd-tab:hover,
+body[data-theme="dark"] #main#main .rd-subnav__item:hover,
+body.rd-scope.dark-mode #main#main .rd-tab:hover,
+body.rd-scope.dark-mode #main#main .rd-subnav__item:hover {
+  color: var(--text-body) !important;
+  background: transparent !important;
+}
+body.dark-mode #main#main .rd-tab.is-active,
+body.dark-mode #main#main .rd-tab[aria-current="page"],
+body.dark-mode #main#main .rd-subnav__item.is-active,
+body.dark-mode #main#main .rd-subnav__item[aria-current="page"],
+body[data-theme="dark"] #main#main .rd-tab.is-active,
+body[data-theme="dark"] #main#main .rd-tab[aria-current="page"],
+body[data-theme="dark"] #main#main .rd-subnav__item.is-active,
+body[data-theme="dark"] #main#main .rd-subnav__item[aria-current="page"],
+body.rd-scope.dark-mode #main#main .rd-tab.is-active,
+body.rd-scope.dark-mode #main#main .rd-tab[aria-current="page"],
+body.rd-scope.dark-mode #main#main .rd-subnav__item.is-active,
+body.rd-scope.dark-mode #main#main .rd-subnav__item[aria-current="page"] {
+  color: var(--text-heading) !important;
+  border-bottom-color: var(--forest) !important;
+}
+body.dark-mode #main#main .rd-subnav__item.is-active,
+body.dark-mode #main#main .rd-subnav__item[aria-current="page"],
+body[data-theme="dark"] #main#main .rd-subnav__item.is-active,
+body[data-theme="dark"] #main#main .rd-subnav__item[aria-current="page"],
+body.rd-scope.dark-mode #main#main .rd-subnav__item.is-active,
+body.rd-scope.dark-mode #main#main .rd-subnav__item[aria-current="page"] {
+  background-color: var(--surface-active) !important;
+}
+
+/* Drawer record tabs */
+body.dark-mode #main#main .rd-drawer__tabs > button:not(.is-active),
+body.dark-mode #record-drawer .rd-drawer__tabs > button:not(.is-active),
+body[data-theme="dark"] #main#main .rd-drawer__tabs > button:not(.is-active),
+body[data-theme="dark"] #record-drawer .rd-drawer__tabs > button:not(.is-active),
+body.rd-scope.dark-mode #main#main .rd-drawer__tabs > button:not(.is-active),
+body.rd-scope.dark-mode #record-drawer .rd-drawer__tabs > button:not(.is-active) {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode #main#main .rd-drawer__tabs > button:not(.is-active):hover,
+body.dark-mode #main#main .rd-drawer__tabs > button:not(.is-active):focus-visible,
+body.dark-mode #record-drawer .rd-drawer__tabs > button:not(.is-active):hover,
+body.dark-mode #record-drawer .rd-drawer__tabs > button:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main .rd-drawer__tabs > button:not(.is-active):hover,
+body[data-theme="dark"] #main#main .rd-drawer__tabs > button:not(.is-active):focus-visible,
+body[data-theme="dark"] #record-drawer .rd-drawer__tabs > button:not(.is-active):hover,
+body[data-theme="dark"] #record-drawer .rd-drawer__tabs > button:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main .rd-drawer__tabs > button:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main .rd-drawer__tabs > button:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #record-drawer .rd-drawer__tabs > button:not(.is-active):hover,
+body.rd-scope.dark-mode #record-drawer .rd-drawer__tabs > button:not(.is-active):focus-visible {
+  background: var(--surface-focused) !important;
+  color: var(--text-body) !important;
+}
+body.dark-mode #main#main .rd-drawer__tabs > button.is-active,
+body.dark-mode #record-drawer .rd-drawer__tabs > button.is-active,
+body[data-theme="dark"] #main#main .rd-drawer__tabs > button.is-active,
+body[data-theme="dark"] #record-drawer .rd-drawer__tabs > button.is-active,
+body.rd-scope.dark-mode #main#main .rd-drawer__tabs > button.is-active,
+body.rd-scope.dark-mode #record-drawer .rd-drawer__tabs > button.is-active {
+  background: var(--forest) !important;
+  color: var(--text-on-dark) !important;
+  border-color: var(--forest) !important;
+}
+
+/* Profile drawer tabs */
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tabs,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tabs,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tabs {
+  background: var(--surface-raised) !important;
+  border-bottom-color: var(--border-subtle) !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tab,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab:hover,
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab:focus-visible,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tab:hover,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tab:focus-visible,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab:hover,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab:focus-visible {
+  color: var(--text-body) !important;
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab.is-active,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tab.is-active,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab.is-active {
+  color: var(--forest-lt) !important;
+  border-bottom-color: var(--forest) !important;
+  background: transparent !important;
+}
+
+/* Settings window nav tabs */
+body.dark-mode .rd-settings-window .rd-set__nav-grp,
+body[data-theme="dark"] .rd-settings-window .rd-set__nav-grp,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__nav-grp {
+  color: var(--text-subtle) !important;
+}
+body.dark-mode .rd-settings-window .rd-set__nav-item,
+body[data-theme="dark"] .rd-settings-window .rd-set__nav-item,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__nav-item {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border-left-color: transparent !important;
+}
+body.dark-mode .rd-settings-window .rd-set__nav-item:hover,
+body.dark-mode .rd-settings-window .rd-set__nav-item:focus-visible,
+body[data-theme="dark"] .rd-settings-window .rd-set__nav-item:hover,
+body[data-theme="dark"] .rd-settings-window .rd-set__nav-item:focus-visible,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__nav-item:hover,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__nav-item:focus-visible {
+  background: var(--surface-active) !important;
+  color: var(--text-body) !important;
+}
+body.dark-mode .rd-settings-window .rd-set__nav-item.is-active,
+body[data-theme="dark"] .rd-settings-window .rd-set__nav-item.is-active,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__nav-item.is-active {
+  background: var(--surface-content) !important;
+  color: var(--text-heading) !important;
+  border-left-color: var(--gold) !important;
+}
+
+/* Underline section tabs (ceremony, entertainment, mood, packets, logistics, shotlist) */
+body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs {
+  background: transparent !important;
+  border-bottom-color: var(--border-subtle) !important;
+}
+body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active),
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active),
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active) {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border-color: transparent !important;
+}
+body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):hover,
+body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):focus-visible,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):focus-visible,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item:not(.is-active):focus-visible {
+  background: var(--surface-focused) !important;
+  color: var(--text-body) !important;
+}
+body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item.is-active,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__item.is-active,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__item.is-active {
+  background: transparent !important;
+  color: var(--forest-lt) !important;
+  border-bottom-color: var(--forest) !important;
+}
+body.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__count,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-sectiontabs__count,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-sectiontabs__count {
+  color: var(--text-subtle) !important;
+}
+
+/* Calendar mode switcher lives in toolbar viewswitch — covered above; day drawer tabs */
+body.dark-mode #main#main #panel-calendar .rd-drawer__tabs,
+body.dark-mode #main#main #panel-calendar #calendar-day-drawer .rd-drawer__tabs,
+body[data-theme="dark"] #main#main #panel-calendar .rd-drawer__tabs,
+body[data-theme="dark"] #main#main #panel-calendar #calendar-day-drawer .rd-drawer__tabs,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-drawer__tabs,
+body.rd-scope.dark-mode #main#main #panel-calendar #calendar-day-drawer .rd-drawer__tabs {
+  border-color: var(--border-subtle) !important;
+  background: var(--surface-raised) !important;
+}

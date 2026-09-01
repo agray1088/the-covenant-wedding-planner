@@ -8,6 +8,8 @@ const REPORT = '/opt/cursor/artifacts/dark-mode-audit.json';
 fs.mkdirSync(OUT, { recursive: true });
 
 const LUMINANCE_THRESHOLD = 180;
+const BROWN_FG_LUM_THRESHOLD = 115;
+const DARK_BG_LUM_THRESHOLD = 100;
 
 const PANELS = [
   'dashboard', 'guests', 'tasks', 'calendar', 'budget', 'payments', 'contracts',
@@ -24,7 +26,21 @@ const INTERACTIVE_SELECTOR = [
   '.ued-list li', '.cwp-table tbody tr', '.rd-btn', '.rd-choose__item',
 ].join(', ');
 
+const LABEL_TAB_SELECTOR = [
+  '.m-stat-label', '.rd-stat__label', '.ued-stat-label', '.m-stat-sub', '.rd-stat__note',
+  '.m-eyebrow', '.rd-pagehead__eyebrow', '.rd-drawer__eyebrow', '[class*="__eyebrow"]',
+  '.ued-caption', '[class*="caption"]', '.setup-field-label', '.field-label',
+  '.et-field-label', '.rd-field__label', '.rd-drawer__label', '.suggest-chips-label',
+  '[class*="chip-label"]', '.rd-setup-menu-caption', '.pd-sec-head',
+  '.rd-sectiontabs', '.rd-sectiontabs__item', '.rd-viewswitch', '.rd-viewswitch__item',
+  '.rd-viewswitch > button', '.rd-seg', '.rd-seg__opt', '.rd-tabs', '.rd-tab',
+  '.rd-subnav', '.rd-subnav__item', '.rd-drawer__tabs', '.rd-drawer__tabs > button',
+  '.rd-pd-tabs', '.rd-pd-tab', '.rd-set__nav', '.rd-set__nav-item', '.rd-set__nav-grp',
+  '.rd-sectiontabs__count',
+].join(', ');
+
 const HOVER_CAP_PER_PANEL = 120;
+const LABEL_TAB_HOVER_CAP = 80;
 
 function parseRgb(bg) {
   const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -34,6 +50,15 @@ function parseRgb(bg) {
 
 function luminance(rgb) {
   return (rgb.r + rgb.g + rgb.b) / 3;
+}
+
+function isBrownOnDark(fgRgb, bgRgb) {
+  if (!fgRgb) return false;
+  const fgLum = luminance(fgRgb);
+  if (fgLum >= BROWN_FG_LUM_THRESHOLD) return false;
+  const bgLum = bgRgb && bgRgb.a >= 0.08 ? luminance(bgRgb) : 30;
+  if (bgLum >= DARK_BG_LUM_THRESHOLD) return false;
+  return fgRgb.r > 80 && fgRgb.g > 60 && fgRgb.b < 130;
 }
 
 async function wait(ms) {
@@ -64,6 +89,7 @@ async function dismissChrome(page) {
 async function bootPlanner(page) {
   await page.goto(`${BASE}/index.html`, { waitUntil: 'networkidle2', timeout: 120000 });
   await page.waitForFunction(() => typeof window.showPanel === 'function', { timeout: 60000 });
+  await page.waitForFunction(() => document.body.classList.contains('rd-scope'), { timeout: 60000 });
   await page.evaluate(() => {
     if (typeof applySampleData === 'function' && typeof SAMPLE_DATA !== 'undefined') {
       applySampleData(SAMPLE_DATA);
@@ -96,6 +122,258 @@ async function bootPlanner(page) {
   await wait(600);
 }
 
+function hint(el) {
+  if (el.id) return `#${el.id}`;
+  const cls = [...el.classList].slice(0, 3).join('.');
+  return cls ? `${el.tagName.toLowerCase()}.${cls}` : el.tagName.toLowerCase();
+}
+
+function scanLabelTabStatic(root, panelId) {
+  const offenders = [];
+  const seen = new Set();
+  if (!root) return offenders;
+
+  for (const el of root.querySelectorAll(LABEL_TAB_SELECTOR)) {
+    const tag = el.tagName.toLowerCase();
+    if (['svg', 'path', 'img'].includes(tag)) continue;
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') continue;
+    const rect = el.getBoundingClientRect();
+    if (rect.width < 4 || rect.height < 4) continue;
+
+    const bgRgb = parseRgb(cs.backgroundColor);
+    const fgRgb = parseRgb(cs.color);
+    const bgLum = bgRgb && bgRgb.a >= 0.08 ? luminance(bgRgb) : null;
+    const kind = el.matches('.rd-sectiontabs, .rd-tabs, .rd-subnav, .rd-drawer__tabs, .rd-pd-tabs, .rd-set__nav, .rd-viewswitch, .rd-seg') ? 'tab-strip'
+      : el.matches('.rd-sectiontabs__item, .rd-tab, .rd-subnav__item, .rd-drawer__tabs > button, .rd-pd-tab, .rd-set__nav-item, .rd-viewswitch__item, .rd-viewswitch > button, .rd-seg__opt') ? 'tab'
+      : 'label';
+
+    if (bgLum !== null && bgLum > LUMINANCE_THRESHOLD) {
+      const key = `${hint(el)}|light-bg|${cs.backgroundColor}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        offenders.push({
+          selector: hint(el),
+          kind,
+          type: 'light-bg',
+          bg: cs.backgroundColor,
+          luminance: Math.round(bgLum),
+          text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60),
+          state: 'static',
+          panel: panelId,
+        });
+      }
+    }
+
+    if (isBrownOnDark(fgRgb, bgRgb)) {
+      const key = `${hint(el)}|brown|${cs.color}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        offenders.push({
+          selector: hint(el),
+          kind,
+          type: 'brown-on-dark',
+          fg: cs.color,
+          bg: cs.backgroundColor,
+          text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60),
+          state: 'static',
+          panel: panelId,
+        });
+      }
+    }
+  }
+
+  return offenders;
+}
+
+async function prepareLabelTabNodes(page, rootSelector, panelId) {
+  return page.evaluate(({ rootSelector, panelId, labelTabSelector }) => {
+    const root = rootSelector ? document.querySelector(rootSelector) : document.getElementById(`panel-${panelId}`);
+    if (!root) return { active: false, items: [] };
+
+    root.querySelectorAll('[data-dm-lt-id]').forEach((el) => el.removeAttribute('data-dm-lt-id'));
+
+    const items = [];
+    for (const el of root.querySelectorAll(labelTabSelector)) {
+      const tag = el.tagName.toLowerCase();
+      if (['svg', 'path', 'img'].includes(tag)) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 8 || rect.height < 8) continue;
+      if (!el.matches('button, [role="tab"], .rd-tab, .rd-subnav__item, .rd-sectiontabs__item, .rd-viewswitch__item, .rd-viewswitch > button, .rd-seg__opt, .rd-drawer__tabs > button, .rd-pd-tab, .rd-set__nav-item')) continue;
+
+      const id = items.length;
+      el.setAttribute('data-dm-lt-id', String(id));
+      const cls = [...el.classList].slice(0, 3).join('.');
+      const hintLocal = el.id ? `#${el.id}` : `${tag}${cls ? `.${cls}` : ''}`;
+      items.push({
+        id,
+        hint: hintLocal,
+        text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60),
+      });
+    }
+
+    return { active: true, items };
+  }, { rootSelector, panelId, labelTabSelector: LABEL_TAB_SELECTOR });
+}
+
+async function scanLabelTabHover(page, cdp, rootSelector, panelId) {
+  const prep = await prepareLabelTabNodes(page, rootSelector, panelId);
+  if (!prep.active) return [];
+
+  const offenders = [];
+  const seen = new Set();
+  const doc = await cdp.send('DOM.getDocument');
+  const scope = rootSelector || `#panel-${panelId}`;
+
+  for (const item of prep.items.slice(0, LABEL_TAB_HOVER_CAP)) {
+    const { nodeId } = await cdp.send('DOM.querySelector', {
+      nodeId: doc.root.nodeId,
+      selector: `${scope} [data-dm-lt-id="${item.id}"]`,
+    });
+    if (!nodeId) continue;
+
+    for (const pseudo of [['hover'], ['focus'], ['active']]) {
+      await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: pseudo });
+      const res = await cdp.send('CSS.getComputedStyleForNode', { nodeId });
+      const bg = res.computedStyle.find((x) => x.name === 'background-color')?.value || '';
+      const fg = res.computedStyle.find((x) => x.name === 'color')?.value || '';
+      await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] });
+
+      const bgRgb = parseRgb(bg);
+      const fgRgb = parseRgb(fg);
+      const bgLum = bgRgb && bgRgb.a >= 0.08 ? luminance(bgRgb) : null;
+      const state = pseudo[0];
+
+      if (bgLum !== null && bgLum > LUMINANCE_THRESHOLD) {
+        const key = `${item.hint}|${state}|light-bg|${bg}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          offenders.push({
+            selector: item.hint,
+            kind: 'tab',
+            type: 'light-bg',
+            bg,
+            luminance: Math.round(bgLum),
+            text: item.text,
+            state,
+            panel: panelId || rootSelector,
+          });
+        }
+      }
+
+      if (isBrownOnDark(fgRgb, bgRgb)) {
+        const key = `${item.hint}|${state}|brown|${fg}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          offenders.push({
+            selector: item.hint,
+            kind: 'tab',
+            type: 'brown-on-dark',
+            fg,
+            bg,
+            text: item.text,
+            state,
+            panel: panelId || rootSelector,
+          });
+        }
+      }
+    }
+  }
+
+  await page.evaluate(({ scope }) => {
+    document.querySelectorAll(`${scope} [data-dm-lt-id]`).forEach((el) => el.removeAttribute('data-dm-lt-id'));
+  }, { scope });
+
+  return offenders.slice(0, 40);
+}
+
+async function scanLabelTabRegion(page, cdp, { panelId, rootSelector, label }) {
+  if (panelId) {
+    await page.evaluate((id) => window.showPanel(id), panelId);
+    await wait(1500);
+    await dismissChrome(page);
+    await wait(400);
+  }
+
+  const staticOffenders = await page.evaluate(({ panelId, rootSelector, threshold, labelTabSelector, brownFg, darkBg }) => {
+    const root = rootSelector ? document.querySelector(rootSelector) : document.getElementById(`panel-${panelId}`);
+    if (!root) return [];
+    if (panelId && !root.classList.contains('active')) return [];
+
+    function parseRgbLocal(bg) {
+      const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (!m) return null;
+      const a = bg.includes('rgba') ? parseFloat(bg.split(',').pop()) : 1;
+      return { r: +m[1], g: +m[2], b: +m[3], a };
+    }
+    function lum(c) { return (c.r + c.g + c.b) / 3; }
+    function isBrown(fgRgb, bgRgb) {
+      if (!fgRgb) return false;
+      if (lum(fgRgb) >= brownFg) return false;
+      const bgLum = bgRgb && bgRgb.a >= 0.08 ? lum(bgRgb) : 30;
+      if (bgLum >= darkBg) return false;
+      return fgRgb.r > 80 && fgRgb.g > 60 && fgRgb.b < 130;
+    }
+    function hintLocal(el) {
+      if (el.id) return `#${el.id}`;
+      const cls = [...el.classList].slice(0, 3).join('.');
+      return cls ? `${el.tagName.toLowerCase()}.${cls}` : el.tagName.toLowerCase();
+    }
+
+    const offenders = [];
+    const seen = new Set();
+    for (const el of root.querySelectorAll(labelTabSelector)) {
+      const tag = el.tagName.toLowerCase();
+      if (['svg', 'path', 'img'].includes(tag)) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 4 || rect.height < 4) continue;
+      const bgRgb = parseRgbLocal(cs.backgroundColor);
+      const fgRgb = parseRgbLocal(cs.color);
+      const bgLum = bgRgb && bgRgb.a >= 0.08 ? lum(bgRgb) : null;
+      const region = label || panelId || rootSelector;
+      const kind = el.matches('.rd-sectiontabs, .rd-tabs, .rd-subnav, .rd-drawer__tabs, .rd-pd-tabs, .rd-set__nav, .rd-viewswitch, .rd-seg') ? 'tab-strip'
+        : el.matches('.rd-sectiontabs__item, .rd-tab, .rd-subnav__item, .rd-drawer__tabs > button, .rd-pd-tab, .rd-set__nav-item, .rd-viewswitch__item, .rd-viewswitch > button, .rd-seg__opt') ? 'tab'
+        : 'label';
+
+      if (bgLum !== null && bgLum > threshold) {
+        const key = `${hintLocal(el)}|light-bg|${cs.backgroundColor}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          offenders.push({ selector: hintLocal(el), kind, type: 'light-bg', bg: cs.backgroundColor, luminance: Math.round(bgLum), text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60), state: 'static', panel: region });
+        }
+      }
+      if (isBrown(fgRgb, bgRgb)) {
+        const key = `${hintLocal(el)}|brown|${cs.color}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          offenders.push({ selector: hintLocal(el), kind, type: 'brown-on-dark', fg: cs.color, bg: cs.backgroundColor, text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60), state: 'static', panel: region });
+        }
+      }
+    }
+    return offenders;
+  }, {
+    panelId,
+    rootSelector,
+    label,
+    labelTabSelector: LABEL_TAB_SELECTOR,
+    threshold: LUMINANCE_THRESHOLD,
+    brownFg: BROWN_FG_LUM_THRESHOLD,
+    darkBg: DARK_BG_LUM_THRESHOLD,
+  });
+
+  const hoverOffenders = await scanLabelTabHover(page, cdp, rootSelector, panelId || label);
+  return {
+    label: label || panelId,
+    staticOffenders,
+    hoverOffenders,
+    offenders: [...staticOffenders, ...hoverOffenders],
+  };
+}
+
 async function prepareInteractiveNodes(page, panelId) {
   return page.evaluate(({ panelId, interactiveSelector }) => {
     const panel = document.getElementById(`panel-${panelId}`) || document.getElementById(panelId);
@@ -117,10 +395,10 @@ async function prepareInteractiveNodes(page, panelId) {
       const id = items.length;
       el.setAttribute('data-dm-hover-id', String(id));
       const cls = [...el.classList].slice(0, 3).join('.');
-      const hint = el.id ? `#${el.id}` : `${tag}${cls ? `.${cls}` : ''}`;
+      const hintLocal = el.id ? `#${el.id}` : `${tag}${cls ? `.${cls}` : ''}`;
       items.push({
         id,
-        hint,
+        hint: hintLocal,
         text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60),
       });
     }
@@ -202,7 +480,7 @@ async function scanPanel(page, cdp, panelId) {
     const offenders = [];
     const seen = new Set();
 
-    function hint(el) {
+    function hintLocal(el) {
       if (el.id) return `#${el.id}`;
       const cls = [...el.classList].slice(0, 3).join('.');
       return cls ? `${el.tagName.toLowerCase()}.${cls}` : el.tagName.toLowerCase();
@@ -224,13 +502,13 @@ async function scanPanel(page, cdp, panelId) {
 
       if (['span', 'a', 'strong', 'em', 'b', 'i', 'label', 'small'].includes(tag) && rect.height < 24) continue;
 
-      const key = `${hint(el)}|${bg}|${Math.round(rect.width)}x${Math.round(rect.height)}`;
+      const key = `${hintLocal(el)}|${bg}|${Math.round(rect.width)}x${Math.round(rect.height)}`;
       if (seen.has(key)) continue;
       seen.add(key);
 
       const text = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60);
       offenders.push({
-        selector: hint(el),
+        selector: hintLocal(el),
         bg,
         luminance: Math.round(lum),
         area: Math.round(rect.width * rect.height),
@@ -244,10 +522,11 @@ async function scanPanel(page, cdp, panelId) {
   }, { panelId, threshold: LUMINANCE_THRESHOLD });
 
   if (!staticResult.active) {
-    return { panelId, active: false, staticOffenders: [], hoverOffenders: [], offenders: [] };
+    return { panelId, active: false, staticOffenders: [], hoverOffenders: [], offenders: [], labelTab: { offenders: [] } };
   }
 
   const hoverOffenders = await scanHoverOffenders(page, cdp, panelId, LUMINANCE_THRESHOLD);
+  const labelTab = await scanLabelTabRegion(page, cdp, { panelId });
   const offenders = [...staticResult.offenders, ...hoverOffenders];
 
   return {
@@ -255,8 +534,32 @@ async function scanPanel(page, cdp, panelId) {
     active: true,
     staticOffenders: staticResult.offenders,
     hoverOffenders,
+    labelTab,
     offenders,
   };
+}
+
+async function openProfileDrawer(page) {
+  await page.evaluate(() => {
+    if (typeof openProfileDrawer === 'function') openProfileDrawer();
+    else {
+      const btn = document.getElementById('rd-profile-btn') || document.querySelector('[onclick*="Profile"]');
+      if (btn) btn.click();
+    }
+  });
+  await wait(800);
+}
+
+async function openSettings(page) {
+  await page.evaluate(() => {
+    if (typeof openSettingsWindow === 'function') openSettingsWindow();
+    else if (typeof toggleSettings === 'function') toggleSettings(true);
+    else {
+      const btn = document.querySelector('.rd-settings-open, [onclick*="Settings"]');
+      if (btn) btn.click();
+    }
+  });
+  await wait(800);
 }
 
 (async () => {
@@ -273,9 +576,13 @@ async function scanPanel(page, cdp, panelId) {
   const report = {
     threshold: LUMINANCE_THRESHOLD,
     panels: {},
+    labelTabRegions: {},
     totalStaticOffenders: 0,
     totalHoverOffenders: 0,
     totalOffenders: 0,
+    totalLabelTabStatic: 0,
+    totalLabelTabHover: 0,
+    totalLabelTabOffenders: 0,
     shots: [],
   };
 
@@ -288,15 +595,22 @@ async function scanPanel(page, cdp, panelId) {
       report.totalStaticOffenders += result.staticOffenders?.length || 0;
       report.totalHoverOffenders += result.hoverOffenders?.length || 0;
       report.totalOffenders += result.offenders?.length || 0;
+      report.totalLabelTabStatic += result.labelTab?.staticOffenders?.length || 0;
+      report.totalLabelTabHover += result.labelTab?.hoverOffenders?.length || 0;
+      report.totalLabelTabOffenders += result.labelTab?.offenders?.length || 0;
 
       const staticN = result.staticOffenders?.length || 0;
       const hoverN = result.hoverOffenders?.length || 0;
-      console.log(`\n=== ${panelId} (static=${staticN}, hover=${hoverN}) ===`);
-      for (const o of (result.offenders || []).slice(0, 8)) {
+      const ltN = result.labelTab?.offenders?.length || 0;
+      console.log(`\n=== ${panelId} (static=${staticN}, hover=${hoverN}, labelTab=${ltN}) ===`);
+      for (const o of (result.labelTab?.offenders || []).slice(0, 6)) {
+        console.log(`  [LT/${o.state}] ${o.type} ${o.selector}  "${o.text || ''}"`);
+      }
+      for (const o of (result.offenders || []).slice(0, 4)) {
         console.log(`  [${o.state}] ${o.selector}  ${o.bg}  lum=${o.luminance}  "${o.text || ''}"`);
       }
 
-      if (['dashboard', 'guests', 'catering', 'contracts', 'setup', 'tables'].includes(panelId) && (staticN || hoverN)) {
+      if (['dashboard', 'guests', 'catering', 'contracts', 'setup', 'tables'].includes(panelId) && (staticN || hoverN || ltN)) {
         const shot = path.join(OUT, `audit-dark-${panelId}.png`);
         await page.screenshot({ path: shot, fullPage: false });
         report.shots.push(shot);
@@ -304,11 +618,73 @@ async function scanPanel(page, cdp, panelId) {
       }
     }
 
+    // Profile drawer label/tab pass
+    await page.evaluate(() => window.showPanel('dashboard'));
+    await wait(800);
+    await openProfileDrawer(page);
+    const profileLt = await scanLabelTabRegion(page, cdp, { rootSelector: '#profile-drawer.rd-profile-drawer', label: 'profile-drawer' });
+    report.labelTabRegions['profile-drawer'] = profileLt;
+    report.totalLabelTabStatic += profileLt.staticOffenders.length;
+    report.totalLabelTabHover += profileLt.hoverOffenders.length;
+    report.totalLabelTabOffenders += profileLt.offenders.length;
+    console.log(`\n=== profile-drawer (labelTab=${profileLt.offenders.length}) ===`);
+    profileLt.offenders.slice(0, 8).forEach((o) => console.log(`  [LT/${o.state}] ${o.type} ${o.selector}`));
+    const profileShot = path.join(OUT, 'audit-dark-profile-drawer.png');
+    await page.screenshot({ path: profileShot, fullPage: false });
+    report.shots.push(profileShot);
+
+    // Settings tabs pass
+    await page.evaluate(() => {
+      const drawer = document.getElementById('profile-drawer');
+      if (drawer) drawer.setAttribute('hidden', '');
+    });
+    await openSettings(page);
+    const settingsLt = await scanLabelTabRegion(page, cdp, { rootSelector: '.rd-settings-window', label: 'settings' });
+    report.labelTabRegions.settings = settingsLt;
+    report.totalLabelTabStatic += settingsLt.staticOffenders.length;
+    report.totalLabelTabHover += settingsLt.hoverOffenders.length;
+    report.totalLabelTabOffenders += settingsLt.offenders.length;
+    console.log(`\n=== settings (labelTab=${settingsLt.offenders.length}) ===`);
+    settingsLt.offenders.slice(0, 8).forEach((o) => console.log(`  [LT/${o.state}] ${o.type} ${o.selector}`));
+
+    // Walkthrough screenshots: tab strips + label areas
+    for (const [panelId, filename] of [
+      ['dashboard', 'dm8-dashboard-labels-tabs.png'],
+      ['guests', 'dm8-guests-labels-tabs.png'],
+      ['setup', 'dm8-setup-labels-tabs.png'],
+    ]) {
+      await page.evaluate(() => {
+        document.querySelector('.rd-settings-overlay.is-open')?.classList.remove('is-open');
+      });
+      await page.evaluate((id) => window.showPanel(id), panelId);
+      await wait(1200);
+      await dismissChrome(page);
+      const shot = path.join(OUT, filename);
+      await page.screenshot({ path: shot, fullPage: false });
+      report.shots.push(shot);
+      console.log('walkthrough:', shot);
+    }
+
+    await page.evaluate(() => {
+      document.querySelector('.rd-settings-overlay.is-open')?.classList.remove('is-open');
+    });
+    await openProfileDrawer(page);
+    const profileWalk = path.join(OUT, 'dm8-profile-drawer-tabs.png');
+    await page.screenshot({ path: profileWalk, fullPage: false });
+    report.shots.push(profileWalk);
+    console.log('walkthrough:', profileWalk);
+
     fs.writeFileSync(REPORT, JSON.stringify(report, null, 2));
     console.log('\nTOTAL STATIC OFFENDERS:', report.totalStaticOffenders);
     console.log('TOTAL HOVER OFFENDERS:', report.totalHoverOffenders);
     console.log('TOTAL OFFENDERS:', report.totalOffenders);
+    console.log('TOTAL LABEL/TAB OFFENDERS:', report.totalLabelTabOffenders);
+    console.log('  (static:', report.totalLabelTabStatic, 'hover:', report.totalLabelTabHover, ')');
     console.log('REPORT:', REPORT);
+
+    if (report.totalOffenders > 0 || report.totalLabelTabOffenders > 0) {
+      process.exitCode = 1;
+    }
   } finally {
     await browser.close();
   }
