@@ -857,6 +857,35 @@ body.vp-scope[data-theme="dark"] *::-webkit-scrollbar-thumb {
   border-radius: 999px;
 }
 
+body.vp-scope.dark-mode .vp-row.is-hatch,
+body.vp-scope[data-theme="dark"] .vp-row.is-hatch {
+  background: repeating-linear-gradient(
+    -45deg,
+    #1e1e1e,
+    #1e1e1e 4px,
+    #252520 4px,
+    #252520 8px
+  ) !important;
+}
+
+body.vp-scope.dark-mode .vp-gantt__bar.is-hatch,
+body.vp-scope[data-theme="dark"] .vp-gantt__bar.is-hatch {
+  background: repeating-linear-gradient(135deg, #2a3530 0 3px, transparent 3px 7px) !important;
+}
+
+body.vp-scope.dark-mode .vp-foot,
+body.vp-scope[data-theme="dark"] .vp-foot {
+  background: #1c1c1c !important;
+  border-color: var(--vp-line) !important;
+}
+
+body.vp-scope.dark-mode .vp-btn:not(.vp-btn--primary),
+body.vp-scope[data-theme="dark"] .vp-btn:not(.vp-btn--primary) {
+  background: #1e1e1e !important;
+  border-color: var(--vp-line) !important;
+  color: var(--vp-body) !important;
+}
+
 @media (max-width: 520px) {
   body.vp-scope.dark-mode .vp-app,
   body.vp-scope[data-theme="dark"] .vp-app {

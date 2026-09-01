@@ -23,32 +23,36 @@ async function bootPlanner(page) {
   await page.goto(`${BASE}/index.html`, { waitUntil: 'networkidle2', timeout: 120000 });
   await page.waitForFunction(() => typeof window.showPanel === 'function', { timeout: 60000 });
   await page.evaluate(() => {
+    // Load sample data first (SAMPLE_DATA.setup.darkMode is false — override after).
+    if (typeof window.applySampleData === 'function' && typeof window.SAMPLE_DATA !== 'undefined') {
+      window.applySampleData(window.SAMPLE_DATA);
+    }
+    // Apply dark mode and persist to covenant_planner_v1 for vendor portal sync.
     if (typeof window.applyDarkMode === 'function') window.applyDarkMode(true);
     else {
       document.body.classList.add('dark-mode');
       document.body.setAttribute('data-theme', 'dark');
-      try { localStorage.setItem('covenant_dark_mode', '1'); } catch (e) {}
     }
-    if (typeof window.data !== 'undefined' && window.data.setup) {
+    if (typeof window.data !== 'undefined') {
+      if (!window.data.setup) window.data.setup = {};
       window.data.setup.darkMode = true;
+      if (typeof window.save === 'function') window.save();
     }
     try {
       const key = localStorage.getItem('covenant_active_profile') || 'default';
       const dataKey = key === 'default' ? 'covenant_planner_v1' : `covenant_planner_v1_${key}`;
       const raw = localStorage.getItem(dataKey);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (!parsed.setup) parsed.setup = {};
-        parsed.setup.darkMode = true;
-        localStorage.setItem(dataKey, JSON.stringify(parsed));
-      }
+      const parsed = raw ? JSON.parse(raw) : (window.data ? JSON.parse(JSON.stringify(window.data)) : {});
+      if (!parsed.setup) parsed.setup = {};
+      parsed.setup.darkMode = true;
+      localStorage.setItem(dataKey, JSON.stringify(parsed));
       localStorage.setItem('covenant_dark_mode', '1');
     } catch (e) { /* ignore */ }
-    if (typeof window.applySampleData === 'function' && typeof window.SAMPLE_DATA !== 'undefined') {
-      window.applySampleData(window.SAMPLE_DATA);
-    }
-    // Dismiss backup welcome modal so pages are visible
-    document.querySelectorAll('.cov-modal-overlay, .setup-wizard-overlay').forEach((el) => el.remove());
+    // Dismiss welcome modals so pages are visible for screenshots
+    if (typeof window.closeSetupWizard === 'function') window.closeSetupWizard(true);
+    document.querySelectorAll('.cov-modal-overlay, .setup-wizard-overlay, .cov-toast, .toast').forEach((el) => el.remove());
+    const wiz = document.getElementById('wizard-modal');
+    if (wiz) { wiz.classList.remove('open'); wiz.style.display = 'none'; }
   });
   await wait(2500);
 }

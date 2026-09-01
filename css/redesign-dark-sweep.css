@@ -439,3 +439,22 @@ body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab:hover,
 body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tab:hover {
   color: var(--text-body) !important;
 }
+
+/* ── Setup stat strip (night alias only in overrides; map dark-mode) ─────── */
+body.dark-mode #main#main #panel-setup .rd-setup-statstrip,
+body[data-theme="dark"] #main#main #panel-setup .rd-setup-statstrip {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode #main#main #panel-setup .rd-setup-stat,
+body[data-theme="dark"] #main#main #panel-setup .rd-setup-stat {
+  border-color: var(--border-hairline) !important;
+}
+body.dark-mode #main#main #panel-setup .rd-setup-stat__v,
+body[data-theme="dark"] #main#main #panel-setup .rd-setup-stat__v {
+  color: var(--text-heading) !important;
+}
+body.dark-mode #main#main #panel-setup .rd-setup-pagehead,
+body[data-theme="dark"] #main#main #panel-setup .rd-setup-pagehead {
+  border-color: var(--border-subtle) !important;
+}
