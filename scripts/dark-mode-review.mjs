@@ -92,7 +92,17 @@ async function go(page, panelId) {
 
   try {
     await bootPlanner(page);
+    await page.evaluate(() => document.getElementById('dash-sections')?.scrollIntoView({ block: 'center' }));
+    await wait(500);
+    const secBtn = await page.$('#dash-sections .rd-dash-sec');
+    if (secBtn) {
+      await secBtn.hover();
+      await wait(400);
+    }
     await snap(page, 'browser-dark-01-dashboard');
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await wait(300);
 
     await go(page, 'guests');
     await snap(page, 'browser-dark-02-guests');

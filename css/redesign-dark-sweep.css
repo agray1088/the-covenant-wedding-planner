@@ -1202,3 +1202,205 @@ body[data-theme="dark"] #main#main #panel-budget .rd-bgt-itemrow.is-selected.is-
 body[data-theme="dark"] #main#main #panel-budget .rd-bgt-pledgerow.is-selected {
   background: var(--surface-selected) !important;
 }
+
+/* ── dm-sweep7: Section progress + interactive hover/focus/active ─────────── */
+
+/* Dashboard section progress — cream hover flash (body.rd-scope #panel-dashboard .rd-dash-sec:hover) */
+body.dark-mode #main#main #panel-dashboard .rd-dash-sec,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-sec,
+body.rd-scope.dark-mode #main#main #panel-dashboard .rd-dash-sec {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-body);
+}
+body.dark-mode #main#main #panel-dashboard .rd-dash-sec:hover,
+body.dark-mode #main#main #panel-dashboard .rd-dash-sec:focus-visible,
+body.dark-mode #main#main #panel-dashboard .rd-dash-sec:active,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-sec:hover,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-sec:focus-visible,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-sec:active,
+body.rd-scope.dark-mode #main#main #panel-dashboard .rd-dash-sec:hover,
+body.rd-scope.dark-mode #main#main #panel-dashboard .rd-dash-sec:focus-visible,
+body.rd-scope.dark-mode #main#main #panel-dashboard .rd-dash-sec:active {
+  background: var(--surface-raised) !important;
+}
+body.dark-mode #main#main #panel-dashboard .rd-dash-sec__n,
+body.dark-mode #main#main #panel-dashboard .rd-dash-sec__meta,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-sec__n,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-sec__meta,
+body.rd-scope.dark-mode #main#main #panel-dashboard .rd-dash-sec__n,
+body.rd-scope.dark-mode #main#main #panel-dashboard .rd-dash-sec__meta {
+  color: var(--text-muted);
+}
+
+/* Legacy planning progress card (setup / classic dashboard) */
+body.dark-mode #section-progress-card,
+body[data-theme="dark"] #section-progress-card,
+body.rd-scope.dark-mode #section-progress-card {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+  box-shadow: none;
+}
+body.dark-mode .spc-row,
+body[data-theme="dark"] .spc-row,
+body.rd-scope.dark-mode .spc-row {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode .spc-row:hover,
+body.dark-mode .spc-row:focus-visible,
+body.dark-mode .spc-row:active,
+body[data-theme="dark"] .spc-row:hover,
+body[data-theme="dark"] .spc-row:focus-visible,
+body[data-theme="dark"] .spc-row:active,
+body.rd-scope.dark-mode .spc-row:hover,
+body.rd-scope.dark-mode .spc-row:focus-visible,
+body.rd-scope.dark-mode .spc-row:active {
+  background: var(--surface-active) !important;
+}
+body.dark-mode .ued-section-progress-list li:hover,
+body.dark-mode .ued-section-progress-list li:focus-visible,
+body[data-theme="dark"] .ued-section-progress-list li:hover,
+body[data-theme="dark"] .ued-section-progress-list li:focus-visible,
+body.rd-scope.dark-mode .ued-section-progress-list li:hover,
+body.rd-scope.dark-mode .ued-section-progress-list li:focus-visible {
+  background: var(--surface-raised);
+}
+
+/* Ceremony rows — hover shares cream rule with .is-selected in overrides */
+body.dark-mode #main#main #panel-ceremony .rd-cer-row:hover,
+body.dark-mode #main#main #panel-ceremony .rd-cer-row.is-unassigned,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-cer-row:hover,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-cer-row.is-unassigned,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-cer-row:hover,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-cer-row.is-unassigned {
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #main#main #panel-ceremony .rd-cer-row:hover .rd-cer-row__actions,
+body.dark-mode #main#main #panel-ceremony .rd-cer-row:focus-within .rd-cer-row__actions,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-cer-row:hover .rd-cer-row__actions,
+body[data-theme="dark"] #main#main #panel-ceremony .rd-cer-row:focus-within .rd-cer-row__actions,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-cer-row:hover .rd-cer-row__actions,
+body.rd-scope.dark-mode #main#main #panel-ceremony .rd-cer-row:focus-within .rd-cer-row__actions {
+  background: linear-gradient(90deg, transparent, var(--surface-focused) 18%) !important;
+}
+
+/* Cross-panel row/card/list hovers still using hardcoded cream in overrides */
+body.dark-mode #main#main [id^="panel-"] .rd-cer-row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-con-row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-con-addrow:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-pay-row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-pay-picker__item:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-notes-addrow:hover td,
+body.dark-mode #main#main [id^="panel-"] .rd-notes-card:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-notes-tl:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-gifts-regcat__list-item[role="button"]:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-gifts-note-row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-pr-table__row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-hm-openrow:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-hm-budgetrow:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-mood-list-row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-fm-card:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-fm-row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-yearplot__row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-hc-namerow:hover > td,
+body.dark-mode #main#main [id^="panel-"] .rd-hc-nameview__row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-pc-row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-hist-row:hover > td,
+body.dark-mode #main#main [id^="panel-"] .rd-hist-recrow:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-guide-crow:hover > td,
+body.dark-mode #main#main [id^="panel-"] .rd-va-cards__row:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-choose__item:hover,
+body.dark-mode #main#main .rd-sectiontabs__item:hover,
+body.dark-mode #main#main .rd-sectiontabs__item:focus-visible,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-cer-row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-con-row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-con-addrow:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-pay-row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-pay-picker__item:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-notes-addrow:hover td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-notes-card:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-notes-tl:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-gifts-regcat__list-item[role="button"]:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-gifts-note-row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-pr-table__row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-hm-openrow:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-hm-budgetrow:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-mood-list-row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-fm-card:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-fm-row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-yearplot__row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-hc-namerow:hover > td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-hc-nameview__row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-pc-row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-hist-row:hover > td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-hist-recrow:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-guide-crow:hover > td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-va-cards__row:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-choose__item:hover,
+body[data-theme="dark"] #main#main .rd-sectiontabs__item:hover,
+body[data-theme="dark"] #main#main .rd-sectiontabs__item:focus-visible,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-cer-row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-con-row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-con-addrow:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-pay-row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-pay-picker__item:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-notes-addrow:hover td,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-notes-card:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-notes-tl:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-gifts-regcat__list-item[role="button"]:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-gifts-note-row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-pr-table__row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-hm-openrow:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-hm-budgetrow:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-mood-list-row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-fm-card:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-fm-row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-yearplot__row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-hc-namerow:hover > td,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-hc-nameview__row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-pc-row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-hist-row:hover > td,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-hist-recrow:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-guide-crow:hover > td,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-va-cards__row:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] .rd-choose__item:hover,
+body.rd-scope.dark-mode #main#main .rd-sectiontabs__item:hover,
+body.rd-scope.dark-mode #main#main .rd-sectiontabs__item:focus-visible {
+  background-color: var(--surface-focused) !important;
+}
+
+/* Settings drawer / command menu hovers */
+body.dark-mode #main#main .rd-menu__row:hover,
+body.dark-mode #main#main .rd-undo-step:hover,
+body.dark-mode #main#main .gs-results.rd-gs-gaps .gs-cmdk-foot:hover,
+body.dark-mode #main#main .rd-set__nav-item:hover,
+body.dark-mode #main#main .rd-set__theme:hover,
+body.dark-mode #rd-va-overlay .rd-va-row:hover > td,
+body[data-theme="dark"] #main#main .rd-menu__row:hover,
+body[data-theme="dark"] #main#main .rd-undo-step:hover,
+body[data-theme="dark"] #main#main .gs-results.rd-gs-gaps .gs-cmdk-foot:hover,
+body[data-theme="dark"] #main#main .rd-set__nav-item:hover,
+body[data-theme="dark"] #main#main .rd-set__theme:hover,
+body[data-theme="dark"] #rd-va-overlay .rd-va-row:hover > td,
+body.rd-scope.dark-mode #main#main .rd-menu__row:hover,
+body.rd-scope.dark-mode #main#main .rd-undo-step:hover,
+body.rd-scope.dark-mode #main#main .gs-results.rd-gs-gaps .gs-cmdk-foot:hover,
+body.rd-scope.dark-mode #main#main .rd-set__nav-item:hover,
+body.rd-scope.dark-mode #main#main .rd-set__theme:hover,
+body.rd-scope.dark-mode #rd-va-overlay .rd-va-row:hover > td {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle);
+}
+
+/* Sidebar nav — suppress color-mix white leak on hover in dark mode */
+body.dark-mode.editorial-v4 #sidebar .nav-item:hover,
+body.dark-mode.editorial-v4.nav-sidebar #sidebar .nav-item:hover,
+body.dark-mode.editorial-v4:not(.nav-sidebar) #sidebar .nav-item:hover,
+body[data-theme="dark"].editorial-v4 #sidebar .nav-item:hover,
+body[data-theme="dark"].editorial-v4.nav-sidebar #sidebar .nav-item:hover,
+body[data-theme="dark"].editorial-v4:not(.nav-sidebar) #sidebar .nav-item:hover,
+body.rd-scope.dark-mode.editorial-v4 #sidebar .nav-item:hover {
+  background: var(--surface-active) !important;
+  color: var(--text-body) !important;
+}
