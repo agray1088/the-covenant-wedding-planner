@@ -106,8 +106,17 @@ async function go(page, panelId) {
     await go(page, 'budget');
     await snap(page, 'browser-dark-05-budget');
 
+    await go(page, 'catering');
+    await snap(page, 'browser-dark-05b-catering-headcount');
+
     await go(page, 'setup');
     await snap(page, 'browser-dark-06-setup');
+
+    await go(page, 'contracts');
+    await snap(page, 'browser-dark-06b-contracts');
+
+    await go(page, 'tables');
+    await snap(page, 'browser-dark-06c-tables');
 
     const profileBtn = await page.$('#profile-drawer-btn');
     if (profileBtn) {

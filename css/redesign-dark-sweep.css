@@ -844,3 +844,361 @@ body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda_
 body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__day.is-today .rd-agenda__date {
   background: var(--rd-agenda-date-today) !important;
 }
+
+/* ============================================================================
+   DARK SWEEP 6 — hardcoded cream fills in redesign-overrides (night alias gap)
+   applyDarkMode uses body.dark-mode / data-theme=dark, not rd-scope.night.
+   ========================================================================= */
+
+/* ── Bulk action bars (contracts, tables, guests, party, gifts, tasks, …) ── */
+body.dark-mode #main#main .rd-bulkbar,
+body.dark-mode #main#main .rd-con-bulkbar,
+body.dark-mode #main#main .rd-bgt-bulkbar,
+body.dark-mode #main#main .rd-pay-bulkbar,
+body.dark-mode #main#main [id$="-bulk-bar"],
+body.dark-mode #main#main [id$="-assign-bulk"],
+body[data-theme="dark"] #main#main .rd-bulkbar,
+body[data-theme="dark"] #main#main .rd-con-bulkbar,
+body[data-theme="dark"] #main#main .rd-bgt-bulkbar,
+body[data-theme="dark"] #main#main .rd-pay-bulkbar,
+body[data-theme="dark"] #main#main [id$="-bulk-bar"],
+body[data-theme="dark"] #main#main [id$="-assign-bulk"] {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body);
+}
+
+/* ── Dashboard onboarding path — current step cream card ─────────────────── */
+body.dark-mode #main#main #panel-dashboard .rd-dash-path li.is-current,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-path li.is-current {
+  background: var(--surface-focused) !important;
+  border-color: var(--gold) !important;
+  color: var(--text-body);
+}
+body.dark-mode #main#main #panel-dashboard .rd-dash-path li,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-path li {
+  background: var(--surface-content);
+  border-color: var(--border-subtle);
+  color: var(--text-body);
+}
+body.dark-mode #main#main #panel-dashboard .rd-dash-path__num,
+body[data-theme="dark"] #main#main #panel-dashboard .rd-dash-path__num {
+  border-color: var(--border-control);
+  color: var(--text-muted);
+}
+
+/* ── Guests: amber callout + support panels (Headcount & budget cards) ───── */
+body.dark-mode #main#main #panel-guests .rd-guest-callout,
+body.dark-mode #main#main #panel-guests .rd-guest-callout.is-amber,
+body[data-theme="dark"] #main#main #panel-guests .rd-guest-callout,
+body[data-theme="dark"] #main#main #panel-guests .rd-guest-callout.is-amber {
+  background: var(--status-gold-bg) !important;
+  border-color: var(--status-gold-border) !important;
+  color: var(--text-body) !important;
+}
+body.dark-mode #main#main #panel-guests .rd-guest-support,
+body.dark-mode #main#main #panel-guests .rd-guest-support .rd-panel,
+body.dark-mode #main#main #panel-guests .rd-guest-support .guest-side-card,
+body.dark-mode #main#main #panel-guests #guest-costs-section,
+body[data-theme="dark"] #main#main #panel-guests .rd-guest-support,
+body[data-theme="dark"] #main#main #panel-guests .rd-guest-support .rd-panel,
+body[data-theme="dark"] #main#main #panel-guests .rd-guest-support .guest-side-card,
+body[data-theme="dark"] #main#main #panel-guests #guest-costs-section {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+/* ── Catering: Headcount & cost panel (user-reported cream card) ─────────── */
+body.dark-mode #main#main #panel-catering .rd-cat-headcount,
+body.dark-mode #main#main #panel-catering #catering-headcount,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-headcount,
+body[data-theme="dark"] #main#main #panel-catering #catering-headcount {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body);
+}
+body.dark-mode #main#main #panel-catering .rd-cat-headcount__title,
+body.dark-mode #main#main #panel-catering .rd-cat-line,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-headcount__title,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-line {
+  color: var(--text-body) !important;
+}
+body.dark-mode #main#main #panel-catering .rd-cat-headcount__bar,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-headcount__bar {
+  background: var(--progress-track-bg) !important;
+}
+body.dark-mode #main#main #panel-catering .rd-cat-headcount__barlabels,
+body.dark-mode #main#main #panel-catering .rd-cat-kicker,
+body.dark-mode #main#main #panel-catering .rd-cat-foot,
+body.dark-mode #main#main #panel-catering .rd-cat-headcount__lock,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-headcount__barlabels,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-kicker,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-foot,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-headcount__lock {
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main #panel-catering .rd-cat-badge,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-badge {
+  background: var(--status-gold-bg) !important;
+  border-color: var(--status-gold-border) !important;
+  color: var(--status-gold-text) !important;
+}
+body.dark-mode #main#main #panel-catering .rd-cat-row:hover td,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-row:hover td {
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #main#main #panel-catering .rd-cat-tasting-card:hover,
+body[data-theme="dark"] #main#main #panel-catering .rd-cat-tasting-card:hover {
+  background: var(--surface-focused) !important;
+}
+
+/* ── Tables: add-table drop zone + seating guest pool ────────────────────── */
+body.dark-mode #main#main #panel-tables .rd-tables-detail-add,
+body[data-theme="dark"] #main#main #panel-tables .rd-tables-detail-add {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main #panel-tables .seating-guest-pool,
+body[data-theme="dark"] #main#main #panel-tables .seating-guest-pool {
+  background: color-mix(in srgb, var(--surface-sunken) 72%, transparent) !important;
+  border-color: var(--border-control) !important;
+}
+body.dark-mode #main#main #panel-tables .seating-guest-chip,
+body[data-theme="dark"] #main#main #panel-tables .seating-guest-chip {
+  background: var(--surface-content) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body) !important;
+}
+
+/* ── Counseling: homework panel + session cards ──────────────────────────── */
+body.dark-mode #main#main #panel-counseling .rd-cou-hwpanel,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-hwpanel {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body);
+}
+body.dark-mode #main#main #panel-counseling .rd-cou-hwtable th,
+body.dark-mode #main#main #panel-counseling .rd-cou-hwtable td,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-hwtable th,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-hwtable td {
+  border-color: var(--border-hairline) !important;
+  color: var(--text-body);
+}
+body.dark-mode #main#main #panel-counseling .rd-cou-hwtable th,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-hwtable th {
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main #panel-counseling .rd-cou-card,
+body.dark-mode #main#main #panel-counseling article.rd-cou-card,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-card,
+body[data-theme="dark"] #main#main #panel-counseling article.rd-cou-card {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode #main#main #panel-counseling .rd-cou-card:hover,
+body.dark-mode #main#main #panel-counseling .rd-cou-row.is-selected td,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-card:hover,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-row.is-selected td {
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #main#main #panel-counseling .rd-cou-keepsake__list article,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-keepsake__list article {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode #main#main #panel-counseling .rd-cou-keepsake__list article:hover,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-keepsake__list article:hover {
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #main#main #panel-counseling .rd-cou-keepsake__list h4,
+body.dark-mode #main#main #panel-counseling .rd-cou-keepsake__list p,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-keepsake__list h4,
+body[data-theme="dark"] #main#main #panel-counseling .rd-cou-keepsake__list p {
+  color: var(--text-body) !important;
+}
+
+/* ── Essentials: orphan callout + preset strip + row hovers ──────────────── */
+body.dark-mode #main#main #panel-essentials .rd-ess-callout,
+body[data-theme="dark"] #main#main #panel-essentials .rd-ess-callout {
+  background: var(--status-red-bg) !important;
+  border-color: var(--status-red-border) !important;
+  color: var(--text-body) !important;
+}
+body.dark-mode #main#main #panel-essentials .rd-ess-callout strong,
+body[data-theme="dark"] #main#main #panel-essentials .rd-ess-callout strong {
+  color: var(--status-red-text) !important;
+}
+body.dark-mode #main#main #panel-essentials .rd-ess-callout p,
+body.dark-mode #main#main #panel-essentials .rd-ess-callout__facts,
+body[data-theme="dark"] #main#main #panel-essentials .rd-ess-callout p,
+body[data-theme="dark"] #main#main #panel-essentials .rd-ess-callout__facts {
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main #panel-essentials .rd-ess-presets,
+body[data-theme="dark"] #main#main #panel-essentials .rd-ess-presets {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode #main#main #panel-essentials .rd-ess-row:hover td,
+body.dark-mode #main#main #panel-essentials .rd-ess-row.is-selected td,
+body.dark-mode #main#main #panel-essentials .rd-ess-bundle:hover,
+body[data-theme="dark"] #main#main #panel-essentials .rd-ess-row:hover td,
+body[data-theme="dark"] #main#main #panel-essentials .rd-ess-row.is-selected td,
+body[data-theme="dark"] #main#main #panel-essentials .rd-ess-bundle:hover {
+  background: var(--surface-focused) !important;
+}
+
+/* ── Mood board: pin wells + palette chips ───────────────────────────────── */
+body.dark-mode #main#main #panel-mood .rd-mood-pin__well,
+body[data-theme="dark"] #main#main #panel-mood .rd-mood-pin__well {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main #panel-mood .rd-mood-pin__well.has-image,
+body[data-theme="dark"] #main#main #panel-mood .rd-mood-pin__well.has-image {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode #main#main #panel-mood .rd-mood-swatch__chip,
+body[data-theme="dark"] #main#main #panel-mood .rd-mood-swatch__chip {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-control) !important;
+}
+body.dark-mode #main#main #panel-mood .rd-mood-row:hover td,
+body[data-theme="dark"] #main#main #panel-mood .rd-mood-row:hover td {
+  background: var(--surface-focused) !important;
+}
+
+/* ── Packets: preview mock + chapter tab strip ───────────────────────────── */
+body.dark-mode #main#main #panel-packets .rd-pkt-preview,
+body.dark-mode #main#main #panel-packets .rd-pkt-preview__head,
+body.dark-mode #main#main #panel-packets .rd-pkt-preview__body,
+body.dark-mode #main#main #panel-packets .rd-pkt-liststrip,
+body.dark-mode #main#main #panel-packets #packets-chapter-tabs,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-preview,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-preview__head,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-preview__body,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-liststrip,
+body[data-theme="dark"] #main#main #panel-packets #packets-chapter-tabs {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body);
+}
+body.dark-mode #main#main #panel-packets .rd-pkt-preview__kicker,
+body.dark-mode #main#main #panel-packets .rd-pkt-preview__sub,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-preview__kicker,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-preview__sub {
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main #panel-packets .rd-pkt-card:hover,
+body.dark-mode #main#main #panel-packets .rd-pkt-activity__row:hover,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-card:hover,
+body[data-theme="dark"] #main#main #panel-packets .rd-pkt-activity__row:hover {
+  background: var(--surface-focused) !important;
+}
+
+/* ── Shot list: supplier tab strip ───────────────────────────────────────── */
+body.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs,
+body.dark-mode #main#main #panel-shotlist #shotlist-supplier-tabs,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-suppliertabs,
+body[data-theme="dark"] #main#main #panel-shotlist #shotlist-supplier-tabs {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-suppliertabs .rd-sectiontabs__item {
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main #panel-shotlist .rd-shot-row.is-selected td,
+body.dark-mode #main#main #panel-shotlist .rd-shot-listcard:hover,
+body.dark-mode #main#main #panel-shotlist .rd-shot-winrow:hover,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-row.is-selected td,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-listcard:hover,
+body[data-theme="dark"] #main#main #panel-shotlist .rd-shot-winrow:hover {
+  background: var(--surface-focused) !important;
+}
+
+/* ── Venue: compare matrix row labels ────────────────────────────────────── */
+body.dark-mode #main#main #panel-venue .rd-ven-compare__row > strong:first-child,
+body[data-theme="dark"] #main#main #panel-venue .rd-ven-compare__row > strong:first-child {
+  background: var(--surface-sunken) !important;
+  color: var(--text-muted) !important;
+}
+body.dark-mode #main#main #panel-venue .rd-ven-compare__row > *,
+body[data-theme="dark"] #main#main #panel-venue .rd-ven-compare__row > * {
+  border-color: var(--border-hairline) !important;
+}
+
+/* ── Tasks: progress track (subtle white leak) ───────────────────────────── */
+body.dark-mode #main#main #panel-tasks .task-progress-track,
+body[data-theme="dark"] #main#main #panel-tasks .task-progress-track {
+  background: var(--progress-track-bg) !important;
+}
+
+/* ── Cross-panel row hover/selected hardcoded fills (redesign-overrides) ─── */
+body.dark-mode #main#main [id^="panel-"] .cwp-table tbody tr:hover td,
+body.dark-mode #main#main [id^="panel-"] .rd-vnd-row:hover td,
+body.dark-mode #main#main [id^="panel-"] .rd-ent-actcard:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-ent-perfcard:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-wday-vrow:hover,
+body.dark-mode #main#main [id^="panel-"] .rd-cer-row.is-selected,
+body.dark-mode #main#main [id^="panel-"] .rd-hm-row.is-selected td,
+body.dark-mode #main#main [id^="panel-"] .rd-et-row.is-open td,
+body[data-theme="dark"] #main#main [id^="panel-"] .cwp-table tbody tr:hover td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-vnd-row:hover td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-ent-actcard:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-ent-perfcard:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-wday-vrow:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-cer-row.is-selected,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-hm-row.is-selected td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-et-row.is-open td {
+  background-color: var(--surface-focused) !important;
+}
+body.dark-mode #main#main [id^="panel-"] .rd-vnd-row.is-selected td,
+body.dark-mode #main#main [id^="panel-"] .rd-ent-row.is-selected td,
+body.dark-mode #main#main [id^="panel-"] .rd-wday-row.is-selected td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-vnd-row.is-selected td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-ent-row.is-selected td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-wday-row.is-selected td {
+  background-color: var(--surface-selected) !important;
+}
+
+/* ── Budget / payments specialty cards & footers ─────────────────────────── */
+body.dark-mode #main#main #panel-budget .rd-bgt-card,
+body.dark-mode #main#main #panel-budget .rd-bgt-catrow,
+body.dark-mode #main#main #panel-budget .rd-bgt-itemrow,
+body.dark-mode #main#main #panel-budget .rd-bgt-totalrow,
+body.dark-mode #main#main #panel-budget .rd-bgt-pledgerow,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-card,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-catrow,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-itemrow,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-totalrow,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-pledgerow {
+  background: var(--surface-content);
+}
+body.dark-mode #main#main #panel-budget .rd-bgt-card:hover,
+body.dark-mode #main#main #panel-budget .rd-bgt-catrow:hover,
+body.dark-mode #main#main #panel-budget .rd-bgt-catrow.is-active,
+body.dark-mode #main#main #panel-budget .rd-bgt-itemrow:hover,
+body.dark-mode #main#main #panel-budget .rd-bgt-itemrow.is-selected,
+body.dark-mode #main#main #panel-budget .rd-bgt-itemrow.is-drawer-focus,
+body.dark-mode #main#main #panel-budget .rd-bgt-totalrow,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-card:hover,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-catrow:hover,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-catrow.is-active,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-itemrow:hover,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-itemrow.is-selected,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-itemrow.is-drawer-focus,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-totalrow {
+  background: var(--surface-focused) !important;
+}
+body.dark-mode #main#main #panel-budget .rd-bgt-itemrow.is-selected,
+body.dark-mode #main#main #panel-budget .rd-bgt-itemrow.is-selected.is-drawer-focus,
+body.dark-mode #main#main #panel-budget .rd-bgt-pledgerow.is-selected,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-itemrow.is-selected,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-itemrow.is-selected.is-drawer-focus,
+body[data-theme="dark"] #main#main #panel-budget .rd-bgt-pledgerow.is-selected {
+  background: var(--surface-selected) !important;
+}
