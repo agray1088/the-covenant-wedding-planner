@@ -324,13 +324,200 @@ body[data-theme="dark"] .simple-mode-banner strong {
 }
 body.dark-mode .simple-mode-banner-dismiss,
 body[data-theme="dark"] .simple-mode-banner-dismiss {
-  background: transparent !important;
+  background: var(--surface-sunken) !important;
   border-color: var(--border-control) !important;
   color: var(--text-muted) !important;
 }
 body.dark-mode .simple-mode-banner-dismiss:hover,
 body[data-theme="dark"] .simple-mode-banner-dismiss:hover {
   background: var(--surface-active) !important;
+  color: var(--text-body) !important;
+}
+
+/* ── Backup / persistence / storage banner dismiss chips ─────────────────── */
+body.dark-mode #backup-banner,
+body[data-theme="dark"] #backup-banner {
+  background: var(--status-gold-bg) !important;
+  border-color: var(--status-gold-border) !important;
+  color: var(--text-body) !important;
+}
+body.dark-mode #backup-banner strong,
+body[data-theme="dark"] #backup-banner strong {
+  color: var(--status-gold-text) !important;
+}
+body.dark-mode #backup-banner .backup-banner-dismiss,
+body[data-theme="dark"] #backup-banner .backup-banner-dismiss {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-muted) !important;
+}
+body.dark-mode #backup-banner .backup-banner-dismiss:hover,
+body[data-theme="dark"] #backup-banner .backup-banner-dismiss:hover {
+  background: var(--surface-active) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #backup-reminder,
+body[data-theme="dark"] #backup-reminder {
+  background: var(--status-gold-bg) !important;
+  border-color: var(--status-gold-border) !important;
+  box-shadow: none !important;
+}
+body.dark-mode #backup-reminder .br-icon,
+body[data-theme="dark"] #backup-reminder .br-icon {
+  background: var(--surface-sunken) !important;
+}
+body.dark-mode #backup-reminder .br-title,
+body[data-theme="dark"] #backup-reminder .br-title {
+  color: var(--status-gold-text) !important;
+}
+body.dark-mode #backup-reminder .br-msg,
+body[data-theme="dark"] #backup-reminder .br-msg {
+  color: var(--text-muted) !important;
+}
+body.dark-mode #backup-reminder .br-later,
+body[data-theme="dark"] #backup-reminder .br-later {
+  background: var(--surface-sunken) !important;
+  border: 1px solid var(--border-control) !important;
+  border-radius: 4px !important;
+  color: var(--text-muted) !important;
+  padding: .35rem .65rem !important;
+  text-decoration: none !important;
+}
+body.dark-mode #backup-reminder .br-later:hover,
+body[data-theme="dark"] #backup-reminder .br-later:hover {
+  background: var(--surface-active) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #storage-warning,
+body[data-theme="dark"] #storage-warning {
+  background: var(--status-red-bg) !important;
+  border-bottom-color: var(--status-red-border) !important;
+  color: var(--status-red-text) !important;
+}
+body.dark-mode #storage-warning strong,
+body[data-theme="dark"] #storage-warning strong {
+  color: var(--status-red-text) !important;
+}
+body.dark-mode #storage-warning .sw-dismiss,
+body.dark-mode #storage-warning .sw-btn.sw-dismiss,
+body[data-theme="dark"] #storage-warning .sw-dismiss,
+body[data-theme="dark"] #storage-warning .sw-btn.sw-dismiss {
+  background: var(--surface-sunken) !important;
+  border: 1px solid var(--border-control) !important;
+  color: var(--text-muted) !important;
+}
+body.dark-mode #storage-warning .sw-dismiss:hover,
+body[data-theme="dark"] #storage-warning .sw-dismiss:hover {
+  background: var(--surface-active) !important;
+  color: var(--text-body) !important;
+}
+
+/* ── Toasts + covAlert modal (sample data loaded, save confirmations) ─────── */
+body.dark-mode .planner-toast,
+body[data-theme="dark"] .planner-toast {
+  background: var(--status-green-bg) !important;
+  color: var(--status-green-text) !important;
+  border: 1px solid var(--status-green-border) !important;
+  box-shadow: var(--shadow-popover) !important;
+}
+body.dark-mode .planner-toast.success,
+body[data-theme="dark"] .planner-toast.success {
+  background: var(--status-green-bg) !important;
+  color: var(--status-green-text) !important;
+  border-color: var(--status-green-border) !important;
+}
+body.dark-mode .planner-toast.warn,
+body[data-theme="dark"] .planner-toast.warn {
+  background: var(--status-gold-bg) !important;
+  color: var(--status-gold-text) !important;
+  border: 1px solid var(--status-gold-border) !important;
+}
+body.dark-mode .planner-toast.error,
+body[data-theme="dark"] .planner-toast.error {
+  background: var(--status-red-bg) !important;
+  color: var(--status-red-text) !important;
+  border: 1px solid var(--status-red-border) !important;
+}
+body.dark-mode .planner-toast__action,
+body[data-theme="dark"] .planner-toast__action {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode .cov-modal,
+body[data-theme="dark"] .cov-modal {
+  background: var(--surface-content) !important;
+  color: var(--text-body) !important;
+  border-color: var(--border-subtle) !important;
+  box-shadow: var(--shadow-modal) !important;
+}
+body.dark-mode .cov-modal__title,
+body[data-theme="dark"] .cov-modal__title {
+  color: var(--text-heading) !important;
+}
+body.dark-mode .cov-modal__body,
+body[data-theme="dark"] .cov-modal__body {
+  color: var(--text-body) !important;
+}
+body.dark-mode .cov-modal__input,
+body.dark-mode .cov-modal__choice,
+body[data-theme="dark"] .cov-modal__input,
+body[data-theme="dark"] .cov-modal__choice {
+  background: var(--surface-sunken) !important;
+  color: var(--text-body) !important;
+  border-color: var(--border-control) !important;
+}
+body.dark-mode .cov-modal__choice:hover,
+body[data-theme="dark"] .cov-modal__choice:hover {
+  background: var(--surface-active) !important;
+  border-color: var(--border-strong) !important;
+}
+body.dark-mode .cov-modal__btn--ghost,
+body[data-theme="dark"] .cov-modal__btn--ghost {
+  background: var(--surface-sunken) !important;
+  color: var(--text-body) !important;
+  border-color: var(--border-control) !important;
+}
+body.dark-mode .cov-modal__btn--ghost:hover,
+body[data-theme="dark"] .cov-modal__btn--ghost:hover {
+  background: var(--surface-active) !important;
+}
+body.dark-mode .cov-modal__btn--primary,
+body[data-theme="dark"] .cov-modal__btn--primary {
+  background: var(--forest) !important;
+  color: var(--text-on-dark) !important;
+}
+
+/* ── Guests: headcount cost inputs match stat strip ──────────────────────── */
+body.dark-mode #main#main #panel-guests .guest-cost-form input,
+body.dark-mode body.rd-scope #panel-guests .guest-cost-form input,
+body.dark-mode body.editorial-v4 #main#main #panel-guests .guest-cost-form .m-field input,
+body[data-theme="dark"] #main#main #panel-guests .guest-cost-form input,
+body[data-theme="dark"] body.rd-scope #panel-guests .guest-cost-form input,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-guests .guest-cost-form .m-field input {
+  background: var(--surface-raised) !important;
+  background-color: var(--surface-raised) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-control) !important;
+  border-bottom: 1px solid var(--border-control) !important;
+  box-shadow: none !important;
+}
+body.dark-mode #main#main #panel-guests .guest-cost-form input:focus,
+body.dark-mode body.rd-scope #panel-guests .guest-cost-form input:focus,
+body[data-theme="dark"] #main#main #panel-guests .guest-cost-form input:focus,
+body[data-theme="dark"] body.rd-scope #panel-guests .guest-cost-form input:focus {
+  border-color: var(--gold) !important;
+  outline: none !important;
+}
+body.dark-mode #main#main #panel-guests #guest-stats,
+body.dark-mode #main#main #panel-guests .rd-stats,
+body[data-theme="dark"] #main#main #panel-guests #guest-stats,
+body[data-theme="dark"] #main#main #panel-guests .rd-stats {
+  background-color: var(--surface-raised) !important;
 }
 
 /* ── Table rows: hardcoded #fdfaf4 / #f4f7fb in redesign-overrides ─────── */
@@ -508,4 +695,152 @@ body[data-theme="dark"] #main#main #panel-setup .rd-setup-stat__v {
 body.dark-mode #main#main #panel-setup .rd-setup-pagehead,
 body[data-theme="dark"] #main#main #panel-setup .rd-setup-pagehead {
   border-color: var(--border-subtle) !important;
+}
+
+/* ── Smart Calendar: editorial-v4 specificity + remaining cream gaps ─────── */
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="month"],
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid:not([data-mode]),
+body.dark-mode body.editorial-v4 #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid[data-mode="month"],
+body.dark-mode body.editorial-v4 #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid:not([data-mode]),
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="month"],
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid:not([data-mode]),
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid[data-mode="month"],
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid:not([data-mode]) {
+  --cal-grid-line: var(--border-subtle) !important;
+  --cal-cell-cream: var(--surface-content) !important;
+  --cal-cell-outside: var(--surface-sunken) !important;
+  --cal-cell-selected: color-mix(in srgb, var(--surface-raised) 88%, var(--accent-gold, #b08d55) 12%) !important;
+  --cal-cell-hover: var(--surface-raised) !important;
+  background: var(--surface-content) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-weekday,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-weekday {
+  background: var(--surface-raised) !important;
+  color: var(--text-muted) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-day:hover,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-day:hover {
+  background: var(--cal-cell-hover) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-day.selected:hover,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-day.selected:hover {
+  background: color-mix(in srgb, var(--cal-cell-selected) 82%, var(--surface-active)) !important;
+}
+
+/* Category pastels → dark chip mix (beats hardcoded #dce8e2 / #f3e6d0 fills) */
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-event-chip,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due-chip,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__event,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-event-chip,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due-chip,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__event {
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
+  background: var(--smart-chip-fill) !important;
+  background-color: var(--smart-chip-fill) !important;
+  background-image: none !important;
+  border-top-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  border-right-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  border-bottom-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="week"],
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="week"] {
+  --rd-week-line: var(--border-subtle) !important;
+  --rd-week-line-soft: var(--border-hairline) !important;
+  --rd-week-head-bg: var(--surface-raised) !important;
+  --rd-week-due-bg: var(--surface-content) !important;
+  --rd-week-today: var(--surface-sunken) !important;
+  --rd-week-today-cell: var(--surface-focused) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__head,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__head,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due {
+  background: var(--rd-week-head-bg) !important;
+  border-color: var(--rd-week-line) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due {
+  background: var(--rd-week-due-bg) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__times,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__times {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-hairline) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__dayhead.is-today,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__dayhead.is-selected,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due-cell.is-today,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due-cell.is-selected,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__daycol.is-today,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__daycol.is-selected,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__dayhead.is-today,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__dayhead.is-selected,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due-cell.is-today,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due-cell.is-selected,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__daycol.is-today,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__daycol.is-selected {
+  background: var(--rd-week-today-cell) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="agenda"],
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="agenda"] {
+  --rd-agenda-line: var(--border-subtle) !important;
+  --rd-agenda-line-soft: var(--border-hairline) !important;
+  --rd-agenda-date-bg: var(--surface-content) !important;
+  --rd-agenda-date-today: var(--surface-sunken) !important;
+  --rd-agenda-overdue-bg: var(--status-red-bg) !important;
+  --rd-agenda-overdue-line: var(--status-red-border) !important;
+  --rd-agenda-overdue-fg: var(--status-red-text) !important;
+  background: var(--surface-content) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__row:hover,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__row:hover {
+  background: var(--surface-sunken) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__row.is-active,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__row.is-active {
+  background: var(--surface-focused) !important;
+  box-shadow: inset 2px 0 0 0 var(--gold) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__day,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-main-panel,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-surface,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-day-insights-expand,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-day-insights-body,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__day,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-main-panel,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-surface,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-day-insights-expand,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-day-insights-body {
+  background: var(--surface-content) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__date,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__date {
+  background: var(--rd-agenda-date-bg) !important;
+  border-color: var(--border-hairline) !important;
+}
+
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__date.is-today,
+body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__day.is-today .rd-agenda__date,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__date.is-today,
+body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__day.is-today .rd-agenda__date {
+  background: var(--rd-agenda-date-today) !important;
 }
