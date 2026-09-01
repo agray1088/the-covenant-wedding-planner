@@ -92,35 +92,35 @@ async function go(page, panelId) {
 
   try {
     await bootPlanner(page);
-    await snap(page, 'dark-01-dashboard');
+    await snap(page, 'browser-dark-01-dashboard');
 
     await go(page, 'guests');
-    await snap(page, 'dark-02-guests');
+    await snap(page, 'browser-dark-02-guests');
 
     await go(page, 'calendar');
-    await snap(page, 'dark-03-calendar');
+    await snap(page, 'browser-dark-03-calendar');
 
     await go(page, 'tasks');
-    await snap(page, 'dark-04-tasks');
+    await snap(page, 'browser-dark-04-tasks');
 
     await go(page, 'budget');
-    await snap(page, 'dark-05-budget');
+    await snap(page, 'browser-dark-05-budget');
 
     await go(page, 'setup');
-    await snap(page, 'dark-06-setup');
+    await snap(page, 'browser-dark-06-setup');
 
     const profileBtn = await page.$('#profile-drawer-btn');
     if (profileBtn) {
       await profileBtn.click();
       await wait(1200);
-      await snap(page, 'dark-07-profile-drawer');
+      await snap(page, 'browser-dark-07-profile-drawer');
       await page.keyboard.press('Escape');
       await wait(500);
     }
 
     await page.goto(`${BASE}/vendor-portal.html`, { waitUntil: 'networkidle2' });
     await wait(1500);
-    await snap(page, 'dark-08-vendor-portal');
+    await snap(page, 'browser-dark-08-vendor-portal');
 
     const audit = await page.evaluate(() => {
       const isDark = document.body.classList.contains('dark-mode') || document.body.getAttribute('data-theme') === 'dark';

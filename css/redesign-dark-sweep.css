@@ -104,6 +104,23 @@ body[data-theme="dark"] body.rd-scope #panel-calendar .smart-day.selected {
   background: var(--cal-cell-selected) !important;
 }
 
+/* Month grid — override light --cal-cell-* vars set on .smart-calendar-grid */
+body.dark-mode #main#main #panel-calendar .smart-calendar-grid[data-mode="month"],
+body.dark-mode #main#main #panel-calendar .smart-calendar-grid:not([data-mode]),
+body.dark-mode #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid[data-mode="month"],
+body.dark-mode #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid:not([data-mode]),
+body[data-theme="dark"] #main#main #panel-calendar .smart-calendar-grid[data-mode="month"],
+body[data-theme="dark"] #main#main #panel-calendar .smart-calendar-grid:not([data-mode]),
+body[data-theme="dark"] #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid[data-mode="month"],
+body[data-theme="dark"] #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid:not([data-mode]) {
+  --cal-grid-line: var(--border-subtle) !important;
+  --cal-cell-cream: var(--surface-content) !important;
+  --cal-cell-outside: var(--surface-sunken) !important;
+  --cal-cell-selected: color-mix(in srgb, var(--surface-raised) 88%, var(--accent-gold, #b08d55) 12%) !important;
+  --cal-cell-hover: var(--surface-raised) !important;
+  background: var(--surface-content) !important;
+}
+
 body.dark-mode #main#main #panel-calendar .rd-agenda,
 body[data-theme="dark"] #main#main #panel-calendar .rd-agenda,
 body.dark-mode body.rd-scope #panel-calendar .rd-agenda,
@@ -438,6 +455,29 @@ body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-access-row:nth-
 body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab:hover,
 body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tab:hover {
   color: var(--text-body) !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .pd-switch,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-switch {
+  border-color: var(--border-subtle) !important;
+  background: #222 !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .pd-switch::after,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-switch::after {
+  background: #5a5a5a !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .pd-switch.on,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-switch.on {
+  border-color: #2f5645 !important;
+  background: #2f5645 !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .pd-switch.on::after,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-switch.on::after {
+  background: #1a1a1a !important;
+}
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd__save-note,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd__save-note {
+  background: var(--surface-sunken) !important;
+  color: var(--text-muted) !important;
 }
 
 /* ── Setup stat strip (night alias only in overrides; map dark-mode) ─────── */
