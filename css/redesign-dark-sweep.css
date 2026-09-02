@@ -2162,3 +2162,43 @@ body.rd-scope.dark-mode #main#main #panel-guests .cost-line.cost-total span {
   color: var(--text-heading) !important;
 }
 
+/* ── dm-sweep10: Quick Jump dropdown (topbar popover) ───────────────────── */
+body.dark-mode #quick-jump-drop,
+body[data-theme="dark"] #quick-jump-drop {
+  background: var(--surface-raised) !important;
+  background-color: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+  box-shadow: var(--shadow-popover) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #quick-jump-drop .qj-section,
+body[data-theme="dark"] #quick-jump-drop .qj-section {
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode #quick-jump-drop .qj-item,
+body[data-theme="dark"] #quick-jump-drop .qj-item {
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #quick-jump-drop .qj-item:hover,
+body[data-theme="dark"] #quick-jump-drop .qj-item:hover {
+  background: var(--surface-focused) !important;
+}
+
+body.dark-mode #quick-jump-drop .qj-label,
+body[data-theme="dark"] #quick-jump-drop .qj-label {
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #quick-jump-drop .qj-star,
+body[data-theme="dark"] #quick-jump-drop .qj-star {
+  color: var(--gold) !important;
+}
+
+body.dark-mode #quick-jump-drop .qj-empty,
+body[data-theme="dark"] #quick-jump-drop .qj-empty {
+  color: var(--text-muted) !important;
+}
+
