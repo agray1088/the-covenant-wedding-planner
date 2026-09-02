@@ -60,12 +60,12 @@ body[data-theme="dark"] .topbar-notifications-drop-scroll {
 /* ── Calendar: chips, cells, week, agenda ──────────────────────────────── */
 body.dark-mode #main#main #panel-calendar button.smart-event-chip,
 body.dark-mode #main#main #panel-calendar .smart-event-chip,
-body.dark-mode body.rd-scope #panel-calendar button.smart-event-chip,
-body.dark-mode body.rd-scope #panel-calendar .smart-event-chip,
+body.rd-scope.dark-mode #panel-calendar button.smart-event-chip,
+body.rd-scope.dark-mode #panel-calendar .smart-event-chip,
 body[data-theme="dark"] #main#main #panel-calendar button.smart-event-chip,
 body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
-body[data-theme="dark"] body.rd-scope #panel-calendar button.smart-event-chip,
-body[data-theme="dark"] body.rd-scope #panel-calendar .smart-event-chip {
+body.rd-scope[data-theme="dark"] #panel-calendar button.smart-event-chip,
+body.rd-scope[data-theme="dark"] #panel-calendar .smart-event-chip {
   --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
   background: var(--smart-chip-fill) !important;
   background-color: var(--smart-chip-fill) !important;
@@ -78,29 +78,29 @@ body[data-theme="dark"] body.rd-scope #panel-calendar .smart-event-chip {
 
 body.dark-mode #main#main #panel-calendar .rd-week__daycol,
 body[data-theme="dark"] #main#main #panel-calendar .rd-week__daycol,
-body.dark-mode body.rd-scope #panel-calendar .rd-week__daycol,
-body[data-theme="dark"] body.rd-scope #panel-calendar .rd-week__daycol {
+body.rd-scope.dark-mode #panel-calendar .rd-week__daycol,
+body.rd-scope[data-theme="dark"] #panel-calendar .rd-week__daycol {
   background: var(--surface-content) !important;
 }
 
 body.dark-mode #main#main #panel-calendar .smart-day,
 body[data-theme="dark"] #main#main #panel-calendar .smart-day,
-body.dark-mode body.rd-scope #panel-calendar .smart-day,
-body[data-theme="dark"] body.rd-scope #panel-calendar .smart-day {
+body.rd-scope.dark-mode #panel-calendar .smart-day,
+body.rd-scope[data-theme="dark"] #panel-calendar .smart-day {
   background: var(--cal-cell-cream) !important;
 }
 
 body.dark-mode #main#main #panel-calendar .smart-day.outside,
 body[data-theme="dark"] #main#main #panel-calendar .smart-day.outside,
-body.dark-mode body.rd-scope #panel-calendar .smart-day.outside,
-body[data-theme="dark"] body.rd-scope #panel-calendar .smart-day.outside {
+body.rd-scope.dark-mode #panel-calendar .smart-day.outside,
+body.rd-scope[data-theme="dark"] #panel-calendar .smart-day.outside {
   background: var(--cal-cell-outside) !important;
 }
 
 body.dark-mode #main#main #panel-calendar .smart-day.selected,
 body[data-theme="dark"] #main#main #panel-calendar .smart-day.selected,
-body.dark-mode body.rd-scope #panel-calendar .smart-day.selected,
-body[data-theme="dark"] body.rd-scope #panel-calendar .smart-day.selected {
+body.rd-scope.dark-mode #panel-calendar .smart-day.selected,
+body.rd-scope[data-theme="dark"] #panel-calendar .smart-day.selected {
   background: var(--cal-cell-selected) !important;
 }
 
@@ -123,8 +123,8 @@ body[data-theme="dark"] #main#main #panel-calendar #smart-calendar-main > .smart
 
 body.dark-mode #main#main #panel-calendar .rd-agenda,
 body[data-theme="dark"] #main#main #panel-calendar .rd-agenda,
-body.dark-mode body.rd-scope #panel-calendar .rd-agenda,
-body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda {
+body.rd-scope.dark-mode #panel-calendar .rd-agenda,
+body.rd-scope[data-theme="dark"] #panel-calendar .rd-agenda {
   --rd-agenda-line-soft: var(--border-hairline);
   --rd-agenda-date-bg: var(--surface-content);
   --rd-agenda-date-today: var(--surface-sunken);
@@ -135,15 +135,15 @@ body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda {
 
 body.dark-mode #main#main #panel-calendar .rd-agenda__date,
 body[data-theme="dark"] #main#main #panel-calendar .rd-agenda__date,
-body.dark-mode body.rd-scope #panel-calendar .rd-agenda__date,
-body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda__date {
+body.rd-scope.dark-mode #panel-calendar .rd-agenda__date,
+body.rd-scope[data-theme="dark"] #panel-calendar .rd-agenda__date {
   background: var(--rd-agenda-date-bg) !important;
 }
 
 body.dark-mode #main#main #panel-calendar .rd-agenda__date.is-today,
 body[data-theme="dark"] #main#main #panel-calendar .rd-agenda__date.is-today,
-body.dark-mode body.rd-scope #panel-calendar .rd-agenda__date.is-today,
-body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda__date.is-today {
+body.rd-scope.dark-mode #panel-calendar .rd-agenda__date.is-today,
+body.rd-scope[data-theme="dark"] #panel-calendar .rd-agenda__date.is-today {
   background: var(--rd-agenda-date-today) !important;
 }
 
@@ -494,11 +494,11 @@ body[data-theme="dark"] .cov-modal__btn--primary {
 
 /* ── Guests: headcount cost inputs match stat strip ──────────────────────── */
 body.dark-mode #main#main #panel-guests .guest-cost-form input,
-body.dark-mode body.rd-scope #panel-guests .guest-cost-form input,
-body.dark-mode body.editorial-v4 #main#main #panel-guests .guest-cost-form .m-field input,
+body.rd-scope.dark-mode #panel-guests .guest-cost-form input,
+body.editorial-v4.dark-mode #main#main #panel-guests .guest-cost-form .m-field input,
 body[data-theme="dark"] #main#main #panel-guests .guest-cost-form input,
-body[data-theme="dark"] body.rd-scope #panel-guests .guest-cost-form input,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-guests .guest-cost-form .m-field input {
+body.rd-scope[data-theme="dark"] #panel-guests .guest-cost-form input,
+body.editorial-v4[data-theme="dark"] #main#main #panel-guests .guest-cost-form .m-field input {
   background: var(--surface-raised) !important;
   background-color: var(--surface-raised) !important;
   color: var(--text-primary) !important;
@@ -507,9 +507,9 @@ body[data-theme="dark"] body.editorial-v4 #main#main #panel-guests .guest-cost-f
   box-shadow: none !important;
 }
 body.dark-mode #main#main #panel-guests .guest-cost-form input:focus,
-body.dark-mode body.rd-scope #panel-guests .guest-cost-form input:focus,
+body.rd-scope.dark-mode #panel-guests .guest-cost-form input:focus,
 body[data-theme="dark"] #main#main #panel-guests .guest-cost-form input:focus,
-body[data-theme="dark"] body.rd-scope #panel-guests .guest-cost-form input:focus {
+body.rd-scope[data-theme="dark"] #panel-guests .guest-cost-form input:focus {
   border-color: var(--gold) !important;
   outline: none !important;
 }
@@ -523,44 +523,44 @@ body[data-theme="dark"] #main#main #panel-guests .rd-stats {
 /* ── Table rows: hardcoded #fdfaf4 / #f4f7fb in redesign-overrides ─────── */
 body.dark-mode #main#main table tbody tr.is-selected:not(.is-drawer-focus) > td,
 body.dark-mode #main#main table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
-body.dark-mode body.rd-scope table tbody tr.is-selected:not(.is-drawer-focus) > td,
-body.dark-mode body.rd-scope table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
+body.rd-scope.dark-mode table tbody tr.is-selected:not(.is-drawer-focus) > td,
+body.rd-scope.dark-mode table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
 body[data-theme="dark"] #main#main table tbody tr.is-selected:not(.is-drawer-focus) > td,
 body[data-theme="dark"] #main#main table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td,
-body[data-theme="dark"] body.rd-scope table tbody tr.is-selected:not(.is-drawer-focus) > td,
-body[data-theme="dark"] body.rd-scope table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td {
+body.rd-scope[data-theme="dark"] table tbody tr.is-selected:not(.is-drawer-focus) > td,
+body.rd-scope[data-theme="dark"] table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) > td {
   background-color: var(--surface-selected) !important;
 }
 body.dark-mode #main#main table tbody tr.is-drawer-focus > td,
 body.dark-mode #main#main table tbody tr.is-open > td,
-body.dark-mode body.rd-scope table tbody tr.is-drawer-focus > td,
-body.dark-mode body.rd-scope table tbody tr.is-open > td,
+body.rd-scope.dark-mode table tbody tr.is-drawer-focus > td,
+body.rd-scope.dark-mode table tbody tr.is-open > td,
 body[data-theme="dark"] #main#main table tbody tr.is-drawer-focus > td,
 body[data-theme="dark"] #main#main table tbody tr.is-open > td,
-body[data-theme="dark"] body.rd-scope table tbody tr.is-drawer-focus > td,
-body[data-theme="dark"] body.rd-scope table tbody tr.is-open > td {
+body.rd-scope[data-theme="dark"] table tbody tr.is-drawer-focus > td,
+body.rd-scope[data-theme="dark"] table tbody tr.is-open > td {
   background-color: var(--surface-focused) !important;
 }
 
 /* ── Calendar: week rail, agenda active, chip categories ───────────────── */
 body.dark-mode #main#main #panel-calendar .rd-week__times,
-body.dark-mode body.rd-scope #panel-calendar .rd-week__times,
+body.rd-scope.dark-mode #panel-calendar .rd-week__times,
 body[data-theme="dark"] #main#main #panel-calendar .rd-week__times,
-body[data-theme="dark"] body.rd-scope #panel-calendar .rd-week__times {
+body.rd-scope[data-theme="dark"] #panel-calendar .rd-week__times {
   background: var(--surface-sunken) !important;
 }
 
 body.dark-mode #main#main #panel-calendar .rd-agenda__row.is-active,
-body.dark-mode body.rd-scope #panel-calendar .rd-agenda__row.is-active,
+body.rd-scope.dark-mode #panel-calendar .rd-agenda__row.is-active,
 body[data-theme="dark"] #main#main #panel-calendar .rd-agenda__row.is-active,
-body[data-theme="dark"] body.rd-scope #panel-calendar .rd-agenda__row.is-active {
+body.rd-scope[data-theme="dark"] #panel-calendar .rd-agenda__row.is-active {
   background: var(--surface-focused) !important;
 }
 
 body.dark-mode #main#main #panel-calendar .smart-event-chip,
-body.dark-mode body.rd-scope #panel-calendar .smart-event-chip,
+body.rd-scope.dark-mode #panel-calendar .smart-event-chip,
 body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
-body[data-theme="dark"] body.rd-scope #panel-calendar .smart-event-chip {
+body.rd-scope[data-theme="dark"] #panel-calendar .smart-event-chip {
   --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
   background: var(--smart-chip-fill) !important;
   background-color: var(--smart-chip-fill) !important;
@@ -569,27 +569,27 @@ body[data-theme="dark"] body.rd-scope #panel-calendar .smart-event-chip {
 
 /* ── Appointments panel hardcoded row fills ────────────────────────────── */
 body.dark-mode #main#main #panel-appointments .cwp-table tbody tr.is-drawer-focus td,
-body.dark-mode body.rd-scope #panel-appointments .cwp-table tbody tr.is-drawer-focus td,
+body.rd-scope.dark-mode #panel-appointments .cwp-table tbody tr.is-drawer-focus td,
 body[data-theme="dark"] #main#main #panel-appointments .cwp-table tbody tr.is-drawer-focus td,
-body[data-theme="dark"] body.rd-scope #panel-appointments .cwp-table tbody tr.is-drawer-focus td {
+body.rd-scope[data-theme="dark"] #panel-appointments .cwp-table tbody tr.is-drawer-focus td {
   background: var(--surface-focused) !important;
 }
 body.dark-mode #main#main #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
-body.dark-mode body.rd-scope #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body.rd-scope.dark-mode #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
 body[data-theme="dark"] #main#main #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
-body[data-theme="dark"] body.rd-scope #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
+body.rd-scope[data-theme="dark"] #panel-appointments .cwp-table tbody tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
   background: var(--surface-selected) !important;
 }
 body.dark-mode #main#main #panel-appointments .rd-appt-cal__dayrow.is-today,
-body.dark-mode body.rd-scope #panel-appointments .rd-appt-cal__dayrow.is-today,
+body.rd-scope.dark-mode #panel-appointments .rd-appt-cal__dayrow.is-today,
 body[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__dayrow.is-today,
-body[data-theme="dark"] body.rd-scope #panel-appointments .rd-appt-cal__dayrow.is-today {
+body.rd-scope[data-theme="dark"] #panel-appointments .rd-appt-cal__dayrow.is-today {
   background: var(--surface-sunken) !important;
 }
 body.dark-mode #main#main #panel-appointments .rd-appt-agenda__row:hover,
-body.dark-mode body.rd-scope #panel-appointments .rd-appt-agenda__row:hover,
+body.rd-scope.dark-mode #panel-appointments .rd-appt-agenda__row:hover,
 body[data-theme="dark"] #main#main #panel-appointments .rd-appt-agenda__row:hover,
-body[data-theme="dark"] body.rd-scope #panel-appointments .rd-appt-agenda__row:hover {
+body.rd-scope[data-theme="dark"] #panel-appointments .rd-appt-agenda__row:hover {
   background: var(--surface-focused) !important;
 }
 
@@ -698,14 +698,14 @@ body[data-theme="dark"] #main#main #panel-setup .rd-setup-pagehead {
 }
 
 /* ── Smart Calendar: editorial-v4 specificity + remaining cream gaps ─────── */
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="month"],
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid:not([data-mode]),
-body.dark-mode body.editorial-v4 #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid[data-mode="month"],
-body.dark-mode body.editorial-v4 #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid:not([data-mode]),
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="month"],
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid:not([data-mode]),
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid[data-mode="month"],
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid:not([data-mode]) {
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-calendar-grid[data-mode="month"],
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-calendar-grid:not([data-mode]),
+body.editorial-v4.dark-mode #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid[data-mode="month"],
+body.editorial-v4.dark-mode #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid:not([data-mode]),
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-calendar-grid[data-mode="month"],
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-calendar-grid:not([data-mode]),
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid[data-mode="month"],
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar #smart-calendar-main > .smart-calendar-grid:not([data-mode]) {
   --cal-grid-line: var(--border-subtle) !important;
   --cal-cell-cream: var(--surface-content) !important;
   --cal-cell-outside: var(--surface-sunken) !important;
@@ -714,30 +714,30 @@ body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar #smart-cale
   background: var(--surface-content) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-weekday,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-weekday {
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-weekday,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-weekday {
   background: var(--surface-raised) !important;
   color: var(--text-muted) !important;
   border-color: var(--border-subtle) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-day:hover,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-day:hover {
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-day:hover,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-day:hover {
   background: var(--cal-cell-hover) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-day.selected:hover,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-day.selected:hover {
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-day.selected:hover,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-day.selected:hover {
   background: color-mix(in srgb, var(--cal-cell-selected) 82%, var(--surface-active)) !important;
 }
 
 /* Category pastels → dark chip mix (beats hardcoded #dce8e2 / #f3e6d0 fills) */
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-event-chip,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due-chip,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__event,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-event-chip,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due-chip,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__event {
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due-chip,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due-chip,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__event {
   --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
   background: var(--smart-chip-fill) !important;
   background-color: var(--smart-chip-fill) !important;
@@ -748,10 +748,10 @@ body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__e
   color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="week"],
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="week"] {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-calendar-grid[data-mode="week"],
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-calendar-grid[data-mode="week"] {
   --rd-week-line: var(--border-subtle) !important;
   --rd-week-line-soft: var(--border-hairline) !important;
   --rd-week-head-bg: var(--surface-raised) !important;
@@ -760,44 +760,44 @@ body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-cale
   --rd-week-today-cell: var(--surface-focused) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__head,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__head,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__head,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__head,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due {
   background: var(--rd-week-head-bg) !important;
   border-color: var(--rd-week-line) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due {
   background: var(--rd-week-due-bg) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__times,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__times {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__times,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__times {
   background: var(--surface-sunken) !important;
   border-color: var(--border-hairline) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__dayhead.is-today,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__dayhead.is-selected,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due-cell.is-today,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__due-cell.is-selected,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__daycol.is-today,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-week__daycol.is-selected,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__dayhead.is-today,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__dayhead.is-selected,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due-cell.is-today,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__due-cell.is-selected,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__daycol.is-today,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-week__daycol.is-selected {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__dayhead.is-today,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__dayhead.is-selected,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due-cell.is-today,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due-cell.is-selected,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__daycol.is-today,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__daycol.is-selected,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__dayhead.is-today,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__dayhead.is-selected,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due-cell.is-today,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due-cell.is-selected,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__daycol.is-today,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__daycol.is-selected {
   background: var(--rd-week-today-cell) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="agenda"],
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-calendar-grid[data-mode="agenda"] {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-agenda,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-calendar-grid[data-mode="agenda"],
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-agenda,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-calendar-grid[data-mode="agenda"] {
   --rd-agenda-line: var(--border-subtle) !important;
   --rd-agenda-line-soft: var(--border-hairline) !important;
   --rd-agenda-date-bg: var(--surface-content) !important;
@@ -808,40 +808,40 @@ body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-cale
   background: var(--surface-content) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__row:hover,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__row:hover {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-agenda__row:hover,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-agenda__row:hover {
   background: var(--surface-sunken) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__row.is-active,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__row.is-active {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-agenda__row.is-active,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-agenda__row.is-active {
   background: var(--surface-focused) !important;
   box-shadow: inset 2px 0 0 0 var(--gold) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__day,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-main-panel,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-surface,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-day-insights-expand,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .smart-day-insights-body,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__day,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-main-panel,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-surface,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-day-insights-expand,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .smart-day-insights-body {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-agenda__day,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-main-panel,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-surface,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-day-insights-expand,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-day-insights-body,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-agenda__day,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-main-panel,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-surface,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-day-insights-expand,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-day-insights-body {
   background: var(--surface-content) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__date,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__date {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-agenda__date,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-agenda__date {
   background: var(--rd-agenda-date-bg) !important;
   border-color: var(--border-hairline) !important;
 }
 
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__date.is-today,
-body.dark-mode body.editorial-v4 #main#main #panel-calendar .rd-agenda__day.is-today .rd-agenda__date,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__date.is-today,
-body[data-theme="dark"] body.editorial-v4 #main#main #panel-calendar .rd-agenda__day.is-today .rd-agenda__date {
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-agenda__date.is-today,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-agenda__day.is-today .rd-agenda__date,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-agenda__date.is-today,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-agenda__day.is-today .rd-agenda__date {
   background: var(--rd-agenda-date-today) !important;
 }
 
@@ -1893,3 +1893,272 @@ body.rd-scope.dark-mode #main#main #panel-calendar #calendar-day-drawer .rd-draw
   border-color: var(--border-subtle) !important;
   background: var(--surface-raised) !important;
 }
+
+/* ============================================================================
+   DARK SWEEP 9 — row-hover gradients, backup side, profile seg, progress ring,
+   calendar week/source bands, guest cost total (user-reported white surfaces)
+   ========================================================================= */
+
+/* ── Table row hover action fades (emails, essentials, ceremony, …) ──────── */
+body.dark-mode #main#main [id^="panel-"] [class$="row__actions"],
+body.dark-mode #main#main .cwp-row-hover-actions-inner,
+body[data-theme="dark"] #main#main [id^="panel-"] [class$="row__actions"],
+body[data-theme="dark"] #main#main .cwp-row-hover-actions-inner,
+body.rd-scope.dark-mode #main#main [id^="panel-"] [class$="row__actions"],
+body.rd-scope.dark-mode #main#main .cwp-row-hover-actions-inner {
+  background: linear-gradient(90deg, transparent, var(--surface-focused) 20%) !important;
+}
+
+body.dark-mode #main#main [id^="panel-"] [class$="row__actions"] .rd-btn,
+body.dark-mode #main#main [id^="panel-"] [class$="row__actions"] button,
+body.dark-mode #main#main .cwp-row-act,
+body[data-theme="dark"] #main#main [id^="panel-"] [class$="row__actions"] .rd-btn,
+body[data-theme="dark"] #main#main [id^="panel-"] [class$="row__actions"] button,
+body[data-theme="dark"] #main#main .cwp-row-act,
+body.rd-scope.dark-mode #main#main [id^="panel-"] [class$="row__actions"] .rd-btn,
+body.rd-scope.dark-mode #main#main [id^="panel-"] [class$="row__actions"] button,
+body.rd-scope.dark-mode #main#main .cwp-row-act {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #main#main [id^="panel-"] [class$="row__actions"] .rd-btn:hover,
+body.dark-mode #main#main [id^="panel-"] [class$="row__actions"] button:hover,
+body.dark-mode #main#main .cwp-row-act:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] [class$="row__actions"] .rd-btn:hover,
+body[data-theme="dark"] #main#main [id^="panel-"] [class$="row__actions"] button:hover,
+body[data-theme="dark"] #main#main .cwp-row-act:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] [class$="row__actions"] .rd-btn:hover,
+body.rd-scope.dark-mode #main#main [id^="panel-"] [class$="row__actions"] button:hover,
+body.rd-scope.dark-mode #main#main .cwp-row-act:hover {
+  border-color: var(--gold) !important;
+  color: var(--forest-lt) !important;
+}
+
+body.dark-mode #main#main #panel-emails .rd-et-row:hover td,
+body.dark-mode #main#main #panel-emails .rd-et-row.is-selected td,
+body.dark-mode #main#main #panel-emails .rd-et-row.is-open td,
+body[data-theme="dark"] #main#main #panel-emails .rd-et-row:hover td,
+body[data-theme="dark"] #main#main #panel-emails .rd-et-row.is-selected td,
+body[data-theme="dark"] #main#main #panel-emails .rd-et-row.is-open td,
+body.rd-scope.dark-mode #main#main #panel-emails .rd-et-row:hover td,
+body.rd-scope.dark-mode #main#main #panel-emails .rd-et-row.is-selected td,
+body.rd-scope.dark-mode #main#main #panel-emails .rd-et-row.is-open td {
+  background: var(--surface-focused) !important;
+}
+
+/* ── Data hub: Recent backups side card ─────────────────────────────────── */
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup,
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__main,
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__side,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__main,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__side,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__main,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__side {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body);
+}
+
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__side-title,
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__title,
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__body,
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__hint,
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__row span,
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__note,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__side-title,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__title,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__body,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__hint,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__row span,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__note,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__side-title,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__title,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__body,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__hint,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__row span,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__note {
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode #main#main #panel-data-hub .rd-dh-backup__row,
+body[data-theme="dark"] #main#main #panel-data-hub .rd-dh-backup__row,
+body.rd-scope.dark-mode #main#main #panel-data-hub .rd-dh-backup__row {
+  border-color: var(--border-hairline) !important;
+}
+
+/* ── Profile drawer: tabs, planning seg, dropdown borders ───────────────── */
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-planning-seg,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg {
+  background: var(--surface-content) !important;
+  border-color: var(--border-control) !important;
+}
+
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt {
+  color: var(--text-muted) !important;
+  border-left-color: var(--border-subtle) !important;
+  background: transparent !important;
+}
+
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt.is-active,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt.is-active,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-planning-seg .rd-seg__opt.is-active {
+  background: var(--forest) !important;
+  color: var(--text-on-dark) !important;
+}
+
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab.is-active,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-tab.is-active,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-tab.is-active {
+  color: var(--forest-lt) !important;
+  border-bottom-color: var(--forest-lt) !important;
+  background: transparent !important;
+}
+
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-select-row,
+body.dark-mode #profile-drawer.rd-profile-drawer .theme-picker-btn,
+body.dark-mode #profile-drawer.rd-profile-drawer .font-picker-btn,
+body.dark-mode #profile-drawer.rd-profile-drawer .pd-mini,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-select-row,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .theme-picker-btn,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .font-picker-btn,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .pd-mini,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-select-row,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .theme-picker-btn,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .font-picker-btn,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .pd-mini {
+  border-color: var(--border-control) !important;
+  background: var(--surface-raised) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-select-row__val,
+body.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-select-row__meta,
+body.dark-mode #profile-drawer.rd-profile-drawer .theme-picker-label,
+body.dark-mode #profile-drawer.rd-profile-drawer .font-picker-label,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-select-row__val,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .rd-pd-select-row__meta,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .theme-picker-label,
+body[data-theme="dark"] #profile-drawer.rd-profile-drawer .font-picker-label,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-select-row__val,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .rd-pd-select-row__meta,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .theme-picker-label,
+body.rd-scope.dark-mode #profile-drawer.rd-profile-drawer .font-picker-label {
+  color: var(--text-body) !important;
+}
+
+/* ── Tasks progress widget: ring badge center ────────────────────────────── */
+body.dark-mode #main#main #task-progress-card .task-progress-ring,
+body.dark-mode #main#main .tasks-progress-card .task-progress-ring,
+body[data-theme="dark"] #main#main #task-progress-card .task-progress-ring,
+body[data-theme="dark"] #main#main .tasks-progress-card .task-progress-ring,
+body.rd-scope.dark-mode #main#main #task-progress-card .task-progress-ring,
+body.rd-scope.dark-mode #main#main .tasks-progress-card .task-progress-ring {
+  background: conic-gradient(var(--forest) var(--pct, 0%), var(--progress-track-bg) 0) !important;
+}
+
+body.dark-mode #main#main #task-progress-card .task-progress-ring::after,
+body.dark-mode #main#main .tasks-progress-card .task-progress-ring::after,
+body[data-theme="dark"] #main#main #task-progress-card .task-progress-ring::after,
+body[data-theme="dark"] #main#main .tasks-progress-card .task-progress-ring::after,
+body.rd-scope.dark-mode #main#main #task-progress-card .task-progress-ring::after,
+body.rd-scope.dark-mode #main#main .tasks-progress-card .task-progress-ring::after {
+  background: var(--surface-content) !important;
+}
+
+body.dark-mode #main#main #task-progress-card .task-progress-ring span,
+body.dark-mode #main#main .tasks-progress-card .task-progress-ring span,
+body[data-theme="dark"] #main#main #task-progress-card .task-progress-ring span,
+body[data-theme="dark"] #main#main .tasks-progress-card .task-progress-ring span,
+body.rd-scope.dark-mode #main#main #task-progress-card .task-progress-ring span,
+body.rd-scope.dark-mode #main#main .tasks-progress-card .task-progress-ring span {
+  color: var(--forest-lt) !important;
+}
+
+/* ── Smart Calendar week: day headers + DUE band (direct fills) ──────────── */
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__head,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__head,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-week__head,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-week__due {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due-label,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__dow,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__dom,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due-label,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__dow,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__dom,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-week__due-label,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-week__dow,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-week__dom {
+  color: var(--text-muted) !important;
+}
+
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__dayhead.is-today,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__dayhead.is-selected,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__dayhead.is-today,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__dayhead.is-selected,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-week__dayhead.is-today,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-week__dayhead.is-selected {
+  background: var(--surface-focused) !important;
+}
+
+/* ── Smart Calendar By source: summary banner band ─────────────────────── */
+body.dark-mode #main#main #panel-calendar .rd-cal-source__banner,
+body[data-theme="dark"] #main#main #panel-calendar .rd-cal-source__banner,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-cal-source__banner,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-cal-source__banner,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-cal-source__banner {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+body.dark-mode #main#main #panel-calendar .rd-cal-source__kicker,
+body.dark-mode #main#main #panel-calendar .rd-cal-source__copy,
+body[data-theme="dark"] #main#main #panel-calendar .rd-cal-source__kicker,
+body[data-theme="dark"] #main#main #panel-calendar .rd-cal-source__copy,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-cal-source__kicker,
+body.rd-scope.dark-mode #main#main #panel-calendar .rd-cal-source__copy {
+  color: var(--text-muted) !important;
+}
+
+/* ── Guests: Estimated total footer row ─────────────────────────────────── */
+body.dark-mode #main#main #panel-guests .guest-cost-full-summary .cost-total,
+body.dark-mode #main#main #panel-guests .guest-cost-full-summary .cost-line.cost-total,
+body.dark-mode #main#main #panel-guests #guest-cost-summary-full .cost-total,
+body.dark-mode #main#main #panel-guests .cost-line.cost-total,
+body[data-theme="dark"] #main#main #panel-guests .guest-cost-full-summary .cost-total,
+body[data-theme="dark"] #main#main #panel-guests .guest-cost-full-summary .cost-line.cost-total,
+body[data-theme="dark"] #main#main #panel-guests #guest-cost-summary-full .cost-total,
+body[data-theme="dark"] #main#main #panel-guests .cost-line.cost-total,
+body.rd-scope.dark-mode #main#main #panel-guests .guest-cost-full-summary .cost-total,
+body.rd-scope.dark-mode #main#main #panel-guests .guest-cost-full-summary .cost-line.cost-total,
+body.rd-scope.dark-mode #main#main #panel-guests #guest-cost-summary-full .cost-total,
+body.rd-scope.dark-mode #main#main #panel-guests .cost-line.cost-total {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-heading) !important;
+}
+
+body.dark-mode #main#main #panel-guests .guest-cost-full-summary .cost-total span,
+body.dark-mode #main#main #panel-guests #guest-cost-summary-full .cost-total span,
+body.dark-mode #main#main #panel-guests .cost-line.cost-total span,
+body[data-theme="dark"] #main#main #panel-guests .guest-cost-full-summary .cost-total span,
+body[data-theme="dark"] #main#main #panel-guests #guest-cost-summary-full .cost-total span,
+body[data-theme="dark"] #main#main #panel-guests .cost-line.cost-total span,
+body.rd-scope.dark-mode #main#main #panel-guests .guest-cost-full-summary .cost-total span,
+body.rd-scope.dark-mode #main#main #panel-guests #guest-cost-summary-full .cost-total span,
+body.rd-scope.dark-mode #main#main #panel-guests .cost-line.cost-total span {
+  color: var(--text-heading) !important;
+}
+
