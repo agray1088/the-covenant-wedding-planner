@@ -2202,3 +2202,96 @@ body[data-theme="dark"] #quick-jump-drop .qj-empty {
   color: var(--text-muted) !important;
 }
 
+/* ── dm-sweep11: Entertainment timeline gantt bars ───────────────────────── */
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__axis,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__axis,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__axis,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__axis {
+  color: var(--text-subtle) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__label,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__label,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__label,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__label {
+  color: var(--text-heading) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__label span,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__label span,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__label span,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__label span {
+  color: var(--text-subtle) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__track,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__track,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__track,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__track {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-hairline) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-perf,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__bar.is-perf,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-perf,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-perf {
+  background: var(--forest-lt) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-loadin,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__bar.is-loadin,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-loadin,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-loadin {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--gold-lt),
+    var(--gold-lt) 4px,
+    var(--surface-sunken) 4px,
+    var(--surface-sunken) 8px
+  ) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-missing,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__bar.is-missing,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-missing,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__bar.is-missing,
+body.dark-mode #main#main #panel-entertainment .rd-ent-missingbar,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-missingbar,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-missingbar,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-missingbar {
+  background: color-mix(in srgb, var(--status-red-text) 42%, var(--surface-sunken)) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__note,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note {
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note.is-loadin,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__note.is-loadin,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note.is-loadin,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note.is-loadin {
+  color: var(--text-subtle) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note.is-missing,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__note.is-missing,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note.is-missing,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__note.is-missing,
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__row.is-missing .rd-ent-gantt__label,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__row.is-missing .rd-ent-gantt__label,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__row.is-missing .rd-ent-gantt__label,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__row.is-missing .rd-ent-gantt__label {
+  color: var(--status-red-text) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-gantt__legend,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__legend,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__legend,
+body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__legend {
+  color: var(--text-subtle) !important;
+}
+
