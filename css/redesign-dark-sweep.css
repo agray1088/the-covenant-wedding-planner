@@ -57,85 +57,85 @@ body[data-theme="dark"] .topbar-notifications-drop-scroll {
   scrollbar-color: var(--scroll-thumb) var(--scroll-track);
 }
 
-/* ── dm-sweep12: Notifications dropdown (#topbar, not #main) ───────────── */
-body.dark-mode #topbar .topbar-notifications-drop,
-body[data-theme="dark"] #topbar .topbar-notifications-drop,
-body.rd-scope.dark-mode #topbar .topbar-notifications-drop,
-body.rd-scope[data-theme="dark"] #topbar .topbar-notifications-drop {
+/* ── dm-sweep12: Notifications dropdown (.rd-topbar bell slot, not #topbar) ─ */
+body.dark-mode .topbar-notifications-drop,
+body[data-theme="dark"] .topbar-notifications-drop,
+body.rd-scope.dark-mode .topbar-notifications-drop,
+body.rd-scope[data-theme="dark"] .topbar-notifications-drop {
   background-color: var(--surface-content) !important;
   border-color: var(--border-control) !important;
   color: var(--text-body);
   box-shadow: var(--shadow-modal);
 }
 
-body.dark-mode #topbar .rd-notif__head,
-body.dark-mode #topbar .rd-notif__foot,
-body.dark-mode #topbar .rd-notif__eyebrow,
-body[data-theme="dark"] #topbar .rd-notif__head,
-body[data-theme="dark"] #topbar .rd-notif__foot,
-body[data-theme="dark"] #topbar .rd-notif__eyebrow,
-body.rd-scope.dark-mode #topbar .rd-notif__head,
-body.rd-scope.dark-mode #topbar .rd-notif__foot,
-body.rd-scope.dark-mode #topbar .rd-notif__eyebrow {
+body.dark-mode .topbar-notifications-drop .rd-notif__head,
+body.dark-mode .topbar-notifications-drop .rd-notif__foot,
+body.dark-mode .topbar-notifications-drop .rd-notif__eyebrow,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__head,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__foot,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__eyebrow,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__head,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__foot,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__eyebrow {
   background: var(--surface-sunken) !important;
   border-color: var(--border-subtle) !important;
 }
 
-body.dark-mode #topbar .rd-notif__quiet,
-body[data-theme="dark"] #topbar .rd-notif__quiet,
-body.rd-scope.dark-mode #topbar .rd-notif__quiet {
+body.dark-mode .topbar-notifications-drop .rd-notif__quiet,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__quiet,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__quiet {
   background: var(--surface-content) !important;
   color: var(--text-muted) !important;
 }
 
-body.dark-mode #topbar .rd-notif__row,
-body[data-theme="dark"] #topbar .rd-notif__row,
-body.rd-scope.dark-mode #topbar .rd-notif__row {
+body.dark-mode .topbar-notifications-drop .rd-notif__row,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__row,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__row {
   background: var(--surface-content) !important;
   border-bottom-color: var(--border-hairline) !important;
   color: var(--text-body);
 }
 
-body.dark-mode #topbar .rd-notif__row.is-selected,
-body[data-theme="dark"] #topbar .rd-notif__row.is-selected,
-body.rd-scope.dark-mode #topbar .rd-notif__row.is-selected {
+body.dark-mode .topbar-notifications-drop .rd-notif__row.is-selected,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__row.is-selected,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__row.is-selected {
   background: var(--surface-active) !important;
   box-shadow: inset 2px 0 0 var(--forest) !important;
 }
 
-body.dark-mode #topbar .rd-notif__row:hover,
-body[data-theme="dark"] #topbar .rd-notif__row:hover,
-body.rd-scope.dark-mode #topbar .rd-notif__row:hover {
+body.dark-mode .topbar-notifications-drop .rd-notif__row:hover,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__row:hover,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__row:hover {
   background: var(--surface-raised) !important;
 }
 
-body.dark-mode #topbar .rd-notif__title,
-body[data-theme="dark"] #topbar .rd-notif__title,
-body.rd-scope.dark-mode #topbar .rd-notif__title {
+body.dark-mode .topbar-notifications-drop .rd-notif__title,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__title,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__title {
   color: var(--text-heading) !important;
 }
 
-body.dark-mode #topbar .rd-notif__sub,
-body.dark-mode #topbar .rd-notif__when,
-body.dark-mode #topbar .rd-notif__empty,
-body[data-theme="dark"] #topbar .rd-notif__sub,
-body[data-theme="dark"] #topbar .rd-notif__when,
-body[data-theme="dark"] #topbar .rd-notif__empty,
-body.rd-scope.dark-mode #topbar .rd-notif__sub,
-body.rd-scope.dark-mode #topbar .rd-notif__when,
-body.rd-scope.dark-mode #topbar .rd-notif__empty {
+body.dark-mode .topbar-notifications-drop .rd-notif__sub,
+body.dark-mode .topbar-notifications-drop .rd-notif__when,
+body.dark-mode .topbar-notifications-drop .rd-notif__empty,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__sub,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__when,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__empty,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__sub,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__when,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__empty {
   color: var(--text-muted) !important;
 }
 
-body.dark-mode #topbar .rd-notif__copy strong,
-body[data-theme="dark"] #topbar .rd-notif__copy strong,
-body.rd-scope.dark-mode #topbar .rd-notif__copy strong {
+body.dark-mode .topbar-notifications-drop .rd-notif__copy strong,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__copy strong,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__copy strong {
   color: var(--text-body) !important;
 }
 
-body.dark-mode #topbar .rd-notif__copy span,
-body[data-theme="dark"] #topbar .rd-notif__copy span,
-body.rd-scope.dark-mode #topbar .rd-notif__copy span {
+body.dark-mode .topbar-notifications-drop .rd-notif__copy span,
+body[data-theme="dark"] .topbar-notifications-drop .rd-notif__copy span,
+body.rd-scope.dark-mode .topbar-notifications-drop .rd-notif__copy span {
   color: var(--text-subtle) !important;
 }
 
