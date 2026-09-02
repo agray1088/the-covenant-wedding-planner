@@ -57,6 +57,88 @@ body[data-theme="dark"] .topbar-notifications-drop-scroll {
   scrollbar-color: var(--scroll-thumb) var(--scroll-track);
 }
 
+/* ── dm-sweep12: Notifications dropdown (#topbar, not #main) ───────────── */
+body.dark-mode #topbar .topbar-notifications-drop,
+body[data-theme="dark"] #topbar .topbar-notifications-drop,
+body.rd-scope.dark-mode #topbar .topbar-notifications-drop,
+body.rd-scope[data-theme="dark"] #topbar .topbar-notifications-drop {
+  background-color: var(--surface-content) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body);
+  box-shadow: var(--shadow-modal);
+}
+
+body.dark-mode #topbar .rd-notif__head,
+body.dark-mode #topbar .rd-notif__foot,
+body.dark-mode #topbar .rd-notif__eyebrow,
+body[data-theme="dark"] #topbar .rd-notif__head,
+body[data-theme="dark"] #topbar .rd-notif__foot,
+body[data-theme="dark"] #topbar .rd-notif__eyebrow,
+body.rd-scope.dark-mode #topbar .rd-notif__head,
+body.rd-scope.dark-mode #topbar .rd-notif__foot,
+body.rd-scope.dark-mode #topbar .rd-notif__eyebrow {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+body.dark-mode #topbar .rd-notif__quiet,
+body[data-theme="dark"] #topbar .rd-notif__quiet,
+body.rd-scope.dark-mode #topbar .rd-notif__quiet {
+  background: var(--surface-content) !important;
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode #topbar .rd-notif__row,
+body[data-theme="dark"] #topbar .rd-notif__row,
+body.rd-scope.dark-mode #topbar .rd-notif__row {
+  background: var(--surface-content) !important;
+  border-bottom-color: var(--border-hairline) !important;
+  color: var(--text-body);
+}
+
+body.dark-mode #topbar .rd-notif__row.is-selected,
+body[data-theme="dark"] #topbar .rd-notif__row.is-selected,
+body.rd-scope.dark-mode #topbar .rd-notif__row.is-selected {
+  background: var(--surface-active) !important;
+  box-shadow: inset 2px 0 0 var(--forest) !important;
+}
+
+body.dark-mode #topbar .rd-notif__row:hover,
+body[data-theme="dark"] #topbar .rd-notif__row:hover,
+body.rd-scope.dark-mode #topbar .rd-notif__row:hover {
+  background: var(--surface-raised) !important;
+}
+
+body.dark-mode #topbar .rd-notif__title,
+body[data-theme="dark"] #topbar .rd-notif__title,
+body.rd-scope.dark-mode #topbar .rd-notif__title {
+  color: var(--text-heading) !important;
+}
+
+body.dark-mode #topbar .rd-notif__sub,
+body.dark-mode #topbar .rd-notif__when,
+body.dark-mode #topbar .rd-notif__empty,
+body[data-theme="dark"] #topbar .rd-notif__sub,
+body[data-theme="dark"] #topbar .rd-notif__when,
+body[data-theme="dark"] #topbar .rd-notif__empty,
+body.rd-scope.dark-mode #topbar .rd-notif__sub,
+body.rd-scope.dark-mode #topbar .rd-notif__when,
+body.rd-scope.dark-mode #topbar .rd-notif__empty {
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode #topbar .rd-notif__copy strong,
+body[data-theme="dark"] #topbar .rd-notif__copy strong,
+body.rd-scope.dark-mode #topbar .rd-notif__copy strong {
+  color: var(--text-body) !important;
+}
+
+body.dark-mode #topbar .rd-notif__copy span,
+body[data-theme="dark"] #topbar .rd-notif__copy span,
+body.rd-scope.dark-mode #topbar .rd-notif__copy span {
+  color: var(--text-subtle) !important;
+}
+
 /* ── Calendar: chips, cells, week, agenda ──────────────────────────────── */
 body.dark-mode #main#main #panel-calendar button.smart-event-chip,
 body.dark-mode #main#main #panel-calendar .smart-event-chip,
@@ -2293,5 +2375,195 @@ body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-gantt__legend,
 body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-gantt__legend,
 body.editorial-v4.dark-mode #main#main #panel-entertainment .rd-ent-gantt__legend {
   color: var(--text-subtle) !important;
+}
+
+/* ── dm-sweep12: Settings overlay (mirror night → dark-mode) ─────────────── */
+body.dark-mode .rd-settings-window .rd-set__card-head,
+body[data-theme="dark"] .rd-settings-window .rd-set__card-head,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__card-head {
+  background: var(--surface-sunken) !important;
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+body.dark-mode .rd-settings-window .rd-set__note,
+body[data-theme="dark"] .rd-settings-window .rd-set__note,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__note {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode .rd-settings-window .rd-set__pane-title,
+body.dark-mode .rd-settings-window .rd-set__row-title,
+body.dark-mode .rd-settings-window .rd-set__card-title,
+body.dark-mode .rd-settings-window .rd-set__card-row-title,
+body[data-theme="dark"] .rd-settings-window .rd-set__pane-title,
+body[data-theme="dark"] .rd-settings-window .rd-set__row-title,
+body[data-theme="dark"] .rd-settings-window .rd-set__card-title,
+body[data-theme="dark"] .rd-settings-window .rd-set__card-row-title,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__pane-title,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__row-title,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__card-title,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__card-row-title {
+  color: var(--text-heading) !important;
+}
+
+body.dark-mode .rd-settings-window .rd-set__row,
+body[data-theme="dark"] .rd-settings-window .rd-set__row,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__row {
+  border-top-color: var(--border-hairline) !important;
+}
+
+body.dark-mode .rd-settings-window .rd-set__card,
+body.dark-mode .rd-settings-window .rd-set__card-row,
+body[data-theme="dark"] .rd-settings-window .rd-set__card,
+body[data-theme="dark"] .rd-settings-window .rd-set__card-row,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__card,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__card-row {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+body.dark-mode .rd-settings-window .rd-set__head:not(.rd-set__head--forest),
+body[data-theme="dark"] .rd-settings-window .rd-set__head:not(.rd-set__head--forest),
+body.rd-scope.dark-mode .rd-settings-window .rd-set__head:not(.rd-set__head--forest) {
+  background: var(--surface-sunken) !important;
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+body.dark-mode .rd-settings-window .rd-set__slot select,
+body[data-theme="dark"] .rd-settings-window .rd-set__slot select,
+body.rd-scope.dark-mode .rd-settings-window .rd-set__slot select {
+  background: var(--surface-content) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body) !important;
+}
+
+/* ── dm-sweep12: Full record editor nav (body-level overlay) ─────────────── */
+body.dark-mode .record-editor-overlay .record-editor-shell,
+body.dark-mode .record-editor-overlay .re-content,
+body.dark-mode .record-editor-overlay .re-rail,
+body[data-theme="dark"] .record-editor-overlay .record-editor-shell,
+body[data-theme="dark"] .record-editor-overlay .re-content,
+body[data-theme="dark"] .record-editor-overlay .re-rail,
+body.rd-scope.dark-mode .record-editor-overlay .record-editor-shell,
+body.rd-scope.dark-mode .record-editor-overlay .re-content,
+body.rd-scope.dark-mode .record-editor-overlay .re-rail {
+  background: var(--surface-content) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body);
+}
+
+body.dark-mode .record-editor-overlay .record-editor-nav button,
+body.dark-mode .record-editor-overlay .record-editor-nav .rd-btn,
+body.dark-mode .record-editor-overlay #record-editor-prev,
+body.dark-mode .record-editor-overlay #record-editor-next,
+body.dark-mode .record-editor-overlay .record-editor-close,
+body[data-theme="dark"] .record-editor-overlay .record-editor-nav button,
+body[data-theme="dark"] .record-editor-overlay .record-editor-nav .rd-btn,
+body[data-theme="dark"] .record-editor-overlay #record-editor-prev,
+body[data-theme="dark"] .record-editor-overlay #record-editor-next,
+body[data-theme="dark"] .record-editor-overlay .record-editor-close,
+body.rd-scope.dark-mode .record-editor-overlay .record-editor-nav button,
+body.rd-scope.dark-mode .record-editor-overlay .record-editor-nav .rd-btn,
+body.rd-scope.dark-mode .record-editor-overlay #record-editor-prev,
+body.rd-scope.dark-mode .record-editor-overlay #record-editor-next,
+body.rd-scope.dark-mode .record-editor-overlay .record-editor-close {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body) !important;
+}
+
+body.dark-mode .record-editor-overlay .record-editor-title,
+body[data-theme="dark"] .record-editor-overlay .record-editor-title,
+body.rd-scope.dark-mode .record-editor-overlay .record-editor-title {
+  color: var(--text-heading) !important;
+}
+
+body.dark-mode .record-editor-overlay .record-editor-position,
+body.dark-mode .record-editor-overlay .record-editor-sub,
+body[data-theme="dark"] .record-editor-overlay .record-editor-position,
+body[data-theme="dark"] .record-editor-overlay .record-editor-sub,
+body.rd-scope.dark-mode .record-editor-overlay .record-editor-position,
+body.rd-scope.dark-mode .record-editor-overlay .record-editor-sub {
+  color: var(--text-muted) !important;
+}
+
+/* ── dm-sweep12: Record drawer RSVP/event tags (status tokens) ───────────── */
+body.dark-mode #record-drawer .ux-pill--rsvp-green,
+body.dark-mode .record-editor-overlay .ux-pill--rsvp-green,
+body[data-theme="dark"] #record-drawer .ux-pill--rsvp-green,
+body[data-theme="dark"] .record-editor-overlay .ux-pill--rsvp-green {
+  background: var(--status-green-bg) !important;
+  color: var(--status-green-text) !important;
+  border: 1px solid var(--status-green-border);
+}
+
+body.dark-mode #record-drawer .ux-pill--rsvp-red,
+body.dark-mode .record-editor-overlay .ux-pill--rsvp-red,
+body[data-theme="dark"] #record-drawer .ux-pill--rsvp-red,
+body[data-theme="dark"] .record-editor-overlay .ux-pill--rsvp-red {
+  background: var(--status-red-bg) !important;
+  color: var(--status-red-text) !important;
+  border: 1px solid var(--status-red-border);
+}
+
+body.dark-mode #record-drawer .ux-pill--rsvp-amber,
+body.dark-mode .record-editor-overlay .ux-pill--rsvp-amber,
+body[data-theme="dark"] #record-drawer .ux-pill--rsvp-amber,
+body[data-theme="dark"] .record-editor-overlay .ux-pill--rsvp-amber {
+  background: var(--status-gold-bg) !important;
+  color: var(--status-gold-text) !important;
+  border: 1px solid var(--status-gold-border);
+}
+
+body.dark-mode #record-drawer .ux-pill--rsvp-neutral,
+body.dark-mode .record-editor-overlay .ux-pill--rsvp-neutral,
+body[data-theme="dark"] #record-drawer .ux-pill--rsvp-neutral,
+body[data-theme="dark"] .record-editor-overlay .ux-pill--rsvp-neutral {
+  background: var(--status-gray-bg) !important;
+  color: var(--status-gray-text) !important;
+  border: 1px solid var(--status-gray-border);
+}
+
+body.dark-mode #record-drawer .rd-guest-ev-tag,
+body.dark-mode #main#main #panel-guests .rd-guest-ev-tag,
+body[data-theme="dark"] #record-drawer .rd-guest-ev-tag,
+body[data-theme="dark"] #main#main #panel-guests .rd-guest-ev-tag {
+  color: var(--text-muted) !important;
+}
+
+/* ── dm-sweep12: Entertainment DJ/performer card text contrast ─────────── */
+body.dark-mode #main#main #panel-entertainment .rd-ent-actcard__name,
+body.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__name,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-actcard__name,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-perfcard__name,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-actcard__name,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__name {
+  color: var(--text-heading) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-actcard__type,
+body.dark-mode #main#main #panel-entertainment .rd-ent-actcard__meta,
+body.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__type,
+body.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__meta,
+body.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__row span,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-actcard__type,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-actcard__meta,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-perfcard__type,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-perfcard__meta,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-perfcard__row span,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-actcard__type,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-actcard__meta,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__type,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__meta,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__row span {
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__row strong,
+body[data-theme="dark"] #main#main #panel-entertainment .rd-ent-perfcard__row strong,
+body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__row strong {
+  color: var(--text-body) !important;
 }
 
