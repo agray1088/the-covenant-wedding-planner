@@ -674,7 +674,7 @@ async function openSettings(page) {
     report.shots.push(profileWalk);
     console.log('walkthrough:', profileWalk);
 
-    // dm-sweep13/14/15: overlays + drawer cream; pills+calendar; notes flagged red
+    // dm-sweep13/14/15/16: overlays; pills+calendar; notes flagged; gifts fund+hh labels
     await page.evaluate(() => {
       // Force-open furniture sheets + a drawer slot so computed styles are measurable
       ['rd-filter-builder-overlay', 'rd-views-mgr-overlay', 'rd-trash-overlay'].forEach((id) => {

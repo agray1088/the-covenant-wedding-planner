@@ -3191,3 +3191,106 @@ body.rd-scope[data-theme="dark"] #panel-notes .rd-notes-kind--blocker {
   border-color: var(--status-red-border) !important;
   border: 1px solid var(--status-red-border) !important;
 }
+
+/* ── dm-sweep16: Gifts fund/charity pills + Household address labels ───────
+   .rd-gifts-regcat__pill uses BEM __pill (underscore), so it misses planner.css
+   [class*="-pill"] wash. Light cream fills (#e9eef8 / #eef6f0) remain while
+   body.editorial-v4.dark-mode #main .panel span forces --dm-text → pale-on-cream.
+   Household .rd-labelsheet__label keeps hardcoded #fff paper. */
+
+/* Gifts registry category pills — base / gray */
+body.dark-mode #main#main #panel-gifts .rd-gifts-regcat__pill,
+body[data-theme="dark"] #main#main #panel-gifts .rd-gifts-regcat__pill,
+body.editorial-v4.dark-mode #main#main #panel-gifts .rd-gifts-regcat__pill,
+body.editorial-v4[data-theme="dark"] #main#main #panel-gifts .rd-gifts-regcat__pill,
+body.rd-scope.dark-mode #panel-gifts .rd-gifts-regcat__pill,
+body.rd-scope[data-theme="dark"] #panel-gifts .rd-gifts-regcat__pill {
+  background: var(--status-gray-bg) !important;
+  background-color: var(--status-gray-bg) !important;
+  color: var(--status-gray-text) !important;
+  border-color: var(--status-gray-border) !important;
+}
+
+/* Honeymoon fund etc. — "$0 of $2,000" */
+body.dark-mode #main#main #panel-gifts .rd-gifts-regcat__pill--fund,
+body[data-theme="dark"] #main#main #panel-gifts .rd-gifts-regcat__pill--fund,
+body.editorial-v4.dark-mode #main#main #panel-gifts .rd-gifts-regcat__pill--fund,
+body.editorial-v4[data-theme="dark"] #main#main #panel-gifts .rd-gifts-regcat__pill--fund,
+body.rd-scope.dark-mode #panel-gifts .rd-gifts-regcat__pill--fund,
+body.rd-scope[data-theme="dark"] #panel-gifts .rd-gifts-regcat__pill--fund {
+  background: var(--status-blue-bg) !important;
+  background-color: var(--status-blue-bg) !important;
+  color: var(--status-blue-text) !important;
+  border-color: var(--status-blue-border) !important;
+}
+
+/* Charity in lieu / on-track — "$0 raised" */
+body.dark-mode #main#main #panel-gifts .rd-gifts-regcat__pill--ok,
+body[data-theme="dark"] #main#main #panel-gifts .rd-gifts-regcat__pill--ok,
+body.editorial-v4.dark-mode #main#main #panel-gifts .rd-gifts-regcat__pill--ok,
+body.editorial-v4[data-theme="dark"] #main#main #panel-gifts .rd-gifts-regcat__pill--ok,
+body.rd-scope.dark-mode #panel-gifts .rd-gifts-regcat__pill--ok,
+body.rd-scope[data-theme="dark"] #panel-gifts .rd-gifts-regcat__pill--ok {
+  background: var(--status-green-bg) !important;
+  background-color: var(--status-green-bg) !important;
+  color: var(--status-green-text) !important;
+  border-color: var(--status-green-border) !important;
+}
+
+/* Slow pace sibling pills on the same grid */
+body.dark-mode #main#main #panel-gifts .rd-gifts-regcat__pill--slow,
+body[data-theme="dark"] #main#main #panel-gifts .rd-gifts-regcat__pill--slow,
+body.editorial-v4.dark-mode #main#main #panel-gifts .rd-gifts-regcat__pill--slow,
+body.editorial-v4[data-theme="dark"] #main#main #panel-gifts .rd-gifts-regcat__pill--slow,
+body.rd-scope.dark-mode #panel-gifts .rd-gifts-regcat__pill--slow,
+body.rd-scope[data-theme="dark"] #panel-gifts .rd-gifts-regcat__pill--slow {
+  background: var(--status-gold-bg) !important;
+  background-color: var(--status-gold-bg) !important;
+  color: var(--status-gold-text) !important;
+  border-color: var(--status-gold-border) !important;
+}
+
+/* Household Labels view — Avery-style paper cards */
+body.dark-mode #main#main #panel-households .rd-labelsheet__label,
+body.dark-mode #main#main #panel-households .rd-hh-label,
+body[data-theme="dark"] #main#main #panel-households .rd-labelsheet__label,
+body[data-theme="dark"] #main#main #panel-households .rd-hh-label,
+body.editorial-v4.dark-mode #main#main #panel-households .rd-labelsheet__label,
+body.editorial-v4.dark-mode #main#main #panel-households .rd-hh-label,
+body.editorial-v4[data-theme="dark"] #main#main #panel-households .rd-labelsheet__label,
+body.editorial-v4[data-theme="dark"] #main#main #panel-households .rd-hh-label,
+body.rd-scope.dark-mode #panel-households .rd-labelsheet__label,
+body.rd-scope.dark-mode #panel-households .rd-hh-label,
+body.rd-scope[data-theme="dark"] #panel-households .rd-labelsheet__label,
+body.rd-scope[data-theme="dark"] #panel-households .rd-hh-label {
+  background: var(--surface-raised) !important;
+  background-color: var(--surface-raised) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-control, var(--border-subtle)) !important;
+}
+body.dark-mode #main#main #panel-households .rd-hh-label strong,
+body.dark-mode #main#main #panel-households .rd-labelsheet__label strong,
+body[data-theme="dark"] #main#main #panel-households .rd-hh-label strong,
+body[data-theme="dark"] #main#main #panel-households .rd-labelsheet__label strong,
+body.editorial-v4.dark-mode #main#main #panel-households .rd-hh-label strong,
+body.editorial-v4.dark-mode #main#main #panel-households .rd-labelsheet__label strong,
+body.rd-scope.dark-mode #panel-households .rd-hh-label strong,
+body.rd-scope.dark-mode #panel-households .rd-labelsheet__label strong,
+body.rd-scope[data-theme="dark"] #panel-households .rd-hh-label strong,
+body.rd-scope[data-theme="dark"] #panel-households .rd-labelsheet__label strong {
+  color: var(--text-primary) !important;
+}
+body.dark-mode #main#main #panel-households .rd-hh-label__addr,
+body[data-theme="dark"] #main#main #panel-households .rd-hh-label__addr,
+body.editorial-v4.dark-mode #main#main #panel-households .rd-hh-label__addr,
+body.rd-scope.dark-mode #panel-households .rd-hh-label__addr,
+body.rd-scope[data-theme="dark"] #panel-households .rd-hh-label__addr {
+  color: var(--text-body) !important;
+}
+body.dark-mode #main#main #panel-households .rd-hh-label__count,
+body[data-theme="dark"] #main#main #panel-households .rd-hh-label__count,
+body.editorial-v4.dark-mode #main#main #panel-households .rd-hh-label__count,
+body.rd-scope.dark-mode #panel-households .rd-hh-label__count,
+body.rd-scope[data-theme="dark"] #panel-households .rd-hh-label__count {
+  color: var(--text-muted) !important;
+}
