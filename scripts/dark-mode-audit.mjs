@@ -674,7 +674,7 @@ async function openSettings(page) {
     report.shots.push(profileWalk);
     console.log('walkthrough:', profileWalk);
 
-    // dm-sweep13: overlays + drawer-slot cream scan
+    // dm-sweep13/14: overlays + drawer-slot cream scan; pills+calendar via tokens
     await page.evaluate(() => {
       // Force-open furniture sheets + a drawer slot so computed styles are measurable
       ['rd-filter-builder-overlay', 'rd-views-mgr-overlay', 'rd-trash-overlay'].forEach((id) => {

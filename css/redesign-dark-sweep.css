@@ -2745,3 +2745,421 @@ body[data-theme="dark"] #main#main .rd-dash-drawer .rd-drawer__head,
 body.rd-scope.dark-mode #main#main .rd-dash-drawer .rd-drawer__head {
   background: var(--surface-sunken) !important;
 }
+
+/* ── dm-sweep14: Status pills + Smart Calendar appointment chips ───────────
+   Beats planner.css blanket:
+     body.editorial-v4.dark-mode #main .panel [class*="-pill"] { rgba(255,255,255,.07) }
+   and the greyscale event-chip wash / light pastel category fills.
+   Semantic distinction via Covenant status tokens; no cream / white-alpha chips. */
+
+/* Status / UX / role / RSVP pills — green */
+body.dark-mode #main#main .status-pill--green,
+body.dark-mode #main#main .status-pill--forest,
+body.dark-mode #main#main .status-pill--success,
+body.dark-mode #main#main [data-pillscheme="green"],
+body.dark-mode #main#main [data-pillscheme="forest"],
+body.dark-mode #main#main .ux-pill--green,
+body.dark-mode #main#main .ux-pill--forest,
+body.dark-mode #main#main .ux-pill--success,
+body.dark-mode #main#main .ux-pill--rsvp-green,
+body.dark-mode #main#main .ux-pill--decision-invite,
+body.dark-mode #main#main .ux-pill--decision-yes,
+body.dark-mode #main#main .ux-pill--gift-cash,
+body.dark-mode #main#main .rd-vn-pill.is-ok,
+body.dark-mode #main#main .rd-pd__pill--you,
+body.dark-mode .rd-pd__pill--you,
+body.dark-mode #record-drawer .ux-pill--green,
+body.dark-mode #record-drawer .ux-pill--rsvp-green,
+body.dark-mode .record-editor-overlay .ux-pill--green,
+body.dark-mode .record-editor-overlay .ux-pill--rsvp-green,
+body[data-theme="dark"] #main#main .status-pill--green,
+body[data-theme="dark"] #main#main .status-pill--forest,
+body[data-theme="dark"] #main#main .status-pill--success,
+body[data-theme="dark"] #main#main [data-pillscheme="green"],
+body[data-theme="dark"] #main#main [data-pillscheme="forest"],
+body[data-theme="dark"] #main#main .ux-pill--green,
+body[data-theme="dark"] #main#main .ux-pill--forest,
+body[data-theme="dark"] #main#main .ux-pill--success,
+body[data-theme="dark"] #main#main .ux-pill--rsvp-green,
+body[data-theme="dark"] #main#main .ux-pill--decision-invite,
+body[data-theme="dark"] #main#main .ux-pill--decision-yes,
+body[data-theme="dark"] #main#main .ux-pill--gift-cash,
+body[data-theme="dark"] #main#main .rd-vn-pill.is-ok,
+body[data-theme="dark"] #main#main .rd-pd__pill--you,
+body[data-theme="dark"] .rd-pd__pill--you,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--green,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--forest,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--success,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--rsvp-green,
+body.editorial-v4.dark-mode #main#main .panel .status-pill--green,
+body.editorial-v4.dark-mode #main#main .panel [data-pillscheme="green"],
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--green,
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--rsvp-green,
+body.editorial-v4[data-theme="dark"] #main#main .panel [data-pillscheme="green"] {
+  background: var(--status-green-bg) !important;
+  background-color: var(--status-green-bg) !important;
+  color: var(--status-green-text) !important;
+  border-color: var(--status-green-border) !important;
+}
+
+/* gold / amber / warn */
+body.dark-mode #main#main .status-pill--gold,
+body.dark-mode #main#main .status-pill--amber,
+body.dark-mode #main#main .status-pill--warning,
+body.dark-mode #main#main [data-pillscheme="gold"],
+body.dark-mode #main#main [data-pillscheme="amber"],
+body.dark-mode #main#main .ux-pill--gold,
+body.dark-mode #main#main .ux-pill--amber,
+body.dark-mode #main#main .ux-pill--warning,
+body.dark-mode #main#main .ux-pill--rsvp-amber,
+body.dark-mode #main#main .ux-pill--decision-maybe,
+body.dark-mode #main#main .ux-pill--decision-waitlist,
+body.dark-mode #main#main .ux-pill--gift-handmade,
+body.dark-mode #main#main .rd-vn-pill.is-warn,
+body.dark-mode #record-drawer .ux-pill--gold,
+body.dark-mode #record-drawer .ux-pill--amber,
+body.dark-mode #record-drawer .ux-pill--rsvp-amber,
+body.dark-mode .record-editor-overlay .ux-pill--gold,
+body.dark-mode .record-editor-overlay .ux-pill--rsvp-amber,
+body[data-theme="dark"] #main#main .status-pill--gold,
+body[data-theme="dark"] #main#main .status-pill--amber,
+body[data-theme="dark"] #main#main .status-pill--warning,
+body[data-theme="dark"] #main#main [data-pillscheme="gold"],
+body[data-theme="dark"] #main#main [data-pillscheme="amber"],
+body[data-theme="dark"] #main#main .ux-pill--gold,
+body[data-theme="dark"] #main#main .ux-pill--amber,
+body[data-theme="dark"] #main#main .ux-pill--warning,
+body[data-theme="dark"] #main#main .ux-pill--rsvp-amber,
+body[data-theme="dark"] #main#main .ux-pill--decision-maybe,
+body[data-theme="dark"] #main#main .ux-pill--decision-waitlist,
+body[data-theme="dark"] #main#main .rd-vn-pill.is-warn,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--gold,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--amber,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--warning,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--rsvp-amber,
+body.editorial-v4.dark-mode #main#main .panel .status-pill--gold,
+body.editorial-v4.dark-mode #main#main .panel [data-pillscheme="gold"],
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--gold,
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--rsvp-amber,
+body.editorial-v4[data-theme="dark"] #main#main .panel [data-pillscheme="gold"] {
+  background: var(--status-gold-bg) !important;
+  background-color: var(--status-gold-bg) !important;
+  color: var(--status-gold-text) !important;
+  border-color: var(--status-gold-border) !important;
+}
+
+/* gray / neutral / muted */
+body.dark-mode #main#main .status-pill--gray,
+body.dark-mode #main#main .status-pill--grey,
+body.dark-mode #main#main .status-pill--neutral,
+body.dark-mode #main#main .status-pill--muted,
+body.dark-mode #main#main [data-pillscheme="gray"],
+body.dark-mode #main#main [data-pillscheme="grey"],
+body.dark-mode #main#main .ux-pill--gray,
+body.dark-mode #main#main .ux-pill--grey,
+body.dark-mode #main#main .ux-pill--neutral,
+body.dark-mode #main#main .ux-pill--muted,
+body.dark-mode #main#main .ux-pill--rsvp-neutral,
+body.dark-mode #main#main .ux-pill--gift-other,
+body.dark-mode #main#main .rd-pd__pill--cov,
+body.dark-mode .rd-pd__pill--cov,
+body.dark-mode #record-drawer .ux-pill--gray,
+body.dark-mode #record-drawer .ux-pill--neutral,
+body.dark-mode #record-drawer .ux-pill--rsvp-neutral,
+body.dark-mode .record-editor-overlay .ux-pill--gray,
+body.dark-mode .record-editor-overlay .ux-pill--rsvp-neutral,
+body[data-theme="dark"] #main#main .status-pill--gray,
+body[data-theme="dark"] #main#main .status-pill--grey,
+body[data-theme="dark"] #main#main .status-pill--neutral,
+body[data-theme="dark"] #main#main .status-pill--muted,
+body[data-theme="dark"] #main#main [data-pillscheme="gray"],
+body[data-theme="dark"] #main#main .ux-pill--gray,
+body[data-theme="dark"] #main#main .ux-pill--grey,
+body[data-theme="dark"] #main#main .ux-pill--neutral,
+body[data-theme="dark"] #main#main .ux-pill--muted,
+body[data-theme="dark"] #main#main .ux-pill--rsvp-neutral,
+body[data-theme="dark"] #main#main .rd-pd__pill--cov,
+body[data-theme="dark"] .rd-pd__pill--cov,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--gray,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--grey,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--neutral,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--muted,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--rsvp-neutral,
+body.editorial-v4.dark-mode #main#main .panel .status-pill--gray,
+body.editorial-v4.dark-mode #main#main .panel [data-pillscheme="gray"],
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--gray,
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--rsvp-neutral,
+body.editorial-v4[data-theme="dark"] #main#main .panel [data-pillscheme="gray"] {
+  background: var(--status-gray-bg) !important;
+  background-color: var(--status-gray-bg) !important;
+  color: var(--status-gray-text) !important;
+  border-color: var(--status-gray-border) !important;
+}
+
+/* red / danger / coral */
+body.dark-mode #main#main .status-pill--red,
+body.dark-mode #main#main .status-pill--danger,
+body.dark-mode #main#main [data-pillscheme="red"],
+body.dark-mode #main#main [data-pillscheme="coral"],
+body.dark-mode #main#main .ux-pill--red,
+body.dark-mode #main#main .ux-pill--danger,
+body.dark-mode #main#main .ux-pill--rsvp-red,
+body.dark-mode #main#main .ux-pill--decision-no,
+body.dark-mode #main#main .ux-pill--decision-decline,
+body.dark-mode #main#main .rd-vn-pill.is-danger,
+body.dark-mode #record-drawer .ux-pill--red,
+body.dark-mode #record-drawer .ux-pill--rsvp-red,
+body.dark-mode .record-editor-overlay .ux-pill--red,
+body.dark-mode .record-editor-overlay .ux-pill--rsvp-red,
+body[data-theme="dark"] #main#main .status-pill--red,
+body[data-theme="dark"] #main#main .status-pill--danger,
+body[data-theme="dark"] #main#main [data-pillscheme="red"],
+body[data-theme="dark"] #main#main [data-pillscheme="coral"],
+body[data-theme="dark"] #main#main .ux-pill--red,
+body[data-theme="dark"] #main#main .ux-pill--danger,
+body[data-theme="dark"] #main#main .ux-pill--rsvp-red,
+body[data-theme="dark"] #main#main .ux-pill--decision-no,
+body[data-theme="dark"] #main#main .ux-pill--decision-decline,
+body[data-theme="dark"] #main#main .rd-vn-pill.is-danger,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--red,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--danger,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--rsvp-red,
+body.editorial-v4.dark-mode #main#main .panel .status-pill--red,
+body.editorial-v4.dark-mode #main#main .panel [data-pillscheme="red"],
+body.editorial-v4.dark-mode #main#main .panel [data-pillscheme="coral"],
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--red,
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--rsvp-red,
+body.editorial-v4[data-theme="dark"] #main#main .panel [data-pillscheme="red"] {
+  background: var(--status-red-bg) !important;
+  background-color: var(--status-red-bg) !important;
+  color: var(--status-red-text) !important;
+  border-color: var(--status-red-border) !important;
+}
+
+/* blue / info / planner role */
+body.dark-mode #main#main .status-pill--blue,
+body.dark-mode #main#main .status-pill--info,
+body.dark-mode #main#main [data-pillscheme="blue"],
+body.dark-mode #main#main .ux-pill--blue,
+body.dark-mode #main#main .rd-pd__pill--planner,
+body.dark-mode .rd-pd__pill--planner,
+body[data-theme="dark"] #main#main .status-pill--blue,
+body[data-theme="dark"] #main#main .status-pill--info,
+body[data-theme="dark"] #main#main [data-pillscheme="blue"],
+body[data-theme="dark"] #main#main .ux-pill--blue,
+body[data-theme="dark"] #main#main .rd-pd__pill--planner,
+body[data-theme="dark"] .rd-pd__pill--planner,
+body.editorial-v4.dark-mode #main#main .panel .ux-pill--blue,
+body.editorial-v4.dark-mode #main#main .panel .status-pill--blue,
+body.editorial-v4.dark-mode #main#main .panel [data-pillscheme="blue"],
+body.editorial-v4[data-theme="dark"] #main#main .panel .ux-pill--blue,
+body.editorial-v4[data-theme="dark"] #main#main .panel [data-pillscheme="blue"] {
+  background: var(--status-blue-bg) !important;
+  background-color: var(--status-blue-bg) !important;
+  color: var(--status-blue-text) !important;
+  border-color: var(--status-blue-border) !important;
+}
+
+/* Interactive / tagged wrappers: keep select text on status tokens */
+body.dark-mode #main#main .status-pill--interactive[data-pillscheme] select,
+body.dark-mode #main#main [data-pillscheme] > select,
+body[data-theme="dark"] #main#main .status-pill--interactive[data-pillscheme] select,
+body[data-theme="dark"] #main#main [data-pillscheme] > select {
+  color: inherit !important;
+  background: transparent !important;
+}
+
+/* Smart Calendar — category chips (month / week due / week events): dark mix
+   beats hardcoded #f3e6d0 / #dce8e2 pastels AND planner.css white-alpha wash. */
+body.dark-mode #main#main #panel-calendar .smart-event-chip,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.tasks,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.appointments,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.counseling,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.budget,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.payments,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.vendors,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.timeline,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.manual,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.planning,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.weekend,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.honeymoon,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.rentals,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.gifts,
+body.dark-mode #main#main #panel-calendar button.smart-event-chip,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.tasks,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.appointments,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.counseling,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.budget,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.payments,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.vendors,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.timeline,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.manual,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.planning,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.weekend,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.honeymoon,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.rentals,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.gifts,
+body.dark-mode #main#main #panel-calendar .rd-week__event,
+body.dark-mode #main#main #panel-calendar .rd-week__event.tasks,
+body.dark-mode #main#main #panel-calendar .rd-week__event.appointments,
+body.dark-mode #main#main #panel-calendar .rd-week__event.counseling,
+body.dark-mode #main#main #panel-calendar .rd-week__event.budget,
+body.dark-mode #main#main #panel-calendar .rd-week__event.payments,
+body.dark-mode #main#main #panel-calendar .rd-week__event.vendors,
+body.dark-mode #main#main #panel-calendar .rd-week__event.timeline,
+body.dark-mode #main#main #panel-calendar .rd-week__event.manual,
+body.dark-mode #main#main #panel-calendar .rd-week__event.planning,
+body.dark-mode #main#main #panel-calendar .rd-week__event.weekend,
+body.dark-mode #main#main #panel-calendar .rd-week__event.honeymoon,
+body.dark-mode #main#main #panel-calendar .rd-week__event.rentals,
+body.dark-mode #main#main #panel-calendar .rd-week__event.gifts,
+body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
+body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip.appointments,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__due-chip,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__due-chip.appointments,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__event,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__event.appointments,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.tasks,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.appointments,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.counseling,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.budget,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.payments,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.vendors,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.timeline,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.manual,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.planning,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.weekend,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.honeymoon,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.rentals,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.gifts,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due-chip,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due-chip.appointments,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event.appointments,
+body.editorial-v4.dark-mode #main#main .panel .smart-event-chip,
+body.editorial-v4.dark-mode #main#main .panel .smart-event-chip.appointments,
+body.editorial-v4.dark-mode #main#main .panel [class*="event-chip"],
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-event-chip.appointments,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__event,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due-chip {
+  --smart-chip-mix-base: var(--surface-content) !important;
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
+  background: var(--smart-chip-fill) !important;
+  background-color: var(--smart-chip-fill) !important;
+  background-image: none !important;
+  border-top-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  border-right-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  border-bottom-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
+}
+
+/* Preserve left accent bars per source (semantic multi-color OK) */
+body.dark-mode #main#main #panel-calendar .smart-event-chip.appointments,
+body.dark-mode #main#main #panel-calendar .rd-week__event.appointments,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip.appointments,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.appointments,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event.appointments,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due-chip.appointments {
+  --smart-event-color: #B38549 !important;
+  --smart-chip-bar: #8A6428 !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.tasks,
+body.dark-mode #main#main #panel-calendar .rd-week__event.tasks,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.tasks {
+  --smart-event-color: #2D4A3E !important;
+  --smart-chip-bar: #2D4A3E !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.counseling,
+body.dark-mode #main#main #panel-calendar .rd-week__event.counseling,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.counseling {
+  --smart-event-color: #6B5478 !important;
+  --smart-chip-bar: #4E3C58 !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.budget,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.budget {
+  --smart-event-color: #6B8BB0 !important;
+  --smart-chip-bar: #4A6A90 !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.payments,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.payments {
+  --smart-event-color: #C96B55 !important;
+  --smart-chip-bar: #9C3B34 !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.vendors,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.vendors {
+  --smart-event-color: #9B7A9E !important;
+  --smart-chip-bar: #6b4460 !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.timeline,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.timeline {
+  --smart-event-color: #7A8A98 !important;
+  --smart-chip-bar: #4a5a68 !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.manual,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.manual {
+  --smart-event-color: #C4A84A !important;
+  --smart-chip-bar: #8a640f !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.planning,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.planning {
+  --smart-event-color: #A89870 !important;
+  --smart-chip-bar: #6d6255 !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.weekend,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.weekend {
+  --smart-event-color: #5A8A68 !important;
+  --smart-chip-bar: #2f5136 !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.honeymoon,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.honeymoon {
+  --smart-event-color: #5A8A7A !important;
+  --smart-chip-bar: #2d5a4e !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+body.dark-mode #main#main #panel-calendar .smart-event-chip.rentals,
+body.dark-mode #main#main #panel-calendar .smart-event-chip.gifts,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.rentals,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip.gifts {
+  --smart-event-color: #B08A5A !important;
+  --smart-chip-bar: #7a5a3a !important;
+  border-left-color: var(--smart-chip-bar) !important;
+}
+
+/* Chip inner text inherits tinted color (don't flatten to dm-text wash) */
+body.dark-mode #main#main #panel-calendar .smart-event-chip *,
+body.dark-mode #main#main #panel-calendar .rd-week__event *,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip *,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip *,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event *,
+body.editorial-v4.dark-mode #main#main .panel .smart-event-chip * {
+  color: inherit !important;
+}
+
+/* Guest event chips / agenda tags — no cream paper */
+body.dark-mode #main#main .guest-event-chip,
+body.dark-mode #main#main .smart-agenda-tag,
+body.dark-mode #main#main .record-id-pill,
+body[data-theme="dark"] #main#main .guest-event-chip,
+body[data-theme="dark"] #main#main .smart-agenda-tag,
+body[data-theme="dark"] #main#main .record-id-pill,
+body.editorial-v4.dark-mode #main#main .panel .guest-event-chip,
+body.editorial-v4.dark-mode #main#main .panel .smart-agenda-tag,
+body.editorial-v4.dark-mode #main#main .panel .record-id-pill {
+  background: var(--status-gray-bg) !important;
+  background-color: var(--status-gray-bg) !important;
+  color: var(--status-gray-text) !important;
+  border-color: var(--status-gray-border) !important;
+}
