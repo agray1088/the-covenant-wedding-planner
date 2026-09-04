@@ -15693,10 +15693,11 @@ body.rd-scope #panel-contracts .rd-con-custody {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   padding: 20px 24px;
-  background: var(--surface-page, #fdfcfa);
+  /* Light: ivory canvas gutters. Dark: --surface-canvas (#141414); no cream hex fallback. */
+  background: var(--surface-canvas);
 }
 body.rd-scope #panel-contracts .rd-con-card {
-  border: 1px solid var(--border-subtle, #e7e1d4);
+  border: 1px solid var(--border-subtle);
   background: var(--surface-content, var(--smart-chip-mix-base));
   padding: 14px 16px;
   display: flex;

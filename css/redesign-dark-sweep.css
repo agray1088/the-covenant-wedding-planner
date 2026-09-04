@@ -3294,3 +3294,25 @@ body.rd-scope.dark-mode #panel-households .rd-hh-label__count,
 body.rd-scope[data-theme="dark"] #panel-households .rd-hh-label__count {
   color: var(--text-muted) !important;
 }
+
+/* ── dm-sweep17: Contracts Documents custody card frame ────────────────────
+   .rd-con-custody uses gap + padding over --surface-page (#fdfcfa fallback),
+   so cream gutters frame the card strip in dark mode. Map frame fill to
+   --surface-canvas and card edges to --border-subtle. Light mode unchanged. */
+body.dark-mode #main#main #panel-contracts .rd-con-custody,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-custody,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-custody,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-custody,
+body.rd-scope.dark-mode #panel-contracts .rd-con-custody,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-custody {
+  background: var(--surface-canvas) !important;
+  background-color: var(--surface-canvas) !important;
+}
+body.dark-mode #main#main #panel-contracts .rd-con-card,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-card,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-card,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-card,
+body.rd-scope.dark-mode #panel-contracts .rd-con-card,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-card {
+  border-color: var(--border-subtle) !important;
+}
