@@ -462,9 +462,11 @@ span.rd-filter-builder__chip.is-op {
 .rd-merge__lab { font-size: 9.9px; font-weight: 600; color: var(--rdf-muted); }
 .rd-merge__row label { display: flex; align-items: center; gap: 7px; font-size: 10.8px; }
 
-/* ── night ──────────────────────────────────────────────────────────────── */
+/* ── night / dark (applyDarkMode sets dark-mode + data-theme="dark") ───── */
 body.night, body[data-theme="night"],
-body.rd-scope.night, body.rd-scope[data-theme="night"] {
+body.rd-scope.night, body.rd-scope[data-theme="night"],
+body.dark-mode, body[data-theme="dark"],
+body.rd-scope.dark-mode, body.rd-scope[data-theme="dark"] {
   --rdf-ink: #e6e1d6;
   --rdf-head: #e6e1d6;
   --rdf-forest: #3f6b56;

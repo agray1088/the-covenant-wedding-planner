@@ -637,7 +637,7 @@ html, body {
   font-weight: 600;
 }
 .vp-note--gantt {
-  background: #fdfcfa;
+  background: var(--vp-sunken, #fdfcfa);
   border-top: 1px solid var(--vp-line);
 }
 
@@ -884,6 +884,19 @@ body.vp-scope[data-theme="dark"] .vp-btn:not(.vp-btn--primary) {
   background: #1e1e1e !important;
   border-color: var(--vp-line) !important;
   color: var(--vp-body) !important;
+}
+
+body.vp-scope.dark-mode .vp-note--gantt,
+body.vp-scope[data-theme="dark"] .vp-note--gantt {
+  background: var(--vp-sunken) !important;
+  border-top-color: var(--vp-line) !important;
+}
+
+body.vp-scope.dark-mode .vp-gantt__bar.is-service,
+body.vp-scope[data-theme="dark"] .vp-gantt__bar.is-service {
+  background: color-mix(in srgb, var(--vp-forest) 22%, #1e1e1e) !important;
+  border-color: var(--vp-forest) !important;
+  color: var(--vp-ink) !important;
 }
 
 @media (max-width: 520px) {

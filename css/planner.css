@@ -240,7 +240,7 @@ textarea {
   top: calc(100% + .4rem);
   right: 0;
   left: 0;
-  background: #fff;
+  background: var(--surface-content, #fff);
   border: 1px solid rgba(212,184,150,.5);
   border-radius: 12px;
   box-shadow: 0 16px 44px rgba(45,40,30,.22);
@@ -266,7 +266,7 @@ textarea {
 
 .gs-result:hover,
 .gs-result.gs-active {
-  background: #faf5ec;
+  background: var(--surface-focused, #faf5ec);
 }
 
 .gs-result .gs-type {

@@ -10899,8 +10899,8 @@ function vcmpNameListId(i){
    beats the dark-thead white-text rules that otherwise make the OPEN option list
    invisible. Mirrors the Vendor Category dropdown (.vcmp-cat): white box, dark forest
    serif text, native arrow, full width. */
-const VCMP_SELECT_STYLE = "font-family:var(--font-sans,'Inter',system-ui,-apple-system,sans-serif)!important;font-size:.85rem!important;font-weight:600!important;color:#2F4032!important;-webkit-text-fill-color:#2F4032!important;background:#fff!important;border:1px solid #E7E0D2!important;border-radius:6px!important;padding:.45rem 1.6rem .45rem .6rem!important;width:100%!important;max-width:none!important;text-align:left!important;-webkit-appearance:auto!important;-moz-appearance:auto!important;appearance:auto!important;box-shadow:none!important;min-height:36px!important;text-transform:none!important;letter-spacing:normal!important;";
-const VCMP_OPTION_STYLE = "color:#2F4032;background:#fff;-webkit-text-fill-color:#2F4032;font-weight:600;font-family:var(--font-sans,'Inter',system-ui,sans-serif);";
+const VCMP_SELECT_STYLE = "font-family:var(--font-sans,'Inter',system-ui,-apple-system,sans-serif)!important;font-size:.85rem!important;font-weight:600!important;color:var(--text-heading,#2F4032)!important;-webkit-text-fill-color:var(--text-heading,#2F4032)!important;background:var(--surface-content,#fff)!important;border:1px solid var(--border-control,#E7E0D2)!important;border-radius:6px!important;padding:.45rem 1.6rem .45rem .6rem!important;width:100%!important;max-width:none!important;text-align:left!important;-webkit-appearance:auto!important;-moz-appearance:auto!important;appearance:auto!important;box-shadow:none!important;min-height:36px!important;text-transform:none!important;letter-spacing:normal!important;";
+const VCMP_OPTION_STYLE = "color:var(--text-heading,#2F4032);background:var(--surface-content,#fff);-webkit-text-fill-color:var(--text-heading,#2F4032);font-weight:600;font-family:var(--font-sans,'Inter',system-ui,sans-serif);";
 function vcmpVendorOptionsHtml(selected, category){
   // Pull ALL vendors from the tracker (data.vendors), not just the row's category.
   const list = safeArray(data.vendors);
@@ -11731,7 +11731,7 @@ function renderVisionTab(){
     ${field('marriagePrayer','A prayer over this marriage','textarea')}
     ${field('hisPrayerForHer','His Prayer for Her - What I ask the Lord to do in your life','textarea')}
     ${field('herPrayerForHim','Her Prayer for Him - What I ask the Lord to do in your life','textarea')}
-    <div class="rfl-panel ued-panel" style="box-shadow:none;margin:1rem 0 0;background:#fffdf9;">
+    <div class="rfl-panel ued-panel" style="box-shadow:none;margin:1rem 0 0;background:var(--surface-content,#fffdf9);">
       <h2>A Verse for Our Marriage</h2>
       <div class="rfl-intro">Choose one verse that anchors what you and your spouse want this marriage to be. It does not have to be the most popular verse about wedding or love, but a verse that you are declaring over your marriage, as you walk into a holy covenant and as you build your lives together, centered in Jesus. Write it below in full. Write the reference scripture. Write what it means to you. Let it be a constant reminder throughout this planning process that this is a building block in the foundation of your marriage, when seasons are good and when seasons are hard. This is the scripture that will draw you back to the covenant you made with each other before God, family, and friends.</div>
       ${field('marriageVerseFull','Verse written in full','textarea')}
@@ -15748,7 +15748,7 @@ function renderVendorRecordEditor(){
     ${recordInput('Deposit','deposit','number',false,'min="0"')}
     <div class="record-editor-field"><label>Balance</label><input value="${escapeHtml(vendorCurrency(bal))}" readonly></div>
     ${recordSelect('Status','status',VENDOR_STATUS)}
-    <div class="record-editor-field"><label>Vendor Rating</label><div style="padding:.5rem;border:1px solid rgba(196,165,118,.34);background:#fff;">${recordEditorStars(d.rating||0)}</div></div>
+    <div class="record-editor-field"><label>Vendor Rating</label><div style="padding:.5rem;border:1px solid rgba(196,165,118,.34);background:var(--surface-content,#fff);">${recordEditorStars(d.rating||0)}</div></div>
     ${recordCheck('Contract Signed','contract')}
     ${recordTextarea('Pros','pros')}
     ${recordTextarea('Cons','cons')}
@@ -22573,7 +22573,7 @@ function rdTaskPick(title, options){
       b.type = 'button';
       b.className = 'cov-modal__choice';
       b.textContent = String(opt);
-      b.style.cssText = 'text-align:left;width:100%;cursor:pointer;font:500 .92rem/1.4 system-ui;padding:.55rem .75rem;border:1px solid rgba(42,42,42,.12);border-radius:8px;background:#fff;color:#2A2A2A';
+      b.style.cssText = 'text-align:left;width:100%;cursor:pointer;font:500 .92rem/1.4 system-ui;padding:.55rem .75rem;border:1px solid rgba(42,42,42,.12);border-radius:8px;background:var(--surface-content,#fff);color:var(--text-primary,#2A2A2A)';
       b.addEventListener('click', function(e){ e.preventDefault(); done(String(opt)); });
       choices.appendChild(b);
     });

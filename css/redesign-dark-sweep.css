@@ -2567,3 +2567,181 @@ body.rd-scope.dark-mode #main#main #panel-entertainment .rd-ent-perfcard__row st
   color: var(--text-body) !important;
 }
 
+
+/* ── dm-sweep13: Furniture overlays inherit via furniture.css dark tokens ─ */
+/* ── dm-sweep13: Drawer slots (cream shell; child often transparent) ─────── */
+body.dark-mode [id$="-drawer-slot"].is-open,
+body[data-theme="dark"] [id$="-drawer-slot"].is-open,
+body.rd-scope.dark-mode [id$="-drawer-slot"].is-open,
+body.editorial-v4.dark-mode [id$="-drawer-slot"].is-open {
+  background: var(--surface-raised) !important;
+  border-left-color: var(--border-subtle) !important;
+}
+
+/* ── dm-sweep13: Topbar / body-mounted popovers (outside #main) ──────────── */
+body.dark-mode .gs-results,
+body[data-theme="dark"] .gs-results,
+body.rd-scope.dark-mode .gs-results,
+body.editorial-v4.dark-mode .gs-results {
+  background: var(--surface-content) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body);
+}
+
+body.dark-mode .gs-result:hover,
+body.dark-mode .gs-result.gs-active,
+body[data-theme="dark"] .gs-result:hover,
+body[data-theme="dark"] .gs-result.gs-active,
+body.rd-scope.dark-mode .gs-result:hover,
+body.rd-scope.dark-mode .gs-result.gs-active {
+  background: var(--surface-focused) !important;
+}
+
+body.dark-mode .rd-menu__person,
+body.dark-mode .rd-menu__grp,
+body.dark-mode .gs-results.rd-gs-gaps .gs-cmdk-foot,
+body[data-theme="dark"] .rd-menu__person,
+body[data-theme="dark"] .rd-menu__grp,
+body[data-theme="dark"] .gs-results.rd-gs-gaps .gs-cmdk-foot,
+body.rd-scope.dark-mode .rd-menu__person,
+body.rd-scope.dark-mode .rd-menu__grp,
+body.rd-scope.dark-mode .gs-results.rd-gs-gaps .gs-cmdk-foot {
+  background: var(--surface-sunken) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-muted);
+}
+
+body.dark-mode .rd-menu__pname,
+body[data-theme="dark"] .rd-menu__pname,
+body.rd-scope.dark-mode .rd-menu__pname {
+  color: var(--text-heading) !important;
+}
+
+body.dark-mode .rd-menu__row,
+body.dark-mode .rd-undo-step__title,
+body[data-theme="dark"] .rd-menu__row,
+body[data-theme="dark"] .rd-undo-step__title,
+body.rd-scope.dark-mode .rd-menu__row,
+body.rd-scope.dark-mode .rd-undo-step__title {
+  color: var(--text-body) !important;
+}
+
+body.dark-mode .rd-menu__row:hover,
+body.dark-mode .rd-undo-step.is-top,
+body.dark-mode .rd-undo-step:hover,
+body.dark-mode .gs-results.rd-gs-gaps .gs-cmdk-foot:hover,
+body[data-theme="dark"] .rd-menu__row:hover,
+body[data-theme="dark"] .rd-undo-step.is-top,
+body[data-theme="dark"] .rd-undo-step:hover,
+body[data-theme="dark"] .gs-results.rd-gs-gaps .gs-cmdk-foot:hover,
+body.rd-scope.dark-mode .rd-menu__row:hover,
+body.rd-scope.dark-mode .rd-undo-step.is-top,
+body.rd-scope.dark-mode .rd-undo-step:hover,
+body.rd-scope.dark-mode .gs-results.rd-gs-gaps .gs-cmdk-foot:hover {
+  background: var(--surface-focused) !important;
+}
+
+body.dark-mode .rd-gaps-pop,
+body.dark-mode .rd-avatar-menu,
+body.dark-mode .rd-help-menu,
+body.dark-mode .rd-undo-flyout,
+body[data-theme="dark"] .rd-gaps-pop,
+body[data-theme="dark"] .rd-avatar-menu,
+body[data-theme="dark"] .rd-help-menu,
+body[data-theme="dark"] .rd-undo-flyout,
+body.rd-scope.dark-mode .rd-gaps-pop,
+body.rd-scope.dark-mode .rd-avatar-menu,
+body.rd-scope.dark-mode .rd-help-menu,
+body.rd-scope.dark-mode .rd-undo-flyout {
+  background: var(--surface-content) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body);
+}
+
+body.dark-mode .rd-menu__div,
+body[data-theme="dark"] .rd-menu__div,
+body.rd-scope.dark-mode .rd-menu__div {
+  background: var(--border-subtle) !important;
+}
+
+/* Context rail overlay + mobile tabbar */
+body.dark-mode #planner-context-sidebar.rd-rail--icons.is-rail-overlay,
+body[data-theme="dark"] #planner-context-sidebar.rd-rail--icons.is-rail-overlay,
+body.rd-scope.dark-mode #planner-context-sidebar.rd-rail--icons.is-rail-overlay {
+  background: var(--surface-sunken) !important;
+}
+
+body.dark-mode .rd-mobile-tabbar,
+body[data-theme="dark"] .rd-mobile-tabbar,
+body.rd-scope.dark-mode .rd-mobile-tabbar {
+  background: var(--surface-raised) !important;
+  border-top-color: var(--border-subtle) !important;
+}
+
+body.dark-mode .rd-set__guidecount,
+body[data-theme="dark"] .rd-set__guidecount,
+body.rd-scope.dark-mode .rd-set__guidecount {
+  background: var(--surface-sunken) !important;
+  color: var(--text-muted) !important;
+}
+
+/* Vendor compare selects + vision/record editor inline cream */
+body.dark-mode .vcmp-vn,
+body.dark-mode .vcmp-nm,
+body.dark-mode .vcmp-h2h-name,
+body.dark-mode select.vcmp-vn,
+body.dark-mode select.vcmp-nm,
+body.dark-mode select.vcmp-h2h-name,
+body[data-theme="dark"] .vcmp-vn,
+body[data-theme="dark"] .vcmp-nm,
+body[data-theme="dark"] .vcmp-h2h-name,
+body.rd-scope.dark-mode .vcmp-vn,
+body.rd-scope.dark-mode .vcmp-nm,
+body.rd-scope.dark-mode .vcmp-h2h-name {
+  background: var(--surface-content) !important;
+  border-color: var(--border-control) !important;
+  color: var(--text-body) !important;
+  -webkit-text-fill-color: var(--text-body) !important;
+}
+
+body.dark-mode .rfl-panel,
+body.dark-mode .rfl-panel.ued-panel,
+body[data-theme="dark"] .rfl-panel,
+body[data-theme="dark"] .rfl-panel.ued-panel,
+body.rd-scope.dark-mode .rfl-panel,
+body.rd-scope.dark-mode .rfl-panel.ued-panel {
+  background: var(--surface-content) !important;
+}
+
+body.dark-mode .record-editor-field > div[style*="background"],
+body[data-theme="dark"] .record-editor-field > div[style*="background"],
+body.rd-scope.dark-mode .record-editor-field > div[style*="background"] {
+  background: var(--surface-content) !important;
+  border-color: var(--border-field) !important;
+}
+
+/* Panel cream chrome leftovers (tokenized light rules + force dark) */
+body.dark-mode #main#main .rd-dash-next,
+body.dark-mode #main#main .rd-tables-detail-card,
+body.dark-mode #main#main .rd-seat-add-table,
+body.dark-mode #main#main .rd-stat__target,
+body.dark-mode #main#main .rd-party-card__ready,
+body[data-theme="dark"] #main#main .rd-dash-next,
+body[data-theme="dark"] #main#main .rd-tables-detail-card,
+body[data-theme="dark"] #main#main .rd-seat-add-table,
+body[data-theme="dark"] #main#main .rd-stat__target,
+body[data-theme="dark"] #main#main .rd-party-card__ready,
+body.rd-scope.dark-mode #main#main .rd-dash-next,
+body.rd-scope.dark-mode #main#main .rd-tables-detail-card,
+body.rd-scope.dark-mode #main#main .rd-seat-add-table,
+body.rd-scope.dark-mode #main#main .rd-stat__target,
+body.rd-scope.dark-mode #main#main .rd-party-card__ready {
+  background: var(--surface-raised) !important;
+  border-color: var(--border-subtle);
+}
+
+body.dark-mode #main#main .rd-dash-drawer .rd-drawer__head,
+body[data-theme="dark"] #main#main .rd-dash-drawer .rd-drawer__head,
+body.rd-scope.dark-mode #main#main .rd-dash-drawer .rd-drawer__head {
+  background: var(--surface-sunken) !important;
+}

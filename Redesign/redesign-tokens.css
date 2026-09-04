@@ -37,6 +37,17 @@
   --surface-selected:#F4F7FB;   /* checkbox-selected table row */
   --surface-focused: #FDFAF4;   /* row currently open in the drawer */
 
+  /* Aliases used across overrides — must resolve in dark mode (no cream fallback) */
+  --surface-content-alt: var(--surface-active);
+  --surface-hover:       var(--surface-focused);
+  --surface-warm:        var(--surface-focused);
+  --surface-soft:        var(--surface-raised);
+  --surface-bulk:        var(--surface-active);
+  --surface-page:        var(--surface-canvas);
+  --surface-toolbar:     var(--surface-raised);
+  --border-faint:        var(--border-hairline);
+  --cream:               var(--surface-raised);
+
   /* ---- text -------------------------------------------------------------- */
   --text-primary:  #23211C;
   --text-body:     #3F3B34;
