@@ -170,23 +170,8 @@
 
   function ensureMoodDemoPins() {
     ensureMood();
-    if ((data.moodPhotos || []).length || (data.moodItems || []).length) return;
-    const seed = [
-      { section: 'Ceremony', caption: 'Arch with trailing greenery', notes: 'Asymmetric, heavier on the left. Forest and ivory only.', vendor: 'Bloom Studio', budgetLine: 'Florals & decor', finalized: 'Chosen', shared: true, sharedOn: '14 Jul', source: 'Bloom Studio lookbook', colors: ['#2D4A3E', '#F4EFE6', '#B89968'] },
-      { section: 'Ceremony', caption: 'Aisle candles in glass', notes: 'Twelve pairs, staggered. Grace Hall allows open flame.', vendor: 'Grace Hall', finalized: 'Chosen', source: 'Venue walkthrough' },
-      { section: 'Reception', caption: 'Long tables with runners', notes: 'Terracotta runners, gold candlesticks, low florals.', budgetLine: 'Florals & decor', finalized: 'Undecided', source: 'from Pinterest' },
-      { section: 'Florals', caption: 'Bouquet · garden style', notes: 'Loose, unstructured. No roses.', vendor: 'Bloom Studio', finalized: 'Chosen', source: 'Bloom Studio lookbook' },
-      { section: 'Attire', caption: 'Bridesmaids in champagne', notes: 'Mismatched necklines, same fabric.', budgetLine: 'Attire', finalized: 'Chosen', source: 'Fitting notes' },
-      { section: 'Other', caption: 'Cake reference', notes: 'Three tiers, textured buttercream, fresh greenery.', finalized: '', source: 'Bakery consult' }
-    ];
-    seed.forEach(row => {
-      if (typeof ensureRowId === 'function') ensureRowId(row, 'moodPhotos');
-      data.moodPhotos.push(row);
-    });
-    if (!(data.palettes || []).length) {
-      data.palettes.push({ name: 'Ama & Kwesi', colors: DEFAULT_PALETTE.map(c => ({ name: c.name, hex: c.hex, note: c.note })) });
-    }
-    if (typeof save === 'function') save();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
 
   function allPins() {

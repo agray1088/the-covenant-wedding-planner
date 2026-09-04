@@ -2748,17 +2748,23 @@ let _jsonExistedAtStartup = null;
 // clobbering a populated recovery DB before hydration has had a chance to run.
 let _sqliteSyncSuppressed = true;
 // Immediate in-memory rebuild + debounced IndexedDB persist. Returns true if it
-// actually synced. `flushSqliteSync()` (below) forces a pending sync before an
-// export so a downloaded .sqlite always reflects the very latest edit.
-function _doSqliteSync() {
+// actually synced. Pass `{ flushPersist: true }` to cancel the IDB debounce and
+// persist immediately (pagehide / critical saves / post-boot ACK).
+// `flushSqliteSync()` (below) forces a pending sync before an export / unload.
+function _doSqliteSync(opts) {
   try {
     if (_sqliteSyncSuppressed) return false; // suppressed during SQLite boot/hydration window
     if (typeof COVENANT_SQLITE === 'undefined' || !COVENANT_SQLITE.enabled) return false;
     if (!COVENANT_SQLITE.db || COVENANT_SQLITE.profileId !== activeProfile) return false; // db not ready / mid profile-switch
     if (typeof syncDataToSqlite !== 'function') return false;
     syncDataToSqlite(data, COVENANT_SQLITE.db);   // rebuild managed tables from `data` (delete-then-insert)
-    if (typeof window !== 'undefined' && window.DBRepo && typeof DBRepo.schedulePersist === 'function') {
-      DBRepo.schedulePersist();                    // debounced IndexedDB persist
+    const wantFlush = opts && opts.flushPersist;
+    if (typeof window !== 'undefined' && window.DBRepo) {
+      if (wantFlush && typeof DBRepo.flushPersist === 'function') {
+        DBRepo.flushPersist();                     // immediate IndexedDB persist + ACK
+      } else if (typeof DBRepo.schedulePersist === 'function') {
+        DBRepo.schedulePersist();                  // debounced IndexedDB persist
+      }
     } else if (typeof persistDbToIndexedDB === 'function') {
       persistDbToIndexedDB(COVENANT_SQLITE.profileId, COVENANT_SQLITE.db).catch(e => console.warn('[SQLite] persist failed', e));
     }
@@ -2775,10 +2781,21 @@ function syncCurrentDataToSqlite() {
   if (_sqliteSyncTimer) clearTimeout(_sqliteSyncTimer);
   _sqliteSyncTimer = setTimeout(() => { _sqliteSyncTimer = null; _doSqliteSync(); }, 250);
 }
-// Force any pending write-through immediately (used before a .sqlite export).
+// Force any pending write-through immediately (used before a .sqlite export,
+// pagehide/beforeunload, and after boot when LS won over stale IDB).
 function flushSqliteSync() {
   if (_sqliteSyncTimer) { clearTimeout(_sqliteSyncTimer); _sqliteSyncTimer = null; }
-  return _doSqliteSync();
+  return _doSqliteSync({ flushPersist: true });
+}
+// Persist pending SQLite→IDB without rebuilding (when memory SQL already current).
+function flushSqlitePersist() {
+  if (typeof window !== 'undefined' && window.DBRepo && typeof DBRepo.flushPersist === 'function') {
+    return DBRepo.flushPersist();
+  }
+  if (typeof persistDbToIndexedDB === 'function' && typeof COVENANT_SQLITE !== 'undefined' && COVENANT_SQLITE.db) {
+    return persistDbToIndexedDB(COVENANT_SQLITE.profileId, COVENANT_SQLITE.db);
+  }
+  return Promise.resolve(false);
 }
 // Gate user-facing .sqlite backup until boot completes for the active profile.
 function sqliteBackupReady() {
@@ -2801,6 +2818,15 @@ function save() {
     }
     localStorage.setItem(profileDataKey(activeProfile), JSON.stringify(data));
     syncCurrentDataToSqlite();
+    // Trailing flush: after the memory-SQL debounce (~250ms), force IDB persist + ACK
+    // so critical edits survive a hard reload even when pagehide is skipped.
+    if (!_sqliteSyncSuppressed) {
+      if (window._covenantPersistTrail) clearTimeout(window._covenantPersistTrail);
+      window._covenantPersistTrail = setTimeout(() => {
+        window._covenantPersistTrail = null;
+        try { flushSqliteSync(); } catch (e) { /* soft */ }
+      }, 300);
+    }
     const now = new Date();
     const el = document.getElementById('last-saved');
     const savedText = 'Saved on this device ' + now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -43567,21 +43593,52 @@ installBulkDecorators();
     // (JSON mirror missing but a populated SQLite DB exists), which is desirable.
     (async () => {
       const _bootDataStamp = data.updatedAt;
+      const _lsUpdatedAt = data.updatedAt;
       try {
+        let _idbAckAt = null;
+        try {
+          if (typeof getSqliteMeta === 'function') {
+            const meta = await getSqliteMeta();
+            if (meta && meta.lastPersistedProfileId === activeProfile && meta.lastPersistedUpdatedAt) {
+              _idbAckAt = meta.lastPersistedUpdatedAt;
+            }
+          }
+        } catch (e) { /* meta read is best-effort */ }
         const res = await initAllSqlite(activeProfile, data);
         // res.migrated === true means we just created SQLite from `data` (JSON), so
         // SQLite already matches and there is nothing to hydrate. Otherwise a DB
-        // already existed for this profile: make it authoritative.
+        // already existed for this profile: make it authoritative — unless the
+        // localStorage mirror is newer than the last IDB ACK / hydrated stamp
+        // (reload-before-flush race: LS wins until ACK).
         if (res && res.enabled && !res.migrated && typeof hydrateDataFromSqlite === 'function') {
           const editedDuringBoot = (_bootDataStamp && data.updatedAt && data.updatedAt !== _bootDataStamp) || plannerDirty;
           if (editedDuringBoot) {
             console.info('[SQLite] Skipping hydrate — in-session edits during boot take precedence.');
+          } else {
+          const lsNewerThanAck = (function () {
+            if (!_lsUpdatedAt || !_idbAckAt) return false;
+            const a = Date.parse(_lsUpdatedAt);
+            const b = Date.parse(_idbAckAt);
+            return Number.isFinite(a) && Number.isFinite(b) && a > b;
+          })();
+          if (lsNewerThanAck) {
+            console.info('[SQLite] Keeping localStorage — newer than last IDB ACK; will write-through.');
           } else {
           const h = hydrateDataFromSqlite(null); // null -> the DB's own wedding row id ('wedding_default')
           const meaningful = h && h.hydrated && h.data &&
             ((h.data.setup && (h.data.setup.bride || h.data.setup.groom)) ||
              (h.counts && Object.keys(h.counts).some(k => h.counts[k] > 0)));
           if (meaningful) {
+            const sqliteUpdated = (h.data && h.data.updatedAt) || _idbAckAt || null;
+            const lsNewerThanSqlite = (function () {
+              if (!_lsUpdatedAt || !sqliteUpdated) return !!(_lsUpdatedAt && !sqliteUpdated && _jsonExisted);
+              const a = Date.parse(_lsUpdatedAt);
+              const b = Date.parse(sqliteUpdated);
+              return Number.isFinite(a) && Number.isFinite(b) && a > b;
+            })();
+            if (lsNewerThanSqlite) {
+              console.info('[SQLite] Keeping localStorage — newer than hydrated SQLite; will write-through.');
+            } else {
             // Preserve volatile runtime-only state (history/undo/redo), which lives
             // only in the localStorage mirror, across the authoritative hydrate.
             const _preserved = {
@@ -43595,18 +43652,20 @@ installBulkDecorators();
             if (typeof initializeHistoryTracking === 'function') initializeHistoryTracking();
             save();       // refresh the localStorage mirror from the authoritative SQLite data
             initAll();    // re-render; guarded by _sqliteBootProfile so this won't re-enter
+            }
           }
           // If not "meaningful" (empty/blank DB) we keep the localStorage mirror as-is.
+          }
           }
         }
       } catch (e) {
         console.warn('[SQLite] init/hydrate failed; continuing with the localStorage mirror only.', e);
       } finally {
         // Boot/hydration decision is finalized: `data` is authoritative for normal
-        // boot, first-run migrate, and SQLite-authoritative cases. Re-enable
-        // write-through and reconcile SQLite to match `data` exactly once.
+        // boot, first-run migrate, LS-newer-wins, and SQLite-authoritative cases.
+        // Flush write-through immediately so IDB ACKs the winning mirror.
         _sqliteSyncSuppressed = false;
-        syncCurrentDataToSqlite();
+        flushSqliteSync();
       }
     })();
   }
@@ -43639,15 +43698,9 @@ function seedDefaults() {
   if (!data.cateringMeta || typeof data.cateringMeta !== 'object') { data.cateringMeta = {}; seeded = true; }
   if (typeof ensureCateringDefaults === 'function') seeded = ensureCateringDefaults(false) || seeded;
 
+  // Appointment demo fiction is opt-in via Load sample data only — empty stays empty.
   if (!data.appointmentsSeeded && data.appointments.length === 0) {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const plusDays = days => { const d = new Date(today); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); };
-    data.appointments.push(
-      {title:'Venue Walkthrough',category:'Venue',vendor:'Grace Manor',contact:'Leah Thompson',date:plusDays(7),time:'14:00',location:'Grace Manor',status:'Confirmed',reminder:plusDays(6)+'T10:00',followup:plusDays(8),notes:'Ask about setup time, parking, and vendor entrance.'},
-      {title:'Catering Tasting',category:'Catering',vendor:'Harvest & Honey',contact:'James Carter',date:plusDays(9),time:'11:00',location:'Downtown Studio',status:'Pending',reminder:plusDays(7)+'T09:00',followup:plusDays(10),notes:'Bring menu questions and allergy notes.'},
-      {title:'Dress Fitting',category:'Attire',vendor:'Belle Amour Bridal',contact:'Mia Rodriguez',date:plusDays(11),time:'16:00',location:'Suite 200',status:'Confirmed',reminder:plusDays(10)+'T10:00',followup:plusDays(12),notes:'Bring shoes and undergarments.'}
-    );
-    data.appointmentsSeeded = true;
+    data.appointmentsSeeded = true; // mark so we do not re-check; do not inject demo rows
     seeded = true;
   }
   if (seeded) save();
@@ -43711,8 +43764,19 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// Flush pending SQLite write-through + IndexedDB persist on unload so a hard
+ // reload cannot lose edits that only landed in localStorage + memory SQL.
+function covenantPersistFlushOnUnload() {
+  try {
+    if (typeof flushSqliteSync === 'function') flushSqliteSync();
+  } catch (e) { /* never block unload */ }
+}
+window.addEventListener('pagehide', covenantPersistFlushOnUnload);
+window.addEventListener('freeze', covenantPersistFlushOnUnload);
+
 // Browser-close backup reminder. Browsers show their own standard wording, but this triggers the save/backup warning.
 window.addEventListener('beforeunload', (event) => {
+  covenantPersistFlushOnUnload();
   if (!plannerDirty) return;
   const message = 'You have recent unsaved planner edits. Save or download a backup before closing.';
   event.preventDefault();

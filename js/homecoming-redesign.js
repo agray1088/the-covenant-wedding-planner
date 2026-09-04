@@ -166,40 +166,11 @@
   }
   function ensureMasterHomecoming() {
     const d = store();
-    const legacyNames = Array.isArray(d.nameChange) && d.nameChange.length > 0 &&
-      !d.nameChange.some(r => /registrar|ghana card|ssnit|dvla/i.test(String(r.institution || r.task || '')));
     if (!Array.isArray(d.homecoming)) d.homecoming = [];
     if (!Array.isArray(d.nameChange)) d.nameChange = [];
     if (!Array.isArray(d.firstMonthBudget)) d.firstMonthBudget = [];
-    const legacyBudget = d.firstMonthBudget.length > 0 &&
-      !d.firstMonthBudget.some(r => /thank-you|dress preservation|homecoming dinner|name change fees/i.test(String(r.line || r.item || '')));
-    const emptyAll = !d.homecoming.length && !d.nameChange.length && !d.firstMonthBudget.length;
-    if (d._hcMasterS33 && !legacyNames && !legacyBudget && !emptyAll) {
-      const suitRow = d.firstMonthBudget.find(r => /suit and dress returns/i.test(String(r.line || r.item || '')));
-      if (suitRow && (parseFloat(suitRow.committed) || 0) > 120) {
-        suitRow.committed = 120;
-        suitRow.spent = 0;
-        suitRow.budgeted = 0;
-        suitRow.status = 'Unowned';
-      }
-      return;
-    }
-    if (emptyAll || legacyNames || legacyBudget || !d._hcMasterS33) {
-      d.homecoming = MASTER_SETTLING.map(([task, area, owner, due, dependsOn, status]) => {
-        const row = { task: task, item: task, area: area, cat: area, owner: owner, due: due, dependsOn: dependsOn, status: status, notes: '' };
-        if (typeof nextRecordId === 'function') row._id = nextRecordId('homecoming');
-        return row;
-      });
-      d.nameChange = MASTER_NAMECHANGE.map(([band, institution, office, document, blocks, cost, status]) => {
-        const row = { band: band, institution: institution, task: institution, office: office, document: document, blocks: blocks, cost: cost, submitted: '', confirmed: '', status: status, done: false, notes: '' };
-        if (typeof nextRecordId === 'function') row._id = nextRecordId('nameChange');
-        return row;
-      });
-      d.firstMonthBudget = MASTER_BUDGET_CARDS.map(([category, line, note, budgeted, committed, spent, status]) =>
-        budgetRow(category, line, note, budgeted, committed, spent, status));
-    }
-    d._hcMasterS33 = true;
-    if (typeof save === 'function') save();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
   function mapLegacyArea(cat) {
     const c = String(cat || '');

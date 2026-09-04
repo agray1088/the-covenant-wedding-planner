@@ -473,6 +473,8 @@
   }
 
   function ensureGiftsDemoSeed() {
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
     if (giftRows().length) return;
     const seed = [
       { from: 'Mr & Mrs Owusu', desc: 'Momo transfer', value: 1200, date: '2026-07-14', category: 'Cash', typeDetail: 'Cash · mobile money', thankyou: true, thankyouStatus: 'Sent', thankyouDate: '2026-07-18', writtenBy: 'Ama', thankMethod: 'Handwritten card', loggedBy: 'Ama', earmark: 'Budget · Venue', earmarkNote: 'A cash gift can be earmarked. This one went to the Grace Hall balance.', address: '12 Ridge Rd, Accra', notes: 'Mentioned the deposit it covered — Grace Hall balance.' },

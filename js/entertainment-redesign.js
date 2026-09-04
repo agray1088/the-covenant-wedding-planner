@@ -191,76 +191,8 @@
   /* ── performers ──────────────────────────────────────────────────────── */
 
   function ensureEntertainmentDemoSeed() {
-    let changed = false;
-    if (!arr('entertainment').length) {
-      const seed = [
-        {
-          name: 'Highlife Collective', type: 'Band', detail: 'Band · 7 pieces', cost: 2000, hours: '3 × 45 min',
-          status: 'Contracted', soundcheck: '5:00pm', onSite: '8:00pm–10:15pm', arrival: '5:00pm', firstSet: '8:00pm',
-          power: '2 × 16A', feeLabel: '$2,000', shortLabel: 'Highlife Collective',
-          blocks: [
-            { kind: 'loadin', start: '5:00pm', end: '5:45pm', label: '5:00 soundcheck' },
-            { kind: 'perf', start: '8:00pm', end: '8:45pm', label: '8:00 set 1' },
-            { kind: 'break', start: '8:45pm', end: '9:30pm', label: '8:45 break' },
-            { kind: 'perf', start: '9:30pm', end: '10:15pm', label: '9:30 set 2' }
-          ]
-        },
-        {
-          name: 'DJ Mensah', type: 'DJ', detail: 'DJ · fills between sets', cost: 450, status: 'Contracted',
-          arrival: '4:30pm', onSite: '7:00pm–1:00am', power: '1 × 13A', feeLabel: '$450', shortLabel: 'DJ Mensah',
-          blocks: [
-            { kind: 'loadin', start: '4:30pm', end: '5:00pm', label: 'Arrive 4:30' },
-            { kind: 'perf', start: '7:00pm', end: '10:30pm', label: '7:00 dinner set' },
-            { kind: 'perf', start: '10:30pm', end: '11:00pm', label: '10:30 late set' }
-          ]
-        },
-        {
-          name: 'Adowa troupe', type: 'Traditional', detail: 'Traditional · procession', cost: 300, hours: '20 min',
-          status: 'Confirmed', arrival: '2:00pm', onSite: '3:00pm', power: 'None', feeLabel: '$300',
-          shortLabel: 'Adowa troupe', detailShort: 'Procession · 20 min',
-          blocks: [
-            { kind: 'loadin', start: '2:00pm', end: '3:00pm', label: 'Arrive 2:00pm' },
-            { kind: 'perf', start: '3:00pm', end: '3:20pm', label: '3:00pm procession' }
-          ]
-        },
-        {
-          name: 'Kwame · saxophone', type: 'Ceremony', detail: 'Ceremony & cocktail', cost: 250, status: 'Confirmed',
-          arrival: '2:30pm', onSite: '3:15pm, 6:00pm', power: '1 × 13A', feeLabel: '$250',
-          shortLabel: 'Kwame · sax', detailShort: 'Ceremony + cocktail',
-          blocks: [
-            { kind: 'loadin', start: '2:30pm', end: '3:15pm', label: 'Arrive 2:30' },
-            { kind: 'perf', start: '3:15pm', end: '3:45pm', label: '3:15 prelude' },
-            { kind: 'perf', start: '6:00pm', end: '6:45pm', label: '6:00 cocktail' }
-          ]
-        },
-        {
-          name: 'MC · Uncle Kojo', type: 'MC', detail: 'Reception host', cost: 0, status: 'Family, unpaid',
-          arrival: '6:00pm', onSite: '6:45pm', power: 'shared', feeLabel: '$0',
-          shortLabel: 'MC · Uncle Kojo', detailShort: 'Reception host',
-          blocks: [
-            { kind: 'loadin', start: '6:00pm', end: '6:45pm', label: 'Arrive 6:00' },
-            { kind: 'perf', start: '6:45pm', end: '8:00pm', label: '6:45 on mic' }
-          ]
-        }
-      ];
-      seed.forEach(r => {
-        if (typeof ensureRowId === 'function') ensureRowId(r, 'entertainment');
-        data.entertainment.push(r);
-      });
-      changed = true;
-    }
-    if (!arr('speeches').length) {
-      [
-        { order: '1', speaker: 'Yaw Darko', role: 'Best man', moment: 'Toast', limit: '6 min' },
-        { order: '2', speaker: 'Efua Mensah', role: 'Maid of honour', moment: 'Toast', limit: '5 min' },
-        { order: '3', speaker: 'Mr Owusu', role: 'Father of the bride', moment: 'Welcome', limit: '3 min' }
-      ].forEach(r => {
-        if (typeof ensureRowId === 'function') ensureRowId(r, 'speeches');
-        data.speeches.push(r);
-      });
-      changed = true;
-    }
-    if (changed && typeof save === 'function') save();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
 
   function actInitials(name) {

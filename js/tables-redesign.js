@@ -284,6 +284,8 @@
   }
 
   function ensureTablesDemoSeed() {
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
     if (tableRows().length) return;
     const seed = [
       { name: '1', label: 'Head table', capacity: 10, shape: 'rect', group: 'Wedding party', notes: 'Nearest the stage · no children' },

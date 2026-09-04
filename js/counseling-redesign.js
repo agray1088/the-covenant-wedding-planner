@@ -163,7 +163,6 @@
     const d = store();
     if (!Array.isArray(d.counseling)) d.counseling = [];
     if (!d.setup) d.setup = {};
-    if (!d.setup.counselor && !d.setup.pastor) d.setup.counselor = 'Rev. Mensah';
   }
 
   function stampMaster(row) {
@@ -175,20 +174,8 @@
 
   function ensureMasterCounseling() {
     ensureCou();
-    const d = store();
-    if (d.counselingMaster13c) return;
-    const rows = d.counseling || [];
-    const onlyLegacy = rows.length > 0 && rows.every(r => LEGACY_TOPIC.test(String(r.topic || '')));
-    if (rows.length === 0 || onlyLegacy) {
-      d.counseling = MASTER_COUNSELING.map(stampMaster);
-    } else {
-      const have = new Set(rows.map(r => String(r.topic || '').trim().toLowerCase()));
-      MASTER_COUNSELING.forEach(function (n) {
-        if (!have.has(String(n.topic).trim().toLowerCase())) d.counseling.push(stampMaster(n));
-      });
-    }
-    d.counselingMaster13c = true;
-    persist();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
 
   function parseDate(value) {

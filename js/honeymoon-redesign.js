@@ -74,74 +74,14 @@
      Kilindi hotel (Lodging · $1,980), and travel insurance + the Mnemba
      snorkelling still open (Open · $200). Seeded once when no bookings exist. */
   function ensureMasterHoneymoon() {
-    if (data._hmMasterS32) return;
-    if ((data.honeyTransport && data.honeyTransport.length) ||
-        (data.honeyDetails && data.honeyDetails.length)) {
-      data._hmMasterS32 = true;
-      return;
-    }
-    const stamp = (src, row) => {
-      if (typeof nextRecordId === 'function') row._id = nextRecordId(src);
-      return row;
-    };
-    data.honeyTransport = [
-      stamp('honeyTransport', { leg: 'Outbound · ACC → ZNZ', type: 'Flight', company: 'Kenya Airways', flight: 'KQ 476', date: '2026-11-19', departTime: '06:40', cost: 920, ticket: 'KQ-4TT8B', status: 'Paid' }),
-      stamp('honeyTransport', { leg: 'Return · ZNZ → ACC', type: 'Flight', company: 'Kenya Airways', flight: 'KQ 479', date: '2026-11-28', departTime: '14:15', cost: 920, ticket: 'KQ-4TT8B', status: 'Paid' }),
-      stamp('honeyTransport', { leg: 'Airport transfer, both ways', type: 'Transfer', company: 'Kilindi shuttle', flight: '', date: '2026-11-19', departTime: '', cost: 160, ticket: '', status: 'Booked' })
-    ];
-    data.honeyDetails = [
-      stamp('honeyDetails', { item: 'Kilindi Zanzibar · 9 nights', section: 'Hotel', vendor: 'Kilindi Zanzibar', timeline: '19–28 Nov', cost: 1980, reference: 'KLD-99214', status: 'Deposit paid', paidBy: 'Both' }),
-      stamp('honeyDetails', { item: 'Travel insurance', section: 'Insurance', vendor: '', timeline: '19–28 Nov', cost: 0, reference: '', status: 'Not booked' }),
-      stamp('honeyDetails', { item: 'Mnemba atoll snorkelling', section: 'Excursion', vendor: 'Resort desk', timeline: '23 Nov', cost: 200, reference: '', status: 'Held, unpaid' })
-    ];
-    if (!data.honeyItinerary || !data.honeyItinerary.length) {
-      data.honeyItinerary = [
-        stamp('honeyItinerary', { date: '2026-11-19', day: 'Thursday', plan: 'Land, transfer, check in', time: '14:20', confirmation: 'Resort car', status: 'Confirmed' }),
-        stamp('honeyItinerary', { date: '2026-11-20', day: 'Friday', plan: 'Nothing planned', time: '', confirmation: '', status: 'Nothing planned' }),
-        stamp('honeyItinerary', { date: '2026-11-21', day: 'Saturday', plan: 'Stone Town & the spice farm', time: '09:00 – 17:00', confirmation: 'Resort desk', status: 'Confirmed' }),
-        stamp('honeyItinerary', { date: '2026-11-22', day: 'Sunday', plan: 'Church, then rest', time: 'Morning', confirmation: '', status: 'Planned, nothing to book' }),
-        stamp('honeyItinerary', { date: '2026-11-23', day: 'Monday', plan: 'Snorkelling · Mnemba atoll', time: '08:00 – 14:00', confirmation: 'Resort desk', status: 'Held, unpaid' }),
-        stamp('honeyItinerary', { date: '2026-11-24', day: 'Tuesday', plan: 'Nothing planned', time: '', confirmation: '', status: 'Nothing planned' }),
-        stamp('honeyItinerary', { date: '2026-11-25', day: 'Wednesday', plan: 'Sunset dhow cruise', time: '16:30', confirmation: 'Resort desk', status: 'Confirmed' }),
-        stamp('honeyItinerary', { date: '2026-11-26', day: 'Thursday', plan: 'Jozani forest', time: '09:00', confirmation: 'Resort desk', status: 'Confirmed' }),
-        stamp('honeyItinerary', { date: '2026-11-27', day: 'Friday', plan: 'Nothing planned', time: '', confirmation: '', status: 'Nothing planned' }),
-        stamp('honeyItinerary', { date: '2026-11-28', day: 'Saturday', plan: 'Return flight · ZNZ → ACC', time: '14:15', confirmation: 'Kenya Airways · KQ 479', status: 'Confirmed' })
-      ];
-    }
-    if (!num(data.hmBudget.total)) data.hmBudget.total = 5400;
-    if (!data.honeymoon.depart) data.honeymoon.depart = '2026-11-19';
-    if (!data.honeymoon.return) data.honeymoon.return = '2026-11-28';
-    if (!data.honeymoon.destination) data.honeymoon.destination = 'Zanzibar';
-    ensureMasterGiftFundRows();
-    data._hmMasterS32 = true;
-    if (typeof save === 'function') save();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
 
   /* Gift-fund contributions live on Gifts — honeymoon budget view reads them. */
   function ensureMasterGiftFundRows() {
-    if (data._hmGiftFundSeeded) return;
-    if (!Array.isArray(data.gifts)) return;
-    const has = data.gifts.some(g => /honeymoon fund/i.test(String(g.registryCategory || '')));
-    if (has) { data._hmGiftFundSeeded = true; return; }
-    const rows = [
-      ['Asante cousins', 90, '2026-07-08'], ['Church youth group', 80, '2026-07-10'],
-      ['Nana Afua', 120, '2026-07-12'], ['Michael Whitfield', 100, '2026-07-14'],
-      ['Grace Bennett', 85, '2026-07-15'], ['Daniel Carter', 95, '2026-07-16'],
-      ['Emma Foster', 75, '2026-07-18'], ['Caleb Anderson', 110, '2026-07-19'],
-      ['Sarah Whitfield', 90, '2026-07-20'], ['Thomas Carter', 100, '2026-07-22'],
-      ['Carol Carter', 85, '2026-07-23'], ['Linda Whitfield', 95, '2026-07-24'],
-      ['Robert Whitfield', 110, '2026-07-25'], ['Pastor David Reynolds', 105, '2026-07-26']
-    ];
-    rows.forEach(([from, value, date]) => {
-      const row = {
-        from: from, desc: 'Honeymoon fund contribution', value: value, date: date,
-        category: 'Cash', registryCategory: 'Honeymoon fund',
-        thankyou: true, thankyouStatus: 'Sent', thankyouDate: date
-      };
-      if (typeof nextRecordId === 'function') row._id = nextRecordId('gifts');
-      data.gifts.push(row);
-    });
-    data._hmGiftFundSeeded = true;
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
 
   function giftFundContributions() {

@@ -241,22 +241,8 @@
 
   function ensureMasterNotes() {
     ensureNotes();
-    if (data.notesMaster12a) return;
-    const rows = data.notesDetails || [];
-    const onlyStarter = rows.length > 0 && rows.every(n => STARTER_TITLES.test(String(n.title || '')));
-    if (rows.length === 0 || onlyStarter) {
-      data.notesDetails = MASTER_NOTES.map(stampMasterNote);
-    } else {
-      const have = new Set(rows.map(n => String(n.title || '').trim().toLowerCase()));
-      MASTER_NOTES.forEach(function (n) {
-        if (!have.has(String(n.title).trim().toLowerCase())) {
-          data.notesDetails.push(stampMasterNote(n));
-        }
-      });
-    }
-    data.notesSeeded = true;
-    data.notesMaster12a = true;
-    if (typeof save === 'function') save();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
 
   function subjectFromCategory(cat, pinnedTo) {

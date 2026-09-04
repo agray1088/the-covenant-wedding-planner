@@ -227,9 +227,7 @@
     }
     if (!pc.printed || typeof pc.printed !== 'object') pc.printed = {};
     if (!pc.paper || PAPER_CYCLE.indexOf(pc.paper) < 0) pc.paper = 'Letter';
-    MASTER_PRINTABLES.forEach(m => {
-      if (m.lastPrinted && !pc.printed[m.id]) pc.printed[m.id] = m.lastPrinted;
-    });
+    // Do not copy MASTER lastPrinted fiction into an empty planner.
     return pc;
   }
 

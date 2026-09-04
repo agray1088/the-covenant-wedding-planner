@@ -157,6 +157,15 @@
   }
 
   function ensurePartyDemoSeed() {
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    partyRows().forEach(row => {
+      ensureRowId(row, 'party');
+      if (!row.callTime) row.callTime = partyCallTime(row);
+      if (!row.attireKind) row.attireKind = partyAttireKind(row);
+      if (!row.attireDetail) row.attireDetail = partyAttireDetail(row);
+    });
+    partyDutyRows().forEach(d => { if (typeof ensureRowId === 'function') ensureRowId(d, 'partyDuty'); });
+    return;
     if (!partyRows().length) {
       const seed = [
         { name: 'Efua Mensah', role: 'Maid of honour', side: 'Bride', attireStatus: 'Fitted & paid', duties: ['Speech · 5 min', 'Processional', 'Hold the bouquet'], dutyLabels: 'Speech · toast', fitting: '12 Aug', fittingDetail: '12 Aug · Adjeley Bridal', relationship: 'Cousin', cost: 340, sizeNote: 'Hem shortened 1in', arrives: 'Friday evening', room: 'Grace Hall block', notes: 'Arriving Friday evening — needs a seat at the rehearsal dinner and a room in the Grace Hall block.', speechOrder: 2, speechMinutes: 5, speechTitle: 'Reading + toast', callTime: '7:30am', attireKind: 'Dress', attireDetail: 'Fitted, 2nd fitting done' },
@@ -187,6 +196,8 @@
   }
 
   function ensurePartyDutiesSeed() {
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
     if (partyDutyRows().length) return;
     const byName = name => partyRows().find(r => String(r.name || '').toLowerCase() === String(name).toLowerCase());
     const seed = [

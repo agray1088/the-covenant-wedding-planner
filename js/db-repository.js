@@ -41,14 +41,24 @@
 
   // Debounced persistence so a burst of writes = one IndexedDB save.
   let _persistTimer = null;
+  let _persistInFlight = null;
   function schedulePersist(delay) {
     if (_persistTimer) clearTimeout(_persistTimer);
     _persistTimer = setTimeout(() => {
       _persistTimer = null;
-      if (typeof persistDbToIndexedDB === 'function') {
-        persistDbToIndexedDB().catch(e => console.warn('SQLite persist failed', e));
-      }
+      flushPersist();
     }, delay == null ? 400 : delay);
+  }
+  // Cancel debounce and persist immediately (pagehide / critical saves / boot ACK).
+  function flushPersist() {
+    if (_persistTimer) { clearTimeout(_persistTimer); _persistTimer = null; }
+    if (typeof persistDbToIndexedDB !== 'function') return Promise.resolve(false);
+    if (_persistInFlight) return _persistInFlight;
+    _persistInFlight = Promise.resolve()
+      .then(() => persistDbToIndexedDB())
+      .catch(e => { console.warn('SQLite persist failed', e); return false; })
+      .finally(() => { _persistInFlight = null; });
+    return _persistInFlight;
   }
 
   // ---- Generic table CRUD ----
@@ -83,7 +93,7 @@
 
   // ---- Domain wrappers (extend as collections move to SQLite) ----
   const repo = {
-    sqlAll, sqlRun, getAll, getById, upsert, remove, schedulePersist,
+    sqlAll, sqlRun, getAll, getById, upsert, remove, schedulePersist, flushPersist,
     getGuests: (weddingId) => getAll('guest', weddingId),
     upsertGuest: (row) => upsert('guest', row),
     deleteGuest: (id) => remove('guest', id),

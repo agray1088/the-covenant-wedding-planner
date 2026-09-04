@@ -181,10 +181,7 @@
     if (!window.data) window.data = {};
     if (!data.emailTemplatesMeta || typeof data.emailTemplatesMeta !== 'object') data.emailTemplatesMeta = {};
     if (!Array.isArray(data.emailTemplates)) data.emailTemplates = [];
-    if (!data.emailTemplatesMeta.s25 || data.emailTemplates.length !== MASTER_TEMPLATES.length) {
-      data.emailTemplates = MASTER_TEMPLATES.map((t, i) => seedMasterTemplate(t, i));
-      data.emailTemplatesMeta.s25 = true;
-    }
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
   }
 
   function libTemplate(title) {

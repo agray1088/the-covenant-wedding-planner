@@ -84,22 +84,8 @@
 
   function ensureMasterEssentials() {
     ensureEss();
-    if (data._essMasterS31) return;
-    const rows = data.essentials;
-    const legacyMajority = rows.length > 0
-      && rows.filter(r => LEGACY_ESS_CAT.test(String(r.cat || ''))).length >= rows.length / 2;
-    if (rows.length === 0 || legacyMajority) {
-      data.essentials = MASTER_ESSENTIALS.map(([cat, item, assigned, location, status, notes]) => {
-        const row = {
-          cat: cat, item: item, assigned: assigned || '', location: location || '',
-          notes: notes || '', status: status, packed: status === 'In the bag'
-        };
-        if (typeof nextRecordId === 'function') row._id = nextRecordId('essentials');
-        return row;
-      });
-    }
-    data._essMasterS31 = true;
-    if (typeof save === 'function') save();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
 
   function normalizeKit(cat) {

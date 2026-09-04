@@ -138,20 +138,8 @@
 
   function ensureMasterPrayer() {
     ensurePrayer();
-    const d = store();
-    if (d.prayerMaster13b) return;
-    const rows = d.prayer || [];
-    const onlyLegacy = rows.length > 0 && rows.every(r => LEGACY_FOCUS.test(String(r.focus || r.title || '')));
-    if (rows.length === 0 || onlyLegacy) {
-      d.prayer = MASTER_PRAYER.map(stampMaster);
-    } else {
-      const have = new Set(rows.map(r => String(r.focus || r.title || '').trim().toLowerCase()));
-      MASTER_PRAYER.forEach(function (n) {
-        if (!have.has(String(n.focus).trim().toLowerCase())) d.prayer.push(stampMaster(n));
-      });
-    }
-    d.prayerMaster13b = true;
-    persist();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    return;
   }
 
   function parseDate(value) {

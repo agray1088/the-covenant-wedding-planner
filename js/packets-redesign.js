@@ -207,32 +207,9 @@
 
   function ensureMasterPackets() {
     ensurePkt();
-    if (data.packetsMaster12b) return;
-    const rows = data.packets || [];
-    const starter = rows.length === 0 || rows.every(r =>
-      /^(new packet|vendor packet|untitled)/i.test(String(r.name || r.packet || ''))
-    );
-    if (starter) {
-      data.packets = MASTER_PACKETS.map(stampMaster);
-    } else {
-      const byName = {};
-      MASTER_PACKETS.forEach(p => { byName[String(p.name).trim().toLowerCase()] = p; });
-      rows.forEach(function (row) {
-        const m = byName[String(row.name || row.packet || '').trim().toLowerCase()];
-        if (!m) return;
-        ['tabLabel', 'cardTitle', 'hides', 'cardMeta', 'sent', 'contact', 'previewCards', 'mostOpened', 'blockedBy', 'draftReason', 'neverAgeDays'].forEach(function (k) {
-          if (row[k] == null && m[k] != null) row[k] = m[k];
-        });
-        if ((!row.activity || !row.activity.length) && m.activity) row.activity = m.activity.slice();
-        if ((!row.sections || !row.sections.length) && m.sections) row.sections = m.sections.slice();
-      });
-      const have = new Set(rows.map(r => String(r.name || r.packet || '').trim().toLowerCase()));
-      MASTER_PACKETS.forEach(p => {
-        if (!have.has(String(p.name).trim().toLowerCase())) data.packets.push(stampMaster(p));
-      });
-    }
-    data.packetsMaster12b = true;
-    if (typeof save === 'function') save();
+    // Demo fiction is opt-in via Load sample data only — empty stays empty.
+    // Do not auto-inject MASTER_PACKETS on panel visit.
+    return;
   }
 
   function parseDate(value) {

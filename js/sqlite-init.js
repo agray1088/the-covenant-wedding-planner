@@ -5,12 +5,17 @@
    schema.sql, and persists the DB binary in IndexedDB per wedding
    profile. Also exports/imports portable .sqlite backups.
 
-   STATUS: ENABLED, wired, and authoritative. sql.js is vendored
-   (js/vendor/sql-wasm.js + sql-wasm.wasm), the scripts below are
-   loaded from index.html (and carried into the rebundled single-file
-   build) ahead of planner.js, and COVENANT_SQLITE.enabled is true.
-   SQLite is the source of truth; the localStorage/JSON copy is kept
-   only as a crash-safety mirror.
+   STATUS: ENABLED, wired, and authoritative for recovery when localStorage is
+   missing or older. Authority story (P0 persist race fix):
+   1. localStorage is the synchronous crash-safety mirror (every save() writes it
+      with data.updatedAt).
+   2. In-memory SQLite is rebuilt on write-through (debounced ~250ms).
+   3. IndexedDB holds the SQLite bytes (debounced ~400ms). A successful persist
+      ACKs meta.lastPersistedUpdatedAt = data.updatedAt.
+   4. Boot: if localStorage.updatedAt is newer than the IDB ACK / hydrated
+      updatedAt, localStorage wins until ACK — do not let stale IDB hydrate
+      clobber newer LS edits. pagehide/beforeunload flush pending persists.
+   5. If localStorage is missing/blank and IDB has data, SQLite wins (recovery).
 
    WIRING (now in place):
    1. Vendored sql.js:  js/vendor/sql-wasm.js  +  js/vendor/sql-wasm.wasm
@@ -260,6 +265,16 @@ async function persistDbToIndexedDB(profileId, db) {
   try {
     const bytes = target.export();               // Uint8Array
     await sqliteIdbPut(SQLITE_STORE_DB, 'profile_' + id, bytes);
+    // ACK the mirror timestamp we just flushed so boot can prefer newer LS edits.
+    try {
+      const mirror = (typeof window !== 'undefined' && window.data) ? window.data : null;
+      const ackAt = (mirror && mirror.updatedAt) || new Date().toISOString();
+      const meta = (await getSqliteMeta()) || {};
+      meta.lastPersistedUpdatedAt = ackAt;
+      meta.lastPersistedProfileId = id;
+      meta.lastPersistedAt = new Date().toISOString();
+      await setSqliteMeta(meta);
+    } catch (e) { /* meta ACK is best-effort */ }
     return true;
   } catch (e) {
     console.warn('[SQLite] IndexedDB persist unavailable — keeping in-memory DB + localStorage mirror.', e);
