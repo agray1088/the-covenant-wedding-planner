@@ -3163,3 +3163,31 @@ body.editorial-v4.dark-mode #main#main .panel .record-id-pill {
   color: var(--status-gray-text) !important;
   border-color: var(--status-gray-border) !important;
 }
+
+/* ── dm-sweep15: Notes Flagged / blocker label pills ───────────────────────
+   Hardcoded light cream fills (#fbeeec / #eccfc9) on .rd-notes-flag and
+   .rd-notes-kind--blocker leak in dark mode. Map to Covenant status-red. */
+body.dark-mode #main#main #panel-notes .rd-notes-flag,
+body.dark-mode #main#main .rd-notes-drawer .rd-notes-flag,
+body.dark-mode #record-drawer .rd-notes-flag,
+body.dark-mode .rd-notes-drawer .rd-notes-flag,
+body.dark-mode #main#main #panel-notes .rd-notes-kind--blocker,
+body[data-theme="dark"] #main#main #panel-notes .rd-notes-flag,
+body[data-theme="dark"] #main#main .rd-notes-drawer .rd-notes-flag,
+body[data-theme="dark"] #record-drawer .rd-notes-flag,
+body[data-theme="dark"] .rd-notes-drawer .rd-notes-flag,
+body[data-theme="dark"] #main#main #panel-notes .rd-notes-kind--blocker,
+body.editorial-v4.dark-mode #main#main .panel .rd-notes-flag,
+body.editorial-v4.dark-mode #main#main .panel .rd-notes-kind--blocker,
+body.editorial-v4[data-theme="dark"] #main#main .panel .rd-notes-flag,
+body.editorial-v4[data-theme="dark"] #main#main .panel .rd-notes-kind--blocker,
+body.rd-scope.dark-mode #panel-notes .rd-notes-flag,
+body.rd-scope.dark-mode #panel-notes .rd-notes-kind--blocker,
+body.rd-scope[data-theme="dark"] #panel-notes .rd-notes-flag,
+body.rd-scope[data-theme="dark"] #panel-notes .rd-notes-kind--blocker {
+  background: var(--status-red-bg) !important;
+  background-color: var(--status-red-bg) !important;
+  color: var(--status-red-text) !important;
+  border-color: var(--status-red-border) !important;
+  border: 1px solid var(--status-red-border) !important;
+}
