@@ -3316,3 +3316,117 @@ body.rd-scope.dark-mode #panel-contracts .rd-con-card,
 body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-card {
   border-color: var(--border-subtle) !important;
 }
+
+/* ── dm-sweep18: Contracts cashflow / payments schedule row hover ──────────
+   .rd-con-sched__row:hover used var(--surface-hover, #fdfaf4). In dark mode
+   light text (--text / --dm-text) sat on cream → unreadable (Magnolia Barn).
+   Force --surface-focused / --surface-raised; keep label copy on text tokens.
+   Also cover .rd-pay-row.is-due + drawer .rd-pay-sched__row.is-this. */
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row:hover,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row:focus-within,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-selected,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-active,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:hover,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:focus-within,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-selected,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-active,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-sched__row:hover,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-sched__row:focus-within,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-selected,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-active,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:hover,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:focus-within,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-selected,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-active,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row:hover,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row:focus-within,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row.is-selected,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row.is-active,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row:hover,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row:focus-within,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row.is-selected,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row.is-active {
+  background: var(--surface-focused) !important;
+  background-color: var(--surface-focused) !important;
+  color: var(--text-primary) !important;
+}
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__name,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__name,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__name,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__name,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__name,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__name,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__name,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__name,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__name,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__name,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row:hover .rd-con-sched__name,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__name,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__name,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__name,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row:hover .rd-con-sched__name,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__name,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__name,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__name {
+  color: var(--text-primary) !important;
+}
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__meta,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__empty,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__meta,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__empty,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__meta,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__empty,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__meta,
+body.dark-mode #main#main #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__empty,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__meta,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__empty,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__meta,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__empty,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__meta,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__empty,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__meta,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__empty,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__meta,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__empty,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__meta,
+body.editorial-v4[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__row:hover .rd-con-sched__empty,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row:hover .rd-con-sched__meta,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row:hover .rd-con-sched__empty,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__meta,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__empty,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__meta,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__empty,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__meta,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__empty,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row:hover .rd-con-sched__meta,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row:hover .rd-con-sched__empty,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__meta,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row:focus-within .rd-con-sched__empty,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__meta,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row.is-selected .rd-con-sched__empty,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__meta,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__row.is-active .rd-con-sched__empty {
+  color: var(--text-body) !important;
+}
+
+/* Payments table: overdue/due rows share the same cream focused fill */
+body.dark-mode #main#main #panel-payments .rd-pay-row.is-due,
+body[data-theme="dark"] #main#main #panel-payments .rd-pay-row.is-due,
+body.editorial-v4.dark-mode #main#main #panel-payments .rd-pay-row.is-due,
+body.editorial-v4[data-theme="dark"] #main#main #panel-payments .rd-pay-row.is-due,
+body.rd-scope.dark-mode #panel-payments .rd-pay-row.is-due,
+body.rd-scope[data-theme="dark"] #panel-payments .rd-pay-row.is-due {
+  background: var(--surface-focused) !important;
+  background-color: var(--surface-focused) !important;
+  color: var(--text-primary) !important;
+}
+body.dark-mode #main#main #panel-payments .rd-pay-sched__row.is-this,
+body[data-theme="dark"] #main#main #panel-payments .rd-pay-sched__row.is-this,
+body.editorial-v4.dark-mode #main#main #panel-payments .rd-pay-sched__row.is-this,
+body.editorial-v4[data-theme="dark"] #main#main #panel-payments .rd-pay-sched__row.is-this,
+body.rd-scope.dark-mode #panel-payments .rd-pay-sched__row.is-this,
+body.rd-scope[data-theme="dark"] #panel-payments .rd-pay-sched__row.is-this {
+  background: var(--surface-raised) !important;
+  background-color: var(--surface-raised) !important;
+  color: var(--text-primary) !important;
+}

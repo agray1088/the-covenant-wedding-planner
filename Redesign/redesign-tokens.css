@@ -191,6 +191,14 @@ body.editorial-v4[data-theme="dark"],
   --surface-footer:  #181818;
   --surface-selected:#1B2028;
   --surface-focused: #24211B;
+  /* Keep aliases on the dark selector so hover/warm never inherit cream from :root */
+  --surface-hover:       var(--surface-focused);
+  --surface-warm:        var(--surface-focused);
+  --surface-soft:        var(--surface-raised);
+  --surface-content-alt: var(--surface-active);
+  --surface-bulk:        var(--surface-active);
+  --surface-page:        var(--surface-canvas);
+  --surface-toolbar:     var(--surface-raised);
 
   --text-primary:  #E6E6E6;
   --text-body:     #D2D2D2;
