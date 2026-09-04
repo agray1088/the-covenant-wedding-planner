@@ -148,13 +148,17 @@ body[data-theme="dark"] #main#main #panel-calendar button.smart-event-chip,
 body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
 body.rd-scope[data-theme="dark"] #panel-calendar button.smart-event-chip,
 body.rd-scope[data-theme="dark"] #panel-calendar .smart-event-chip {
-  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 28%, var(--smart-chip-mix-base)) !important;
   background: var(--smart-chip-fill) !important;
   background-color: var(--smart-chip-fill) !important;
   background-image: none !important;
-  border-top-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
-  border-right-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
-  border-bottom-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  /* Flat: rim matches fill (lighter rim vs fill reads as emboss in dark) */
+  border-top-color: var(--smart-chip-fill) !important;
+  border-right-color: var(--smart-chip-fill) !important;
+  border-bottom-color: var(--smart-chip-fill) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  outline: none !important;
   color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
 }
 
@@ -643,9 +647,14 @@ body.dark-mode #main#main #panel-calendar .smart-event-chip,
 body.rd-scope.dark-mode #panel-calendar .smart-event-chip,
 body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
 body.rd-scope[data-theme="dark"] #panel-calendar .smart-event-chip {
-  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 28%, var(--smart-chip-mix-base)) !important;
   background: var(--smart-chip-fill) !important;
   background-color: var(--smart-chip-fill) !important;
+  background-image: none !important;
+  border-top-color: var(--smart-chip-fill) !important;
+  border-right-color: var(--smart-chip-fill) !important;
+  border-bottom-color: var(--smart-chip-fill) !important;
+  box-shadow: none !important;
   color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
 }
 
@@ -820,13 +829,16 @@ body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event,
 body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
 body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due-chip,
 body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__event {
-  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 28%, var(--smart-chip-mix-base)) !important;
   background: var(--smart-chip-fill) !important;
   background-color: var(--smart-chip-fill) !important;
   background-image: none !important;
-  border-top-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
-  border-right-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
-  border-bottom-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  border-top-color: var(--smart-chip-fill) !important;
+  border-right-color: var(--smart-chip-fill) !important;
+  border-bottom-color: var(--smart-chip-fill) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  outline: none !important;
   color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
 }
 
@@ -3046,13 +3058,17 @@ body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-event-chi
 body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__event,
 body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due-chip {
   --smart-chip-mix-base: var(--surface-content) !important;
-  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 24%, var(--smart-chip-mix-base)) !important;
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 28%, var(--smart-chip-mix-base)) !important;
   background: var(--smart-chip-fill) !important;
   background-color: var(--smart-chip-fill) !important;
   background-image: none !important;
-  border-top-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
-  border-right-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
-  border-bottom-color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 36%, var(--smart-chip-mix-base)) !important;
+  /* Flat dark chips: rim == fill so no lighter bevel edge */
+  border-top-color: var(--smart-chip-fill) !important;
+  border-right-color: var(--smart-chip-fill) !important;
+  border-bottom-color: var(--smart-chip-fill) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  outline: none !important;
   color: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 58%, var(--text-body)) !important;
 }
 
@@ -3146,6 +3162,72 @@ body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip *,
 body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event *,
 body.editorial-v4.dark-mode #main#main .panel .smart-event-chip * {
   color: inherit !important;
+}
+
+/* ── Flat calendar chips (dark): kill emboss / bevel rim ───────────────────
+   Lighter top/right/bottom borders against a darker color-mix fill read as a
+   3D bevel in dark mode. Match light: solid flat fill + left accent only. */
+body.dark-mode #main#main #panel-calendar button.smart-event-chip,
+body.dark-mode #main#main #panel-calendar .smart-event-chip,
+body.dark-mode #main#main #panel-calendar .rd-week__event,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip,
+body.dark-mode #main#main #panel-calendar .smart-event-chip[style*="--smart-event-color"],
+body.dark-mode #main#main #panel-calendar button.smart-event-chip[style*="--smart-event-color"],
+body.dark-mode #main#main #panel-calendar .rd-week__event[style*="--smart-event-color"],
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip[style*="--smart-event-color"],
+body[data-theme="dark"] #main#main #panel-calendar button.smart-event-chip,
+body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__event,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__due-chip,
+body.rd-scope.dark-mode #panel-calendar button.smart-event-chip,
+body.rd-scope.dark-mode #panel-calendar .smart-event-chip,
+body.rd-scope.dark-mode #panel-calendar .rd-week__event,
+body.rd-scope.dark-mode #panel-calendar .rd-week__due-chip,
+body.rd-scope[data-theme="dark"] #panel-calendar button.smart-event-chip,
+body.rd-scope[data-theme="dark"] #panel-calendar .smart-event-chip,
+body.rd-scope[data-theme="dark"] #panel-calendar .rd-week__event,
+body.rd-scope[data-theme="dark"] #panel-calendar .rd-week__due-chip,
+body.editorial-v4.dark-mode #main#main #panel-calendar button.smart-event-chip,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__due-chip,
+body.editorial-v4.dark-mode #main#main .panel .smart-event-chip,
+body.editorial-v4.dark-mode #main#main .panel [class*="event-chip"],
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar button.smart-event-chip,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .smart-event-chip,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__event,
+body.editorial-v4[data-theme="dark"] #main#main #panel-calendar .rd-week__due-chip {
+  --smart-chip-mix-base: var(--surface-content) !important;
+  --smart-chip-fill: color-mix(in srgb, var(--smart-event-color, #4A6B5C) 28%, var(--smart-chip-mix-base)) !important;
+  background: var(--smart-chip-fill) !important;
+  background-color: var(--smart-chip-fill) !important;
+  background-image: none !important;
+  border-style: solid !important;
+  border-width: 1px 1px 1px 3px !important;
+  border-top-color: var(--smart-chip-fill) !important;
+  border-right-color: var(--smart-chip-fill) !important;
+  border-bottom-color: var(--smart-chip-fill) !important;
+  border-left-color: var(--smart-chip-bar, var(--smart-event-color, #4A6B5C)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  filter: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+body.dark-mode #main#main #panel-calendar button.smart-event-chip:hover,
+body.dark-mode #main#main #panel-calendar .smart-event-chip:hover,
+body.dark-mode #main#main #panel-calendar .rd-week__event:hover,
+body.dark-mode #main#main #panel-calendar .rd-week__due-chip:hover,
+body[data-theme="dark"] #main#main #panel-calendar button.smart-event-chip:hover,
+body[data-theme="dark"] #main#main #panel-calendar .smart-event-chip:hover,
+body[data-theme="dark"] #main#main #panel-calendar .rd-week__event:hover,
+body.editorial-v4.dark-mode #main#main #panel-calendar button.smart-event-chip:hover,
+body.editorial-v4.dark-mode #main#main #panel-calendar .smart-event-chip:hover,
+body.editorial-v4.dark-mode #main#main #panel-calendar .rd-week__event:hover {
+  box-shadow: none !important;
+  background-image: none !important;
+  filter: brightness(1.08) !important;
 }
 
 /* Guest event chips / agenda tags — no cream paper */
@@ -3605,4 +3687,96 @@ body.dark-mode #nav-menu-drawer .nav-item.active .material-symbols-sharp,
 body[data-theme="dark"].editorial-v4 #sidebar .nav-item.active .nav-icon svg {
   color: var(--gold-lt) !important;
   stroke: var(--gold-lt) !important;
+}
+
+/* ── dm-sweep21: Appointments calendar blocks — dark fills + readable text ─
+   Light mint #eef4f1 bodies kept cream paper in dark mode while the editorial
+   blanket `span { color: var(--dm-text) }` forced near-white titles onto them.
+   Tokens + !important beat both the hardcoded CSS vars and the span wash. */
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal,
+body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal {
+  --appt-cal-line: var(--border-subtle) !important;
+  --appt-cal-line-soft: var(--border-hairline, var(--border-subtle)) !important;
+  --appt-block-border: color-mix(in srgb, #6F9C80 42%, var(--border-subtle)) !important;
+  --appt-block-bg: color-mix(in srgb, #6F9C80 18%, var(--surface-raised)) !important;
+  --appt-block-text: var(--text-primary) !important;
+  --appt-block-sub: var(--text-muted) !important;
+  --appt-clash-border: var(--status-red-border, #7a3a34) !important;
+  --appt-clash-bg: color-mix(in srgb, var(--status-red-text, #c07068) 16%, var(--surface-raised)) !important;
+  --appt-clash-text: var(--status-red-text, #e0a09a) !important;
+  --appt-travel-a: color-mix(in srgb, #6F9C80 28%, transparent) !important;
+  --appt-travel-line: color-mix(in srgb, #6F9C80 48%, var(--border-subtle)) !important;
+  --appt-travel-clash-a: color-mix(in srgb, var(--status-red-text, #c07068) 30%, transparent) !important;
+  --appt-travel-clash-line: var(--status-red-border, #7a3a34) !important;
+}
+
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block,
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__allday,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__allday,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__allday,
+body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__block,
+body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__allday {
+  background: var(--appt-block-bg) !important;
+  background-color: var(--appt-block-bg) !important;
+  background-image: none !important;
+  border-color: var(--appt-block-border) !important;
+  color: var(--appt-block-text) !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block-title,
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block-sub,
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block span,
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__allday,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block-title,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block-sub,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block span,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block-title,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block-sub,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block span,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__allday,
+body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__block-title,
+body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__block-sub,
+body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__block span {
+  color: var(--appt-block-text) !important;
+}
+
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block-sub,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block-sub,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block-sub,
+body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__block-sub {
+  color: var(--appt-block-sub) !important;
+}
+
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block.is-clash,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block.is-clash,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block.is-clash,
+body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal__block.is-clash {
+  background: var(--appt-clash-bg) !important;
+  background-color: var(--appt-clash-bg) !important;
+  border-color: var(--appt-clash-border) !important;
+  color: var(--appt-clash-text) !important;
+  box-shadow: none !important;
+}
+
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block.is-clash .rd-appt-cal__block-title,
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block.is-clash .rd-appt-cal__block-sub,
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block.is-clash span,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block.is-clash .rd-appt-cal__block-title,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block.is-clash .rd-appt-cal__block-sub,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block.is-clash .rd-appt-cal__block-title,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block.is-clash .rd-appt-cal__block-sub,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block.is-clash span {
+  color: var(--appt-clash-text) !important;
+}
+
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__block:hover,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block:hover,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block:hover {
+  filter: brightness(1.06) !important;
 }
