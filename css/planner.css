@@ -10467,7 +10467,7 @@ body.editorial-v4.dark-mode #panel-budget .bcard.over {
   fill: none;
   stroke: var(--forest);
   stroke-width: 6;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   transition: stroke-dashoffset .25s ease;
 }
 
@@ -36712,7 +36712,8 @@ body[data-active-panel="payments"] #main {
 
 .ued-donut circle {
   fill: none;
-  stroke-width: 7
+  stroke-width: 7;
+  stroke-linecap: butt
 }
 
 .ued-legend {

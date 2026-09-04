@@ -23505,7 +23505,7 @@ body.rd-scope #panel-dashboard .rd-dash-donut__fill {
   fill: none;
   stroke: #2F5645;
   stroke-width: 8;
-  stroke-linecap: round;
+  stroke-linecap: butt;
 }
 body.rd-scope #panel-dashboard .rd-dash-donut__label {
   position: absolute;
