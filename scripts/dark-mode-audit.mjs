@@ -674,15 +674,92 @@ async function openSettings(page) {
     report.shots.push(profileWalk);
     console.log('walkthrough:', profileWalk);
 
+    // dm-sweep13: overlays + drawer-slot cream scan
+    await page.evaluate(() => {
+      // Force-open furniture sheets + a drawer slot so computed styles are measurable
+      ['rd-filter-builder-overlay', 'rd-views-mgr-overlay', 'rd-trash-overlay'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.hidden = false;
+          el.style.display = 'flex';
+          el.removeAttribute('hidden');
+        }
+      });
+      const slot = document.querySelector('[id$="-drawer-slot"]');
+      if (slot) slot.classList.add('is-open');
+      const gs = document.querySelector('.gs-results');
+      if (gs) { gs.classList.add('open'); gs.style.display = 'block'; }
+    });
+    await wait(400);
+    const chromeScan = await page.evaluate(({ threshold }) => {
+      function parseRgbLocal(bg) {
+        const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (!m) return null;
+        const a = bg.includes('rgba') ? parseFloat(bg.split(',').pop()) : 1;
+        return { r: +m[1], g: +m[2], b: +m[3], a };
+      }
+      function lum(rgb) { return (rgb.r + rgb.g + rgb.b) / 3; }
+      function hint(el) {
+        if (el.id) return `#${el.id}`;
+        const cls = [...el.classList].slice(0, 3).join('.');
+        return cls ? `${el.tagName.toLowerCase()}.${cls}` : el.tagName.toLowerCase();
+      }
+      const selectors = [
+        '[id$="-overlay"]',
+        '[id$="-overlay"] > *',
+        '[id$="-drawer-slot"].is-open',
+        '.gs-results',
+        '.rd-gaps-pop',
+        '.rd-avatar-menu',
+        '.rd-help-menu',
+        '.rd-undo-flyout',
+        '.rd-mobile-tabbar',
+        '#planner-context-sidebar.is-rail-overlay',
+        '.rd-filter-builder',
+        '.rd-views-mgr',
+        '.rd-bulk-edit',
+        '.rd-share',
+        '.rd-template-picker',
+        '.rd-trash',
+        '.rd-merge',
+      ];
+      const offenders = [];
+      const seen = new Set();
+      for (const sel of selectors) {
+        for (const el of document.querySelectorAll(sel)) {
+          const cs = getComputedStyle(el);
+          if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+          const rgb = parseRgbLocal(cs.backgroundColor);
+          if (!rgb || rgb.a < 0.08) continue;
+          const L = lum(rgb);
+          if (L <= threshold) continue;
+          const key = `${hint(el)}|${cs.backgroundColor}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          offenders.push({
+            selector: hint(el),
+            bg: cs.backgroundColor,
+            luminance: Math.round(L),
+            kind: 'chrome-overlay',
+          });
+        }
+      }
+      return offenders;
+    }, { threshold: LUMINANCE_THRESHOLD });
+    report.chromeOverlayOffenders = chromeScan;
+    console.log(`\n=== chrome overlays/drawer-slots (light-bg=${chromeScan.length}) ===`);
+    chromeScan.slice(0, 12).forEach((o) => console.log(`  ${o.selector}  ${o.bg}  lum=${o.luminance}`));
+
     fs.writeFileSync(REPORT, JSON.stringify(report, null, 2));
     console.log('\nTOTAL STATIC OFFENDERS:', report.totalStaticOffenders);
     console.log('TOTAL HOVER OFFENDERS:', report.totalHoverOffenders);
     console.log('TOTAL OFFENDERS:', report.totalOffenders);
     console.log('TOTAL LABEL/TAB OFFENDERS:', report.totalLabelTabOffenders);
     console.log('  (static:', report.totalLabelTabStatic, 'hover:', report.totalLabelTabHover, ')');
+    console.log('CHROME OVERLAY OFFENDERS:', chromeScan.length);
     console.log('REPORT:', REPORT);
 
-    if (report.totalOffenders > 0 || report.totalLabelTabOffenders > 0) {
+    if (report.totalOffenders > 0 || report.totalLabelTabOffenders > 0 || chromeScan.length > 0) {
       process.exitCode = 1;
     }
   } finally {
