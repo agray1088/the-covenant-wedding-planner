@@ -62,20 +62,21 @@
       <div>
         <div class="rd-rail__title">Views<button type="button" class="rd-rail__add" onclick="saveContactView()">+</button></div>
         <div class="rd-rail__list">
-          <button type="button" class="rd-rail__item is-active">Everyone<span class="rd-rail__count">48</span></button>
+          <button type="button" class="rd-rail__item is-active">Everyone<span class="rd-rail__count">47</span></button>
+          <button type="button" class="rd-rail__item">Day-of numbers<span class="rd-rail__count">12</span></button>
           <button type="button" class="rd-rail__item">Vendors<span class="rd-rail__count">10</span></button>
           <button type="button" class="rd-rail__item">Wedding party<span class="rd-rail__count">10</span></button>
-          <button type="button" class="rd-rail__item">Family<span class="rd-rail__count">21</span></button>
-          <button type="button" class="rd-rail__item">Day-of only<span class="rd-rail__count">9</span></button>
+          <button type="button" class="rd-rail__item">Family<span class="rd-rail__count">15</span></button>
+          <button type="button" class="rd-rail__item">No number<span class="rd-rail__count rd-rail__count--warn">6</span></button>
         </div>
       </div>
       <div>
-        <div class="rd-rail__title">Reachable</div>
+        <div class="rd-rail__title">Day-of sheet</div>
         <div class="rd-rail__meters">
-          <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>With a phone number</span><span class="rd-rail__count">44 of 48</span></div><div class="rd-progress"><div class="rd-progress__fill" style="width:92%"></div></div></div>
-          <div class="rd-rail__meter-top"><span>With an email</span><span class="rd-rail__count">39</span></div>
-          <div class="rd-rail__meter-top"><span>Neither</span><span class="rd-rail__count">2</span></div>
-          <div class="rd-rail__meter-top"><span>On the day-of sheet</span><span class="rd-rail__count">9</span></div>
+          <div class="rd-rail__meter"><div class="rd-rail__meter-top"><span>On the sheet</span><span class="rd-rail__count">12 of 12</span></div><div class="rd-progress"><div class="rd-progress__fill" style="width:100%"></div></div></div>
+          <div class="rd-rail__meter-top"><span>Numbers verified</span><span class="rd-rail__count">9</span></div>
+          <div class="rd-rail__meter-top"><span>Unverified</span><span class="rd-rail__count">3</span></div>
+          <div class="rd-rail__meter-top"><span>Printed</span><span class="rd-rail__count">26 Jul</span></div>
         </div>
       </div>
       <div>
@@ -83,10 +84,10 @@
         <div class="rd-rail__list">
           <button type="button" class="rd-rail__item is-active">Role<span class="rd-rail__count"></span></button>
           <button type="button" class="rd-rail__item">Side<span class="rd-rail__count"></span></button>
-          <button type="button" class="rd-rail__item">Company<span class="rd-rail__count"></span></button>
+          <button type="button" class="rd-rail__item">On the day-of sheet<span class="rd-rail__count"></span></button>
         </div>
       </div>
-      <p class="rd-rail__note"><b>A derived view.</b> Contacts are vendors and guests seen through one lens — the phone number lives on the original record.</p>
+      <p class="rd-rail__note">Derived from guests and vendors. A number edited here is edited on the source record — this page stores nothing of its own.</p>
     </aside>
     <main class="rd-main" id="panel-contacts" data-panel="contacts">
       <div class="rd-pagehead">
@@ -95,32 +96,33 @@
           <h1 class="rd-pagehead__title">Contacts</h1>
         </div>
         <div class="rd-pagehead__actions">
-          <button type="button" class="rd-btn" onclick="printContactSheet()">Print sheet</button>
-          <button type="button" class="rd-btn" onclick="window.print()">Print section</button>
-          <button type="button" class="rd-btn" onclick="exportSectionCSV('Contacts',data.contacts)">Export CSV</button>
-          <button type="button" class="rd-btn rd-btn--primary" onclick="addContactRow()">+ Add contact</button>
+          <button type="button" class="rd-btn rd-btn--quiet" onclick="rdCtImportPhone()">Import from phone</button>
+          <button type="button" class="rd-btn" onclick="printCurrentPage()">Print section</button>
+          <button type="button" class="rd-btn" onclick="rdCtFullEditor()">Full editor</button>
+          <button type="button" class="rd-btn" onclick="rdCtExportVCards()">Export vCards</button>
+          <button type="button" class="rd-btn rd-btn--primary" onclick="rdCtAdd(this)">Add contact</button>
         </div>
       </div>
       <div class="rd-stats m-stats" id="contact-stats"></div>
       <div class="rd-toolbar">
         <button type="button" class="rd-chip">Role: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
         <button type="button" class="rd-chip">Side: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-        <button type="button" class="rd-chip">Reachable: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-        <button type="button" class="rd-chip rd-chip--ghost"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Sort by name</button>
+        <button type="button" class="rd-chip">Day-of: all<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button type="button" class="rd-chip rd-chip--ghost"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Sort by role</button>
         <div class="rd-toolbar__right">
-          <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · 6 of 8<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
+          <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="4" width="16" height="16"/><path d="M10 4v16M15 4v16"/></svg>Columns · 7 of 7<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
           <button type="button" class="rd-chip" onclick="autoFitColumns(this)"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5v14M21 5v14"/><path d="M7 12h10"/><path d="M10 9l-3 3 3 3M14 9l3 3-3 3"/></svg>Auto-fit columns</button>
           <button type="button" class="rd-chip"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Row height · compact<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"/></svg></button>
-          <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item is-active">Table</button><button type="button" class="rd-viewswitch__item">Cards</button><button type="button" class="rd-viewswitch__item">Day-of sheet</button></div>
+          <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item is-active">Table</button><button type="button" class="rd-viewswitch__item">Day-of sheet</button><button type="button" class="rd-viewswitch__item">Cards</button></div>
         </div>
       </div>
       <div class="rd-bulkbar" id="bulk-bar" hidden>
         <span class="rd-bulkbar__count"><span data-bulk-count>0</span> selected</span>
         <span class="rd-bulkbar__sep"></span>
         <button type="button" class="rd-bulkbar__action">Add to day-of sheet</button>
-        <button type="button" class="rd-bulkbar__action">Set role</button>
-        <button type="button" class="rd-bulkbar__action">Email selected</button>
-        <button type="button" class="rd-bulkbar__action">Print sheet</button>
+        <button type="button" class="rd-bulkbar__action">Verify number</button>
+        <button type="button" class="rd-bulkbar__action">Send a text</button>
+        <button type="button" class="rd-bulkbar__action">Export vCards</button>
         <button type="button" class="rd-bulkbar__clear">Clear selection</button>
       </div>
       <div class="rd-surface">
