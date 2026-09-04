@@ -3780,3 +3780,22 @@ body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__block:hover,
 body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__block:hover {
   filter: brightness(1.06) !important;
 }
+
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__swatch--fill,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__swatch--fill,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__swatch--fill {
+  background: var(--appt-block-bg) !important;
+  border-color: var(--appt-block-border) !important;
+}
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__swatch--travel,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__swatch--travel,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__swatch--travel {
+  background: repeating-linear-gradient(135deg, var(--appt-travel-a) 0 3px, transparent 3px 7px) !important;
+  border-left-color: var(--appt-travel-line) !important;
+}
+body.dark-mode.rd-scope #panel-appointments .rd-appt-cal__swatch--clash,
+body[data-theme="dark"].rd-scope #panel-appointments .rd-appt-cal__swatch--clash,
+body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal__swatch--clash {
+  background: color-mix(in srgb, var(--appt-clash-text) 28%, transparent) !important;
+  border-color: var(--appt-clash-border) !important;
+}
