@@ -566,12 +566,15 @@ async function scanPanel(page, cdp, panelId) {
         }
       }
 
-      /* Cream borders on large surfaces (ribbon track white frame) */
+      /* Cream paper borders on large surfaces (skip gold/status accents) */
       const border = cs.borderTopColor || '';
       const brgb = parseRgbLocal(border);
       if (brgb && brgb.a >= 0.5 && rect.width >= 80 && rect.height >= 40) {
         const blum = (brgb.r + brgb.g + brgb.b) / 3;
-        if (blum > threshold && parseFloat(cs.borderTopWidth) > 0) {
+        const chroma = Math.max(brgb.r, brgb.g, brgb.b) - Math.min(brgb.r, brgb.g, brgb.b);
+        /* Gold/status accents are chromatic; cream paper is near-neutral high-lum */
+        const isCreamPaper = blum > threshold && chroma < 45;
+        if (isCreamPaper && parseFloat(cs.borderTopWidth) > 0) {
           const key = `${hintLocal(el)}|border|${border}`;
           if (!seen.has(key)) {
             seen.add(key);

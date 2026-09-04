@@ -3524,3 +3524,61 @@ body.rd-scope.dark-mode .rd-dayof-offer .btn-forest {
   color: var(--text-on-dark) !important;
   border-color: var(--forest) !important;
 }
+
+/* ── dm-sweep20b: Tables / emails cream borders that used !important hex ─── */
+body.dark-mode #main#main #panel-tables .table-map-viewport,
+body[data-theme="dark"] #main#main #panel-tables .table-map-viewport,
+body.rd-scope.dark-mode #panel-tables .table-map-viewport {
+  border-color: var(--border-control) !important;
+}
+body.dark-mode #main#main #panel-tables .rd-tables-detail-card,
+body.dark-mode #main#main #panel-tables article.rd-tables-detail-card,
+body[data-theme="dark"] #main#main #panel-tables .rd-tables-detail-card,
+body.rd-scope.dark-mode #panel-tables .rd-tables-detail-card {
+  border-color: var(--border-control) !important;
+  outline-color: var(--border-control) !important;
+}
+body.dark-mode #main#main #panel-tables .rd-tables-detail-card.has-free,
+body[data-theme="dark"] #main#main #panel-tables .rd-tables-detail-card.has-free,
+body.rd-scope.dark-mode #panel-tables .rd-tables-detail-card.has-free {
+  border-color: var(--status-gold-border) !important;
+  outline-color: var(--status-gold-border) !important;
+}
+body.dark-mode #main#main #panel-tables .rd-tables-detail-card.is-over,
+body[data-theme="dark"] #main#main #panel-tables .rd-tables-detail-card.is-over,
+body.rd-scope.dark-mode #panel-tables .rd-tables-detail-card.is-over {
+  border-color: var(--status-red-border) !important;
+  outline-color: var(--status-red-border) !important;
+}
+body.dark-mode #main#main #panel-tables .rd-tables-detail-seated,
+body[data-theme="dark"] #main#main #panel-tables .rd-tables-detail-seated,
+body.rd-scope.dark-mode #panel-tables .rd-tables-detail-seated {
+  border-color: var(--border-field) !important;
+}
+body.dark-mode #main#main #panel-emails .rd-et-letter,
+body[data-theme="dark"] #main#main #panel-emails .rd-et-letter,
+body.rd-scope.dark-mode #panel-emails .rd-et-letter {
+  border-color: var(--border-subtle) !important;
+  color: var(--text-body) !important;
+}
+body.dark-mode #main#main #panel-emails .rd-et-letter__body,
+body[data-theme="dark"] #main#main #panel-emails .rd-et-letter__body,
+body.rd-scope.dark-mode #panel-emails .rd-et-letter__body {
+  color: var(--text-body) !important;
+}
+body.dark-mode #main#main #panel-emails .rd-et-callout,
+body[data-theme="dark"] #main#main #panel-emails .rd-et-callout,
+body.rd-scope.dark-mode #panel-emails .rd-et-callout {
+  border-color: var(--status-gold-border) !important;
+  background: var(--status-gold-bg) !important;
+}
+body.dark-mode #main#main #panel-emails .rd-et-callout strong,
+body[data-theme="dark"] #main#main #panel-emails .rd-et-callout strong,
+body.rd-scope.dark-mode #panel-emails .rd-et-callout strong {
+  color: var(--status-gold-text) !important;
+}
+body.dark-mode #main#main #panel-emails .rd-et-callout p,
+body[data-theme="dark"] #main#main #panel-emails .rd-et-callout p,
+body.rd-scope.dark-mode #panel-emails .rd-et-callout p {
+  color: var(--text-muted) !important;
+}
