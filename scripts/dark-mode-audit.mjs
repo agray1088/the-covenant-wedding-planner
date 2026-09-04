@@ -462,6 +462,22 @@ async function scanPanel(page, cdp, panelId) {
   await page.evaluate((id) => window.showPanel(id), panelId);
   await wait(1800);
   await dismissChrome(page);
+  /* Activate views that historically leaked cream surfaces */
+  await page.evaluate((id) => {
+    try {
+      if (id === 'timeline' && typeof rdSetTimelineView === 'function') rdSetTimelineView('ribbon');
+      if (id === 'contracts' && typeof rdConSetMode === 'function') rdConSetMode('documents');
+      if (id === 'gifts' && typeof rdSetGiftsView === 'function') rdSetGiftsView('registry');
+      if (id === 'households') {
+        const btn = [...document.querySelectorAll('#panel-households .rd-viewswitch__item, #panel-households button')]
+          .find((b) => (b.textContent || '').trim() === 'Labels');
+        if (btn) btn.click();
+      }
+      if (id === 'payments' && typeof rdPaySetMode === 'function') rdPaySetMode('schedule');
+    } catch (e) { /* ignore */ }
+  }, panelId);
+  await wait(600);
+  await dismissChrome(page);
   await wait(400);
 
   const staticResult = await page.evaluate(({ panelId, threshold }) => {
@@ -496,25 +512,81 @@ async function scanPanel(page, cdp, panelId) {
 
       const bg = cs.backgroundColor;
       const rgb = parseRgbLocal(bg);
-      if (!rgb || rgb.a < 0.08) continue;
-      const lum = (rgb.r + rgb.g + rgb.b) / 3;
-      if (lum <= threshold) continue;
-
-      if (['span', 'a', 'strong', 'em', 'b', 'i', 'label', 'small'].includes(tag) && rect.height < 24) continue;
-
-      const key = `${hintLocal(el)}|${bg}|${Math.round(rect.width)}x${Math.round(rect.height)}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
       const text = (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60);
-      offenders.push({
-        selector: hintLocal(el),
-        bg,
-        luminance: Math.round(lum),
-        area: Math.round(rect.width * rect.height),
-        text,
-        state: 'static',
-      });
+
+      if (rgb && rgb.a >= 0.08) {
+        const lum = (rgb.r + rgb.g + rgb.b) / 3;
+        if (lum > threshold) {
+          if (!(['span', 'a', 'strong', 'em', 'b', 'i', 'label', 'small'].includes(tag) && rect.height < 24)) {
+            const key = `${hintLocal(el)}|${bg}|${Math.round(rect.width)}x${Math.round(rect.height)}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              offenders.push({
+                selector: hintLocal(el),
+                bg,
+                luminance: Math.round(lum),
+                area: Math.round(rect.width * rect.height),
+                text,
+                state: 'static',
+              });
+            }
+          }
+        }
+      }
+
+      /* Cream / near-white gradient stops (ribbon white↔black↔white, etc.) */
+      const img = cs.backgroundImage || '';
+      if (/gradient/i.test(img)) {
+        const stops = [...img.matchAll(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/g)];
+        let lightStop = null;
+        for (const m of stops) {
+          const a = m[4] != null ? +m[4] : 1;
+          if (a < 0.2) continue;
+          const lum = (+m[1] + +m[2] + +m[3]) / 3;
+          if (lum > threshold) {
+            lightStop = { rgb: `rgb(${m[1]}, ${m[2]}, ${m[3]})`, lum };
+            break;
+          }
+        }
+        if (lightStop) {
+          const key = `${hintLocal(el)}|grad|${lightStop.rgb}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            offenders.push({
+              selector: hintLocal(el),
+              bg: lightStop.rgb,
+              backgroundImage: img.slice(0, 160),
+              luminance: Math.round(lightStop.lum),
+              area: Math.round(rect.width * rect.height),
+              text,
+              state: 'gradient',
+              type: 'cream-gradient',
+            });
+          }
+        }
+      }
+
+      /* Cream borders on large surfaces (ribbon track white frame) */
+      const border = cs.borderTopColor || '';
+      const brgb = parseRgbLocal(border);
+      if (brgb && brgb.a >= 0.5 && rect.width >= 80 && rect.height >= 40) {
+        const blum = (brgb.r + brgb.g + brgb.b) / 3;
+        if (blum > threshold && parseFloat(cs.borderTopWidth) > 0) {
+          const key = `${hintLocal(el)}|border|${border}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            offenders.push({
+              selector: hintLocal(el),
+              bg: border,
+              luminance: Math.round(blum),
+              area: Math.round(rect.width * rect.height),
+              text,
+              state: 'border',
+              type: 'cream-border',
+            });
+          }
+        }
+      }
     }
 
     offenders.sort((a, b) => b.area - a.area);

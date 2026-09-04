@@ -230,7 +230,7 @@
   font-size: var(--type-body);
   color: var(--text-primary);
 }
-.rd-grouplist__row:hover { background: #FAF8F4; }
+.rd-grouplist__row:hover { background: var(--surface-focused, #FAF8F4); }
 body[data-theme="dark"] .rd-grouplist__row:hover { background: #202020; }
 
 .rd-kanban {
@@ -357,7 +357,7 @@ body[data-theme="dark"] .rd-grouplist__row:hover { background: #202020; }
   width: min(100%, 8.5in);
   min-height: 11in;
   padding: .7in;
-  background: #fff;
+  background: var(--surface-content, #fff);
   color: #000;
   box-shadow: var(--shadow-modal);
   border: 1px solid var(--border-subtle);
@@ -377,7 +377,7 @@ body[data-theme="dark"] .rd-grouplist__row:hover { background: #202020; }
   min-height: 1.1in;
   padding: 10px 12px;
   border: 1px dashed var(--border-control);
-  background: #fff;
+  background: var(--surface-content, #fff);
   font-size: 11.2px;
   line-height: 1.45;
   color: #23211c;

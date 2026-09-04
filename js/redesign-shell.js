@@ -1928,7 +1928,7 @@
         b.textContent = label;
         b.style.cssText =
           'text-align:left;width:100%;cursor:pointer;font:500 .92rem/1.4 var(--font-ui,system-ui);' +
-          'padding:.55rem .75rem;border:1px solid rgba(42,42,42,.12);border-radius:8px;background:#fff;color:#2A2A2A';
+          'padding:.55rem .75rem;border:1px solid rgba(42,42,42,.12);border-radius:8px;background:var(--surface-content);color:var(--text-primary)';
         b.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();

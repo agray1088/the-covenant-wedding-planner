@@ -164,6 +164,11 @@
    Selector list matches every dark hook the planner already ships.
    Geometry NEVER changes between themes — colour only.
    ========================================================================= */
+/* html:has(...) so html { background: var(--surface-canvas) } resolves dark —
+   custom props on body alone leave html reading cream from :root. */
+html:has(body.dark-mode),
+html:has(body[data-theme="dark"]),
+html:has(body.dark),
 body.dark-mode,
 body.dark,
 body[data-theme="dark"],

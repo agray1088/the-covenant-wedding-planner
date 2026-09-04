@@ -27178,7 +27178,7 @@ function smartEventInlineStyle(e, strength=30){
   const color = smartEventSourceHex(e?.source);
   /* Always paint solid tinted fills — CSS !important reads --smart-event-color;
      inline background beats pale legacy washes that still target button.smart-event-chip. */
-  return `--smart-event-color:${color};--smart-chip-bar:${color};background:color-mix(in srgb, ${color} ${strength}%, #fff);background-color:color-mix(in srgb, ${color} ${strength}%, #fff);border-top-color:color-mix(in srgb, ${color} 34%, #fff);border-right-color:color-mix(in srgb, ${color} 34%, #fff);border-bottom-color:color-mix(in srgb, ${color} 34%, #fff);border-left-color:${color};`;
+  return `--smart-event-color:${color};--smart-chip-bar:${color};background:color-mix(in srgb, ${color} ${strength}%, var(--smart-chip-mix-base));background-color:color-mix(in srgb, ${color} ${strength}%, var(--smart-chip-mix-base));border-top-color:color-mix(in srgb, ${color} 34%, var(--smart-chip-mix-base));border-right-color:color-mix(in srgb, ${color} 34%, var(--smart-chip-mix-base));border-bottom-color:color-mix(in srgb, ${color} 34%, var(--smart-chip-mix-base));border-left-color:${color};`;
 }
 function smartSourceMeta(source, index, editable=true, sourceId=''){
   const key = smartSourceDataKey(source);

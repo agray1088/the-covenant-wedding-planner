@@ -3430,3 +3430,97 @@ body.rd-scope[data-theme="dark"] #panel-payments .rd-pay-sched__row.is-this {
   background-color: var(--surface-raised) !important;
   color: var(--text-primary) !important;
 }
+
+/* ── dm-sweep20: Exhaustive cream wipe — ribbon, html canvas, leftovers ────
+   Prior sweeps fixed pills/hovers/frames. Remaining visual leaks:
+   1) Wedding Day Timeline ribbon: hardcoded #fbfaf8→mix + #e7e1d4 border
+      rendered white↔black↔white ends in dark mode.
+   2) html { background: var(--surface-canvas) } resolved cream from :root
+      because dark tokens lived only on body (tokens now use html:has()).
+   3) Catch-all for schedule bars / striped cream gaps / selected blues. */
+
+/* Timeline ribbon track — solid dark surfaces, no white gradient ends */
+body.dark-mode #main#main #panel-timeline .rd-wday-ribbon__track,
+body[data-theme="dark"] #main#main #panel-timeline .rd-wday-ribbon__track,
+body.editorial-v4.dark-mode #main#main #panel-timeline .rd-wday-ribbon__track,
+body.editorial-v4[data-theme="dark"] #main#main #panel-timeline .rd-wday-ribbon__track,
+body.rd-scope.dark-mode #panel-timeline .rd-wday-ribbon__track,
+body.rd-scope[data-theme="dark"] #panel-timeline .rd-wday-ribbon__track {
+  border-color: var(--border-subtle) !important;
+  background: linear-gradient(180deg, var(--surface-sunken), var(--surface-content)) !important;
+  background-color: var(--surface-content) !important;
+  background-image: linear-gradient(180deg, var(--surface-sunken), var(--surface-content)) !important;
+}
+
+/* html / root canvas behind body (overscroll, gutters) */
+html:has(body.dark-mode),
+html:has(body[data-theme="dark"]),
+html:has(body.dark) {
+  background: var(--surface-canvas) !important;
+  background-color: var(--surface-canvas) !important;
+}
+body.dark-mode,
+body[data-theme="dark"],
+body.rd-scope.dark-mode,
+body.rd-scope[data-theme="dark"] {
+  background: var(--surface-canvas) !important;
+  background-color: var(--surface-canvas) !important;
+}
+
+/* Contracts schedule instalment bars — no light #eef4f1 paper */
+body.dark-mode #main#main #panel-contracts .rd-con-sched__bar,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__bar,
+body.editorial-v4.dark-mode #main#main #panel-contracts .rd-con-sched__bar,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__bar,
+body.rd-scope[data-theme="dark"] #panel-contracts .rd-con-sched__bar {
+  background: var(--status-green-bg) !important;
+  background-color: var(--status-green-bg) !important;
+  color: var(--status-green-text) !important;
+  border-color: var(--status-green-border) !important;
+}
+body.dark-mode #main#main #panel-contracts .rd-con-sched__bar.is-warn,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__bar.is-warn,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__bar.is-warn {
+  background: var(--status-gold-bg) !important;
+  color: var(--status-gold-text) !important;
+  border-color: var(--status-gold-border) !important;
+}
+body.dark-mode #main#main #panel-contracts .rd-con-sched__bar.is-overdue,
+body[data-theme="dark"] #main#main #panel-contracts .rd-con-sched__bar.is-overdue,
+body.rd-scope.dark-mode #panel-contracts .rd-con-sched__bar.is-overdue {
+  background: var(--status-red-bg) !important;
+  color: var(--status-red-text) !important;
+  border-color: var(--status-red-border) !important;
+}
+
+/* Selected-row blues that still used #f4f7fb hex */
+body.dark-mode #main#main [id^="panel-"] tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body.dark-mode #main#main [id^="panel-"] .is-selected td,
+body.dark-mode #main#main [id^="panel-"] .rd-pay-row.is-selected,
+body.dark-mode #main#main [id^="panel-"] .rd-con-row.is-selected,
+body[data-theme="dark"] #main#main [id^="panel-"] tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-pay-row.is-selected,
+body[data-theme="dark"] #main#main [id^="panel-"] .rd-con-row.is-selected,
+body.rd-scope.dark-mode [id^="panel-"] tr:has(.cwp-rowsel:checked):not(.is-drawer-focus) td {
+  background: var(--surface-selected) !important;
+  background-color: var(--surface-selected) !important;
+}
+
+/* Layouts grouplist hover (Redesign/redesign-layouts.css #FAF8F4) */
+body.dark-mode .rd-grouplist__row:hover,
+body[data-theme="dark"] .rd-grouplist__row:hover,
+body.rd-scope.dark-mode .rd-grouplist__row:hover {
+  background: var(--surface-focused) !important;
+  background-color: var(--surface-focused) !important;
+}
+
+/* Day-of offer "Enter" lives in page chrome — keep forest CTA, not light wash */
+body.dark-mode .rd-dayof-offer .btn-forest,
+body.dark-mode #main#main .rd-dayof-offer .btn-forest,
+body[data-theme="dark"] .rd-dayof-offer .btn-forest,
+body.rd-scope.dark-mode .rd-dayof-offer .btn-forest {
+  background: var(--forest) !important;
+  background-color: var(--forest) !important;
+  color: var(--text-on-dark) !important;
+  border-color: var(--forest) !important;
+}
