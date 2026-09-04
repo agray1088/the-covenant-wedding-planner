@@ -93,6 +93,12 @@
 
   function hideLegacyChrome(panel) {
     if (!panel) return;
+    const legacyRoot = panel.querySelector('#rd-getstarted-legacy');
+    if (legacyRoot) {
+      legacyRoot.hidden = true;
+      legacyRoot.setAttribute('aria-hidden', 'true');
+      legacyRoot.classList.add('rd-guide-legacy-hide');
+    }
     panel.querySelectorAll('.inst-title-wrap, .faq-title-wrap, .inst-final-footer').forEach(el => {
       el.classList.add('rd-guide-legacy-hide');
     });
@@ -158,6 +164,13 @@
       '<button type="button" class="rd-btn" onclick="typeof rdOpenFullEditor===\'function\'&&rdOpenFullEditor()">Full editor</button>' +
       '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print this page</button>');
     if (!panel) return;
+    /* Keep legacy pocket collapsed — first-paint CSS + hidden attribute already hide it. */
+    const legacyRoot = panel.querySelector('#rd-getstarted-legacy');
+    if (legacyRoot) {
+      legacyRoot.hidden = true;
+      legacyRoot.setAttribute('aria-hidden', 'true');
+      legacyRoot.classList.add('rd-guide-legacy-hide');
+    }
     panel.querySelectorAll(
       '.inst-title-wrap, .inst-grid-3, .inst-wide-row, .inst-partner-handoff, .inst-welcome, .inst-actions-row, .inst-final-footer, .inst-alone, ' +
       '#start-here-card, #rd-guide-backupwarn, #next-steps-path, #start-here-backup-edu, #start-here-templates, ' +
@@ -891,4 +904,18 @@
       return out;
     };
   }
+  /* Ship-path P0: mount redesigned Get Started as soon as this script runs so a
+     refresh never paints the legacy pocket, then swaps. Safe before initAll —
+     body HTML is already available (script is at end of body). */
+  try {
+    var bootPanel = document.getElementById('panel-instructions');
+    if (bootPanel && (bootPanel.classList.contains('active') || !document.querySelector('.panel.active'))) {
+      renderGetStarted();
+    } else if (bootPanel) {
+      /* Still hide legacy + ensure pocket stays collapsed even if another panel is active. */
+      hideLegacyChrome(bootPanel);
+      var lr = bootPanel.querySelector('#rd-getstarted-legacy');
+      if (lr) { lr.hidden = true; lr.classList.add('rd-guide-legacy-hide'); }
+    }
+  } catch (e) { /* non-fatal */ }
 })();

@@ -29501,7 +29501,10 @@ body.rd-scope.dark-mode #panel-faq .rd-faq-quick,
 body.rd-scope[data-theme="dark"] #panel-faq .rd-faq-quick { background: #1c1c18; border-color: #2e2e28; }
 body.rd-scope #panel-instructions .rd-guide-legacy-hide,
 body.rd-scope #panel-guide .rd-guide-legacy-hide,
-body.rd-scope #panel-faq .rd-guide-legacy-hide { display: none !important; }
+body.rd-scope #panel-faq .rd-guide-legacy-hide,
+/* First-paint pocket: legacy Get Started stays display:none even if JS is late */
+#panel-instructions #rd-getstarted-legacy,
+#panel-instructions #rd-getstarted-legacy[hidden] { display: none !important; }
 
 /* §35 Setup formhost — mockup grid (15a / 11c) */
 body.rd-scope #panel-setup .rd-setup-formhost {
