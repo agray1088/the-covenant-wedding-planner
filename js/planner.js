@@ -33,6 +33,21 @@ function blankData() {
 }
 
 let data = blankData();
+// Keep window.data === planner `data`. Redesign scripts probe `window.data` and
+// previously created a separate empty `{}`, so UI/tests reading window.data missed
+// live planner state (and demo seeds could write into the stub).
+if (typeof window !== 'undefined') {
+  try {
+    Object.defineProperty(window, 'data', {
+      get() { return data; },
+      set(v) { if (v && typeof v === 'object') data = v; },
+      configurable: true,
+      enumerable: true
+    });
+  } catch (e) {
+    window.data = data;
+  }
+}
 window.getCovenantPlannerData = function () { return data; };
 
 // Track 1.3 — when true, save() won't count the write as an unsaved-since-backup
@@ -23968,7 +23983,8 @@ function ensureNotesData(){
   if (!data.notes || typeof data.notes !== 'object') data.notes = {};
   ['general','family','vendors','marriage'].forEach(k => { if (data.notes[k] == null) data.notes[k] = ''; });
   if (!Array.isArray(data.notesDetails)) data.notesDetails = [];
-  if (!data.notesSeeded && data.notesDetails.length === 0) { data.notesDetails = NOTES_STARTER_DETAILS.map(n => ({...n, lastEdited:n.date})); data.notesSeeded = true; }
+  // Demo fiction is opt-in via Load sample data only — empty stays empty.
+  if (!data.notesSeeded && data.notesDetails.length === 0) { data.notesSeeded = true; }
   data.notesDetails.forEach((n, idx) => {
     if (!n.title) n.title = 'Untitled Note';
     if (!n.category) n.category = NOTES_CATEGORY_OPTIONS[idx % NOTES_CATEGORY_OPTIONS.length] || 'Other';
@@ -43615,14 +43631,14 @@ installBulkDecorators();
           if (editedDuringBoot) {
             console.info('[SQLite] Skipping hydrate — in-session edits during boot take precedence.');
           } else {
-          const lsNewerThanAck = (function () {
-            if (!_lsUpdatedAt || !_idbAckAt) return false;
-            const a = Date.parse(_lsUpdatedAt);
-            const b = Date.parse(_idbAckAt);
-            return Number.isFinite(a) && Number.isFinite(b) && a > b;
-          })();
-          if (lsNewerThanAck) {
-            console.info('[SQLite] Keeping localStorage — newer than last IDB ACK; will write-through.');
+          // Authority: localStorage wins unless IDB/SQLite is STRICTLY newer.
+          // Equal timestamps keep LS (pagehide may ACK the mirror stamp before the
+          // in-memory SQL rebuild with latest rows finishes persisting).
+          const _ts = (iso) => { const n = Date.parse(iso || ''); return Number.isFinite(n) ? n : null; };
+          const lsTs = _ts(_lsUpdatedAt);
+          const ackTs = _ts(_idbAckAt);
+          if (_jsonExisted && lsTs != null && ackTs != null && lsTs >= ackTs) {
+            console.info('[SQLite] Keeping localStorage — newer than or equal to last IDB ACK; will write-through.');
           } else {
           const h = hydrateDataFromSqlite(null); // null -> the DB's own wedding row id ('wedding_default')
           const meaningful = h && h.hydrated && h.data &&
@@ -43630,14 +43646,10 @@ installBulkDecorators();
              (h.counts && Object.keys(h.counts).some(k => h.counts[k] > 0)));
           if (meaningful) {
             const sqliteUpdated = (h.data && h.data.updatedAt) || _idbAckAt || null;
-            const lsNewerThanSqlite = (function () {
-              if (!_lsUpdatedAt || !sqliteUpdated) return !!(_lsUpdatedAt && !sqliteUpdated && _jsonExisted);
-              const a = Date.parse(_lsUpdatedAt);
-              const b = Date.parse(sqliteUpdated);
-              return Number.isFinite(a) && Number.isFinite(b) && a > b;
-            })();
-            if (lsNewerThanSqlite) {
-              console.info('[SQLite] Keeping localStorage — newer than hydrated SQLite; will write-through.');
+            const sqlTs = _ts(sqliteUpdated);
+            const keepLs = (_jsonExisted && lsTs != null && (sqlTs == null || lsTs >= sqlTs));
+            if (keepLs) {
+              console.info('[SQLite] Keeping localStorage — newer than or equal to hydrated SQLite; will write-through.');
             } else {
             // Preserve volatile runtime-only state (history/undo/redo), which lives
             // only in the localStorage mirror, across the authoritative hydrate.
