@@ -3699,8 +3699,10 @@ body.editorial-v4.dark-mode #main#main #panel-appointments .rd-appt-cal,
 body.editorial-v4[data-theme="dark"] #main#main #panel-appointments .rd-appt-cal {
   --appt-cal-line: var(--border-subtle) !important;
   --appt-cal-line-soft: var(--border-hairline, var(--border-subtle)) !important;
-  --appt-block-border: color-mix(in srgb, #6F9C80 42%, var(--border-subtle)) !important;
+  /* Border must not be lighter than fill — lighter rim reads as a raised plate.
+     Match calendar chip flatten: rim == fill. */
   --appt-block-bg: color-mix(in srgb, #6F9C80 18%, var(--surface-raised)) !important;
+  --appt-block-border: var(--appt-block-bg) !important;
   --appt-block-text: var(--text-primary) !important;
   --appt-block-sub: var(--text-muted) !important;
   --appt-clash-border: var(--status-red-border, #7a3a34) !important;

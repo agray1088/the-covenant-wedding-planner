@@ -1041,6 +1041,29 @@ body.rd-scope [id^="panel-"] .rd-toolbar .rd-chip,
   background-color: var(--surface-raised) !important;
   border-color: var(--border-strong) !important;
 }
+/* Quiet text links — kill UA button chrome (outset border + grey fill).
+   Unscoped `button.rd-link-quiet` otherwise renders as a bevelled grey plate.
+   Scoped panels may recolor; chrome stays flat everywhere. */
+body.rd-scope button.rd-link-quiet,
+body.rd-scope .rd-link-quiet[role="button"],
+#main#main button.rd-link-quiet,
+#main#main .rd-link-quiet[role="button"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  background-color: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-family: var(--font-ui);
+  color: var(--text-link, var(--gold-ink, #946f33));
+  cursor: pointer;
+  border-radius: 0;
+  line-height: inherit;
+}
+
 /* exactly one primary per view ? forest fill, never gold */
 #main#main .ued-btn.primary,
 #main#main .ued-btn--primary,
@@ -8908,6 +8931,11 @@ body.rd-scope #panel-guests .rd-guest-companions-block .rd-link-quiet {
   margin-left: auto;
   font-size: 10.8px;
   color: var(--gold-text, #946f33);
+  background: none;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  cursor: pointer;
   white-space: nowrap;
 }
 body.rd-scope #panel-guests .rd-guest-comp-table {
@@ -11925,7 +11953,26 @@ body.rd-scope #panel-tables .rd-tables-section-head__sub {
   font-size: 10.8px;
   color: #6b645d;
 }
-body.rd-scope #panel-tables .rd-tables-section-head .rd-link-quiet { margin-left: auto; }
+body.rd-scope #panel-tables .rd-tables-section-head .rd-link-quiet {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  color: var(--text-link, var(--gold-ink, #946f33));
+  cursor: pointer;
+}
+/* Tables card / assign actions — flat gold text links (not UA button plates) */
+body.rd-scope #panel-tables button.rd-link-quiet {
+  background: none;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  color: var(--text-link, var(--gold-ink, #946f33));
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--font-ui);
+}
 /* Assignments table toolbar — sits under the section head, above the table */
 body.rd-scope #panel-tables .rd-tables-assign-toolbar {
   display: flex;
@@ -19364,6 +19411,15 @@ body.rd-scope #panel-honeymoon .rd-hm-budgetrow__name {
 body.rd-scope #panel-honeymoon .rd-hm-budgetrow__meta {
   font-size: 10.8px;
   color: #8a7e6b;
+}
+body.rd-scope #panel-honeymoon .rd-hm-budgetrow__meta .rd-link-quiet {
+  color: var(--text-link, #946f33);
+  background: none;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
 }
 body.rd-scope #panel-honeymoon .rd-hm-budgetrow__amt {
   font-size: 10.8px;
