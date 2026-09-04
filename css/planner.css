@@ -34210,8 +34210,8 @@ body.editorial-v4 #sidebar .nav-item:hover {
 }
 
 body.editorial-v4 #sidebar .nav-item.active {
-  background: var(--gold-pale,#FAF6EF)!important;
-  color: var(--forest-deeper,#1c3026)!important;
+  background: var(--surface-focused, var(--gold-pale,#FAF6EF))!important;
+  color: var(--text-primary, var(--forest-deeper,#1c3026))!important;
   border-color: rgba(184,153,104,.55)!important;
   font-weight: 700!important;
 }

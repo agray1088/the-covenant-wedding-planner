@@ -3582,3 +3582,27 @@ body[data-theme="dark"] #main#main #panel-emails .rd-et-callout p,
 body.rd-scope.dark-mode #panel-emails .rd-et-callout p {
   color: var(--text-muted) !important;
 }
+
+/* ── dm-sweep20c: Sidebar active nav used --gold-pale (#E4D8BF) as fill ──── */
+body.dark-mode.editorial-v4 #sidebar .nav-item.active,
+body[data-theme="dark"].editorial-v4 #sidebar .nav-item.active,
+body.dark-mode.editorial-v4.nav-sidebar #sidebar .nav-item.active,
+body[data-theme="dark"].editorial-v4.nav-sidebar #sidebar .nav-item.active,
+body.dark-mode.editorial-v4:not(.nav-sidebar) #sidebar .nav-item.active,
+body.rd-scope.dark-mode.editorial-v4 #sidebar .nav-item.active,
+body.dark-mode #nav-menu-drawer .nav-item.active,
+body[data-theme="dark"] #nav-menu-drawer .nav-item.active,
+body.dark-mode #planner-context-sidebar .pcs-nav .nav-item.active,
+body[data-theme="dark"] #planner-context-sidebar .pcs-nav .nav-item.active {
+  background: var(--surface-active) !important;
+  background-color: var(--surface-active) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-subtle) !important;
+}
+body.dark-mode.editorial-v4 #sidebar .nav-item.active .nav-icon svg,
+body.dark-mode.editorial-v4 #sidebar .nav-item.active .line-icon,
+body.dark-mode #nav-menu-drawer .nav-item.active .material-symbols-sharp,
+body[data-theme="dark"].editorial-v4 #sidebar .nav-item.active .nav-icon svg {
+  color: var(--gold-lt) !important;
+  stroke: var(--gold-lt) !important;
+}

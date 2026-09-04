@@ -180,7 +180,7 @@ body.editorial-v4[data-theme="dark"],
   --forest-lt:     #6E9C84;
   --gold:          #B08D55;
   --gold-lt:       #C9A96E;
-  --gold-pale:     #E4D8BF;
+  --gold-pale:     #E4D8BF; /* text-on-forest accent (not a surface fill) */
   --gold-soft:     #2A2418;
   --ivory:         #1A1A1A;
   --ivory-dk:      #222222;
