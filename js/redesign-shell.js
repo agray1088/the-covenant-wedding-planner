@@ -18,19 +18,18 @@
 (function () {
   'use strict';
 
-  /* ── §06: eight tabs. Only panels that actually exist in this build are
-     listed; pages the spec names but the app has not built yet (Households,
-     Contacts, Print Centre, Vision & Foundation) are deliberately absent
-     rather than rendered as dead nav. ─────────────────────────────────── */
+  /* ── §06: eight tabs · full planning IA (guide §3 + live shells).
+     Households / Contacts / Vision / First-Month / Homecoming / Print Centre
+     are first-class panels — derive, never store duplicates. ───────────── */
   var TABS = [
-    { id: 'overview',  label: 'Overview',  pages: [['dashboard','Dashboard'], ['notes','Notes']] },
-    { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments'], ['logistics','Weekend Logistics']] },
-    { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
+    { id: 'overview',  label: 'Overview',  pages: [['dashboard','Dashboard'], ['notes','Notes'], ['viewer-prefs','Viewer preferences']] },
+    { id: 'planning',  label: 'Planning',  pages: [['tasks','Timeline & Tasks'], ['calendar','Smart Calendar'], ['appointments','Appointments']] },
+    { id: 'people',    label: 'People',    pages: [['guests','Guest List'], ['households','Households'], ['contacts','Contacts'], ['party','Wedding Party'], ['tables','Table Layout'], ['gifts','Gifts']] },
     { id: 'money',     label: 'Money',     pages: [['budget','Budget'], ['payments','Payments'], ['contracts','Contracts & Invoices']] },
     { id: 'vendors',   label: 'Vendors',   pages: [['vendors','Venue & Vendors'], ['venue','Venue Comparison'], ['catering','Catering & Menu'], ['entertainment','Entertainment'], ['shotlist','Shot Lists']] },
-    { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['honeymoon','Honeymoon & After']] },
-    { id: 'covenant',  label: 'Covenant',  pages: [['prayer','Prayer Journal'], ['counseling','Premarital Counseling']], dot: true },
-    { id: 'documents', label: 'Documents', pages: [['mood','Vision Board'], ['essentials','Essentials Checklist'], ['packets','Share Packets'], ['emails','Email Templates'], ['data-hub','Database Hub']] }
+    { id: 'theday',    label: 'The Day',   pages: [['timeline','Wedding Day Timeline'], ['ceremony','Ceremony & Reception'], ['logistics','Weekend Logistics'], ['honeymoon','Honeymoon']] },
+    { id: 'covenant',  label: 'Covenant',  pages: [['vision','Vision & Foundation'], ['prayer','Prayer Journal'], ['counseling','Premarital Counseling'], ['firstmonth','First-Month Rhythms'], ['homecoming','Newlywed Homecoming']], dot: true },
+    { id: 'documents', label: 'Documents', pages: [['packets','Share Packets'], ['vendor','Vendor'], ['emails','Email Templates'], ['print-centre','Print Centre'], ['mood','Vision Board'], ['essentials','Essentials Checklist'], ['data-hub','Database Hub']] }
   ];
 
   /* Reached from the top bar or help, never from a tab (§06). */
@@ -59,25 +58,40 @@
     if (!legacyBar) return;
 
     /* ─── top bar ─────────────────────────────────────────────────────── */
+    /* §39 · 49d — two rows, not one. "Nine controls plus a wordmark and a
+       search field do not fit on one 1440px line. Identity, photo, save status
+       and the countdown take the upper row; search and the nine action buttons
+       take the lower. Nothing is hidden behind a chevron." */
     var bar = el(
-      '<header class="rd-topbar">' +
-        '<div class="rd-topbar__brand">' +
-          '<span class="rd-topbar__mark">&#10022;</span>' +
-          '<span class="rd-topbar__name">The Covenant Wedding Planner</span>' +
-        '</div>' +
-        '<button type="button" class="rd-topbar__wedding" id="rd-wedding-btn">' +
-          '<span class="rd-topbar__avatar" id="rd-profile-initials">--</span>' +
-          '<span id="rd-wedding-label">Your wedding</span>' +
-          '<svg ' + SVG + '><path d="m6 9 6 6 6-6"/></svg>' +
-        '</button>' +
-        '<div class="rd-topbar__searchslot"></div>' +
-        '<div class="rd-topbar__right">' +
-          '<div class="rd-topbar__undoslot"></div>' +
-          '<div class="rd-topbar__saveslot"></div>' +
-          '<div class="rd-topbar__bellslot"></div>' +
-          '<button type="button" class="rd-topbar__gear" id="rd-gear-btn" aria-label="Viewer preferences" aria-haspopup="true" aria-expanded="false">' +
-            '<svg ' + SVG + '><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>' +
+      '<header class="rd-topbar rd-topbar--tworow">' +
+        '<div class="rd-topbar__row rd-topbar__row--identity">' +
+          '<div class="rd-topbar__brand">' +
+            '<span class="rd-topbar__mark">&#10022;</span>' +
+            '<span class="rd-topbar__names">' +
+              '<span class="rd-topbar__name">The Covenant Wedding Planner</span>' +
+              '<span class="rd-topbar__sub">Christ-centered planning &middot; M3 planner</span>' +
+            '</span>' +
+          '</div>' +
+          '<button type="button" class="rd-topbar__wedding" id="rd-wedding-btn">' +
+            '<span class="rd-topbar__avatar" id="rd-profile-initials">--</span>' +
+            '<span id="rd-wedding-label">Your wedding</span>' +
+            '<svg ' + SVG + '><path d="m6 9 6 6 6-6"/></svg>' +
           '</button>' +
+          '<div class="rd-topbar__idright">' +
+            '<div class="rd-topbar__saveslot"></div>' +
+            '<div class="rd-topbar__countdown" id="rd-topbar-countdown"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rd-topbar__row rd-topbar__row--actions">' +
+          '<div class="rd-topbar__searchslot"></div>' +
+          '<div class="rd-topbar__right">' +
+            '<div class="rd-topbar__undoslot"></div>' +
+            '<div class="rd-topbar__bellslot"></div>' +
+            '<button type="button" class="rd-topbar__gear" id="rd-gear-btn" aria-label="Settings" aria-haspopup="dialog">' +
+              '<svg ' + SVG + '><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>' +
+              '<span class="rd-topbar__gear-label">Settings</span>' +
+            '</button>' +
+          '</div>' +
         '</div>' +
         '<div class="rd-prefs" id="rd-prefs" hidden></div>' +
       '</header>');
@@ -123,17 +137,40 @@
        CSV, print, auto-fit. They keep their ids and their handlers. */
     var prefs = bar.querySelector('#rd-prefs');
     var overflow = document.getElementById('topbar-overflow');
-    ['profile-drawer-btn', 'dark-mode-btn', 'data-hub-btn', 'save-btn'].forEach(function (id) {
+    /* §39 · 49d: these five stay in the bar — "Nothing removed ... Save,
+       Alerts with badge, Profile & Display, Database Hub, Quick Jump, Dark
+       Mode", and "nothing is hidden behind a chevron". The gear now opens the
+       Settings window (49c) rather than a dropdown, so parking them in #rd-prefs
+       would strand them. */
+    var barSlot = bar.querySelector('.rd-topbar__row--actions .rd-topbar__right');
+    ['save-btn', 'profile-drawer-btn', 'data-hub-btn', 'dark-mode-btn'].forEach(function (id) {
       var b = document.getElementById(id);
-      if (b && prefs) prefs.appendChild(b);
+      if (!b || !barSlot) return;
+      b.classList.add('rd-topbar__action');
+      barSlot.insertBefore(b, barSlot.querySelector('#rd-gear-btn') || null);
     });
+    /* 49d draws the lower row in one order: Undo/Redo, Save, Alerts, Profile &
+       Display, Database Hub, Quick Jump, Dark Mode, then Settings. */
+    function orderActions() {
+      if (!barSlot) return;
+      var gear = barSlot.querySelector('#rd-gear-btn');
+      ['.rd-topbar__undoslot', '#save-btn', '.rd-topbar__bellslot', '#profile-drawer-btn',
+       '#data-hub-btn', '#quick-jump-wrap', '#dark-mode-btn'].forEach(function (sel) {
+        var n = barSlot.querySelector(sel) || document.querySelector(sel);
+        if (n) barSlot.insertBefore(n, gear || null);
+      });
+    }
     if (overflow && prefs) {
       while (overflow.firstChild) prefs.appendChild(overflow.firstChild);
     }
     /* the quick-jump dropdown is superseded by the command palette, but
        planner.js still writes into it — keep the node, park it in prefs. */
     var qj = document.getElementById('quick-jump-wrap');
-    if (qj && prefs) prefs.appendChild(qj);
+    if (qj && barSlot) {
+      qj.classList.add('rd-topbar__action');
+      barSlot.insertBefore(qj, barSlot.querySelector('#rd-gear-btn') || null);
+    }
+    orderActions();
 
     document.getElementById('rd-gear-btn').addEventListener('click', function (e) {
       e.stopPropagation();
@@ -152,6 +189,75 @@
       if (typeof toggleProfileDrawer === 'function') toggleProfileDrawer();
     });
 
+    /* Furniture · Trash · Views S10 — from the avatar/prefs menu */
+    if (prefs && !prefs.querySelector('[data-rd-trash]')) {
+      var trashBtn = el('<button type="button" class="rd-prefs__trash" data-rd-trash>Trash · 30 days</button>');
+      trashBtn.addEventListener('click', function () {
+        prefs.setAttribute('hidden', '');
+        var g = document.getElementById('rd-gear-btn');
+        if (g) g.setAttribute('aria-expanded', 'false');
+        if (typeof RdFurniture !== 'undefined' && RdFurniture.openTrash) {
+          var items = [];
+          try {
+            var trash = (typeof data !== 'undefined' && data && Array.isArray(data.trash)) ? data.trash : [];
+            items = trash.map(function (t, i) {
+              return {
+                id: String(t._id || i),
+                title: t.title || t.name || t.label || 'Deleted record',
+                meta: (t.type || t.entity || 'Record') + (t.deletedAt ? ' · ' + t.deletedAt : ''),
+                daysLeft: t.daysLeft != null ? t.daysLeft : 30
+              };
+            });
+          } catch (e) { items = []; }
+          RdFurniture.openTrash({ items: items });
+        }
+      });
+      prefs.insertBefore(trashBtn, prefs.firstChild);
+    }
+    /* All.dc 18b — Planner History is reached from the top bar / prefs, not a tab. */
+    if (prefs && !prefs.querySelector('[data-rd-history]')) {
+      var histBtn = el('<button type="button" class="rd-prefs__history" data-rd-history>Planner History</button>');
+      histBtn.addEventListener('click', function () {
+        prefs.setAttribute('hidden', '');
+        var g = document.getElementById('rd-gear-btn');
+        if (g) g.setAttribute('aria-expanded', 'false');
+        window._histReturnPanel = document.body.getAttribute('data-active-panel') || 'dashboard';
+        if (typeof showPanel === 'function') showPanel('history', true);
+      });
+      prefs.insertBefore(histBtn, prefs.firstChild);
+    }
+    /* Undo/Redo cluster: secondary click / Alt+click opens the History log. */
+    ['undo-btn', 'redo-btn'].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (!b || b.dataset.rdHistBound) return;
+      b.dataset.rdHistBound = '1';
+      b.addEventListener('click', function (ev) {
+        if (ev.altKey || ev.metaKey) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          window._histReturnPanel = document.body.getAttribute('data-active-panel') || 'dashboard';
+          if (typeof showPanel === 'function') showPanel('history', true);
+        }
+      }, true);
+      b.title = (b.title || '') + (b.title ? ' · ' : '') + 'Alt-click for Planner History';
+    });
+    var histTop = document.querySelector('#topbar button[onclick*="openHistoryDrawer"]');
+    if (histTop) {
+      histTop.style.display = '';
+      histTop.removeAttribute('aria-hidden');
+      histTop.removeAttribute('tabindex');
+      histTop.classList.add('rd-undo');
+      histTop.setAttribute('title', 'Planner History');
+      histTop.onclick = function (ev) {
+        if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+        window._histReturnPanel = document.body.getAttribute('data-active-panel') || 'dashboard';
+        if (typeof showPanel === 'function') showPanel('history', true);
+        if (typeof toggleTopbarOverflow === 'function') toggleTopbarOverflow();
+      };
+      var undoSlot = bar.querySelector('.rd-topbar__undoslot');
+      if (undoSlot && histTop.parentElement !== undoSlot) undoSlot.appendChild(histTop);
+    }
+
     /* ─── retire the legacy chrome ────────────────────────────────────── */
     legacyBar.setAttribute('hidden', '');
     legacyBar.setAttribute('aria-hidden', 'true');
@@ -162,8 +268,47 @@
     sync();
   }
 
+  /* ─── 49d identity row: photo cutout + countdown ───────────────────── */
+  function syncIdentityRow() {
+    try {
+      var setup = (typeof data !== 'undefined' && data && data.setup) ? data.setup : {};
+
+      /* photo cutout — the drawn bar carries the couple's photo, falling back
+         to initials when none is set. */
+      var av = document.getElementById('rd-profile-initials');
+      if (av) {
+        if (setup.photo) {
+          av.style.backgroundImage = 'url("' + String(setup.photo).replace(/"/g, '\\"') + '")';
+          av.classList.add('has-photo');
+        } else {
+          av.style.backgroundImage = '';
+          av.classList.remove('has-photo');
+        }
+      }
+
+      /* countdown — "102 days to 7 Nov 2026", derived from the wedding date,
+         never typed twice. */
+      var cd = document.getElementById('rd-topbar-countdown');
+      if (!cd) return;
+      var iso = setup.date;
+      if (!iso) { cd.textContent = ''; cd.hidden = true; return; }
+      var d = new Date(String(iso).slice(0, 10) + 'T00:00:00');
+      if (isNaN(d.getTime())) { cd.textContent = ''; cd.hidden = true; return; }
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var days = Math.round((d - today) / 86400000);
+      var when = d.getDate() + ' ' +
+        ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()] +
+        ' ' + d.getFullYear();
+      cd.hidden = false;
+      cd.textContent = days > 0 ? (days + ' day' + (days === 1 ? '' : 's') + ' to ' + when)
+        : days === 0 ? ('Today · ' + when)
+        : (Math.abs(days) + ' day' + (days === -1 ? '' : 's') + ' since ' + when);
+    } catch (e) { /* the bar must never break on identity data */ }
+  }
+
   /* ─── keep tabs + sub-nav in step with showPanel() ─────────────────── */
   function sync() {
+    syncIdentityRow();
     var active = document.body.getAttribute('data-active-panel') || 'dashboard';
     var tab = tabFor(active);
     var tabsEl = document.querySelector('.rd-tabs');
@@ -180,10 +325,26 @@
     subnav.innerHTML = '';
     if (!tab) {
       if (UNTABBED.indexOf(active) > -1) {
-        subnav.appendChild(el('<span class="rd-subnav__note">Reached from the top bar</span>'));
+        if (active === 'history') {
+          subnav.classList.add('rd-subnav--context');
+          subnav.appendChild(el(
+            '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M9 7H4V2"/><path d="M4 7a9 9 0 1 1 1.6 9"/></svg>' +
+            '<span class="rd-subnav__note">Opened from the undo and redo buttons · this page has no tab of its own</span>' +
+            '<button type="button" class="rd-subnav__item" style="margin-left:auto" id="rd-history-back">Back</button>'
+          ));
+          var back = subnav.querySelector('#rd-history-back');
+          if (back) back.addEventListener('click', function () {
+            if (window._histReturnPanel && typeof showPanel === 'function') showPanel(window._histReturnPanel, true);
+            else if (typeof showPanel === 'function') showPanel('dashboard', true);
+          });
+        } else {
+          subnav.classList.remove('rd-subnav--context');
+          subnav.appendChild(el('<span class="rd-subnav__note">Reached from the top bar</span>'));
+        }
       }
       return;
     }
+    subnav.classList.remove('rd-subnav--context');
     tab.pages.forEach(function (p) {
       if (!panelOf(p[0])) return;
       var b = el('<button type="button" class="rd-subnav__item' +
@@ -196,6 +357,10 @@
       subnav.appendChild(b);
     });
     syncDrawerSlot();
+    /* Roles · Views #43a — Covenant tab visibility / role chrome */
+    if (window.RdRoles && typeof window.RdRoles.afterSync === 'function') {
+      try { window.RdRoles.afterSync(); } catch (e) { /* soft */ }
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════════════════
@@ -228,6 +393,22 @@
     var partySlot = document.getElementById('party-drawer-slot');
     var giftsSlot = document.getElementById('gifts-drawer-slot');
     var tablesSlot = document.getElementById('tables-drawer-slot');
+    var vendorsSlot = document.getElementById('vendors-drawer-slot');
+    var venueSlot = document.getElementById('venue-drawer-slot');
+    var cateringSlot = document.getElementById('catering-drawer-slot');
+    var entertainmentSlot = document.getElementById('entertainment-drawer-slot');
+    var shotlistSlot = document.getElementById('shotlist-drawer-slot');
+    var timelineSlot = document.getElementById('timeline-drawer-slot');
+    var ceremonySlot = document.getElementById('ceremony-drawer-slot');
+    var honeymoonSlot = document.getElementById('honeymoon-drawer-slot');
+    var prayerSlot = document.getElementById('prayer-drawer-slot');
+    var counselingSlot = document.getElementById('counseling-drawer-slot');
+    var moodSlot = document.getElementById('mood-drawer-slot');
+    var essentialsSlot = document.getElementById('essentials-drawer-slot');
+    var packetsSlot = document.getElementById('packets-drawer-slot');
+    var emailsSlot = document.getElementById('emails-drawer-slot');
+    var notesSlot = document.getElementById('notes-drawer-slot');
+    var dataHubSlot = document.getElementById('data-hub-drawer-slot');
     var d = document.getElementById(DRAWER_ID);
     if (!d) return;
     /* Closed drawer must stay out of layout flow even if CSS loses [hidden]. */
@@ -247,6 +428,23 @@
     else if (panel === 'party') slot = partySlot;
     else if (panel === 'gifts') slot = giftsSlot;
     else if (panel === 'tables') slot = tablesSlot;
+    else if (panel === 'vendors') slot = vendorsSlot;
+    else if (panel === 'catering') slot = cateringSlot;
+    else if (panel === 'entertainment') slot = entertainmentSlot;
+    else if (panel === 'shotlist') slot = shotlistSlot;
+    else if (panel === 'timeline') slot = timelineSlot;
+    else if (panel === 'ceremony') slot = ceremonySlot;
+    else if (panel === 'honeymoon') slot = honeymoonSlot;
+    else if (panel === 'prayer') slot = prayerSlot;
+    else if (panel === 'counseling') slot = counselingSlot;
+    else if (panel === 'mood') slot = moodSlot;
+    else if (panel === 'essentials') slot = essentialsSlot;
+    else if (panel === 'packets') slot = packetsSlot;
+    else if (panel === 'emails') slot = emailsSlot;
+    else if (panel === 'notes') slot = notesSlot;
+    else if (panel === 'data-hub') slot = dataHubSlot;
+    /* Venue Comparison uses a page-local drawer (no §16 venue entity). Do not
+       park #record-drawer into #venue-drawer-slot — that would clear is-open. */
 
     if (taskSlot && d.parentElement === taskSlot) taskSlot.classList.remove('is-open');
     if (apptSlot && d.parentElement === apptSlot) apptSlot.classList.remove('is-open');
@@ -255,6 +453,21 @@
     if (partySlot && d.parentElement === partySlot) partySlot.classList.remove('is-open');
     if (giftsSlot && d.parentElement === giftsSlot) giftsSlot.classList.remove('is-open');
     if (tablesSlot && d.parentElement === tablesSlot) tablesSlot.classList.remove('is-open');
+    if (vendorsSlot && d.parentElement === vendorsSlot) vendorsSlot.classList.remove('is-open');
+    if (cateringSlot && d.parentElement === cateringSlot) cateringSlot.classList.remove('is-open');
+    if (entertainmentSlot && d.parentElement === entertainmentSlot) entertainmentSlot.classList.remove('is-open');
+    if (shotlistSlot && d.parentElement === shotlistSlot) shotlistSlot.classList.remove('is-open');
+    if (timelineSlot && d.parentElement === timelineSlot) timelineSlot.classList.remove('is-open');
+    if (ceremonySlot && d.parentElement === ceremonySlot) ceremonySlot.classList.remove('is-open');
+    if (honeymoonSlot && d.parentElement === honeymoonSlot) honeymoonSlot.classList.remove('is-open');
+    if (prayerSlot && d.parentElement === prayerSlot) prayerSlot.classList.remove('is-open');
+    if (counselingSlot && d.parentElement === counselingSlot) counselingSlot.classList.remove('is-open');
+    if (moodSlot && d.parentElement === moodSlot) moodSlot.classList.remove('is-open');
+    if (essentialsSlot && d.parentElement === essentialsSlot) essentialsSlot.classList.remove('is-open');
+    if (packetsSlot && d.parentElement === packetsSlot) packetsSlot.classList.remove('is-open');
+    if (emailsSlot && d.parentElement === emailsSlot) emailsSlot.classList.remove('is-open');
+    if (notesSlot && d.parentElement === notesSlot) notesSlot.classList.remove('is-open');
+    if (dataHubSlot && d.parentElement === dataHubSlot) dataHubSlot.classList.remove('is-open');
 
     if (slot) {
       if (d.parentElement !== slot) slot.appendChild(d);
@@ -270,6 +483,67 @@
       if (partySlot) partySlot.classList.remove('is-open');
       if (giftsSlot) giftsSlot.classList.remove('is-open');
       if (tablesSlot) tablesSlot.classList.remove('is-open');
+      if (vendorsSlot) vendorsSlot.classList.remove('is-open');
+      if (cateringSlot) cateringSlot.classList.remove('is-open');
+      if (entertainmentSlot) entertainmentSlot.classList.remove('is-open');
+      if (shotlistSlot) shotlistSlot.classList.remove('is-open');
+      if (timelineSlot) timelineSlot.classList.remove('is-open');
+      if (ceremonySlot) ceremonySlot.classList.remove('is-open');
+      if (honeymoonSlot) honeymoonSlot.classList.remove('is-open');
+      if (prayerSlot) prayerSlot.classList.remove('is-open');
+      if (counselingSlot) counselingSlot.classList.remove('is-open');
+      if (moodSlot) moodSlot.classList.remove('is-open');
+      if (essentialsSlot) essentialsSlot.classList.remove('is-open');
+      if (packetsSlot) packetsSlot.classList.remove('is-open');
+      if (emailsSlot) emailsSlot.classList.remove('is-open');
+      if (notesSlot) notesSlot.classList.remove('is-open');
+      if (dataHubSlot) dataHubSlot.classList.remove('is-open');
+    }
+    /* Keep venue custom drawer open state intact when shared drawer parks away. */
+    if (venueSlot && venueSlot.querySelector('.rd-ven-drawer')) {
+      venueSlot.classList.add('is-open');
+    }
+    if (cateringSlot && cateringSlot.querySelector('.rd-cat-drawer') && !(d.parentElement === cateringSlot && open)) {
+      cateringSlot.classList.add('is-open');
+    }
+    if (entertainmentSlot && entertainmentSlot.querySelector('.rd-ent-drawer') && !(d.parentElement === entertainmentSlot && open)) {
+      entertainmentSlot.classList.add('is-open');
+    }
+    if (shotlistSlot && shotlistSlot.querySelector('.rd-shot-drawer') && !(d.parentElement === shotlistSlot && open)) {
+      shotlistSlot.classList.add('is-open');
+    }
+    if (timelineSlot && timelineSlot.querySelector('.rd-wday-drawer') && !(d.parentElement === timelineSlot && open)) {
+      timelineSlot.classList.add('is-open');
+    }
+    if (ceremonySlot && ceremonySlot.querySelector('.rd-cer-drawer') && !(d.parentElement === ceremonySlot && open)) {
+      ceremonySlot.classList.add('is-open');
+    }
+    if (honeymoonSlot && honeymoonSlot.querySelector('.rd-hm-drawer') && !(d.parentElement === honeymoonSlot && open)) {
+      honeymoonSlot.classList.add('is-open');
+    }
+    if (prayerSlot && prayerSlot.querySelector('.rd-pr-drawer') && !(d.parentElement === prayerSlot && open)) {
+      prayerSlot.classList.add('is-open');
+    }
+    if (counselingSlot && counselingSlot.querySelector('.rd-cou-drawer') && !(d.parentElement === counselingSlot && open)) {
+      counselingSlot.classList.add('is-open');
+    }
+    if (moodSlot && moodSlot.querySelector('.rd-mood-drawer') && !(d.parentElement === moodSlot && open)) {
+      moodSlot.classList.add('is-open');
+    }
+    if (essentialsSlot && essentialsSlot.querySelector('.rd-ess-drawer') && !(d.parentElement === essentialsSlot && open)) {
+      essentialsSlot.classList.add('is-open');
+    }
+    if (packetsSlot && packetsSlot.querySelector('.rd-pkt-drawer') && !(d.parentElement === packetsSlot && open)) {
+      packetsSlot.classList.add('is-open');
+    }
+    if (emailsSlot && emailsSlot.querySelector('.rd-et-drawer') && !(d.parentElement === emailsSlot && open)) {
+      emailsSlot.classList.add('is-open');
+    }
+    if (notesSlot && notesSlot.querySelector('.rd-notes-drawer') && !(d.parentElement === notesSlot && open)) {
+      notesSlot.classList.add('is-open');
+    }
+    if (dataHubSlot && dataHubSlot.querySelector('.rd-dh-drawer') && !(d.parentElement === dataHubSlot && open)) {
+      dataHubSlot.classList.add('is-open');
     }
   }
 
@@ -617,6 +891,41 @@
     tables: 'Table Layout / Table',
     tasks: 'Timeline & Tasks / Task',
     appointments: 'Appointments / Appointment',
+    vendors: 'Venue & Vendors / Vendor',
+    venue: 'Venue Comparison / Venue',
+    catering: 'Catering & Menu / Menu item',
+    menu: 'Catering & Menu / Menu item',
+    entertainment: 'Entertainment / Song',
+    recSongs: 'Entertainment / Song',
+    receptionPlaylist: 'Entertainment / Song',
+    doNotPlay: 'Entertainment / Song',
+    mustPlay: 'Entertainment / Song',
+    shotlist: 'Shot Lists / Shot',
+    videoShots: 'Shot Lists / Shot',
+    videoShotlist: 'Shot Lists / Shot',
+    timeline: 'Wedding Day Timeline / Event',
+    wdayTimeline: 'Wedding Day Timeline / Event',
+    ceremonyOrder: 'Ceremony & Reception / Element',
+    ceremonyReceptionDetails: 'Ceremony & Reception / Element',
+    scriptures: 'Ceremony & Reception / Element',
+    ceremonyVows: 'Ceremony & Reception / Element',
+    speeches: 'Ceremony & Reception / Element',
+    honeyDetails: 'Honeymoon / Booking',
+    honeyTransport: 'Honeymoon / Booking',
+    honeyItinerary: 'Honeymoon / Itinerary',
+    packing: 'Honeymoon / Packing',
+    hmBudgetItems: 'Honeymoon / Budget line',
+    hmJournal: 'Honeymoon / Journal',
+    prayer: 'Prayer Journal / Entry',
+    counseling: 'Premarital Counseling / Session',
+    moodItems: 'Vision Board / Pin',
+    moodPhotos: 'Vision Board / Pin',
+    palettes: 'Vision Board / Palette',
+    essentials: 'Essentials Checklist / Item',
+    packets: 'Share Packets / Packet',
+    emailTemplates: 'Email Templates / Template',
+    notesDetails: 'Notes / Note',
+    'data-hub': 'Database Hub / Hub table',
     weekendTimeline: 'Weekend Logistics / Movement',
     hotelBlocks: 'Weekend Logistics / Hotel block',
     travelAccommodations: 'Weekend Logistics / Travel',
@@ -838,13 +1147,11 @@
   }
 
   /* ─────────────────────────────────────────────────────────────────────
-     §16: the drawer tabs by FIELD GROUP. Task editor emits Task / Schedule /
-     Links / Subtasks / Notes with data-drawer-group. History is synthetic.
-     Task tab stacks Task+Schedule+Notes (too many short tabs for 360px);
-     Subtasks / Links / History keep dedicated tabs — every field reachable.
+     §16 / Master 9a: Task drawer tabs Task · Depends on · People · History.
+     Task tab stacks Task+Schedule+Notes+Subtasks; other groups get a tab.
      ───────────────────────────────────────────────────────────────────── */
   var DECORATING = false;
-  var TASK_DRAWER_TABS = ['Task', 'Subtasks', 'Links', 'History'];
+  var TASK_DRAWER_TABS = ['Task', 'Depends on', 'People', 'History'];
   var TASK_DRAWER_TAB_MAX = TASK_DRAWER_TABS.length - 1;
   /* 14a: Appointment · Travel · Who · History */
   var APPT_DRAWER_TABS = ['Appointment', 'Travel', 'Who', 'History'];
@@ -865,6 +1172,8 @@
     if (g === 'schedule') return 'Schedule';
     if (g === 'notes') return 'Notes';
     if (g === 'links') return 'Links';
+    if (g === 'people') return 'People';
+    if (g === 'depends') return 'Depends on';
     if (g === 'history') return 'History';
     if (g === 'subtasks') return 'Subtasks';
     if (g === 'task') return 'Task';
@@ -892,14 +1201,14 @@
     section.classList.toggle('is-drawer-tab-hidden', !show);
   }
 
-  /* Task tab: Task + Schedule + Notes. Dedicated tabs for the rest. */
+  /* Task tab: Task + Schedule + Notes + Subtasks. Dedicated tabs for Depends on / People / History. */
   function showTaskDrawerSections(sections, tabIndex) {
     sections.forEach(function (s) {
       var g = taskDrawerSectionGroup(s);
       var show = false;
-      if (tabIndex === 0) show = (g === 'task' || g === 'schedule' || g === 'notes');
-      else if (tabIndex === 1) show = (g === 'subtasks');
-      else if (tabIndex === 2) show = (g === 'links');
+      if (tabIndex === 0) show = (g === 'task' || g === 'schedule' || g === 'notes' || g === 'subtasks');
+      else if (tabIndex === 1) show = (g === 'depends');
+      else if (tabIndex === 2) show = (g === 'people');
       else if (tabIndex === 3) show = (g === 'history');
       setDrawerSectionVisible(s, show);
     });
@@ -1307,7 +1616,7 @@
                Links/History titles live in the tab strip. Subtasks keep the
                count eyebrow. */
             var label = taskDrawerTabLabel(section);
-            var keepH4 = (label === 'Task' || label === 'Schedule' || label === 'Notes' || label === 'Subtasks');
+            var keepH4 = (label === 'Task' || label === 'Schedule' || label === 'Notes' || label === 'Subtasks' || label === 'Depends on' || label === 'People');
             h4.style.display = keepH4 ? '' : 'none';
           });
           writeDrawerTab(d, activeTab);
@@ -1528,7 +1837,7 @@
 
   /* Open a record in the drawer. scroll:false because a fixed 360px panel
      must not drag the work surface around underneath it. */
-  function openDrawer(key, index) {
+  function openDrawer(key, index, seed) {
     if (typeof covInlineLoad !== 'function') return;
     var d = ensureDrawer();
     if (!d) return;
@@ -1536,7 +1845,16 @@
     syncDrawerSlot();
     /* decorate() fills the eyebrow from the loaded record — writing it here
        would overwrite the row that holds the close button. */
-    covInlineLoad(key, index, DRAWER_BODY, null, { scroll: false });
+    covInlineLoad(key, index, DRAWER_BODY, seed || null, { scroll: false });
+  }
+
+  /* Prefer the 360px record drawer for +Add when redesign chrome is live.
+     Falls back to false so callers can open the full editor / inline mount. */
+  function openNewInDrawer(key, seed) {
+    if (!document.body.classList.contains('rd-scope')) return false;
+    if (!document.getElementById(DRAWER_BODY)) return false;
+    openDrawer(key, null, seed || null);
+    return true;
   }
 
   function closeDrawer(force) {
@@ -1610,7 +1928,7 @@
         b.textContent = label;
         b.style.cssText =
           'text-align:left;width:100%;cursor:pointer;font:500 .92rem/1.4 var(--font-ui,system-ui);' +
-          'padding:.55rem .75rem;border:1px solid rgba(42,42,42,.12);border-radius:8px;background:#fff;color:#2A2A2A';
+          'padding:.55rem .75rem;border:1px solid rgba(42,42,42,.12);border-radius:8px;background:var(--surface-content);color:var(--text-primary)';
         b.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
@@ -1729,6 +2047,7 @@
   window.rdOpenDrawer     = openDrawer;
   window.rdCloseDrawer    = closeDrawer;
   window.rdOpenFullEditor = openFullEditor;
+  window.rdOpenNewInDrawer = openNewInDrawer;
   window.covenantShell = {
     rebuild: build,
     sync: sync,
@@ -1750,7 +2069,7 @@
         var _cwpOpenEditor = window.cwpOpenEditor;
         window.cwpOpenEditor = function (entity, id) {
           var logKeys = { weekendTimeline:1, hotelBlocks:1, travelAccommodations:1, transportation:1, vipCare:1 };
-          if ((entity === 'tasks' || entity === 'appointments' || entity === 'guests' || logKeys[entity]) && document.getElementById(DRAWER_BODY)) {
+          if ((entity === 'tasks' || entity === 'appointments' || entity === 'guests' || entity === 'vendors' || logKeys[entity]) && document.getElementById(DRAWER_BODY)) {
             var rows = (typeof recordEditorRows === 'function')
               ? recordEditorRows(entity)
               : ((window.data && window.data[entity]) || []);
@@ -1758,7 +2077,14 @@
             for (var n = 0; n < rows.length; n++) {
               if (rows[n] && String(rows[n]._id) === String(id)) { i = n; break; }
             }
-            if (i > -1) { openDrawer(entity, i); return; }
+            if (i > -1) {
+              if (entity === 'vendors' && typeof rdVndOpenDrawer === 'function') {
+                rdVndOpenDrawer(String(id));
+                return;
+              }
+              openDrawer(entity, i);
+              return;
+            }
           }
           return _cwpOpenEditor(entity, id);
         };
