@@ -6881,6 +6881,11 @@ let _backupEduModalScheduled = false;
 async function maybeShowBackupEducationModal(){
   if (!shouldShowBackupEducation()) return;
   if (_backupEduModalScheduled) return;
+  /* Never stack over the setup wizard / coach (pointer interception). */
+  if (typeof firstRunPrimaryOverlayOpen === 'function' && firstRunPrimaryOverlayOpen() &&
+      !(typeof FIRST_RUN_SEQ !== 'undefined' && FIRST_RUN_SEQ.phase === 'backup')) {
+    return;
+  }
   _backupEduModalScheduled = true;
   if (typeof covConfirm !== 'function') return;
   const download = await covConfirm(
@@ -11925,6 +11930,7 @@ function closeSetupWizard(markSeen){
   const m = document.getElementById('wizard-modal');
   if (m) m.classList.remove('open');
   if (markSeen){ ensureOnboardData().wizardSeen = true; save(); }
+  if (typeof firstRunNotifyWizardClosed === 'function') firstRunNotifyWizardClosed();
 }
 const WIZARD_STEPS = 6;
 const WIZARD_PROGRESS_PCTS = [12, 28, 45, 62, 78, 100];
@@ -12086,13 +12092,114 @@ async function wizardSaveFinish(){
   save();
   showPanel('instructions');
 }
-/* Auto-open the wizard once, on a brand-new (empty) planner. */
+/* Auto-open the wizard once, on a brand-new (empty) planner.
+   First-run boot uses runFirstRunSequence() so this stays a no-op while
+   the coordinator owns sequencing; still safe for explicit legacy callers. */
 function maybeAutoOpenWizard(){
+  if (typeof FIRST_RUN_SEQ !== 'undefined' && (FIRST_RUN_SEQ.started || FIRST_RUN_SEQ.phase !== 'idle')) return;
   const ob = ensureOnboardData();
   if (ob.wizardSeen) return;
   const blank = !data.setup.bride && !data.setup.groom && !data.setup.date;
   if (blank) setTimeout(openSetupWizard, 400);
   else ob.wizardSeen = true; // existing data — don't nag
+}
+
+/* ════════════════════════════════════════════════
+   FIRST-RUN OVERLAY COORDINATOR
+   Prevents stacked first-run overlays (backup protect, 3-minute
+   setup wizard, guided coach) from fighting for focus / pointer.
+   One primary modal at a time, in priority order:
+     1. Protect your planning (backup education)
+     2. 3-Minute Setup Wizard (blank planners)
+     3. Guided setup coach framing — or ambient chip only
+════════════════════════════════════════════════ */
+var FIRST_RUN_SEQ = { started:false, phase:'idle', wizardWaiters:[] };
+
+function firstRunPrimaryOverlayOpen(){
+  try {
+    var wiz = document.getElementById('wizard-modal');
+    if (wiz && wiz.classList.contains('open')) return true;
+    if (document.querySelector('.cov-modal-overlay--open')) return true;
+    if (document.body && document.body.classList.contains('cov-modal-open')) return true;
+    if (document.getElementById('coach-framing')) return true;
+    if (typeof COACH !== 'undefined' && COACH.open) return true;
+    if (document.querySelector('.record-editor-overlay.open')) return true;
+  } catch (e) { /* ignore */ }
+  return false;
+}
+
+function firstRunNotifyWizardClosed(){
+  var waiters = FIRST_RUN_SEQ.wizardWaiters.splice(0, FIRST_RUN_SEQ.wizardWaiters.length);
+  waiters.forEach(function(fn){ try { fn(); } catch (e) {} });
+}
+
+function firstRunNeedsWizard(){
+  var ob = ensureOnboardData();
+  if (ob.wizardSeen) return false;
+  return !(data.setup && (data.setup.bride || data.setup.groom || data.setup.date));
+}
+
+function firstRunNeedsCoachFraming(){
+  /* Coach framing duplicates the setup wizard. After the wizard has been
+     offered (seen/skipped/finished), only mount the ambient chip. */
+  var ob = coachOb();
+  if (ob.done || ob.skipped) return false;
+  if (ensureOnboardData().wizardSeen) return false;
+  if (firstRunNeedsWizard()) return false;
+  var hasData = (data.setup && (data.setup.bride || data.setup.groom)) ||
+    (Array.isArray(data.guests) && data.guests.length) ||
+    (Array.isArray(data.budget) && data.budget.length);
+  return !hasData;
+}
+
+async function runFirstRunSequence(){
+  if (FIRST_RUN_SEQ.started) return;
+  FIRST_RUN_SEQ.started = true;
+
+  FIRST_RUN_SEQ.phase = 'backup';
+  try {
+    if (typeof maybeShowBackupEducationModal === 'function') await maybeShowBackupEducationModal();
+  } catch (e) { console.warn('first-run backup step failed', e); }
+
+  FIRST_RUN_SEQ.phase = 'wizard';
+  if (firstRunNeedsWizard()) {
+    await new Promise(function(resolve){
+      var settled = false;
+      function done(){
+        if (settled) return;
+        settled = true;
+        FIRST_RUN_SEQ.wizardWaiters = FIRST_RUN_SEQ.wizardWaiters.filter(function(fn){ return fn !== done; });
+        resolve();
+      }
+      FIRST_RUN_SEQ.wizardWaiters.push(done);
+      try { openSetupWizard(); } catch (e) { done(); return; }
+      /* If the wizard DOM is missing / failed to open, do not hang boot. */
+      setTimeout(function(){
+        var wiz = document.getElementById('wizard-modal');
+        if (!wiz || !wiz.classList.contains('open')) done();
+      }, 900);
+    });
+  } else {
+    var ob = ensureOnboardData();
+    if (!ob.wizardSeen) {
+      ob.wizardSeen = true;
+      try { save(); } catch (e) {}
+    }
+  }
+
+  FIRST_RUN_SEQ.phase = 'coach';
+  try {
+    if (typeof maybeStartCoach === 'function') maybeStartCoach();
+  } catch (e) { console.warn('first-run coach step failed', e); }
+  FIRST_RUN_SEQ.phase = 'done';
+}
+
+function scheduleFirstRunSequence(){
+  setTimeout(function(){ runFirstRunSequence(); }, 450);
+}
+if (typeof window !== 'undefined') {
+  window.scheduleFirstRunSequence = scheduleFirstRunSequence;
+  window.firstRunPrimaryOverlayOpen = firstRunPrimaryOverlayOpen;
 }
 
 /* ════════════════════════════════════════════════
@@ -43765,9 +43872,13 @@ window.addEventListener('DOMContentLoaded', () => {
       toggle.addEventListener('click', () => { tip.remove(); data._onboarded = true; save(); }, { once: true });
     }
   }
-  maybeAutoOpenWizard();
-  setTimeout(function(){ if (typeof maybeStartCoach === 'function') maybeStartCoach(); }, 500);
-  setTimeout(function(){ if (typeof maybeShowBackupEducationModal === 'function') maybeShowBackupEducationModal(); }, 650);
+  /* Single ordered first-run sequence — never stack backup / wizard / coach. */
+  if (typeof scheduleFirstRunSequence === 'function') scheduleFirstRunSequence();
+  else {
+    maybeAutoOpenWizard();
+    setTimeout(function(){ if (typeof maybeStartCoach === 'function') maybeStartCoach(); }, 500);
+    setTimeout(function(){ if (typeof maybeShowBackupEducationModal === 'function') maybeShowBackupEducationModal(); }, 650);
+  }
   // Redraw charts and keep the fixed planner chrome aligned after responsive wrapping.
   window.addEventListener('resize', () => {
     if (typeof applyResponsiveLayout === 'function') applyResponsiveLayout();
@@ -44011,11 +44122,23 @@ function coachAmbientShow(){
   if (i<0) { coachStartFraming(); return; }
   coachGoto(i);
 }
-/* ── Auto-launch on first run ── */
+/* ── Auto-launch on first run (coordinator-aware) ── */
 function maybeStartCoach(){
   var ob=coachOb();
-  if (document.querySelector('.cov-modal.open, .modal.open, .record-editor-overlay.open')) { coachMountAmbient(); return; }
+  /* Detect real overlays (wizard uses #wizard-modal.open; covConfirm uses
+     .cov-modal-overlay--open — the old .cov-modal.open / .modal.open checks
+     never matched, so coach stacked on top of both). */
+  if (typeof firstRunPrimaryOverlayOpen === 'function' ? firstRunPrimaryOverlayOpen() :
+      document.querySelector('#wizard-modal.open, .cov-modal-overlay--open, .record-editor-overlay.open, #coach-framing')) {
+    coachMountAmbient();
+    return;
+  }
   if (ob.done || ob.skipped) { coachMountAmbient(); return; }
+  if (typeof firstRunNeedsCoachFraming === 'function') {
+    if (firstRunNeedsCoachFraming()) coachStartFraming();
+    else coachMountAmbient();
+    return;
+  }
   var hasData = (data.setup&&(data.setup.bride||data.setup.groom)) || (Array.isArray(data.guests)&&data.guests.length) || (Array.isArray(data.budget)&&data.budget.length);
   if (!hasData) coachStartFraming();
   else coachMountAmbient();

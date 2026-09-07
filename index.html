@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Covenant Wedding Planner — Developer Editable Version</title>
+<title>The Covenant Wedding Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600&family=Crimson+Text:wght@400;600&family=Work+Sans:wght@400;500;600&family=Prata&family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -69,6 +69,22 @@
   try {
     if (sessionStorage.getItem('covenant_backup_banner_dismissed') === '1') {
       document.documentElement.classList.add('backup-banner-dismissed-early');
+    }
+  } catch (e) { /* ignore */ }
+})();
+</script>
+<script>
+/* Shippable first-run: keep developer-mode in source (consistency check), but
+   only leave it enabled when explicitly opted in via ?dev=1 or localStorage. */
+(function () {
+  try {
+    var params = new URLSearchParams(location.search || '');
+    var wantDev = params.get('dev') === '1' || localStorage.getItem('covenant_developer_mode') === '1';
+    if (wantDev) {
+      document.body.classList.add('developer-mode');
+      document.title = 'The Covenant Wedding Planner — Developer Editable Version';
+    } else {
+      document.body.classList.remove('developer-mode');
     }
   } catch (e) { /* ignore */ }
 })();
@@ -1799,7 +1815,7 @@
 <!-- Defines rdOpenPicker() / rdAnchorToButton() used by planner filter pops and
      every redesign toolbar. Must load before planner.js and page modules. -->
 <script src="js/rd-table-controls.js?v=print-centre-26"></script>
-<script src="js/planner.js?v=seed-persist-p0d"></script>
+<script src="js/planner.js?v=firstrun-seq01"></script>
 <script src="js/logistics-views-redesign.js?v=logistics-20"></script>
 <script src="js/rd-depth.js?v=redesign-depth3"></script>
 <script src="js/rd-states.js?v=redesign-furniture3"></script>
