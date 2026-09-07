@@ -124,6 +124,29 @@ location.reload();
 
 Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests.
 
+## Verify guests landed in Postgres (Windows)
+
+After status shows **Synced · … · wedding linked**, list rows in the Docker DB:
+
+```bat
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, name, household, rsvp, updated_at FROM guests ORDER BY updated_at DESC LIMIT 50;"
+```
+
+Count + wedding ids:
+
+```bat
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS guests FROM guests GROUP BY wedding_id;"
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, name, bride, groom FROM weddings;"
+```
+
+Optional API check (PowerShell) — token is in browser `localStorage.covenant_cloud_token`:
+
+```powershell
+$token = "PASTE_TOKEN_HERE"
+$wid = "PASTE_WEDDING_UUID_HERE"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/guests"
+```
+
 ## Cloud host next steps (not in this pass)
 
 1. Provision managed Postgres (Neon, RDS, Cloud SQL, …) and set `DATABASE_URL`.
