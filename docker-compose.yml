@@ -9,7 +9,8 @@ services:
       POSTGRES_PASSWORD: covenant
       POSTGRES_DB: covenant
     ports:
-      - "5432:5432"
+      # 5433 on the host avoids clashing with a local Windows/macOS Postgres on 5432
+      - "5433:5432"
     volumes:
       - covenant_pg_data:/var/lib/postgresql/data
       - ./server/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro

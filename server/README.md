@@ -9,14 +9,19 @@ Offline-first planner stays the default. This Node + Postgres API is **opt-in** 
 
 ## Quick start (Docker Postgres)
 
+Compose maps Postgres to host port **5433** (not 5432) so it does not collide with a local Windows/macOS Postgres install. Auth error `28P01` for user `covenant` usually means the API is hitting the wrong Postgres on 5432.
+
 ```bash
 # from repo root
 docker compose up -d
-cp server/.env.example server/.env
+cp server/.env.example server/.env   # Windows CMD: copy /Y server\.env.example server\.env
 npm install --prefix server
 npm run server
 # → http://127.0.0.1:8787/health
 ```
+
+`DATABASE_URL` must use port **5433** when using Compose:
+`postgres://covenant:covenant@127.0.0.1:5433/covenant`
 
 ## Quick start (local Postgres, no Docker)
 
