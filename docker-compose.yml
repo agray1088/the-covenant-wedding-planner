@@ -1,10 +1,9 @@
-# Optional local Postgres + sync API for Covenant cloud sync (beta).
+# Optional local Postgres + sync API + browser pgAdmin for Covenant cloud sync (beta).
 # Offline planner does not need this — only the sync API does.
 #
 # LOCAL DEV ONLY — not for production.
-# Postgres uses trust (or password "covenant") so Windows host tools
-# (pgAdmin, host Node) can connect via the published port 127.0.0.1:5433.
-# Prefer the `api` service on :8787 for the sync API; it uses the internal Docker network.
+# Postgres host auth is forced to trust via mounted server/pg_hba.conf (hba_file).
+# Prefer browser pgAdmin on :5050 (same Docker network) over desktop pgAdmin → :5433.
 services:
   postgres:
     image: postgres:16-alpine
@@ -16,12 +15,15 @@ services:
       # Local wedding-planner Docker Desktop only — never ship trust to production.
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_INITDB_ARGS: "--auth-host=trust"
+    # Override pg_hba even on an existing volume (env trust only applies on first init).
+    command: ["postgres", "-c", "hba_file=/etc/postgresql/pg_hba.conf"]
     ports:
-      # Direct DB access from host tools (pgAdmin, psql, host Node on :5433)
+      # Direct DB access from host tools (desktop pgAdmin, psql, host Node on :5433)
       - "5433:5432"
     volumes:
       - covenant_pg_data:/var/lib/postgresql/data
       - ./server/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./server/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U covenant -d covenant"]
       interval: 5s
@@ -44,6 +46,33 @@ services:
     ports:
       - "8787:8787"
     command: sh -c "npm install && node index.js"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Browser pgAdmin — preferred on Windows (no host:5433 auth). Same Docker network as postgres.
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: covenant-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@covenant.local
+      PGADMIN_DEFAULT_PASSWORD: covenant
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    ports:
+      - "5050:80"
+    volumes:
+      - ./server/pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./server/pgadmin/pgpass:/tmp/pgpass:ro
+    # Copy pgpass with mode 0600 (required by libpq; bind mounts from Windows often lack it).
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        cp /tmp/pgpass /var/lib/pgadmin/pgpass
+        chmod 600 /var/lib/pgadmin/pgpass
+        chown pgadmin:root /var/lib/pgadmin/pgpass 2>/dev/null || true
+        exec /entrypoint.sh
     depends_on:
       postgres:
         condition: service_healthy
