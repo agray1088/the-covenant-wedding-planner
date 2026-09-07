@@ -19,7 +19,13 @@ if (fs.existsSync(envPath)) {
 const { Pool } = pg;
 
 const DEFAULT_URL = 'postgres://covenant:covenant@127.0.0.1:5433/covenant';
-export const databaseUrl = process.env.DATABASE_URL || DEFAULT_URL;
+// Trim — Windows CRLF .env files often leave `\r` on the password and cause 28P01.
+export const databaseUrl = String(process.env.DATABASE_URL || DEFAULT_URL).trim();
+
+if (process.env.PORT) process.env.PORT = String(process.env.PORT).trim();
+if (process.env.CORS_ORIGIN) process.env.CORS_ORIGIN = String(process.env.CORS_ORIGIN).trim();
+if (process.env.BOOTSTRAP_EMAIL) process.env.BOOTSTRAP_EMAIL = String(process.env.BOOTSTRAP_EMAIL).trim();
+if (process.env.BOOTSTRAP_PASSWORD) process.env.BOOTSTRAP_PASSWORD = String(process.env.BOOTSTRAP_PASSWORD).trim();
 
 export function describeDatabaseUrl(url = databaseUrl) {
   try {
