@@ -20,6 +20,8 @@ npm run server
 
 ## Quick start (local Postgres, no Docker)
 
+### macOS / Linux
+
 ```bash
 # create role + db (once)
 sudo -u postgres psql -c "CREATE USER covenant WITH PASSWORD 'covenant' SUPERUSER;"
@@ -29,6 +31,39 @@ cp server/.env.example server/.env
 npm install --prefix server
 npm run server
 ```
+
+### Windows (CMD)
+
+`docker` / `cp` / `sudo` are not available in CMD by default. Either install [Docker Desktop](https://www.docker.com/products/docker-desktop/), use a hosted Postgres URL, or create the local role once:
+
+```bat
+REM Open "SQL Shell (psql)" or:
+psql -U postgres
+```
+
+In `psql`:
+
+```sql
+CREATE USER covenant WITH PASSWORD 'covenant' SUPERUSER;
+CREATE DATABASE covenant OWNER covenant;
+\q
+```
+
+Then in CMD from the repo root:
+
+```bat
+copy server\.env.example server\.env
+npm run server:install
+npm run server
+```
+
+If you prefer your existing Windows `postgres` superuser instead of creating `covenant`, edit `server\.env`:
+
+```env
+DATABASE_URL=postgres://postgres:YOUR_PASSWORD@127.0.0.1:5432/postgres
+```
+
+(or create a `covenant` database first and point at it). Auth error `28P01` means the username/password in `DATABASE_URL` does not match Postgres — fix the URL, don’t change the app code.
 
 Bootstrap demo user (from `.env.example`):
 
