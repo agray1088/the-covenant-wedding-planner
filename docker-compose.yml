@@ -55,7 +55,7 @@ services:
     image: dpage/pgadmin4:8
     container_name: covenant-pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@covenant.local
+      PGADMIN_DEFAULT_EMAIL: admin@covenant.dev
       PGADMIN_DEFAULT_PASSWORD: covenant
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"

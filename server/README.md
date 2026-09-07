@@ -36,7 +36,7 @@ Compose starts **pgAdmin** on the same Docker network as Postgres. Open:
 
 | Field | Value |
 |-------|--------|
-| Email | `admin@covenant.local` |
+| Email | `admin@covenant.dev` |
 | Password | `covenant` |
 
 A server named **Covenant Postgres** is preconfigured:
