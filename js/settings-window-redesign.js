@@ -193,6 +193,7 @@
     { group: 'This file', items: [
       { id: 'backup', label: 'Backup & restore' },
       { id: 'import', label: 'Import' },
+      { id: 'cloud', label: 'Cloud sync (beta)' },
       { id: 'trash', label: 'Trash' },
       { id: 'about', label: 'About' }
     ]},
@@ -208,6 +209,66 @@
       + '<div class="rd-set__pane-head"><h3>' + esc(title) + '</h3>'
       + (lead ? '<p>' + esc(lead) + '</p>' : '') + '</div>'
       + '<div class="rd-set__pane-body">' + body + '</div></div>';
+  }
+
+  function cloudStatus() {
+    try {
+      if (window.CovenantCloudSync && typeof window.CovenantCloudSync.getStatus === 'function') {
+        return window.CovenantCloudSync.getStatus();
+      }
+    } catch (e) { /* ignore */ }
+    return { state: 'disabled', label: 'Cloud sync (beta)', detail: 'Not configured — offline-only (GA default).', enabled: false };
+  }
+
+  function cloudSyncPaneBody() {
+    var st = cloudStatus();
+    var stateLabel = ({
+      disabled: 'Offline only',
+      offline: 'Offline (no network)',
+      signed_out: 'Signed out',
+      signed_in: 'Signed in',
+      syncing: 'Syncing…',
+      synced: 'Synced',
+      error: 'Error'
+    })[st.state] || st.state;
+    var user = st.user && st.user.email ? st.user.email : '';
+    var html = '<div class="rd-set__note" id="rd-cloud-status" data-cloud-state="' + esc(st.state) + '">'
+      + '<b>' + esc(st.label) + '</b> — status: <b>' + esc(stateLabel) + '</b>'
+      + (user ? ' · ' + esc(user) : '')
+      + (st.weddingId ? ' · wedding linked' : '')
+      + (st.lastSync ? ' · last sync ' + esc(relTime(st.lastSync) || st.lastSync) : '')
+      + (st.detail ? '<br>' + esc(st.detail) : '')
+      + '</div>';
+
+    if (!st.enabled && st.state === 'disabled') {
+      html += '<div class="rd-set__note">Cloud stays off until an API base is configured, so offline GA is unbroken. '
+        + 'For local dev: set <code>localStorage.covenant_cloud_api</code> to your sync server '
+        + '(e.g. <code>http://localhost:8787</code>) and <code>covenant_cloud_enabled=1</code>, then reload. '
+        + 'See <code>docs/OFFLINE_CLOUD_SYNC.md</code>.</div>';
+      html += cardRow('API base URL', 'Stored in this browser only',
+        '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:8787" value="'
+        + esc((function () { try { return localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { return ''; } })())
+        + '">');
+      html += cardRow('Enable cloud sync', 'Still offline-first; only guests sync in v1',
+        btn('Save & enable', 'rdCloudEnable'));
+      return html;
+    }
+
+    if (st.state === 'signed_out' || (st.enabled && !user && st.state !== 'syncing' && st.state !== 'synced' && st.state !== 'error' && st.state !== 'signed_in')) {
+      html += cardRow('Email', '', '<input type="email" class="rd-set__input" id="rd-cloud-email" autocomplete="username" placeholder="you@example.com">');
+      html += cardRow('Password', '8+ characters', '<input type="password" class="rd-set__input" id="rd-cloud-password" autocomplete="current-password" placeholder="••••••••">');
+      html += cardRow('Sign in', 'Creates a session on the sync API', btn('Sign in', 'rdCloudSignIn'));
+      html += cardRow('Create account', 'Email/password (magic-link later)', btn('Register', 'rdCloudRegister'));
+      html += cardRow('Disable cloud on this device', 'Keeps local data; stops network sync', btn('Turn off', 'rdCloudDisable'));
+      return html;
+    }
+
+    html += cardRow('Sync now', 'Pull then push guests (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
+    html += cardRow('Upload this wedding', 'Create/link cloud wedding and push all local guests', btn('Upload this wedding', 'rdCloudUpload'));
+    html += cardRow('Sign out', 'Local planner keeps working offline', btn('Sign out', 'rdCloudSignOut'));
+    html += cardRow('Disable cloud on this device', 'Flag off; offline GA path unchanged', btn('Turn off', 'rdCloudDisable'));
+    html += '<div class="rd-set__note">Honest scope: guest list only in this beta. Budget, vendors, and packets stay on-device until later passes.</div>';
+    return html;
   }
 
   function navHtml(active) {
@@ -277,6 +338,11 @@
         'Restore replaces this browser\'s copy with the file you choose.',
         cardRow('Restore from file', 'Same path as backup restore', btn('Choose file', 'rdSetRestore')));
     }
+    if (id === 'cloud') {
+      return paneShell('Cloud sync (beta)',
+        'Optional. Offline planning always works. Guests are the first vertical — not full multi-user realtime yet.',
+        cloudSyncPaneBody());
+    }
     if (id === 'trash') {
       return paneShell('Trash',
         'The planner does not keep a separate trash bin. Deleted rows leave Planner History.',
@@ -286,7 +352,7 @@
     if (id === 'about') {
       return paneShell('About',
         'The Covenant Wedding Planner — offline-first, one file per wedding.',
-        '<div class="rd-set__note">No account, no cloud, no tracking. The trade-off is that backups are your job. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
+        '<div class="rd-set__note">Offline by default: no account required, no tracking. Optional <b>Cloud sync (beta)</b> can mirror guests to a server when you enable it — core planning never depends on being online. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
     }
     if (id === 'getstarted') {
       return paneShell('Get started', 'How the planner works and your first steps.',
@@ -355,6 +421,21 @@
     });
   }
 
+  function refreshCloudPane(ov) {
+    if ((window._rdSetPane || 'overview') !== 'cloud') return;
+    var main = ov && ov.querySelector('#rd-set-main');
+    if (!main) return;
+    main.innerHTML = paneHtml('cloud');
+    wireActions(ov);
+  }
+
+  function cloudMsg(ok, text) {
+    if (typeof showToast === 'function') showToast(text);
+    else if (!ok) console.warn('[cloud]', text);
+    var ov = document.getElementById(OVERLAY_ID);
+    refreshCloudPane(ov);
+  }
+
   function wireActions(ov) {
     var closeBtn = ov.querySelector('.rd-set__close');
     if (closeBtn && !closeBtn.dataset.bound) {
@@ -408,6 +489,58 @@
 
   function run(name) {
     try {
+      if (name === 'rdCloudEnable') {
+        var apiEl = document.getElementById('rd-cloud-api');
+        var api = apiEl ? String(apiEl.value || '').trim().replace(/\/$/, '') : '';
+        if (!api) { cloudMsg(false, 'Enter an API base URL first.'); return; }
+        try {
+          localStorage.setItem('covenant_cloud_api', api);
+          localStorage.setItem('covenant_cloud_enabled', '1');
+        } catch (e) { cloudMsg(false, 'Could not save cloud settings.'); return; }
+        cloudMsg(true, 'Cloud sync enabled — sign in to continue.');
+        return;
+      }
+      if (name === 'rdCloudDisable') {
+        try {
+          localStorage.setItem('covenant_cloud_enabled', '0');
+        } catch (e) { /* ignore */ }
+        cloudMsg(true, 'Cloud sync turned off on this device.');
+        return;
+      }
+      if (name === 'rdCloudSignIn' || name === 'rdCloudRegister') {
+        var emailEl = document.getElementById('rd-cloud-email');
+        var passEl = document.getElementById('rd-cloud-password');
+        var email = emailEl ? String(emailEl.value || '').trim() : '';
+        var pass = passEl ? String(passEl.value || '') : '';
+        if (!email || !pass) { cloudMsg(false, 'Email and password required.'); return; }
+        var CS = window.CovenantCloudSync;
+        if (!CS) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        var op = name === 'rdCloudRegister'
+          ? CS.register(email, pass)
+          : CS.signIn(email, pass);
+        op.then(function () { cloudMsg(true, name === 'rdCloudRegister' ? 'Account created.' : 'Signed in.'); })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Auth failed'); });
+        return;
+      }
+      if (name === 'rdCloudSignOut') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        window.CovenantCloudSync.signOut().then(function () { cloudMsg(true, 'Signed out.'); });
+        return;
+      }
+      if (name === 'rdCloudSyncNow') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        window.CovenantCloudSync.syncNow()
+          .then(function () { cloudMsg(true, 'Guests synced (beta).'); })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Sync failed'); });
+        return;
+      }
+      if (name === 'rdCloudUpload') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        window.CovenantCloudSync.uploadWedding()
+          .then(function () { cloudMsg(true, 'Wedding uploaded — guests pushed.'); })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Upload failed'); });
+        return;
+      }
       if (name === 'rdSetRestore') {
         var inp = document.getElementById('importInput');
         if (inp) inp.click();

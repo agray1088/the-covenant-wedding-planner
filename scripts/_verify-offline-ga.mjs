@@ -49,6 +49,14 @@ ok('SHIP lists Postgres later', /Postgres/.test(ship));
 ok('cache-bust offline-ga01 planner', /planner\.js\?v=offline-ga01/.test(index));
 ok('vendor-portal.html cache-bust', /vendor-portal\.js\?v=offline-ga01/.test(vpHtml));
 
+/* Cloud sync must stay feature-flagged off by default (offline GA unbroken). */
+const cloud = read('js/cloud-sync.js');
+ok('cloud-sync bridge present', /CovenantCloudSync/.test(cloud));
+ok('cloud disabled without api+flag', /enabled:\s*!!\(enabledFlag && api\)/.test(cloud));
+ok('cloud script included', /cloud-sync\.js\?v=/.test(index));
+ok('settings cloud beta pane', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
+ok('architecture doc present', /offline-first/i.test(read('docs/OFFLINE_CLOUD_SYNC.md')));
+
 /* Demo seeds must stay gated (do not re-enable). */
 ok('packets master seed gated', /Demo fiction is opt-in via Load sample data only/.test(pkt));
 

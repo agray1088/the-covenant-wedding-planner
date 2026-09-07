@@ -18,9 +18,12 @@ Honest positioning for **one device + local backups**. Multi-device Postgres + a
 
 ## Requires Postgres + auth later (not this GA)
 
+Offline GA defaults stay unchanged. Optional cloud scaffolding lives on a separate track — see `docs/OFFLINE_CLOUD_SYNC.md` (**Cloud sync (beta)**, guests vertical). Feature-flagged off until an API base is configured.
+
+Still later / not claimed as done:
+
 - Real multi-user Vendor Portal (hosted links, opens tracking, remote uploads)
-- Account login / couple + planner roles across devices
-- Live sync / conflict resolution between devices
+- Full multi-device sync beyond guests + true live multi-user editing
 - Hosted `covenant.link`-style packet URLs with passcodes
 - True “message vendor / request access” delivery
 - Server-side email / RSVP collection

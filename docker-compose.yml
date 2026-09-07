@@ -1,0 +1,23 @@
+# Optional local Postgres for Covenant cloud sync (beta).
+# Offline planner does not need this — only the sync API does.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: covenant-postgres
+    environment:
+      POSTGRES_USER: covenant
+      POSTGRES_PASSWORD: covenant
+      POSTGRES_DB: covenant
+    ports:
+      - "5432:5432"
+    volumes:
+      - covenant_pg_data:/var/lib/postgresql/data
+      - ./server/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U covenant -d covenant"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  covenant_pg_data:

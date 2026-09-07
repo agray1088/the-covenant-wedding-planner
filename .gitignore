@@ -12,3 +12,7 @@ pages/README*
 
 # Node tooling installed by the Cloud Agent dev environment (see .cursor/environment.json)
 node_modules/
+
+# Local sync API secrets (keep .env.example)
+server/.env
+

@@ -27961,6 +27961,21 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
   display: inline-flex; align-items: center; justify-content: center;
   box-sizing: border-box;
 }
+.rd-set__input {
+  width: min(260px, 100%);
+  height: var(--component-button-height, 28px);
+  padding: 0 10px;
+  border: 1px solid var(--border-subtle, #ddd5c6);
+  background: var(--surface-content, #fff);
+  color: #3f3b34;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  box-sizing: border-box;
+}
+.rd-set__input:focus {
+  outline: 2px solid rgba(45, 74, 62, 0.35);
+  outline-offset: 1px;
+}
 .rd-set__btn--danger { background: var(--status-red-bg); color: #9c3b34; border: 1px solid var(--status-red-border); }
 .rd-set__link {
   background: transparent; border: 0; color: #3f3b34; font-size: 11.2px;
