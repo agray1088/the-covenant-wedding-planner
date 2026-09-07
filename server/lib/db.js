@@ -7,18 +7,24 @@ import dotenv from 'dotenv';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const envPath = path.join(__dirname, '../.env');
 const examplePath = path.join(__dirname, '../.env.example');
+const inDocker = process.env.COVENANT_SYNC_DOCKER === '1';
 
-// Prefer server/.env over any machine-wide DATABASE_URL (common on Windows).
-if (fs.existsSync(examplePath)) {
-  dotenv.config({ path: examplePath });
-}
-if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath, override: true });
+if (!inDocker) {
+  // Prefer server/.env over any machine-wide DATABASE_URL (common on Windows).
+  if (fs.existsSync(examplePath)) {
+    dotenv.config({ path: examplePath });
+  }
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath, override: true });
+  }
 }
 
 const { Pool } = pg;
 
-const DEFAULT_URL = 'postgres://covenant:covenant@127.0.0.1:5433/covenant';
+const DEFAULT_URL = inDocker
+  ? 'postgres://covenant:covenant@postgres:5432/covenant'
+  : 'postgres://covenant:covenant@127.0.0.1:5433/covenant';
+
 // Trim — Windows CRLF .env files often leave `\r` on values and cause 28P01.
 export const databaseUrl = String(process.env.DATABASE_URL || DEFAULT_URL).trim();
 
@@ -46,7 +52,7 @@ export function describeDatabaseUrl(url = databaseUrl) {
       host: cfg.host,
       port: String(cfg.port),
       database: cfg.database,
-      source: fs.existsSync(envPath) ? envPath : 'default',
+      source: inDocker ? 'docker-compose' : (fs.existsSync(envPath) ? envPath : 'default'),
       passwordLength: cfg.password.length,
       passwordCharCodes: codes.join(',')
     };
@@ -64,7 +70,6 @@ export function describeDatabaseUrl(url = databaseUrl) {
 }
 
 const cfg = parseDatabaseUrl(databaseUrl);
-// Explicit fields avoid URL-parser edge cases with pg on Windows.
 export const pool = new Pool({
   user: cfg.user,
   password: cfg.password,
