@@ -68,7 +68,7 @@ async function bootstrapUser() {
 async function main() {
   const dbInfo = describeDatabaseUrl(databaseUrl);
   console.log(
-    `[covenant-sync] db target ${dbInfo.user}@${dbInfo.host}:${dbInfo.port}/${dbInfo.database} (${dbInfo.source})`
+    `[covenant-sync] db target ${dbInfo.user}@${dbInfo.host}:${dbInfo.port}/${dbInfo.database} (${dbInfo.source}) pwdLen=${dbInfo.passwordLength} codes=${dbInfo.passwordCharCodes}`
   );
   await initSchema();
   await bootstrapUser();

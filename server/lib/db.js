@@ -19,30 +19,59 @@ if (fs.existsSync(envPath)) {
 const { Pool } = pg;
 
 const DEFAULT_URL = 'postgres://covenant:covenant@127.0.0.1:5433/covenant';
-// Trim — Windows CRLF .env files often leave `\r` on the password and cause 28P01.
+// Trim — Windows CRLF .env files often leave `\r` on values and cause 28P01.
 export const databaseUrl = String(process.env.DATABASE_URL || DEFAULT_URL).trim();
 
-if (process.env.PORT) process.env.PORT = String(process.env.PORT).trim();
-if (process.env.CORS_ORIGIN) process.env.CORS_ORIGIN = String(process.env.CORS_ORIGIN).trim();
-if (process.env.BOOTSTRAP_EMAIL) process.env.BOOTSTRAP_EMAIL = String(process.env.BOOTSTRAP_EMAIL).trim();
-if (process.env.BOOTSTRAP_PASSWORD) process.env.BOOTSTRAP_PASSWORD = String(process.env.BOOTSTRAP_PASSWORD).trim();
+for (const key of ['PORT', 'CORS_ORIGIN', 'BOOTSTRAP_EMAIL', 'BOOTSTRAP_PASSWORD']) {
+  if (process.env[key] != null) process.env[key] = String(process.env[key]).trim();
+}
+
+export function parseDatabaseUrl(url = databaseUrl) {
+  const u = new URL(url);
+  return {
+    user: decodeURIComponent(u.username || ''),
+    password: decodeURIComponent(u.password || ''),
+    host: u.hostname,
+    port: Number(u.port || 5432),
+    database: (u.pathname || '/').replace(/^\//, '') || ''
+  };
+}
 
 export function describeDatabaseUrl(url = databaseUrl) {
   try {
-    const u = new URL(url);
+    const cfg = parseDatabaseUrl(url);
+    const codes = [...cfg.password].map((ch) => ch.charCodeAt(0));
     return {
-      user: decodeURIComponent(u.username || ''),
-      host: u.hostname,
-      port: u.port || '5432',
-      database: (u.pathname || '/').replace(/^\//, '') || '',
-      source: fs.existsSync(envPath) ? envPath : 'default'
+      user: cfg.user,
+      host: cfg.host,
+      port: String(cfg.port),
+      database: cfg.database,
+      source: fs.existsSync(envPath) ? envPath : 'default',
+      passwordLength: cfg.password.length,
+      passwordCharCodes: codes.join(',')
     };
   } catch {
-    return { user: '?', host: '?', port: '?', database: '?', source: 'invalid-url' };
+    return {
+      user: '?',
+      host: '?',
+      port: '?',
+      database: '?',
+      source: 'invalid-url',
+      passwordLength: 0,
+      passwordCharCodes: ''
+    };
   }
 }
 
-export const pool = new Pool({ connectionString: databaseUrl });
+const cfg = parseDatabaseUrl(databaseUrl);
+// Explicit fields avoid URL-parser edge cases with pg on Windows.
+export const pool = new Pool({
+  user: cfg.user,
+  password: cfg.password,
+  host: cfg.host,
+  port: cfg.port,
+  database: cfg.database
+});
 
 export async function query(text, params) {
   return pool.query(text, params);
