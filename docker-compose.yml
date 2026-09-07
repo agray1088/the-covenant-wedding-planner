@@ -1,9 +1,10 @@
 # Optional local Postgres + sync API for Covenant cloud sync (beta).
 # Offline planner does not need this — only the sync API does.
 #
-# Windows tip: prefer `docker compose up -d` then use the API container on :8787.
-# Host Node → localhost:5433 can fail auth on some Docker Desktop setups;
-# the api service talks to Postgres on the internal Docker network instead.
+# LOCAL DEV ONLY — not for production.
+# Postgres uses trust (or password "covenant") so Windows host tools
+# (pgAdmin, host Node) can connect via the published port 127.0.0.1:5433.
+# Prefer the `api` service on :8787 for the sync API; it uses the internal Docker network.
 services:
   postgres:
     image: postgres:16-alpine
@@ -12,10 +13,11 @@ services:
       POSTGRES_USER: covenant
       POSTGRES_PASSWORD: covenant
       POSTGRES_DB: covenant
-      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+      # Local wedding-planner Docker Desktop only — never ship trust to production.
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_INITDB_ARGS: "--auth-host=trust"
     ports:
-      # Optional direct DB access from host tools (API should use the `api` service)
+      # Direct DB access from host tools (pgAdmin, psql, host Node on :5433)
       - "5433:5432"
     volumes:
       - covenant_pg_data:/var/lib/postgresql/data
