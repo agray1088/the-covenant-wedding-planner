@@ -324,12 +324,13 @@
     var token = vendors().length ? shareFor(vendors()[0].name).token : 'cat9';
 
     panel.innerHTML = '<div class="rd-page">'
+      + '<div class="rd-vn-offline" role="status"><strong>Local / demo only.</strong> Vendor Portal links open a preview on this device. They are not hosted multi-user access — that needs Postgres + auth later. For real handoffs, print or export a Share Packet.</div>'
       + '<div class="rd-pagehead">'
       + '<div><div class="rd-pagehead__eyebrow">Documents</div>'
       + '<div class="rd-pagehead__title-row"><h1 class="rd-pagehead__title">Vendor</h1></div>'
-      + '<p class="rd-pagehead__sub">Portal links and paperwork for the people working your day — ' + esc(coupleNames()) + '</p></div>'
+      + '<p class="rd-pagehead__sub">Portal link previews and paperwork for the people working your day — ' + esc(coupleNames()) + '</p></div>'
       + '<div class="rd-pagehead__actions">'
-      + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdVendorOpenPortal()">Open Vendor Portal</button>'
+      + '<button type="button" class="rd-btn rd-btn--primary" onclick="rdVendorOpenPortal()">Open local portal preview</button>'
       + '</div>'
       + '</div>'
       + '<div class="rd-stats rd-vn-stats">' + statsHtml() + '</div>'
@@ -373,8 +374,8 @@
   function reshare(name) { share(name); }
   function revoke(name) {
     var go = (typeof covConfirm === 'function')
-      ? covConfirm('Revoke ' + name + "'s portal link? It stops the live link immediately. It does not recall anything they downloaded, and it does not delete what they uploaded — that is the couple's now.")
-      : Promise.resolve(window.confirm('Revoke ' + name + "'s portal link?\n\nIt stops the live link immediately. It does not recall a downloaded PDF and does not delete their uploads."));
+      ? covConfirm('Revoke ' + name + "'s local portal link? It stops the preview link on this device. It does not recall anything already printed or downloaded.")
+      : Promise.resolve(window.confirm('Revoke ' + name + "'s local portal link?\n\nIt stops the preview on this device. It does not recall a downloaded PDF."));
     Promise.resolve(go).then(function (ok) {
       if (!ok) return;
       var sh = shareFor(name);

@@ -7041,7 +7041,7 @@ function renderStartHere(){
     <div class="sh-head">
       <div class="sh-kicker">Guided Planning Path</div>
       <div class="sh-title">A calmer way to know what needs attention</div>
-      <div class="sh-lead">Start with the essentials, download a <code>.sqlite</code> backup early, and use Share Packets or partner sync files when someone else needs to help. <strong>Minimal pages</strong> (Guest List, Budget, Catering) show stats and short previews; open the <strong>Database Hub</strong> from the top bar or Start Planning menu for full tables and bulk editing.</div>
+      '<div class="sh-lead">Start with the essentials and download a <code>.sqlite</code> backup early. Use Share Packets (print/PDF) or partner sync files when someone else needs to help on <strong>their</strong> device. <strong>Minimal pages</strong> (Guest List, Budget, Catering) show stats and short previews; open the <strong>Database Hub</strong> from the top bar or Start Planning menu for full tables and bulk editing.</div>'
       <div class="sh-progress">${guidance.doneCount} of ${guidance.stageCount} planning stages ready</div>
     </div>
     <div class="sh-bar"><i style="width:${guidance.progressPct}%"></i></div>
@@ -9632,7 +9632,7 @@ function renderWeekendPackets(){
       <div><b>Reception Venue:</b> ${escapeHtml(s['venue-reception']||'')}</div>
     </div>
     ${pktWeekendSummary()}
-    <div class="pkt-source-note"><strong>Live packet:</strong> This packet is generated from Wedding Weekend Logistics. Edit the source page to update the packet everywhere.</div>
+    <div class="pkt-source-note"><strong>From your planner:</strong> This packet is generated from Wedding Weekend Logistics on this device. Edit the source page to refresh it here. Print or save as PDF to hand off — there is no cloud sync.</div>
     ${pktWeekendContent(_pktWeekendKey)}
     <div class="pkt-actions">
       <button class="pkt-print-btn" onclick="printCurrentPage()"><svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print page</button>
@@ -33196,7 +33196,7 @@ const FAQ_ITEMS = [
   ['What are Data Health and Linked Records?',
    'Data Health appears on the Dashboard and points out relationship issues in plain language, such as a payment linked to a missing vendor or a guest assigned to a table that no longer exists. Linked Records appear inside key pop-out editors so you can see related payments, contracts, appointments, guests, tables, gifts, tasks, budget lines, or logistics without re-entering the same data.'],
   ['Can I share a read-only copy without live hosting?',
-   'Because this is a local downloadable planner, it cannot do true Google-Docs-style live collaboration. The best share-safe workflow is to export a backup for yourself, print or save PDF packets for vendors/family/wedding party, or turn on <strong>Preview Mode</strong> in Wedding Setup before sharing or presenting a copy. This is a local preview lock, not bank-level security.'],
+   'Because this is a local downloadable planner, it cannot do true Google-Docs-style live collaboration. The best share-safe workflow is to export a backup for yourself, print or save PDF packets for vendors/family/wedding party, or turn on <strong>Preview Mode</strong> before presenting on this device. Preview Mode is a local editing lock, not bank-level security or multi-device sharing.'],
   ['Can I import a large guest list from Excel or Google Sheets?',
    'Yes. Open the <strong>Guest List</strong> page and click <strong>Import Guests CSV</strong>. Choose a CSV exported from Excel or Google Sheets, map each spreadsheet column to a planner field, preview the rows, then import. The import is additive: existing guests are matched by email or name, updated with non-empty values, and new guests are added. Use <strong>Download Template</strong> in the import window if you want a clean starting spreadsheet.'],
   ['Can guests RSVP online even though this planner is offline?',

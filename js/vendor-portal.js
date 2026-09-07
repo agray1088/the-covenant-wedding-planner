@@ -1,6 +1,7 @@
 /* Vendor Portal — separate product (Planner Vendor Portal.dc.html V1–V5).
-   No login. Token in ?g=… or ?expired=1. Reads planner localStorage when present;
-   falls back to Adom Catering demo matching the mocks. Counts without names. */
+   Offline GA: local/demo only. No multi-user hosting. Token in ?g=… or ?expired=1.
+   Reads planner localStorage when present on this device; otherwise shows a labeled
+   sample preview (not a real shared portal). Counts without names. */
 (function () {
   'use strict';
 
@@ -12,6 +13,9 @@
     { id: 'paperwork', label: 'Your paperwork', short: 'Paperwork' },
     { id: 'upload', label: 'Upload', short: 'Upload' }
   ];
+  /* Offline GA: portal actions are local theatre until Postgres + auth. */
+  var OFFLINE_LOCAL_NOTE = 'Local preview on this device — not a multi-user vendor portal.';
+  var OFFLINE_DEMO_NOTE = 'Sample layout preview — demo data only. Not a live shared link.';
 
   /* ── The rules underneath (V6/V7) — the scope contract and the access
         lifecycle. Not a fifth tab: the four tabs above are what these two
@@ -42,7 +46,7 @@
     { n: 2, title: 'Link is sent', body: 'A URL with an embedded token. No account, no password — the vendor is a caterer, not a user we are trying to acquire. Same trust model as a calendar invite.' },
     { n: 3, title: 'Vendor opens it', body: "Provenance banner names who shared it and when access ends. First open is logged and surfaces in the couple's Share Packets · Activity view." },
     { n: 4, title: 'Vendor works from it', body: 'Reads their brief, accepts the schedule, uploads what they owe. Every write is attributed and lands as a note on their vendor record.' },
-    { n: 5, title: 'Access expires', body: 'Four days after the wedding, automatically. Downloaded files stay theirs; the live view closes.' }
+    { n: 5, title: 'Access expires', body: 'Four days after the wedding, automatically. Downloaded files stay theirs; the local preview closes. Hosted multi-device expiry needs Postgres + auth later.' }
   ];
 
   var REVOKE_ROWS = [
@@ -133,10 +137,10 @@
   }
 
   function coupleNames(setup) {
-    var b = String((setup && setup.bride) || '').trim();
-    var g = String((setup && setup.groom) || '').trim();
+    var b = String((setup && setup.bride) || (setup && setup.brideName) || (setup && setup.partner1) || '').trim();
+    var g = String((setup && setup.groom) || (setup && setup.groomName) || (setup && setup.partner2) || '').trim();
     if (b && g) return b + ' & ' + g;
-    return b || g || 'Ama & Kwesi';
+    return b || g || 'Your wedding';
   }
 
   function dietaryCounts(data) {
@@ -150,10 +154,10 @@
       if (/nut/.test(meal) || /nut/.test(notes)) nut++;
     });
     return {
-      covers: covers || 142,
-      vegetarian: veg || 9,
-      nutAllergy: nut || 3,
-      serviceAt: '6:30pm'
+      covers: covers,
+      vegetarian: veg,
+      nutAllergy: nut,
+      serviceAt: '—'
     };
   }
 
@@ -165,7 +169,8 @@
       sharedBy: 'Mary Osei',
       sharedOn: '4 April',
       expires: opts.expires || '2026-11-12',
-      mode: 'Live',
+      mode: 'Local',
+      isDemo: true,
       wedding: { coupleNames: 'Ama & Kwesi', date: '2026-11-08', dateLabel: '8 November 2026' },
       vendor: { name: 'Adom Catering', category: 'Catering' },
       counts: { covers: 142, vegetarian: 9, nutAllergy: 3, serviceAt: '6:30pm' },
@@ -256,7 +261,13 @@
   function buildSessionFromData(data, token, forceExpired) {
     var packets = (data && Array.isArray(data.packets)) ? data.packets : [];
     var packet = null;
+    var shares = (data && data._vendorShares && typeof data._vendorShares === 'object') ? data._vendorShares : {};
+    var shareMatch = null;
     if (token) {
+      Object.keys(shares).forEach(function (name) {
+        if (shareMatch) return;
+        if (String(shares[name].token || '') === String(token)) shareMatch = { name: name, share: shares[name] };
+      });
       packet = packets.find(function (p) {
         return tokenFromLink(p.link) === token || String(p._id) === token;
       }) || null;
@@ -267,28 +278,43 @@
       }) || null;
     }
 
+    var hasLocalPlanner = !!(data && (packet || shareMatch || (Array.isArray(data.vendors) && data.vendors.length) || (data.setup && (data.setup.bride || data.setup.groom || data.setup.date))));
+
     var demo = demoSession({
       token: token || (packet ? tokenFromLink(packet.link) : 'cat9'),
       expires: packet && packet.expires
     });
 
-    if (!data && !packet) {
+    /* No planner data on this device → labeled sample preview only. */
+    if (!hasLocalPlanner) {
       if (forceExpired) demo.status = 'expired';
+      demo.isDemo = true;
+      demo.mode = 'Local';
       return demo;
     }
 
     var setup = (data && data.setup) || {};
     var counts = dietaryCounts(data);
-    var vendorName = (packet && packet.recipient) || demo.vendor.name;
+    var vendorName = (shareMatch && shareMatch.name) || (packet && packet.recipient) || '';
     var vendors = (data && Array.isArray(data.vendors)) ? data.vendors : [];
     var vendor = vendors.find(function (v) {
       return String(v.name || v.vendor || '').toLowerCase() === String(vendorName).toLowerCase();
-    }) || vendors[0] || null;
+    }) || (shareMatch ? null : vendors[0]) || null;
     if (vendor) vendorName = String(vendor.name || vendor.vendor || vendorName);
+    if (!vendorName) vendorName = 'Vendor preview';
 
-    var weddingDate = String(setup.date || demo.wedding.date).slice(0, 10);
-    var expires = String((packet && packet.expires) || demo.expires).slice(0, 10);
+    var weddingDate = String(setup.date || '').slice(0, 10);
+    var expires = String((packet && packet.expires) || '').slice(0, 10);
+    if (!expires && weddingDate) {
+      var expDt = new Date(weddingDate + 'T00:00:00');
+      if (!Number.isNaN(expDt.getTime())) {
+        expDt.setDate(expDt.getDate() + 4);
+        expires = expDt.toISOString().slice(0, 10);
+      }
+    }
+    if (!expires) expires = demo.expires;
     var status = 'live';
+    if (shareMatch && shareMatch.share && shareMatch.share.revoked) status = 'revoked';
     if (forceExpired || (packet && (packet.revoked || /revok/i.test(packet.status)))) status = 'revoked';
     else if (forceExpired || (packet && /expir/i.test(packet.status))) status = 'expired';
     else if (expires) {
@@ -313,38 +339,70 @@
         });
       }
     });
-    if (!slice.length) slice = demo.slice;
 
-    var contacts = demo.contacts.slice();
+    var contacts = [];
     if (setup.plannerName || setup.plannerPhone) {
-      contacts[0] = {
-        name: setup.plannerName || contacts[0].name,
+      contacts.push({
+        name: setup.plannerName || 'Planner',
         role: 'Planner · call first',
-        phone: setup.plannerPhone || contacts[0].phone
-      };
+        phone: setup.plannerPhone || '—'
+      });
+    }
+    if (setup['venue-ceremony'] || setup.venuePhone) {
+      contacts.push({
+        name: setup['venue-ceremony'] || setup['venue-reception'] || 'Venue',
+        role: 'Venue',
+        phone: setup.venuePhone || '—'
+      });
+    }
+    if (!contacts.length) {
+      contacts = [{ name: 'Add planner contact in Setup', role: 'Planner', phone: '—' }];
+    }
+
+    var usedDemoSlice = !slice.length;
+    if (usedDemoSlice) {
+      slice = [{ title: 'No timeline cues yet', meta: 'Add Wedding Day Timeline rows that name this vendor', time: '—', kind: 'service' }];
     }
 
     return {
-      token: demo.token,
+      token: token || demo.token,
       status: status,
-      sharedBy: setup.plannerName || demo.sharedBy,
-      sharedOn: (packet && packet.created) ? fmtShort(packet.created) : demo.sharedOn,
+      sharedBy: setup.plannerName || coupleNames(setup) || 'You',
+      sharedOn: (packet && packet.created) ? fmtShort(packet.created) : (shareMatch && shareMatch.share.sharedOn ? fmtShort(shareMatch.share.sharedOn) : 'today'),
       expires: expires,
-      mode: (packet && packet.mode) || 'Live',
+      mode: 'Local',
+      isDemo: false,
+      usedDemoFill: false,
       wedding: {
         coupleNames: coupleNames(setup),
-        date: weddingDate,
-        dateLabel: fmtLong(weddingDate)
+        date: weddingDate || '',
+        dateLabel: weddingDate ? fmtLong(weddingDate) : 'Date in Setup'
       },
       vendor: { name: vendorName, category: (vendor && (vendor.type || vendor.category)) || 'Vendor' },
       counts: counts,
       slice: slice,
-      scheduleGantt: slice === demo.slice ? demo.scheduleGantt : null,
-      deps: demo.deps,
-      owed: demo.owed,
+      scheduleGantt: null,
+      deps: [],
+      owed: [],
       contacts: contacts,
-      paperwork: demo.paperwork,
-      uploads: demo.uploads
+      paperwork: {
+        contractValue: '—',
+        paid: '—',
+        outstanding: '—',
+        nextDue: '—',
+        contract: {
+          title: 'No contract linked yet',
+          meta: 'Add a contract for this vendor on Contracts & Invoices',
+          headMeta: 'local preview'
+        },
+        clauses: [],
+        instalments: [],
+        invoices: []
+      },
+      uploads: {
+        outstanding: [],
+        done: []
+      }
     };
   }
 
@@ -417,10 +475,10 @@
         }
         return 'Your window on the day';
       })(),
-      onSite: '1:00pm–12:30am',
+      onSite: lanes.length ? 'From your cues' : '—',
       obligations: lanes.length,
-      crew: 10,
-      setup: '90 min',
+      crew: '—',
+      setup: lanes.length ? 'See cues' : '—',
       lanes: lanes,
       footnote: (function () {
         var base = 'Hatched is load-in and clear-down; solid is service.';
@@ -429,6 +487,7 @@
           return base + ' ' + deps.length + ' dependenc' + (deps.length === 1 ? 'y' : 'ies')
             + ' shown both ways: ' + deps.join(' ');
         }
+        if (!lanes.length) return 'No schedule cues yet on this device. Add Wedding Day Timeline rows that name this vendor.';
         return base + ' Accept confirms you can meet these times. Request a change proposes; it does not write through — the couple confirms.';
       })()
     };
@@ -463,7 +522,7 @@
       + '<div class="vp-expired">'
       + '<div class="vp-eyebrow">Access ended</div>'
       + '<h1>This link has expired</h1>'
-      + '<p>Access ran to ' + esc(fmtLong(s.expires)) + ', four days after the wedding. Anything you downloaded while it was live is still yours — this only closes the live view.</p>'
+      + '<p>Access ran to ' + esc(fmtLong(s.expires)) + ', four days after the wedding. Anything you printed or downloaded is still yours — this only closes the local preview.</p>'
       + '<div class="vp-expired__acts">'
       + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="request-access">Request access from ' + esc(s.sharedBy) + '</button>'
       + '<button type="button" class="vp-btn" data-vp-act="message">Message ' + esc(first) + '</button>'
@@ -472,7 +531,10 @@
   }
 
   function renderBrief(s) {
-    var counts = s.counts;
+    var counts = s.counts || { covers: 0, vegetarian: 0, nutAllergy: 0, serviceAt: '—' };
+    var slice = s.slice || [];
+    var owed = s.owed || [];
+    var contacts = s.contacts || [];
     return ''
       + '<div class="vp-pagehead"><div class="vp-eyebrow">Your brief</div>'
       + '<h1 class="vp-title">' + esc(s.vendor.name) + '</h1>'
@@ -481,22 +543,22 @@
       + '<div class="vp-stat"><span>Covers</span><strong>' + counts.covers + '</strong></div>'
       + '<div class="vp-stat"><span>Vegetarian</span><strong>' + counts.vegetarian + '</strong></div>'
       + '<div class="vp-stat"><span>Nut allergy</span><strong class="is-warn">' + counts.nutAllergy + '</strong></div>'
-      + '<div class="vp-stat"><span>Service at</span><strong>' + esc(counts.serviceAt) + '</strong></div>'
+      + '<div class="vp-stat"><span>Service at</span><strong>' + esc(counts.serviceAt || '—') + '</strong></div>'
       + '</div>'
-      + '<div class="vp-section-head"><strong>Your slice of the day</strong><span>' + s.slice.length + ' obligations · times derived from the couple\'s run sheet</span></div>'
-      + s.slice.map(function (r) {
+      + '<div class="vp-section-head"><strong>Your slice of the day</strong><span>' + slice.length + ' obligations · times from this device\'s run sheet</span></div>'
+      + slice.map(function (r) {
         return '<div class="vp-row' + (r.kind === 'loadin' || r.kind === 'clear' ? ' is-hatch' : '') + '"><div><strong>'
           + esc(r.title) + '</strong><em>' + esc(r.meta) + '</em></div><span class="vp-meta">' + esc(r.time) + '</span></div>';
       }).join('')
-      + '<div class="vp-section-head"><strong>You owe us</strong><span>' + s.owed.length + ' outstanding</span></div>'
-      + s.owed.map(function (r) {
+      + '<div class="vp-section-head"><strong>You owe us</strong><span>' + owed.length + ' outstanding</span></div>'
+      + (owed.length ? owed.map(function (r) {
         return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
           + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.due) + '</span></div>';
-      }).join('')
-      + '<div class="vp-section-head"><strong>Who to call on the day</strong><span>2 numbers · not the full contact list</span></div>'
-      + s.contacts.map(function (c) {
+      }).join('') : '<div class="vp-row"><div><strong>Nothing listed</strong><em>Owed items come from local planner notes when present</em></div></div>')
+      + '<div class="vp-section-head"><strong>Who to call on the day</strong><span>' + contacts.length + ' number' + (contacts.length === 1 ? '' : 's') + ' · not the full contact list</span></div>'
+      + contacts.map(function (c) {
         return '<div class="vp-row"><div><strong>' + esc(c.name) + '</strong><em>' + esc(c.role)
-          + '</em></div><a class="vp-meta" href="tel:' + esc(c.phone.replace(/\s+/g, '')) + '">' + esc(c.phone) + '</a></div>';
+          + '</em></div><a class="vp-meta" href="tel:' + esc(String(c.phone || '').replace(/\s+/g, '')) + '">' + esc(c.phone) + '</a></div>';
       }).join('')
       + '<div class="vp-foot">'
       + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="confirm">Confirm your details</button>'
@@ -505,10 +567,11 @@
   }
 
   function renderBriefMobile(s) {
-    var counts = s.counts;
-    var next = (s.slice && s.slice[0]) || { title: 'Kitchen access', meta: 'Loading bay, rear', time: '1:00pm' };
+    var counts = s.counts || { covers: 0, vegetarian: 0, nutAllergy: 0, serviceAt: '—' };
+    var next = (s.slice && s.slice[0]) || { title: 'No cues yet', meta: 'Add timeline rows', time: '—' };
     var owed = firstOverdueOwed(s);
-    var overdueN = (s.owed || []).filter(function (r) { return r.tone === 'danger'; }).length || 1;
+    var overdueN = (s.owed || []).filter(function (r) { return r.tone === 'danger'; }).length;
+    var contacts = s.contacts || [];
     return ''
       + '<div class="vp-m-stats">'
       + '<div class="vp-m-stat"><span>Covers</span><strong>' + counts.covers + '</strong></div>'
@@ -518,24 +581,25 @@
       + '<div class="vp-m-block">'
       + '<div class="vp-m-eyebrow">Your next obligation</div>'
       + '<div class="vp-m-title">' + esc(next.title) + '</div>'
-      + '<div class="vp-m-sub">' + esc(next.time) + ' · ' + esc(String(next.meta).split('·')[0].trim()) + '</div>'
+      + '<div class="vp-m-sub">' + esc(next.time) + ' · ' + esc(String(next.meta || '').split('·')[0].trim()) + '</div>'
       + '</div>'
       + (owed
         ? '<div class="vp-m-block vp-m-block--danger">'
-          + '<div class="vp-m-eyebrow is-danger">You owe us · ' + overdueN + ' overdue</div>'
+          + '<div class="vp-m-eyebrow is-danger">You owe us · ' + (overdueN || 1) + ' overdue</div>'
           + '<div class="vp-m-title">' + esc(owed.title) + '</div>'
-          + '<div class="vp-m-sub is-danger">' + esc(owed.due) + ' · blocks venue keys</div>'
+          + '<div class="vp-m-sub is-danger">' + esc(owed.due) + '</div>'
           + '<button type="button" class="vp-m-cta" data-vp-act="upload">Upload now</button>'
           + '</div>'
         : '')
       + '<div class="vp-m-block">'
       + '<div class="vp-m-eyebrow">Call</div>'
-      + s.contacts.map(function (c) {
+      + contacts.map(function (c) {
         var role = String(c.role || '').replace(/\s*·.*$/, '');
+        var phone = String(c.phone || '—');
         return '<div class="vp-m-call">'
           + '<div><div class="vp-m-call__name">' + esc(c.name) + '</div>'
           + '<div class="vp-m-call__role">' + esc(role) + '</div></div>'
-          + '<a class="vp-m-call__btn" href="tel:' + esc(c.phone.replace(/\s+/g, '')) + '">Call</a>'
+          + '<a class="vp-m-call__btn" href="tel:' + esc(phone.replace(/\s+/g, '')) + '">Call</a>'
           + '</div>';
       }).join('')
       + '</div>';
@@ -578,35 +642,39 @@
   }
 
   function renderPaperwork(s) {
-    var p = s.paperwork;
-    var contractHead = p.contract.headMeta || '1';
+    var p = s.paperwork || {};
+    var contract = p.contract || { title: 'No contract linked yet', meta: 'Add paperwork in the planner', headMeta: 'local preview' };
+    var contractHead = contract.headMeta || 'local preview';
+    var clauses = p.clauses || [];
+    var instalments = p.instalments || [];
+    var invoices = p.invoices || [];
     return ''
       + '<div class="vp-pagehead"><div class="vp-eyebrow">Your paperwork</div>'
       + '<h1 class="vp-title">' + esc(s.vendor.name) + '</h1>'
       + '<p class="vp-sub">Your contract and your invoices — no other vendor\'s</p></div>'
       + '<div class="vp-stats">'
-      + '<div class="vp-stat"><span>Contract value</span><strong>' + esc(p.contractValue) + '</strong></div>'
-      + '<div class="vp-stat"><span>Paid</span><strong>' + esc(p.paid) + '</strong></div>'
-      + '<div class="vp-stat"><span>Outstanding</span><strong class="is-warn">' + esc(p.outstanding) + '</strong></div>'
-      + '<div class="vp-stat"><span>Next due</span><strong style="font-size:13px">' + esc(p.nextDue) + '</strong></div>'
+      + '<div class="vp-stat"><span>Contract value</span><strong>' + esc(p.contractValue || '—') + '</strong></div>'
+      + '<div class="vp-stat"><span>Paid</span><strong>' + esc(p.paid || '—') + '</strong></div>'
+      + '<div class="vp-stat"><span>Outstanding</span><strong class="is-warn">' + esc(p.outstanding || '—') + '</strong></div>'
+      + '<div class="vp-stat"><span>Next due</span><strong style="font-size:13px">' + esc(p.nextDue || '—') + '</strong></div>'
       + '</div>'
       + '<div class="vp-section-head"><strong>Your contract</strong><span>' + esc(contractHead) + '</span></div>'
-      + '<div class="vp-row"><div><strong>' + esc(p.contract.title) + '</strong><em>' + esc(p.contract.meta)
+      + '<div class="vp-row"><div><strong>' + esc(contract.title) + '</strong><em>' + esc(contract.meta)
       + '</em></div><span class="vp-meta">View · Download</span></div>'
-      + p.clauses.map(function (c) {
+      + clauses.map(function (c) {
         return '<div class="vp-row"><div><strong>' + esc(c.title) + '</strong><em>' + esc(c.meta)
           + '</em></div><span class="' + chipClass(c.tone) + '">' + esc(c.chip) + '</span></div>';
       }).join('')
-      + '<div class="vp-section-head"><strong>Your instalments</strong><span>' + p.instalments.length + ' · derived from the contract, not typed</span></div>'
-      + p.instalments.map(function (r) {
+      + '<div class="vp-section-head"><strong>Your instalments</strong><span>' + instalments.length + ' · derived from the contract, not typed</span></div>'
+      + (instalments.length ? instalments.map(function (r) {
         return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
           + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.amount) + '</span></div>';
-      }).join('')
-      + '<div class="vp-section-head"><strong>Your invoices</strong><span>' + p.invoices.length + ' issued</span></div>'
-      + p.invoices.map(function (r) {
+      }).join('') : '<div class="vp-row"><div><strong>None yet</strong><em>Link a contract with instalments in the planner</em></div></div>')
+      + '<div class="vp-section-head"><strong>Your invoices</strong><span>' + invoices.length + ' issued</span></div>'
+      + (invoices.length ? invoices.map(function (r) {
         return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
           + '</em></div><span class="' + chipClass(r.tone) + '">' + esc(r.amount) + '</span></div>';
-      }).join('')
+      }).join('') : '<div class="vp-row"><div><strong>None yet</strong><em>Invoices appear here when linked locally</em></div></div>')
       + '<p class="vp-note">You see your own figures only. The couple\'s total budget, their targets, and what any other vendor charges are not part of this view and cannot be added to it.</p>'
       + '<div class="vp-foot">'
       + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="invoice">Raise an invoice</button>'
@@ -615,13 +683,19 @@
   }
 
   function renderUpload(s) {
-    var u = s.uploads;
+    var u = s.uploads || { outstanding: [], done: [] };
+    var outstanding = u.outstanding || [];
+    var done = u.done || [];
+    var title = outstanding.length
+      ? (outstanding.length === 1 ? 'One document outstanding' : outstanding.length + ' documents outstanding')
+      : 'No uploads requested';
+    var sub = outstanding.length ? 'Local preview — uploads stay on this device until cloud portal ships' : 'Add vendor paperwork requests from the planner when ready';
     return ''
       + '<div class="vp-pagehead"><div class="vp-eyebrow">Upload</div>'
-      + '<h1 class="vp-title">Two documents outstanding</h1>'
-      + '<p class="vp-sub">One blocks the venue</p></div>'
+      + '<h1 class="vp-title">' + esc(title) + '</h1>'
+      + '<p class="vp-sub">' + esc(sub) + '</p></div>'
       + '<div style="padding:15px 0 4px">'
-      + u.outstanding.map(function (card) {
+      + (outstanding.length ? outstanding.map(function (card) {
         return '<div class="vp-card is-' + esc(card.tone) + '">'
           + '<div class="vp-card__top"><span class="vp-card__dot"></span><span>' + esc(card.title)
           + '</span><span style="margin-left:auto;font-size:11.5px;font-weight:500">' + esc(card.due) + '</span></div>'
@@ -630,17 +704,17 @@
             ? '<div class="vp-drop" data-vp-act="upload">Drop a PDF here, or choose a file<small>PDF or image · up to 10MB</small></div>'
             : '')
           + '</div>';
-      }).join('')
+      }).join('') : '<div class="vp-row"><div><strong>Nothing outstanding</strong><em>This local preview has no upload queue</em></div></div>')
       + '</div>'
-      + '<div class="vp-section-head"><strong>Already uploaded</strong><span>' + u.done.length + ' · visible to the couple immediately</span></div>'
-      + u.done.map(function (r) {
+      + '<div class="vp-section-head"><strong>Already uploaded</strong><span>' + done.length + ' · local preview only</span></div>'
+      + (done.length ? done.map(function (r) {
         return '<div class="vp-row"><div><strong>' + esc(r.title) + '</strong><em>' + esc(r.meta)
           + '</em></div><span class="' + chipClass(r.tone) + '">Accepted</span></div>';
-      }).join('')
-      + '<p class="vp-note">An upload lands in the couple\'s Contracts page and clears the matching red card there. You will see it marked Accepted here once they have looked at it.</p>'
+      }).join('') : '<div class="vp-row"><div><strong>None yet</strong><em>Uploads will list here in a future hosted portal</em></div></div>')
+      + '<p class="vp-note">Offline GA: upload actions are local theatre. Real vendor upload sync requires Postgres + auth later.</p>'
       + '<div class="vp-foot">'
-      + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="upload">Upload the certificate</button>'
-      + '<button type="button" class="vp-btn" data-vp-act="message">Message Mary</button>'
+      + '<button type="button" class="vp-btn vp-btn--primary" data-vp-act="upload">Upload a file</button>'
+      + '<button type="button" class="vp-btn" data-vp-act="message">Message planner</button>'
       + '</div>';
   }
 
@@ -718,19 +792,24 @@
     else body = renderBrief(s);
 
     var shellCls = 'vp-shell' + (narrow ? ' vp-shell--mobile' : '');
+    var notice = s.isDemo ? OFFLINE_DEMO_NOTE : OFFLINE_LOCAL_NOTE;
+    var modeBit = s.isDemo
+      ? 'sample layout preview'
+      : 'local planner data from this browser';
     var bannerLong = 'Shared by ' + esc(s.sharedBy) + ' on ' + esc(s.sharedOn)
       + ' · access expires ' + esc(fmtExpiresBanner(s.expires))
-      + ' · you are seeing ' + (s.mode === 'Live' ? 'live records, not a copy' : 'a snapshot');
-    var bannerShort = 'Expires ' + esc(fmtExpiresShort(s.expires)) + ' · live records';
+      + ' · ' + modeBit;
+    var bannerShort = 'Expires ' + esc(fmtExpiresShort(s.expires)) + ' · local preview';
 
     root.innerHTML = ''
       + '<div class="' + shellCls + '">'
+      + '<div class="vp-offline-banner' + (s.isDemo ? ' is-demo' : '') + '" role="status">' + esc(notice) + '</div>'
       + '<div class="vp-topbar' + (narrow ? ' vp-topbar--mobile' : '') + '">'
       + '<span class="vp-topbar__mark">✦</span>'
       + (narrow
         ? '<span class="vp-topbar__vendor-main">' + esc(s.vendor.name) + '</span>'
         : '<span class="vp-topbar__wedding">' + esc(s.wedding.coupleNames) + ' · ' + esc(s.wedding.dateLabel) + '</span>')
-      + '<span class="vp-topbar__badge">Vendor</span>'
+      + '<span class="vp-topbar__badge">' + (s.isDemo ? 'Demo' : 'Local') + '</span>'
       + (narrow ? '' : '<span class="vp-topbar__vendor">' + esc(s.vendor.name) + '</span>')
       + '</div>'
       + '<nav class="vp-tabs" aria-label="Vendor portal">'
@@ -765,13 +844,15 @@
     root.querySelectorAll('[data-vp-act]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var act = btn.getAttribute('data-vp-act');
-        if (act === 'confirm' || act === 'accept') toast('Noted — the couple will see your confirmation.');
-        else if (act === 'change') toast('Change requested. It proposes; it does not write through.');
-        else if (act === 'invoice') toast('Draft invoice prepared for the couple to review.');
-        else if (act === 'upload') toast('Upload received. It will clear on Contracts once reviewed.');
-        else if (act === 'message') toast('Message sent to ' + (state.session.sharedBy || 'the planner') + '.');
-        else if (act === 'request-access') toast('Access request sent to ' + (state.session.sharedBy || 'the planner') + '.');
-        else if (act === 'download') toast('Brief prepared for download.');
+        var demo = !!(state.session && state.session.isDemo);
+        var localOnly = 'Saved locally only — real vendor messaging needs a hosted portal later.';
+        if (act === 'confirm' || act === 'accept') toast(demo ? 'Demo only — nothing was sent.' : 'Noted on this device. ' + localOnly);
+        else if (act === 'change') toast(demo ? 'Demo only — change requests are not sent.' : 'Change noted locally. It does not write through.');
+        else if (act === 'invoice') toast(demo ? 'Demo only — no invoice was raised.' : 'Invoice draft stays on this device for now.');
+        else if (act === 'upload') toast(demo ? 'Demo only — uploads are not stored.' : 'Upload preview only — hosted portal comes later.');
+        else if (act === 'message') toast(demo ? 'Demo only — messages are not sent.' : localOnly);
+        else if (act === 'request-access') toast(demo ? 'Demo only — no access request was sent.' : localOnly);
+        else if (act === 'download') toast(demo ? 'Demo brief — print or copy from the planner for real handoff.' : 'Use Print / Share Packets in the planner for a real handoff file.');
         else if (act === 'rules-open') { state.rulesOpen = true; render(); }
         else if (act === 'rules-close') { state.rulesOpen = false; render(); }
       });

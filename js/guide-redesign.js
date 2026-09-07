@@ -409,7 +409,7 @@
       '<div><div class="rd-partner-flow__k">Partner</div><div>Restores it</div><code>same file</code></div>' +
       '<div><div class="rd-partner-flow__k">Partner</div><div>Sends one back</div><code>.sqlite</code></div>' +
       '<div><div class="rd-partner-flow__k">You</div><div>Import packet</div><code>merges</code></div>' +
-      '</div><p class="rd-getstarted-partner-note">A partner packet merges RSVP updates and new tasks — it never deletes what you already have. Use a <b>Share Packet</b> instead when someone only needs to read details, not edit them.</p></div></section></div>' +
+      '</div><p class="rd-getstarted-partner-note">A partner packet merges RSVP updates and new tasks — it never deletes what you already have. Use a <b>Share Packet</b> (print/PDF) when someone only needs to read details. Packet links are <b>local previews on this device</b>, not a hosted multi-user portal.</p></div></section></div>' +
       '<div class="rd-setup-band" id="rd-sec-cannot"><div class="rd-setup-band__head"><span>What this planner cannot do</span><span class="rd-setup-band__meta">Said plainly, so it is not discovered late</span>' +
       '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'emails\',true)">Open Email Templates</button></div>' +
       '<div class="rd-getstarted-cannot">' +

@@ -243,7 +243,8 @@
   }
   function slugLink(seed) {
     const s = String(seed || Math.random().toString(36).slice(2, 8)).replace(/[^a-z0-9]/gi, '').slice(0, 6).toLowerCase();
-    return 'covenant.link/g/' + (s || 'packet');
+    /* Offline GA: local portal path — not a hosted covenant.link URL. */
+    return 'vendor-portal.html?g=' + (s || 'packet');
   }
   function coupleLine() {
     const s = (window.data && data.setup) || {};
@@ -760,7 +761,7 @@
       `<div class="rd-pkt-portalcard__list">` +
       cards.map(c => `<div><strong>${esc(c.name)}</strong><span>${esc(c.detail)}</span></div>`).join('') +
       `</div>` +
-      `<p class="rd-pkt-preview__foot">Read only · ${x.mode === 'Live' ? 'updates live' : 'snapshot'} · expires ${esc(fmtLong(x.expires))}</p>` +
+      `<p class="rd-pkt-preview__foot">Read only · ${x.mode === 'Live' ? 'linked on this device' : 'snapshot'} · expires ${esc(fmtLong(x.expires))}</p>` +
       `</div></div>` +
       `<div class="rd-pkt-preview__aside">` +
       `<div class="rd-pkt-preview__kicker">Not included</div>` +
@@ -768,9 +769,9 @@
       `<div class="rd-pkt-preview__kicker">Link behaviour</div>` +
       fieldPlain('Address', x.link) +
       fieldPlain('Passcode', x.passcode) +
-      fieldPlain('Mode', x.mode === 'Live' ? 'Live — edits appear immediately' : 'Snapshot — frozen at send') +
-      fieldPlain('Expiry', fmtLong(x.expires) + ' · 30 days after the wedding') +
-      fieldPlain('Opens', x.opens + (x.lastOpen ? (' · last ' + x.lastOpen + (/accra/i.test(String((x.activity[0] || {}).where)) ? ' from Accra' : '')) : '')) +
+      fieldPlain('Mode', x.mode === 'Live' ? 'Linked — refreshes from this device when reopened locally' : 'Snapshot — frozen at prepare time') +
+      fieldPlain('Expiry', fmtLong(x.expires) + ' · planned access window') +
+      fieldPlain('Opens', x.opens + (x.lastOpen ? (' · last ' + x.lastOpen) : ' · local tracking only')) +
       `</div></div></section>`;
   }
   function fieldPlain(label, value) {
@@ -814,7 +815,7 @@
     if (!items.length) {
       host.innerHTML = `<div class="rd-pkt-empty">` +
         `<h3>Nothing shared yet</h3>` +
-        `<p>A packet is a filtered projection, never a copy.</p>` +
+        `<p>Prepare a packet on this device, then print or save a PDF for handoff. Links are local previews until a hosted portal ships.</p>` +
         `<button type="button" class="rd-btn rd-btn--primary" onclick="rdPktAdd()">New packet</button>` +
         `</div>`;
       return;
@@ -960,7 +961,7 @@
     if (!host) return;
     const items = filteredPackets();
     if (!items.length) {
-      host.innerHTML = `<div class="rd-pkt-empty"><h3>Nothing shared yet</h3><p>A packet is a filtered projection, never a copy.</p><button type="button" class="rd-btn rd-btn--primary" onclick="rdPktAdd()">Build a packet</button></div>`;
+      host.innerHTML = `<div class="rd-pkt-empty"><h3>Nothing shared yet</h3><p>Prepare a packet on this device, then print or save a PDF for handoff. Links are local previews until a hosted portal ships.</p><button type="button" class="rd-btn rd-btn--primary" onclick="rdPktAdd()">Build a packet</button></div>`;
       return;
     }
     const maxOpens = items.reduce((n, x) => Math.max(n, x.opens), 0);

@@ -30432,6 +30432,24 @@ body.rd-scope.dark-mode #panel-data-hub .rd-dh-row:hover td,
 body.rd-scope[data-theme="dark"] #panel-data-hub .rd-dh-row:hover td { background: #1a1d18; }
 
 /* Vendor — planner-side portal manager + document library (Documents tab). */
+body.rd-scope #panel-vendor .rd-vn-offline {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: #2d4a3e;
+  color: #f4efe4;
+  font-size: 11.2px;
+  line-height: 1.45;
+  border-radius: 2px;
+}
+body.rd-scope #panel-vendor .rd-vn-offline strong { color: #fff; font-weight: 700; }
+body.rd-scope.night #panel-vendor .rd-vn-offline,
+body.rd-scope[data-theme="night"] #panel-vendor .rd-vn-offline,
+body.rd-scope.dark-mode #panel-vendor .rd-vn-offline,
+body.rd-scope[data-theme="dark"] #panel-vendor .rd-vn-offline {
+  background: #1a2a22;
+  color: #e6e1d6;
+  border: 1px solid #3d5348;
+}
 body.rd-scope #panel-vendor .rd-pagehead__sub {
   margin: 5px 0 0; font-size: 10.8px; color: #6f6a60; line-height: 1.5;
 }

@@ -22,7 +22,7 @@ ok('defines scheduleFirstRunSequence', /function scheduleFirstRunSequence\(/.tes
 ok('defines firstRunPrimaryOverlayOpen', /function firstRunPrimaryOverlayOpen\(/.test(planner));
 ok('closeSetupWizard notifies coordinator', /firstRunNotifyWizardClosed/.test(planner));
 ok('boot calls scheduleFirstRunSequence', /scheduleFirstRunSequence\(\)/.test(planner));
-ok('cache-bust firstrun-seq01', /planner\.js\?v=firstrun-seq01/.test(index));
+ok('cache-bust offline-ga or firstrun', /planner\.js\?v=(offline-ga01|firstrun-seq01)/.test(index));
 ok('shippable title default', /<title>The Covenant Wedding Planner<\/title>/.test(index));
 ok('developer-mode gated at runtime', /covenant_developer_mode/.test(index) && /params\.get\('dev'\)/.test(index));
 ok('developer-mode still in body source', /<body[^>]+class="[^"]*\bdeveloper-mode\b/.test(index));
