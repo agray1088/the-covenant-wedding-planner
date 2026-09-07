@@ -5,14 +5,38 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '../.env') });
-dotenv.config({ path: path.join(__dirname, '../.env.example') });
+const envPath = path.join(__dirname, '../.env');
+const examplePath = path.join(__dirname, '../.env.example');
+
+// Prefer server/.env over any machine-wide DATABASE_URL (common on Windows).
+if (fs.existsSync(examplePath)) {
+  dotenv.config({ path: examplePath });
+}
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath, override: true });
+}
 
 const { Pool } = pg;
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://covenant:covenant@127.0.0.1:5432/covenant'
-});
+const DEFAULT_URL = 'postgres://covenant:covenant@127.0.0.1:5433/covenant';
+export const databaseUrl = process.env.DATABASE_URL || DEFAULT_URL;
+
+export function describeDatabaseUrl(url = databaseUrl) {
+  try {
+    const u = new URL(url);
+    return {
+      user: decodeURIComponent(u.username || ''),
+      host: u.hostname,
+      port: u.port || '5432',
+      database: (u.pathname || '/').replace(/^\//, '') || '',
+      source: fs.existsSync(envPath) ? envPath : 'default'
+    };
+  } catch {
+    return { user: '?', host: '?', port: '?', database: '?', source: 'invalid-url' };
+  }
+}
+
+export const pool = new Pool({ connectionString: databaseUrl });
 
 export async function query(text, params) {
   return pool.query(text, params);

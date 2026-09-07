@@ -2,16 +2,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { initSchema, pool, query } from './lib/db.js';
+import { initSchema, pool, query, describeDatabaseUrl, databaseUrl } from './lib/db.js';
 import { hashPassword } from './lib/auth.js';
 import authRoutes from './routes/auth.js';
 import weddingRoutes from './routes/weddings.js';
 import guestRoutes from './routes/guests.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '.env') });
-dotenv.config({ path: path.join(__dirname, '.env.example') });
 
 const PORT = Number(process.env.PORT || 8787);
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:8000';
@@ -69,6 +66,10 @@ async function bootstrapUser() {
 }
 
 async function main() {
+  const dbInfo = describeDatabaseUrl(databaseUrl);
+  console.log(
+    `[covenant-sync] db target ${dbInfo.user}@${dbInfo.host}:${dbInfo.port}/${dbInfo.database} (${dbInfo.source})`
+  );
   await initSchema();
   await bootstrapUser();
   app.listen(PORT, () => {
@@ -78,6 +79,11 @@ async function main() {
 }
 
 main().catch((e) => {
+  const dbInfo = describeDatabaseUrl(databaseUrl);
   console.error('[covenant-sync] failed to start', e);
+  console.error(
+    `[covenant-sync] check DATABASE_URL → ${dbInfo.user}@${dbInfo.host}:${dbInfo.port}/${dbInfo.database}`
+  );
+  console.error('[covenant-sync] tip: echo %DATABASE_URL%  (if set in Windows, it used to override server\\.env)');
   pool.end().finally(() => process.exit(1));
 });
