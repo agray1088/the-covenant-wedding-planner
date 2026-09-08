@@ -1,5 +1,5 @@
--- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings, guests.
--- Trimmed from the planner's schema.sql guest/wedding shapes for Postgres sync.
+-- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings, guests, vendors.
+-- Trimmed from the planner's schema.sql guest/vendor/wedding shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -78,3 +78,30 @@ CREATE TABLE IF NOT EXISTS guests (
 );
 
 CREATE INDEX IF NOT EXISTS guests_wedding_updated_idx ON guests(wedding_id, updated_at);
+
+-- Vendor fields aligned with planner JSON + schema.sql vendor table (trimmed).
+-- Client aliases: cat↔category, contract↔has_contract; attrs stay on-device for now.
+CREATE TABLE IF NOT EXISTS vendors (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  category         TEXT,
+  name             TEXT NOT NULL DEFAULT '',
+  contact          TEXT,
+  phone            TEXT,
+  email            TEXT,
+  quote            DOUBLE PRECISION,
+  deposit          DOUBLE PRECISION,
+  balance          DOUBLE PRECISION,
+  status           TEXT,
+  rating           DOUBLE PRECISION,
+  has_contract     BOOLEAN DEFAULT FALSE,
+  pros             TEXT,
+  cons             TEXT,
+  review           TEXT,
+  notes            TEXT,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS vendors_wedding_updated_idx ON vendors(wedding_id, updated_at);

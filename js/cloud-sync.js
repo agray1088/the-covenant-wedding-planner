@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests and vendors.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -134,10 +134,46 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensureVendorIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.vendors)) return;
+      var changed = false;
+      data.vendors.forEach(function (v) {
+        if (!v) return;
+        var id = v.id || v._id;
+        if (!id) {
+          id = 'v_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (v.id !== id) { v.id = id; changed = true; }
+        if (v._id !== id) { v._id = id; changed = true; }
+        if (!v.updatedAt) {
+          v.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
     return isNaN(t) ? 0 : t;
+  }
+
+  function vendorTs(v) {
+    if (!v) return 0;
+    var t = Date.parse(v.updatedAt || v.updated_at || '');
+    return isNaN(t) ? 0 : t;
+  }
+
+  function vendorId(v) {
+    return v ? String(v.id || v._id || '') : '';
   }
 
   function mergeGuestsFromServer(serverGuests) {
@@ -159,6 +195,39 @@
       var local = data.guests[idx];
       if (guestTs(sg) > guestTs(local)) {
         data.guests[idx] = Object.assign({}, local, sg);
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
+  function mergeVendorsFromServer(serverVendors) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.vendors)) data.vendors = [];
+    var byId = {};
+    data.vendors.forEach(function (v, i) {
+      var id = vendorId(v);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverVendors || []).forEach(function (sv) {
+      if (!sv) return;
+      var id = vendorId(sv);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, sv, { id: id, _id: id });
+        data.vendors.push(row);
+        byId[id] = data.vendors.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.vendors[idx];
+      if (vendorTs(sv) > vendorTs(local)) {
+        data.vendors[idx] = Object.assign({}, local, sv, { id: id, _id: id });
         pulled++;
       } else {
         kept++;
@@ -245,13 +314,14 @@
 
   function uploadWedding() {
     ensureGuestIds();
+    ensureVendorIds();
     setStatus('syncing');
     // Prefer an already-owned cloud wedding (same account on another device) before POST create.
     // Different devices use different clientKeys, so POST alone would spawn empty duplicates.
     return linkExistingWeddingIfAny()
       .then(function (existing) {
         if (existing) {
-          return pushGuests().then(function (pushResult) {
+          return pushAll().then(function (pushResult) {
             setStatus('synced');
             lsSet(LS_LAST_SYNC, new Date().toISOString());
             return { wedding: existing, reused: true, linkedExisting: true, push: pushResult };
@@ -262,7 +332,7 @@
             var id = body.wedding && body.wedding.id;
             if (!id) throw new Error('No wedding id returned');
             lsSet(LS_WEDDING, id);
-            return pushGuests().then(function (pushResult) {
+            return pushAll().then(function (pushResult) {
               setStatus('synced');
               lsSet(LS_LAST_SYNC, new Date().toISOString());
               return { wedding: body.wedding, reused: !!body.reused, push: pushResult };
@@ -307,6 +377,50 @@
     });
   }
 
+  function pushVendors() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensureVendorIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var vendors = (typeof data !== 'undefined' && data && Array.isArray(data.vendors))
+      ? data.vendors.map(function (v) {
+          if (!v) return v;
+          var id = vendorId(v);
+          var ts = v.updatedAt || v.updated_at || now;
+          return Object.assign({}, v, { id: id, _id: id, updatedAt: ts });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/vendors/bulk', {
+      method: 'POST',
+      body: { vendors: vendors }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.vendor) return;
+        if (!r.ack) return;
+        var rid = vendorId(r.vendor);
+        if (!rid) return;
+        var list = data.vendors || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && vendorId(list[i]) === rid) {
+            list[i].updatedAt = r.vendor.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
+  function pushAll() {
+    return pushGuests().then(function (guests) {
+      return pushVendors().then(function (vendors) {
+        return { guests: guests, vendors: vendors };
+      });
+    });
+  }
+
   function pullGuests() {
     var weddingId = ls(LS_WEDDING);
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
@@ -323,6 +437,32 @@
         }
         return merge;
       });
+  }
+
+  function pullVendors() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/vendors')
+      .then(function (body) {
+        var merge = mergeVendorsFromServer(body.vendors || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          if (typeof renderVendors === 'function' && document.body.getAttribute('data-active-panel') === 'vendors') {
+            try { renderVendors(); } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
+  function pullAll() {
+    return pullGuests().then(function (guests) {
+      return pullVendors().then(function (vendors) {
+        return { guests: guests, vendors: vendors };
+      });
+    });
   }
 
   function syncNow() {
@@ -342,9 +482,9 @@
       if (!weddingId) return uploadWedding();
       syncing = true;
       setStatus('syncing');
-      return pullGuests()
+      return pullAll()
         .then(function (pull) {
-          return pushGuests().then(function (push) {
+          return pushAll().then(function (push) {
             return { pull: pull, push: push, weddingId: weddingId };
           });
         })
@@ -371,6 +511,9 @@
     }, 1200);
   }
 
+  // Alias — sync covers guests + vendors.
+  var scheduleSync = scheduleGuestSync;
+
   function patchSaveHook() {
     if (typeof window === 'undefined' || typeof window.save !== 'function') return false;
     if (window.save._covenantCloudPatched) return true;
@@ -378,15 +521,23 @@
     function wrapped() {
       var result = orig.apply(this, arguments);
       try {
-        if (cfg().enabled && typeof data !== 'undefined' && data && Array.isArray(data.guests)) {
+        if (cfg().enabled && typeof data !== 'undefined' && data) {
           var now = data.updatedAt || new Date().toISOString();
-          data.guests.forEach(function (g) {
-            if (!g) return;
-            // Bump stamp to this save so LWW treats the local edit as newer.
-            g.updatedAt = now;
-          });
+          if (Array.isArray(data.guests)) {
+            data.guests.forEach(function (g) {
+              if (!g) return;
+              // Bump stamp to this save so LWW treats the local edit as newer.
+              g.updatedAt = now;
+            });
+          }
+          if (Array.isArray(data.vendors)) {
+            data.vendors.forEach(function (v) {
+              if (!v) return;
+              v.updatedAt = now;
+            });
+          }
         }
-        scheduleGuestSync();
+        scheduleSync();
       } catch (e) { /* never break offline save */ }
       return result;
     }
@@ -422,6 +573,7 @@
     uploadWedding: uploadWedding,
     syncNow: syncNow,
     scheduleGuestSync: scheduleGuestSync,
+    scheduleSync: scheduleSync,
     api: api
   };
 

@@ -18,7 +18,7 @@ Honest positioning for **one device + local backups**. Multi-device Postgres + a
 
 ## Requires Postgres + auth later (not this GA)
 
-Offline GA defaults stay unchanged. Optional cloud scaffolding lives on a separate track — see `docs/OFFLINE_CLOUD_SYNC.md` (**Cloud sync (beta)**, guests vertical). Feature-flagged off until an API base is configured.
+Offline GA defaults stay unchanged. Optional cloud scaffolding lives on a separate track — see `docs/OFFLINE_CLOUD_SYNC.md` (**Cloud sync (beta)**, guests + vendors). Feature-flagged off until an API base is configured.
 
 Still later / not claimed as done:
 

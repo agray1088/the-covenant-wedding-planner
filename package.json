@@ -14,6 +14,7 @@
     "verify:offline-ga": "node scripts/_verify-offline-ga.mjs",
     "verify:cloud-sync": "node scripts/_verify-cloud-sync-smoke.mjs",
     "verify:second-device": "node scripts/_verify-second-device-sync.mjs",
+    "verify:vendor-sync": "node scripts/_verify-vendor-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {
