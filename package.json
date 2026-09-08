@@ -20,6 +20,7 @@
     "verify:seating-sync": "node scripts/_verify-seating-sync.mjs",
     "verify:contract-sync": "node scripts/_verify-contract-sync.mjs",
     "verify:contracts-sync": "node scripts/_verify-contract-sync.mjs",
+    "verify:timeline-sync": "node scripts/_verify-timeline-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {

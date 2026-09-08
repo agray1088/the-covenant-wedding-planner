@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, and contracts.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, and timeline.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -285,6 +285,32 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensureTimelineIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.timeline)) return;
+      var changed = false;
+      data.timeline.forEach(function (ev) {
+        if (!ev) return;
+        var id = ev.id || ev._id;
+        if (!id) {
+          id = 'wdy_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (ev.id !== id) { ev.id = id; changed = true; }
+        if (ev._id !== id) { ev._id = id; changed = true; }
+        if (!ev.updatedAt) {
+          ev.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -339,6 +365,16 @@
 
   function contractId(c) {
     return c ? String(c.id || c._id || '') : '';
+  }
+
+  function timelineTs(ev) {
+    if (!ev) return 0;
+    var ts = Date.parse(ev.updatedAt || ev.updated_at || '');
+    return isNaN(ts) ? 0 : ts;
+  }
+
+  function timelineId(ev) {
+    return ev ? String(ev.id || ev._id || '') : '';
   }
 
   function floorFixturesTs() {
@@ -556,6 +592,44 @@
         if (sc.invoiceFile == null && local.invoiceFile != null) merged.invoiceFile = local.invoiceFile;
         if ((!sc.img || sc.img === '') && local.img) merged.img = local.img;
         data.contracts[idx] = merged;
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
+  function mergeTimelineFromServer(serverTimeline) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.timeline)) data.timeline = [];
+    var byId = {};
+    data.timeline.forEach(function (ev, i) {
+      var id = timelineId(ev);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverTimeline || []).forEach(function (se) {
+      if (!se) return;
+      var id = timelineId(se);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, se, { id: id, _id: id });
+        if (!row.responsible && row.person) row.responsible = row.person;
+        if (!row.person && row.responsible) row.person = row.responsible;
+        data.timeline.push(row);
+        byId[id] = data.timeline.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.timeline[idx];
+      if (timelineTs(se) > timelineTs(local)) {
+        var merged = Object.assign({}, local, se, { id: id, _id: id });
+        if (!merged.responsible && merged.person) merged.responsible = merged.person;
+        if (!merged.person && merged.responsible) merged.person = merged.responsible;
+        data.timeline[idx] = merged;
         pulled++;
       } else {
         kept++;
@@ -911,6 +985,49 @@
     });
   }
 
+  function pushTimeline() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensureTimelineIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var timeline = (typeof data !== 'undefined' && data && Array.isArray(data.timeline))
+      ? data.timeline.map(function (ev) {
+          if (!ev) return ev;
+          var id = timelineId(ev);
+          var ts = ev.updatedAt || ev.updated_at || now;
+          var responsible = ev.responsible || ev.person || '';
+          return Object.assign({}, ev, {
+            id: id,
+            _id: id,
+            responsible: responsible,
+            person: responsible,
+            updatedAt: ts
+          });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/timeline/bulk', {
+      method: 'POST',
+      body: { timeline: timeline }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.event) return;
+        if (!r.ack) return;
+        var rid = timelineId(r.event);
+        if (!rid) return;
+        var list = data.timeline || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && timelineId(list[i]) === rid) {
+            list[i].updatedAt = r.event.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
@@ -918,14 +1035,17 @@
           return pushBudget().then(function (budget) {
             return pushSeating().then(function (seating) {
               return pushContracts().then(function (contracts) {
-                return {
-                  guests: guests,
-                  vendors: vendors,
-                  payments: payments,
-                  budget: budget,
-                  seating: seating,
-                  contracts: contracts
-                };
+                return pushTimeline().then(function (timeline) {
+                  return {
+                    guests: guests,
+                    vendors: vendors,
+                    payments: payments,
+                    budget: budget,
+                    seating: seating,
+                    contracts: contracts,
+                    timeline: timeline
+                  };
+                });
               });
             });
           });
@@ -1049,6 +1169,28 @@
       });
   }
 
+  function pullTimeline() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/timeline')
+      .then(function (body) {
+        var merge = mergeTimelineFromServer(body.timeline || body.events || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          if (document.body.getAttribute('data-active-panel') === 'timeline') {
+            try {
+              if (typeof window.__timelineRenderRd === 'function') window.__timelineRenderRd();
+              else if (typeof renderTimeline === 'function') renderTimeline();
+              else if (typeof renderWeddingDayOverview === 'function') renderWeddingDayOverview();
+            } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
@@ -1056,14 +1198,17 @@
           return pullBudget().then(function (budget) {
             return pullSeating().then(function (seating) {
               return pullContracts().then(function (contracts) {
-                return {
-                  guests: guests,
-                  vendors: vendors,
-                  payments: payments,
-                  budget: budget,
-                  seating: seating,
-                  contracts: contracts
-                };
+                return pullTimeline().then(function (timeline) {
+                  return {
+                    guests: guests,
+                    vendors: vendors,
+                    payments: payments,
+                    budget: budget,
+                    seating: seating,
+                    contracts: contracts,
+                    timeline: timeline
+                  };
+                });
               });
             });
           });
@@ -1118,7 +1263,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments + budget + seating + contracts.
+  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -1168,6 +1313,12 @@
             data.contracts.forEach(function (c) {
               if (!c) return;
               c.updatedAt = now;
+            });
+          }
+          if (Array.isArray(data.timeline)) {
+            data.timeline.forEach(function (ev) {
+              if (!ev) return;
+              ev.updatedAt = now;
             });
           }
         }

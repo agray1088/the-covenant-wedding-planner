@@ -27,6 +27,7 @@ ok('schema has payments', /CREATE TABLE IF NOT EXISTS payments/.test(read('serve
 ok('schema has budget_categories', /CREATE TABLE IF NOT EXISTS budget_categories/.test(read('server/schema.sql')));
 ok('schema has seating_tables', /CREATE TABLE IF NOT EXISTS seating_tables/.test(read('server/schema.sql')));
 ok('schema has contracts', /CREATE TABLE IF NOT EXISTS contracts/.test(read('server/schema.sql')));
+ok('schema has timeline_events', /CREATE TABLE IF NOT EXISTS timeline_events/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
@@ -34,13 +35,15 @@ ok('client pushes payments', /\/payments\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes budget', /\/budget\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes seating', /\/seating\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes contracts', /\/contracts\/bulk/.test(read('js/cloud-sync.js')));
+ok('client pushes timeline', /\/timeline\/bulk/.test(read('js/cloud-sync.js')));
 ok('vendors route file', fs.existsSync(path.join(root, 'server/routes/vendors.js')));
 ok('payments route file', fs.existsSync(path.join(root, 'server/routes/payments.js')));
 ok('budget route file', fs.existsSync(path.join(root, 'server/routes/budget.js')));
 ok('seating route file', fs.existsSync(path.join(root, 'server/routes/seating.js')));
 ok('contracts route file', fs.existsSync(path.join(root, 'server/routes/contracts.js')));
+ok('timeline route file', fs.existsSync(path.join(root, 'server/routes/timeline.js')));
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
-ok('settings mentions contracts', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts/.test(read('js/settings-window-redesign.js')));
+ok('settings mentions timeline', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline/.test(read('js/settings-window-redesign.js')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:8787';
 
@@ -234,6 +237,31 @@ async function live() {
     .then((r) => r.json());
   ok('contract appears in list', Array.isArray(clist.contracts) && clist.contracts.some((c) => c.id === contractId));
 
+  const timelineId = 'wdy_smoke_' + Date.now();
+  const putTimeline = await fetch(API + '/weddings/' + weddingId + '/timeline/' + timelineId, {
+    method: 'PUT',
+    headers: auth,
+    body: JSON.stringify({
+      id: timelineId,
+      time: '16:00',
+      event: 'Smoke ceremony starts',
+      location: 'Sanctuary',
+      responsible: 'Officiant',
+      duration: '45 min',
+      notes: 'Smoke timeline',
+      date: '2026-06-06',
+      status: 'Confirmed',
+      description: 'Smoke meta',
+      updatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('timeline upsert ack', putTimeline && putTimeline.ack === true && putTimeline.event && putTimeline.event.event === 'Smoke ceremony starts');
+  ok('timeline meta round-trip', putTimeline && putTimeline.event && putTimeline.event.description === 'Smoke meta');
+
+  const tlist = await fetch(API + '/weddings/' + weddingId + '/timeline', { headers: auth })
+    .then((r) => r.json());
+  ok('timeline appears in list', Array.isArray(tlist.timeline) && tlist.timeline.some((e) => e.id === timelineId));
+
   // Second context: login again and fetch
   const login = await fetch(API + '/auth/login', {
     method: 'POST',
@@ -265,6 +293,10 @@ async function live() {
     headers: { Authorization: 'Bearer ' + login.token }
   }).then((r) => r.json());
   ok('second context sees contract', Array.isArray(clist2.contracts) && clist2.contracts.some((c) => c.id === contractId));
+  const tlist2 = await fetch(API + '/weddings/' + weddingId + '/timeline', {
+    headers: { Authorization: 'Bearer ' + login.token }
+  }).then((r) => r.json());
+  ok('second context sees timeline', Array.isArray(tlist2.timeline) && tlist2.timeline.some((e) => e.id === timelineId));
 }
 
 await live();

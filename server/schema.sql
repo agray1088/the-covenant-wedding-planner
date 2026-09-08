@@ -1,6 +1,7 @@
 -- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings,
--- guests, vendors, payments, budget_categories, seating_tables, contracts.
--- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract shapes for Postgres sync.
+-- guests, vendors, payments, budget_categories, seating_tables, contracts,
+-- timeline_events (wedding day timeline).
+-- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -219,3 +220,30 @@ CREATE TABLE IF NOT EXISTS contracts (
 
 CREATE INDEX IF NOT EXISTS contracts_wedding_updated_idx
   ON contracts(wedding_id, updated_at);
+
+-- Wedding Day Timeline (data.timeline[]) — minute-by-minute day-of schedule.
+-- Client aliases: time↔start_time, person↔responsible, date↔event_date,
+-- endTime↔end_time, allDay↔all_day. Optional calendar fields (description,
+-- color, icon, …) travel in meta_json. Distinct from vendor arrivals (vtimeline)
+-- and weekend logistics — those stay on-device in this pass.
+CREATE TABLE IF NOT EXISTS timeline_events (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  start_time       TEXT,
+  event            TEXT NOT NULL DEFAULT '',
+  location         TEXT,
+  responsible      TEXT,
+  duration         TEXT,
+  notes            TEXT,
+  event_date       TEXT,
+  end_time         TEXT,
+  all_day          BOOLEAN NOT NULL DEFAULT FALSE,
+  status           TEXT,
+  meta_json        JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS timeline_events_wedding_updated_idx
+  ON timeline_events(wedding_id, updated_at);
