@@ -24,14 +24,17 @@ ok('server README', /Quick start/.test(read('server/README.md')));
 ok('schema has guests', /CREATE TABLE IF NOT EXISTS guests/.test(read('server/schema.sql')));
 ok('schema has vendors', /CREATE TABLE IF NOT EXISTS vendors/.test(read('server/schema.sql')));
 ok('schema has payments', /CREATE TABLE IF NOT EXISTS payments/.test(read('server/schema.sql')));
+ok('schema has budget_categories', /CREATE TABLE IF NOT EXISTS budget_categories/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes payments', /\/payments\/bulk/.test(read('js/cloud-sync.js')));
+ok('client pushes budget', /\/budget\/bulk/.test(read('js/cloud-sync.js')));
 ok('vendors route file', fs.existsSync(path.join(root, 'server/routes/vendors.js')));
 ok('payments route file', fs.existsSync(path.join(root, 'server/routes/payments.js')));
+ok('budget route file', fs.existsSync(path.join(root, 'server/routes/budget.js')));
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
-ok('settings mentions payments', /guests \+ vendors \+ payments/.test(read('js/settings-window-redesign.js')));
+ok('settings mentions budget', /guests \+ vendors \+ payments \+ budget/.test(read('js/settings-window-redesign.js')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:8787';
 
@@ -138,6 +141,29 @@ async function live() {
     .then((r) => r.json());
   ok('payment appears in list', Array.isArray(plist.payments) && plist.payments.some((p) => p.id === paymentId));
 
+  const budgetId = 'bc_smoke_' + Date.now();
+  const putBudget = await fetch(API + '/weddings/' + weddingId + '/budget/' + budgetId, {
+    method: 'PUT',
+    headers: auth,
+    body: JSON.stringify({
+      id: budgetId,
+      cat: 'Smoke Florals',
+      target: 10,
+      planned: 2000,
+      tip: 'Smoke tip',
+      items: [
+        { name: 'Bouquet', budgeted: 500, actual: 100, status: 'Partial', paid: false, due: '2026-05-01' }
+      ],
+      updatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('budget upsert ack', putBudget && putBudget.ack === true && putBudget.category && putBudget.category.cat === 'Smoke Florals');
+  ok('budget items round-trip', putBudget && putBudget.category && Array.isArray(putBudget.category.items) && putBudget.category.items.length === 1);
+
+  const blist = await fetch(API + '/weddings/' + weddingId + '/budget', { headers: auth })
+    .then((r) => r.json());
+  ok('budget appears in list', Array.isArray(blist.budget) && blist.budget.some((c) => c.id === budgetId));
+
   // Second context: login again and fetch
   const login = await fetch(API + '/auth/login', {
     method: 'POST',
@@ -157,6 +183,10 @@ async function live() {
     headers: { Authorization: 'Bearer ' + login.token }
   }).then((r) => r.json());
   ok('second context sees payment', Array.isArray(plist2.payments) && plist2.payments.some((p) => p.id === paymentId));
+  const blist2 = await fetch(API + '/weddings/' + weddingId + '/budget', {
+    headers: { Authorization: 'Bearer ' + login.token }
+  }).then((r) => r.json());
+  ok('second context sees budget', Array.isArray(blist2.budget) && blist2.budget.some((c) => c.id === budgetId));
 }
 
 await live();

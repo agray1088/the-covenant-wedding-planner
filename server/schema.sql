@@ -1,4 +1,5 @@
--- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings, guests, vendors, payments.
+-- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings,
+-- guests, vendors, payments, budget_categories.
 -- Trimmed from the planner's schema.sql guest/vendor/payment/wedding shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -139,3 +140,22 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 CREATE INDEX IF NOT EXISTS payments_wedding_updated_idx ON payments(wedding_id, updated_at);
+
+-- Budget category fields aligned with planner JSON + schema.sql budget_category / budget_item.
+-- Client aliases: cat↔name, target↔target_pct; line items stay nested JSON (like payment
+-- installments / guest companions) for LWW row sync on the category.
+CREATE TABLE IF NOT EXISTS budget_categories (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  name             TEXT NOT NULL DEFAULT '',
+  target_pct       DOUBLE PRECISION,
+  planned          DOUBLE PRECISION,
+  tip              TEXT,
+  items_json       JSONB NOT NULL DEFAULT '[]'::jsonb,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS budget_categories_wedding_updated_idx
+  ON budget_categories(wedding_id, updated_at);

@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, and payments.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, and budget.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -186,6 +186,46 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensureBudgetIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.budget)) return;
+      var changed = false;
+      data.budget.forEach(function (c) {
+        if (!c) return;
+        var id = c.id || c._id;
+        if (!id) {
+          id = 'bc_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (c.id !== id) { c.id = id; changed = true; }
+        if (c._id !== id) { c._id = id; changed = true; }
+        if (!Array.isArray(c.items)) {
+          c.items = [];
+          changed = true;
+        }
+        c.items.forEach(function (it, ii) {
+          if (!it) return;
+          var iid = it.id || it._id;
+          if (!iid) {
+            iid = id + '_i_' + ii + '_' + Math.random().toString(36).slice(2, 6);
+            changed = true;
+          }
+          if (it.id !== iid) { it.id = iid; changed = true; }
+          if (it._id !== iid) { it._id = iid; changed = true; }
+        });
+        if (!c.updatedAt) {
+          c.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -204,12 +244,22 @@
     return isNaN(t) ? 0 : t;
   }
 
+  function budgetTs(c) {
+    if (!c) return 0;
+    var t = Date.parse(c.updatedAt || c.updated_at || '');
+    return isNaN(t) ? 0 : t;
+  }
+
   function vendorId(v) {
     return v ? String(v.id || v._id || '') : '';
   }
 
   function paymentId(p) {
     return p ? String(p.id || p._id || '') : '';
+  }
+
+  function budgetId(c) {
+    return c ? String(c.id || c._id || '') : '';
   }
 
   function mergeGuestsFromServer(serverGuests) {
@@ -308,6 +358,46 @@
     return { pulled: pulled, kept: kept };
   }
 
+  function mergeBudgetFromServer(serverBudget) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.budget)) data.budget = [];
+    var byId = {};
+    data.budget.forEach(function (c, i) {
+      var id = budgetId(c);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverBudget || []).forEach(function (sc) {
+      if (!sc) return;
+      var id = budgetId(sc);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, sc, { id: id, _id: id, cat: sc.cat || sc.name || '' });
+        if (!Array.isArray(row.items)) row.items = [];
+        data.budget.push(row);
+        byId[id] = data.budget.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.budget[idx];
+      if (budgetTs(sc) > budgetTs(local)) {
+        var merged = Object.assign({}, local, sc, {
+          id: id,
+          _id: id,
+          cat: sc.cat || sc.name || local.cat || ''
+        });
+        if (!Array.isArray(merged.items)) merged.items = [];
+        data.budget[idx] = merged;
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
   function signIn(email, password) {
     return api('/auth/login', { method: 'POST', body: { email: email, password: password } })
       .then(function (body) {
@@ -388,6 +478,7 @@
     ensureGuestIds();
     ensureVendorIds();
     ensurePaymentIds();
+    ensureBudgetIds();
     setStatus('syncing');
     // Prefer an already-owned cloud wedding (same account on another device) before POST create.
     // Different devices use different clientKeys, so POST alone would spawn empty duplicates.
@@ -527,11 +618,55 @@
     });
   }
 
+  function pushBudget() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensureBudgetIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var budget = (typeof data !== 'undefined' && data && Array.isArray(data.budget))
+      ? data.budget.map(function (c) {
+          if (!c) return c;
+          var id = budgetId(c);
+          var ts = c.updatedAt || c.updated_at || now;
+          return Object.assign({}, c, {
+            id: id,
+            _id: id,
+            cat: c.cat || c.name || '',
+            updatedAt: ts,
+            items: Array.isArray(c.items) ? c.items : []
+          });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/budget/bulk', {
+      method: 'POST',
+      body: { budget: budget }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.category) return;
+        if (!r.ack) return;
+        var rid = budgetId(r.category);
+        if (!rid) return;
+        var list = data.budget || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && budgetId(list[i]) === rid) {
+            list[i].updatedAt = r.category.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
         return pushPayments().then(function (payments) {
-          return { guests: guests, vendors: vendors, payments: payments };
+          return pushBudget().then(function (budget) {
+            return { guests: guests, vendors: vendors, payments: payments, budget: budget };
+          });
         });
       });
     });
@@ -591,11 +726,31 @@
       });
   }
 
+  function pullBudget() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/budget')
+      .then(function (body) {
+        var merge = mergeBudgetFromServer(body.budget || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          if (typeof renderBudget === 'function' && document.body.getAttribute('data-active-panel') === 'budget') {
+            try { renderBudget(); } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
         return pullPayments().then(function (payments) {
-          return { guests: guests, vendors: vendors, payments: payments };
+          return pullBudget().then(function (budget) {
+            return { guests: guests, vendors: vendors, payments: payments, budget: budget };
+          });
         });
       });
     });
@@ -647,7 +802,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments.
+  // Alias — sync covers guests + vendors + payments + budget.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -676,6 +831,12 @@
             data.payments.forEach(function (p) {
               if (!p) return;
               p.updatedAt = now;
+            });
+          }
+          if (Array.isArray(data.budget)) {
+            data.budget.forEach(function (c) {
+              if (!c) return;
+              c.updatedAt = now;
             });
           }
         }
