@@ -94,6 +94,8 @@ See `server/README.md`. Typical path:
 docker compose down -v
 docker compose build postgres
 docker compose up -d          # postgres + pgbouncer :5433 + api + browser pgAdmin :5050
+docker compose ps             # pgbouncer must own :5433; postgres must NOT
+bash scripts/verify-pgbouncer-host.sh
 cp server/.env.example server/.env
 npm install --prefix server
 # Prefer API via Compose; host Node uses 127.0.0.1:5433 (pgbouncer)

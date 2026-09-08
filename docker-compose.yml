@@ -3,7 +3,7 @@
 #
 # LOCAL DEV ONLY — not for production.
 #
-# Desktop pgAdmin / host Node → 127.0.0.1:5433 → pgbouncer (AUTH_TYPE=any)
+# Desktop pgAdmin / host Node → 127.0.0.1:5433 → pgbouncer (auth_type=any + forced user)
 #   → postgres on the Docker network (trust). This avoids Docker Desktop on
 #   Windows breaking SCRAM password auth through published Postgres ports.
 # Browser pgAdmin (:5050) and the api service talk to hostname `postgres` directly.
@@ -34,17 +34,15 @@ services:
       retries: 10
 
   # Host-facing DB endpoint for desktop pgAdmin / psql / host Node.
-  # AUTH_TYPE=any: no SCRAM across the Docker Desktop Windows port proxy.
+  # Mounted ini (not edoburu AUTH_TYPE env): auth_type=any REQUIRES forced user=
+  # on every [databases] line. edoburu only emits auth_user=, which yields
+  # "bouncer config error" / auth_type=any requires forced user.
   pgbouncer:
     image: edoburu/pgbouncer:v1.23.1-p0
     container_name: covenant-pgbouncer
-    environment:
-      DATABASE_URL: postgres://covenant:covenant@postgres:5432/covenant
-      AUTH_TYPE: any
-      POOL_MODE: session
-      ADMIN_USERS: covenant
-      IGNORE_STARTUP_PARAMETERS: extra_float_digits,options
-      SERVER_RESET_QUERY: DISCARD ALL
+    volumes:
+      - ./server/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./server/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
     ports:
       - "5433:5432"
     depends_on:

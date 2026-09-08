@@ -11,7 +11,7 @@ Offline-first planner stays the default. This Node + Postgres API is **opt-in** 
 
 Prefer running the API **and browser pgAdmin** inside Compose on the same Docker network (most reliable).
 
-**Mandatory after pulling this stack:** rebuild images and wipe the volume (`-v`) so the baked-in trust `pg_hba` and **pgbouncer** host proxy are what you run:
+**Mandatory after pulling this stack:** wipe volumes and recreate so **pgbouncer** owns host `:5433` (not Postgres):
 
 ```bat
 cd /d C:\Users\arian\the-covenant-wedding-planner
@@ -20,10 +20,22 @@ docker compose down -v
 docker compose build --no-cache postgres
 docker compose up -d
 docker compose ps
+bash scripts/verify-pgbouncer-host.sh
 docker compose logs -f api
 ```
 
+Windows note: if `bash` is unavailable, run `scripts\verify-pgbouncer-host.bat` instead.
+
 `-v` removes the Postgres data volume — **required** when switching host auth / adding pgbouncer. Local-dev data is wiped; that is expected for wedding-planner Docker Desktop only.
+
+**`docker compose ps` must show:**
+
+| Container | Host ports |
+|-----------|------------|
+| `covenant-pgbouncer` | `0.0.0.0:5433->5432/tcp` |
+| `covenant-postgres` | `5432/tcp` only (**no** host `5433`) |
+
+If `covenant-postgres` still shows `5433`, you are on the **old** stack — run `down -v` + `up -d` again after `git pull`.
 
 Wait until you see `listening on http://127.0.0.1:8787`, then open:
 `http://127.0.0.1:8787/health`
@@ -37,7 +49,9 @@ Docker Desktop on Windows **proxies published ports** into the Linux VM. Native 
 **Fix (local Docker Desktop only — never ship this to production):**
 
 1. Postgres image bakes `server/pg_hba.conf` (**trust**) and always starts with `hba_file` + `listen_addresses=*` (no fragile Windows bind-mount of the conf file).
-2. Postgres is **not** published on the host. Host tools connect to **pgbouncer** on `127.0.0.1:5433` with `AUTH_TYPE=any` (no SCRAM across the Windows port proxy). Pgbouncer reaches Postgres on the Docker network, which works.
+2. Postgres is **not** published on the host. Host tools connect to **pgbouncer** on `127.0.0.1:5433`.
+3. Pgbouncer uses a **mounted** `server/pgbouncer/pgbouncer.ini` with `auth_type = any` **and** forced `user=covenant password=covenant` on every `[databases]` line (required by [pgbouncer docs](https://www.pgbouncer.org/config.html)).  
+   Do **not** rely on edoburu `AUTH_TYPE=any` + `DATABASE_URL` alone — that image only emits `auth_user=`, which produces `FATAL: bouncer config error` / `auth_type=any requires forced user`.
 
 ### Browse guests — desktop pgAdmin → `127.0.0.1:5433` (pgbouncer)
 
@@ -49,7 +63,7 @@ In desktop pgAdmin → **Register → Server** → **Connection**:
 | Port | `5433` |
 | Maintenance database | `covenant` |
 | Username | `covenant` |
-| Password | `covenant` (any value is accepted via pgbouncer `AUTH_TYPE=any`) |
+| Password | `covenant` (any value / blank also works — `auth_type=any`) |
 
 On the **SSL** tab: **Disable** (simplest for local Docker Desktop).
 
@@ -59,10 +73,12 @@ Confirm the proxy is up:
 
 ```bat
 docker compose ps
+docker compose exec pgbouncer cat /etc/pgbouncer/pgbouncer.ini
 docker compose logs pgbouncer --tail 30
+bash scripts/verify-pgbouncer-host.sh
 ```
 
-You should see `covenant-pgbouncer` listening and `covenant-postgres` healthy. If desktop still fails after a volume wipe + rebuild, use browser pgAdmin below (same data).
+You should see `covenant-pgbouncer` on host `:5433` and `user=covenant password=covenant` in the ini. If desktop still fails after a volume wipe + recreate, use browser pgAdmin below (same data).
 
 ### Browse guests — browser pgAdmin (Docker network)
 
