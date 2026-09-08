@@ -6,15 +6,31 @@
  * Device B: fresh context → enable cloud → same login → sync/pull → assert guest present
  *
  * Requires sync API on :8787 (docker compose up -d, or host `npm run server`).
+ * Requires root `npm install` + Playwright Chromium (see scripts/_ensure-playwright.mjs).
  *
- * Usage:
+ * Usage (Windows CMD, from repo root):
+ *   npm install
+ *   npx playwright install chromium
+ *   docker compose up -d
+ *   npm run verify:second-device
+ *
+ * Or:
  *   node scripts/_verify-second-device-sync.mjs
  *   COVENANT_CLOUD_API=http://127.0.0.1:8787 node scripts/_verify-second-device-sync.mjs
  */
 import { createServer } from 'http';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname } from 'path';
-import { chromium } from 'playwright';
+import {
+  ensurePlaywrightPackage,
+  ensurePlaywrightChromium
+} from './_ensure-playwright.mjs';
+
+if (!ensurePlaywrightPackage() || !ensurePlaywrightChromium()) {
+  process.exit(1);
+}
+
+const { chromium } = await import('playwright');
 
 const ROOT = process.cwd();
 const PORT = Number(process.env.E2E_SECOND_DEVICE_PORT || 8793);
@@ -51,7 +67,7 @@ async function requireApi() {
     health = await res.json();
   } catch (e) {
     throw new Error(
-      `Sync API not reachable at ${API}. Start with: docker compose up -d  (api on :8787)`
+      `Sync API not reachable at ${API}. Start with: docker compose up -d  (API on :8787). Keep Compose running while verifying.`
     );
   }
   if (!health || health.ok !== true) {

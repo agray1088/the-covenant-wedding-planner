@@ -118,14 +118,32 @@ Prove a guest added on device A appears on device B after sign-in + sync.
 
 ### Automated (preferred)
 
-With the sync API up (`docker compose up -d` → `:8787`):
+**Prereqs:** Docker stack up (sync API on `:8787`), root `npm install`, and Playwright Chromium.
+
+Windows CMD (repo root):
+
+```bat
+npm install
+npx playwright install chromium
+docker compose up -d
+npm run verify:second-device
+```
+
+(`playwright` is a root `devDependency`. Skip `npx playwright install chromium` on later runs if Chromium is already installed — `npm run verify:second-device` also ensures it.)
+
+Unix / Git Bash:
 
 ```bash
+npm install
+npx playwright install chromium
+docker compose up -d
 npm run verify:second-device
 # or: node scripts/_verify-second-device-sync.mjs
 ```
 
 Uses two isolated Playwright storage contexts, demo login `demo@covenant.local` / `covenant-demo`, and asserts the unique guest pulled onto device B.
+
+If you see `Cannot find package 'playwright'`, you skipped root `npm install` — run the Windows block above from the repo root (not only `server/`).
 
 ### Manual (Chrome)
 

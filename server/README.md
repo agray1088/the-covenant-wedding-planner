@@ -208,12 +208,16 @@ Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and syn
 
 Guests uploaded on one browser profile must appear on another after the same account signs in and syncs.
 
-**Automated** (two Playwright storage contexts):
+**Automated** (two Playwright storage contexts). Windows CMD from repo root:
 
-```bash
-# API must be up on :8787
+```bat
+npm install
+npx playwright install chromium
+docker compose up -d
 npm run verify:second-device
 ```
+
+Keep `docker compose up -d` running so the API stays on `:8787`. If you see `Cannot find package 'playwright'`, run `npm install` at the **repo root** (not only under `server/`).
 
 **Manual:** open a second Chrome profile or Incognito, set the same `covenant_cloud_api` / `covenant_cloud_enabled` flags, sign in as `demo@covenant.local` / `covenant-demo`, then **Sync now**. Full steps: `docs/OFFLINE_CLOUD_SYNC.md` → *Manual test: second device*.
 
