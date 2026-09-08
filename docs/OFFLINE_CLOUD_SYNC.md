@@ -91,12 +91,15 @@ If the device already has a linked wedding id, Upload reuses it (upsert) rather 
 See `server/README.md`. Typical path:
 
 ```bash
-docker compose up -d          # or local Postgres
+docker compose down -v
+docker compose build postgres
+docker compose up -d          # postgres + pgbouncer :5433 + api + browser pgAdmin :5050
 cp server/.env.example server/.env
 npm install --prefix server
-npm run server                # API on :8787
+# Prefer API via Compose; host Node uses 127.0.0.1:5433 (pgbouncer)
 npm run serve                 # static planner on :8000
 ```
+
 
 Then in the browser console (or a small local config):
 

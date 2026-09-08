@@ -11,26 +11,62 @@ Offline-first planner stays the default. This Node + Postgres API is **opt-in** 
 
 Prefer running the API **and browser pgAdmin** inside Compose on the same Docker network (most reliable).
 
-**Mandatory after any auth / `pg_hba` change:** recreate the volume with `-v` so Postgres re-inits (and so the mounted `server/pg_hba.conf` is what the server uses via `hba_file`):
+**Mandatory after pulling this stack:** rebuild images and wipe the volume (`-v`) so the baked-in trust `pg_hba` and **pgbouncer** host proxy are what you run:
 
 ```bat
 cd /d C:\Users\arian\the-covenant-wedding-planner
 git pull origin cursor/offline-cloud-sync-017e
 docker compose down -v
+docker compose build --no-cache postgres
 docker compose up -d
+docker compose ps
 docker compose logs -f api
 ```
 
-`-v` removes the Postgres data volume — **required** when switching host auth (`trust` / md5 / custom `pg_hba.conf`). Local-dev data is wiped; that is expected for wedding-planner Docker Desktop only.
+`-v` removes the Postgres data volume — **required** when switching host auth / adding pgbouncer. Local-dev data is wiped; that is expected for wedding-planner Docker Desktop only.
 
 Wait until you see `listening on http://127.0.0.1:8787`, then open:
 `http://127.0.0.1:8787/health`
 
 Leave that running. Serve the planner in another terminal with `npm run serve`.
 
-### Browse guests — preferred: browser pgAdmin (no host:5433)
+### Why desktop pgAdmin failed / how we fixed it
 
-Compose starts **pgAdmin** on the same Docker network as Postgres. Open:
+Docker Desktop on Windows **proxies published ports** into the Linux VM. Native Windows clients (desktop pgAdmin, host Node) talking SCRAM to Postgres on `127.0.0.1:5433` often get `FATAL: password authentication failed for user "covenant"` even when the password is correct. Blank password yields `fe_sendauth: no password supplied`. The same credentials work on the **internal Docker network** (api → `postgres`, browser pgAdmin → `postgres`).
+
+**Fix (local Docker Desktop only — never ship this to production):**
+
+1. Postgres image bakes `server/pg_hba.conf` (**trust**) and always starts with `hba_file` + `listen_addresses=*` (no fragile Windows bind-mount of the conf file).
+2. Postgres is **not** published on the host. Host tools connect to **pgbouncer** on `127.0.0.1:5433` with `AUTH_TYPE=any` (no SCRAM across the Windows port proxy). Pgbouncer reaches Postgres on the Docker network, which works.
+
+### Browse guests — desktop pgAdmin → `127.0.0.1:5433` (pgbouncer)
+
+In desktop pgAdmin → **Register → Server** → **Connection**:
+
+| Field | Value |
+|-------|--------|
+| Host name/address | `127.0.0.1` (use this, not `localhost`) |
+| Port | `5433` |
+| Maintenance database | `covenant` |
+| Username | `covenant` |
+| Password | `covenant` (any value is accepted via pgbouncer `AUTH_TYPE=any`) |
+
+On the **SSL** tab: **Disable** (simplest for local Docker Desktop).
+
+Save, then expand **Servers → … → Databases → covenant → Schemas → public → Tables → guests**.
+
+Confirm the proxy is up:
+
+```bat
+docker compose ps
+docker compose logs pgbouncer --tail 30
+```
+
+You should see `covenant-pgbouncer` listening and `covenant-postgres` healthy. If desktop still fails after a volume wipe + rebuild, use browser pgAdmin below (same data).
+
+### Browse guests — browser pgAdmin (Docker network)
+
+Compose also starts **pgAdmin** on the same Docker network as Postgres. Open:
 
 **http://localhost:5050**
 
@@ -51,42 +87,22 @@ A server named **Covenant Postgres** is preconfigured:
 
 Expand **Servers → Covenant Postgres → Databases → covenant → Schemas → public → Tables → guests**.
 
-This path never uses the published host port, so Windows desktop auth to `127.0.0.1:5433` is irrelevant.
+### Quick start (Docker Postgres + pgbouncer only, API on host)
 
-### Browse guests — optional: desktop pgAdmin → host port 5433
-
-Compose still publishes Postgres on **127.0.0.1:5433**. Auth is forced to **trust** by mounting `server/pg_hba.conf` and starting Postgres with `hba_file=/etc/postgresql/pg_hba.conf` (env `POSTGRES_HOST_AUTH_METHOD` alone only applies on first init). **Local Docker Desktop only — never use trust in production.**
-
-In desktop pgAdmin → Register → Server:
-
-| Field | Value |
-|-------|--------|
-| Host | `127.0.0.1` |
-| Port | `5433` |
-| Maintenance database | `covenant` |
-| Username | `covenant` |
-| Password | `covenant` (accepted; trust also allows empty) |
-
-If you still see `FATAL: password authentication failed for user "covenant"`:
-
-1. Run `docker compose down -v && docker compose up -d` again (old volume / old `pg_hba`).
-2. Prefer **http://localhost:5050** instead of desktop pgAdmin.
-
-### Quick start (Docker Postgres only, API on host)
-
-Compose maps Postgres to host port **5433**. Prefer browser pgAdmin (`:5050`) or the `api` service; for host Node use trust + `hba_file`, or fall back to `docker exec` queries below.
+Host tools use **pgbouncer** on port **5433**. Prefer the full Compose stack (`api` + browser pgAdmin) when possible.
 
 ```bash
 # from repo root
 docker compose down -v
-docker compose up -d postgres
+docker compose build postgres
+docker compose up -d postgres pgbouncer
 cp server/.env.example server/.env   # Windows CMD: copy /Y server\.env.example server\.env
 npm install --prefix server
 npm run server
 # → http://127.0.0.1:8787/health
 ```
 
-`DATABASE_URL` for host Node must use port **5433**:
+`DATABASE_URL` for host Node must use port **5433** (pgbouncer):
 `postgres://covenant:covenant@127.0.0.1:5433/covenant`
 
 ## Quick start (local Postgres, no Docker)
@@ -174,7 +190,7 @@ Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and syn
 
 ## Verify guests landed in Postgres (Windows)
 
-After status shows **Synced · … · wedding linked**, browse guests in **browser pgAdmin** at http://localhost:5050 (preferred), desktop pgAdmin on `127.0.0.1:5433`, or use `docker exec` as a fallback that never depends on the published port:
+After status shows **Synced · … · wedding linked**, browse guests in **desktop pgAdmin** (`127.0.0.1:5433` → pgbouncer), **browser pgAdmin** at http://localhost:5050, or use `docker exec` as a fallback that never depends on the published port:
 
 ```bat
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, name, household, rsvp, updated_at FROM guests ORDER BY updated_at DESC LIMIT 50;"

@@ -1,12 +1,18 @@
-# Optional local Postgres + sync API + browser pgAdmin for Covenant cloud sync (beta).
+# Optional local Postgres + host proxy + sync API + browser pgAdmin (beta).
 # Offline planner does not need this — only the sync API does.
 #
 # LOCAL DEV ONLY — not for production.
-# Postgres host auth is forced to trust via mounted server/pg_hba.conf (hba_file).
-# Prefer browser pgAdmin on :5050 (same Docker network) over desktop pgAdmin → :5433.
+#
+# Desktop pgAdmin / host Node → 127.0.0.1:5433 → pgbouncer (AUTH_TYPE=any)
+#   → postgres on the Docker network (trust). This avoids Docker Desktop on
+#   Windows breaking SCRAM password auth through published Postgres ports.
+# Browser pgAdmin (:5050) and the api service talk to hostname `postgres` directly.
 services:
   postgres:
-    image: postgres:16-alpine
+    build:
+      context: ./server
+      dockerfile: Dockerfile.postgres
+    image: covenant-postgres:local
     container_name: covenant-postgres
     environment:
       POSTGRES_USER: covenant
@@ -15,17 +21,37 @@ services:
       # Local wedding-planner Docker Desktop only — never ship trust to production.
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_INITDB_ARGS: "--auth-host=trust"
-    # Override pg_hba even on an existing volume (env trust only applies on first init).
-    command: ["postgres", "-c", "hba_file=/etc/postgresql/pg_hba.conf"]
-    ports:
-      # Direct DB access from host tools (desktop pgAdmin, psql, host Node on :5433)
-      - "5433:5432"
+    # Not published to the host — use pgbouncer on :5433 for desktop tools.
+    expose:
+      - "5432"
     volumes:
       - covenant_pg_data:/var/lib/postgresql/data
       - ./server/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./server/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U covenant -d covenant"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Host-facing DB endpoint for desktop pgAdmin / psql / host Node.
+  # AUTH_TYPE=any: no SCRAM across the Docker Desktop Windows port proxy.
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.23.1-p0
+    container_name: covenant-pgbouncer
+    environment:
+      DATABASE_URL: postgres://covenant:covenant@postgres:5432/covenant
+      AUTH_TYPE: any
+      POOL_MODE: session
+      ADMIN_USERS: covenant
+      IGNORE_STARTUP_PARAMETERS: extra_float_digits,options
+      SERVER_RESET_QUERY: DISCARD ALL
+    ports:
+      - "5433:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-p", "5432", "-U", "covenant"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -50,7 +76,7 @@ services:
       postgres:
         condition: service_healthy
 
-  # Browser pgAdmin — preferred on Windows (no host:5433 auth). Same Docker network as postgres.
+  # Browser pgAdmin — same Docker network as postgres (no host:5433).
   pgadmin:
     image: dpage/pgadmin4:8
     container_name: covenant-pgadmin
