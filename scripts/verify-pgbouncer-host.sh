@@ -1,67 +1,99 @@
 #!/usr/bin/env bash
-# Verify host-facing pgbouncer on :5433 is configured and accepting connections.
-# LOCAL DEV ONLY. Run from repo root after: docker compose up -d postgres pgbouncer
+# Verify host-facing DB proxy on :15432 (socat → postgres trust).
+# LOCAL DEV ONLY. Run from repo root after: docker compose up -d postgres db-proxy
+#
+# IMPORTANT: In-container `docker compose exec postgres psql` does NOT prove the
+# Windows/host → published port path. This script tests 127.0.0.1:15432 (or
+# host.docker.internal:15432) and requires WRONG passwords to still succeed
+# (proves trust, not SCRAM).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+PORT=15432
 
-echo "== docker compose ps (pgbouncer must own host :5433) =="
+echo "== docker compose ps (db-proxy must own host :${PORT}) =="
 docker compose ps
 echo
 
-if ! docker compose ps --format '{{.Name}} {{.Ports}}' | grep -q 'covenant-pgbouncer.*5433'; then
-  echo "FAIL: covenant-pgbouncer is not publishing host port 5433."
+if ! docker compose ps --format '{{.Name}} {{.Ports}}' | grep -q "covenant-db-proxy.*${PORT}"; then
+  echo "FAIL: covenant-db-proxy is not publishing host port ${PORT}."
   echo "Recreate: docker compose down -v && docker compose build postgres && docker compose up -d"
   exit 1
 fi
 
-if docker compose ps --format '{{.Name}} {{.Ports}}' | grep -q 'covenant-postgres.*5433'; then
-  echo "FAIL: covenant-postgres is still published on 5433 (old stack)."
+if docker compose ps --format '{{.Name}} {{.Ports}}' | grep -qE "covenant-postgres.*(${PORT}|5433)"; then
+  echo "FAIL: covenant-postgres is published on the host (old stack)."
   echo "Recreate: docker compose down -v && docker compose up -d"
   exit 1
 fi
 
-echo "== mounted pgbouncer.ini (must have auth_type=any + forced user=) =="
-docker compose exec -T pgbouncer cat /etc/pgbouncer/pgbouncer.ini
-echo
-
-ini="$(docker compose exec -T pgbouncer cat /etc/pgbouncer/pgbouncer.ini)"
-echo "$ini" | grep -q 'auth_type = any' || { echo "FAIL: auth_type is not any"; exit 1; }
-echo "$ini" | grep -E 'user=covenant' | grep -q 'password=covenant' \
-  || { echo "FAIL: missing forced user=covenant password=covenant in [databases]"; exit 1; }
-if echo "$ini" | grep -E '^\s*covenant\s*=' | grep -q 'auth_user=' && \
-   ! echo "$ini" | grep -E '^\s*covenant\s*=' | grep -q 'user=covenant'; then
-  echo "FAIL: database line uses auth_user= without forced user= (broken with auth_type=any)"
+if docker compose ps --format '{{.Name}} {{.Ports}}' | grep -q 'covenant-pgbouncer'; then
+  echo "FAIL: old covenant-pgbouncer container still present."
+  echo "Recreate: docker compose down -v && docker compose up -d"
   exit 1
 fi
 
-echo "== userlist =="
-docker compose exec -T pgbouncer cat /etc/pgbouncer/userlist.txt
+echo "== postgres hba (must be trust) =="
+docker compose exec -T postgres cat /etc/postgresql/pg_hba.conf
 echo
 
-echo "== host connection tests (password covenant / any / blank all OK with auth_type=any) =="
-if command -v psql >/dev/null 2>&1; then
-  for pass in covenant anything ''; do
-    if PGPASSWORD="$pass" psql -h 127.0.0.1 -p 5433 -U covenant -d covenant -v ON_ERROR_STOP=1 -c 'SELECT current_user, current_database();' >/tmp/covenant-pgb-test.out 2>&1; then
-      echo "OK: password=${pass:-<blank>}"
-      cat /tmp/covenant-pgb-test.out
-    else
-      echo "FAIL: password=${pass:-<blank>}"
-      cat /tmp/covenant-pgb-test.out
-      echo
-      echo "Recent pgbouncer logs:"
-      docker compose logs pgbouncer --tail 20
-      exit 1
+echo "== host connection tests via published port :${PORT} =="
+echo "(password covenant AND a wrong password must BOTH succeed — proves trust)"
+
+run_psql() {
+  local pass="$1"
+  local label="$2"
+  if command -v psql >/dev/null 2>&1; then
+    if PGPASSWORD="$pass" psql -h 127.0.0.1 -p "$PORT" -U covenant -d covenant -v ON_ERROR_STOP=1 \
+      -c 'SELECT current_user, current_database();' >/tmp/covenant-db-proxy-test.out 2>&1; then
+      echo "OK: ${label}"
+      cat /tmp/covenant-db-proxy-test.out
+      return 0
     fi
-  done
-else
-  echo "psql not on PATH — testing via docker network instead"
-  docker compose exec -T postgres psql -U covenant -d covenant -c 'SELECT 1 AS postgres_ok;'
-  # From another container on the compose network, hit pgbouncer:5432
-  docker compose run --rm --entrypoint /bin/sh pgbouncer -c \
-    'apk add --no-cache postgresql-client >/dev/null && PGPASSWORD=covenant psql -h pgbouncer -p 5432 -U covenant -d covenant -c "SELECT 1 AS pgbouncer_ok;"'
+    echo "FAIL: ${label}"
+    cat /tmp/covenant-db-proxy-test.out
+    return 1
+  fi
+
+  # No host psql — still exercise the published port via Docker Desktop proxy path.
+  if docker run --rm --add-host=host.docker.internal:host-gateway postgres:16-alpine \
+    sh -c "PGPASSWORD='$pass' psql -h host.docker.internal -p $PORT -U covenant -d covenant -v ON_ERROR_STOP=1 -c 'SELECT 1 AS published_port_ok;'" \
+    >/tmp/covenant-db-proxy-test.out 2>&1; then
+    echo "OK: ${label} (via host.docker.internal:${PORT})"
+    cat /tmp/covenant-db-proxy-test.out
+    return 0
+  fi
+  echo "FAIL: ${label} (via host.docker.internal:${PORT})"
+  cat /tmp/covenant-db-proxy-test.out
+  return 1
+}
+
+if ! run_psql 'covenant' 'password=covenant'; then
+  echo
+  echo "Recent db-proxy / postgres logs:"
+  docker compose logs db-proxy postgres --tail 30
+  echo
+  echo "If you are on Windows and this fails while compose looks healthy, check for a"
+  echo "native Postgres stealing the port:  netstat -ano | findstr ${PORT}"
+  exit 1
+fi
+
+if ! run_psql 'definitely-not-the-password' 'password=WRONG (trust must accept)'; then
+  echo
+  echo "Correct password worked but WRONG password failed → you hit SCRAM/md5 Postgres,"
+  echo "not this stack's trust proxy. On Windows, stop native PostgreSQL or anything else"
+  echo "bound to :${PORT}. Compose can look fine while localhost goes elsewhere."
+  docker compose logs db-proxy postgres --tail 30
+  exit 1
+fi
+
+if [[ -f server/node_modules/pg/package.json ]]; then
+  echo
+  echo "== optional true-host Node driver check =="
+  node scripts/_verify-host-db.mjs
 fi
 
 echo
-echo "All checks passed. Desktop pgAdmin: Host 127.0.0.1 Port 5433 User/Password/DB covenant SSL Disable."
+echo "All checks passed. Desktop pgAdmin: Host 127.0.0.1 Port ${PORT} User/Password/DB covenant SSL Disable."
+echo "Do NOT use port 5433 anymore (old pgbouncer / often conflicts with Windows Postgres)."

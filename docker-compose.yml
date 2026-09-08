@@ -3,9 +3,10 @@
 #
 # LOCAL DEV ONLY — not for production.
 #
-# Desktop pgAdmin / host Node → 127.0.0.1:5433 → pgbouncer (auth_type=any + forced user)
-#   → postgres on the Docker network (trust). This avoids Docker Desktop on
-#   Windows breaking SCRAM password auth through published Postgres ports.
+# Desktop pgAdmin / host Node → 127.0.0.1:15432 → db-proxy (plain TCP)
+#   → postgres on the Docker network (pg_hba trust). No SCRAM on the host path.
+# Port 15432 avoids Windows native Postgres often bound to 5432/5433 — a common
+# cause of "password authentication failed" while Compose still looks healthy.
 # Browser pgAdmin (:5050) and the api service talk to hostname `postgres` directly.
 services:
   postgres:
@@ -21,7 +22,7 @@ services:
       # Local wedding-planner Docker Desktop only — never ship trust to production.
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_INITDB_ARGS: "--auth-host=trust"
-    # Not published to the host — use pgbouncer on :5433 for desktop tools.
+    # Not published to the host — use db-proxy on :15432 for desktop tools.
     expose:
       - "5432"
     volumes:
@@ -34,22 +35,21 @@ services:
       retries: 10
 
   # Host-facing DB endpoint for desktop pgAdmin / psql / host Node.
-  # Mounted ini (not edoburu AUTH_TYPE env): auth_type=any REQUIRES forced user=
-  # on every [databases] line. edoburu only emits auth_user=, which yields
-  # "bouncer config error" / auth_type=any requires forced user.
-  pgbouncer:
-    image: edoburu/pgbouncer:v1.23.1-p0
-    container_name: covenant-pgbouncer
-    volumes:
-      - ./server/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
-      - ./server/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+  # Plain TCP forward (no pgbouncer auth). Backend Postgres uses trust, so
+  # Windows Docker Desktop never has to proxy a SCRAM handshake.
+  db-proxy:
+    image: alpine/socat:1.8.0.1
+    container_name: covenant-db-proxy
+    command:
+      - TCP-LISTEN:5432,fork,reuseaddr,bind=0.0.0.0
+      - TCP:postgres:5432
     ports:
-      - "5433:5432"
+      - "15432:5432"
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-p", "5432", "-U", "covenant"]
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 5432 && nc -z postgres 5432"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -74,7 +74,7 @@ services:
       postgres:
         condition: service_healthy
 
-  # Browser pgAdmin — same Docker network as postgres (no host:5433).
+  # Browser pgAdmin — same Docker network as postgres (no host:15432).
   pgadmin:
     image: dpage/pgadmin4:8
     container_name: covenant-pgadmin

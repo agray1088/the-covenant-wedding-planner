@@ -93,12 +93,12 @@ See `server/README.md`. Typical path:
 ```bash
 docker compose down -v
 docker compose build postgres
-docker compose up -d          # postgres + pgbouncer :5433 + api + browser pgAdmin :5050
-docker compose ps             # pgbouncer must own :5433; postgres must NOT
-bash scripts/verify-pgbouncer-host.sh
+docker compose up -d          # postgres + db-proxy :15432 + api + browser pgAdmin :5050
+docker compose ps             # db-proxy must own :15432; postgres must NOT be published
+scripts/verify-pgbouncer-host.sh   # Windows: scripts\verify-pgbouncer-host.bat
 cp server/.env.example server/.env
 npm install --prefix server
-# Prefer API via Compose; host Node uses 127.0.0.1:5433 (pgbouncer)
+# Prefer API via Compose; host Node uses 127.0.0.1:15432 (db-proxy)
 npm run serve                 # static planner on :8000
 ```
 

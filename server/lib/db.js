@@ -23,7 +23,7 @@ const { Pool } = pg;
 
 const DEFAULT_URL = inDocker
   ? 'postgres://covenant:covenant@postgres:5432/covenant'
-  : 'postgres://covenant:covenant@127.0.0.1:5433/covenant';
+  : 'postgres://covenant:covenant@127.0.0.1:15432/covenant';
 
 // Trim — Windows CRLF .env files often leave `\r` on values and cause 28P01.
 export const databaseUrl = String(process.env.DATABASE_URL || DEFAULT_URL).trim();
