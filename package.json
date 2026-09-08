@@ -17,6 +17,7 @@
     "verify:vendor-sync": "node scripts/_verify-vendor-sync.mjs",
     "verify:payment-sync": "node scripts/_verify-payment-sync.mjs",
     "verify:budget-sync": "node scripts/_verify-budget-sync.mjs",
+    "verify:seating-sync": "node scripts/_verify-seating-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {

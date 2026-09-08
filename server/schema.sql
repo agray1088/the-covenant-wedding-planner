@@ -1,6 +1,6 @@
 -- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings,
--- guests, vendors, payments, budget_categories.
--- Trimmed from the planner's schema.sql guest/vendor/payment/wedding shapes for Postgres sync.
+-- guests, vendors, payments, budget_categories, seating_tables.
+-- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -159,3 +159,35 @@ CREATE TABLE IF NOT EXISTS budget_categories (
 
 CREATE INDEX IF NOT EXISTS budget_categories_wedding_updated_idx
   ON budget_categories(wedding_id, updated_at);
+
+-- Seating / table-layout fields aligned with planner JSON + schema.sql reception_table.
+-- Client: data.tables (+ floor plan x/y/w/h/vert/preset in layout_json).
+-- Guest→table assignments sync via guests.table_name (not duplicated here).
+-- Floor fixtures (DJ / cake / dance) live on weddings.floor_fixtures_json (LWW).
+CREATE TABLE IF NOT EXISTS seating_tables (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  name             TEXT NOT NULL DEFAULT '',
+  capacity         INTEGER,
+  placement        TEXT,
+  table_type       TEXT,
+  shape            TEXT,
+  vip              BOOLEAN DEFAULT FALSE,
+  facing           TEXT,
+  label            TEXT,
+  table_group      TEXT,
+  notes            TEXT,
+  layout_json      JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS seating_tables_wedding_updated_idx
+  ON seating_tables(wedding_id, updated_at);
+
+-- Floor-plan fixtures (wedding-scoped, not per-table).
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS floor_fixtures_json JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS floor_fixtures_updated_at TIMESTAMPTZ;

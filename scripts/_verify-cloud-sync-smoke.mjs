@@ -25,16 +25,19 @@ ok('schema has guests', /CREATE TABLE IF NOT EXISTS guests/.test(read('server/sc
 ok('schema has vendors', /CREATE TABLE IF NOT EXISTS vendors/.test(read('server/schema.sql')));
 ok('schema has payments', /CREATE TABLE IF NOT EXISTS payments/.test(read('server/schema.sql')));
 ok('schema has budget_categories', /CREATE TABLE IF NOT EXISTS budget_categories/.test(read('server/schema.sql')));
+ok('schema has seating_tables', /CREATE TABLE IF NOT EXISTS seating_tables/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes payments', /\/payments\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes budget', /\/budget\/bulk/.test(read('js/cloud-sync.js')));
+ok('client pushes seating', /\/seating\/bulk/.test(read('js/cloud-sync.js')));
 ok('vendors route file', fs.existsSync(path.join(root, 'server/routes/vendors.js')));
 ok('payments route file', fs.existsSync(path.join(root, 'server/routes/payments.js')));
 ok('budget route file', fs.existsSync(path.join(root, 'server/routes/budget.js')));
+ok('seating route file', fs.existsSync(path.join(root, 'server/routes/seating.js')));
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
-ok('settings mentions budget', /guests \+ vendors \+ payments \+ budget/.test(read('js/settings-window-redesign.js')));
+ok('settings mentions seating', /guests \+ vendors \+ payments \+ budget \+ seating/.test(read('js/settings-window-redesign.js')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:8787';
 
@@ -164,6 +167,43 @@ async function live() {
     .then((r) => r.json());
   ok('budget appears in list', Array.isArray(blist.budget) && blist.budget.some((c) => c.id === budgetId));
 
+  const seatingId = 'tbl_smoke_' + Date.now();
+  const putSeating = await fetch(API + '/weddings/' + weddingId + '/seating/' + seatingId, {
+    method: 'PUT',
+    headers: auth,
+    body: JSON.stringify({
+      id: seatingId,
+      name: 'Smoke Table 7',
+      capacity: 8,
+      type: 'guest',
+      shape: 'circle',
+      placement: 'Near windows',
+      x: 120,
+      y: 80,
+      updatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('seating upsert ack', putSeating && putSeating.ack === true && putSeating.table && putSeating.table.name === 'Smoke Table 7');
+  ok('seating layout round-trip', putSeating && putSeating.table && putSeating.table.x === 120 && putSeating.table.y === 80);
+
+  const bulkSeating = await fetch(API + '/weddings/' + weddingId + '/seating/bulk', {
+    method: 'POST',
+    headers: auth,
+    body: JSON.stringify({
+      tables: [],
+      floorFixtures: {
+        dance: { x: 200, y: 300, w: 180, h: 70, label: 'Dance Floor' }
+      },
+      floorFixturesUpdatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('floor fixtures ack', bulkSeating && bulkSeating.floorFixturesAck === true && bulkSeating.floorFixtures && bulkSeating.floorFixtures.dance);
+
+  const slist = await fetch(API + '/weddings/' + weddingId + '/seating', { headers: auth })
+    .then((r) => r.json());
+  ok('seating appears in list', Array.isArray(slist.tables) && slist.tables.some((c) => c.id === seatingId));
+  ok('floor fixtures in list', slist.floorFixtures && slist.floorFixtures.dance);
+
   // Second context: login again and fetch
   const login = await fetch(API + '/auth/login', {
     method: 'POST',
@@ -187,6 +227,10 @@ async function live() {
     headers: { Authorization: 'Bearer ' + login.token }
   }).then((r) => r.json());
   ok('second context sees budget', Array.isArray(blist2.budget) && blist2.budget.some((c) => c.id === budgetId));
+  const slist2 = await fetch(API + '/weddings/' + weddingId + '/seating', {
+    headers: { Authorization: 'Bearer ' + login.token }
+  }).then((r) => r.json());
+  ok('second context sees seating', Array.isArray(slist2.tables) && slist2.tables.some((c) => c.id === seatingId));
 }
 
 await live();

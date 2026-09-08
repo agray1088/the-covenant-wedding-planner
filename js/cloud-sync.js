@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, and budget.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, and seating.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -226,6 +226,39 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensureSeatingIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.tables)) return;
+      var changed = false;
+      data.tables.forEach(function (t) {
+        if (!t) return;
+        var id = t.id || t._id;
+        if (!id) {
+          id = 'tbl_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (t.id !== id) { t.id = id; changed = true; }
+        if (t._id !== id) { t._id = id; changed = true; }
+        if (!t.updatedAt) {
+          t.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (!data.floorFixtures || typeof data.floorFixtures !== 'object') {
+        data.floorFixtures = data.floorFixtures || {};
+      }
+      if (data.floorFixtures && !data.floorFixturesUpdatedAt && !data.floor_fixtures_updated_at) {
+        data.floorFixturesUpdatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+        changed = true;
+      }
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -260,6 +293,22 @@
 
   function budgetId(c) {
     return c ? String(c.id || c._id || '') : '';
+  }
+
+  function seatingTs(t) {
+    if (!t) return 0;
+    var ts = Date.parse(t.updatedAt || t.updated_at || '');
+    return isNaN(ts) ? 0 : ts;
+  }
+
+  function seatingId(t) {
+    return t ? String(t.id || t._id || '') : '';
+  }
+
+  function floorFixturesTs() {
+    if (typeof data === 'undefined' || !data) return 0;
+    var ts = Date.parse(data.floorFixturesUpdatedAt || data.floor_fixtures_updated_at || '');
+    return isNaN(ts) ? 0 : ts;
   }
 
   function mergeGuestsFromServer(serverGuests) {
@@ -398,6 +447,49 @@
     return { pulled: pulled, kept: kept };
   }
 
+  function mergeSeatingFromServer(serverTables, floorFixtures, floorFixturesUpdatedAt) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0, fixturesPulled: false };
+    if (!Array.isArray(data.tables)) data.tables = [];
+    var byId = {};
+    data.tables.forEach(function (t, i) {
+      var id = seatingId(t);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverTables || []).forEach(function (st) {
+      if (!st) return;
+      var id = seatingId(st);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, st, { id: id, _id: id });
+        data.tables.push(row);
+        byId[id] = data.tables.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.tables[idx];
+      if (seatingTs(st) > seatingTs(local)) {
+        data.tables[idx] = Object.assign({}, local, st, { id: id, _id: id });
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    var fixturesPulled = false;
+    if (floorFixtures && typeof floorFixtures === 'object') {
+      var serverFxTs = Date.parse(floorFixturesUpdatedAt || '') || 0;
+      var localFxTs = floorFixturesTs();
+      if (!data.floorFixtures || serverFxTs > localFxTs) {
+        data.floorFixtures = Object.assign({}, floorFixtures);
+        if (floorFixturesUpdatedAt) data.floorFixturesUpdatedAt = floorFixturesUpdatedAt;
+        fixturesPulled = true;
+      }
+    }
+    return { pulled: pulled, kept: kept, fixturesPulled: fixturesPulled };
+  }
+
   function signIn(email, password) {
     return api('/auth/login', { method: 'POST', body: { email: email, password: password } })
       .then(function (body) {
@@ -479,6 +571,7 @@
     ensureVendorIds();
     ensurePaymentIds();
     ensureBudgetIds();
+    ensureSeatingIds();
     setStatus('syncing');
     // Prefer an already-owned cloud wedding (same account on another device) before POST create.
     // Different devices use different clientKeys, so POST alone would spawn empty duplicates.
@@ -660,12 +753,61 @@
     });
   }
 
+  function pushSeating() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensureSeatingIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var tables = (typeof data !== 'undefined' && data && Array.isArray(data.tables))
+      ? data.tables.map(function (t) {
+          if (!t) return t;
+          var id = seatingId(t);
+          var ts = t.updatedAt || t.updated_at || now;
+          return Object.assign({}, t, { id: id, _id: id, updatedAt: ts });
+        })
+      : [];
+    var body = { tables: tables };
+    if (typeof data !== 'undefined' && data && data.floorFixtures && typeof data.floorFixtures === 'object') {
+      body.floorFixtures = data.floorFixtures;
+      body.floorFixturesUpdatedAt = data.floorFixturesUpdatedAt || data.floor_fixtures_updated_at || now;
+    }
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/seating/bulk', {
+      method: 'POST',
+      body: body
+    }).then(function (resp) {
+      (resp.results || []).forEach(function (r) {
+        if (!r || !r.table) return;
+        if (!r.ack) return;
+        var rid = seatingId(r.table);
+        if (!rid) return;
+        var list = data.tables || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && seatingId(list[i]) === rid) {
+            list[i].updatedAt = r.table.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      if (resp.floorFixturesAck && resp.floorFixturesUpdatedAt && typeof data !== 'undefined' && data) {
+        data.floorFixturesUpdatedAt = resp.floorFixturesUpdatedAt;
+        if (resp.floorFixtures && typeof resp.floorFixtures === 'object') {
+          data.floorFixtures = Object.assign({}, data.floorFixtures || {}, resp.floorFixtures);
+        }
+      }
+      return resp;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
         return pushPayments().then(function (payments) {
           return pushBudget().then(function (budget) {
-            return { guests: guests, vendors: vendors, payments: payments, budget: budget };
+            return pushSeating().then(function (seating) {
+              return { guests: guests, vendors: vendors, payments: payments, budget: budget, seating: seating };
+            });
           });
         });
       });
@@ -744,12 +886,36 @@
       });
   }
 
+  function pullSeating() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/seating')
+      .then(function (body) {
+        var tables = body.tables || body.seating || [];
+        var merge = mergeSeatingFromServer(tables, body.floorFixtures, body.floorFixturesUpdatedAt);
+        if ((merge.pulled > 0 || merge.fixturesPulled) && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          if (document.body.getAttribute('data-active-panel') === 'tables') {
+            try {
+              if (typeof renderTables === 'function') renderTables();
+              else if (typeof window.__tablesRenderRd === 'function') window.__tablesRenderRd();
+            } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
         return pullPayments().then(function (payments) {
           return pullBudget().then(function (budget) {
-            return { guests: guests, vendors: vendors, payments: payments, budget: budget };
+            return pullSeating().then(function (seating) {
+              return { guests: guests, vendors: vendors, payments: payments, budget: budget, seating: seating };
+            });
           });
         });
       });
@@ -802,7 +968,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments + budget.
+  // Alias — sync covers guests + vendors + payments + budget + seating.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -838,6 +1004,15 @@
               if (!c) return;
               c.updatedAt = now;
             });
+          }
+          if (Array.isArray(data.tables)) {
+            data.tables.forEach(function (t) {
+              if (!t) return;
+              t.updatedAt = now;
+            });
+          }
+          if (data.floorFixtures && typeof data.floorFixtures === 'object') {
+            data.floorFixturesUpdatedAt = now;
           }
         }
         scheduleSync();
