@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests and vendors.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, and payments.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -160,6 +160,32 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensurePaymentIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.payments)) return;
+      var changed = false;
+      data.payments.forEach(function (p) {
+        if (!p) return;
+        var id = p.id || p._id;
+        if (!id) {
+          id = 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (p.id !== id) { p.id = id; changed = true; }
+        if (p._id !== id) { p._id = id; changed = true; }
+        if (!p.updatedAt) {
+          p.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -172,8 +198,18 @@
     return isNaN(t) ? 0 : t;
   }
 
+  function paymentTs(p) {
+    if (!p) return 0;
+    var t = Date.parse(p.updatedAt || p.updated_at || '');
+    return isNaN(t) ? 0 : t;
+  }
+
   function vendorId(v) {
     return v ? String(v.id || v._id || '') : '';
+  }
+
+  function paymentId(p) {
+    return p ? String(p.id || p._id || '') : '';
   }
 
   function mergeGuestsFromServer(serverGuests) {
@@ -228,6 +264,42 @@
       var local = data.vendors[idx];
       if (vendorTs(sv) > vendorTs(local)) {
         data.vendors[idx] = Object.assign({}, local, sv, { id: id, _id: id });
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
+  function mergePaymentsFromServer(serverPayments) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.payments)) data.payments = [];
+    var byId = {};
+    data.payments.forEach(function (p, i) {
+      var id = paymentId(p);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverPayments || []).forEach(function (sp) {
+      if (!sp) return;
+      var id = paymentId(sp);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, sp, { id: id, _id: id });
+        if (!Array.isArray(row.installments)) row.installments = [];
+        data.payments.push(row);
+        byId[id] = data.payments.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.payments[idx];
+      if (paymentTs(sp) > paymentTs(local)) {
+        var merged = Object.assign({}, local, sp, { id: id, _id: id });
+        if (!Array.isArray(merged.installments)) merged.installments = [];
+        data.payments[idx] = merged;
         pulled++;
       } else {
         kept++;
@@ -315,6 +387,7 @@
   function uploadWedding() {
     ensureGuestIds();
     ensureVendorIds();
+    ensurePaymentIds();
     setStatus('syncing');
     // Prefer an already-owned cloud wedding (same account on another device) before POST create.
     // Different devices use different clientKeys, so POST alone would spawn empty duplicates.
@@ -413,10 +486,53 @@
     });
   }
 
+  function pushPayments() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensurePaymentIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var payments = (typeof data !== 'undefined' && data && Array.isArray(data.payments))
+      ? data.payments.map(function (p) {
+          if (!p) return p;
+          var id = paymentId(p);
+          var ts = p.updatedAt || p.updated_at || now;
+          return Object.assign({}, p, {
+            id: id,
+            _id: id,
+            updatedAt: ts,
+            installments: Array.isArray(p.installments) ? p.installments : []
+          });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/payments/bulk', {
+      method: 'POST',
+      body: { payments: payments }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.payment) return;
+        if (!r.ack) return;
+        var rid = paymentId(r.payment);
+        if (!rid) return;
+        var list = data.payments || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && paymentId(list[i]) === rid) {
+            list[i].updatedAt = r.payment.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
-        return { guests: guests, vendors: vendors };
+        return pushPayments().then(function (payments) {
+          return { guests: guests, vendors: vendors, payments: payments };
+        });
       });
     });
   }
@@ -457,10 +573,30 @@
       });
   }
 
+  function pullPayments() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/payments')
+      .then(function (body) {
+        var merge = mergePaymentsFromServer(body.payments || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          if (typeof renderPayments === 'function' && document.body.getAttribute('data-active-panel') === 'payments') {
+            try { renderPayments(); } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
-        return { guests: guests, vendors: vendors };
+        return pullPayments().then(function (payments) {
+          return { guests: guests, vendors: vendors, payments: payments };
+        });
       });
     });
   }
@@ -511,7 +647,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors.
+  // Alias — sync covers guests + vendors + payments.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -534,6 +670,12 @@
             data.vendors.forEach(function (v) {
               if (!v) return;
               v.updatedAt = now;
+            });
+          }
+          if (Array.isArray(data.payments)) {
+            data.payments.forEach(function (p) {
+              if (!p) return;
+              p.updatedAt = now;
             });
           }
         }

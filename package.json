@@ -15,6 +15,7 @@
     "verify:cloud-sync": "node scripts/_verify-cloud-sync-smoke.mjs",
     "verify:second-device": "node scripts/_verify-second-device-sync.mjs",
     "verify:vendor-sync": "node scripts/_verify-vendor-sync.mjs",
+    "verify:payment-sync": "node scripts/_verify-payment-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {

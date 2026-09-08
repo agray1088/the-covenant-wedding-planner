@@ -249,7 +249,7 @@
         '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:8787" value="'
         + esc((function () { try { return localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { return ''; } })())
         + '">');
-      html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors sync in beta',
+      html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments sync in beta',
         btn('Save & enable', 'rdCloudEnable'));
       return html;
     }
@@ -263,11 +263,11 @@
       return html;
     }
 
-    html += cardRow('Sync now', 'Pull then push guests + vendors (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
-    html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors', btn('Upload this wedding', 'rdCloudUpload'));
+    html += cardRow('Sync now', 'Pull then push guests + vendors + payments (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
+    html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments', btn('Upload this wedding', 'rdCloudUpload'));
     html += cardRow('Sign out', 'Local planner keeps working offline', btn('Sign out', 'rdCloudSignOut'));
     html += cardRow('Disable cloud on this device', 'Flag off; offline GA path unchanged', btn('Turn off', 'rdCloudDisable'));
-    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors</b> sync in this beta. Budget, packets, and timeline stay on-device until later passes.</div>';
+    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments</b> sync in this beta. Budget, packets, and timeline stay on-device until later passes.</div>';
     return html;
   }
 
@@ -340,7 +340,7 @@
     }
     if (id === 'cloud') {
       return paneShell('Cloud sync (beta)',
-        'Optional. Offline planning always works. Guests and vendors sync in beta — not full multi-user realtime yet.',
+        'Optional. Offline planning always works. Guests, vendors, and payments sync in beta — not full multi-user realtime yet.',
         cloudSyncPaneBody());
     }
     if (id === 'trash') {
@@ -352,7 +352,7 @@
     if (id === 'about') {
       return paneShell('About',
         'The Covenant Wedding Planner — offline-first, one file per wedding.',
-        '<div class="rd-set__note">Offline by default: no account required, no tracking. Optional <b>Cloud sync (beta)</b> can mirror guests and vendors to a server when you enable it — core planning never depends on being online. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
+        '<div class="rd-set__note">Offline by default: no account required, no tracking. Optional <b>Cloud sync (beta)</b> can mirror guests, vendors, and payments to a server when you enable it — core planning never depends on being online. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
     }
     if (id === 'getstarted') {
       return paneShell('Get started', 'How the planner works and your first steps.',
@@ -530,14 +530,14 @@
       if (name === 'rdCloudSyncNow') {
         if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
         window.CovenantCloudSync.syncNow()
-          .then(function () { cloudMsg(true, 'Guests + vendors synced (beta).'); })
+          .then(function () { cloudMsg(true, 'Guests + vendors + payments synced (beta).'); })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Sync failed'); });
         return;
       }
       if (name === 'rdCloudUpload') {
         if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
         window.CovenantCloudSync.uploadWedding()
-          .then(function () { cloudMsg(true, 'Wedding uploaded — guests + vendors pushed.'); })
+          .then(function () { cloudMsg(true, 'Wedding uploaded — guests + vendors + payments pushed.'); })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Upload failed'); });
         return;
       }
