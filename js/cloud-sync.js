@@ -225,19 +225,49 @@
     };
   }
 
+  function listWeddings() {
+    return api('/weddings').then(function (body) {
+      return Array.isArray(body.weddings) ? body.weddings : [];
+    });
+  }
+
+  /** Second device / reinstall: claim the account's newest wedding instead of creating a duplicate. */
+  function linkExistingWeddingIfAny() {
+    return listWeddings().then(function (weddings) {
+      if (!weddings.length) return null;
+      var w = weddings[0];
+      var id = w && w.id;
+      if (!id) return null;
+      lsSet(LS_WEDDING, id);
+      return w;
+    });
+  }
+
   function uploadWedding() {
     ensureGuestIds();
     setStatus('syncing');
-    return api('/weddings', { method: 'POST', body: setupPayload() })
-      .then(function (body) {
-        var id = body.wedding && body.wedding.id;
-        if (!id) throw new Error('No wedding id returned');
-        lsSet(LS_WEDDING, id);
-        return pushGuests().then(function (pushResult) {
-          setStatus('synced');
-          lsSet(LS_LAST_SYNC, new Date().toISOString());
-          return { wedding: body.wedding, reused: !!body.reused, push: pushResult };
-        });
+    // Prefer an already-owned cloud wedding (same account on another device) before POST create.
+    // Different devices use different clientKeys, so POST alone would spawn empty duplicates.
+    return linkExistingWeddingIfAny()
+      .then(function (existing) {
+        if (existing) {
+          return pushGuests().then(function (pushResult) {
+            setStatus('synced');
+            lsSet(LS_LAST_SYNC, new Date().toISOString());
+            return { wedding: existing, reused: true, linkedExisting: true, push: pushResult };
+          });
+        }
+        return api('/weddings', { method: 'POST', body: setupPayload() })
+          .then(function (body) {
+            var id = body.wedding && body.wedding.id;
+            if (!id) throw new Error('No wedding id returned');
+            lsSet(LS_WEDDING, id);
+            return pushGuests().then(function (pushResult) {
+              setStatus('synced');
+              lsSet(LS_LAST_SYNC, new Date().toISOString());
+              return { wedding: body.wedding, reused: !!body.reused, push: pushResult };
+            });
+          });
       })
       .catch(function (err) {
         setStatus('error', err.message || String(err));
@@ -300,25 +330,35 @@
     var c = cfg();
     if (!c.enabled) return Promise.reject(new Error('Cloud sync disabled'));
     if (!ls(LS_TOKEN)) return Promise.reject(new Error('Sign in required'));
-    if (!ls(LS_WEDDING)) return uploadWedding();
-    syncing = true;
-    setStatus('syncing');
-    return pullGuests()
-      .then(function (pull) {
-        return pushGuests().then(function (push) {
-          return { pull: pull, push: push };
+
+    // Device B has no local wedding id — link the account's existing wedding before creating one.
+    var ensureLinked = ls(LS_WEDDING)
+      ? Promise.resolve(ls(LS_WEDDING))
+      : linkExistingWeddingIfAny().then(function (w) {
+          return w && w.id ? w.id : null;
         });
-      })
-      .then(function (result) {
-        lsSet(LS_LAST_SYNC, new Date().toISOString());
-        setStatus('synced');
-        return result;
-      })
-      .catch(function (err) {
-        setStatus('error', err.message || String(err));
-        throw err;
-      })
-      .finally(function () { syncing = false; });
+
+    return ensureLinked.then(function (weddingId) {
+      if (!weddingId) return uploadWedding();
+      syncing = true;
+      setStatus('syncing');
+      return pullGuests()
+        .then(function (pull) {
+          return pushGuests().then(function (push) {
+            return { pull: pull, push: push, weddingId: weddingId };
+          });
+        })
+        .then(function (result) {
+          lsSet(LS_LAST_SYNC, new Date().toISOString());
+          setStatus('synced');
+          return result;
+        })
+        .catch(function (err) {
+          setStatus('error', err.message || String(err));
+          throw err;
+        })
+        .finally(function () { syncing = false; });
+    });
   }
 
   function scheduleGuestSync() {
@@ -377,6 +417,8 @@
     signIn: signIn,
     register: register,
     signOut: signOut,
+    listWeddings: listWeddings,
+    linkExistingWeddingIfAny: linkExistingWeddingIfAny,
     uploadWedding: uploadWedding,
     syncNow: syncNow,
     scheduleGuestSync: scheduleGuestSync,

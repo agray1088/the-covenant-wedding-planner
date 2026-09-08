@@ -204,6 +204,21 @@ location.reload();
 
 Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests.
 
+## Second-device sync (manual + automated)
+
+Guests uploaded on one browser profile must appear on another after the same account signs in and syncs.
+
+**Automated** (two Playwright storage contexts):
+
+```bash
+# API must be up on :8787
+npm run verify:second-device
+```
+
+**Manual:** open a second Chrome profile or Incognito, set the same `covenant_cloud_api` / `covenant_cloud_enabled` flags, sign in as `demo@covenant.local` / `covenant-demo`, then **Sync now**. Full steps: `docs/OFFLINE_CLOUD_SYNC.md` → *Manual test: second device*.
+
+On a fresh device the client **links the account’s newest wedding** (GET `/weddings`) before creating a new one — different devices use different `clientKey`s, so a blind POST would otherwise spawn an empty duplicate.
+
 ## Verify guests landed in Postgres (Windows)
 
 After status shows **Synced · … · wedding linked**, browse guests in **desktop pgAdmin** (`127.0.0.1:15432` → db-proxy), **browser pgAdmin** at http://localhost:5050, or use `docker exec` as a fallback that never depends on the published port:

@@ -12,7 +12,8 @@
     "verify:catering": "node tools/verify-catering-layout.mjs",
     "verify:panel-bleed": "node tools/verify-panel-bleed.mjs",
     "verify:offline-ga": "node scripts/_verify-offline-ga.mjs",
-    "verify:cloud-sync": "node scripts/_verify-cloud-sync-smoke.mjs"
+    "verify:cloud-sync": "node scripts/_verify-cloud-sync-smoke.mjs",
+    "verify:second-device": "node scripts/_verify-second-device-sync.mjs"
   },
   "devDependencies": {
     "playwright": "1.55.0"

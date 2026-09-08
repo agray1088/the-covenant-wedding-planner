@@ -7,7 +7,7 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
 | Mode | Behavior |
 |------|----------|
 | **Offline (default / GA)** | localStorage JSON + SQLite/IndexedDB on this device. Backups are `.sqlite` files. No account required. |
-| **Cloud (optional)** | Sign-in links this device’s wedding to Postgres. Guests are the first synced vertical. Multi-device and vendor portal come later. |
+| **Cloud (optional)** | Sign-in links this device’s wedding to Postgres. Guests are the first synced vertical. Second-device pull uses the same account membership. Vendor portal comes later. |
 
 **Hard rule:** never block save, navigate, or guest edits on being online. If the API is down or cloud is disabled, the planner behaves exactly like offline GA.
 
@@ -55,7 +55,8 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
 2. **Push:** client sends guests whose local `updated_at` is newer than the last server ACK (or missing on server). Server upserts and returns the stored row + `updated_at`.
 3. **Pull:** client fetches guests; if server `updated_at` is newer than local, replace local row; otherwise keep local and schedule a push.
 4. **Upload this wedding:** one-shot migration — create (or claim) a cloud wedding, push **all** local guests, store `cloudWeddingId` on the device profile. Does not delete local data.
-5. No merge-by-field in v1. No live multi-user cursors. Do not claim “fully synced multi-user” in the UI.
+5. **Second device:** after sign-in, if this browser has no `covenant_cloud_wedding_id`, **Sync now** lists the account’s weddings and links the newest membership before pulling guests. It only creates a new cloud wedding when the account has none (avoids empty duplicates from per-device `clientKey`s).
+6. No merge-by-field in v1. No live multi-user cursors. Do not claim “fully synced multi-user” in the UI.
 
 Later revisions may add field-level merge and presence; until then the UI must stay honest.
 
@@ -110,6 +111,41 @@ localStorage.setItem('covenant_cloud_api', 'http://localhost:8787');
 localStorage.setItem('covenant_cloud_enabled', '1');
 location.reload();
 ```
+
+## Manual test: second device (multi-device guests)
+
+Prove a guest added on device A appears on device B after sign-in + sync.
+
+### Automated (preferred)
+
+With the sync API up (`docker compose up -d` → `:8787`):
+
+```bash
+npm run verify:second-device
+# or: node scripts/_verify-second-device-sync.mjs
+```
+
+Uses two isolated Playwright storage contexts, demo login `demo@covenant.local` / `covenant-demo`, and asserts the unique guest pulled onto device B.
+
+### Manual (Chrome)
+
+1. Start stack: `docker compose up -d` and `npm run serve` (planner `:8000`, API `:8787`).
+2. **Device A** — normal Chrome window:
+   - DevTools console:
+     ```js
+     localStorage.setItem('covenant_cloud_api', 'http://localhost:8787');
+     localStorage.setItem('covenant_cloud_enabled', '1');
+     location.reload();
+     ```
+   - **Settings → Cloud sync (beta)** → sign in `demo@covenant.local` / `covenant-demo`.
+   - **Upload this wedding**, then add a uniquely named guest on Guests, then **Sync now**.
+3. **Device B** — second Chrome profile **or** an Incognito window (separate storage):
+   - Same API flags as above, reload, same demo sign-in.
+   - Do **not** expect a wedding id yet — click **Sync now** (or **Upload this wedding**).
+   - The client links the account’s existing cloud wedding, pulls guests, and the unique name from device A should appear.
+4. Optional DB check: see `server/README.md` (pgAdmin / `docker exec` … `SELECT … FROM guests`).
+
+**Pull this branch:** `git pull origin cursor/offline-cloud-sync-017e`
 
 ## Out of scope for this foundation pass
 
