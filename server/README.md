@@ -1,6 +1,6 @@
 # Covenant sync API (optional cloud)
 
-Offline-first planner stays the default. This Node + Postgres API is **opt-in** for multi-device guest + vendor + payment sync (beta).
+Offline-first planner stays the default. This Node + Postgres API is **opt-in** for multi-device guest + vendor + payment + budget + seating + contract sync (beta).
 
 ## Prerequisites
 
@@ -54,7 +54,7 @@ Two separate Windows traps caused `FATAL: password authentication failed for use
 3. Port **15432** avoids the common Windows Postgres bind on `5432`/`5433`.
 4. Verify scripts require a **wrong password to succeed** on the published port (proves trust) and optionally run a host Node `pg` driver check.
 
-### Browse guests / vendors / payments / budget / seating — desktop pgAdmin → `127.0.0.1:15432` (db-proxy)
+### Browse guests / vendors / payments / budget / seating / contracts — desktop pgAdmin → `127.0.0.1:15432` (db-proxy)
 
 In desktop pgAdmin → **Register → Server** → **Connection**:
 
@@ -68,7 +68,7 @@ In desktop pgAdmin → **Register → Server** → **Connection**:
 
 On the **SSL** tab: **Disable** (simplest for local Docker Desktop).
 
-Save, then expand **Servers → … → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories** / **seating_tables**).
+Save, then expand **Servers → … → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories** / **seating_tables** / **contracts**).
 
 Confirm the proxy is up:
 
@@ -80,7 +80,7 @@ docker compose logs db-proxy postgres --tail 30
 
 You should see `covenant-db-proxy` on host `:15432` and both `published_port_ok` / `trust_ok`. If desktop still fails after a volume wipe + recreate, use browser pgAdmin below (same data).
 
-### Browse guests / vendors / payments / budget / seating — browser pgAdmin (Docker network)
+### Browse guests / vendors / payments / budget / seating / contracts — browser pgAdmin (Docker network)
 
 Compose also starts **pgAdmin** on the same Docker network as Postgres. Open:
 
@@ -101,7 +101,7 @@ A server named **Covenant Postgres** is preconfigured:
 | Username | `covenant` |
 | Password | `covenant` |
 
-Expand **Servers → Covenant Postgres → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories** / **seating_tables**).
+Expand **Servers → Covenant Postgres → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories** / **seating_tables** / **contracts**).
 
 ### Quick start (Docker Postgres + db-proxy only, API on host)
 
@@ -205,6 +205,10 @@ Bootstrap demo user (from `.env.example`):
 | PUT | `/weddings/:id/seating/:tableId` | Upsert one (LWW) |
 | POST | `/weddings/:id/seating/bulk` | Upsert many (+ optional floorFixtures) |
 | DELETE | `/weddings/:id/seating/:tableId` | Delete |
+| GET | `/weddings/:id/contracts` | List contracts |
+| PUT | `/weddings/:id/contracts/:contractId` | Upsert one (LWW) |
+| POST | `/weddings/:id/contracts/bulk` | Upsert many |
+| DELETE | `/weddings/:id/contracts/:contractId` | Delete |
 
 Auth header: `Authorization: Bearer <token>`.
 
@@ -218,11 +222,11 @@ localStorage.setItem('covenant_cloud_enabled', '1');
 location.reload();
 ```
 
-Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests + vendors + payments + budget + seating.
+Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests + vendors + payments + budget + seating + contracts.
 
 ## Second-device sync (manual + automated)
 
-Guests, vendors, payments, budget, and seating uploaded on one browser profile must appear on another after the same account signs in and syncs.
+Guests, vendors, payments, budget, seating, and contracts uploaded on one browser profile must appear on another after the same account signs in and syncs.
 
 **Automated** (two Playwright storage contexts). Windows CMD from repo root:
 
@@ -235,6 +239,7 @@ npm run verify:vendor-sync
 npm run verify:payment-sync
 npm run verify:budget-sync
 npm run verify:seating-sync
+npm run verify:contract-sync
 ```
 
 Keep `docker compose up -d` running so the API stays on `:8787`. If you see `Cannot find package 'playwright'`, run `npm install` at the **repo root** (not only under `server/`).
@@ -243,7 +248,7 @@ Keep `docker compose up -d` running so the API stays on `:8787`. If you see `Can
 
 On a fresh device the client **links the account’s newest wedding** (GET `/weddings`) before creating a new one — different devices use different `clientKey`s, so a blind POST would otherwise spawn an empty duplicate.
 
-## Verify guests / vendors / payments / budget / seating landed in Postgres (Windows)
+## Verify guests / vendors / payments / budget / seating / contracts landed in Postgres (Windows)
 
 After status shows **Synced · … · wedding linked**, browse tables in **desktop pgAdmin** (`127.0.0.1:15432` → db-proxy), **browser pgAdmin** at http://localhost:5050, or use `docker exec` as a fallback that never depends on the published port:
 
@@ -253,6 +258,7 @@ docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, we
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, vendor, descr, due_amount, paid_amount, status, updated_at FROM payments ORDER BY updated_at DESC LIMIT 50;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, name, target_pct, planned, updated_at FROM budget_categories ORDER BY updated_at DESC LIMIT 50;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, name, capacity, shape, table_type, updated_at FROM seating_tables ORDER BY updated_at DESC LIMIT 50;"
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, name, vendor, doc_type, amount, total, deposit, status, updated_at FROM contracts ORDER BY updated_at DESC LIMIT 50;"
 ```
 
 Count + wedding ids:
@@ -263,6 +269,7 @@ docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT weddin
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS payments FROM payments GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS budget_cats FROM budget_categories GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS seating_tables FROM seating_tables GROUP BY wedding_id;"
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS contracts FROM contracts GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, name, bride, groom FROM weddings;"
 ```
 
@@ -276,6 +283,7 @@ curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$w
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/payments"
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/budget"
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/seating"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/contracts"
 ```
 
 ## Cloud host next steps (not in this pass)
@@ -285,8 +293,8 @@ curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$w
 3. Put TLS in front; set `CORS_ORIGIN` to the real static origin (or Pages/CDN URL).
 4. Turn off `BOOTSTRAP_*` in production; keep registration or add invite-only.
 5. Wire magic-link SMTP when ready (`MAGIC_LINK_*` placeholders in `.env.example`).
-6. Expand sync beyond guests + vendors + payments + budget + seating (timeline, packets, …) per `docs/OFFLINE_CLOUD_SYNC.md`.
+6. Expand sync beyond guests + vendors + payments + budget + seating + contracts (timeline, packets, rentals, …) per `docs/OFFLINE_CLOUD_SYNC.md`.
 
 ## Conflict policy
 
-Last-write-wins using guest/vendor/payment/budget/seating `updated_at`. Server only overwrites when the incoming timestamp is ≥ stored. Client prefers local-newer rows and ACK timestamps from the API. See the architecture doc for details.
+Last-write-wins using guest/vendor/payment/budget/seating/contract `updated_at`. Server only overwrites when the incoming timestamp is ≥ stored. Client prefers local-newer rows and ACK timestamps from the API. See the architecture doc for details.

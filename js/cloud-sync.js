@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, and seating.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, and contracts.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -259,6 +259,32 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensureContractIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.contracts)) return;
+      var changed = false;
+      data.contracts.forEach(function (c) {
+        if (!c) return;
+        var id = c.id || c._id;
+        if (!id) {
+          id = 'con_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (c.id !== id) { c.id = id; changed = true; }
+        if (c._id !== id) { c._id = id; changed = true; }
+        if (!c.updatedAt) {
+          c.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -303,6 +329,16 @@
 
   function seatingId(t) {
     return t ? String(t.id || t._id || '') : '';
+  }
+
+  function contractTs(c) {
+    if (!c) return 0;
+    var ts = Date.parse(c.updatedAt || c.updated_at || '');
+    return isNaN(ts) ? 0 : ts;
+  }
+
+  function contractId(c) {
+    return c ? String(c.id || c._id || '') : '';
   }
 
   function floorFixturesTs() {
@@ -490,6 +526,44 @@
     return { pulled: pulled, kept: kept, fixturesPulled: fixturesPulled };
   }
 
+  function mergeContractsFromServer(serverContracts) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.contracts)) data.contracts = [];
+    var byId = {};
+    data.contracts.forEach(function (c, i) {
+      var id = contractId(c);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverContracts || []).forEach(function (sc) {
+      if (!sc) return;
+      var id = contractId(sc);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, sc, { id: id, _id: id });
+        data.contracts.push(row);
+        byId[id] = data.contracts.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.contracts[idx];
+      if (contractTs(sc) > contractTs(local)) {
+        // Prefer server row for synced fields; keep local large file blobs if server stripped them.
+        var merged = Object.assign({}, local, sc, { id: id, _id: id });
+        if (sc.contractFile == null && local.contractFile != null) merged.contractFile = local.contractFile;
+        if (sc.invoiceFile == null && local.invoiceFile != null) merged.invoiceFile = local.invoiceFile;
+        if ((!sc.img || sc.img === '') && local.img) merged.img = local.img;
+        data.contracts[idx] = merged;
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
   function signIn(email, password) {
     return api('/auth/login', { method: 'POST', body: { email: email, password: password } })
       .then(function (body) {
@@ -572,6 +646,7 @@
     ensurePaymentIds();
     ensureBudgetIds();
     ensureSeatingIds();
+    ensureContractIds();
     setStatus('syncing');
     // Prefer an already-owned cloud wedding (same account on another device) before POST create.
     // Different devices use different clientKeys, so POST alone would spawn empty duplicates.
@@ -800,13 +875,58 @@
     });
   }
 
+  function pushContracts() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensureContractIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var contracts = (typeof data !== 'undefined' && data && Array.isArray(data.contracts))
+      ? data.contracts.map(function (c) {
+          if (!c) return c;
+          var id = contractId(c);
+          var ts = c.updatedAt || c.updated_at || now;
+          return Object.assign({}, c, { id: id, _id: id, updatedAt: ts });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/contracts/bulk', {
+      method: 'POST',
+      body: { contracts: contracts }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.contract) return;
+        if (!r.ack) return;
+        var rid = contractId(r.contract);
+        if (!rid) return;
+        var list = data.contracts || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && contractId(list[i]) === rid) {
+            list[i].updatedAt = r.contract.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
         return pushPayments().then(function (payments) {
           return pushBudget().then(function (budget) {
             return pushSeating().then(function (seating) {
-              return { guests: guests, vendors: vendors, payments: payments, budget: budget, seating: seating };
+              return pushContracts().then(function (contracts) {
+                return {
+                  guests: guests,
+                  vendors: vendors,
+                  payments: payments,
+                  budget: budget,
+                  seating: seating,
+                  contracts: contracts
+                };
+              });
             });
           });
         });
@@ -908,13 +1028,43 @@
       });
   }
 
+  function pullContracts() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/contracts')
+      .then(function (body) {
+        var merge = mergeContractsFromServer(body.contracts || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          if (document.body.getAttribute('data-active-panel') === 'contracts') {
+            try {
+              if (typeof window.__contractsRenderRd === 'function') window.__contractsRenderRd();
+              else if (typeof renderContracts === 'function') renderContracts();
+            } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
         return pullPayments().then(function (payments) {
           return pullBudget().then(function (budget) {
             return pullSeating().then(function (seating) {
-              return { guests: guests, vendors: vendors, payments: payments, budget: budget, seating: seating };
+              return pullContracts().then(function (contracts) {
+                return {
+                  guests: guests,
+                  vendors: vendors,
+                  payments: payments,
+                  budget: budget,
+                  seating: seating,
+                  contracts: contracts
+                };
+              });
             });
           });
         });
@@ -968,7 +1118,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments + budget + seating.
+  // Alias — sync covers guests + vendors + payments + budget + seating + contracts.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -1013,6 +1163,12 @@
           }
           if (data.floorFixtures && typeof data.floorFixtures === 'object') {
             data.floorFixturesUpdatedAt = now;
+          }
+          if (Array.isArray(data.contracts)) {
+            data.contracts.forEach(function (c) {
+              if (!c) return;
+              c.updatedAt = now;
+            });
           }
         }
         scheduleSync();

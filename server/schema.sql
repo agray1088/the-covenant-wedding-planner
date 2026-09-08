@@ -1,6 +1,6 @@
 -- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings,
--- guests, vendors, payments, budget_categories, seating_tables.
--- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table shapes for Postgres sync.
+-- guests, vendors, payments, budget_categories, seating_tables, contracts.
+-- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -191,3 +191,31 @@ ALTER TABLE weddings
   ADD COLUMN IF NOT EXISTS floor_fixtures_json JSONB NOT NULL DEFAULT '{}'::jsonb;
 ALTER TABLE weddings
   ADD COLUMN IF NOT EXISTS floor_fixtures_updated_at TIMESTAMPTZ;
+
+-- Contract / invoice fields aligned with planner JSON + schema.sql contract.
+-- Client aliases: type↔doc_type, date↔doc_date, where↔location;
+-- amount/total/deposit are money fields; vendor_id is opaque (no cloud FK).
+-- File attachments (contractFile / invoiceFile / legacy img) store as nested JSON
+-- with large base64 payloads stripped server-side so sync stays under the API body limit.
+CREATE TABLE IF NOT EXISTS contracts (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  name             TEXT NOT NULL DEFAULT '',
+  vendor           TEXT,
+  vendor_id        TEXT,
+  doc_type         TEXT,
+  doc_date         TEXT,
+  amount           DOUBLE PRECISION,
+  total            DOUBLE PRECISION,
+  deposit          DOUBLE PRECISION,
+  status           TEXT,
+  location         TEXT,
+  notes            TEXT,
+  files_json       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS contracts_wedding_updated_idx
+  ON contracts(wedding_id, updated_at);
