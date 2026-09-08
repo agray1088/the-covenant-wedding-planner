@@ -75,7 +75,7 @@ Confirm the proxy is up:
 docker compose ps
 docker compose exec pgbouncer cat /etc/pgbouncer/pgbouncer.ini
 docker compose logs pgbouncer --tail 30
-bash scripts/verify-pgbouncer-host.sh
+scripts\verify-pgbouncer-host.bat
 ```
 
 You should see `covenant-pgbouncer` on host `:5433` and `user=covenant password=covenant` in the ini. If desktop still fails after a volume wipe + recreate, use browser pgAdmin below (same data).
