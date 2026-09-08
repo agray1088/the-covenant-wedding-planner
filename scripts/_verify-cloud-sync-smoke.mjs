@@ -28,6 +28,7 @@ ok('schema has budget_categories', /CREATE TABLE IF NOT EXISTS budget_categories
 ok('schema has seating_tables', /CREATE TABLE IF NOT EXISTS seating_tables/.test(read('server/schema.sql')));
 ok('schema has contracts', /CREATE TABLE IF NOT EXISTS contracts/.test(read('server/schema.sql')));
 ok('schema has timeline_events', /CREATE TABLE IF NOT EXISTS timeline_events/.test(read('server/schema.sql')));
+ok('schema has packets', /CREATE TABLE IF NOT EXISTS packets/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
@@ -36,14 +37,16 @@ ok('client pushes budget', /\/budget\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes seating', /\/seating\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes contracts', /\/contracts\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes timeline', /\/timeline\/bulk/.test(read('js/cloud-sync.js')));
+ok('client pushes packets', /\/packets\/bulk/.test(read('js/cloud-sync.js')));
 ok('vendors route file', fs.existsSync(path.join(root, 'server/routes/vendors.js')));
 ok('payments route file', fs.existsSync(path.join(root, 'server/routes/payments.js')));
 ok('budget route file', fs.existsSync(path.join(root, 'server/routes/budget.js')));
 ok('seating route file', fs.existsSync(path.join(root, 'server/routes/seating.js')));
 ok('contracts route file', fs.existsSync(path.join(root, 'server/routes/contracts.js')));
 ok('timeline route file', fs.existsSync(path.join(root, 'server/routes/timeline.js')));
+ok('packets route file', fs.existsSync(path.join(root, 'server/routes/packets.js')));
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
-ok('settings mentions timeline', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline/.test(read('js/settings-window-redesign.js')));
+ok('settings mentions packets', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline \+ packets/.test(read('js/settings-window-redesign.js')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:8787';
 
@@ -262,6 +265,36 @@ async function live() {
     .then((r) => r.json());
   ok('timeline appears in list', Array.isArray(tlist.timeline) && tlist.timeline.some((e) => e.id === timelineId));
 
+  const packetId = 'pkt_smoke_' + Date.now();
+  const putPacket = await fetch(API + '/weddings/' + weddingId + '/packets/' + packetId, {
+    method: 'PUT',
+    headers: auth,
+    body: JSON.stringify({
+      id: packetId,
+      name: 'Smoke venue day-of packet',
+      recipient: 'Smoke Hall events',
+      recipientType: 'Vendors',
+      contains: 'Timeline · contacts',
+      sections: ['timeline', 'contacts'],
+      mode: 'Live',
+      opens: 0,
+      expires: '2026-12-08',
+      status: 'Draft',
+      created: '2026-09-08',
+      contact: 'events@smoke.local',
+      notes: 'Smoke packet',
+      activity: [{ when: 'now', where: 'lab', browser: 'Smoke' }],
+      updatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('packet upsert ack', putPacket && putPacket.ack === true && putPacket.packet && putPacket.packet.name === 'Smoke venue day-of packet');
+  ok('packet sections round-trip', putPacket && putPacket.packet && Array.isArray(putPacket.packet.sections) && putPacket.packet.sections.includes('timeline'));
+  ok('packet activity round-trip', putPacket && putPacket.packet && Array.isArray(putPacket.packet.activity) && putPacket.packet.activity.length === 1);
+
+  const pktlist = await fetch(API + '/weddings/' + weddingId + '/packets', { headers: auth })
+    .then((r) => r.json());
+  ok('packet appears in list', Array.isArray(pktlist.packets) && pktlist.packets.some((c) => c.id === packetId));
+
   // Second context: login again and fetch
   const login = await fetch(API + '/auth/login', {
     method: 'POST',
@@ -297,6 +330,10 @@ async function live() {
     headers: { Authorization: 'Bearer ' + login.token }
   }).then((r) => r.json());
   ok('second context sees timeline', Array.isArray(tlist2.timeline) && tlist2.timeline.some((e) => e.id === timelineId));
+  const pktlist2 = await fetch(API + '/weddings/' + weddingId + '/packets', {
+    headers: { Authorization: 'Bearer ' + login.token }
+  }).then((r) => r.json());
+  ok('second context sees packet', Array.isArray(pktlist2.packets) && pktlist2.packets.some((c) => c.id === packetId));
 }
 
 await live();

@@ -21,6 +21,8 @@
     "verify:contract-sync": "node scripts/_verify-contract-sync.mjs",
     "verify:contracts-sync": "node scripts/_verify-contract-sync.mjs",
     "verify:timeline-sync": "node scripts/_verify-timeline-sync.mjs",
+    "verify:packet-sync": "node scripts/_verify-packet-sync.mjs",
+    "verify:packets-sync": "node scripts/_verify-packet-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {

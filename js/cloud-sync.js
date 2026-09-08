@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, and timeline.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, and packets.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -311,6 +311,32 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensurePacketIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.packets)) return;
+      var changed = false;
+      data.packets.forEach(function (p) {
+        if (!p) return;
+        var id = p.id || p._id;
+        if (!id) {
+          id = 'pkt_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (p.id !== id) { p.id = id; changed = true; }
+        if (p._id !== id) { p._id = id; changed = true; }
+        if (!p.updatedAt) {
+          p.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -375,6 +401,16 @@
 
   function timelineId(ev) {
     return ev ? String(ev.id || ev._id || '') : '';
+  }
+
+  function packetTs(p) {
+    if (!p) return 0;
+    var ts = Date.parse(p.updatedAt || p.updated_at || '');
+    return isNaN(ts) ? 0 : ts;
+  }
+
+  function packetId(p) {
+    return p ? String(p.id || p._id || '') : '';
   }
 
   function floorFixturesTs() {
@@ -630,6 +666,46 @@
         if (!merged.responsible && merged.person) merged.responsible = merged.person;
         if (!merged.person && merged.responsible) merged.person = merged.responsible;
         data.timeline[idx] = merged;
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
+  function mergePacketsFromServer(serverPackets) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.packets)) data.packets = [];
+    var byId = {};
+    data.packets.forEach(function (p, i) {
+      var id = packetId(p);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverPackets || []).forEach(function (sp) {
+      if (!sp) return;
+      var id = packetId(sp);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, sp, { id: id, _id: id });
+        if (!Array.isArray(row.sections)) row.sections = [];
+        if (!Array.isArray(row.activity)) row.activity = [];
+        if (!Array.isArray(row.withheld)) row.withheld = [];
+        data.packets.push(row);
+        byId[id] = data.packets.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.packets[idx];
+      if (packetTs(sp) > packetTs(local)) {
+        var merged = Object.assign({}, local, sp, { id: id, _id: id });
+        if (!Array.isArray(merged.sections)) merged.sections = [];
+        if (!Array.isArray(merged.activity)) merged.activity = [];
+        if (!Array.isArray(merged.withheld)) merged.withheld = [];
+        data.packets[idx] = merged;
         pulled++;
       } else {
         kept++;
@@ -1028,6 +1104,49 @@
     });
   }
 
+  function pushPackets() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensurePacketIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var packets = (typeof data !== 'undefined' && data && Array.isArray(data.packets))
+      ? data.packets.map(function (p) {
+          if (!p) return p;
+          var id = packetId(p);
+          var ts = p.updatedAt || p.updated_at || now;
+          return Object.assign({}, p, {
+            id: id,
+            _id: id,
+            sections: Array.isArray(p.sections) ? p.sections : [],
+            activity: Array.isArray(p.activity) ? p.activity : [],
+            withheld: Array.isArray(p.withheld) ? p.withheld : [],
+            updatedAt: ts
+          });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/packets/bulk', {
+      method: 'POST',
+      body: { packets: packets }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.packet) return;
+        if (!r.ack) return;
+        var rid = packetId(r.packet);
+        if (!rid) return;
+        var list = data.packets || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && packetId(list[i]) === rid) {
+            list[i].updatedAt = r.packet.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
@@ -1036,15 +1155,18 @@
             return pushSeating().then(function (seating) {
               return pushContracts().then(function (contracts) {
                 return pushTimeline().then(function (timeline) {
-                  return {
-                    guests: guests,
-                    vendors: vendors,
-                    payments: payments,
-                    budget: budget,
-                    seating: seating,
-                    contracts: contracts,
-                    timeline: timeline
-                  };
+                  return pushPackets().then(function (packets) {
+                    return {
+                      guests: guests,
+                      vendors: vendors,
+                      payments: payments,
+                      budget: budget,
+                      seating: seating,
+                      contracts: contracts,
+                      timeline: timeline,
+                      packets: packets
+                    };
+                  });
                 });
               });
             });
@@ -1191,6 +1313,28 @@
       });
   }
 
+  function pullPackets() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/packets')
+      .then(function (body) {
+        var merge = mergePacketsFromServer(body.packets || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          if (document.body.getAttribute('data-active-panel') === 'packets') {
+            try {
+              if (typeof window.__packetsRenderRd === 'function') window.__packetsRenderRd();
+              else if (typeof renderPacketsRd === 'function') renderPacketsRd();
+              else if (typeof renderPackets === 'function') renderPackets();
+            } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
@@ -1199,15 +1343,18 @@
             return pullSeating().then(function (seating) {
               return pullContracts().then(function (contracts) {
                 return pullTimeline().then(function (timeline) {
-                  return {
-                    guests: guests,
-                    vendors: vendors,
-                    payments: payments,
-                    budget: budget,
-                    seating: seating,
-                    contracts: contracts,
-                    timeline: timeline
-                  };
+                  return pullPackets().then(function (packets) {
+                    return {
+                      guests: guests,
+                      vendors: vendors,
+                      payments: payments,
+                      budget: budget,
+                      seating: seating,
+                      contracts: contracts,
+                      timeline: timeline,
+                      packets: packets
+                    };
+                  });
                 });
               });
             });
@@ -1263,7 +1410,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline.
+  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -1319,6 +1466,12 @@
             data.timeline.forEach(function (ev) {
               if (!ev) return;
               ev.updatedAt = now;
+            });
+          }
+          if (Array.isArray(data.packets)) {
+            data.packets.forEach(function (p) {
+              if (!p) return;
+              p.updatedAt = now;
             });
           }
         }

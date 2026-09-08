@@ -1547,6 +1547,7 @@
   window.rdPktOpenSort = rdPktOpenSort;
   window.rdPktEditorToggleSection = rdPktEditorToggleSection;
   window.__packetsRenderRecordEditorRd = renderPacketsRecordEditorRd;
+  window.__packetsRenderRd = renderPacketsRd;
 
   function hookPktPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) {

@@ -1,7 +1,7 @@
 -- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings,
 -- guests, vendors, payments, budget_categories, seating_tables, contracts,
--- timeline_events (wedding day timeline).
--- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline shapes for Postgres sync.
+-- timeline_events (wedding day timeline), packets (share packets).
+-- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -247,3 +247,38 @@ CREATE TABLE IF NOT EXISTS timeline_events (
 
 CREATE INDEX IF NOT EXISTS timeline_events_wedding_updated_idx
   ON timeline_events(wedding_id, updated_at);
+
+-- Share Packets (data.packets[]) — vendor / party / info packet handoff rows.
+-- Client aliases: recipientType↔recipient_type, created↔created_date.
+-- Nested sections[], activity[], withheld[], previewCards[], and UI extras
+-- travel in sections_json / meta_json. Print field overrides (vendorPackets,
+-- partyPackets, coordPacket) stay on-device in this pass — same as hosted
+-- covenant.link portal delivery.
+CREATE TABLE IF NOT EXISTS packets (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  name             TEXT NOT NULL DEFAULT '',
+  recipient        TEXT,
+  recipient_type   TEXT,
+  contains         TEXT,
+  mode             TEXT,
+  opens            INTEGER NOT NULL DEFAULT 0,
+  expires          TEXT,
+  status           TEXT,
+  created_date     TEXT,
+  sent             TEXT,
+  last_open        TEXT,
+  contact          TEXT,
+  link             TEXT,
+  passcode         TEXT,
+  hides            TEXT,
+  revoked          BOOLEAN NOT NULL DEFAULT FALSE,
+  sections_json    JSONB NOT NULL DEFAULT '[]'::jsonb,
+  meta_json        JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS packets_wedding_updated_idx
+  ON packets(wedding_id, updated_at);
