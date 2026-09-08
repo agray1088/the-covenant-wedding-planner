@@ -68,7 +68,7 @@ In desktop pgAdmin → **Register → Server** → **Connection**:
 
 On the **SSL** tab: **Disable** (simplest for local Docker Desktop).
 
-Save, then expand **Servers → … → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments**).
+Save, then expand **Servers → … → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories**).
 
 Confirm the proxy is up:
 
@@ -80,7 +80,7 @@ docker compose logs db-proxy postgres --tail 30
 
 You should see `covenant-db-proxy` on host `:15432` and both `published_port_ok` / `trust_ok`. If desktop still fails after a volume wipe + recreate, use browser pgAdmin below (same data).
 
-### Browse guests / vendors / payments — browser pgAdmin (Docker network)
+### Browse guests / vendors / payments / budget — browser pgAdmin (Docker network)
 
 Compose also starts **pgAdmin** on the same Docker network as Postgres. Open:
 
@@ -101,7 +101,7 @@ A server named **Covenant Postgres** is preconfigured:
 | Username | `covenant` |
 | Password | `covenant` |
 
-Expand **Servers → Covenant Postgres → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments**).
+Expand **Servers → Covenant Postgres → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories**).
 
 ### Quick start (Docker Postgres + db-proxy only, API on host)
 
