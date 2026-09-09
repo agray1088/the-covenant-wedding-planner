@@ -48,7 +48,7 @@ ok('packets route file', fs.existsSync(path.join(root, 'server/routes/packets.js
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
 ok('settings mentions packets', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline \+ packets/.test(read('js/settings-window-redesign.js')));
 
-const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:8787';
+const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787';
 
 async function live() {
   let health;

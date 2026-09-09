@@ -20,7 +20,7 @@ From the repo root in Windows CMD:
   docker compose up -d
   npm run verify:second-device
 
-Keep docker compose up so the sync API stays on :8787.
+Keep docker compose up so the sync API stays on host :18787.
 `.trim();
 
 function playwrightRequire() {

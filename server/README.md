@@ -31,12 +31,15 @@ docker compose logs -f api
 | Container | Host ports |
 |-----------|------------|
 | `covenant-db-proxy` | `0.0.0.0:15432->5432/tcp` |
+| `covenant-sync-api` | `0.0.0.0:18787->8787/tcp` |
 | `covenant-postgres` | `5432/tcp` only (**no** host port) |
 
 If you still see `covenant-pgbouncer` on `:5433` or Postgres published on the host, you are on an **old** stack — run `down -v` + `up -d` again after `git pull`.
 
-Wait until you see `listening on http://127.0.0.1:8787`, then open:
-`http://127.0.0.1:8787/health`
+Host port **18787** avoids Windows Hyper-V/WinNAT excluded ranges that often block `:8787`. The container still listens on **8787** internally.
+
+Wait until api logs show `listening on http://127.0.0.1:8787` (container port), then open from the host:
+`http://127.0.0.1:18787/health`
 
 Leave that running. Serve the planner in another terminal with `npm run serve`.
 
@@ -225,10 +228,12 @@ Auth header: `Authorization: Bearer <token>`.
 Serve the static planner (`npm run serve` → `:8000`), then:
 
 ```js
-localStorage.setItem('covenant_cloud_api', 'http://localhost:8787');
+localStorage.setItem('covenant_cloud_api', 'http://localhost:18787');
 localStorage.setItem('covenant_cloud_enabled', '1');
 location.reload();
 ```
+
+(Compose host port is **18787**. If you already set `covenant_cloud_api` to `:8787`, change it to `:18787`. Host-only `npm run server` still uses `:8787` — set the URL to match how you run the API.)
 
 Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests + vendors + payments + budget + seating + contracts + timeline + packets.
 
@@ -252,7 +257,7 @@ npm run verify:timeline-sync
 npm run verify:packet-sync
 ```
 
-Keep `docker compose up -d` running so the API stays on `:8787`. If you see `Cannot find package 'playwright'`, run `npm install` at the **repo root** (not only under `server/`).
+Keep `docker compose up -d` running so the API stays on host `:18787`. If you see `Cannot find package 'playwright'`, run `npm install` at the **repo root** (not only under `server/`).
 
 **Manual:** open a second Chrome profile or Incognito, set the same `covenant_cloud_api` / `covenant_cloud_enabled` flags, sign in as `demo@covenant.local` / `covenant-demo`, then **Sync now**. Full steps: `docs/OFFLINE_CLOUD_SYNC.md` → *Manual test: second device*.
 
@@ -292,14 +297,14 @@ Optional API check (PowerShell) — token is in browser `localStorage.covenant_c
 ```powershell
 $token = "PASTE_TOKEN_HERE"
 $wid = "PASTE_WEDDING_UUID_HERE"
-curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/guests"
-curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/vendors"
-curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/payments"
-curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/budget"
-curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/seating"
-curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/contracts"
-curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/timeline"
-curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:8787/weddings/$wid/packets"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/guests"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/vendors"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/payments"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/budget"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/seating"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/contracts"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/timeline"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/packets"
 ```
 
 ## Cloud host next steps (not in this pass)

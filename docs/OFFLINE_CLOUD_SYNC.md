@@ -173,10 +173,12 @@ npm run serve                 # static planner on :8000
 Then in the browser console (or a small local config):
 
 ```js
-localStorage.setItem('covenant_cloud_api', 'http://localhost:8787');
+localStorage.setItem('covenant_cloud_api', 'http://localhost:18787');
 localStorage.setItem('covenant_cloud_enabled', '1');
 location.reload();
 ```
+
+(Compose publishes the sync API on **host** `:18787` → container `:8787`. If you previously set `covenant_cloud_api` to `:8787`, update it to `:18787`.)
 
 ## Manual test: second device (guests + vendors + payments + budget + seating + contracts + timeline + packets)
 
@@ -184,7 +186,7 @@ Prove a guest, vendor, payment, budget category, seating table, **or** contract 
 
 ### Automated (preferred)
 
-**Prereqs:** Docker stack up (sync API on `:8787`), root `npm install`, and Playwright Chromium.
+**Prereqs:** Docker stack up (sync API on host `:18787`), root `npm install`, and Playwright Chromium.
 
 Windows CMD (repo root):
 
@@ -227,11 +229,11 @@ If you see `Cannot find package 'playwright'`, you skipped root `npm install` �
 
 ### Manual (Chrome)
 
-1. Start stack: `docker compose up -d` and `npm run serve` (planner `:8000`, API `:8787`).
+1. Start stack: `docker compose up -d` and `npm run serve` (planner `:8000`, API host `:18787`).
 2. **Device A** — normal Chrome window:
    - DevTools console:
      ```js
-     localStorage.setItem('covenant_cloud_api', 'http://localhost:8787');
+     localStorage.setItem('covenant_cloud_api', 'http://localhost:18787');
      localStorage.setItem('covenant_cloud_enabled', '1');
      location.reload();
      ```

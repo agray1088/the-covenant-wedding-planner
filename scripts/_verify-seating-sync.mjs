@@ -5,7 +5,7 @@
  * Device A: enable cloud → login demo → upload wedding → add unique seating table → sync
  * Device B: fresh context → enable cloud → same login → sync/pull → assert seating table present
  *
- * Requires sync API on :8787 (docker compose up -d, or host `npm run server`).
+ * Requires sync API on host :18787 (docker compose up -d). For host `npm run server` on :8787, set COVENANT_CLOUD_API.
  * Requires root `npm install` + Playwright Chromium (see scripts/_ensure-playwright.mjs).
  *
  * Usage (from repo root):
@@ -16,7 +16,7 @@
  *
  * Or:
  *   node scripts/_verify-seating-sync.mjs
- *   COVENANT_CLOUD_API=http://127.0.0.1:8787 node scripts/_verify-seating-sync.mjs
+ *   COVENANT_CLOUD_API=http://127.0.0.1:18787 node scripts/_verify-seating-sync.mjs
  *
  * After schema changes (new seating_tables table + floor fixture columns): docker compose down -v && docker compose up -d
  */
@@ -36,7 +36,7 @@ const { chromium } = await import('playwright');
 
 const ROOT = process.cwd();
 const PORT = Number(process.env.E2E_SEATING_SYNC_PORT || 8797);
-const API = (process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:8787').replace(/\/$/, '');
+const API = (process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787').replace(/\/$/, '');
 const DEMO_EMAIL = process.env.COVENANT_DEMO_EMAIL || 'demo@covenant.local';
 const DEMO_PASSWORD = process.env.COVENANT_DEMO_PASSWORD || 'covenant-demo';
 
@@ -69,7 +69,7 @@ async function requireApi() {
     health = await res.json();
   } catch (e) {
     throw new Error(
-      `Sync API not reachable at ${API}. Start with: docker compose up -d  (API on :8787). Keep Compose running while verifying.`
+      `Sync API not reachable at ${API}. Start with: docker compose up -d  (API on host :18787). Keep Compose running while verifying.`
     );
   }
   if (!health || health.ok !== true) {

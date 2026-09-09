@@ -7,6 +7,8 @@
 #   → postgres on the Docker network (pg_hba trust). No SCRAM on the host path.
 # Port 15432 avoids Windows native Postgres often bound to 5432/5433 — a common
 # cause of "password authentication failed" while Compose still looks healthy.
+# Sync API is published on host :18787 → container :8787 (avoids Windows
+# Hyper-V/WinNAT excluded ranges that often block host :8787).
 # Browser pgAdmin (:5050) and the api service talk to hostname `postgres` directly.
 services:
   postgres:
@@ -67,8 +69,9 @@ services:
       CORS_ORIGIN: http://localhost:8000
       BOOTSTRAP_EMAIL: demo@covenant.local
       BOOTSTRAP_PASSWORD: covenant-demo
+    # Host :18787 avoids Windows Hyper-V/WinNAT excluded ranges that often block :8787.
     ports:
-      - "8787:8787"
+      - "18787:8787"
     command: sh -c "npm install && node index.js"
     depends_on:
       postgres:
