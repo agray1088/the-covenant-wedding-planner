@@ -249,7 +249,7 @@
         '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:18787" value="'
         + esc((function () { try { return localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { return ''; } })())
         + '">');
-      html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals sync in beta',
+      html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party sync in beta',
         btn('Save & enable', 'rdCloudEnable'));
       return html;
     }
@@ -263,11 +263,11 @@
       return html;
     }
 
-    html += cardRow('Sync now', 'Pull then push guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
-    html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals', btn('Upload this wedding', 'rdCloudUpload'));
+    html += cardRow('Sync now', 'Pull then push guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
+    html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party', btn('Upload this wedding', 'rdCloudUpload'));
     html += cardRow('Sign out', 'Local planner keeps working offline', btn('Sign out', 'rdCloudSignOut'));
     html += cardRow('Disable cloud on this device', 'Flag off; offline GA path unchanged', btn('Turn off', 'rdCloudDisable'));
-    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals</b> sync in this beta. Party, vendor arrivals, catering rentals, and print field overrides (vendorPackets / partyPackets / coordPacket) stay on-device until later passes. Hosted <code>covenant.link</code> portals are not part of this sync.</div>';
+    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party</b> sync in this beta. Vendor arrivals, catering rentals, and print field overrides (vendorPackets / partyPackets / coordPacket) stay on-device until later passes. Hosted <code>covenant.link</code> portals are not part of this sync.</div>';
     return html;
   }
 
@@ -340,7 +340,7 @@
     }
     if (id === 'cloud') {
       return paneShell('Cloud sync (beta)',
-        'Optional. Offline planning always works. Guests, vendors, payments, budget, seating, contracts, timeline, packets, and rentals sync in beta — not full multi-user realtime yet.',
+        'Optional. Offline planning always works. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, and party sync in beta — not full multi-user realtime yet.',
         cloudSyncPaneBody());
     }
     if (id === 'trash') {
@@ -352,7 +352,7 @@
     if (id === 'about') {
       return paneShell('About',
         'The Covenant Wedding Planner — offline-first, one file per wedding.',
-        '<div class="rd-set__note">Offline by default: no account required, no tracking. Optional <b>Cloud sync (beta)</b> can mirror guests, vendors, payments, budget, seating, contracts, timeline, packets, and rentals to a server when you enable it — core planning never depends on being online. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
+        '<div class="rd-set__note">Offline by default: no account required, no tracking. Optional <b>Cloud sync (beta)</b> can mirror guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, and party to a server when you enable it — core planning never depends on being online. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
     }
     if (id === 'getstarted') {
       return paneShell('Get started', 'How the planner works and your first steps.',
@@ -530,14 +530,14 @@
       if (name === 'rdCloudSyncNow') {
         if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
         window.CovenantCloudSync.syncNow()
-          .then(function () { cloudMsg(true, 'Guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals synced (beta).'); })
+          .then(function () { cloudMsg(true, 'Guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party synced (beta).'); })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Sync failed'); });
         return;
       }
       if (name === 'rdCloudUpload') {
         if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
         window.CovenantCloudSync.uploadWedding()
-          .then(function () { cloudMsg(true, 'Wedding uploaded — guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals pushed.'); })
+          .then(function () { cloudMsg(true, 'Wedding uploaded — guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party pushed.'); })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Upload failed'); });
         return;
       }

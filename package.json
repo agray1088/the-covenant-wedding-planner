@@ -25,6 +25,7 @@
     "verify:packets-sync": "node scripts/_verify-packet-sync.mjs",
     "verify:rental-sync": "node scripts/_verify-rental-sync.mjs",
     "verify:rentals-sync": "node scripts/_verify-rental-sync.mjs",
+    "verify:party-sync": "node scripts/_verify-party-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {

@@ -1,8 +1,8 @@
 -- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings,
 -- guests, vendors, payments, budget_categories, seating_tables, contracts,
 -- timeline_events (wedding day timeline), packets (share packets),
--- rentals (finances rentals tracker).
--- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet/rental shapes for Postgres sync.
+-- rentals (finances rentals tracker), party_members (wedding / bridal party).
+-- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet/rental/party shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -306,3 +306,28 @@ CREATE TABLE IF NOT EXISTS rentals (
 
 CREATE INDEX IF NOT EXISTS rentals_wedding_updated_idx
   ON rentals(wedding_id, updated_at);
+
+-- Wedding party (data.party[]) — bridal / wedding party tracker rows.
+-- Client uses name (planner SQLite: member_name). guest_id is opaque (no cloud
+-- FK to guests). Optional UI extras (side, attireStatus, duties, …) travel in
+-- meta_json. Party duties board and print partyPackets stay on-device in this pass.
+CREATE TABLE IF NOT EXISTS party_members (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  name             TEXT NOT NULL DEFAULT '',
+  role             TEXT,
+  phone            TEXT,
+  email            TEXT,
+  attire           TEXT,
+  size             TEXT,
+  status           TEXT,
+  notes            TEXT,
+  guest_id         TEXT,
+  meta_json        JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS party_members_wedding_updated_idx
+  ON party_members(wedding_id, updated_at);

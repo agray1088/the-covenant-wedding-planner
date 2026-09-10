@@ -30,6 +30,7 @@ ok('schema has contracts', /CREATE TABLE IF NOT EXISTS contracts/.test(read('ser
 ok('schema has timeline_events', /CREATE TABLE IF NOT EXISTS timeline_events/.test(read('server/schema.sql')));
 ok('schema has packets', /CREATE TABLE IF NOT EXISTS packets/.test(read('server/schema.sql')));
 ok('schema has rentals', /CREATE TABLE IF NOT EXISTS rentals/.test(read('server/schema.sql')));
+ok('schema has party_members', /CREATE TABLE IF NOT EXISTS party_members/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
@@ -40,6 +41,7 @@ ok('client pushes contracts', /\/contracts\/bulk/.test(read('js/cloud-sync.js'))
 ok('client pushes timeline', /\/timeline\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes packets', /\/packets\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes rentals', /\/rentals\/bulk/.test(read('js/cloud-sync.js')));
+ok('client pushes party', /\/party\/bulk/.test(read('js/cloud-sync.js')));
 ok('vendors route file', fs.existsSync(path.join(root, 'server/routes/vendors.js')));
 ok('payments route file', fs.existsSync(path.join(root, 'server/routes/payments.js')));
 ok('budget route file', fs.existsSync(path.join(root, 'server/routes/budget.js')));
@@ -48,8 +50,9 @@ ok('contracts route file', fs.existsSync(path.join(root, 'server/routes/contract
 ok('timeline route file', fs.existsSync(path.join(root, 'server/routes/timeline.js')));
 ok('packets route file', fs.existsSync(path.join(root, 'server/routes/packets.js')));
 ok('rentals route file', fs.existsSync(path.join(root, 'server/routes/rentals.js')));
+ok('party route file', fs.existsSync(path.join(root, 'server/routes/party.js')));
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
-ok('settings mentions rentals', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline \+ packets \+ rentals/.test(read('js/settings-window-redesign.js')));
+ok('settings mentions party', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline \+ packets \+ rentals \+ party/.test(read('js/settings-window-redesign.js')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787';
 
@@ -321,6 +324,32 @@ async function live() {
     .then((r) => r.json());
   ok('rental appears in list', Array.isArray(rntlist.rentals) && rntlist.rentals.some((c) => c.id === rentalId));
 
+  const partyId = 'pty_smoke_' + Date.now();
+  const putParty = await fetch(API + '/weddings/' + weddingId + '/party/' + partyId, {
+    method: 'PUT',
+    headers: auth,
+    body: JSON.stringify({
+      id: partyId,
+      name: 'Smoke Sarah Whitfield',
+      role: 'Maid of Honor',
+      phone: '555-0199',
+      email: 'smoke.party@example.com',
+      attire: 'Blush satin',
+      size: '6',
+      status: 'Ordered',
+      notes: 'Smoke party member',
+      side: 'Bride',
+      updatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('party upsert ack', putParty && putParty.ack === true && putParty.member && putParty.member.name === 'Smoke Sarah Whitfield');
+  ok('party role/phone round-trip', putParty && putParty.member && putParty.member.role === 'Maid of Honor' && putParty.member.phone === '555-0199');
+  ok('party side meta round-trip', putParty && putParty.member && putParty.member.side === 'Bride');
+
+  const ptylist = await fetch(API + '/weddings/' + weddingId + '/party', { headers: auth })
+    .then((r) => r.json());
+  ok('party appears in list', Array.isArray(ptylist.party) && ptylist.party.some((c) => c.id === partyId));
+
   // Second context: login again and fetch
   const login = await fetch(API + '/auth/login', {
     method: 'POST',
@@ -364,6 +393,10 @@ async function live() {
     headers: { Authorization: 'Bearer ' + login.token }
   }).then((r) => r.json());
   ok('second context sees rental', Array.isArray(rntlist2.rentals) && rntlist2.rentals.some((c) => c.id === rentalId));
+  const ptylist2 = await fetch(API + '/weddings/' + weddingId + '/party', {
+    headers: { Authorization: 'Bearer ' + login.token }
+  }).then((r) => r.json());
+  ok('second context sees party', Array.isArray(ptylist2.party) && ptylist2.party.some((c) => c.id === partyId));
 }
 
 await live();
