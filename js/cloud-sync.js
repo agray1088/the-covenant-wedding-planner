@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, and party.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, and tasks.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -389,6 +389,32 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensureTaskIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.tasks)) return;
+      var changed = false;
+      data.tasks.forEach(function (t) {
+        if (!t) return;
+        var id = t.id || t._id;
+        if (!id) {
+          id = 'tsk_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (t.id !== id) { t.id = id; changed = true; }
+        if (t._id !== id) { t._id = id; changed = true; }
+        if (!t.updatedAt) {
+          t.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -483,6 +509,16 @@
 
   function partyId(m) {
     return m ? String(m.id || m._id || '') : '';
+  }
+
+  function taskTs(t) {
+    if (!t) return 0;
+    var ts = Date.parse(t.updatedAt || t.updated_at || '');
+    return isNaN(ts) ? 0 : ts;
+  }
+
+  function taskId(t) {
+    return t ? String(t.id || t._id || '') : '';
   }
 
   function floorFixturesTs() {
@@ -846,6 +882,40 @@
       if (partyTs(sm) > partyTs(local)) {
         var merged = Object.assign({}, local, sm, { id: id, _id: id });
         data.party[idx] = merged;
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
+  function mergeTasksFromServer(serverTasks) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.tasks)) data.tasks = [];
+    var byId = {};
+    data.tasks.forEach(function (t, i) {
+      var id = taskId(t);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverTasks || []).forEach(function (st) {
+      if (!st) return;
+      var id = taskId(st);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, st, { id: id, _id: id });
+        data.tasks.push(row);
+        byId[id] = data.tasks.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.tasks[idx];
+      if (taskTs(st) > taskTs(local)) {
+        var merged = Object.assign({}, local, st, { id: id, _id: id });
+        data.tasks[idx] = merged;
         pulled++;
       } else {
         kept++;
@@ -1367,6 +1437,46 @@
     });
   }
 
+  function pushTasks() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensureTaskIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var tasks = (typeof data !== 'undefined' && data && Array.isArray(data.tasks))
+      ? data.tasks.map(function (t) {
+          if (!t) return t;
+          var id = taskId(t);
+          var ts = t.updatedAt || t.updated_at || now;
+          return Object.assign({}, t, {
+            id: id,
+            _id: id,
+            updatedAt: ts
+          });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/tasks/bulk', {
+      method: 'POST',
+      body: { tasks: tasks }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.task) return;
+        if (!r.ack) return;
+        var tid = taskId(r.task);
+        if (!tid) return;
+        var list = data.tasks || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && taskId(list[i]) === tid) {
+            list[i].updatedAt = r.task.updatedAt || list[i].updatedAt;
+            list[i].id = tid;
+            list[i]._id = tid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
@@ -1378,18 +1488,21 @@
                   return pushPackets().then(function (packets) {
                     return pushRentals().then(function (rentals) {
                       return pushParty().then(function (party) {
-                        return {
-                          guests: guests,
-                          vendors: vendors,
-                          payments: payments,
-                          budget: budget,
-                          seating: seating,
-                          contracts: contracts,
-                          timeline: timeline,
-                          packets: packets,
-                          rentals: rentals,
-                          party: party
-                        };
+                        return pushTasks().then(function (tasks) {
+                          return {
+                            guests: guests,
+                            vendors: vendors,
+                            payments: payments,
+                            budget: budget,
+                            seating: seating,
+                            contracts: contracts,
+                            timeline: timeline,
+                            packets: packets,
+                            rentals: rentals,
+                            party: party,
+                            tasks: tasks
+                          };
+                        });
                       });
                     });
                   });
@@ -1603,6 +1716,27 @@
       });
   }
 
+  function pullTasks() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/tasks')
+      .then(function (body) {
+        var merge = mergeTasksFromServer(body.tasks || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          if (document.body.getAttribute('data-active-panel') === 'tasks' || document.body.getAttribute('data-active-panel') === 'plan') {
+            try {
+              if (typeof renderTasks === 'function') renderTasks();
+              else if (typeof window.__tasksRenderRd === 'function') window.__tasksRenderRd();
+            } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
@@ -1614,18 +1748,21 @@
                   return pullPackets().then(function (packets) {
                     return pullRentals().then(function (rentals) {
                       return pullParty().then(function (party) {
-                        return {
-                          guests: guests,
-                          vendors: vendors,
-                          payments: payments,
-                          budget: budget,
-                          seating: seating,
-                          contracts: contracts,
-                          timeline: timeline,
-                          packets: packets,
-                          rentals: rentals,
-                          party: party
-                        };
+                        return pullTasks().then(function (tasks) {
+                          return {
+                            guests: guests,
+                            vendors: vendors,
+                            payments: payments,
+                            budget: budget,
+                            seating: seating,
+                            contracts: contracts,
+                            timeline: timeline,
+                            packets: packets,
+                            rentals: rentals,
+                            party: party,
+                            tasks: tasks
+                          };
+                        });
                       });
                     });
                   });
@@ -1684,7 +1821,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party.
+  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -1758,6 +1895,12 @@
             data.party.forEach(function (m) {
               if (!m) return;
               m.updatedAt = now;
+            });
+          }
+          if (Array.isArray(data.tasks)) {
+            data.tasks.forEach(function (t) {
+              if (!t) return;
+              t.updatedAt = now;
             });
           }
         }

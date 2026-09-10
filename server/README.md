@@ -1,6 +1,6 @@
 # Covenant sync API (optional cloud)
 
-Offline-first planner stays the default. This Node + Postgres API is **opt-in** for multi-device guest + vendor + payment + budget + seating + contract + timeline + packet + rental + party sync (beta).
+Offline-first planner stays the default. This Node + Postgres API is **opt-in** for multi-device guest + vendor + payment + budget + seating + contract + timeline + packet + rental + party + task sync (beta).
 
 ## Prerequisites
 
@@ -57,7 +57,7 @@ Two separate Windows traps caused `FATAL: password authentication failed for use
 3. Port **15432** avoids the common Windows Postgres bind on `5432`/`5433`.
 4. Verify scripts require a **wrong password to succeed** on the published port (proves trust) and optionally run a host Node `pg` driver check.
 
-### Browse guests / vendors / payments / budget / seating / contracts / timeline / packets / rentals / party — desktop pgAdmin → `127.0.0.1:15432` (db-proxy)
+### Browse guests / vendors / payments / budget / seating / contracts / timeline / packets / rentals / party / tasks — desktop pgAdmin → `127.0.0.1:15432` (db-proxy)
 
 In desktop pgAdmin → **Register → Server** → **Connection**:
 
@@ -71,7 +71,7 @@ In desktop pgAdmin → **Register → Server** → **Connection**:
 
 On the **SSL** tab: **Disable** (simplest for local Docker Desktop).
 
-Save, then expand **Servers → … → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories** / **seating_tables** / **contracts** / **timeline_events** / **packets** / **rentals** / **party_members**).
+Save, then expand **Servers → … → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories** / **seating_tables** / **contracts** / **timeline_events** / **packets** / **rentals** / **party_members** / **planning_tasks**).
 
 Confirm the proxy is up:
 
@@ -83,7 +83,7 @@ docker compose logs db-proxy postgres --tail 30
 
 You should see `covenant-db-proxy` on host `:15432` and both `published_port_ok` / `trust_ok`. If desktop still fails after a volume wipe + recreate, use browser pgAdmin below (same data).
 
-### Browse guests / vendors / payments / budget / seating / contracts / timeline / packets / rentals / party — browser pgAdmin (Docker network)
+### Browse guests / vendors / payments / budget / seating / contracts / timeline / packets / rentals / party / tasks — browser pgAdmin (Docker network)
 
 Compose also starts **pgAdmin** on the same Docker network as Postgres. Open:
 
@@ -104,7 +104,7 @@ A server named **Covenant Postgres** is preconfigured:
 | Username | `covenant` |
 | Password | `covenant` |
 
-Expand **Servers → Covenant Postgres → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories** / **seating_tables** / **contracts** / **timeline_events** / **packets** / **rentals** / **party_members**).
+Expand **Servers → Covenant Postgres → Databases → covenant → Schemas → public → Tables → guests** (or **vendors** / **payments** / **budget_categories** / **seating_tables** / **contracts** / **timeline_events** / **packets** / **rentals** / **party_members** / **planning_tasks**).
 
 ### Quick start (Docker Postgres + db-proxy only, API on host)
 
@@ -228,6 +228,10 @@ Bootstrap demo user (from `.env.example`):
 | PUT | `/weddings/:id/party/:memberId` | Upsert one (LWW) |
 | POST | `/weddings/:id/party/bulk` | Upsert many |
 | DELETE | `/weddings/:id/party/:memberId` | Delete |
+| GET | `/weddings/:id/tasks` | List planning tasks |
+| PUT | `/weddings/:id/tasks/:taskId` | Upsert one (LWW) |
+| POST | `/weddings/:id/tasks/bulk` | Upsert many |
+| DELETE | `/weddings/:id/tasks/:taskId` | Delete |
 
 Auth header: `Authorization: Bearer <token>`.
 
@@ -243,11 +247,11 @@ location.reload();
 
 (Compose host port is **18787**. If you already set `covenant_cloud_api` to `:8787`, change it to `:18787`. Host-only `npm run server` still uses `:8787` — set the URL to match how you run the API.)
 
-Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party.
+Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks.
 
 ## Second-device sync (manual + automated)
 
-Guests, vendors, payments, budget, seating, contracts, timeline events, packets, rentals, and party uploaded on one browser profile must appear on another after the same account signs in and syncs.
+Guests, vendors, payments, budget, seating, contracts, timeline events, packets, rentals, party, and planning tasks uploaded on one browser profile must appear on another after the same account signs in and syncs.
 
 **Automated** (two Playwright storage contexts). Windows CMD from repo root:
 
@@ -265,6 +269,7 @@ npm run verify:timeline-sync
 npm run verify:packet-sync
 npm run verify:rental-sync
 npm run verify:party-sync
+npm run verify:task-sync
 ```
 
 Keep `docker compose up -d` running so the API stays on host `:18787`. If you see `Cannot find package 'playwright'`, run `npm install` at the **repo root** (not only under `server/`).
@@ -273,7 +278,7 @@ Keep `docker compose up -d` running so the API stays on host `:18787`. If you se
 
 On a fresh device the client **links the account’s newest wedding** (GET `/weddings`) before creating a new one — different devices use different `clientKey`s, so a blind POST would otherwise spawn an empty duplicate.
 
-## Verify guests / vendors / payments / budget / seating / contracts / timeline / packets / rentals / party landed in Postgres (Windows)
+## Verify guests / vendors / payments / budget / seating / contracts / timeline / packets / rentals / party / tasks landed in Postgres (Windows)
 
 After status shows **Synced · … · wedding linked**, browse tables in **desktop pgAdmin** (`127.0.0.1:15432` → db-proxy), **browser pgAdmin** at http://localhost:5050, or use `docker exec` as a fallback that never depends on the published port:
 
@@ -288,6 +293,7 @@ docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, we
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, name, recipient, recipient_type, mode, opens, status, expires, updated_at FROM packets ORDER BY updated_at DESC LIMIT 50;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, item, vendor, pickup_date, return_date, cost, details, updated_at FROM rentals ORDER BY updated_at DESC LIMIT 50;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, name, role, phone, email, attire, size, status, notes, updated_at FROM party_members ORDER BY updated_at DESC LIMIT 50;"
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, title, category, phase, priority, due_date, status, assigned, done, updated_at FROM planning_tasks ORDER BY updated_at DESC LIMIT 50;"
 ```
 
 Count + wedding ids:
@@ -303,6 +309,7 @@ docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT weddin
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS packets FROM packets GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS rentals FROM rentals GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS party FROM party_members GROUP BY wedding_id;"
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS tasks FROM planning_tasks GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, name, bride, groom FROM weddings;"
 ```
 
@@ -321,6 +328,7 @@ curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/packets"
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/rentals"
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/party"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/tasks"
 ```
 
 ## Cloud host next steps (not in this pass)
@@ -330,8 +338,8 @@ curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$
 3. Put TLS in front; set `CORS_ORIGIN` to the real static origin (or Pages/CDN URL).
 4. Turn off `BOOTSTRAP_*` in production; keep registration or add invite-only.
 5. Wire magic-link SMTP when ready (`MAGIC_LINK_*` placeholders in `.env.example`).
-6. Expand sync beyond guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party (vendor arrivals, catering rentals, print packet field overrides, planning tasks, …) per `docs/OFFLINE_CLOUD_SYNC.md`.
+6. Expand sync beyond guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks (vendor arrivals / vtimeline, catering rentals, print packet field overrides, …) per `docs/OFFLINE_CLOUD_SYNC.md`. Then hosted deploy / real accounts / vendor tokens.
 
 ## Conflict policy
 
-Last-write-wins using guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party `updated_at`. Server only overwrites when the incoming timestamp is ≥ stored. Client prefers local-newer rows and ACK timestamps from the API. See the architecture doc for details.
+Last-write-wins using guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task `updated_at`. Server only overwrites when the incoming timestamp is ≥ stored. Client prefers local-newer rows and ACK timestamps from the API. See the architecture doc for details.

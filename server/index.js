@@ -16,6 +16,7 @@ import timelineRoutes from './routes/timeline.js';
 import packetRoutes from './routes/packets.js';
 import rentalRoutes from './routes/rentals.js';
 import partyRoutes from './routes/party.js';
+import taskRoutes from './routes/tasks.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -65,6 +66,7 @@ app.use('/weddings/:weddingId/timeline', timelineRoutes);
 app.use('/weddings/:weddingId/packets', packetRoutes);
 app.use('/weddings/:weddingId/rentals', rentalRoutes);
 app.use('/weddings/:weddingId/party', partyRoutes);
+app.use('/weddings/:weddingId/tasks', taskRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error('[covenant-sync]', err);

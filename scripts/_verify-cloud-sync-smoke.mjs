@@ -31,6 +31,7 @@ ok('schema has timeline_events', /CREATE TABLE IF NOT EXISTS timeline_events/.te
 ok('schema has packets', /CREATE TABLE IF NOT EXISTS packets/.test(read('server/schema.sql')));
 ok('schema has rentals', /CREATE TABLE IF NOT EXISTS rentals/.test(read('server/schema.sql')));
 ok('schema has party_members', /CREATE TABLE IF NOT EXISTS party_members/.test(read('server/schema.sql')));
+ok('schema has planning_tasks', /CREATE TABLE IF NOT EXISTS planning_tasks/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
@@ -42,6 +43,7 @@ ok('client pushes timeline', /\/timeline\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes packets', /\/packets\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes rentals', /\/rentals\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes party', /\/party\/bulk/.test(read('js/cloud-sync.js')));
+ok('client pushes tasks', /\/tasks\/bulk/.test(read('js/cloud-sync.js')));
 ok('vendors route file', fs.existsSync(path.join(root, 'server/routes/vendors.js')));
 ok('payments route file', fs.existsSync(path.join(root, 'server/routes/payments.js')));
 ok('budget route file', fs.existsSync(path.join(root, 'server/routes/budget.js')));
@@ -51,8 +53,9 @@ ok('timeline route file', fs.existsSync(path.join(root, 'server/routes/timeline.
 ok('packets route file', fs.existsSync(path.join(root, 'server/routes/packets.js')));
 ok('rentals route file', fs.existsSync(path.join(root, 'server/routes/rentals.js')));
 ok('party route file', fs.existsSync(path.join(root, 'server/routes/party.js')));
+ok('tasks route file', fs.existsSync(path.join(root, 'server/routes/tasks.js')));
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
-ok('settings mentions party', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline \+ packets \+ rentals \+ party/.test(read('js/settings-window-redesign.js')));
+ok('settings mentions tasks', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline \+ packets \+ rentals \+ party \+ tasks/.test(read('js/settings-window-redesign.js')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787';
 
@@ -350,6 +353,34 @@ async function live() {
     .then((r) => r.json());
   ok('party appears in list', Array.isArray(ptylist.party) && ptylist.party.some((c) => c.id === partyId));
 
+  const taskId = 'tsk_smoke_' + Date.now();
+  const putTask = await fetch(API + '/weddings/' + weddingId + '/tasks/' + taskId, {
+    method: 'PUT',
+    headers: auth,
+    body: JSON.stringify({
+      id: taskId,
+      task: 'Smoke book photographer',
+      cat: 'Vendors',
+      phase: '9-12 Months Before',
+      priority: 'High',
+      date: '2026-03-01',
+      suggestedDue: '2026-02-15',
+      status: 'In Progress',
+      assigned: 'Bride',
+      notes: 'Smoke planning task',
+      done: false,
+      subtasks: [{ text: 'Get quotes', done: true }, { text: 'Sign contract', done: false }],
+      updatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('task upsert ack', putTask && putTask.ack === true && putTask.task && putTask.task.task === 'Smoke book photographer');
+  ok('task phase/cat round-trip', putTask && putTask.task && putTask.task.phase === '9-12 Months Before' && putTask.task.cat === 'Vendors');
+  ok('task subtasks round-trip', putTask && putTask.task && Array.isArray(putTask.task.subtasks) && putTask.task.subtasks.length === 2);
+
+  const tsklist = await fetch(API + '/weddings/' + weddingId + '/tasks', { headers: auth })
+    .then((r) => r.json());
+  ok('task appears in list', Array.isArray(tsklist.tasks) && tsklist.tasks.some((c) => c.id === taskId));
+
   // Second context: login again and fetch
   const login = await fetch(API + '/auth/login', {
     method: 'POST',
@@ -397,6 +428,10 @@ async function live() {
     headers: { Authorization: 'Bearer ' + login.token }
   }).then((r) => r.json());
   ok('second context sees party', Array.isArray(ptylist2.party) && ptylist2.party.some((c) => c.id === partyId));
+  const tsklist2 = await fetch(API + '/weddings/' + weddingId + '/tasks', {
+    headers: { Authorization: 'Bearer ' + login.token }
+  }).then((r) => r.json());
+  ok('second context sees task', Array.isArray(tsklist2.tasks) && tsklist2.tasks.some((c) => c.id === taskId));
 }
 
 await live();

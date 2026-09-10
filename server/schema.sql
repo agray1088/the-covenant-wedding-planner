@@ -1,8 +1,9 @@
 -- Covenant cloud schema subset (v1) — users, sessions, memberships, weddings,
 -- guests, vendors, payments, budget_categories, seating_tables, contracts,
 -- timeline_events (wedding day timeline), packets (share packets),
--- rentals (finances rentals tracker), party_members (wedding / bridal party).
--- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet/rental/party shapes for Postgres sync.
+-- rentals (finances rentals tracker), party_members (wedding / bridal party),
+-- planning_tasks (Planning Timeline to-dos).
+-- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet/rental/party/task shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -331,3 +332,32 @@ CREATE TABLE IF NOT EXISTS party_members (
 
 CREATE INDEX IF NOT EXISTS party_members_wedding_updated_idx
   ON party_members(wedding_id, updated_at);
+
+-- Planning tasks (data.tasks[]) — Planning Timeline to-dos / checklist rows.
+-- Client aliases: task↔title, cat↔category, date↔due_date,
+-- suggestedDue↔suggested_due. Nested checklist items travel in subtasks_json
+-- ({ text, done }[]) — same LWW nested pattern as payment installments.
+-- Optional UI extras travel in meta_json. Appointments and Smart Calendar
+-- aggregates stay on-device in this pass.
+CREATE TABLE IF NOT EXISTS planning_tasks (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  title            TEXT NOT NULL DEFAULT '',
+  category         TEXT,
+  phase            TEXT,
+  priority         TEXT,
+  due_date         TEXT,
+  suggested_due    TEXT,
+  status           TEXT,
+  assigned         TEXT,
+  notes            TEXT,
+  done             BOOLEAN NOT NULL DEFAULT false,
+  subtasks_json    JSONB NOT NULL DEFAULT '[]'::jsonb,
+  meta_json        JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS planning_tasks_wedding_updated_idx
+  ON planning_tasks(wedding_id, updated_at);
