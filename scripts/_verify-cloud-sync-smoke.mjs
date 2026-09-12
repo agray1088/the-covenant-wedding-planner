@@ -32,6 +32,7 @@ ok('schema has packets', /CREATE TABLE IF NOT EXISTS packets/.test(read('server/
 ok('schema has rentals', /CREATE TABLE IF NOT EXISTS rentals/.test(read('server/schema.sql')));
 ok('schema has party_members', /CREATE TABLE IF NOT EXISTS party_members/.test(read('server/schema.sql')));
 ok('schema has planning_tasks', /CREATE TABLE IF NOT EXISTS planning_tasks/.test(read('server/schema.sql')));
+ok('schema has vendor_arrivals', /CREATE TABLE IF NOT EXISTS vendor_arrivals/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
@@ -44,6 +45,7 @@ ok('client pushes packets', /\/packets\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes rentals', /\/rentals\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes party', /\/party\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes tasks', /\/tasks\/bulk/.test(read('js/cloud-sync.js')));
+ok('client pushes vtimeline', /\/vtimeline\/bulk/.test(read('js/cloud-sync.js')));
 ok('vendors route file', fs.existsSync(path.join(root, 'server/routes/vendors.js')));
 ok('payments route file', fs.existsSync(path.join(root, 'server/routes/payments.js')));
 ok('budget route file', fs.existsSync(path.join(root, 'server/routes/budget.js')));
@@ -54,8 +56,9 @@ ok('packets route file', fs.existsSync(path.join(root, 'server/routes/packets.js
 ok('rentals route file', fs.existsSync(path.join(root, 'server/routes/rentals.js')));
 ok('party route file', fs.existsSync(path.join(root, 'server/routes/party.js')));
 ok('tasks route file', fs.existsSync(path.join(root, 'server/routes/tasks.js')));
+ok('vtimeline route file', fs.existsSync(path.join(root, 'server/routes/vtimeline.js')));
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
-ok('settings mentions tasks', /guests \+ vendors \+ payments \+ budget \+ seating \+ contracts \+ timeline \+ packets \+ rentals \+ party \+ tasks/.test(read('js/settings-window-redesign.js')));
+ok('settings mentions vtimeline', /vendor arrivals \(vtimeline\)/.test(read('js/settings-window-redesign.js')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787';
 
@@ -381,6 +384,31 @@ async function live() {
     .then((r) => r.json());
   ok('task appears in list', Array.isArray(tsklist.tasks) && tsklist.tasks.some((c) => c.id === taskId));
 
+  const vtlId = 'vtl_smoke_' + Date.now();
+  const putVtl = await fetch(API + '/weddings/' + weddingId + '/vtimeline/' + vtlId, {
+    method: 'PUT',
+    headers: auth,
+    body: JSON.stringify({
+      id: vtlId,
+      vendor: 'Smoke Grace Photography',
+      time: '13:00',
+      location: 'Bridal suite',
+      contact: '555-0100',
+      notes: 'Smoke vendor arrival',
+      event: 'Arrival & setup',
+      status: 'Scheduled',
+      description: 'Smoke vtimeline meta',
+      updatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('vtimeline upsert ack', putVtl && putVtl.ack === true && putVtl.arrival && putVtl.arrival.vendor === 'Smoke Grace Photography');
+  ok('vtimeline time/location round-trip', putVtl && putVtl.arrival && putVtl.arrival.time === '13:00' && putVtl.arrival.location === 'Bridal suite');
+  ok('vtimeline meta round-trip', putVtl && putVtl.arrival && putVtl.arrival.description === 'Smoke vtimeline meta');
+
+  const vtllist = await fetch(API + '/weddings/' + weddingId + '/vtimeline', { headers: auth })
+    .then((r) => r.json());
+  ok('vtimeline appears in list', Array.isArray(vtllist.vtimeline) && vtllist.vtimeline.some((c) => c.id === vtlId));
+
   // Second context: login again and fetch
   const login = await fetch(API + '/auth/login', {
     method: 'POST',
@@ -432,6 +460,10 @@ async function live() {
     headers: { Authorization: 'Bearer ' + login.token }
   }).then((r) => r.json());
   ok('second context sees task', Array.isArray(tsklist2.tasks) && tsklist2.tasks.some((c) => c.id === taskId));
+  const vtllist2 = await fetch(API + '/weddings/' + weddingId + '/vtimeline', {
+    headers: { Authorization: 'Bearer ' + login.token }
+  }).then((r) => r.json());
+  ok('second context sees vtimeline', Array.isArray(vtllist2.vtimeline) && vtllist2.vtimeline.some((c) => c.id === vtlId));
 }
 
 await live();

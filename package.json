@@ -28,6 +28,8 @@
     "verify:party-sync": "node scripts/_verify-party-sync.mjs",
     "verify:task-sync": "node scripts/_verify-task-sync.mjs",
     "verify:tasks-sync": "node scripts/_verify-task-sync.mjs",
+    "verify:vtimeline-sync": "node scripts/_verify-vtimeline-sync.mjs",
+    "verify:vendor-arrivals-sync": "node scripts/_verify-vtimeline-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {

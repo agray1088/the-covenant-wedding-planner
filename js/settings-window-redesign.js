@@ -267,7 +267,7 @@
     html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks', btn('Upload this wedding', 'rdCloudUpload'));
     html += cardRow('Sign out', 'Local planner keeps working offline', btn('Sign out', 'rdCloudSignOut'));
     html += cardRow('Disable cloud on this device', 'Flag off; offline GA path unchanged', btn('Turn off', 'rdCloudDisable'));
-    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks</b> sync in this beta. Vendor arrivals (vtimeline), catering rentals, and print field overrides (vendorPackets / partyPackets / coordPacket) stay on-device until later passes. Hosted <code>covenant.link</code> portals are not part of this sync.</div>';
+    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks + vendor arrivals (vtimeline)</b> sync in this beta. Catering rentals and print field overrides (vendorPackets / partyPackets / coordPacket) stay on-device until later passes. Hosted <code>covenant.link</code> portals are not part of this sync.</div>';
     return html;
   }
 
@@ -340,7 +340,7 @@
     }
     if (id === 'cloud') {
       return paneShell('Cloud sync (beta)',
-        'Optional. Offline planning always works. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, and tasks sync in beta — not full multi-user realtime yet.',
+        'Optional. Offline planning always works. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, tasks, and vendor arrivals sync in beta — not full multi-user realtime yet.',
         cloudSyncPaneBody());
     }
     if (id === 'trash') {
@@ -352,7 +352,7 @@
     if (id === 'about') {
       return paneShell('About',
         'The Covenant Wedding Planner — offline-first, one file per wedding.',
-        '<div class="rd-set__note">Offline by default: no account required, no tracking. Optional <b>Cloud sync (beta)</b> can mirror guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, and tasks to a server when you enable it — core planning never depends on being online. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
+        '<div class="rd-set__note">Offline by default: no account required, no tracking. Optional <b>Cloud sync (beta)</b> can mirror guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, tasks, and vendor arrivals to a server when you enable it — core planning never depends on being online. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
     }
     if (id === 'getstarted') {
       return paneShell('Get started', 'How the planner works and your first steps.',

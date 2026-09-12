@@ -232,6 +232,10 @@ Bootstrap demo user (from `.env.example`):
 | PUT | `/weddings/:id/tasks/:taskId` | Upsert one (LWW) |
 | POST | `/weddings/:id/tasks/bulk` | Upsert many |
 | DELETE | `/weddings/:id/tasks/:taskId` | Delete |
+| GET | `/weddings/:id/vtimeline` | List vendor arrivals |
+| PUT | `/weddings/:id/vtimeline/:arrivalId` | Upsert one (LWW) |
+| POST | `/weddings/:id/vtimeline/bulk` | Upsert many |
+| DELETE | `/weddings/:id/vtimeline/:arrivalId` | Delete |
 
 Auth header: `Authorization: Bearer <token>`.
 
@@ -247,11 +251,11 @@ location.reload();
 
 (Compose host port is **18787**. If you already set `covenant_cloud_api` to `:8787`, change it to `:18787`. Host-only `npm run server` still uses `:8787` — set the URL to match how you run the API.)
 
-Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks.
+Open **Settings → Cloud sync (beta)** to sign in, upload this wedding, and sync guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks + vendor arrivals.
 
 ## Second-device sync (manual + automated)
 
-Guests, vendors, payments, budget, seating, contracts, timeline events, packets, rentals, party, and planning tasks uploaded on one browser profile must appear on another after the same account signs in and syncs.
+Guests, vendors, payments, budget, seating, contracts, timeline events, packets, rentals, party, planning tasks, and vendor arrivals uploaded on one browser profile must appear on another after the same account signs in and syncs.
 
 **Automated** (two Playwright storage contexts). Windows CMD from repo root:
 
@@ -270,6 +274,7 @@ npm run verify:packet-sync
 npm run verify:rental-sync
 npm run verify:party-sync
 npm run verify:task-sync
+npm run verify:vtimeline-sync
 ```
 
 Keep `docker compose up -d` running so the API stays on host `:18787`. If you see `Cannot find package 'playwright'`, run `npm install` at the **repo root** (not only under `server/`).
@@ -278,7 +283,7 @@ Keep `docker compose up -d` running so the API stays on host `:18787`. If you se
 
 On a fresh device the client **links the account’s newest wedding** (GET `/weddings`) before creating a new one — different devices use different `clientKey`s, so a blind POST would otherwise spawn an empty duplicate.
 
-## Verify guests / vendors / payments / budget / seating / contracts / timeline / packets / rentals / party / tasks landed in Postgres (Windows)
+## Verify guests / vendors / payments / budget / seating / contracts / timeline / packets / rentals / party / tasks / vtimeline landed in Postgres (Windows)
 
 After status shows **Synced · … · wedding linked**, browse tables in **desktop pgAdmin** (`127.0.0.1:15432` → db-proxy), **browser pgAdmin** at http://localhost:5050, or use `docker exec` as a fallback that never depends on the published port:
 
@@ -294,6 +299,7 @@ docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, we
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, item, vendor, pickup_date, return_date, cost, details, updated_at FROM rentals ORDER BY updated_at DESC LIMIT 50;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, name, role, phone, email, attire, size, status, notes, updated_at FROM party_members ORDER BY updated_at DESC LIMIT 50;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, title, category, phase, priority, due_date, status, assigned, done, updated_at FROM planning_tasks ORDER BY updated_at DESC LIMIT 50;"
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, wedding_id, vendor, start_time, location, contact, event, status, updated_at FROM vendor_arrivals ORDER BY updated_at DESC LIMIT 50;"
 ```
 
 Count + wedding ids:
@@ -310,6 +316,7 @@ docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT weddin
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS rentals FROM rentals GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS party FROM party_members GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS tasks FROM planning_tasks GROUP BY wedding_id;"
+docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT wedding_id, COUNT(*) AS arrivals FROM vendor_arrivals GROUP BY wedding_id;"
 docker exec -it covenant-postgres psql -U covenant -d covenant -c "SELECT id, name, bride, groom FROM weddings;"
 ```
 
@@ -329,6 +336,7 @@ curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/rentals"
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/party"
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/tasks"
+curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/vtimeline"
 ```
 
 ## Cloud host next steps (not in this pass)
@@ -338,8 +346,8 @@ curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$
 3. Put TLS in front; set `CORS_ORIGIN` to the real static origin (or Pages/CDN URL).
 4. Turn off `BOOTSTRAP_*` in production; keep registration or add invite-only.
 5. Wire magic-link SMTP when ready (`MAGIC_LINK_*` placeholders in `.env.example`).
-6. Expand sync beyond guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks (vendor arrivals / vtimeline, catering rentals, print packet field overrides, …) per `docs/OFFLINE_CLOUD_SYNC.md`. Then hosted deploy / real accounts / vendor tokens.
+6. Expand sync beyond guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks + vtimeline (catering rentals, print packet field overrides, …) per `docs/OFFLINE_CLOUD_SYNC.md`. Then hosted deploy / real accounts / vendor tokens.
 
 ## Conflict policy
 
-Last-write-wins using guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task `updated_at`. Server only overwrites when the incoming timestamp is ≥ stored. Client prefers local-newer rows and ACK timestamps from the API. See the architecture doc for details.
+Last-write-wins using guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task/vtimeline `updated_at`. Server only overwrites when the incoming timestamp is ≥ stored. Client prefers local-newer rows and ACK timestamps from the API. See the architecture doc for details.

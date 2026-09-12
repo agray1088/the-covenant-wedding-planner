@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, and tasks.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, tasks, and vendor arrivals.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -415,6 +415,32 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensureVtimelineIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.vtimeline)) return;
+      var changed = false;
+      data.vtimeline.forEach(function (row) {
+        if (!row) return;
+        var id = row.id || row._id;
+        if (!id) {
+          id = 'vtl_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (row.id !== id) { row.id = id; changed = true; }
+        if (row._id !== id) { row._id = id; changed = true; }
+        if (!row.updatedAt) {
+          row.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -519,6 +545,16 @@
 
   function taskId(t) {
     return t ? String(t.id || t._id || '') : '';
+  }
+
+  function vtimelineTs(row) {
+    if (!row) return 0;
+    var ts = Date.parse(row.updatedAt || row.updated_at || '');
+    return isNaN(ts) ? 0 : ts;
+  }
+
+  function vtimelineId(row) {
+    return row ? String(row.id || row._id || '') : '';
   }
 
   function floorFixturesTs() {
@@ -916,6 +952,40 @@
       if (taskTs(st) > taskTs(local)) {
         var merged = Object.assign({}, local, st, { id: id, _id: id });
         data.tasks[idx] = merged;
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
+  function mergeVtimelineFromServer(serverRows) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.vtimeline)) data.vtimeline = [];
+    var byId = {};
+    data.vtimeline.forEach(function (row, i) {
+      var id = vtimelineId(row);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverRows || []).forEach(function (sr) {
+      if (!sr) return;
+      var id = vtimelineId(sr);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, sr, { id: id, _id: id });
+        data.vtimeline.push(row);
+        byId[id] = data.vtimeline.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.vtimeline[idx];
+      if (vtimelineTs(sr) > vtimelineTs(local)) {
+        var merged = Object.assign({}, local, sr, { id: id, _id: id });
+        data.vtimeline[idx] = merged;
         pulled++;
       } else {
         kept++;
@@ -1477,6 +1547,46 @@
     });
   }
 
+  function pushVtimeline() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensureVtimelineIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var vtimeline = (typeof data !== 'undefined' && data && Array.isArray(data.vtimeline))
+      ? data.vtimeline.map(function (row) {
+          if (!row) return row;
+          var id = vtimelineId(row);
+          var ts = row.updatedAt || row.updated_at || now;
+          return Object.assign({}, row, {
+            id: id,
+            _id: id,
+            updatedAt: ts
+          });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/vtimeline/bulk', {
+      method: 'POST',
+      body: { vtimeline: vtimeline }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.arrival) return;
+        if (!r.ack) return;
+        var rid = vtimelineId(r.arrival);
+        if (!rid) return;
+        var list = data.vtimeline || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && vtimelineId(list[i]) === rid) {
+            list[i].updatedAt = r.arrival.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
@@ -1489,19 +1599,22 @@
                     return pushRentals().then(function (rentals) {
                       return pushParty().then(function (party) {
                         return pushTasks().then(function (tasks) {
-                          return {
-                            guests: guests,
-                            vendors: vendors,
-                            payments: payments,
-                            budget: budget,
-                            seating: seating,
-                            contracts: contracts,
-                            timeline: timeline,
-                            packets: packets,
-                            rentals: rentals,
-                            party: party,
-                            tasks: tasks
-                          };
+                          return pushVtimeline().then(function (vtimeline) {
+                            return {
+                              guests: guests,
+                              vendors: vendors,
+                              payments: payments,
+                              budget: budget,
+                              seating: seating,
+                              contracts: contracts,
+                              timeline: timeline,
+                              packets: packets,
+                              rentals: rentals,
+                              party: party,
+                              tasks: tasks,
+                              vtimeline: vtimeline
+                            };
+                          });
                         });
                       });
                     });
@@ -1737,6 +1850,28 @@
       });
   }
 
+  function pullVtimeline() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/vtimeline')
+      .then(function (body) {
+        var merge = mergeVtimelineFromServer(body.vtimeline || body.arrivals || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          var panel = document.body.getAttribute('data-active-panel');
+          if (panel === 'vendors' || panel === 'timeline' || panel === 'data-hub') {
+            try {
+              if (typeof renderVTimeline === 'function') renderVTimeline();
+              if (panel === 'timeline' && typeof renderTimeline === 'function') renderTimeline();
+            } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
@@ -1749,19 +1884,22 @@
                     return pullRentals().then(function (rentals) {
                       return pullParty().then(function (party) {
                         return pullTasks().then(function (tasks) {
-                          return {
-                            guests: guests,
-                            vendors: vendors,
-                            payments: payments,
-                            budget: budget,
-                            seating: seating,
-                            contracts: contracts,
-                            timeline: timeline,
-                            packets: packets,
-                            rentals: rentals,
-                            party: party,
-                            tasks: tasks
-                          };
+                          return pullVtimeline().then(function (vtimeline) {
+                            return {
+                              guests: guests,
+                              vendors: vendors,
+                              payments: payments,
+                              budget: budget,
+                              seating: seating,
+                              contracts: contracts,
+                              timeline: timeline,
+                              packets: packets,
+                              rentals: rentals,
+                              party: party,
+                              tasks: tasks,
+                              vtimeline: vtimeline
+                            };
+                          });
                         });
                       });
                     });
@@ -1821,7 +1959,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks.
+  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks + vtimeline.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -1901,6 +2039,12 @@
             data.tasks.forEach(function (t) {
               if (!t) return;
               t.updatedAt = now;
+            });
+          }
+          if (Array.isArray(data.vtimeline)) {
+            data.vtimeline.forEach(function (row) {
+              if (!row) return;
+              row.updatedAt = now;
             });
           }
         }
