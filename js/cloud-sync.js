@@ -472,9 +472,7 @@
       if (typeof data === 'undefined' || !data) return;
       var changed = false;
       if (!data.vendorPackets || typeof data.vendorPackets !== 'object' || Array.isArray(data.vendorPackets)) {
-        data.vendorPackets = data.vendorPackets && typeof data.vendorPackets === 'object' && !Array.isArray(data.vendorPackets)
-          ? data.vendorPackets
-          : {};
+        data.vendorPackets = {};
         changed = true;
       }
       if (!data.partyPackets || typeof data.partyPackets !== 'object' || Array.isArray(data.partyPackets)) {
@@ -485,7 +483,11 @@
         data.coordPacket = {};
         changed = true;
       }
-      if (!data.packetOverridesUpdatedAt && !data.packet_overrides_updated_at) {
+      // Only seed a LWW stamp when there is real override content — empty planner
+      // defaults must not invent a timestamp that beats the server on second devices.
+      if (localPacketOverridesHaveContent()
+        && !data.packetOverridesUpdatedAt
+        && !data.packet_overrides_updated_at) {
         data.packetOverridesUpdatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
         changed = true;
       }
@@ -633,6 +635,32 @@
     if (typeof data === 'undefined' || !data) return 0;
     var ts = Date.parse(data.packetOverridesUpdatedAt || data.packet_overrides_updated_at || '');
     return isNaN(ts) ? 0 : ts;
+  }
+
+  function packetOverridesHaveContent(blob) {
+    function nonempty(obj) {
+      if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+      return Object.keys(obj).some(function (k) {
+        var v = obj[k];
+        if (v == null) return false;
+        if (typeof v === 'object') {
+          if (Array.isArray(v)) return v.length > 0;
+          return Object.keys(v).length > 0;
+        }
+        return String(v).length > 0;
+      });
+    }
+    if (!blob || typeof blob !== 'object') return false;
+    return nonempty(blob.vendorPackets) || nonempty(blob.partyPackets) || nonempty(blob.coordPacket);
+  }
+
+  function localPacketOverridesHaveContent() {
+    if (typeof data === 'undefined' || !data) return false;
+    return packetOverridesHaveContent({
+      vendorPackets: data.vendorPackets,
+      partyPackets: data.partyPackets,
+      coordPacket: data.coordPacket
+    });
   }
 
   function mergeGuestsFromServer(serverGuests) {
@@ -1109,16 +1137,27 @@
       : body;
     var serverTs = Date.parse(body.packetOverridesUpdatedAt || body.packet_overrides_updated_at || '') || 0;
     var localTs = packetOverridesTs();
-    var hasServer = !!(nested.vendorPackets || nested.partyPackets || nested.coordPacket
-      || body.packetOverridesUpdatedAt || body.packet_overrides_updated_at);
-    if (!hasServer) return { pulled: 0, kept: 0 };
+    var serverBlob = {
+      vendorPackets: nested.vendorPackets,
+      partyPackets: nested.partyPackets,
+      coordPacket: nested.coordPacket
+    };
+    var serverHas = packetOverridesHaveContent(serverBlob) || !!(body.packetOverridesUpdatedAt || body.packet_overrides_updated_at);
+    if (!serverHas) return { pulled: 0, kept: 0 };
 
     if (!data.vendorPackets || typeof data.vendorPackets !== 'object') data.vendorPackets = {};
     if (!data.partyPackets || typeof data.partyPackets !== 'object') data.partyPackets = {};
     if (!data.coordPacket || typeof data.coordPacket !== 'object') data.coordPacket = {};
 
-    // Prefer server when newer or local has no stamp yet.
-    if (serverTs > localTs || !localTs) {
+    var localEmpty = !localPacketOverridesHaveContent();
+    var serverContent = packetOverridesHaveContent(serverBlob);
+    // Prefer server when newer, when local has no stamp, or when local is still
+    // untouched empty defaults and the server has real override content.
+    var takeServer = serverTs > localTs
+      || !localTs
+      || (localEmpty && serverContent);
+
+    if (takeServer) {
       if (nested.vendorPackets && typeof nested.vendorPackets === 'object' && !Array.isArray(nested.vendorPackets)) {
         data.vendorPackets = Object.assign({}, nested.vendorPackets);
       }
@@ -1773,7 +1812,6 @@
     var weddingId = ls(LS_WEDDING);
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensurePacketOverridesTs();
-    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
     var vendorPackets = (typeof data !== 'undefined' && data && data.vendorPackets
       && typeof data.vendorPackets === 'object' && !Array.isArray(data.vendorPackets))
       ? data.vendorPackets
@@ -1786,8 +1824,27 @@
       && typeof data.coordPacket === 'object' && !Array.isArray(data.coordPacket))
       ? data.coordPacket
       : {};
+    var hasContent = packetOverridesHaveContent({
+      vendorPackets: vendorPackets,
+      partyPackets: partyPackets,
+      coordPacket: coordPacket
+    });
     var updatedAt = (typeof data !== 'undefined' && data
-      && (data.packetOverridesUpdatedAt || data.packet_overrides_updated_at)) || now;
+      && (data.packetOverridesUpdatedAt || data.packet_overrides_updated_at)) || null;
+    // Fresh devices with empty planner defaults must not invent a stamp and wipe the server.
+    if (!hasContent && !updatedAt) {
+      return Promise.resolve({
+        ack: true,
+        skipped: true,
+        vendorPackets: vendorPackets,
+        partyPackets: partyPackets,
+        coordPacket: coordPacket,
+        packetOverridesUpdatedAt: null
+      });
+    }
+    if (!updatedAt) {
+      updatedAt = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    }
     return api('/weddings/' + encodeURIComponent(weddingId) + '/packet-overrides', {
       method: 'PUT',
       body: {
@@ -2343,9 +2400,9 @@
               row.updatedAt = now;
             });
           }
-          if ((data.vendorPackets && typeof data.vendorPackets === 'object')
-            || (data.partyPackets && typeof data.partyPackets === 'object')
-            || (data.coordPacket && typeof data.coordPacket === 'object')) {
+          if (localPacketOverridesHaveContent()
+            || data.packetOverridesUpdatedAt
+            || data.packet_overrides_updated_at) {
             data.packetOverridesUpdatedAt = now;
           }
         }
