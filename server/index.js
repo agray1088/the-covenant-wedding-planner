@@ -19,6 +19,7 @@ import cateringRentalRoutes from './routes/catering-rentals.js';
 import partyRoutes from './routes/party.js';
 import taskRoutes from './routes/tasks.js';
 import vtimelineRoutes from './routes/vtimeline.js';
+import packetOverrideRoutes from './routes/packet-overrides.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -71,6 +72,7 @@ app.use('/weddings/:weddingId/catering-rentals', cateringRentalRoutes);
 app.use('/weddings/:weddingId/party', partyRoutes);
 app.use('/weddings/:weddingId/tasks', taskRoutes);
 app.use('/weddings/:weddingId/vtimeline', vtimelineRoutes);
+app.use('/weddings/:weddingId/packet-overrides', packetOverrideRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error('[covenant-sync]', err);

@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, and vendor arrivals.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, vendor arrivals, and print packet overrides.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -467,6 +467,36 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensurePacketOverridesTs() {
+    try {
+      if (typeof data === 'undefined' || !data) return;
+      var changed = false;
+      if (!data.vendorPackets || typeof data.vendorPackets !== 'object' || Array.isArray(data.vendorPackets)) {
+        data.vendorPackets = data.vendorPackets && typeof data.vendorPackets === 'object' && !Array.isArray(data.vendorPackets)
+          ? data.vendorPackets
+          : {};
+        changed = true;
+      }
+      if (!data.partyPackets || typeof data.partyPackets !== 'object' || Array.isArray(data.partyPackets)) {
+        data.partyPackets = {};
+        changed = true;
+      }
+      if (!data.coordPacket || typeof data.coordPacket !== 'object' || Array.isArray(data.coordPacket)) {
+        data.coordPacket = {};
+        changed = true;
+      }
+      if (!data.packetOverridesUpdatedAt && !data.packet_overrides_updated_at) {
+        data.packetOverridesUpdatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+        changed = true;
+      }
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function guestTs(g) {
     if (!g) return 0;
     var t = Date.parse(g.updatedAt || g.updated_at || '');
@@ -596,6 +626,12 @@
   function floorFixturesTs() {
     if (typeof data === 'undefined' || !data) return 0;
     var ts = Date.parse(data.floorFixturesUpdatedAt || data.floor_fixtures_updated_at || '');
+    return isNaN(ts) ? 0 : ts;
+  }
+
+  function packetOverridesTs() {
+    if (typeof data === 'undefined' || !data) return 0;
+    var ts = Date.parse(data.packetOverridesUpdatedAt || data.packet_overrides_updated_at || '');
     return isNaN(ts) ? 0 : ts;
   }
 
@@ -1062,6 +1098,42 @@
       }
     });
     return { pulled: pulled, kept: kept };
+  }
+
+  function mergePacketOverridesFromServer(body) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    body = body || {};
+    var nested = (body.packetOverrides && typeof body.packetOverrides === 'object'
+      && !Array.isArray(body.packetOverrides))
+      ? body.packetOverrides
+      : body;
+    var serverTs = Date.parse(body.packetOverridesUpdatedAt || body.packet_overrides_updated_at || '') || 0;
+    var localTs = packetOverridesTs();
+    var hasServer = !!(nested.vendorPackets || nested.partyPackets || nested.coordPacket
+      || body.packetOverridesUpdatedAt || body.packet_overrides_updated_at);
+    if (!hasServer) return { pulled: 0, kept: 0 };
+
+    if (!data.vendorPackets || typeof data.vendorPackets !== 'object') data.vendorPackets = {};
+    if (!data.partyPackets || typeof data.partyPackets !== 'object') data.partyPackets = {};
+    if (!data.coordPacket || typeof data.coordPacket !== 'object') data.coordPacket = {};
+
+    // Prefer server when newer or local has no stamp yet.
+    if (serverTs > localTs || !localTs) {
+      if (nested.vendorPackets && typeof nested.vendorPackets === 'object' && !Array.isArray(nested.vendorPackets)) {
+        data.vendorPackets = Object.assign({}, nested.vendorPackets);
+      }
+      if (nested.partyPackets && typeof nested.partyPackets === 'object' && !Array.isArray(nested.partyPackets)) {
+        data.partyPackets = Object.assign({}, nested.partyPackets);
+      }
+      if (nested.coordPacket && typeof nested.coordPacket === 'object' && !Array.isArray(nested.coordPacket)) {
+        data.coordPacket = Object.assign({}, nested.coordPacket);
+      }
+      if (body.packetOverridesUpdatedAt || body.packet_overrides_updated_at) {
+        data.packetOverridesUpdatedAt = body.packetOverridesUpdatedAt || body.packet_overrides_updated_at;
+      }
+      return { pulled: 1, kept: 0 };
+    }
+    return { pulled: 0, kept: 1 };
   }
 
   function signIn(email, password) {
@@ -1697,6 +1769,57 @@
     });
   }
 
+  function pushPacketOverrides() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensurePacketOverridesTs();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var vendorPackets = (typeof data !== 'undefined' && data && data.vendorPackets
+      && typeof data.vendorPackets === 'object' && !Array.isArray(data.vendorPackets))
+      ? data.vendorPackets
+      : {};
+    var partyPackets = (typeof data !== 'undefined' && data && data.partyPackets
+      && typeof data.partyPackets === 'object' && !Array.isArray(data.partyPackets))
+      ? data.partyPackets
+      : {};
+    var coordPacket = (typeof data !== 'undefined' && data && data.coordPacket
+      && typeof data.coordPacket === 'object' && !Array.isArray(data.coordPacket))
+      ? data.coordPacket
+      : {};
+    var updatedAt = (typeof data !== 'undefined' && data
+      && (data.packetOverridesUpdatedAt || data.packet_overrides_updated_at)) || now;
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/packet-overrides', {
+      method: 'PUT',
+      body: {
+        vendorPackets: vendorPackets,
+        partyPackets: partyPackets,
+        coordPacket: coordPacket,
+        packetOverrides: {
+          vendorPackets: vendorPackets,
+          partyPackets: partyPackets,
+          coordPacket: coordPacket
+        },
+        packetOverridesUpdatedAt: updatedAt
+      }
+    }).then(function (resp) {
+      if (resp && resp.ack && typeof data !== 'undefined' && data) {
+        if (resp.packetOverridesUpdatedAt) {
+          data.packetOverridesUpdatedAt = resp.packetOverridesUpdatedAt;
+        }
+        if (resp.vendorPackets && typeof resp.vendorPackets === 'object') {
+          data.vendorPackets = Object.assign({}, resp.vendorPackets);
+        }
+        if (resp.partyPackets && typeof resp.partyPackets === 'object') {
+          data.partyPackets = Object.assign({}, resp.partyPackets);
+        }
+        if (resp.coordPacket && typeof resp.coordPacket === 'object') {
+          data.coordPacket = Object.assign({}, resp.coordPacket);
+        }
+      }
+      return resp;
+    });
+  }
+
   function pushAll() {
     return pushGuests().then(function (guests) {
       return pushVendors().then(function (vendors) {
@@ -1711,21 +1834,24 @@
                         return pushParty().then(function (party) {
                           return pushTasks().then(function (tasks) {
                             return pushVtimeline().then(function (vtimeline) {
-                              return {
-                                guests: guests,
-                                vendors: vendors,
-                                payments: payments,
-                                budget: budget,
-                                seating: seating,
-                                contracts: contracts,
-                                timeline: timeline,
-                                packets: packets,
-                                rentals: rentals,
-                                cateringRentals: cateringRentals,
-                                party: party,
-                                tasks: tasks,
-                                vtimeline: vtimeline
-                              };
+                              return pushPacketOverrides().then(function (packetOverrides) {
+                                return {
+                                  guests: guests,
+                                  vendors: vendors,
+                                  payments: payments,
+                                  budget: budget,
+                                  seating: seating,
+                                  contracts: contracts,
+                                  timeline: timeline,
+                                  packets: packets,
+                                  rentals: rentals,
+                                  cateringRentals: cateringRentals,
+                                  party: party,
+                                  tasks: tasks,
+                                  vtimeline: vtimeline,
+                                  packetOverrides: packetOverrides
+                                };
+                              });
                             });
                           });
                         });
@@ -2008,6 +2134,28 @@
       });
   }
 
+  function pullPacketOverrides() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/packet-overrides')
+      .then(function (body) {
+        var merge = mergePacketOverridesFromServer(body || {});
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          var panel = document.body.getAttribute('data-active-panel');
+          if (panel === 'packets' || panel === 'data-hub') {
+            try {
+              if (typeof renderPackets === 'function') renderPackets();
+              else if (typeof window.__packetsRenderRd === 'function') window.__packetsRenderRd();
+            } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullAll() {
     return pullGuests().then(function (guests) {
       return pullVendors().then(function (vendors) {
@@ -2022,21 +2170,24 @@
                         return pullParty().then(function (party) {
                           return pullTasks().then(function (tasks) {
                             return pullVtimeline().then(function (vtimeline) {
-                              return {
-                                guests: guests,
-                                vendors: vendors,
-                                payments: payments,
-                                budget: budget,
-                                seating: seating,
-                                contracts: contracts,
-                                timeline: timeline,
-                                packets: packets,
-                                rentals: rentals,
-                                cateringRentals: cateringRentals,
-                                party: party,
-                                tasks: tasks,
-                                vtimeline: vtimeline
-                              };
+                              return pullPacketOverrides().then(function (packetOverrides) {
+                                return {
+                                  guests: guests,
+                                  vendors: vendors,
+                                  payments: payments,
+                                  budget: budget,
+                                  seating: seating,
+                                  contracts: contracts,
+                                  timeline: timeline,
+                                  packets: packets,
+                                  rentals: rentals,
+                                  cateringRentals: cateringRentals,
+                                  party: party,
+                                  tasks: tasks,
+                                  vtimeline: vtimeline,
+                                  packetOverrides: packetOverrides
+                                };
+                              });
                             });
                           });
                         });
@@ -2098,7 +2249,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vtimeline.
+  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vtimeline + print packet overrides.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -2191,6 +2342,11 @@
               if (!row) return;
               row.updatedAt = now;
             });
+          }
+          if ((data.vendorPackets && typeof data.vendorPackets === 'object')
+            || (data.partyPackets && typeof data.partyPackets === 'object')
+            || (data.coordPacket && typeof data.coordPacket === 'object')) {
+            data.packetOverridesUpdatedAt = now;
           }
         }
         scheduleSync();

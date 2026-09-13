@@ -249,7 +249,7 @@
         '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:18787" value="'
         + esc((function () { try { return localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { return ''; } })())
         + '">');
-      html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals sync in beta',
+      html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides sync in beta',
         btn('Save & enable', 'rdCloudEnable'));
       return html;
     }
@@ -263,11 +263,11 @@
       return html;
     }
 
-    html += cardRow('Sync now', 'Pull then push guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
-    html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals', btn('Upload this wedding', 'rdCloudUpload'));
+    html += cardRow('Sync now', 'Pull then push guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
+    html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides', btn('Upload this wedding', 'rdCloudUpload'));
     html += cardRow('Sign out', 'Local planner keeps working offline', btn('Sign out', 'rdCloudSignOut'));
     html += cardRow('Disable cloud on this device', 'Flag off; offline GA path unchanged', btn('Turn off', 'rdCloudDisable'));
-    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline)</b> sync in this beta. Print field overrides (vendorPackets / partyPackets / coordPacket) stay on-device until later passes. Hosted <code>covenant.link</code> portals are not part of this sync.</div>';
+    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline) + print packet overrides (vendorPackets / partyPackets / coordPacket)</b> sync in this beta. Hosted <code>covenant.link</code> portals are not part of this sync.</div>';
     return html;
   }
 
@@ -340,7 +340,7 @@
     }
     if (id === 'cloud') {
       return paneShell('Cloud sync (beta)',
-        'Optional. Offline planning always works. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, and vendor arrivals sync in beta — not full multi-user realtime yet.',
+        'Optional. Offline planning always works. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, vendor arrivals, and print packet overrides sync in beta — not full multi-user realtime yet.',
         cloudSyncPaneBody());
     }
     if (id === 'trash') {
@@ -530,14 +530,14 @@
       if (name === 'rdCloudSyncNow') {
         if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
         window.CovenantCloudSync.syncNow()
-          .then(function () { cloudMsg(true, 'Guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals synced (beta).'); })
+          .then(function () { cloudMsg(true, 'Guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides synced (beta).'); })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Sync failed'); });
         return;
       }
       if (name === 'rdCloudUpload') {
         if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
         window.CovenantCloudSync.uploadWedding()
-          .then(function () { cloudMsg(true, 'Wedding uploaded — guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals pushed.'); })
+          .then(function () { cloudMsg(true, 'Wedding uploaded — guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides pushed.'); })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Upload failed'); });
         return;
       }

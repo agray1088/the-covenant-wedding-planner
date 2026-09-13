@@ -34,6 +34,7 @@ ok('schema has party_members', /CREATE TABLE IF NOT EXISTS party_members/.test(r
 ok('schema has planning_tasks', /CREATE TABLE IF NOT EXISTS planning_tasks/.test(read('server/schema.sql')));
 ok('schema has vendor_arrivals', /CREATE TABLE IF NOT EXISTS vendor_arrivals/.test(read('server/schema.sql')));
 ok('schema has catering_rentals', /CREATE TABLE IF NOT EXISTS catering_rentals/.test(read('server/schema.sql')));
+ok('schema has packet_overrides_json', /packet_overrides_json/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
@@ -48,6 +49,7 @@ ok('client pushes party', /\/party\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes tasks', /\/tasks\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes vtimeline', /\/vtimeline\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes catering-rentals', /\/catering-rentals\/bulk/.test(read('js/cloud-sync.js')));
+ok('client pushes packet-overrides', /\/packet-overrides/.test(read('js/cloud-sync.js')));
 ok('vendors route file', fs.existsSync(path.join(root, 'server/routes/vendors.js')));
 ok('payments route file', fs.existsSync(path.join(root, 'server/routes/payments.js')));
 ok('budget route file', fs.existsSync(path.join(root, 'server/routes/budget.js')));
@@ -60,9 +62,11 @@ ok('party route file', fs.existsSync(path.join(root, 'server/routes/party.js')))
 ok('tasks route file', fs.existsSync(path.join(root, 'server/routes/tasks.js')));
 ok('vtimeline route file', fs.existsSync(path.join(root, 'server/routes/vtimeline.js')));
 ok('catering-rentals route file', fs.existsSync(path.join(root, 'server/routes/catering-rentals.js')));
+ok('packet-overrides route file', fs.existsSync(path.join(root, 'server/routes/packet-overrides.js')));
 ok('honest beta label', /Cloud sync \(beta\)/.test(read('js/settings-window-redesign.js')));
 ok('settings mentions vtimeline', /vendor arrivals \(vtimeline\)/.test(read('js/settings-window-redesign.js')));
 ok('settings mentions catering rentals', /catering rentals/.test(read('js/settings-window-redesign.js')));
+ok('settings mentions print packet overrides', /print packet overrides/.test(read('js/settings-window-redesign.js')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787';
 
@@ -444,6 +448,30 @@ async function live() {
     .then((r) => r.json());
   ok('catering rental appears in list', Array.isArray(crtlist.cateringRentals) && crtlist.cateringRentals.some((c) => c.id === crtId));
 
+  const pktMarker = 'SmokePktOverride-' + Date.now();
+  const putPktOv = await fetch(API + '/weddings/' + weddingId + '/packet-overrides', {
+    method: 'PUT',
+    headers: auth,
+    body: JSON.stringify({
+      vendorPackets: { photo: { arrival: '09:00 — ' + pktMarker, notes: 'Smoke vendor override' } },
+      partyPackets: { moh: { coord: 'Coord ' + pktMarker, notes: 'Smoke party override' } },
+      coordPacket: { notes: 'Smoke coord — ' + pktMarker },
+      packetOverridesUpdatedAt: new Date().toISOString()
+    })
+  }).then((r) => r.json());
+  ok('packet overrides upsert ack', putPktOv && putPktOv.ack === true
+    && putPktOv.vendorPackets && putPktOv.vendorPackets.photo
+    && String(putPktOv.vendorPackets.photo.arrival || '').includes(pktMarker));
+  ok('packet overrides party/coord round-trip', putPktOv && putPktOv.partyPackets && putPktOv.partyPackets.moh
+    && String(putPktOv.partyPackets.moh.coord || '').includes(pktMarker)
+    && putPktOv.coordPacket && String(putPktOv.coordPacket.notes || '').includes(pktMarker));
+  ok('packet overrides updatedAt', !!(putPktOv && putPktOv.packetOverridesUpdatedAt));
+
+  const pktOvList = await fetch(API + '/weddings/' + weddingId + '/packet-overrides', { headers: auth })
+    .then((r) => r.json());
+  ok('packet overrides appear in get', pktOvList && pktOvList.vendorPackets && pktOvList.vendorPackets.photo
+    && String(pktOvList.vendorPackets.photo.arrival || '').includes(pktMarker));
+
   // Second context: login again and fetch
   const login = await fetch(API + '/auth/login', {
     method: 'POST',
@@ -503,6 +531,12 @@ async function live() {
     headers: { Authorization: 'Bearer ' + login.token }
   }).then((r) => r.json());
   ok('second context sees catering rental', Array.isArray(crtlist2.cateringRentals) && crtlist2.cateringRentals.some((c) => c.id === crtId));
+  const pktOv2 = await fetch(API + '/weddings/' + weddingId + '/packet-overrides', {
+    headers: { Authorization: 'Bearer ' + login.token }
+  }).then((r) => r.json());
+  ok('second context sees packet overrides', pktOv2 && pktOv2.vendorPackets && pktOv2.vendorPackets.photo
+    && String(pktOv2.vendorPackets.photo.arrival || '').includes(pktMarker)
+    && pktOv2.coordPacket && String(pktOv2.coordPacket.notes || '').includes(pktMarker));
 }
 
 await live();

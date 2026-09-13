@@ -32,6 +32,8 @@
     "verify:vendor-arrivals-sync": "node scripts/_verify-vtimeline-sync.mjs",
     "verify:catering-rental-sync": "node scripts/_verify-catering-rental-sync.mjs",
     "verify:catering-rentals-sync": "node scripts/_verify-catering-rental-sync.mjs",
+    "verify:packet-overrides-sync": "node scripts/_verify-packet-overrides-sync.mjs",
+    "verify:print-packet-overrides-sync": "node scripts/_verify-packet-overrides-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {

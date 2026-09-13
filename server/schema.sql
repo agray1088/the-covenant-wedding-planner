@@ -3,7 +3,9 @@
 -- timeline_events (wedding day timeline), packets (share packets),
 -- rentals (finances rentals tracker), party_members (wedding / bridal party),
 -- planning_tasks (Planning Timeline to-dos), vendor_arrivals (vtimeline day-of),
--- catering_rentals (Catering page tableware / rentals — distinct from finances rentals).
+-- catering_rentals (Catering page tableware / rentals — distinct from finances rentals),
+-- packet_overrides_json on weddings (print field overrides: vendorPackets /
+-- partyPackets / coordPacket — LWW blob, same pattern as floor_fixtures_json).
 -- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet/rental/party/task/vtimeline/cateringRental shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -196,6 +198,15 @@ ALTER TABLE weddings
 ALTER TABLE weddings
   ADD COLUMN IF NOT EXISTS floor_fixtures_updated_at TIMESTAMPTZ;
 
+-- Print packet field overrides (wedding-scoped JSON blob — LWW).
+-- Shape: { vendorPackets: {}, partyPackets: {}, coordPacket: {} }
+-- Mirrors planner data.vendorPackets / data.partyPackets / data.coordPacket.
+-- Distinct from share packets rows (packets table / data.packets[]).
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS packet_overrides_json JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS packet_overrides_updated_at TIMESTAMPTZ;
+
 -- Contract / invoice fields aligned with planner JSON + schema.sql contract.
 -- Client aliases: type↔doc_type, date↔doc_date, where↔location;
 -- amount/total/deposit are money fields; vendor_id is opaque (no cloud FK).
@@ -254,9 +265,9 @@ CREATE INDEX IF NOT EXISTS timeline_events_wedding_updated_idx
 -- Share Packets (data.packets[]) — vendor / party / info packet handoff rows.
 -- Client aliases: recipientType↔recipient_type, created↔created_date.
 -- Nested sections[], activity[], withheld[], previewCards[], and UI extras
--- travel in sections_json / meta_json. Print field overrides (vendorPackets,
--- partyPackets, coordPacket) stay on-device in this pass — same as hosted
--- covenant.link portal delivery.
+-- travel in sections_json / meta_json. Print field overrides sync separately
+-- as weddings.packet_overrides_json (vendorPackets / partyPackets / coordPacket).
+-- Hosted covenant.link portal delivery stays out of scope.
 CREATE TABLE IF NOT EXISTS packets (
   id               TEXT NOT NULL,
   wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
@@ -312,7 +323,8 @@ CREATE INDEX IF NOT EXISTS rentals_wedding_updated_idx
 -- Wedding party (data.party[]) — bridal / wedding party tracker rows.
 -- Client uses name (planner SQLite: member_name). guest_id is opaque (no cloud
 -- FK to guests). Optional UI extras (side, attireStatus, duties, …) travel in
--- meta_json. Party duties board and print partyPackets stay on-device in this pass.
+-- meta_json. Party duties board extras beyond meta stay on-device; print
+-- partyPackets sync via weddings.packet_overrides_json.
 CREATE TABLE IF NOT EXISTS party_members (
   id               TEXT NOT NULL,
   wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
@@ -368,7 +380,7 @@ CREATE INDEX IF NOT EXISTS planning_tasks_wedding_updated_idx
 -- allDay↔all_day. Optional calendar / presentation extras (description, color,
 -- icon, reminder, …) travel in meta_json. Synced vendor arrivals also feed the
 -- aggregated Wedding Day Timeline UI on-device. Print packet field overrides
--- stay on-device in this pass.
+-- sync via weddings.packet_overrides_json.
 CREATE TABLE IF NOT EXISTS vendor_arrivals (
   id               TEXT NOT NULL,
   wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
@@ -394,7 +406,8 @@ CREATE INDEX IF NOT EXISTS vendor_arrivals_wedding_updated_idx
 -- Catering rentals (data.cateringRentals[]) — Catering & Menu tableware /
 -- equipment rental rows. Distinct from finances rentals (data.rentals → rentals).
 -- qty is stored as TEXT to match the planner's free-form qty field. Optional UI
--- extras travel in meta_json. Print packet field overrides stay on-device.
+-- extras travel in meta_json. Print packet field overrides sync via
+-- weddings.packet_overrides_json.
 CREATE TABLE IF NOT EXISTS catering_rentals (
   id               TEXT NOT NULL,
   wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
