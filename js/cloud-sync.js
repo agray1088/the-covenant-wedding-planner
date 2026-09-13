@@ -64,7 +64,7 @@
     }
     var token = ls(LS_TOKEN);
     if (!token) {
-      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, tasks, and vendor arrivals.', enabled: true };
+      return { state: 'signed_out', label: c.label, detail: 'Sign in to sync guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, and vendor arrivals.', enabled: true };
     }
     var st = ls(LS_STATUS) || 'signed_in';
     return {
@@ -363,6 +363,32 @@
     } catch (e) { /* soft */ }
   }
 
+  function ensureCateringRentalIds() {
+    try {
+      if (typeof data === 'undefined' || !data || !Array.isArray(data.cateringRentals)) return;
+      var changed = false;
+      data.cateringRentals.forEach(function (r) {
+        if (!r) return;
+        var id = r.id || r._id;
+        if (!id) {
+          id = 'crt_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+          changed = true;
+        }
+        if (r.id !== id) { r.id = id; changed = true; }
+        if (r._id !== id) { r._id = id; changed = true; }
+        if (!r.updatedAt) {
+          r.updatedAt = (typeof data.updatedAt === 'string' && data.updatedAt) || new Date().toISOString();
+          changed = true;
+        }
+      });
+      if (changed && typeof save === 'function') {
+        var prev = window._suppressEditCount;
+        window._suppressEditCount = true;
+        try { save(); } finally { window._suppressEditCount = prev; }
+      }
+    } catch (e) { /* soft */ }
+  }
+
   function ensurePartyIds() {
     try {
       if (typeof data === 'undefined' || !data || !Array.isArray(data.party)) return;
@@ -524,6 +550,16 @@
   }
 
   function rentalId(r) {
+    return r ? String(r.id || r._id || '') : '';
+  }
+
+  function cateringRentalTs(r) {
+    if (!r) return 0;
+    var ts = Date.parse(r.updatedAt || r.updated_at || '');
+    return isNaN(ts) ? 0 : ts;
+  }
+
+  function cateringRentalId(r) {
     return r ? String(r.id || r._id || '') : '';
   }
 
@@ -884,6 +920,40 @@
       if (rentalTs(sr) > rentalTs(local)) {
         var merged = Object.assign({}, local, sr, { id: id, _id: id });
         data.rentals[idx] = merged;
+        pulled++;
+      } else {
+        kept++;
+      }
+    });
+    return { pulled: pulled, kept: kept };
+  }
+
+  function mergeCateringRentalsFromServer(serverRentals) {
+    if (typeof data === 'undefined' || !data) return { pulled: 0, kept: 0 };
+    if (!Array.isArray(data.cateringRentals)) data.cateringRentals = [];
+    var byId = {};
+    data.cateringRentals.forEach(function (r, i) {
+      var id = cateringRentalId(r);
+      if (id) byId[id] = i;
+    });
+    var pulled = 0;
+    var kept = 0;
+    (serverRentals || []).forEach(function (sr) {
+      if (!sr) return;
+      var id = cateringRentalId(sr);
+      if (!id) return;
+      var idx = byId[id];
+      if (idx == null) {
+        var row = Object.assign({}, sr, { id: id, _id: id });
+        data.cateringRentals.push(row);
+        byId[id] = data.cateringRentals.length - 1;
+        pulled++;
+        return;
+      }
+      var local = data.cateringRentals[idx];
+      if (cateringRentalTs(sr) > cateringRentalTs(local)) {
+        var merged = Object.assign({}, local, sr, { id: id, _id: id });
+        data.cateringRentals[idx] = merged;
         pulled++;
       } else {
         kept++;
@@ -1467,6 +1537,46 @@
     });
   }
 
+  function pushCateringRentals() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
+    ensureCateringRentalIds();
+    var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
+    var cateringRentals = (typeof data !== 'undefined' && data && Array.isArray(data.cateringRentals))
+      ? data.cateringRentals.map(function (r) {
+          if (!r) return r;
+          var id = cateringRentalId(r);
+          var ts = r.updatedAt || r.updated_at || now;
+          return Object.assign({}, r, {
+            id: id,
+            _id: id,
+            updatedAt: ts
+          });
+        })
+      : [];
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/catering-rentals/bulk', {
+      method: 'POST',
+      body: { cateringRentals: cateringRentals }
+    }).then(function (body) {
+      (body.results || []).forEach(function (r) {
+        if (!r || !r.cateringRental) return;
+        if (!r.ack) return;
+        var rid = cateringRentalId(r.cateringRental);
+        if (!rid) return;
+        var list = data.cateringRentals || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i] && cateringRentalId(list[i]) === rid) {
+            list[i].updatedAt = r.cateringRental.updatedAt || list[i].updatedAt;
+            list[i].id = rid;
+            list[i]._id = rid;
+            break;
+          }
+        }
+      });
+      return body;
+    });
+  }
+
   function pushParty() {
     var weddingId = ls(LS_WEDDING);
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
@@ -1597,23 +1707,26 @@
                 return pushTimeline().then(function (timeline) {
                   return pushPackets().then(function (packets) {
                     return pushRentals().then(function (rentals) {
-                      return pushParty().then(function (party) {
-                        return pushTasks().then(function (tasks) {
-                          return pushVtimeline().then(function (vtimeline) {
-                            return {
-                              guests: guests,
-                              vendors: vendors,
-                              payments: payments,
-                              budget: budget,
-                              seating: seating,
-                              contracts: contracts,
-                              timeline: timeline,
-                              packets: packets,
-                              rentals: rentals,
-                              party: party,
-                              tasks: tasks,
-                              vtimeline: vtimeline
-                            };
+                      return pushCateringRentals().then(function (cateringRentals) {
+                        return pushParty().then(function (party) {
+                          return pushTasks().then(function (tasks) {
+                            return pushVtimeline().then(function (vtimeline) {
+                              return {
+                                guests: guests,
+                                vendors: vendors,
+                                payments: payments,
+                                budget: budget,
+                                seating: seating,
+                                contracts: contracts,
+                                timeline: timeline,
+                                packets: packets,
+                                rentals: rentals,
+                                cateringRentals: cateringRentals,
+                                party: party,
+                                tasks: tasks,
+                                vtimeline: vtimeline
+                              };
+                            });
                           });
                         });
                       });
@@ -1808,6 +1921,29 @@
       });
   }
 
+  function pullCateringRentals() {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
+    return api('/weddings/' + encodeURIComponent(weddingId) + '/catering-rentals')
+      .then(function (body) {
+        var merge = mergeCateringRentalsFromServer(body.cateringRentals || body.rentals || []);
+        if (merge.pulled > 0 && typeof save === 'function') {
+          var prev = window._suppressEditCount;
+          window._suppressEditCount = true;
+          try { save(); } finally { window._suppressEditCount = prev; }
+          var panel = document.body.getAttribute('data-active-panel');
+          if (panel === 'catering' || panel === 'data-hub') {
+            try {
+              if (typeof renderCateringRentals === 'function') renderCateringRentals();
+              else if (typeof renderCateringOverview === 'function') renderCateringOverview();
+              else if (typeof window.__cateringRenderRd === 'function') window.__cateringRenderRd();
+            } catch (e) { /* soft */ }
+          }
+        }
+        return merge;
+      });
+  }
+
   function pullParty() {
     var weddingId = ls(LS_WEDDING);
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
@@ -1882,23 +2018,26 @@
                 return pullTimeline().then(function (timeline) {
                   return pullPackets().then(function (packets) {
                     return pullRentals().then(function (rentals) {
-                      return pullParty().then(function (party) {
-                        return pullTasks().then(function (tasks) {
-                          return pullVtimeline().then(function (vtimeline) {
-                            return {
-                              guests: guests,
-                              vendors: vendors,
-                              payments: payments,
-                              budget: budget,
-                              seating: seating,
-                              contracts: contracts,
-                              timeline: timeline,
-                              packets: packets,
-                              rentals: rentals,
-                              party: party,
-                              tasks: tasks,
-                              vtimeline: vtimeline
-                            };
+                      return pullCateringRentals().then(function (cateringRentals) {
+                        return pullParty().then(function (party) {
+                          return pullTasks().then(function (tasks) {
+                            return pullVtimeline().then(function (vtimeline) {
+                              return {
+                                guests: guests,
+                                vendors: vendors,
+                                payments: payments,
+                                budget: budget,
+                                seating: seating,
+                                contracts: contracts,
+                                timeline: timeline,
+                                packets: packets,
+                                rentals: rentals,
+                                cateringRentals: cateringRentals,
+                                party: party,
+                                tasks: tasks,
+                                vtimeline: vtimeline
+                              };
+                            });
                           });
                         });
                       });
@@ -1959,7 +2098,7 @@
     }, 1200);
   }
 
-  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks + vtimeline.
+  // Alias — sync covers guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vtimeline.
   var scheduleSync = scheduleGuestSync;
 
   function patchSaveHook() {
@@ -2025,6 +2164,12 @@
           }
           if (Array.isArray(data.rentals)) {
             data.rentals.forEach(function (r) {
+              if (!r) return;
+              r.updatedAt = now;
+            });
+          }
+          if (Array.isArray(data.cateringRentals)) {
+            data.cateringRentals.forEach(function (r) {
               if (!r) return;
               r.updatedAt = now;
             });

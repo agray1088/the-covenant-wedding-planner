@@ -30,6 +30,8 @@
     "verify:tasks-sync": "node scripts/_verify-task-sync.mjs",
     "verify:vtimeline-sync": "node scripts/_verify-vtimeline-sync.mjs",
     "verify:vendor-arrivals-sync": "node scripts/_verify-vtimeline-sync.mjs",
+    "verify:catering-rental-sync": "node scripts/_verify-catering-rental-sync.mjs",
+    "verify:catering-rentals-sync": "node scripts/_verify-catering-rental-sync.mjs",
     "playwright:install": "npx playwright install chromium"
   },
   "devDependencies": {

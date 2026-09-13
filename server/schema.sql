@@ -2,8 +2,9 @@
 -- guests, vendors, payments, budget_categories, seating_tables, contracts,
 -- timeline_events (wedding day timeline), packets (share packets),
 -- rentals (finances rentals tracker), party_members (wedding / bridal party),
--- planning_tasks (Planning Timeline to-dos), vendor_arrivals (vtimeline day-of).
--- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet/rental/party/task/vtimeline shapes for Postgres sync.
+-- planning_tasks (Planning Timeline to-dos), vendor_arrivals (vtimeline day-of),
+-- catering_rentals (Catering page tableware / rentals — distinct from finances rentals).
+-- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet/rental/party/task/vtimeline/cateringRental shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -288,7 +289,7 @@ CREATE INDEX IF NOT EXISTS packets_wedding_updated_idx
 -- Rentals (data.rentals[]) — finances / Contracts page rental tracker rows.
 -- Client aliases: pickup↔pickup_date, ret↔return_date.
 -- vendor_id is opaque (no cloud FK to vendors). Optional UI extras travel in
--- meta_json. Catering rentals (data.cateringRentals) stay on-device in this pass.
+-- meta_json. Catering tableware rentals sync separately as catering_rentals.
 CREATE TABLE IF NOT EXISTS rentals (
   id               TEXT NOT NULL,
   wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
@@ -366,8 +367,8 @@ CREATE INDEX IF NOT EXISTS planning_tasks_wedding_updated_idx
 -- Client aliases: time↔start_time, date↔event_date, endTime↔end_time,
 -- allDay↔all_day. Optional calendar / presentation extras (description, color,
 -- icon, reminder, …) travel in meta_json. Synced vendor arrivals also feed the
--- aggregated Wedding Day Timeline UI on-device. Catering rentals and print
--- packet field overrides stay on-device in this pass.
+-- aggregated Wedding Day Timeline UI on-device. Print packet field overrides
+-- stay on-device in this pass.
 CREATE TABLE IF NOT EXISTS vendor_arrivals (
   id               TEXT NOT NULL,
   wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
@@ -389,3 +390,28 @@ CREATE TABLE IF NOT EXISTS vendor_arrivals (
 
 CREATE INDEX IF NOT EXISTS vendor_arrivals_wedding_updated_idx
   ON vendor_arrivals(wedding_id, updated_at);
+
+-- Catering rentals (data.cateringRentals[]) — Catering & Menu tableware /
+-- equipment rental rows. Distinct from finances rentals (data.rentals → rentals).
+-- qty is stored as TEXT to match the planner's free-form qty field. Optional UI
+-- extras travel in meta_json. Print packet field overrides stay on-device.
+CREATE TABLE IF NOT EXISTS catering_rentals (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  item             TEXT NOT NULL DEFAULT '',
+  material         TEXT,
+  color            TEXT,
+  qty              TEXT,
+  vendor           TEXT,
+  source           TEXT,
+  cost             DOUBLE PRECISION,
+  status           TEXT,
+  notes            TEXT,
+  meta_json        JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS catering_rentals_wedding_updated_idx
+  ON catering_rentals(wedding_id, updated_at);

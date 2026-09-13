@@ -7,9 +7,9 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
 | Mode | Behavior |
 |------|----------|
 | **Offline (default / GA)** | localStorage JSON + SQLite/IndexedDB on this device. Backups are `.sqlite` files. No account required. |
-| **Cloud (optional)** | Sign-in links this device’s wedding to Postgres. **Guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks + vendor arrivals (vtimeline)** sync in beta. Second-device pull uses the same account membership. Hosted vendor portal comes later. |
+| **Cloud (optional)** | Sign-in links this device’s wedding to Postgres. **Guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline)** sync in beta. Second-device pull uses the same account membership. Hosted vendor portal comes later. |
 
-**Hard rule:** never block save, navigate, or guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task/vtimeline edits on being online. If the API is down or cloud is disabled, the planner behaves exactly like offline GA.
+**Hard rule:** never block save, navigate, or guest/vendor/payment/budget/seating/contract/timeline/packet/rental/catering-rental/party/task/vtimeline edits on being online. If the API is down or cloud is disabled, the planner behaves exactly like offline GA.
 
 ## Architecture
 
@@ -34,6 +34,7 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
 │              /weddings/:id/timeline         │
 │              /weddings/:id/packets          │
 │              /weddings/:id/rentals          │
+│              /weddings/:id/catering-rentals │
 │              /weddings/:id/party            │
 │              /weddings/:id/tasks            │
 │              /weddings/:id/vtimeline        │
@@ -43,14 +44,14 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
          users · sessions · memberships
          weddings · guests · vendors · payments
          budget_categories · seating_tables · contracts
-         timeline_events · packets · rentals · party_members
-         planning_tasks · vendor_arrivals
+         timeline_events · packets · rentals · catering_rentals
+         party_members · planning_tasks · vendor_arrivals
 ```
 
 ### Client responsibilities
 
 - Always persist locally first (`save()` → LS + SQLite write-through).
-- When cloud is **enabled + authenticated**, debounce a guests+vendors+payments+budget+seating+contracts+timeline+packets+rentals+party+tasks+vtimeline push/pull after saves.
+- When cloud is **enabled + authenticated**, debounce a guests+vendors+payments+budget+seating+contracts+timeline+packets+rentals+cateringRentals+party+tasks+vtimeline push/pull after saves.
 - Surface honest status: `offline` | `signed out` | `syncing` | `synced` | `error` (labeled **Cloud sync (beta)**).
 - Feature flag: cloud UI and network calls stay off until config is present (`window.COVENANT_CLOUD` or `localStorage` keys — see client bridge).
 
@@ -58,7 +59,7 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
 
 - Authenticate couple/planner users (email + password; magic-link reserved).
 - Own wedding rows and memberships (owner / partner / planner roles).
-- Accept guest + vendor + payment + budget + seating + contract + timeline + packet + rental + party + task + vtimeline CRUD for a wedding the caller belongs to.
+- Accept guest + vendor + payment + budget + seating + contract + timeline + packet + rental + catering rental + party + task + vtimeline CRUD for a wedding the caller belongs to.
 - Return `updated_at` so the client can ACK and apply conflict policy.
 
 ## Conflict policy (v1)
@@ -67,8 +68,8 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
 
 1. Each guest, vendor, payment, budget category, seating table, contract, timeline event, packet, rental, party member, planning task, vendor arrival, and wedding carries `updated_at` (ISO-8601).
 2. **Push:** client sends rows whose local `updated_at` is newer than the last server ACK (or missing on server). Server upserts and returns the stored row + `updated_at`.
-3. **Pull:** client fetches guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, party, tasks, and vtimeline; if server `updated_at` is newer than local, replace local row; otherwise keep local and schedule a push.
-4. **Upload this wedding:** one-shot migration — create (or claim) a cloud wedding, push **all** local guests, vendors, payments, budget categories, seating tables, contracts, timeline events, packets, rentals, party, tasks, and vendor arrivals, store `cloudWeddingId` on the device profile. Does not delete local data.
+3. **Pull:** client fetches guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, and vtimeline; if server `updated_at` is newer than local, replace local row; otherwise keep local and schedule a push.
+4. **Upload this wedding:** one-shot migration — create (or claim) a cloud wedding, push **all** local guests, vendors, payments, budget categories, seating tables, contracts, timeline events, packets, rentals, catering rentals, party, tasks, and vendor arrivals, store `cloudWeddingId` on the device profile. Does not delete local data.
 5. **Second device:** after sign-in, if this browser has no `covenant_cloud_wedding_id`, **Sync now** lists the account’s weddings and links the newest membership before pulling. It only creates a new cloud wedding when the account has none (avoids empty duplicates from per-device `clientKey`s).
 6. No merge-by-field in v1. No live multi-user cursors. Do not claim “fully synced multi-user” in the UI.
 
@@ -89,7 +90,7 @@ Sessions are opaque bearer tokens in `sessions`. Passwords are bcrypt-hashed. En
 
 1. User enables cloud config and signs in.
 2. **Upload this wedding** creates a Postgres `weddings` row (names/date from `data.setup`) and an `owner` membership.
-3. All local `data.guests`, `data.vendors`, `data.payments`, `data.budget`, `data.tables`, `data.contracts`, `data.timeline`, `data.packets`, `data.rentals`, `data.party`, and `data.tasks` upsert into `guests` / `vendors` / `payments` / `budget_categories` / `seating_tables` / `contracts` / `timeline_events` / `packets` / `rentals` / `party_members` / `planning_tasks` (plus floor fixtures on the wedding).
+3. All local `data.guests`, `data.vendors`, `data.payments`, `data.budget`, `data.tables`, `data.contracts`, `data.timeline`, `data.packets`, `data.rentals`, `data.cateringRentals`, `data.party`, and `data.tasks` upsert into `guests` / `vendors` / `payments` / `budget_categories` / `seating_tables` / `contracts` / `timeline_events` / `packets` / `rentals` / `catering_rentals` / `party_members` / `planning_tasks` (plus floor fixtures on the wedding).
 4. Device stores `covenant_cloud_wedding_id` (+ session token) in localStorage.
 5. Offline editing continues; next **Sync now** (or debounced auto-sync) reconciles all synced verticals.
 
@@ -157,7 +158,15 @@ Trimmed from planner `schema.sql` / `data.rentals[]` (Contracts & Rentals — fi
 
 `id` (`_id`), `item`, `vendor`, `vendorId`/`vendor_id`, `pickup`/`pickup_date`, `ret`/`return_date`, `cost`, `details`, optional extras in `meta_json`, `updatedAt`.
 
-This is the rentals list on Contracts, Invoices & Rentals / Finances Hub. Catering rentals (`data.cateringRentals`) stay on-device in this pass.
+This is the rentals list on Contracts, Invoices & Rentals / Finances Hub. Catering tableware rentals (`data.cateringRentals`) sync separately.
+
+## Synced catering rental fields
+
+Trimmed from planner `data.cateringRentals[]` (Catering & Menu — Tableware & Rentals):
+
+`id` (`_id`), `item`, `material`, `color`, `qty`, `vendor`, `source`, `cost`, `status`, `notes`, optional extras in `meta_json`, `updatedAt`.
+
+This is the catering tableware / equipment rental list on Catering & Menu. Distinct from finances rentals (`data.rentals` → `rentals`). Print packet field overrides stay on-device in this pass.
 
 ## Synced party fields
 
@@ -181,7 +190,7 @@ Trimmed from planner `data.vtimeline[]` (Vendors hub — Day-of Arrivals):
 
 `id` (`_id`), `vendor`, `time`/`start_time`, `location`, `contact`, `notes`, `event`, `date`/`event_date`, `endTime`/`end_time`, `allDay`/`all_day`, `status`, nested calendar extras in `meta_json` (`description`, color/icon/reminder when present), `updatedAt`.
 
-This is the vendor arrival timeline on Venue & Vendors. Synced rows also feed the aggregated Wedding Day Timeline UI on-device. Catering rentals (`data.cateringRentals`) and print packet field overrides stay on-device in this pass.
+This is the vendor arrival timeline on Venue & Vendors. Synced rows also feed the aggregated Wedding Day Timeline UI on-device. Print packet field overrides stay on-device in this pass.
 
 ## Feature flag / GA safety
 
@@ -205,7 +214,7 @@ npm install --prefix server
 npm run serve                 # static planner on :8000
 ```
 
-**Schema recreate note:** after pulling vtimeline sync (or any new cloud table), run `docker compose down -v` then `up -d` so Postgres applies the new `vendor_arrivals` table (and prior planning_tasks/party/rentals/packets/timeline/contracts/seating/budget columns). Volume wipe is expected for local Docker Desktop.
+**Schema recreate note:** after pulling catering-rentals sync (or any new cloud table), run `docker compose down -v` then `up -d` so Postgres applies the new `catering_rentals` table (and prior vendor_arrivals/planning_tasks/party/rentals/packets/timeline/contracts/seating/budget columns). Volume wipe is expected for local Docker Desktop.
 
 Then in the browser console (or a small local config):
 
@@ -217,9 +226,9 @@ location.reload();
 
 (Compose publishes the sync API on **host** `:18787` → container `:8787`. If you previously set `covenant_cloud_api` to `:8787`, update it to `:18787`.)
 
-## Manual test: second device (guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks + vtimeline)
+## Manual test: second device (guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vtimeline)
 
-Prove a guest, vendor, payment, budget category, seating table, contract, timeline event, packet, rental, party member, planning task, **or** vendor arrival added on device A appears on device B after sign-in + sync.
+Prove a guest, vendor, payment, budget category, seating table, contract, timeline event, packet, rental, catering rental, party member, planning task, **or** vendor arrival added on device A appears on device B after sign-in + sync.
 
 ### Automated (preferred)
 
@@ -243,6 +252,7 @@ npm run verify:rental-sync
 npm run verify:party-sync
 npm run verify:task-sync
 npm run verify:vtimeline-sync
+npm run verify:catering-rental-sync
 ```
 
 (`playwright` is a root `devDependency`. Skip `npx playwright install chromium` on later runs if Chromium is already installed.)
@@ -265,10 +275,11 @@ npm run verify:rental-sync
 npm run verify:party-sync
 npm run verify:task-sync
 npm run verify:vtimeline-sync
-# or: node scripts/_verify-vtimeline-sync.mjs
+npm run verify:catering-rental-sync
+# or: node scripts/_verify-catering-rental-sync.mjs
 ```
 
-Guest verify uses two isolated Playwright storage contexts, demo login `demo@covenant.local` / `covenant-demo`, and asserts the unique guest pulled onto device B. Vendor / payment / budget / seating / contract / timeline / packet / rental / party / task / vtimeline verifies do the same for a unique vendor name, payment description, budget category name, table name, contract name, timeline event title, packet name, rental item, party member, planning task title, or vendor arrival name.
+Guest verify uses two isolated Playwright storage contexts, demo login `demo@covenant.local` / `covenant-demo`, and asserts the unique guest pulled onto device B. Vendor / payment / budget / seating / contract / timeline / packet / rental / catering-rental / party / task / vtimeline verifies do the same for a unique vendor name, payment description, budget category name, table name, contract name, timeline event title, packet name, rental item, catering rental item, party member, planning task title, or vendor arrival name.
 
 If you see `Cannot find package 'playwright'`, you skipped root `npm install` — run the Windows block above from the repo root (not only `server/`).
 
@@ -283,18 +294,18 @@ If you see `Cannot find package 'playwright'`, you skipped root `npm install` �
      location.reload();
      ```
    - **Settings → Cloud sync (beta)** → sign in `demo@covenant.local` / `covenant-demo`.
-   - **Upload this wedding**, then add a uniquely named guest, vendor, payment, budget category, seating table, contract, timeline event, share packet, rental, party member, planning task, and/or vendor arrival, then **Sync now**.
+   - **Upload this wedding**, then add a uniquely named guest, vendor, payment, budget category, seating table, contract, timeline event, share packet, rental, catering rental, party member, planning task, and/or vendor arrival, then **Sync now**.
 3. **Device B** — second Chrome profile **or** an Incognito window (separate storage):
    - Same API flags as above, reload, same demo sign-in.
    - Do **not** expect a wedding id yet — click **Sync now** (or **Upload this wedding**).
-   - The client links the account’s existing cloud wedding, pulls guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + party + tasks + vtimeline, and the unique name from device A should appear.
-4. Optional DB check: see `server/README.md` (pgAdmin / `docker exec` … `SELECT … FROM guests` / `vendors` / `payments` / `budget_categories` / `seating_tables` / `contracts` / `timeline_events` / `packets` / `rentals` / `party_members` / `planning_tasks` / `vendor_arrivals`).
+   - The client links the account’s existing cloud wedding, pulls guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vtimeline, and the unique name from device A should appear.
+4. Optional DB check: see `server/README.md` (pgAdmin / `docker exec` … `SELECT … FROM guests` / `vendors` / `payments` / `budget_categories` / `seating_tables` / `contracts` / `timeline_events` / `packets` / `rentals` / `catering_rentals` / `party_members` / `planning_tasks` / `vendor_arrivals`).
 
 **Pull this branch:** `git pull origin cursor/offline-cloud-sync-017e`
 
 ## Out of scope for this foundation pass
 
-- Full table sync (catering rentals, print packet field overrides, …)
+- Full table sync (print packet field overrides: vendorPackets / partyPackets / coordPacket, …)
 - Separate cloud `budget_items` table (items remain nested JSON on categories)
 - Guest seat numbers beyond whatever travels on guest rows (seat / seatNo fields are still local-only unless guests vertical is extended)
 - Vendor `attrs` / category-schema extras in Postgres
