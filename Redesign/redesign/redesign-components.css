@@ -118,7 +118,7 @@
   border-color: var(--forest); color: var(--forest); font-weight: 600;
   background: color-mix(in srgb, var(--forest) 7%, var(--surface-content));
 }
-.rd-chip__clear { opacity: .7; font-size: 13px; line-height: 1; }
+.rd-chip__clear { opacity: .7; font-size: 11.7px; line-height: 1; }
 .rd-chip--action { }            /* no chevron: auto-fit is an action, not a menu */
 .rd-chip__chevron { opacity: .8; }
 
@@ -320,10 +320,41 @@ body[data-theme="dark"] .rd-table tbody tr:hover { background: #202020; }
   flex-wrap: wrap; min-width: 0;
 }
 .rd-toolbar__cols { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-width: 0; }
-.rd-viewswitch { display: flex; border: 1px solid var(--border-control); }
-.rd-viewswitch > * { padding: 5px 12px; font-size: var(--type-meta); color: var(--text-muted); border-left: 1px solid var(--border-control); cursor: pointer; }
-.rd-viewswitch > *:first-child { border-left: 0; }
-.rd-viewswitch > .is-active { background: var(--forest); color: var(--text-on-dark); font-weight: 600; }
+/* Segmented view control — same outer height as .rd-chip (Auto-fit columns). */
+.rd-viewswitch {
+  display: inline-flex;
+  align-items: stretch;
+  height: var(--component-chip-height);
+  box-sizing: border-box;
+  border: 1px solid var(--border-control);
+  overflow: hidden;
+  background: var(--surface-content);
+}
+.rd-viewswitch > *,
+.rd-viewswitch__item {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 100%;
+  min-height: 0;
+  padding: 0 var(--btn-toolbar-pad-x);
+  font-family: var(--font-ui);
+  font-size: var(--btn-toolbar-font-size);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text-muted);
+  border: 0;
+  border-left: 1px solid var(--border-control);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+.rd-viewswitch > *:first-child,
+.rd-viewswitch__item:first-child { border-left: 0; }
+.rd-viewswitch > .is-active,
+.rd-viewswitch__item.is-active {
+  background: var(--forest); color: var(--text-on-dark); font-weight: 600;
+}
 .rd-bulkbar {
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);
   padding: 9px var(--shell-gutter);
@@ -347,7 +378,7 @@ body[data-theme="dark"] .rd-table tbody tr:hover { background: #202020; }
   box-shadow: var(--shadow-drawer);
 }
 .rd-drawer__head { padding: var(--space-4) 18px; background: var(--surface-sunken); border-bottom: 1px solid var(--border-subtle); }
-.rd-drawer__title { margin-top: var(--space-2); font: 600 16px/1.35 var(--font-ui); letter-spacing: -.01em; color: var(--text-heading); }
+.rd-drawer__title { margin-top: var(--space-2); font: 600 14.4px/1.35 var(--font-ui); letter-spacing: -.01em; color: var(--text-heading); }
 .rd-drawer__pills { display: flex; gap: 6px; margin-top: var(--space-3); }
 .rd-drawer__tabs { display: flex; margin-top: var(--space-3); border: 1px solid var(--border-control); }
 .rd-drawer__tabs > * { flex: 1; text-align: center; padding: 5px 0; font-size: var(--type-meta); color: var(--text-muted); border-left: 1px solid var(--border-control); cursor: pointer; }
@@ -394,11 +425,11 @@ body[data-theme="dark"] .record-editor-overlay, body[data-theme="dark"] .rd-over
   display: flex; align-items: flex-end; gap: var(--space-4);
 }
 .record-editor-kicker { font: 700 var(--type-section)/1.4 var(--font-ui); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; color: var(--text-subtle); }
-.record-editor-title  { font: 600 20px/1.2 var(--font-ui); letter-spacing: -.01em; color: var(--text-heading); margin-top: 6px; }
+.record-editor-title  { font: 600 18px/1.2 var(--font-ui); letter-spacing: -.01em; color: var(--text-heading); margin-top: 6px; }
 .record-editor-sub    { font-size: var(--type-meta); color: var(--text-muted); }
 .record-editor-nav, .record-editor-actions { display: flex; align-items: center; gap: var(--space-2); }
 .record-editor-position { font-size: var(--type-meta); color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.record-editor-close { background: none; border: 0; font-size: 15px; color: var(--text-faint); cursor: pointer; }
+.record-editor-close { background: none; border: 0; font-size: 13.5px; color: var(--text-faint); cursor: pointer; }
 .record-editor-body { padding: var(--space-5) var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
 .record-editor-section { display: flex; flex-direction: column; gap: var(--space-3); }
 .record-editor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }

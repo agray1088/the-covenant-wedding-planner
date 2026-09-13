@@ -1339,7 +1339,7 @@
   };
 
   UX_PAGES.honeymoon = {
-    label: 'Honeymoon & After',
+    label: 'Honeymoon',
     nativeStats: true,
     progress(d){
       const packing = (d && d.packing) || [];

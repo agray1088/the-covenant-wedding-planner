@@ -1,0 +1,108 @@
+# Optional local Postgres + host proxy + sync API + browser pgAdmin (beta).
+# Offline planner does not need this — only the sync API does.
+#
+# LOCAL DEV ONLY — not for production.
+#
+# Desktop pgAdmin / host Node → 127.0.0.1:15432 → db-proxy (plain TCP)
+#   → postgres on the Docker network (pg_hba trust). No SCRAM on the host path.
+# Port 15432 avoids Windows native Postgres often bound to 5432/5433 — a common
+# cause of "password authentication failed" while Compose still looks healthy.
+# Sync API is published on host :18787 → container :8787 (avoids Windows
+# Hyper-V/WinNAT excluded ranges that often block host :8787).
+# Browser pgAdmin (:5050) and the api service talk to hostname `postgres` directly.
+services:
+  postgres:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.postgres
+    image: covenant-postgres:local
+    container_name: covenant-postgres
+    environment:
+      POSTGRES_USER: covenant
+      POSTGRES_PASSWORD: covenant
+      POSTGRES_DB: covenant
+      # Local wedding-planner Docker Desktop only — never ship trust to production.
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_INITDB_ARGS: "--auth-host=trust"
+    # Not published to the host — use db-proxy on :15432 for desktop tools.
+    expose:
+      - "5432"
+    volumes:
+      - covenant_pg_data:/var/lib/postgresql/data
+      - ./server/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U covenant -d covenant"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Host-facing DB endpoint for desktop pgAdmin / psql / host Node.
+  # Plain TCP forward (no pgbouncer auth). Backend Postgres uses trust, so
+  # Windows Docker Desktop never has to proxy a SCRAM handshake.
+  db-proxy:
+    image: alpine/socat:1.8.0.1
+    container_name: covenant-db-proxy
+    command:
+      - TCP-LISTEN:5432,fork,reuseaddr,bind=0.0.0.0
+      - TCP:postgres:5432
+    ports:
+      - "15432:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 5432 && nc -z postgres 5432"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: node:20-alpine
+    container_name: covenant-sync-api
+    working_dir: /app
+    volumes:
+      - ./server:/app
+    environment:
+      COVENANT_SYNC_DOCKER: "1"
+      DATABASE_URL: postgres://covenant:covenant@postgres:5432/covenant
+      PORT: "8787"
+      CORS_ORIGIN: http://localhost:8000
+      BOOTSTRAP_EMAIL: demo@covenant.local
+      BOOTSTRAP_PASSWORD: covenant-demo
+    # Host :18787 avoids Windows Hyper-V/WinNAT excluded ranges that often block :8787.
+    ports:
+      - "18787:8787"
+    command: sh -c "npm install && node index.js"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Browser pgAdmin — same Docker network as postgres (no host:15432).
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: covenant-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@covenant.dev
+      PGADMIN_DEFAULT_PASSWORD: covenant
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    ports:
+      - "5050:80"
+    volumes:
+      - ./server/pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./server/pgadmin/pgpass:/tmp/pgpass:ro
+    # Copy pgpass with mode 0600 (required by libpq; bind mounts from Windows often lack it).
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        cp /tmp/pgpass /var/lib/pgadmin/pgpass
+        chmod 600 /var/lib/pgadmin/pgpass
+        chown pgadmin:root /var/lib/pgadmin/pgpass 2>/dev/null || true
+        exec /entrypoint.sh
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  covenant_pg_data:

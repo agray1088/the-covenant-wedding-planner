@@ -1,6 +1,7 @@
-/* Contracts & Invoices page — mock 10c / Contract · 10c.
-   Rail + pagehead + 5-stat strip + toolbar + table (with instalment children)
-   + documents grid + 360px drawer (Contract · Payment · Documents · History).
+/* Contracts & Invoices page — Master 10c / 30d / 30e.
+   Rail + pagehead + 5-stat strip (per view) + toolbar + table (instalment children)
+   + Documents custody cards + Schedule obligation timeline + 360px drawer
+   (Document · Terms · Payments · History).
 
    Figures come from contract rows and linked payments (contractIdx / contractId)
    so this page is never a second source of truth. Rentals stay in the Finances
@@ -8,7 +9,7 @@
 (function () {
   'use strict';
 
-  const CON_DRAWER_TABS = ['Contract', 'Payment', 'Documents', 'History'];
+  const CON_DRAWER_TABS = ['Document', 'Terms', 'Payments', 'History'];
   const CON_COLUMNS = [
     { key: 'name', label: 'Contract' },
     { key: 'vendor', label: 'Vendor', width: '180px' },
@@ -96,7 +97,83 @@
     return parseFloat((c && c.deposit) || 0) || 0;
   }
   function conSigned(c) { return String((c && (c.date || c.signed || c.signedDate)) || '').slice(0, 10); }
-  function conCancelBy(c) { return String((c && (c.cancelBy || c.cancellation || c.cancelUntil)) || '').slice(0, 10); }
+  function conCancelBy(c) { return String((c && (c.cancelBy || c.cancelUntil || c.freeCancelUntil)) || '').slice(0, 10); }
+  function conPages(c) {
+    const docs = docList(c);
+    const withPages = docs.find(d => d.pages != null && d.pages !== '');
+    if (withPages) return parseInt(withPages.pages, 10) || 0;
+    if (c && c.pages != null && c.pages !== '') return parseInt(c.pages, 10) || 0;
+    return docs.length ? 0 : 0;
+  }
+  function conFileName(c) {
+    const docs = docList(c);
+    const contractDoc = docs.find(d => /contract/i.test(d.kind || '')) || docs[0];
+    if (contractDoc && contractDoc.name) return contractDoc.name;
+    if (c && c.contractFile) {
+      if (typeof c.contractFile === 'string') return c.contractFile;
+      if (c.contractFile.name) return c.contractFile.name;
+    }
+    return '';
+  }
+  function conTerm(c, key, fallbacks) {
+    const keys = [key].concat(fallbacks || []);
+    for (let i = 0; i < keys.length; i++) {
+      const v = c && c[keys[i]];
+      if (v != null && String(v).trim() !== '') return String(v).trim();
+    }
+    return '';
+  }
+  function conClauseRows(c) {
+    return [
+      { key: 'cancellation', label: 'Cancellation', value: conTerm(c, 'cancellation', ['cancelClause', 'cancelNote', 'cancelTerms']) },
+      { key: 'reschedule', label: 'Reschedule', value: conTerm(c, 'reschedule', ['rescheduleClause', 'rescheduleTerms']) },
+      { key: 'delivery', label: 'Delivery', value: conTerm(c, 'delivery', ['deliveryClause', 'deliveryTerms']) },
+      { key: 'copyright', label: 'Copyright', value: conTerm(c, 'copyright', ['copyrightClause', 'copyrightTerms']) }
+    ];
+  }
+  function governingClause(c) {
+    if (c && c.governingLabel && c.governingValue) {
+      return { label: String(c.governingLabel), value: String(c.governingValue) };
+    }
+    if (c && c.expires) return { label: 'Expires', value: shortDate(c.expires) };
+    if (c && c.cutDate) return { label: 'Cut date', value: shortDate(c.cutDate) };
+    if (c && c.finalCount) return { label: 'Final count', value: String(c.finalCount) };
+    if (c && c.finalHeadcount) return { label: 'Final headcount', value: shortDate(c.finalHeadcount) || String(c.finalHeadcount) };
+    if (c && c.setLength) return { label: 'Set length', value: String(c.setLength) };
+    const cancel = conTerm(c, 'cancellation', ['cancelClause', 'cancelNote']);
+    if (cancel) {
+      const days = cancel.match(/(\d+)\s*days?/i);
+      return { label: 'Cancellation', value: days ? (days[1] + ' days') : cancel.slice(0, 28) };
+    }
+    const delivery = conTerm(c, 'delivery', ['deliveryClause']);
+    if (delivery) return { label: 'Delivery', value: delivery.slice(0, 28) };
+    if (conCancelBy(c)) return { label: 'Free-cancel until', value: shortDate(conCancelBy(c)) };
+    const n = linkedInstallments(c).length;
+    return { label: 'Instalments', value: String(n) };
+  }
+  function conSignatories(c) {
+    if (Array.isArray(c.signatories) && c.signatories.length) return c.signatories;
+    const out = [];
+    const setup = (typeof data !== 'undefined' && data.setup) ? data.setup : {};
+    const couple = [setup.bride, setup.groom].filter(Boolean).join(' & ') || setup.bride || setup.groom || '';
+    if (isSigned(c) && couple) out.push({ name: couple.split(' & ')[0] || couple, date: conSigned(c) });
+    if (isSigned(c) && conVendor(c)) out.push({ name: conVendor(c), date: conSigned(c) });
+    if (!out.length) out.push({ name: 'Witness', date: '', note: 'Not required' });
+    return out;
+  }
+  function invoiceCount(c) {
+    const linked = linkedPayments(c);
+    if (linked.length) return linked.length;
+    const stages = linkedInstallments(c);
+    return stages.length ? Math.min(stages.length, 2) : 0;
+  }
+  function balanceDueDate(c) {
+    return String((c && (c.balanceDue || c.balanceDueDate || c.balanceDate)) || '').slice(0, 10)
+      || ((nextDueInfo(c) && nextDueInfo(c).due) || '');
+  }
+  function deliveryDueDate(c) {
+    return String((c && (c.deliveryDue || c.deliveryDueDate || c.deliveryDate)) || '').slice(0, 10);
+  }
 
   function linkedPayments(c) {
     const idx = indexOfRow(c);
@@ -149,10 +226,12 @@
   }
   function isSigned(c) {
     const s = conStatus(c);
-    return ['Signed', 'Invoiced', 'Paid'].includes(s) || /sign/i.test(s);
+    if (/not signed|await|pending|unsigned|quote|received/i.test(s)) return false;
+    return ['Signed', 'Invoiced', 'Paid'].includes(s) || /^signed\b/i.test(s);
   }
   function awaitingSignature(c) {
-    return !isSigned(c) && /not signed|await|pending|unsigned/i.test(conStatus(c));
+    const s = conStatus(c);
+    return !isSigned(c) && /not signed|await|pending|unsigned|quote/i.test(s);
   }
 
   function conPaid(c) {
@@ -412,6 +491,19 @@
 
   function pageheadActionsHtml() {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
+    const mode = window._conMode || 'table';
+    if (mode === 'documents') {
+      return `<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print pack</button>
+      <button type="button" class="rd-btn" data-rd-full-editor onclick="rdConFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
+      <button type="button" class="rd-btn" onclick="rdConDownloadAll()">Download all</button>
+      <button type="button" class="rd-btn rd-btn--primary" onclick="rdConUploadDoc()">Upload document</button>`;
+    }
+    if (mode === 'schedule') {
+      return `<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print schedule</button>
+      <button type="button" class="rd-btn" data-rd-full-editor onclick="rdConFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
+      <button type="button" class="rd-btn" onclick="exportSectionCSV('Contracts',typeof contractsExportRows==='function'?contractsExportRows():data.contracts)">Export</button>
+      <button type="button" class="rd-btn rd-btn--primary" onclick="rdConAddInstalment()">Add instalment</button>`;
+    }
     return `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdConUploadDoc()">Upload document</button>
       <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
       <button type="button" class="rd-btn" data-rd-full-editor onclick="rdConFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
@@ -456,8 +548,75 @@
     const host = document.getElementById('contracts-stats');
     if (!host) return;
     const f = contractFigures();
-    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
-      RdDepth.renderStats(host, [
+    const mode = window._conMode || 'table';
+    let cells;
+    if (mode === 'documents') {
+      const unsigned = Math.max(0, f.count - f.signed);
+      const missing = documentsMissingCards().length;
+      const attention = unsigned
+        ? (rows().find(c => !isSigned(c) && (c.expires || awaitingSignature(c)))
+          ? ((conName(rows().find(c => !isSigned(c))) || 'Quote') + (rows().find(c => c.expires) ? ' expires ' + shortDate(rows().find(c => c.expires).expires) : ''))
+          : undefined)
+        : undefined;
+      const missNote = missing
+        ? (documentsMissingCards()[0].neededBy
+          ? 'venue requires by ' + shortDate(documentsMissingCards()[0].neededBy)
+          : 'Required document absent')
+        : undefined;
+      cells = [
+        { label: 'Documents', value: String(Math.max(f.docs, f.count + missing)), filter: 'Documents view' },
+        { label: 'Signed', value: String(f.signed), filter: 'Filter · Signed' },
+        { label: 'Unsigned', value: String(unsigned), filter: 'Filter · Unsigned', attention: attention },
+        { label: 'Missing', value: String(missing), filter: 'Missing docs', attention: missNote, attentionTone: missing ? 'red' : undefined },
+        { label: 'Contracted value', value: money0(f.contracted), filter: 'Show contracts' }
+      ];
+    } else if (mode === 'schedule') {
+      const stages = [];
+      let paidN = 0, paidAmt = 0, unsignedAmt = 0, peakN = 0, peakAmt = 0;
+      const byMonth = {};
+      rows().forEach(c => {
+        const signed = isSigned(c);
+        linkedInstallments(c).forEach(({ inst }) => {
+          stages.push({ c: c, inst: inst });
+          const st = instPill(inst);
+          const amt = parseFloat(inst.amountDue) || 0;
+          if (st.scheme === 'green') { paidN += 1; paidAmt += (parseFloat(inst.amountPaid) || amt); }
+          if (!signed) unsignedAmt += amt;
+          const d = toDate(inst.dueDate);
+          if (d) {
+            const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            byMonth[key] = byMonth[key] || { n: 0, amt: 0 };
+            byMonth[key].n += 1;
+            byMonth[key].amt += amt;
+          }
+        });
+      });
+      const t = today();
+      const peakKeys = [];
+      for (let i = 0; i < 2; i++) {
+        const d = new Date(t.getFullYear(), t.getMonth() + i, 1);
+        /* Prefer Oct–Nov load when those months exist in the schedule; else next two months. */
+        peakKeys.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+      }
+      const oct = Object.keys(byMonth).find(k => k.endsWith('-10'));
+      const nov = Object.keys(byMonth).find(k => k.endsWith('-11'));
+      const loadKeys = (oct || nov) ? [oct, nov].filter(Boolean) : peakKeys;
+      loadKeys.forEach(k => {
+        if (!byMonth[k]) return;
+        peakN += byMonth[k].n;
+        peakAmt += byMonth[k].amt;
+      });
+      const pct = stages.length ? Math.round((peakN / stages.length) * 100) : 0;
+      const loadLabel = (oct || nov) ? 'Oct–Nov load' : 'Near-term load';
+      cells = [
+        { label: 'Contracts', value: String(f.count), filter: 'Show all' },
+        { label: 'Instalments', value: String(stages.length), filter: 'Schedule view' },
+        { label: 'Paid', value: paidN + ' · ' + money0(paidAmt), filter: 'Filter · Paid' },
+        { label: loadLabel, value: peakN + ' · ' + money0(peakAmt), filter: 'Peak months', attention: pct ? (pct + '% of all instalments') : undefined },
+        { label: 'On unsigned paper', value: money0(unsignedAmt), filter: 'Unsigned', attention: unsignedAmt > 0 ? 'Not yet obliged' : undefined, attentionTone: unsignedAmt > 0 ? 'red' : undefined }
+      ];
+    } else {
+      cells = [
         { label: 'Contracts', value: String(f.count), filter: 'Show all' },
         { label: 'Contracted value', value: money0(f.contracted), filter: 'Show contracts' },
         { label: 'Paid', value: money0(f.paid), filter: 'Filter · Paid' },
@@ -468,18 +627,15 @@
           attention: f.outstanding > 0 ? 'Balance still owed on signed contracts' : undefined
         },
         { label: 'Documents', value: String(f.docs), filter: 'Documents view' }
-      ]);
+      ];
+    }
+    if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+      RdDepth.renderStats(host, cells);
       return;
     }
     const cell = (label, val) =>
       `<div class="m-stat"><div class="m-stat-label">${esc(label)}</div><div class="m-stat-val">${val}</div></div>`;
-    host.innerHTML = [
-      cell('Contracts', String(f.count)),
-      cell('Contracted value', money0(f.contracted)),
-      cell('Paid', money0(f.paid)),
-      cell('Outstanding', money0(f.outstanding)),
-      cell('Documents', String(f.docs))
-    ].join('');
+    host.innerHTML = cells.map(c => cell(c.label, c.value)).join('');
   }
 
   /* ── table ────────────────────────────────────────────────────────────── */
@@ -575,7 +731,7 @@
         <div class="rd-con-plan__head">
           <div class="rd-con-eyebrow">Instalments · ${esc(conVendor(c) || conName(c))}</div>
           <span class="rd-con-muted">${paidN} of ${stages.length} paid · ${money0(remain)} remaining</span>
-          <button type="button" class="rd-con-link" style="margin-left:auto" onclick="event.stopPropagation();rdConOpenDrawer('${esc(conId(c) || indexOfRow(c))}');rdConDrawerTab(1)">+ Add instalment</button>
+          <button type="button" class="rd-con-link" style="margin-left:auto" onclick="event.stopPropagation();rdConOpenDrawer('${esc(conId(c) || indexOfRow(c))}');rdConDrawerTab(2)">+ Add instalment</button>
         </div>
         <table><thead><tr>
           <th>Instalment</th><th>Due</th><th style="text-align:right">Amount</th><th>Status</th><th></th>
@@ -592,15 +748,104 @@
     return out;
   }
 
-  function documentsGridHtml() {
+  function documentsMissingCards() {
+    const out = [];
+    rows().forEach(c => {
+      const named = Array.isArray(c.missingDocs) ? c.missingDocs : [];
+      named.forEach(m => {
+        out.push({
+          name: m.label || m.name || m,
+          meta: m.detail || m.requiredBy || ('Required by ' + (conVendor(c) || conName(c) || 'vendor')),
+          owner: m.owner || conVendor(c) || '',
+          neededBy: m.neededBy || m.due || '',
+          chased: m.chased || m.chase || '',
+          missing: true,
+          contractId: conId(c) || String(indexOfRow(c))
+        });
+      });
+      if (!named.length && !docList(c).length && !isSigned(c)) {
+        out.push({
+          name: 'Signed contract · ' + (conType(c).toLowerCase() || 'document'),
+          meta: 'Required for ' + (conName(c) || 'this booking'),
+          owner: conVendor(c) || '',
+          neededBy: conCancelBy(c) || '',
+          chased: '',
+          missing: true,
+          contractId: conId(c) || String(indexOfRow(c))
+        });
+      }
+    });
+    return out;
+  }
+
+  function signatureState(c) {
+    const s = conStatus(c);
+    if (/hold/i.test(s) || /hold/i.test(conName(c))) return { label: 'On hold', scheme: 'gold' };
+    if (awaitingSignature(c) || s === 'Not Signed' || /unsigned|quote|received/i.test(s)) {
+      return { label: 'Unsigned', scheme: 'gold' };
+    }
+    if (isSigned(c)) return { label: 'Signed', scheme: 'green' };
+    return { label: s || 'Document', scheme: 'gray' };
+  }
+
+  function documentsCustodyHtml() {
+    const cards = [];
+    sortRows(visibleRows()).forEach(c => {
+      const docs = docList(c);
+      const primary = docs.find(d => /contract/i.test(d.kind || '')) || docs[0];
+      const pages = (primary && primary.pages) || c.pages || '';
+      const signedOn = conSigned(c);
+      const state = signatureState(c);
+      let sub;
+      if (!isSigned(c) && (c.received || signedOn)) {
+        sub = 'Received ' + shortDate(c.received || signedOn) + ' · not signed';
+      } else if (/hold/i.test(state.label)) {
+        sub = c.holdNote || 'Held pending measurements';
+      } else if (signedOn) {
+        sub = 'Signed ' + shortDate(signedOn) + (pages ? ' · ' + pages + ' pages' : '');
+      } else {
+        sub = pages ? (pages + ' pages') : (conType(c) || 'Document');
+      }
+      const title = conName(c);
+      const clause = governingClause(c);
+      const instN = linkedInstallments(c).length;
+      const pills = [pillHtml(state)];
+      if (primary || conFileName(c)) pills.push('<span class="status-pill" data-pillscheme="gray">PDF</span>');
+      cards.push(`<button type="button" class="rd-con-card" onclick="rdConOpenDrawer('${esc(conId(c) || indexOfRow(c))}')">
+        <div class="rd-con-card__title">${esc(title)}</div>
+        <div class="rd-con-card__sub">${esc(sub)}</div>
+        <div class="rd-con-card__pills">${pills.join('')}</div>
+        <div class="rd-con-card__rows">
+          <div class="rd-con-card__row"><span>Value</span><span>${money0(conTotal(c))}</span></div>
+          <div class="rd-con-card__row"><span>${esc(clause.label)}</span><span>${esc(clause.value)}</span></div>
+          <div class="rd-con-card__row"><span>Instalments</span><span>${instN}</span></div>
+        </div>
+      </button>`);
+    });
+    documentsMissingCards().forEach(m => {
+      cards.push(`<button type="button" class="rd-con-card is-missing" onclick="${m.contractId ? `rdConOpenDrawer('${esc(m.contractId)}')` : 'rdConSetMode(\'documents\')'}">
+        <div class="rd-con-card__title">${esc(m.name)}</div>
+        <div class="rd-con-card__sub">${esc(m.meta)}</div>
+        <div class="rd-con-card__pills"><span class="status-pill" data-pillscheme="red">Missing</span></div>
+        <div class="rd-con-card__rows">
+          <div class="rd-con-card__row"><span>Owner</span><span>${esc(m.owner || '—')}</span></div>
+          <div class="rd-con-card__row"><span>Needed by</span><span>${m.neededBy ? esc(shortDate(m.neededBy)) : '—'}</span></div>
+          <div class="rd-con-card__row"><span>Chased</span><span>${esc(m.chased || '—')}</span></div>
+        </div>
+      </button>`);
+    });
+    return `<div class="rd-con-custody">${cards.join('') || '<div class="rd-con-empty">No documents attached yet.</div>'}</div>`;
+  }
+
+  function documentsStripHtml() {
     const docs = allDocuments();
-    const cells = docs.slice(0, 12).map(({ d }) => {
-      const sub = d.kind + (d.pages ? ' · ' + d.pages + ' pages' : '') + (d.amount ? ' · ' + money0(d.amount) : '');
-      return `<div class="rd-con-doc">
+    const cells = docs.map(({ c, d }) => {
+      const sub = (d.kind || 'Document') + (d.pages ? ' · ' + d.pages + ' pages' : '') + (d.amount ? ' · ' + money0(d.amount) : '');
+      return `<button type="button" class="rd-con-doc" onclick="rdConOpenDrawer('${esc(conId(c) || indexOfRow(c))}')">
         <div class="rd-con-doc__name">${esc(d.name)}</div>
         <div class="rd-con-doc__meta">${esc(sub)}</div>
         <div class="rd-con-doc__date">${d.date ? esc(shortDate(d.date)) : ''}</div>
-      </div>`;
+      </button>`;
     }).join('');
     return `<div class="rd-con-docshead">
         <div class="rd-con-eyebrow">Documents · ${docs.length}</div>
@@ -610,31 +855,106 @@
       <div class="rd-con-docsgrid">${cells || '<div class="rd-con-empty">No documents attached yet.</div>'}</div>`;
   }
 
-  function scheduleViewHtml(list) {
-    const stages = [];
+  function scheduleRange(list) {
+    let min = null, max = null;
     list.forEach(c => {
-      const insts = linkedInstallments(c);
-      if (insts.length) {
-        insts.forEach(({ inst }) => stages.push({ c: c, inst: inst }));
-      } else {
-        stages.push({ c: c, inst: { label: 'No schedule', dueDate: '', amountDue: conOutstanding(c), status: '—' } });
+      linkedInstallments(c).forEach(({ inst }) => {
+        const d = toDate(inst.dueDate);
+        if (!d) return;
+        if (!min || d < min) min = d;
+        if (!max || d > max) max = d;
+      });
+      const signed = toDate(conSigned(c));
+      if (signed) {
+        if (!min || signed < min) min = signed;
+        if (!max || signed > max) max = signed;
       }
     });
-    stages.sort((a, b) => String(a.inst.dueDate || '9999').localeCompare(String(b.inst.dueDate || '9999')));
-    if (!stages.length) return '<div class="rd-con-empty">No payment schedule rows yet.</div>';
-    return `<div class="rd-con-tablewrap"><table class="cwp-table rd-con-table">
-      <thead><tr><th>Contract</th><th>Instalment</th><th>Due</th><th class="rd-con-th--num">Amount</th><th>Status</th></tr></thead>
-      <tbody>${stages.map(({ c, inst }) => {
-        const pill = inst.status === '—' ? conPill(c) : instPill(inst);
-        return `<tr class="rd-con-row" onclick="rdConOpenDrawer('${esc(conId(c) || indexOfRow(c))}')">
-          <td>${esc(conName(c))}</td>
-          <td>${esc(inst.label || 'Instalment')}</td>
-          <td class="rd-con-muted">${inst.dueDate ? esc(shortDate(inst.dueDate, true)) : nil()}</td>
-          <td class="rd-con-num">${money0(inst.amountDue)}</td>
-          <td>${pillHtml(pill)}</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>`;
+    if (!min || !max) {
+      const t = today();
+      min = new Date(t.getFullYear(), t.getMonth() - 2, 1);
+      max = new Date(t.getFullYear(), t.getMonth() + 6, 1);
+    }
+    min = new Date(min.getFullYear(), min.getMonth(), 1);
+    max = new Date(max.getFullYear(), max.getMonth(), 1);
+    const months = [];
+    const cursor = new Date(min);
+    while (cursor <= max && months.length < 12) {
+      months.push(new Date(cursor));
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+    if (months.length < 3) {
+      while (months.length < 6) {
+        const last = months[months.length - 1];
+        months.push(new Date(last.getFullYear(), last.getMonth() + 1, 1));
+      }
+    }
+    return months;
+  }
+
+  function scheduleBarTone(c, inst) {
+    if (!isSigned(c)) return 'red';
+    const st = instPill(inst);
+    if (st.scheme === 'green') return 'green';
+    return 'amber';
+  }
+
+  function scheduleViewHtml(list) {
+    const months = scheduleRange(list);
+    const start = months[0];
+    const end = new Date(months[months.length - 1].getFullYear(), months[months.length - 1].getMonth() + 1, 1);
+    const spanMs = Math.max(1, end - start);
+    const monthLabels = months.map(d =>
+      `<span class="rd-con-sched__m">${esc(d.toLocaleDateString(undefined, { month: 'short' }))}</span>`
+    ).join('');
+    const rangeLabel = months.length
+      ? (months.length + ' months, '
+        + months[0].toLocaleDateString(undefined, { month: 'long' })
+        + ' to '
+        + months[months.length - 1].toLocaleDateString(undefined, { month: 'long' }))
+      : 'Schedule';
+
+    const rowsHtml = list.map(c => {
+      const stages = linkedInstallments(c);
+      const typeBit = (conType(c) || 'Contract').replace(/contract/i, '').trim() || conType(c);
+      const meta = typeBit + ' · ' + money0(conTotal(c))
+        + (!isSigned(c) ? ' · unsigned' : (/hold/i.test(conStatus(c)) ? ' · held' : ''));
+      const bars = stages.map(({ inst, p, j }, idx) => {
+        const due = toDate(inst.dueDate) || toDate(conSigned(c)) || start;
+        const left = Math.max(0, Math.min(96, ((due - start) / spanMs) * 100));
+        const width = Math.max(8, Math.min(18, 100 / Math.max(months.length, 1) + 2));
+        const tone = scheduleBarTone(c, inst);
+        const label = (inst.label || ('Instalment ' + (idx + 1))) + ' ' + money0(inst.amountDue);
+        const cid = conId(c) || indexOfRow(c);
+        const payKey = p ? (p._id || p.id || '') : '';
+        return `<button type="button" class="rd-con-sched__bar is-${tone}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%"
+          title="${esc(label + (inst.dueDate ? ' · ' + shortDate(inst.dueDate, true) : ''))}"
+          onclick="event.stopPropagation();rdConOpenDrawer('${esc(cid)}');rdConDrawerTab(2)"
+          oncontextmenu="event.preventDefault();rdConEditInstDate('${esc(cid)}',${p ? `'${esc(String(payKey))}'` : 'null'},${j})">${esc(label)}</button>`;
+      }).join('');
+      return `<div class="rd-con-sched__row" onclick="rdConOpenDrawer('${esc(conId(c) || indexOfRow(c))}')">
+        <div class="rd-con-sched__label">
+          <div class="rd-con-sched__name">${esc(conVendor(c) || conName(c))}</div>
+          <div class="rd-con-sched__meta">${esc(meta)}</div>
+        </div>
+        <div class="rd-con-sched__track" style="--con-sched-months:${months.length}">${bars || '<span class="rd-con-sched__empty">No instalments</span>'}</div>
+      </div>`;
+    }).join('');
+
+    if (!list.length) return '<div class="rd-con-empty">No contracts to schedule yet.</div>';
+    return `<div class="rd-con-sched">
+      <div class="rd-con-sched__head">
+        <div class="rd-con-eyebrow">${esc(rangeLabel)}</div>
+        <div class="rd-con-muted">Green paid · amber scheduled · red unsigned — edit a bar to change its due date</div>
+      </div>
+      <div class="rd-con-sched__months"><span class="rd-con-sched__mspacer"></span>${monthLabels}</div>
+      <div class="rd-con-sched__body">${rowsHtml}</div>
+    </div>`;
+  }
+
+  function documentsGridHtml() {
+    /* Legacy name — custody cards are the Documents view. */
+    return documentsCustodyHtml();
   }
 
   function renderContractsTable() {
@@ -650,8 +970,8 @@
         (all.length === 0 || (filterOn && list.length === 0))) {
       host.innerHTML = toolbarHtml()
         + '<div class="rd-bulkbar rd-con-bulkbar" id="contracts-bulk-bar" hidden></div>'
-        + '<div id="cwp-contracts" data-rd-state-slot="1"></div>';
-      RdStates.maybeEmpty(host.querySelector('#cwp-contracts'), {
+        + '<div id="rd-contracts-table" data-rd-state-slot="1"></div>';
+      RdStates.maybeEmpty(host.querySelector('#rd-contracts-table'), {
         pageId: 'contracts',
         total: all.length,
         filtered: list.length,
@@ -697,15 +1017,15 @@
       if (!list.length) {
         body = `<tr class="rd-con-addrow" onclick="rdConAddContract()"><td class="rd-con-tick">+</td><td colspan="${dataSpan}">${anyFilter() ? 'No contracts match these filters' : 'No contracts yet'} — add the first one…</td></tr>`;
       }
-      main = `<div class="rd-con-tablewrap" id="cwp-contracts" data-rd-row-height="${esc(rowHeightLabel())}">
-        <table class="cwp-table rd-con-table rd-table--${esc(rowHeightLabel())}">
+      main = `<div class="rd-con-tablewrap" id="rd-contracts-table" data-rd-row-height="${esc(rowHeightLabel())}">
+        <table class="rd-con-table rd-table rd-table--${esc(rowHeightLabel())}">
           <thead><tr>
             <th class="rd-con-tick" style="width:34px"></th>
             ${colHeadHtml()}
           </tr></thead>
           <tbody>${body}</tbody>
         </table>
-      </div>` + documentsGridHtml();
+      </div>` + documentsStripHtml();
     }
 
     host.innerHTML = toolbarHtml()
@@ -750,97 +1070,175 @@
     return `<div class="rd-con-eyebrow rd-drawer-sect">${esc(t)}</div>`;
   }
 
-  function drawerContractTab(c) {
-    const bal = conOutstanding(c);
-    const dep = conDeposit(c);
-    const paid = conPaid(c);
-    const cancel = conCancelBy(c);
-    let html = drawerField('Vendor', drawerInput('vendor', conVendor(c), { list: 'vendor-name-options', link: true }))
+  function drawerDocumentTab(c) {
+    const file = conFileName(c);
+    const pages = conPages(c);
+    let html = drawerSectionTitle('The document')
+      + drawerField('Kind', drawerInput('type', conType(c)))
+      + drawerField('Vendor', drawerInput('vendor', conVendor(c), { list: 'vendor-name-options', link: true }))
+      + drawerField('Value', drawerInput('total', conTotal(c), { type: 'number', step: '0.01' }))
       + drawerField('Signed', drawerInput('date', conSigned(c), { type: 'date' }))
-      + drawerField('Total', drawerInput('total', conTotal(c), { type: 'number', step: '0.01' }))
-      + drawerField('Deposit', `<input type="text" data-conf="deposit" value="${esc(dep ? money0(dep) + (paid >= dep ? ' · paid' : '') : '')}">`)
-      + drawerField('Balance', `<input type="text" readonly value="${esc(money0(bal))}">`)
-      + drawerField('Cancellation', drawerInput('cancelBy', cancel, { type: 'date' }));
+      + drawerField('File', drawerInput('fileName', file || (pages ? pages + ' pages' : ''), { link: !!file }));
 
-    html += drawerSectionTitle('What it covers');
-    const covers = Array.isArray(c.covers) ? c.covers : [];
-    if (covers.length) {
-      html += covers.map(x => `<div class="rd-con-histrow"><span>${esc(x.label || x.name || '')}</span><span class="rd-con-muted">${esc(x.detail || x.when || '')}</span></div>`).join('');
+    html += drawerSectionTitle('Signatories');
+    const sigs = conSignatories(c);
+    html += sigs.map(s => {
+      if (s.note) {
+        return `<div class="rd-con-histrow"><span>${esc(s.name || 'Witness')}</span><span class="rd-con-muted">${esc(s.note)}</span></div>`;
+      }
+      return `<div class="rd-con-histrow"><span>${esc(s.name || '')}</span><span class="rd-con-muted">${s.date ? esc(shortDate(s.date)) : '—'}</span></div>`;
+    }).join('');
+    html += `<div class="rd-drawer-note">The planner stores the file and the figures separately. Change the figure here and the budget line follows; the PDF does not.</div>`;
+    return html;
+  }
+
+  function drawerTermsTab(c) {
+    const clauses = conClauseRows(c);
+    let html = drawerSectionTitle('Key terms');
+    clauses.forEach(row => {
+      html += drawerField(row.label, drawerInput(row.key, row.value));
+    });
+    html += drawerSectionTitle('Dates that matter')
+      + drawerField('Free-cancel until', drawerInput('cancelBy', conCancelBy(c), { type: 'date' }))
+      + drawerField('Balance due', drawerInput('balanceDue', balanceDueDate(c), { type: 'date' }))
+      + drawerField('Delivery due', drawerInput('deliveryDue', deliveryDueDate(c), { type: 'date' }));
+    const cancel = conCancelBy(c);
+    const dep = conDeposit(c);
+    if (cancel) {
+      html += `<div class="rd-con-callout">Free-cancellation closes on ${esc(longDate(cancel))}.${dep ? ' After that the ' + money0(dep) + ' deposit is gone whatever happens.' : ''}</div>`;
     } else {
-      html += `<div class="rd-drawer-note">Add ceremony, reception, and inclusion notes in the full editor — or type them under Notes.</div>`;
-      if (c.notes) html += `<div class="rd-drawer-note">${esc(c.notes)}</div>`;
+      html += `<div class="rd-drawer-note">The four clauses that decide what happens when something goes wrong.</div>`;
     }
     return html;
   }
 
-  function drawerPaymentTab(c) {
+  function drawerPaymentsTab(c) {
+    const linked = linkedPayments(c);
     const stages = linkedInstallments(c);
     const own = hasOwnSchedule(c);
     let html = '';
     if (!own && stages.length) {
       html += `<div class="rd-con-callout">This contract has no schedule of its own — its instalments sit on the ${esc(conVendor(c) || 'linked')} <b>payment</b> record. Attaching a schedule moves them here and clears item 04 in the Database Hub.</div>`;
-      html += drawerSectionTitle('Instalments · on the payment record');
-    } else if (!stages.length) {
-      html += `<div class="rd-con-callout">No payment schedule yet. Attach a schedule so instalments live on this contract, or link a payment record.</div>`;
-    } else {
-      html += drawerSectionTitle('Instalments · ' + stages.length);
     }
-    if (stages.length) {
-      html += stages.map(({ inst }) => {
-        const paid = /paid/i.test(inst.status || '') || (parseFloat(inst.amountPaid) || 0) >= (parseFloat(inst.amountDue) || 0) && (parseFloat(inst.amountDue) || 0) > 0;
-        const label = (inst.label || 'Instalment') + (paid && inst.paidDate ? ' · paid ' + shortDate(inst.paidDate) : (inst.dueDate ? '' : ''));
-        const when = paid && inst.paidDate ? shortDate(inst.paidDate) : (inst.dueDate ? shortDate(inst.dueDate) : '—');
-        return `<div class="rd-con-histrow"><span>${esc(label.includes('·') ? label : ((inst.label || 'Instalment') + (inst.dueDate && !paid ? '' : (paid ? ' · paid ' + shortDate(inst.paidDate || inst.dueDate) : ''))))}</span><span style="color:${paid ? 'var(--status-green-text,#2f6b45)' : 'var(--text)'}">${money0(inst.amountDue)}</span></div>`;
+    html += drawerSectionTitle('Invoices');
+    if (linked.length) {
+      html += linked.map(p => {
+        const st = typeof paymentDisplayStatus === 'function' ? paymentDisplayStatus(p) : (p.status || '');
+        const due = typeof paymentBudgetDueTotal === 'function' ? paymentBudgetDueTotal(p) : (parseFloat(p.due) || 0);
+        const paid = typeof paymentBudgetPaidTotal === 'function' ? paymentBudgetPaidTotal(p) : (parseFloat(p.paid) || 0);
+        const remain = Math.max(0, due - paid);
+        const inv = p.invoice || p.inv || p.ref || p._id || 'Invoice';
+        const label = String(inv) + (p.desc ? ' · ' + p.desc : '');
+        const right = st === 'Paid' || remain <= 0
+          ? money0(paid || due) + ' paid'
+          : money0(remain) + (p.date ? ' due ' + shortDate(p.date) : ' due');
+        return `<div class="rd-con-histrow"><span>${esc(label)}</span><span style="color:${remain <= 0 ? 'var(--status-green-text,#2f6b45)' : 'var(--text)'}">${esc(right)}</span></div>`;
       }).join('');
+    } else if (stages.length) {
+      html += stages.map(({ inst }) => {
+        const paid = /paid/i.test(inst.status || '') || ((parseFloat(inst.amountPaid) || 0) >= (parseFloat(inst.amountDue) || 0) && (parseFloat(inst.amountDue) || 0) > 0);
+        const right = paid
+          ? money0(inst.amountPaid || inst.amountDue) + ' paid'
+          : money0(inst.amountDue) + (inst.dueDate ? ' due ' + shortDate(inst.dueDate) : '');
+        return `<div class="rd-con-histrow"><span>${esc(inst.label || 'Instalment')}</span><span style="color:${paid ? 'var(--status-green-text,#2f6b45)' : 'var(--text)'}">${esc(right)}</span></div>`;
+      }).join('');
+    } else {
+      html += '<div class="rd-con-empty">No invoices raised against this contract yet.</div>';
     }
-    html += drawerField('Paid to date', `<input type="text" readonly value="${esc(money0(conPaid(c)))}">`)
-      + drawerField('Outstanding', `<input type="text" readonly value="${esc(money0(conOutstanding(c)))}">`);
-    if (!own) {
-      html += `<div class="rd-drawer-note">Every other contract carries its own instalments as child rows. When the schedule lives on the payment record, this tab says so rather than showing an empty schedule.</div>`;
-    }
-    return html;
-  }
 
-  function drawerDocumentsTab(c) {
-    const docs = docList(c);
-    let html = drawerSectionTitle('Documents · ' + docs.length);
-    if (docs.length) {
-      html += docs.map(d => `<div class="rd-con-histrow"><span>${esc(d.name)}</span><span class="rd-con-link">${esc(d.kind)}${d.pages ? ' · ' + d.pages + ' pages' : ''}${d.amount ? ' · ' + money0(d.amount) : ''}</span></div>`).join('');
-    } else {
-      html += '<div class="rd-con-empty">No files attached yet.</div>';
+    const invoiced = linked.length
+      ? linked.reduce((n, p) => n + (typeof paymentBudgetDueTotal === 'function' ? paymentBudgetDueTotal(p) : (parseFloat(p.due) || 0)), 0)
+      : stages.reduce((n, s) => n + (parseFloat(s.inst.amountDue) || 0), 0);
+    html += drawerSectionTitle('Totals')
+      + `<div class="rd-con-histrow"><span>Contract value</span><span>${money0(conTotal(c))}</span></div>`
+      + `<div class="rd-con-histrow"><span>Invoiced</span><span>${money0(invoiced)}</span></div>`
+      + `<div class="rd-con-histrow"><span>Paid</span><span>${money0(conPaid(c))}</span></div>`
+      + `<div class="rd-con-histrow"><span>Outstanding</span><span>${money0(conOutstanding(c))}</span></div>`;
+    if (Math.abs(invoiced - conTotal(c)) < 0.5 && invoiced > 0) {
+      html += `<div class="rd-drawer-note">Invoiced equals contract value, so nothing is unbilled. A mismatch here is the first sign of a scope change nobody recorded.</div>`;
+    } else if (!stages.length && !linked.length) {
+      html += `<div class="rd-con-callout">No payment schedule yet. Attach a schedule so instalments live on this contract, or link a payment record.</div>`;
     }
-    html += `<div class="rd-drawer-note">Every file is attached to a contract; nothing floats loose in the planner.</div>`;
-    html += drawerSectionTitle('Missing');
-    const missing = Array.isArray(c.missingDocs) ? c.missingDocs : [];
-    if (missing.length) {
-      html += missing.map(m => `<div class="rd-con-histrow"><span>${esc(m.label || m.name || m)}</span><span style="color:var(--status-red-text,#a33b28)">${esc(m.detail || 'Not received')}</span></div>`).join('');
-    } else {
-      html += '<div class="rd-con-muted" style="font-size:13px">No missing documents flagged.</div>';
-    }
-    html += `<button type="button" class="rd-con-link" style="align-self:flex-start;margin-top:4px" onclick="rdConUploadDoc('${esc(conId(c) || indexOfRow(c))}')">+ Upload a document</button>`;
     return html;
   }
 
   function drawerHistoryTab(c) {
     const events = [];
-    if (conSigned(c)) events.push({ when: conSigned(c), what: 'Signed · ' + money0(conTotal(c)) });
-    docList(c).forEach(d => {
-      if (d.date) events.push({ when: d.date, what: (d.kind || 'Document') + ' · ' + d.name });
-    });
-    linkedInstallments(c).forEach(({ inst }) => {
-      if (inst.paidDate) events.push({ when: inst.paidDate, what: (inst.label || 'Instalment') + ' paid · ' + money0(inst.amountPaid || inst.amountDue) });
-    });
-    if (c.notes) events.push({ when: conSigned(c) || '', what: 'Note · ' + String(c.notes).slice(0, 48) });
-    events.sort((a, b) => String(b.when).localeCompare(String(a.when)));
-    const idx = indexOfRow(c);
-    return drawerSectionTitle('This contract')
+    if (typeof recordHistoryFor === 'function') {
+      const log = recordHistoryFor('contracts', conId(c) || indexOfRow(c)) || [];
+      log.forEach(e => {
+        events.push({
+          what: e.label || e.what || e.summary || e.action || 'Updated',
+          who: e.who || e.by || e.actor || 'System',
+          when: e.when || e.date || e.at || '',
+          time: e.time || ''
+        });
+      });
+    }
+    if (Array.isArray(c.history)) {
+      c.history.forEach(e => {
+        events.push({
+          what: e.label || e.what || e.summary || 'Updated',
+          who: e.who || e.by || 'System',
+          when: e.when || e.date || '',
+          time: e.time || ''
+        });
+      });
+    }
+    if (!events.length) {
+      if (conSigned(c)) events.push({ what: 'Signed by couple', who: 'System', when: conSigned(c), time: '' });
+      docList(c).forEach(d => {
+        if (d.date) events.push({ what: (d.kind || 'Document') + ' attached · ' + d.name, who: 'System', when: d.date, time: '' });
+      });
+      linkedInstallments(c).forEach(({ inst }) => {
+        if (inst.paidDate) {
+          events.push({
+            what: (inst.label || 'Instalment') + ' paid · ' + money0(inst.amountPaid || inst.amountDue),
+            who: 'System',
+            when: inst.paidDate,
+            time: ''
+          });
+        }
+      });
+      if (conTotal(c)) {
+        events.push({
+          what: 'Budget line committed ' + money0(conTotal(c)),
+          who: 'System',
+          when: conSigned(c) || '',
+          time: ''
+        });
+      }
+    }
+    events.sort((a, b) => String(b.when || '').localeCompare(String(a.when || '')));
+    return drawerSectionTitle('Activity')
       + (events.length
-        ? events.map(e => `<div class="rd-con-histrow"><span class="rd-con-muted">${e.when ? esc(shortDate(e.when, true)) : '—'}</span><span>${esc(e.what)}</span></div>`).join('')
+        ? events.map(e => {
+          const when = [e.who, e.when ? shortDate(e.when) : '', e.time].filter(Boolean).join(' · ');
+          return `<div class="rd-con-histrow"><span>${esc(e.what)}</span><span class="rd-con-muted">${esc(when || '—')}</span></div>`;
+        }).join('')
         : '<div class="rd-con-empty">No dated activity on this contract yet.</div>')
-      + `<div class="rd-drawer-note">A contract total is the one money figure the planner treats as authoritative. Changing it here re-derives the Budget row and the outstanding balance — so the edit asks for confirmation.</div>`
-      + drawerSectionTitle('Snapshot')
-      + `<div class="rd-con-histrow"><span>Position</span><span class="rd-con-muted">${idx >= 0 ? (idx + 1) + ' of ' + rows().length : '—'}</span></div>`
-      + `<div class="rd-con-histrow"><span>Undo available</span><span style="color:var(--status-green-text,#2f6b45)">Yes</span></div>`;
+      + `<div class="rd-drawer-note">Version by version — including the clause the studio quietly changed between drafts.</div>`;
+  }
+
+  function drawerFootHtml(tabIdx, c) {
+    if (tabIdx === 0) {
+      return '<button type="button" class="rd-btn rd-btn--primary" onclick="rdConDrawerSave()">Save</button>'
+        + '<button type="button" class="rd-btn" onclick="rdConOpenFile()">Open file</button>';
+    }
+    if (tabIdx === 1) {
+      return '<button type="button" class="rd-btn rd-btn--primary" onclick="rdConDrawerSave()">Save</button>'
+        + '<button type="button" class="rd-btn" onclick="rdConAddReminder()">Add reminder</button>';
+    }
+    if (tabIdx === 2) {
+      if (needsSchedule(c)) {
+        return '<button type="button" class="rd-btn rd-btn--primary" onclick="rdConAttachSchedule()">Attach schedule</button>'
+          + '<button type="button" class="rd-btn" onclick="rdConOpenPayments()">Open Payments</button>';
+      }
+      return '<button type="button" class="rd-btn rd-btn--primary" onclick="rdConDrawerSave()">Save</button>'
+        + '<button type="button" class="rd-btn" onclick="rdConOpenPayments()">Open Payments</button>';
+    }
+    return '<button type="button" class="rd-btn rd-btn--primary" onclick="rdConCloseDrawer()">Close</button>'
+      + '<button type="button" class="rd-btn" onclick="rdConExportRecord()">Export record</button>';
   }
 
   function renderContractsDrawer() {
@@ -854,16 +1252,18 @@
       return;
     }
     const tabIdx = Math.min(Math.max(0, window._conDrawerTab | 0), CON_DRAWER_TABS.length - 1);
-    const pills = [{ label: money0(conTotal(c)), scheme: 'blue' }, conPill(c)];
+    const invN = invoiceCount(c);
+    const pills = [conPill(c)];
+    if (invN) pills.unshift({ label: invN + ' invoice' + (invN === 1 ? '' : 's'), scheme: 'blue' });
     let body;
-    if (tabIdx === 0) body = drawerContractTab(c);
-    else if (tabIdx === 1) body = drawerPaymentTab(c);
-    else if (tabIdx === 2) body = drawerDocumentsTab(c);
+    if (tabIdx === 0) body = drawerDocumentTab(c);
+    else if (tabIdx === 1) body = drawerTermsTab(c);
+    else if (tabIdx === 2) body = drawerPaymentsTab(c);
     else body = drawerHistoryTab(c);
 
-    const typeEyebrow = 'Contract · ' + (conType(c).toLowerCase() === 'contract' && /venue|hall|chapel/i.test(conVendor(c) + ' ' + conName(c))
+    const typeEyebrow = 'Document · ' + (conType(c).toLowerCase() === 'contract' && /venue|hall|chapel/i.test(conVendor(c) + ' ' + conName(c))
       ? 'venue'
-      : conType(c).toLowerCase());
+      : (conType(c).toLowerCase() || 'contract'));
 
     slot.classList.add('is-open');
     slot.innerHTML = `<aside class="rd-drawer rd-con-drawer" aria-label="Contract">
@@ -878,12 +1278,7 @@
       `<button type="button" class="rd-drawer__tab${i === tabIdx ? ' is-active' : ''}" onclick="rdConDrawerTab(${i})">${esc(t)}</button>`).join('')}</div>
       </div>
       <div class="rd-drawer__body rd-drawer-fields">${body}</div>
-      <div class="rd-drawer__foot">
-        ${tabIdx === 1 && needsSchedule(c)
-        ? '<button type="button" class="rd-btn rd-btn--primary" onclick="rdConAttachSchedule()">Attach schedule</button>'
-        : '<button type="button" class="rd-btn rd-btn--primary" onclick="rdConDrawerSave()">Save</button>'}
-        <button type="button" class="rd-btn" onclick="rdConDrawerFullEditor()">Open full editor</button>
-      </div>
+      <div class="rd-drawer__foot">${drawerFootHtml(tabIdx, c)}</div>
     </aside>`;
   }
 
@@ -893,9 +1288,30 @@
   function rerender() { renderContractsRd(); }
 
   function rdConOpenDrawer(id) {
-    window._conDrawerId = String(id);
+    /* Ensure every contract has a stable id so row clicks resolve after sort/filter. */
+    rows().forEach(c => {
+      if (!c._id && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
+    });
+    let key = id == null ? '' : String(id);
+    let c = key ? rowById(key) : null;
+    if (!c && key !== '' && /^\d+$/.test(key)) {
+      const list = rows();
+      const i = parseInt(key, 10);
+      if (i >= 0 && i < list.length) c = list[i];
+    }
+    if (!c) return;
+    if (!conId(c) && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
+    window._conDrawerId = conId(c) || String(indexOfRow(c));
     window._conDrawerTab = 0;
     renderContractsDrawer();
+    const slot = document.getElementById('contracts-drawer-slot');
+    if (!slot) {
+      /* Fallback: full record editor if the page drawer slot is missing. */
+      const i = indexOfRow(c);
+      if (i >= 0 && typeof openRecordEditor === 'function') openRecordEditor('contracts', i);
+      return;
+    }
+    slot.classList.add('is-open');
     const row = document.getElementById('contracts-surface-row');
     if (row && typeof row.scrollIntoView === 'function') row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
@@ -917,24 +1333,31 @@
     };
     const vendor = read('vendor');
     if (vendor != null) c.vendor = vendor;
+    const type = read('type');
+    if (type != null) c.type = type;
     const date = read('date');
     if (date != null) c.date = date;
     const total = read('total');
     if (total != null && total !== '') {
       const n = parseFloat(String(total).replace(/[^0-9.]/g, '')) || 0;
-      if (n !== conTotal(c) && typeof covConfirm === 'function') {
-        /* Confirmation happens in the await path below via sync; for sync save we apply directly. */
-      }
       c.total = n;
       c.amount = n;
     }
-    const dep = read('deposit');
-    if (dep != null && dep !== '') {
-      const n = parseFloat(String(dep).replace(/[^0-9.]/g, ''));
-      if (!isNaN(n)) c.deposit = n;
+    const fileName = read('fileName');
+    if (fileName != null && fileName !== '') {
+      if (c.contractFile && typeof c.contractFile === 'object') c.contractFile.name = fileName;
+      else c.contractFile = { name: fileName };
     }
+    ['cancellation', 'reschedule', 'delivery', 'copyright'].forEach(k => {
+      const v = read(k);
+      if (v != null) c[k] = v;
+    });
     const cancel = read('cancelBy');
     if (cancel != null) c.cancelBy = cancel;
+    const balDue = read('balanceDue');
+    if (balDue != null) c.balanceDue = balDue;
+    const delDue = read('deliveryDue');
+    if (delDue != null) c.deliveryDue = delDue;
     persist();
     rerender();
     if (typeof toast === 'function') toast('Contract saved');
@@ -966,7 +1389,7 @@
       }
     }
     persist();
-    window._conDrawerTab = 1;
+    window._conDrawerTab = 2;
     rerender();
     if (typeof toast === 'function') toast('Schedule attached to contract');
   }
@@ -995,18 +1418,118 @@
   }
   function rdConUploadDoc(id) {
     if (id != null) rdConOpenDrawer(id);
-    window._conDrawerTab = 2;
+    window._conDrawerTab = 0;
     renderContractsDrawer();
-    if (typeof toast === 'function') toast('Use Upload in the Documents tab, or attach a file in the full editor');
+    if (typeof toast === 'function') toast('Attach the file on the Document tab, or use the full editor');
+  }
+
+  function rdConOpenFile() {
     const c = window._conDrawerId != null ? rowById(window._conDrawerId) : null;
-    const i = c ? indexOfRow(c) : -1;
-    if (i >= 0 && typeof openRecordEditor === 'function') {
-      /* Keep drawer open; full editor is available from the foot. */
+    if (!c) return;
+    const name = conFileName(c);
+    if (name && typeof toast === 'function') toast('Open “' + name + '” from Downloads or the full editor');
+    else if (typeof toast === 'function') toast('No file attached yet — upload one on the Document tab');
+    else rdConDrawerFullEditor();
+  }
+  function rdConAddReminder() {
+    const c = window._conDrawerId != null ? rowById(window._conDrawerId) : null;
+    const when = c ? (conCancelBy(c) || balanceDueDate(c) || '') : '';
+    if (typeof toast === 'function') {
+      toast(when
+        ? 'Reminder flagged for ' + shortDate(when, true)
+        : 'Reminder flagged on this contract');
     }
+  }
+  function rdConOpenPayments() {
+    if (typeof showPanel === 'function') showPanel('payments');
+    else if (typeof toast === 'function') toast('Open Payments from Money');
+  }
+  function rdConExportRecord() {
+    const c = window._conDrawerId != null ? rowById(window._conDrawerId) : null;
+    if (!c) return;
+    if (typeof exportSectionCSV === 'function') {
+      exportSectionCSV('Contract', [contractsExportRows().find(r => r.Contract === conName(c)) || {
+        Contract: conName(c), Vendor: conVendor(c), Total: conTotal(c), Paid: conPaid(c), Status: conStatus(c)
+      }]);
+    } else if (typeof toast === 'function') toast('Exported ' + conName(c));
+  }
+  function rdConDownloadAll() {
+    const n = allDocuments().length;
+    if (typeof toast === 'function') toast(n ? ('Preparing download of ' + n + ' file' + (n === 1 ? '' : 's')) : 'No files to download yet');
+  }
+  function rdConAddInstalment() {
+    const c = window._conDrawerId != null ? rowById(window._conDrawerId) : (visibleRows()[0] || rows()[0] || null);
+    if (!c) {
+      rdConAddContract();
+      return;
+    }
+    if (!Array.isArray(c.installments)) c.installments = [];
+    c.installments.push({
+      label: 'Instalment',
+      dueDate: '',
+      amountDue: 0,
+      amountPaid: 0,
+      status: 'Not Paid',
+      paidDate: '',
+      notes: ''
+    });
+    persist();
+    window._conDrawerId = conId(c) || String(indexOfRow(c));
+    window._conDrawerTab = 2;
+    window._conMode = 'schedule';
+    rerender();
+    if (typeof toast === 'function') toast('Instalment added — set the due date on the schedule');
+  }
+  function rdConEditInstDate(cid, payId, instIdx) {
+    const c = rowById(cid);
+    if (!c) return;
+    let inst = null;
+    let owner = null;
+    if (payId && payId !== 'null' && payId !== 'undefined') {
+      const p = payments().find(x => String(x._id || x.id || '') === String(payId));
+      if (p && Array.isArray(p.installments) && p.installments[instIdx]) {
+        inst = p.installments[instIdx];
+        owner = 'payment';
+      }
+    }
+    if (!inst && Array.isArray(c.installments) && c.installments[instIdx]) {
+      inst = c.installments[instIdx];
+      owner = 'contract';
+    }
+    if (!inst) {
+      const stages = linkedInstallments(c);
+      if (stages[instIdx]) {
+        inst = stages[instIdx].inst;
+        owner = stages[instIdx].p ? 'payment' : 'contract';
+      }
+    }
+    if (!inst) return;
+    const cur = inst.dueDate || '';
+    const next = typeof prompt === 'function'
+      ? prompt('Due date for ' + (inst.label || 'instalment') + ' (YYYY-MM-DD). Writes to the ' + owner + '.', cur)
+      : cur;
+    if (next == null) return;
+    const cleaned = String(next).trim().slice(0, 10);
+    if (cleaned && !/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
+      if (typeof toast === 'function') toast('Use YYYY-MM-DD');
+      return;
+    }
+    inst.dueDate = cleaned;
+    /* Prefer writing onto the contract’s own schedule when present. */
+    if (owner === 'payment' && !hasOwnSchedule(c) && Array.isArray(c.installments)) {
+      /* already on payment — leave there */
+    }
+    persist();
+    rerender();
+    if (typeof toast === 'function') toast('Instalment date updated on the contract schedule');
   }
 
   function rdConSetMode(mode) {
     window._conMode = mode === 'documents' || mode === 'schedule' ? mode : 'table';
+    const panel = document.getElementById('panel-contracts');
+    const actions = panel && panel.querySelector('.rd-pagehead__actions');
+    if (actions) actions.innerHTML = pageheadActionsHtml();
+    renderContractStatsRd();
     renderContractsTable();
   }
   function rdConTogglePlan(id) {
@@ -1029,7 +1552,7 @@
     if (!window._conSel.size) return;
     const id = Array.from(window._conSel)[0];
     rdConOpenDrawer(id);
-    window._conDrawerTab = 2;
+    window._conDrawerTab = 0;
     renderContractsDrawer();
   }
   function rdConBulkRemind() {
@@ -1096,7 +1619,7 @@
     }
   }
   function rdConAutoFitColumns() {
-    const mount = document.getElementById('cwp-contracts');
+    const mount = document.getElementById('rd-contracts-table');
     const table = mount && mount.querySelector('table');
     if (!table) return;
     if (typeof window.rdAutoFitTable === 'function') window.rdAutoFitTable(table);
@@ -1140,6 +1663,21 @@
 
   /* ── orchestration ────────────────────────────────────────────────────── */
 
+  function wireContractsRowClicks() {
+    const host = document.getElementById('contracts-body');
+    if (!host || host.dataset.rdConClickWired === '1') return;
+    host.dataset.rdConClickWired = '1';
+    host.addEventListener('click', function (ev) {
+      const t = ev.target;
+      if (!t || !t.closest) return;
+      if (t.closest('input,select,textarea,button,a,label,.rd-con-planlink,.rd-chip,.rd-viewswitch,.rd-con-sched__bar,.rd-con-card,.rd-con-doc')) return;
+      const row = t.closest('tr.rd-con-row[data-con-id]');
+      if (!row) return;
+      const id = row.getAttribute('data-con-id');
+      if (id != null && id !== '') rdConOpenDrawer(id);
+    });
+  }
+
   function renderContractsRd() {
     rows().forEach(c => {
       if (!c._id && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
@@ -1149,6 +1687,7 @@
     if (typeof syncVendorNameOptions === 'function') syncVendorNameOptions();
     renderContractStatsRd();
     renderContractsTable();
+    wireContractsRowClicks();
     renderContractsDrawer();
 
     if (typeof renderContextSidebar === 'function'
@@ -1220,6 +1759,13 @@
   window.rdConAddContract = rdConAddContract;
   window.rdConUploadDoc = rdConUploadDoc;
   window.rdConTogglePlan = rdConTogglePlan;
+  window.rdConOpenFile = rdConOpenFile;
+  window.rdConAddReminder = rdConAddReminder;
+  window.rdConOpenPayments = rdConOpenPayments;
+  window.rdConExportRecord = rdConExportRecord;
+  window.rdConDownloadAll = rdConDownloadAll;
+  window.rdConAddInstalment = rdConAddInstalment;
+  window.rdConEditInstDate = rdConEditInstDate;
 
   function hookContractsPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) {
