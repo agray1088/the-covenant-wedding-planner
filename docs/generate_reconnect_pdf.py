@@ -181,6 +181,23 @@ def main():
         size=8.5,
     )
 
+    self_check_page(pdf, 40)
+    pdf.ln(3)
+    pdf.set_draw_color(180, 180, 180)
+    pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + pdf.epw, pdf.get_y())
+    pdf.ln(4)
+
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.set_text_color(20, 20, 20)
+    pdf.multi_cell(0, 7, "Hosted mode (optional)")
+    pdf.ln(1)
+    body(
+        pdf,
+        "Local Docker above is still the day-to-day reconnect path. For public HTTPS "
+        "(Railway / Fly), see docs/HOSTED_DEPLOY.md. Point Cloud sync at your HTTPS "
+        "PUBLIC_URL - not localhost. Demo login is for local stacks only.",
+    )
+
     pdf.ln(4)
     pdf.set_font("Helvetica", "I", 9)
     pdf.set_text_color(100, 100, 100)

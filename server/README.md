@@ -2,10 +2,12 @@
 
 Offline-first planner stays the default. This Node + Postgres API is **opt-in** for multi-device guest + vendor + payment + budget + seating + contract + timeline + packet + rental + catering-rental + party + task + vtimeline + print-packet-override sync (beta).
 
+**Hosted HTTPS (production):** see [`docs/HOSTED_DEPLOY.md`](../docs/HOSTED_DEPLOY.md) — Railway (preferred) or Fly.io, `server/Dockerfile`, env template `server/.env.production.example`. Local Compose below is for Docker Desktop only.
+
 ## Prerequisites
 
 - Node 18+
-- Postgres 16 (Docker Compose **or** local install)
+- Postgres 16 (Docker Compose **or** local install **or** managed Postgres URL)
 
 ## Quick start (Docker Postgres + API + browser pgAdmin) — recommended on Windows
 

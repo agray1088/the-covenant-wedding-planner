@@ -109,4 +109,16 @@ If an error mentions `8787` bind / access permissions:
 
 ---
 
+---
+
+## Hosted mode (optional — not required for local demo)
+
+Local Docker above is still the day-to-day reconnect path. For the **public HTTPS** sync API (Railway / Fly), see **`docs/HOSTED_DEPLOY.md`**.
+
+In the planner, set Cloud sync API base to your hosted `PUBLIC_URL` (HTTPS), not `http://localhost:18787`. Demo credentials (`demo@covenant.local`) are for **local** stacks only — do not leave a public bootstrap password on a production deployment.
+
+Product order (hosted → accounts → …): `docs/PRODUCT_ROADMAP.md`.
+
+---
+
 *Covenant Wedding Planner — reconnect sheet. Keep this PDF with your laptop notes.*

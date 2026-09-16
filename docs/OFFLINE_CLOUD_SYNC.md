@@ -209,6 +209,7 @@ Client stamp: `data.packetOverridesUpdatedAt`. Same hybrid pattern as `floor_fix
 - Default: cloud **disabled**. Offline GA verify scripts and persist suite must keep passing with no server.
 - Enabling requires an API base URL (`COVENANT_CLOUD.apiBase` or `localStorage.covenant_cloud_api`).
 - With flag off, Settings shows a short “Cloud sync (beta) — not configured” note only; no fake signed-in state.
+- **Hosted:** set `covenant_cloud_api` to the HTTPS `PUBLIC_URL` from your deploy (Railway/Fly). Steps + secrets checklist: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md). Roadmap: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
 
 ## Local run (summary)
 

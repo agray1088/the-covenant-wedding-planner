@@ -28,8 +28,36 @@ const DEFAULT_URL = inDocker
 // Trim — Windows CRLF .env files often leave `\r` on values and cause 28P01.
 export const databaseUrl = String(process.env.DATABASE_URL || DEFAULT_URL).trim();
 
-for (const key of ['PORT', 'CORS_ORIGIN', 'BOOTSTRAP_EMAIL', 'BOOTSTRAP_PASSWORD']) {
+for (const key of [
+  'PORT',
+  'HOST',
+  'CORS_ORIGIN',
+  'PUBLIC_URL',
+  'SESSION_SECRET',
+  'BOOTSTRAP_EMAIL',
+  'BOOTSTRAP_PASSWORD',
+  'DATABASE_SSL',
+  'TRUST_PROXY',
+  'SERVE_STATIC',
+  'STATIC_ROOT'
+]) {
   if (process.env[key] != null) process.env[key] = String(process.env[key]).trim();
+}
+
+function wantsSsl() {
+  const flag = String(process.env.DATABASE_SSL || '').toLowerCase();
+  if (flag === '1' || flag === 'true' || flag === 'require') return true;
+  if (flag === '0' || flag === 'false' || flag === 'disable') return false;
+  // Managed hosts almost always need TLS when not on a private Docker network.
+  const host = (() => {
+    try {
+      return new URL(databaseUrl).hostname;
+    } catch {
+      return '';
+    }
+  })();
+  if (!host || host === 'postgres' || host === 'localhost' || host === '127.0.0.1') return false;
+  return process.env.NODE_ENV === 'production';
 }
 
 export function parseDatabaseUrl(url = databaseUrl) {
@@ -70,13 +98,20 @@ export function describeDatabaseUrl(url = databaseUrl) {
 }
 
 const cfg = parseDatabaseUrl(databaseUrl);
-export const pool = new Pool({
+const poolConfig = {
   user: cfg.user,
   password: cfg.password,
   host: cfg.host,
   port: cfg.port,
   database: cfg.database
-});
+};
+if (wantsSsl()) {
+  // Managed Postgres (Railway / Fly / Render / Neon / RDS) terminates TLS.
+  // rejectUnauthorized:false is common for platform-issued certs; tighten later
+  // with a CA bundle if you pin one.
+  poolConfig.ssl = { rejectUnauthorized: false };
+}
+export const pool = new Pool(poolConfig);
 
 export async function query(text, params) {
   return pool.query(text, params);

@@ -24,13 +24,57 @@ import packetOverrideRoutes from './routes/packet-overrides.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = Number(process.env.PORT || 8787);
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:8000';
+const HOST = (process.env.HOST || '0.0.0.0').trim();
+const PUBLIC_URL = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
+const TRUST_PROXY = String(process.env.TRUST_PROXY || '').trim();
+const SERVE_STATIC = ['1', 'true', 'yes'].includes(
+  String(process.env.SERVE_STATIC || '').trim().toLowerCase()
+);
+
+function flag(name) {
+  return ['1', 'true', 'yes'].includes(String(process.env[name] || '').trim().toLowerCase());
+}
+
+const FEATURES = {
+  googleAuth: flag('FEATURE_GOOGLE_AUTH'),
+  email: flag('FEATURE_EMAIL'),
+  rsvp: flag('FEATURE_RSVP'),
+  landing: flag('FEATURE_LANDING'),
+  photos: flag('FEATURE_PHOTOS'),
+  partnerInvites: flag('FEATURE_PARTNER_INVITES'),
+  vendorTokens: flag('FEATURE_VENDOR_TOKENS')
+};
+
+/** Comma-separated CORS origins; empty entries ignored. */
+function parseCorsOrigins() {
+  const raw = process.env.CORS_ORIGIN || 'http://localhost:8000';
+  return String(raw)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+const CORS_ORIGINS = parseCorsOrigins();
 
 const app = express();
+
+// Behind Railway / Fly / Render reverse proxies — correct req.protocol / req.ip.
+if (TRUST_PROXY === '1' || TRUST_PROXY.toLowerCase() === 'true' || TRUST_PROXY === '*') {
+  app.set('trust proxy', 1);
+} else if (TRUST_PROXY && !Number.isNaN(Number(TRUST_PROXY))) {
+  app.set('trust proxy', Number(TRUST_PROXY));
+} else if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 app.use(cors({
   origin(origin, cb) {
-    // Allow same-origin tools, curl, and configured static planner origin.
-    if (!origin || origin === CORS_ORIGIN || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    // Allow same-origin tools, curl, and configured planner origins.
+    if (
+      !origin
+      || CORS_ORIGINS.includes(origin)
+      || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+    ) {
       cb(null, true);
       return;
     }
@@ -40,16 +84,23 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '2mb' }));
 
-app.get('/health', async (_req, res) => {
+app.get('/health', async (req, res) => {
+  // Cheap liveness for platform probes — do not require auth.
+  // Works behind HTTPS terminators (trust proxy) so platforms can hit /health.
   try {
     await query('SELECT 1');
     res.json({
       ok: true,
       service: 'covenant-sync',
-      version: '0.1.0',
+      version: '0.2.0',
       mode: 'offline-first-optional-cloud',
       db: 'up',
-      time: new Date().toISOString()
+      publicUrl: PUBLIC_URL || null,
+      features: FEATURES,
+      time: new Date().toISOString(),
+      // Echo how the proxy sees us (useful when debugging HTTPS / redirects).
+      proto: req.protocol,
+      host: req.get('host') || null
     });
   } catch (e) {
     res.status(503).json({ ok: false, db: 'down', error: String(e.message || e) });
@@ -74,6 +125,23 @@ app.use('/weddings/:weddingId/tasks', taskRoutes);
 app.use('/weddings/:weddingId/vtimeline', vtimelineRoutes);
 app.use('/weddings/:weddingId/packet-overrides', packetOverrideRoutes);
 
+if (SERVE_STATIC) {
+  const staticRoot = path.resolve(
+    process.env.STATIC_ROOT || path.join(__dirname, '..')
+  );
+  app.use(express.static(staticRoot, { index: ['index.html'], fallthrough: true }));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/auth') || req.path.startsWith('/weddings') || req.path === '/health') {
+      next();
+      return;
+    }
+    res.sendFile(path.join(staticRoot, 'index.html'), (err) => {
+      if (err) next();
+    });
+  });
+  console.log('[covenant-sync] serving static planner from', staticRoot);
+}
+
 app.use((err, _req, res, _next) => {
   console.error('[covenant-sync]', err);
   res.status(500).json({ error: 'server_error', message: err.message || 'Unexpected error' });
@@ -93,14 +161,20 @@ async function bootstrapUser() {
 }
 
 async function main() {
+  if (process.env.NODE_ENV === 'production' && !(process.env.SESSION_SECRET || '').trim()) {
+    console.warn(
+      '[covenant-sync] WARNING: SESSION_SECRET is unset. Set it before public traffic (see server/.env.production.example).'
+    );
+  }
   const dbInfo = describeDatabaseUrl(databaseUrl);
   console.log(
     `[covenant-sync] db target ${dbInfo.user}@${dbInfo.host}:${dbInfo.port}/${dbInfo.database} (${dbInfo.source}) pwdLen=${dbInfo.passwordLength} codes=${dbInfo.passwordCharCodes}`
   );
   await initSchema();
   await bootstrapUser();
-  app.listen(PORT, () => {
-    console.log(`[covenant-sync] listening on http://127.0.0.1:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`[covenant-sync] listening on http://${HOST}:${PORT}`);
+    if (PUBLIC_URL) console.log(`[covenant-sync] PUBLIC_URL=${PUBLIC_URL}`);
     console.log('[covenant-sync] offline planner remains default; cloud is optional.');
   });
 }

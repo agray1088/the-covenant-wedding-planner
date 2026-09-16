@@ -242,11 +242,11 @@
 
     if (!st.enabled && st.state === 'disabled') {
       html += '<div class="rd-set__note">Cloud stays off until an API base is configured, so offline GA is unbroken. '
-        + 'For local dev: set <code>localStorage.covenant_cloud_api</code> to your sync server '
-        + '(e.g. <code>http://localhost:18787</code>) and <code>covenant_cloud_enabled=1</code>, then reload. '
-        + 'See <code>docs/OFFLINE_CLOUD_SYNC.md</code>.</div>';
-      html += cardRow('API base URL', 'Stored in this browser only',
-        '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:18787" value="'
+        + 'Local Docker: <code>http://localhost:18787</code>. Hosted HTTPS: your deploy <code>PUBLIC_URL</code> '
+        + '(see <code>docs/HOSTED_DEPLOY.md</code>). Set <code>covenant_cloud_api</code> + <code>covenant_cloud_enabled=1</code>, then reload. '
+        + 'Also: <code>docs/OFFLINE_CLOUD_SYNC.md</code>.</div>';
+      html += cardRow('API base URL', 'Stored in this browser only — local or hosted HTTPS',
+        '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:18787 or https://api.example.com" value="'
         + esc((function () { try { return localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { return ''; } })())
         + '">');
       html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides sync in beta',

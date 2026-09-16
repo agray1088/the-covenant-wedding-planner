@@ -1,7 +1,8 @@
 /* Cloud sync bridge (beta) — optional overlay on offline-first planner.
    Default: DISABLED. Offline save() always remains the source of truth on device.
    Enable via window.COVENANT_CLOUD = { enabled:true, apiBase:'http://localhost:18787' }
-   or localStorage covenant_cloud_enabled=1 + covenant_cloud_api. */
+   or localStorage covenant_cloud_enabled=1 + covenant_cloud_api.
+   Hosted: apiBase = HTTPS PUBLIC_URL from docs/HOSTED_DEPLOY.md (not localhost). */
 (function () {
   'use strict';
 
