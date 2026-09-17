@@ -76,13 +76,51 @@ CREATE UNIQUE INDEX IF NOT EXISTS weddings_client_key_idx
 CREATE TABLE IF NOT EXISTS memberships (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wedding_id    UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
-  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id       UUID REFERENCES users(id) ON DELETE CASCADE, -- null while invite is pending
   role          TEXT NOT NULL CHECK (role IN ('owner', 'partner', 'planner')),
+  status        TEXT NOT NULL DEFAULT 'accepted'
+                  CHECK (status IN ('pending', 'accepted', 'revoked')),
+  invited_email TEXT,
+  invited_username TEXT,
+  invite_token_hash TEXT,
+  invited_by    UUID REFERENCES users(id) ON DELETE SET NULL,
+  invite_expires_at TIMESTAMPTZ,
+  accepted_at   TIMESTAMPTZ,
+  revoked_at    TIMESTAMPTZ,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (wedding_id, user_id)
 );
 
 CREATE INDEX IF NOT EXISTS memberships_user_idx ON memberships(user_id);
+
+-- Partner invites: extend older memberships rows (idempotent upgrades).
+ALTER TABLE memberships ALTER COLUMN user_id DROP NOT NULL;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS status TEXT;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS invited_email TEXT;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS invited_username TEXT;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS invite_token_hash TEXT;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS invited_by UUID;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS invite_expires_at TIMESTAMPTZ;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS accepted_at TIMESTAMPTZ;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMPTZ;
+UPDATE memberships SET status = 'accepted' WHERE status IS NULL;
+UPDATE memberships SET accepted_at = COALESCE(accepted_at, created_at)
+  WHERE status = 'accepted' AND accepted_at IS NULL;
+ALTER TABLE memberships ALTER COLUMN status SET DEFAULT 'accepted';
+ALTER TABLE memberships ALTER COLUMN status SET NOT NULL;
+-- Recreate status / role checks safely for older volumes.
+ALTER TABLE memberships DROP CONSTRAINT IF EXISTS memberships_status_check;
+ALTER TABLE memberships ADD CONSTRAINT memberships_status_check
+  CHECK (status IN ('pending', 'accepted', 'revoked'));
+ALTER TABLE memberships DROP CONSTRAINT IF EXISTS memberships_role_check;
+ALTER TABLE memberships ADD CONSTRAINT memberships_role_check
+  CHECK (role IN ('owner', 'partner', 'planner'));
+CREATE UNIQUE INDEX IF NOT EXISTS memberships_invite_token_uidx
+  ON memberships(invite_token_hash) WHERE invite_token_hash IS NOT NULL;
+CREATE INDEX IF NOT EXISTS memberships_invited_email_idx
+  ON memberships(lower(invited_email)) WHERE invited_email IS NOT NULL;
+CREATE INDEX IF NOT EXISTS memberships_wedding_status_idx
+  ON memberships(wedding_id, status);
 
 -- Guest fields aligned with planner JSON + schema.sql guest table (trimmed).
 CREATE TABLE IF NOT EXISTS guests (
@@ -511,7 +549,8 @@ CREATE TABLE IF NOT EXISTS outbound_emails (
   wedding_id    UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
   guest_id      TEXT,
   kind          TEXT NOT NULL CHECK (kind IN (
-                  'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username'
+                  'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username',
+                  'partner_invite'
                 )),
   to_email      TEXT NOT NULL,
   subject       TEXT,
@@ -528,6 +567,14 @@ CREATE INDEX IF NOT EXISTS outbound_emails_wedding_idx
   ON outbound_emails(wedding_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS outbound_emails_guest_idx
   ON outbound_emails(wedding_id, guest_id);
+
+-- Allow partner_invite on older volumes that already created outbound_emails.
+ALTER TABLE outbound_emails DROP CONSTRAINT IF EXISTS outbound_emails_kind_check;
+ALTER TABLE outbound_emails ADD CONSTRAINT outbound_emails_kind_check
+  CHECK (kind IN (
+    'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username',
+    'partner_invite'
+  ));
 
 -- Gated wedding landing / guest portal settings (NOT a public SEO directory).
 -- access_mode: unlisted | email | code | email_or_code

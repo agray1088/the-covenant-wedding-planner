@@ -16,6 +16,7 @@
     "verify:auth": "node scripts/_verify-auth.mjs",
     "verify:backup-photos": "node scripts/_verify-backup-photos.mjs",
     "verify:rsvp": "node scripts/_verify-rsvp.mjs",
+    "verify:partner-invite": "node scripts/_verify-partner-invite.mjs",
     "verify:second-device": "node scripts/_verify-second-device-sync.mjs",
     "verify:vendor-sync": "node scripts/_verify-vendor-sync.mjs",
     "verify:payment-sync": "node scripts/_verify-payment-sync.mjs",

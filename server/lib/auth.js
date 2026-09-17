@@ -181,7 +181,8 @@ export async function requireWeddingMember(req, res, next) {
   try {
     const weddingId = req.params.weddingId || req.params.id;
     const { rows } = await query(
-      `SELECT role FROM memberships WHERE wedding_id = $1 AND user_id = $2`,
+      `SELECT role, status FROM memberships
+        WHERE wedding_id = $1 AND user_id = $2 AND status = 'accepted'`,
       [weddingId, req.user.id]
     );
     if (!rows[0]) {
@@ -193,6 +194,25 @@ export async function requireWeddingMember(req, res, next) {
   } catch (e) {
     next(e);
   }
+}
+
+/** Owner-only gate (partner/planner cannot delete wedding / transfer ownership). */
+export function requireWeddingOwner(req, res, next) {
+  requireWeddingMember(req, res, (err) => {
+    if (err) {
+      next(err);
+      return;
+    }
+    if (res.headersSent) return;
+    if (req.membershipRole !== 'owner') {
+      res.status(403).json({
+        error: 'forbidden',
+        message: 'Only the wedding owner can do this.'
+      });
+      return;
+    }
+    next();
+  });
 }
 
 /** Magic-link placeholder — reserved for SMTP later. */

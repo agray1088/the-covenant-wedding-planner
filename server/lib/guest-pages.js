@@ -237,3 +237,78 @@ export function simpleMessagePage(title, message, isError) {
     body: `<h1>${esc(title)}</h1><div class="msg ${isError ? 'err' : 'ok'}">${esc(message)}</div>`
   });
 }
+
+/** Partner invite landing — sign in / accept (token in URL). */
+export function invitePageHtml({
+  weddingName,
+  weddingDate,
+  role,
+  invitedEmail,
+  token,
+  clientAppUrl,
+  expiresAt
+}) {
+  const title = 'Partner invite';
+  const body = `
+    <h1>Partner invite</h1>
+    <p class="lead">${esc(weddingName || 'Wedding')}${weddingDate ? ` · ${esc(weddingDate)}` : ''}<br>
+    You've been invited as <b>${esc(role || 'partner')}</b>${invitedEmail ? ` (${esc(invitedEmail)})` : ''}.</p>
+    <div class="panel">
+      <p style="margin:0 0 0.75rem;color:var(--muted);line-height:1.45">
+        Sign in with the invited account, then accept below. This only grants access to this wedding — nothing is listed publicly.
+      </p>
+      <p id="msg" class="msg" hidden></p>
+      <button type="button" id="accept-btn">Accept invite</button>
+      <a class="btn secondary" style="margin-left:0.5rem" href="${esc(clientAppUrl || '/')}">Open planner</a>
+    </div>
+    <p class="meta">${expiresAt ? `Expires ${esc(String(expiresAt).slice(0, 10))} · ` : ''}noindex · cloud feature</p>
+  `;
+  const script = `
+    const btn = document.getElementById('accept-btn');
+    const msg = document.getElementById('msg');
+    const token = ${JSON.stringify(token)};
+    const app = ${JSON.stringify(clientAppUrl || '/')};
+    function show(ok, text) {
+      msg.hidden = false;
+      msg.className = 'msg ' + (ok ? 'ok' : 'err');
+      msg.textContent = text;
+    }
+    function bearer() {
+      try {
+        const u = new URL(location.href);
+        const q = u.searchParams.get('cloudToken');
+        if (q) return q;
+      } catch (e) {}
+      try { return localStorage.getItem('covenant_cloud_token') || ''; } catch (e) { return ''; }
+    }
+    btn.addEventListener('click', async () => {
+      const t = bearer();
+      if (!t) {
+        show(false, 'Sign in to the planner first, then return to this link (or accept from Settings → Partner invites).');
+        setTimeout(() => { location.href = app; }, 1800);
+        return;
+      }
+      btn.disabled = true;
+      show(true, 'Accepting…');
+      try {
+        const res = await fetch('/invites/accept', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: 'Bearer ' + t
+          },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || data.error || ('HTTP ' + res.status));
+        show(true, 'Accepted — opening planner…');
+        setTimeout(() => { location.href = app; }, 900);
+      } catch (err) {
+        btn.disabled = false;
+        show(false, err.message || 'Could not accept invite.');
+      }
+    });
+  `;
+  return layout({ title, body, script });
+}

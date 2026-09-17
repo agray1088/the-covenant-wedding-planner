@@ -93,7 +93,7 @@ Exercises token create → guest submit → Postgres guest update. SMTP send is 
 - Does not provision your SMTP/Google accounts in the cloud  
 - LWW guest sync: RSVP responses stamp `updated_at` so they normally win over older local rows; sync after guests reply  
 
-**Next:** portal polish, richer published blocks, partner invites.
+**Next:** vendor portal tokens. Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).
 
 ## Demo
 

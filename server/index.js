@@ -25,6 +25,11 @@ import packetOverrideRoutes from './routes/packet-overrides.js';
 import photoRoutes from './routes/photos.js';
 import rsvpRoutes, { guestPublicRoutes } from './routes/rsvp.js';
 import portalRoutes, { portalPublicRoutes } from './routes/portal.js';
+import {
+  weddingInviteRoutes,
+  invitePublicRoutes,
+  inviteTokenPage
+} from './routes/invites.js';
 import { storageConfigSummary } from './lib/object-storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -54,7 +59,7 @@ const FEATURES = {
   rsvp: flagDefaultOn('FEATURE_RSVP'),
   landing: flagDefaultOn('FEATURE_LANDING'),
   photos: flag('FEATURE_PHOTOS'),
-  partnerInvites: flag('FEATURE_PARTNER_INVITES'),
+  partnerInvites: flagDefaultOn('FEATURE_PARTNER_INVITES'),
   vendorTokens: flag('FEATURE_VENDOR_TOKENS')
 };
 
@@ -145,8 +150,11 @@ app.use('/weddings/:weddingId/packet-overrides', packetOverrideRoutes);
 app.use('/weddings/:weddingId/photos', photoRoutes);
 app.use('/weddings/:weddingId/rsvp', rsvpRoutes);
 app.use('/weddings/:weddingId/portal', portalRoutes);
+app.use('/weddings/:weddingId', weddingInviteRoutes);
 
-// Public guest surfaces (token / slug gated — not SEO).
+// Partner invites (auth + token preview) and public guest surfaces.
+app.use('/invites', invitePublicRoutes);
+app.get('/invite/:token', inviteTokenPage);
 app.use('/guest', guestPublicRoutes);
 app.use('/p', portalPublicRoutes);
 app.get('/r/:token', (req, res) => {
@@ -165,6 +173,8 @@ if (SERVE_STATIC) {
       || req.path.startsWith('/guest')
       || req.path.startsWith('/p/')
       || req.path.startsWith('/r/')
+      || req.path.startsWith('/invite')
+      || req.path.startsWith('/invites')
       || req.path === '/health'
     ) {
       next();

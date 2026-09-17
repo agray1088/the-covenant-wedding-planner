@@ -11,9 +11,23 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 | **5** | **Photos** | Local library (IndexedDB) + zip backup inclusion **shipped**; online object-storage scaffolding (metadata in Postgres, S3/R2 env placeholders) **shipped** — full hosted blob provisioning later. |
 | **6** | **RSVP + guest portal** | RSVP emails, guest token forms, couple send/monitor controls. Links rooted at `PUBLIC_URL`. **Foundation shipped** (see [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md)). |
 | **7** | **Gated wedding landing** | Unlisted link and/or guest email and/or custom couple code — **not** a public wedding directory. **Foundation shipped** (same doc). |
-| **(+)** | **Partner + vendor** | Partner invites; vendor tokens / portal access (after accounts). |
+| **8** | **Partner invites** | Invite spouse/planner to the same wedding (`owner` / `partner` / `planner`). **Shipped** (see [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)). |
+| **(+)** | **Vendor portal** | Vendor tokens / portal access (after partner invites). |
 
-## Steps 6–7 status (this pass)
+## Partner invites status (this pass)
+
+| Item | Status |
+|------|--------|
+| Extend `memberships` (token, status, invited_email, role) | Done |
+| Create / list / accept / revoke / list members APIs | Done |
+| Email when SMTP set; invite URL always returned | Done |
+| Settings → Partner invites UI | Done |
+| Partner cannot revoke owner | Done |
+| `verify:partner-invite` | Done |
+| Vendor portal tokens | Next |
+| Complex RBAC matrix | Out of scope |
+
+## Steps 6–7 status
 
 | Item | Status |
 |------|--------|
@@ -26,17 +40,17 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 | Settings UI: RSVP & guest portal | Done |
 | `verify:rsvp` | Done |
 | Fancy multi-template website builder | Out of scope |
-| Partner invites / vendor tokens | Later |
-| Provisioning user SMTP/Google in cloud | Out of scope |
 
 ## Non-goals for this pass
 
 - Fully provisioning S3/R2 buckets or shipping the AWS SDK  
 - Multi-template wedding site builder / marketing redesign  
 - Breaking existing sync domains  
+- Vendor portal tokens (next)
 
 ## Docs
 
+- Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)  
 - RSVP + gated portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md)  
 - Backup + photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md)  
 - Auth (accounts + Google + SMTP): [`AUTH.md`](./AUTH.md)  

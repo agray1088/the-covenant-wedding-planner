@@ -81,10 +81,12 @@ Later revisions may add field-level merge and presence; until then the UI must s
 
 | Role | Access |
 |------|--------|
-| `owner` | Full wedding + guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task CRUD; invite members |
-| `partner` | Full guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task CRUD (same wedding) |
+| `owner` | Full wedding + guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task CRUD; invite members; revoke partners |
+| `partner` | Full guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task CRUD (same wedding); cannot remove owner |
 | `planner` | Full guest/vendor/payment/budget/seating/contract/timeline/packet/rental/party/task CRUD (coordinator) |
 | `vendor` (future) | Packet-scoped reads only — not in this pass |
+
+Partner invite flow: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).
 
 Sessions are opaque bearer tokens in `sessions`. Passwords are bcrypt-hashed. Env vars are documented in `server/.env.example`.
 
@@ -330,4 +332,5 @@ If you see `Cannot find package 'playwright'`, you skipped root `npm install` �
 - Real accounts foundation (**shipped** — [`AUTH.md`](./AUTH.md); operator still supplies Google/SMTP secrets)
 - Claiming multi-user realtime collaboration
 - Offline + backup clarity / photos object storage (**shipped foundation** — [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md))
-- RSVP + gated guest portal (**shipped foundation** — [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md); next: portal polish / partner invites)
+- RSVP + gated guest portal (**shipped foundation** — [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md))
+- Partner invites (**shipped** — [`PARTNER_INVITES.md`](./PARTNER_INVITES.md); next: vendor portal tokens)

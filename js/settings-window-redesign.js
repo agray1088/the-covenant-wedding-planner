@@ -198,6 +198,7 @@
       { id: 'import', label: 'Import' },
       { id: 'cloud', label: 'Cloud sync (beta)' },
       { id: 'rsvp', label: 'RSVP & guest portal' },
+      { id: 'partners', label: 'Partner invites' },
       { id: 'privacy', label: 'Privacy' },
       { id: 'trash', label: 'Trash' },
       { id: 'about', label: 'About' }
@@ -289,6 +290,7 @@
     html += cardRow('Sync now', 'Pull then push guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
     html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides', btn('Upload this wedding', 'rdCloudUpload'));
     html += cardRow('RSVP & guest portal', 'Generate links, send invites, gated landing settings', btn('Open', 'rdSetGotoRsvp'));
+    html += cardRow('Partner invites', 'Invite a spouse or planner to this cloud wedding', btn('Open', 'rdSetGotoPartners'));
     html += cardRow('Sign out', 'Local planner keeps working offline', btn('Sign out', 'rdCloudSignOut'));
     html += cardRow('Disable cloud on this device', 'Flag off; offline GA path unchanged', btn('Turn off', 'rdCloudDisable'));
     html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline) + print packet overrides (vendorPackets / partyPackets / coordPacket)</b> sync in this beta. RSVP write-backs land on guests in Postgres and pull on sync. Docs: <code>docs/RSVP_AND_GUEST_PORTAL.md</code>.</div>';
@@ -343,6 +345,49 @@
     html += cardRow('Enable portal', 'Saves gate + published fields', btn('Save portal', 'rdPortalSave'));
     html += '<div class="rd-set__note" id="rd-portal-summary">Portal URL appears here after save.</div>';
     html += '<div class="rd-set__note">Docs: <code>docs/RSVP_AND_GUEST_PORTAL.md</code>. Real email needs SMTP + PUBLIC_URL.</div>';
+    return html;
+  }
+
+  function partnerInvitesPaneBody() {
+    var st = cloudStatus();
+    var html = '<div class="rd-set__note" id="rd-partner-status">Invite a spouse or planner to the same cloud wedding. Partners can sync and edit planner data; they cannot remove the owner. Offline use is unchanged — invites are a cloud feature.</div>';
+    if (!st.enabled || st.state === 'disabled') {
+      html += '<div class="rd-set__note">Enable cloud sync and sign in first.</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+    if (st.state === 'signed_out' || !(st.user && st.user.email)) {
+      html += '<div class="rd-set__note">Sign in on the Cloud sync pane first.</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+
+    html += '<div class="rd-set__note" style="margin-top:0.5rem"><b>Invites for you</b> — accept when someone invited this account.</div>';
+    html += cardRow('Refresh my pending invites', 'Matching your signed-in email / username', btn('Refresh inbox', 'rdPartnerPending'));
+    html += '<div class="rd-set__note" id="rd-partner-inbox">Click Refresh inbox after sign-in.</div>';
+
+    if (!st.weddingId) {
+      html += '<div class="rd-set__note">To invite others, link this wedding first (Upload this wedding on Cloud sync).</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+
+    html += '<div class="rd-set__note" style="margin-top:1rem"><b>Invite someone to this wedding</b></div>';
+    html += cardRow('Email', 'Required — invite is private to this wedding only',
+      '<input type="email" class="rd-set__input" id="rd-partner-email" placeholder="partner@example.com" autocomplete="email">');
+    html += cardRow('Username (optional)', 'Only if they already have an account',
+      '<input type="text" class="rd-set__input" id="rd-partner-username" placeholder="optional username" autocomplete="off">');
+    html += cardRow('Role', 'partner (editor) or planner',
+      '<select class="rd-set__input" id="rd-partner-role">'
+      + '<option value="partner">Partner</option>'
+      + '<option value="planner">Planner</option>'
+      + '</select>');
+    html += cardRow('Send invite', 'Email when SMTP is set; otherwise copy the link', btn('Invite', 'rdPartnerInvite'));
+    html += '<div class="rd-set__note" id="rd-partner-invite-result"></div>';
+
+    html += cardRow('Members & pending', 'List accepted members and pending invites', btn('Refresh list', 'rdPartnerRefresh'));
+    html += '<div class="rd-set__note" id="rd-partner-list">Click Refresh list to load members and pending invites.</div>';
+    html += '<div class="rd-set__note">Docs: <code>docs/PARTNER_INVITES.md</code>. Without SMTP, copy the invite URL from the result.</div>';
     return html;
   }
 
@@ -501,6 +546,11 @@
       return paneShell('RSVP & guest portal',
         'Couple-controlled RSVP links and a gated wedding landing. Not SEO-indexed. Responses write back to guests in Postgres so cloud sync picks them up.',
         rsvpPortalPaneBody());
+    }
+    if (id === 'partners') {
+      return paneShell('Partner invites',
+        'Invite a spouse or planner to this cloud wedding with partner or planner access. Not a public listing.',
+        partnerInvitesPaneBody());
     }
     if (id === 'privacy') {
       return paneShell('Privacy',
@@ -801,6 +851,159 @@
       if (name === 'rdSetGotoRsvp') {
         window._rdSetPane = 'rsvp';
         refreshPane('rsvp');
+        return;
+      }
+      if (name === 'rdSetGotoPartners') {
+        window._rdSetPane = 'partners';
+        refreshPane('partners');
+        return;
+      }
+      if (name === 'rdPartnerPending') {
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.pendingInvites !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        window.CovenantCloudSync.pendingInvites()
+          .then(function (body) {
+            var inbox = document.getElementById('rd-partner-inbox');
+            var list = (body && body.invites) || [];
+            if (!inbox) return;
+            if (!list.length) {
+              inbox.textContent = 'No pending invites for this account.';
+              cloudMsg(true, 'Inbox empty.');
+              return;
+            }
+            inbox.innerHTML = '<ul style="margin:0;padding-left:1.1rem">'
+              + list.map(function (inv) {
+                return '<li style="margin:0.4rem 0">'
+                  + esc(inv.weddingName || 'Wedding') + ' · ' + esc(inv.role || 'partner')
+                  + ' · ' + esc(inv.invitedEmail || '')
+                  + ' <button type="button" class="rd-set__btn" data-act="rdPartnerAccept" data-invite-id="'
+                  + esc(inv.id) + '">Accept</button></li>';
+              }).join('')
+              + '</ul>';
+            cloudMsg(true, 'Loaded ' + list.length + ' pending invite' + (list.length === 1 ? '' : 's') + '.');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Could not load invites'); });
+        return;
+      }
+      if (name === 'rdPartnerAccept') {
+        var acceptId = el && el.getAttribute('data-invite-id');
+        if (!acceptId) { cloudMsg(false, 'Missing invite id.'); return; }
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.acceptInvite !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        window.CovenantCloudSync.acceptInvite({ inviteId: acceptId })
+          .then(function (body) {
+            cloudMsg(true, 'Invite accepted' + (body && body.weddingId ? ' — wedding linked on server.' : '.'));
+            run('rdPartnerPending');
+            run('rdPartnerRefresh');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Accept failed'); });
+        return;
+      }
+      if (name === 'rdPartnerInvite') {
+        var pEmail = document.getElementById('rd-partner-email');
+        var pUser = document.getElementById('rd-partner-username');
+        var pRole = document.getElementById('rd-partner-role');
+        var emailVal = pEmail ? String(pEmail.value || '').trim() : '';
+        if (!emailVal) { cloudMsg(false, 'Enter an email to invite.'); return; }
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.createInvite !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        window.CovenantCloudSync.createInvite({
+          email: emailVal,
+          username: pUser ? String(pUser.value || '').trim() : '',
+          role: pRole ? String(pRole.value || 'partner') : 'partner'
+        })
+          .then(function (body) {
+            var resEl = document.getElementById('rd-partner-invite-result');
+            var url = (body && body.inviteUrl) || (body && body.invite && body.invite.inviteUrl) || '';
+            if (resEl) {
+              resEl.innerHTML = esc((body && body.message) || 'Invite created.')
+                + (url
+                  ? ('<br>Invite URL: <code id="rd-partner-invite-url">' + esc(url) + '</code> '
+                    + '<button type="button" class="rd-set__btn" data-act="rdPartnerCopyLink">Copy link</button>')
+                  : '');
+            }
+            cloudMsg(true, (body && body.email && body.email.sent) ? 'Invite emailed.' : 'Invite created — copy the link if needed.');
+            run('rdPartnerRefresh');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Invite failed'); });
+        return;
+      }
+      if (name === 'rdPartnerCopyLink') {
+        var urlEl = document.getElementById('rd-partner-invite-url');
+        var copyUrl = urlEl ? String(urlEl.textContent || '').trim() : '';
+        if (!copyUrl) { cloudMsg(false, 'No invite URL to copy.'); return; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(copyUrl)
+            .then(function () { cloudMsg(true, 'Invite link copied.'); })
+            .catch(function () { cloudMsg(false, 'Could not copy — select the URL manually.'); });
+        } else {
+          cloudMsg(false, 'Clipboard unavailable — select the URL manually.');
+        }
+        return;
+      }
+      if (name === 'rdPartnerRefresh') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        if (typeof window.CovenantCloudSync.listMembers !== 'function') {
+          cloudMsg(false, 'Partner invite APIs not loaded.');
+          return;
+        }
+        Promise.all([
+          window.CovenantCloudSync.listMembers(),
+          window.CovenantCloudSync.listInvites(false)
+        ])
+          .then(function (pair) {
+            var members = (pair[0] && pair[0].members) || [];
+            var invites = (pair[1] && pair[1].invites) || [];
+            var smtp = pair[1] && pair[1].smtp;
+            var listEl = document.getElementById('rd-partner-list');
+            if (!listEl) return;
+            var htmlList = 'SMTP: ' + (smtp && smtp.configured ? 'configured' : 'not configured (copy link)')
+              + '<br><b>Members</b><ul style="margin:0.35rem 0 0.75rem;padding-left:1.1rem">'
+              + (members.length
+                ? members.map(function (m) {
+                  return '<li>' + esc(m.email || m.invitedEmail || m.displayName || m.userId || 'member')
+                    + ' · <b>' + esc(m.role) + '</b>'
+                    + (m.role !== 'owner'
+                      ? (' <button type="button" class="rd-set__btn rd-set__btn--danger" data-act="rdPartnerRevoke" data-invite-id="'
+                        + esc(m.id) + '">Remove</button>')
+                      : '')
+                    + '</li>';
+                }).join('')
+                : '<li class="rd-set__muted">No members</li>')
+              + '</ul><b>Pending invites</b><ul style="margin:0.35rem 0;padding-left:1.1rem">'
+              + (invites.length
+                ? invites.map(function (inv) {
+                  return '<li>' + esc(inv.invitedEmail || '') + ' · ' + esc(inv.role)
+                    + ' <button type="button" class="rd-set__btn rd-set__btn--danger" data-act="rdPartnerRevoke" data-invite-id="'
+                    + esc(inv.id) + '">Revoke</button></li>';
+                }).join('')
+                : '<li class="rd-set__muted">None pending</li>')
+              + '</ul>';
+            listEl.innerHTML = htmlList;
+            cloudMsg(true, 'Members and invites refreshed.');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Refresh failed'); });
+        return;
+      }
+      if (name === 'rdPartnerRevoke') {
+        var revId = el && el.getAttribute('data-invite-id');
+        if (!revId) { cloudMsg(false, 'Missing id.'); return; }
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.revokeInvite !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        window.CovenantCloudSync.revokeInvite(revId)
+          .then(function () {
+            cloudMsg(true, 'Revoked.');
+            run('rdPartnerRefresh');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Revoke failed'); });
         return;
       }
       if (name === 'rdRsvpRefresh') {

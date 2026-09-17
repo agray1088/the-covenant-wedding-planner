@@ -1315,6 +1315,60 @@
     });
   }
 
+  /** Couple: list accepted members for the linked wedding. */
+  function listMembers() {
+    return requireWeddingPath('/members').then(function (path) {
+      return api(path, { method: 'GET' });
+    });
+  }
+
+  /** Couple: list pending (or all) partner invites. */
+  function listInvites(all) {
+    return requireWeddingPath('/invites' + (all ? '?all=1' : '')).then(function (path) {
+      return api(path, { method: 'GET' });
+    });
+  }
+
+  /** Couple: invite partner/planner by email (optional username). Returns inviteUrl when SMTP unset. */
+  function createInvite(opts) {
+    opts = opts || {};
+    return requireWeddingPath('/invites').then(function (path) {
+      return api(path, {
+        method: 'POST',
+        body: {
+          email: opts.email,
+          username: opts.username || undefined,
+          role: opts.role || 'partner',
+          sendEmail: opts.sendEmail !== false
+        }
+      });
+    });
+  }
+
+  /** Couple: revoke a pending invite or (owner) remove partner/planner. */
+  function revokeInvite(inviteId) {
+    return requireWeddingPath('/invites/' + encodeURIComponent(inviteId) + '/revoke').then(function (path) {
+      return api(path, { method: 'POST', body: {} });
+    });
+  }
+
+  /** Signed-in user: pending invites addressed to them. */
+  function pendingInvites() {
+    return api('/invites/pending', { method: 'GET' });
+  }
+
+  /** Signed-in user: accept invite by token or inviteId. */
+  function acceptInvite(opts) {
+    opts = opts || {};
+    return api('/invites/accept', {
+      method: 'POST',
+      body: {
+        token: opts.token || undefined,
+        inviteId: opts.inviteId || undefined
+      }
+    });
+  }
+
   function googleSignInUrl() {
     var base = cfg().apiBase.replace(/\/$/, '');
     var returnTo = '';
@@ -2617,6 +2671,12 @@
     portalGet: portalGet,
     portalUpdate: portalUpdate,
     portalRotateCode: portalRotateCode,
+    listMembers: listMembers,
+    listInvites: listInvites,
+    createInvite: createInvite,
+    revokeInvite: revokeInvite,
+    pendingInvites: pendingInvites,
+    acceptInvite: acceptInvite,
     api: api
   };
 
