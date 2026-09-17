@@ -20,7 +20,7 @@ Browser (planner)  ──opt-in──►  HTTPS sync API  ──►  managed Pos
 ```
 
 - **Privacy:** local-first; cloud is opt-in. When cloud backup is enabled we store wedding sync data the user uploads — do **not** claim “we store nothing.” We do not sell data.
-- **Auth (next):** password accounts + Google Sign-In + email recovery. Redirect URIs and reset links use `PUBLIC_URL`.
+- **Auth:** password accounts + Google Sign-In + email recovery — see [`AUTH.md`](./AUTH.md). Redirect URIs and reset links use `PUBLIC_URL`.
 - **RSVP / guest portal / landing (later):** invitation and portal URLs are built from `PUBLIC_URL` (e.g. `${PUBLIC_URL}/r/...`). Wedding landing pages are **gated** (unlisted link and/or guest email and/or couple code) — not a public directory.
 
 Full product order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
@@ -51,8 +51,9 @@ Railway fits this stack well: managed Postgres, automatic HTTPS, Dockerfile depl
    | `SESSION_SECRET` | yes | ≥32 random chars |
    | `TRUST_PROXY` | yes | `1` |
    | `BOOTSTRAP_EMAIL` / `BOOTSTRAP_PASSWORD` | optional | Only for a private smoke user; remove after real accounts |
-   | `GOOGLE_*` / `SMTP_*` | later | Placeholders until accounts + email ship |
-   | `FEATURE_*` | optional | Keep `0` until features ship |
+   | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | for Google Sign-In | Redirect: `${PUBLIC_URL}/auth/google/callback` — see [`AUTH.md`](./AUTH.md) |
+   | `SMTP_*` | for password/username email | Clear 503 until set — see [`AUTH.md`](./AUTH.md) |
+   | `FEATURE_*` | optional | Keep RSVP/landing/photos `0` until those steps ship |
 
 6. **Health check:** open `https://<PUBLIC_URL>/health` — expect `"ok": true`, `"db": "up"`. Platforms probe this path behind the HTTPS proxy.
 7. **DNS (optional):** point `api.yourdomain.com` at Railway; set `PUBLIC_URL` to that HTTPS origin.
@@ -108,15 +109,15 @@ Put a reverse proxy (Caddy/nginx/Traefik) or Cloudflare Tunnel in front for real
 
 ## How `PUBLIC_URL` is used (now + later)
 
-| Now | Later (same env) |
+| Now | Also (roadmap step 2+) |
 |-----|------------------|
 | Health payload `publicUrl` | Google OAuth redirect: `${PUBLIC_URL}/auth/google/callback` |
 | Operator docs / client config | Password-reset + “forgot username” email links |
-| | RSVP + guest-portal links |
-| | Gated wedding landing base URL |
-| | Partner invite + vendor token accept URLs |
+| Auth session API | RSVP + guest-portal links (later) |
+| | Gated wedding landing base URL (later) |
+| | Partner invite + vendor token accept URLs (later) |
 
-Configure Google Cloud Console redirect URIs and email templates **only after** `PUBLIC_URL` is stable HTTPS.
+Configure Google Cloud Console redirect URIs and SMTP **when enabling accounts** — checklist in [`AUTH.md`](./AUTH.md).
 
 ## Client enable steps (production)
 
@@ -141,8 +142,8 @@ Configure Google Cloud Console redirect URIs and email templates **only after** 
 - [ ] `/health` returns 200 over HTTPS  
 - [ ] Planner `covenant_cloud_api` points at `PUBLIC_URL`  
 - [ ] No public `BOOTSTRAP_PASSWORD` for real couples  
-- [ ] (Later) `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` + redirect URI  
-- [ ] (Later) `SMTP_*` or email provider API key  
+- [ ] (Accounts) `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` + redirect URI — [`AUTH.md`](./AUTH.md)  
+- [ ] (Accounts) `SMTP_*` for reset / username email — [`AUTH.md`](./AUTH.md)  
 
 ## Local demo still works
 
@@ -152,8 +153,8 @@ docker compose up -d
 curl http://127.0.0.1:18787/health
 ```
 
-Demo login: `demo@covenant.local` / `covenant-demo` against `http://localhost:18787`.
+Demo login: `demo@covenant.local` (or username `demo`) / `covenant-demo` against `http://localhost:18787`.
 
 ## What’s next
 
-**Roadmap step 2 — Real accounts:** password accounts + Google Sign-In + forgot password/username via email. See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+**Roadmap step 3 — Offline + backup clarity**, then photos. Accounts foundation: [`AUTH.md`](./AUTH.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

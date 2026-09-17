@@ -255,10 +255,27 @@
     }
 
     if (st.state === 'signed_out' || (st.enabled && !user && st.state !== 'syncing' && st.state !== 'synced' && st.state !== 'error' && st.state !== 'signed_in')) {
-      html += cardRow('Email', '', '<input type="email" class="rd-set__input" id="rd-cloud-email" autocomplete="username" placeholder="you@example.com">');
-      html += cardRow('Password', '8+ characters', '<input type="password" class="rd-set__input" id="rd-cloud-password" autocomplete="current-password" placeholder="••••••••">');
+      html += cardRow('Email or username', 'Demo: demo@covenant.local or demo',
+        '<input type="text" class="rd-set__input" id="rd-cloud-email" autocomplete="username" placeholder="you@example.com or username">');
+      html += cardRow('Password', '8+ characters',
+        '<input type="password" class="rd-set__input" id="rd-cloud-password" autocomplete="current-password" placeholder="••••••••">');
       html += cardRow('Sign in', 'Creates a session on the sync API', btn('Sign in', 'rdCloudSignIn'));
-      html += cardRow('Create account', 'Email/password (magic-link later)', btn('Register', 'rdCloudRegister'));
+      html += cardRow('Username (optional)', 'For new accounts — 3–32 chars',
+        '<input type="text" class="rd-set__input" id="rd-cloud-username" autocomplete="nickname" placeholder="optional username">');
+      html += cardRow('Create account', 'Email + password; username optional', btn('Register', 'rdCloudRegister'));
+      html += cardRow('Google Sign-In', 'Requires GOOGLE_CLIENT_ID / SECRET on the API', btn('Continue with Google', 'rdCloudGoogle'));
+      html += cardRow('Forgot password', 'Emails a reset link when SMTP is configured',
+        '<input type="email" class="rd-set__input" id="rd-cloud-forgot-email" placeholder="account email">'
+        + btn('Send reset email', 'rdCloudForgotPassword'));
+      html += cardRow('Forgot username', 'Emails your username when SMTP is configured',
+        btn('Send username reminder', 'rdCloudForgotUsername'));
+      html += cardRow('Reset with token', 'Paste token from email if the link opened here',
+        '<input type="text" class="rd-set__input" id="rd-cloud-reset-token" placeholder="reset token" value="'
+        + esc((function () { try { return sessionStorage.getItem('covenant_cloud_reset_token') || ''; } catch (e) { return ''; } })())
+        + '">'
+        + '<input type="password" class="rd-set__input" id="rd-cloud-reset-pass" placeholder="new password (8+)">'
+        + btn('Set new password', 'rdCloudResetPassword'));
+      html += '<div class="rd-set__note">Cloud auth is optional. The planner keeps working offline with local save + file backup when you never sign in. Setup: <code>docs/AUTH.md</code>.</div>';
       html += cardRow('Disable cloud on this device', 'Keeps local data; stops network sync', btn('Turn off', 'rdCloudDisable'));
       return html;
     }
@@ -510,16 +527,65 @@
       if (name === 'rdCloudSignIn' || name === 'rdCloudRegister') {
         var emailEl = document.getElementById('rd-cloud-email');
         var passEl = document.getElementById('rd-cloud-password');
+        var userEl = document.getElementById('rd-cloud-username');
         var email = emailEl ? String(emailEl.value || '').trim() : '';
         var pass = passEl ? String(passEl.value || '') : '';
-        if (!email || !pass) { cloudMsg(false, 'Email and password required.'); return; }
+        var uname = userEl ? String(userEl.value || '').trim() : '';
+        if (!email || !pass) { cloudMsg(false, 'Email/username and password required.'); return; }
         var CS = window.CovenantCloudSync;
         if (!CS) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
         var op = name === 'rdCloudRegister'
-          ? CS.register(email, pass)
+          ? CS.register(email, pass, '', uname)
           : CS.signIn(email, pass);
         op.then(function () { cloudMsg(true, name === 'rdCloudRegister' ? 'Account created.' : 'Signed in.'); })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Auth failed'); });
+        return;
+      }
+      if (name === 'rdCloudGoogle') {
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.startGoogleSignIn !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        cloudMsg(true, 'Redirecting to Google…');
+        window.CovenantCloudSync.startGoogleSignIn();
+        return;
+      }
+      if (name === 'rdCloudForgotPassword') {
+        var fe = document.getElementById('rd-cloud-forgot-email') || document.getElementById('rd-cloud-email');
+        var femail = fe ? String(fe.value || '').trim() : '';
+        if (!femail) { cloudMsg(false, 'Enter the account email first.'); return; }
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        window.CovenantCloudSync.forgotPassword(femail)
+          .then(function (body) { cloudMsg(true, (body && body.message) || 'Reset email sent (if account exists).'); })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Reset request failed'); });
+        return;
+      }
+      if (name === 'rdCloudForgotUsername') {
+        var ue = document.getElementById('rd-cloud-forgot-email') || document.getElementById('rd-cloud-email');
+        var uemail = ue ? String(ue.value || '').trim() : '';
+        if (!uemail) { cloudMsg(false, 'Enter the account email first.'); return; }
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        window.CovenantCloudSync.forgotUsername(uemail)
+          .then(function (body) { cloudMsg(true, (body && body.message) || 'Reminder sent (if account exists).'); })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Username reminder failed'); });
+        return;
+      }
+      if (name === 'rdCloudResetPassword') {
+        var tokEl = document.getElementById('rd-cloud-reset-token');
+        var npEl = document.getElementById('rd-cloud-reset-pass');
+        var tok = tokEl ? String(tokEl.value || '').trim() : '';
+        var np = npEl ? String(npEl.value || '') : '';
+        if (!tok) {
+          try { tok = sessionStorage.getItem('covenant_cloud_reset_token') || ''; } catch (e) { tok = ''; }
+        }
+        if (!tok || !np) { cloudMsg(false, 'Reset token and new password required.'); return; }
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        window.CovenantCloudSync.resetPassword(tok, np)
+          .then(function () {
+            try { sessionStorage.removeItem('covenant_cloud_reset_token'); } catch (e) { /* ignore */ }
+            cloudMsg(true, 'Password updated — signed in.');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Reset failed'); });
         return;
       }
       if (name === 'rdCloudSignOut') {

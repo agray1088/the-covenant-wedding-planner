@@ -176,18 +176,38 @@ DATABASE_URL=postgres://postgres:YOUR_PASSWORD@127.0.0.1:5432/postgres
 Bootstrap demo user (from `.env.example`):
 
 - email: `demo@covenant.local`
+- username: `demo`
 - password: `covenant-demo`
+
+### Auth endpoints
+
+| Method | Path | Body / notes |
+|--------|------|----------------|
+| GET | `/auth/config` | Public capability probe (google/smtp flags) |
+| POST | `/auth/register` | `{ email, password, username?, displayName? }` |
+| POST | `/auth/login` | `{ email\|username\|login, password }` → `{ token, user }` |
+| POST | `/auth/logout` | Bearer token |
+| GET | `/auth/me` | Current user |
+| POST | `/auth/forgot-password` | `{ email }` — 503 if SMTP unset |
+| POST | `/auth/reset-password` | `{ token, password }` |
+| GET | `/auth/reset-password?token=` | Minimal HTML form |
+| POST | `/auth/forgot-username` | `{ email }` — 503 if SMTP unset |
+| GET | `/auth/google` | Start Google OAuth |
+| GET | `/auth/google/callback` | OAuth callback |
+| POST | `/auth/magic-link` | **501 stub** — reserved |
+
+Full setup (Google Console + SMTP): [`docs/AUTH.md`](../docs/AUTH.md).
+
+```bash
+node scripts/_verify-auth.mjs
+```
 
 ## API surface (v1)
 
 | Method | Path | Notes |
 |--------|------|-------|
 | GET | `/health` | DB ping |
-| POST | `/auth/register` | `{ email, password, displayName? }` |
-| POST | `/auth/login` | `{ email, password }` → `{ token, user }` |
-| POST | `/auth/logout` | Bearer token |
-| GET | `/auth/me` | Current user |
-| POST | `/auth/magic-link` | **501 stub** — reserved |
+| * | `/auth/*` | See **Auth endpoints** above — [`docs/AUTH.md`](../docs/AUTH.md) |
 | GET/POST | `/weddings` | List / create (upload this wedding) |
 | GET | `/weddings/:id` | Membership-gated |
 | GET | `/weddings/:id/guests` | List guests |
@@ -354,14 +374,11 @@ curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$
 curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$wid/packet-overrides"
 ```
 
-## Cloud host next steps (not in this pass)
+## Cloud host next steps
 
-1. Provision managed Postgres (Neon, RDS, Cloud SQL, …) and set `DATABASE_URL`.
-2. Deploy this `server/` as a small Node service (Fly, Render, Railway, Cloud Run).
-3. Put TLS in front; set `CORS_ORIGIN` to the real static origin (or Pages/CDN URL).
-4. Turn off `BOOTSTRAP_*` in production; keep registration or add invite-only.
-5. Wire magic-link SMTP when ready (`MAGIC_LINK_*` placeholders in `.env.example`).
-6. **Expand sync track is complete** for beta verticals (including print packet overrides). Remaining: hosted deploy / real accounts / vendor tokens (tracks 2–4) per `docs/OFFLINE_CLOUD_SYNC.md`.
+1. Deploy with [`docs/HOSTED_DEPLOY.md`](../docs/HOSTED_DEPLOY.md).
+2. Wire Google + SMTP with [`docs/AUTH.md`](../docs/AUTH.md).
+3. Next product steps: offline/backup clarity, then photos — [`docs/PRODUCT_ROADMAP.md`](../docs/PRODUCT_ROADMAP.md).
 
 ## Conflict policy
 

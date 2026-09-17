@@ -59,7 +59,7 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
 
 ### Server responsibilities (v1)
 
-- Authenticate couple/planner users (email + password; magic-link reserved).
+- Authenticate couple/planner users (email/username + password; Google Sign-In; email recovery when SMTP is set — see [`AUTH.md`](./AUTH.md)).
 - Own wedding rows and memberships (owner / partner / planner roles).
 - Accept guest + vendor + payment + budget + seating + contract + timeline + packet + rental + catering rental + party + task + vtimeline CRUD for a wedding the caller belongs to.
 - Return `updated_at` so the client can ACK and apply conflict policy.
@@ -324,8 +324,9 @@ If you see `Cannot find package 'playwright'`, you skipped root `npm install` �
 - Separate cloud `budget_items` table (items remain nested JSON on categories)
 - Guest seat numbers beyond whatever travels on guest rows (seat / seatNo fields are still local-only unless guests vertical is extended)
 - Vendor `attrs` / category-schema extras in Postgres
-- Real magic-link email delivery
-- Hosted vendor portal / `covenant.link` packets (**track 4**)
-- Production / hosted deploy (**track 2**)
-- Real accounts beyond local demo bootstrap (**track 3**)
+- Real magic-link email delivery (password reset / username email shipped when SMTP is set — [`AUTH.md`](./AUTH.md))
+- Hosted vendor portal / `covenant.link` packets (**later**)
+- Production / hosted deploy foundation (**shipped** — [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md))
+- Real accounts foundation (**shipped** — [`AUTH.md`](./AUTH.md); operator still supplies Google/SMTP secrets)
 - Claiming multi-user realtime collaboration
+- Offline + backup clarity / photos object storage (**next** — [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md))

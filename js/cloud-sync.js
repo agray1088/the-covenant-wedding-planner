@@ -1176,8 +1176,11 @@
     return { pulled: 0, kept: 1 };
   }
 
-  function signIn(email, password) {
-    return api('/auth/login', { method: 'POST', body: { email: email, password: password } })
+  function signIn(emailOrUsername, password) {
+    return api('/auth/login', {
+      method: 'POST',
+      body: { email: emailOrUsername, login: emailOrUsername, password: password }
+    })
       .then(function (body) {
         lsSet(LS_TOKEN, body.token);
         lsSet(LS_USER, JSON.stringify(body.user || {}));
@@ -1186,16 +1189,105 @@
       });
   }
 
-  function register(email, password, displayName) {
+  function register(email, password, displayName, username) {
     return api('/auth/register', {
       method: 'POST',
-      body: { email: email, password: password, displayName: displayName || '' }
+      body: {
+        email: email,
+        password: password,
+        displayName: displayName || '',
+        username: username || ''
+      }
     }).then(function (body) {
       lsSet(LS_TOKEN, body.token);
       lsSet(LS_USER, JSON.stringify(body.user || {}));
       setStatus('signed_in');
       return body;
     });
+  }
+
+  function fetchAuthConfig() {
+    return api('/auth/config', { method: 'GET' }).then(function (body) {
+      return body && body.auth ? body.auth : body;
+    }).catch(function () {
+      return {
+        password: true,
+        username: true,
+        google: { configured: false },
+        email: { configured: false }
+      };
+    });
+  }
+
+  function forgotPassword(email) {
+    return api('/auth/forgot-password', {
+      method: 'POST',
+      body: { email: email }
+    });
+  }
+
+  function resetPassword(token, password) {
+    return api('/auth/reset-password', {
+      method: 'POST',
+      body: { token: token, password: password }
+    }).then(function (body) {
+      if (body && body.token) {
+        lsSet(LS_TOKEN, body.token);
+        lsSet(LS_USER, JSON.stringify(body.user || {}));
+        setStatus('signed_in');
+      }
+      return body;
+    });
+  }
+
+  function forgotUsername(email) {
+    return api('/auth/forgot-username', {
+      method: 'POST',
+      body: { email: email }
+    });
+  }
+
+  function googleSignInUrl() {
+    var base = cfg().apiBase.replace(/\/$/, '');
+    var returnTo = '';
+    try { returnTo = window.location.origin + window.location.pathname; } catch (e) { returnTo = ''; }
+    var q = returnTo ? ('?returnTo=' + encodeURIComponent(returnTo)) : '';
+    return base + '/auth/google' + q;
+  }
+
+  function startGoogleSignIn() {
+    var url = googleSignInUrl();
+    window.location.href = url;
+  }
+
+  /** Capture ?cloudToken= from Google OAuth redirect (and optional reset token). */
+  function consumeOAuthRedirect() {
+    try {
+      var u = new URL(window.location.href);
+      var token = u.searchParams.get('cloudToken');
+      var reset = u.searchParams.get('cloudResetToken');
+      var changed = false;
+      if (token) {
+        lsSet(LS_TOKEN, token);
+        setStatus('signed_in');
+        u.searchParams.delete('cloudToken');
+        u.searchParams.delete('cloudOAuth');
+        changed = true;
+        // Refresh /me for display name when online.
+        api('/auth/me', { method: 'GET' }).then(function (body) {
+          if (body && body.user) lsSet(LS_USER, JSON.stringify(body.user));
+        }).catch(function () { /* ignore */ });
+      }
+      if (reset) {
+        try { sessionStorage.setItem('covenant_cloud_reset_token', reset); } catch (e) { /* ignore */ }
+        u.searchParams.delete('cloudResetToken');
+        changed = true;
+      }
+      if (changed) {
+        var next = u.pathname + (u.search || '') + (u.hash || '');
+        window.history.replaceState({}, '', next || u.pathname);
+      }
+    } catch (e) { /* ignore */ }
   }
 
   function signOut() {
@@ -2438,6 +2530,13 @@
     signIn: signIn,
     register: register,
     signOut: signOut,
+    fetchAuthConfig: fetchAuthConfig,
+    forgotPassword: forgotPassword,
+    resetPassword: resetPassword,
+    forgotUsername: forgotUsername,
+    googleSignInUrl: googleSignInUrl,
+    startGoogleSignIn: startGoogleSignIn,
+    consumeOAuthRedirect: consumeOAuthRedirect,
     listWeddings: listWeddings,
     linkExistingWeddingIfAny: linkExistingWeddingIfAny,
     uploadWedding: uploadWedding,
@@ -2453,6 +2552,7 @@
     window.cloudSyncSignOut = function () { return CloudSync.signOut(); };
     window.cloudSyncNow = function () { return CloudSync.syncNow(); };
     window.cloudSyncUploadWedding = function () { return CloudSync.uploadWedding(); };
+    try { consumeOAuthRedirect(); } catch (e) { /* ignore */ }
   }
 
   if (document.readyState === 'loading') {

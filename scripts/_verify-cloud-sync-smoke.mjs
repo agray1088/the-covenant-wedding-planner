@@ -36,7 +36,13 @@ ok('schema has vendor_arrivals', /CREATE TABLE IF NOT EXISTS vendor_arrivals/.te
 ok('schema has catering_rentals', /CREATE TABLE IF NOT EXISTS catering_rentals/.test(read('server/schema.sql')));
 ok('schema has packet_overrides_json', /packet_overrides_json/.test(read('server/schema.sql')));
 ok('schema has sessions', /CREATE TABLE IF NOT EXISTS sessions/.test(read('server/schema.sql')));
+ok('schema has auth_tokens', /CREATE TABLE IF NOT EXISTS auth_tokens/.test(read('server/schema.sql')));
+ok('schema has username', /username/.test(read('server/schema.sql')));
+ok('docs AUTH.md', fs.existsSync(path.join(root, 'docs/AUTH.md')));
 ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
+ok('client auth helpers', /forgotPassword/.test(read('js/cloud-sync.js')) && /startGoogleSignIn/.test(read('js/cloud-sync.js')));
+ok('settings Google + forgot', /rdCloudGoogle/.test(read('js/settings-window-redesign.js'))
+  && /rdCloudForgotPassword/.test(read('js/settings-window-redesign.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes payments', /\/payments\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes budget', /\/budget\/bulk/.test(read('js/cloud-sync.js')));

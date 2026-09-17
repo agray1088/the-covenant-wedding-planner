@@ -67,8 +67,21 @@ services:
       DATABASE_URL: postgres://covenant:covenant@postgres:5432/covenant
       PORT: "8787"
       CORS_ORIGIN: http://localhost:8000
+      PUBLIC_URL: http://127.0.0.1:18787
+      CLIENT_APP_URL: http://localhost:8000
       BOOTSTRAP_EMAIL: demo@covenant.local
       BOOTSTRAP_PASSWORD: covenant-demo
+      BOOTSTRAP_USERNAME: demo
+      # Optional — set in server/.env or compose override for local Google / SMTP tests:
+      # GOOGLE_CLIENT_ID:
+      # GOOGLE_CLIENT_SECRET:
+      # FEATURE_GOOGLE_AUTH: "1"
+      # SMTP_HOST:
+      # SMTP_PORT: "587"
+      # SMTP_USER:
+      # SMTP_PASS:
+      # SMTP_FROM: noreply@covenant.local
+      # FEATURE_EMAIL: "1"
     # Host :18787 avoids Windows Hyper-V/WinNAT excluded ranges that often block :8787.
     ports:
       - "18787:8787"

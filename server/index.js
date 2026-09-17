@@ -4,6 +4,8 @@ import express from 'express';
 import cors from 'cors';
 import { initSchema, pool, query, describeDatabaseUrl, databaseUrl } from './lib/db.js';
 import { hashPassword } from './lib/auth.js';
+import { googleConfigured } from './lib/google-oauth.js';
+import { smtpConfigured } from './lib/mail.js';
 import authRoutes from './routes/auth.js';
 import weddingRoutes from './routes/weddings.js';
 import guestRoutes from './routes/guests.js';
@@ -36,8 +38,8 @@ function flag(name) {
 }
 
 const FEATURES = {
-  googleAuth: flag('FEATURE_GOOGLE_AUTH'),
-  email: flag('FEATURE_EMAIL'),
+  googleAuth: googleConfigured() || flag('FEATURE_GOOGLE_AUTH'),
+  email: smtpConfigured() || flag('FEATURE_EMAIL'),
   rsvp: flag('FEATURE_RSVP'),
   landing: flag('FEATURE_LANDING'),
   photos: flag('FEATURE_PHOTOS'),
@@ -92,11 +94,15 @@ app.get('/health', async (req, res) => {
     res.json({
       ok: true,
       service: 'covenant-sync',
-      version: '0.2.0',
+      version: '0.3.0',
       mode: 'offline-first-optional-cloud',
       db: 'up',
       publicUrl: PUBLIC_URL || null,
-      features: FEATURES,
+      features: {
+        ...FEATURES,
+        googleConfigured: googleConfigured(),
+        smtpConfigured: smtpConfigured()
+      },
       time: new Date().toISOString(),
       // Echo how the proxy sees us (useful when debugging HTTPS / redirects).
       proto: req.protocol,
@@ -151,13 +157,22 @@ async function bootstrapUser() {
   const email = (process.env.BOOTSTRAP_EMAIL || '').trim().toLowerCase();
   const password = process.env.BOOTSTRAP_PASSWORD || '';
   if (!email || !password) return;
-  const { rows } = await query(`SELECT id FROM users WHERE email = $1`, [email]);
-  if (rows[0]) return;
+  const username = (process.env.BOOTSTRAP_USERNAME || 'demo').trim().toLowerCase() || 'demo';
+  const { rows } = await query(`SELECT id, username FROM users WHERE email = $1`, [email]);
+  if (rows[0]) {
+    if (!rows[0].username && username) {
+      await query(
+        `UPDATE users SET username = $1, updated_at = now() WHERE id = $2 AND username IS NULL`,
+        [username, rows[0].id]
+      );
+    }
+    return;
+  }
   await query(
-    `INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3)`,
-    [email, hashPassword(password), 'Demo Couple']
+    `INSERT INTO users (email, username, password_hash, display_name) VALUES ($1, $2, $3, $4)`,
+    [email, username, hashPassword(password), 'Demo Couple']
   );
-  console.log('[covenant-sync] bootstrap user ready:', email);
+  console.log('[covenant-sync] bootstrap user ready:', email, `(username: ${username})`);
 }
 
 async function main() {

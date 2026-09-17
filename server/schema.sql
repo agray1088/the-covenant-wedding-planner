@@ -13,11 +13,23 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
+  username      TEXT,
+  password_hash TEXT,                 -- nullable for Google-only accounts
+  google_sub    TEXT,                 -- Google OpenID subject
   display_name  TEXT,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Idempotent upgrades for existing local / hosted volumes.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub TEXT;
+ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_idx
+  ON users (lower(username)) WHERE username IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS users_google_sub_idx
+  ON users (google_sub) WHERE google_sub IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS sessions (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -29,6 +41,22 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE INDEX IF NOT EXISTS sessions_token_idx ON sessions(token);
 CREATE INDEX IF NOT EXISTS sessions_user_idx ON sessions(user_id);
+
+-- Password reset, username recovery, and OAuth CSRF state.
+CREATE TABLE IF NOT EXISTS auth_tokens (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID REFERENCES users(id) ON DELETE CASCADE,
+  email         TEXT,
+  purpose       TEXT NOT NULL CHECK (purpose IN ('password_reset', 'username_recovery', 'oauth_state')),
+  token_hash    TEXT NOT NULL UNIQUE,
+  meta_json     JSONB NOT NULL DEFAULT '{}'::jsonb,
+  expires_at    TIMESTAMPTZ NOT NULL,
+  used_at       TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS auth_tokens_purpose_idx ON auth_tokens(purpose);
+CREATE INDEX IF NOT EXISTS auth_tokens_user_idx ON auth_tokens(user_id);
 
 CREATE TABLE IF NOT EXISTS weddings (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
