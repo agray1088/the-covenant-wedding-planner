@@ -157,4 +157,4 @@ Demo login: `demo@covenant.local` (or username `demo`) / `covenant-demo` against
 
 ## What’s next
 
-**Roadmap step 3 — Offline + backup clarity**, then photos. Accounts foundation: [`AUTH.md`](./AUTH.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+**Roadmap steps 3–5 foundation shipped** — offline file backup (`.sqlite` + full `.zip` with photos), privacy copy, local photo library + online metadata/object-storage scaffolding: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Next: RSVP + communications → gated guest portal. Accounts: [`AUTH.md`](./AUTH.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

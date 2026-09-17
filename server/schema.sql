@@ -5,7 +5,8 @@
 -- planning_tasks (Planning Timeline to-dos), vendor_arrivals (vtimeline day-of),
 -- catering_rentals (Catering page tableware / rentals — distinct from finances rentals),
 -- packet_overrides_json on weddings (print field overrides: vendorPackets /
--- partyPackets / coordPacket — LWW blob, same pattern as floor_fixtures_json).
+-- partyPackets / coordPacket — LWW blob, same pattern as floor_fixtures_json),
+-- photos (metadata only; blobs in object storage / local disk).
 -- Trimmed from the planner's schema.sql guest/vendor/payment/wedding/table/contract/timeline/packet/rental/party/task/vtimeline/cateringRental shapes for Postgres sync.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -456,3 +457,29 @@ CREATE TABLE IF NOT EXISTS catering_rentals (
 
 CREATE INDEX IF NOT EXISTS catering_rentals_wedding_updated_idx
   ON catering_rentals(wedding_id, updated_at);
+
+-- Photo library metadata only. Binary blobs live in object storage
+-- (local disk / S3 / R2 via PHOTO_STORAGE) — never as huge base64 in Postgres.
+CREATE TABLE IF NOT EXISTS photos (
+  id               TEXT NOT NULL,
+  wedding_id       UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  name             TEXT NOT NULL DEFAULT '',
+  mime             TEXT,
+  size_bytes       BIGINT,
+  width            INTEGER,
+  height           INTEGER,
+  caption          TEXT,
+  album            TEXT,
+  kind             TEXT NOT NULL DEFAULT 'library',
+  storage_key      TEXT,
+  storage_backend  TEXT NOT NULL DEFAULT 'local',
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (wedding_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS photos_wedding_updated_idx
+  ON photos(wedding_id, updated_at);
+CREATE INDEX IF NOT EXISTS photos_storage_key_idx
+  ON photos(storage_key) WHERE storage_key IS NOT NULL;
+

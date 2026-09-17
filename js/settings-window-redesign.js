@@ -52,8 +52,9 @@
     var stale = !ob.lastBackupTime || edits >= 10;
     return '<div class="rd-set__banner' + (stale ? ' rd-set__banner--amber' : '') + '" id="rd-set-banner">'
       + '<span class="rd-set__banner-icon">' + CHECK_SVG + '</span>'
-      + '<span class="rd-set__banner-text"><b>Saved on this device.</b> This planner is not a cloud account — download a backup '
-      + 'before clearing browser data, switching browsers or moving devices.</span>'
+      + '<span class="rd-set__banner-text"><b>Saved on this device by default.</b> Download a file backup before clearing '
+      + 'browser data, switching browsers, or moving devices. Cloud sync is optional and opt-in — when enabled, '
+      + 'wedding data you sync is stored on the server. We do not sell your data.</span>'
       + '<span class="rd-set__banner-meta">Last backup ' + esc(last || 'never') + ' · '
       + edits + ' edit' + (edits === 1 ? '' : 's') + ' since</span>'
       + '</div>';
@@ -149,10 +150,11 @@
   function cardsHtml() {
     var ob = onboard();
     return '<div class="rd-set__cards">'
-      + card('Save & backup', 'Everything saves automatically. A backup is the only copy that survives a cleared browser.',
+      + card('Save & backup', 'Everything saves automatically on this device. A downloaded backup is the only copy that survives a cleared browser.',
         cardRow('Save now', 'Last saved ' + (relTime(ob.lastSaveTime) || 'a moment ago'), btn('Save now', 'saveNow'))
-        + cardRow('Protect plan (backup)', 'Downloads a .sqlite file', btn('Download backup', 'downloadSqliteBackup'))
-        + cardRow('Restore from backup', 'Accepts .sqlite, .db or .json', btn('Restore', 'rdSetRestore')))
+        + cardRow('Protect plan (backup)', 'Downloads a .sqlite planner file', btn('Download backup', 'downloadSqliteBackup'))
+        + cardRow('Full backup with photos', 'Zip: planner + local photo library', btn('Download full backup', 'downloadFullBackup'))
+        + cardRow('Restore from backup', 'Accepts .zip, .sqlite, .db or .json', btn('Restore', 'rdSetRestore')))
       + card('History', 'Undo and redo cover recent changes on this device.',
         cardRow('Undo', '', undoControl('undo'))
         + cardRow('Redo', '', undoControl('redo'))
@@ -192,8 +194,10 @@
     ]},
     { group: 'This file', items: [
       { id: 'backup', label: 'Backup & restore' },
+      { id: 'photos', label: 'Photos' },
       { id: 'import', label: 'Import' },
       { id: 'cloud', label: 'Cloud sync (beta)' },
+      { id: 'privacy', label: 'Privacy' },
       { id: 'trash', label: 'Trash' },
       { id: 'about', label: 'About' }
     ]},
@@ -251,6 +255,7 @@
         + '">');
       html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides sync in beta',
         btn('Save & enable', 'rdCloudEnable'));
+      html += '<div class="rd-set__note">Privacy: local by default. Enabling cloud means wedding rows you sync are stored on the API database. Photo binaries use object storage when hosted photo backup is configured — not giant base64 in Postgres. We do not sell data.</div>';
       return html;
     }
 
@@ -300,6 +305,65 @@
       + '</nav>';
   }
 
+  function photosListHtml(lib) {
+    lib = lib || [];
+    if (!lib.length) {
+      return 'No library photos yet. Couple hero and Vision Board pins still save with the planner; use <b>Add photos</b> for the IndexedDB library included in full zip backups.';
+    }
+    return '<ul class="rd-set__photo-list" style="margin:0;padding-left:1.1rem">'
+      + lib.slice(0, 40).map(function (p) {
+        var label = esc((p && (p.name || p.caption || p.id)) || 'photo');
+        var meta = esc([p && p.mime, p && p.size ? (Math.round(p.size / 1024) + ' KB') : '', p && p.kind].filter(Boolean).join(' · '));
+        return '<li style="margin:0.35rem 0"><span>' + label + '</span>'
+          + (meta ? ' <span class="rd-set__muted">(' + meta + ')</span>' : '')
+          + ' <button type="button" class="rd-set__btn" data-act="rdPhotosRemove" data-photo-id="'
+          + esc(p && p.id ? p.id : '') + '" style="margin-left:0.35rem">Remove</button></li>';
+      }).join('')
+      + (lib.length > 40 ? '<li class="rd-set__muted">…and ' + (lib.length - 40) + ' more</li>' : '')
+      + '</ul>';
+  }
+
+  function refreshPhotosPane(ov) {
+    if ((window._rdSetPane || 'overview') !== 'photos') return;
+    var main = ov && ov.querySelector('#rd-set-main');
+    if (!main) return;
+    main.innerHTML = paneHtml('photos');
+    wireActions(ov);
+    wirePhotoFile(ov);
+  }
+
+  function wirePhotoFile(ov) {
+    var input = ov && ov.querySelector('#rd-photos-file');
+    if (!input || input.dataset.bound) return;
+    input.dataset.bound = '1';
+    input.addEventListener('change', function () {
+      var files = Array.prototype.slice.call(input.files || []);
+      input.value = '';
+      if (!files.length) return;
+      if (typeof CovenantPhotos === 'undefined' || !CovenantPhotos || typeof CovenantPhotos.putFromFile !== 'function') {
+        if (typeof showToast === 'function') showToast('Photo store not loaded.', 'warn');
+        return;
+      }
+      var i = 0;
+      function next() {
+        if (i >= files.length) {
+          refreshPhotosPane(document.getElementById(OVERLAY_ID));
+          if (typeof showToast === 'function') showToast('Added ' + files.length + ' photo' + (files.length === 1 ? '' : 's') + ' to local library');
+          return;
+        }
+        var f = files[i++];
+        CovenantPhotos.putFromFile(f, { kind: 'library' })
+          .then(next)
+          .catch(function (err) {
+            console.warn('[photos]', err);
+            if (typeof showToast === 'function') showToast((err && err.message) || 'Photo add failed', 'warn');
+            next();
+          });
+      }
+      next();
+    });
+  }
+
   function paneHtml(id) {
     if (id === 'overview' || !id) return bannerHtml() + cardsHtml();
     if (id === 'display') {
@@ -345,20 +409,49 @@
     }
     if (id === 'backup') {
       return paneShell('Backup & restore',
-        'A backup is the only copy that survives a cleared browser.',
-        cardRow('Download backup', 'Single .sqlite file', btn('Download backup', 'downloadSqliteBackup'))
-        + cardRow('Restore from backup', 'Accepts .sqlite, .db or .json', btn('Restore', 'rdSetRestore'))
-        + cardRow('Save now', '', btn('Save now', 'saveNow')));
+        'Local file backup — no Postgres on this device. A downloaded file is the only copy that survives a cleared browser.',
+        cardRow('Download backup', 'Planner as a single .sqlite file', btn('Download backup', 'downloadSqliteBackup'))
+        + cardRow('Full backup with photos', '.zip with planner + photo library blobs', btn('Download full backup', 'downloadFullBackup'))
+        + cardRow('Restore from backup', 'Accepts .zip, .sqlite, .db or .json', btn('Restore', 'rdSetRestore'))
+        + cardRow('Save now', '', btn('Save now', 'saveNow'))
+        + '<div class="rd-set__note">Offline by default. Optional cloud sync (separate pane) stores what you opt in to sync — it is not a substitute for downloading a file backup. See <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>');
+    }
+    if (id === 'photos') {
+      var lib = [];
+      try {
+        if (typeof CovenantPhotos !== 'undefined' && CovenantPhotos && typeof CovenantPhotos.ensureLibrary === 'function') {
+          lib = CovenantPhotos.ensureLibrary() || [];
+        } else if (typeof data !== 'undefined' && data && Array.isArray(data.photoLibrary)) {
+          lib = data.photoLibrary;
+        }
+      } catch (e) {}
+      var count = lib.length;
+      return paneShell('Photos',
+        'Local photo library for offline use. Bytes stay in IndexedDB on this device; metadata is listed here. Include them in a full .zip backup.',
+        cardRow('Photo library', count + ' photo' + (count === 1 ? '' : 's') + ' on this device',
+          btn('Add photos', 'rdPhotosAdd') + ' ' + btn('Refresh list', 'rdPhotosRefresh'))
+        + '<div id="rd-photos-list" class="rd-set__note">' + photosListHtml(lib) + '</div>'
+        + '<div class="rd-set__note">Couple hero and Vision Board pins still work as before. New library photos use IndexedDB blobs (refs like <code>idb:…</code>) so backups can ship binaries without stuffing huge base64 into cloud Postgres rows. Online photo metadata + object storage scaffolding: <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>'
+        + '<input type="file" id="rd-photos-file" accept="image/*" multiple style="display:none">');
     }
     if (id === 'import') {
       return paneShell('Import',
         'Restore replaces this browser\'s copy with the file you choose.',
-        cardRow('Restore from file', 'Same path as backup restore', btn('Choose file', 'rdSetRestore')));
+        cardRow('Restore from file', 'Same path as backup restore (.zip / .sqlite / .json)', btn('Choose file', 'rdSetRestore')));
     }
     if (id === 'cloud') {
       return paneShell('Cloud sync (beta)',
-        'Optional. Offline planning always works. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, vendor arrivals, and print packet overrides sync in beta — not full multi-user realtime yet.',
+        'Optional and opt-in. Offline planning always works. When enabled, wedding data you sync is stored on the sync API. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, vendor arrivals, and print packet overrides sync in beta — not full multi-user realtime yet.',
         cloudSyncPaneBody());
+    }
+    if (id === 'privacy') {
+      return paneShell('Privacy',
+        'Local-first by design. You should never need to install Postgres to plan a wedding.',
+        '<div class="rd-set__note"><b>Local by default.</b> Planner data and the photo library live in this browser (localStorage + SQLite/IndexedDB). No account is required for core planning.</div>'
+        + '<div class="rd-set__note"><b>Optional cloud.</b> Cloud sync is opt-in. When you enable it and sign in, we store the wedding rows you sync on the API database (managed Postgres on the host — not on your laptop). That is online backup of synced domains, not “we store nothing.”</div>'
+        + '<div class="rd-set__note"><b>We do not sell your data.</b> File backups you download stay under your control. Photo binaries prefer object storage (S3/R2) or local disk when online photo backup is configured — metadata in the database, blobs elsewhere.</div>'
+        + cardRow('Open backup & restore', 'Download or restore a local file', btn('Open', 'rdSetGotoBackup'))
+        + cardRow('Open cloud sync', 'Optional; offline still works with it off', btn('Open', 'rdSetGotoCloud')));
     }
     if (id === 'trash') {
       return paneShell('Trash',
@@ -369,7 +462,7 @@
     if (id === 'about') {
       return paneShell('About',
         'The Covenant Wedding Planner — offline-first, one file per wedding.',
-        '<div class="rd-set__note">Offline by default: no account required, no tracking. Optional <b>Cloud sync (beta)</b> can mirror guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, and vendor arrivals to a server when you enable it — core planning never depends on being online. Look &amp; feel lives in Profile &amp; Display; this window holds backups, exports, printing, history and regional format.</div>');
+        '<div class="rd-set__note">Offline by default: no account required, no tracking. Data stays on this device until you download a backup or opt into cloud sync. Optional <b>Cloud sync (beta)</b> stores what you sync on the API when enabled — we do not sell data, and we do not claim “we store nothing” once cloud backup is on. Photos: local IndexedDB library + file zip backup; online object-storage scaffolding is separate. Look &amp; feel lives in Profile &amp; Display; this window holds backups, privacy, exports, printing, history and regional format. Docs: <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>');
     }
     if (id === 'getstarted') {
       return paneShell('Get started', 'How the planner works and your first steps.',
@@ -462,9 +555,10 @@
     Array.prototype.forEach.call(ov.querySelectorAll('[data-act]'), function (b) {
       if (b.dataset.actBound) return;
       b.dataset.actBound = '1';
-      b.addEventListener('click', function () { run(b.getAttribute('data-act')); });
+      b.addEventListener('click', function () { run(b.getAttribute('data-act'), b); });
     });
     wireAlertRules(ov);
+    wirePhotoFile(ov);
   }
 
   function moveSlots(ov) {
@@ -504,7 +598,22 @@
     return ov;
   }
 
-  function run(name) {
+  function refreshPane(paneId) {
+    var ov = document.getElementById(OVERLAY_ID);
+    if (!ov) return;
+    window._rdSetPane = paneId || window._rdSetPane || 'overview';
+    var main = ov.querySelector('#rd-set-main');
+    if (main) {
+      main.innerHTML = paneHtml(window._rdSetPane);
+      moveSlots(ov);
+      wireActions(ov);
+    }
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-set-pane]'), function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-set-pane') === window._rdSetPane);
+    });
+  }
+
+  function run(name, el) {
     try {
       if (name === 'rdCloudEnable') {
         var apiEl = document.getElementById('rd-cloud-api');
@@ -610,6 +719,47 @@
       if (name === 'rdSetRestore') {
         var inp = document.getElementById('importInput');
         if (inp) inp.click();
+        return;
+      }
+      if (name === 'downloadFullBackup') {
+        if (typeof downloadFullBackup === 'function') downloadFullBackup();
+        else if (typeof CovenantBackup !== 'undefined' && CovenantBackup && typeof CovenantBackup.downloadFullBackup === 'function') {
+          CovenantBackup.downloadFullBackup().catch(function (err) {
+            if (typeof showToast === 'function') showToast((err && err.message) || 'Full backup failed', 'warn');
+          });
+        } else if (typeof showToast === 'function') showToast('Full backup not available yet.', 'warn');
+        return;
+      }
+      if (name === 'rdSetGotoBackup') {
+        window._rdSetPane = 'backup';
+        refreshPane('backup');
+        return;
+      }
+      if (name === 'rdSetGotoCloud') {
+        window._rdSetPane = 'cloud';
+        refreshPane('cloud');
+        return;
+      }
+      if (name === 'rdPhotosAdd') {
+        var ph = document.getElementById('rd-photos-file');
+        if (ph) ph.click();
+        return;
+      }
+      if (name === 'rdPhotosRefresh') {
+        refreshPhotosPane(document.getElementById(OVERLAY_ID));
+        return;
+      }
+      if (name === 'rdPhotosRemove') {
+        var pid = el && el.getAttribute('data-photo-id');
+        if (!pid) return;
+        if (typeof CovenantPhotos === 'undefined' || !CovenantPhotos || typeof CovenantPhotos.removePhoto !== 'function') {
+          if (typeof showToast === 'function') showToast('Photo store not loaded.', 'warn');
+          return;
+        }
+        CovenantPhotos.removePhoto(pid).then(function () {
+          refreshPhotosPane(document.getElementById(OVERLAY_ID));
+          if (typeof showToast === 'function') showToast('Photo removed from local library');
+        });
         return;
       }
       if (name === 'rdSetHistory') {

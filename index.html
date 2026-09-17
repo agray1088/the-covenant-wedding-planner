@@ -183,8 +183,8 @@
         <button class="btn btn-gold btn-history-action" id="undo-btn" onclick="undoPlannerChange();toggleTopbarOverflow();" disabled><svg class="line-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H4v5"/><path d="M4 12c2-4 5-6 9-6 4.4 0 8 3.6 8 8s-3.6 8-8 8c-2.4 0-4.6-1.1-6-2.8"/></svg><span class="btn-text">Undo</span></button>
         <button class="btn btn-gold btn-history-action" id="redo-btn" onclick="redoPlannerChange();toggleTopbarOverflow();" disabled><svg class="line-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h5v5"/><path d="M20 12c-2-4-5-6-9-6-4.4 0-8 3.6-8 8s3.6 8 8 8c2.4 0 4.6-1.1 6-2.8"/></svg><span class="btn-text">Redo</span></button>
         <button class="btn btn-gold btn-history-action" style="display:none" aria-hidden="true" tabindex="-1" onclick="openHistoryDrawer();toggleTopbarOverflow();"><svg class="line-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg><span class="btn-text">History</span></button>
-        <button class="btn btn-forest" onclick="document.getElementById('importInput').click();toggleTopbarOverflow();" title="Restore from a .json or .sqlite backup"><svg class="line-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg><span class="btn-text">Restore</span></button>
-        <input type="file" id="importInput" accept=".sqlite,.db,.json" style="display:none" onchange="restorePlannerBackup(event)">
+        <button class="btn btn-forest" onclick="document.getElementById('importInput').click();toggleTopbarOverflow();" title="Restore from a .zip, .json or .sqlite backup"><svg class="line-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg><span class="btn-text">Restore</span></button>
+        <input type="file" id="importInput" accept=".zip,.sqlite,.db,.json,application/zip" style="display:none" onchange="restorePlannerBackup(event)">
         <select id="csv-export-select" class="btn btn-gold" title="Choose a list to export as CSV">
           <option value="__all">CSV: All Sections</option>
           <option value="guests">CSV: Guest List</option>
@@ -1805,7 +1805,9 @@
 <script src="js/migration-map.js"></script>
 <script src="js/json-to-sqlite-migrate.js"></script>
 <script src="js/db-repository.js?v=seed-persist-p0d"></script>
-<script src="js/sqlite-backup.js"></script>
+<script src="js/covenant-zip.js?v=backup-photos01"></script>
+<script src="js/photo-store.js?v=backup-photos01"></script>
+<script src="js/sqlite-backup.js?v=backup-photos01"></script>
 <script src="js/ux-kit.js?v=hc-after1"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
 <script src="js/planner-context-sidebar.js?v=guide-s36e"></script>
@@ -1847,7 +1849,7 @@
 <script src="js/guide-redesign.js?v=offline-ga01"></script>
 <script src="js/viewer-prefs-redesign.js?v=viewer-s37c"></script>
 <script src="js/cloud-sync.js?v=cloud-sync02"></script>
-<script src="js/settings-window-redesign.js?v=cloud-sync02"></script>
+<script src="js/settings-window-redesign.js?v=backup-photos01"></script>
 <script src="js/vendor-redesign.js?v=offline-ga01"></script>
 <script src="js/mood-redesign.js?v=seed-persist-p0d"></script>
 <script src="js/essentials-redesign.js?v=seed-persist-p0d"></script>

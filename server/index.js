@@ -22,6 +22,8 @@ import partyRoutes from './routes/party.js';
 import taskRoutes from './routes/tasks.js';
 import vtimelineRoutes from './routes/vtimeline.js';
 import packetOverrideRoutes from './routes/packet-overrides.js';
+import photoRoutes from './routes/photos.js';
+import { storageConfigSummary } from './lib/object-storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -94,14 +96,15 @@ app.get('/health', async (req, res) => {
     res.json({
       ok: true,
       service: 'covenant-sync',
-      version: '0.3.0',
+      version: '0.4.0',
       mode: 'offline-first-optional-cloud',
       db: 'up',
       publicUrl: PUBLIC_URL || null,
       features: {
         ...FEATURES,
         googleConfigured: googleConfigured(),
-        smtpConfigured: smtpConfigured()
+        smtpConfigured: smtpConfigured(),
+        photoStorage: storageConfigSummary()
       },
       time: new Date().toISOString(),
       // Echo how the proxy sees us (useful when debugging HTTPS / redirects).
@@ -130,6 +133,7 @@ app.use('/weddings/:weddingId/party', partyRoutes);
 app.use('/weddings/:weddingId/tasks', taskRoutes);
 app.use('/weddings/:weddingId/vtimeline', vtimelineRoutes);
 app.use('/weddings/:weddingId/packet-overrides', packetOverrideRoutes);
+app.use('/weddings/:weddingId/photos', photoRoutes);
 
 if (SERVE_STATIC) {
   const staticRoot = path.resolve(

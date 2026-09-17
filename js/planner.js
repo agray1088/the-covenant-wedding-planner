@@ -10,7 +10,7 @@ const ACTIVE_KEY = 'covenant_active_profile';
 const COVENANT_BUILD = { version: '2.0.0', date: '2026-07-09' };
 
 // Bump when the data model changes shape. migrateData() upgrades older saves.
-const CURRENT_SCHEMA_VERSION = 6;
+const CURRENT_SCHEMA_VERSION = 7;
 
 // Factory for a fresh, empty planner. Used for init, reset, and new profiles.
 function blankData() {
@@ -24,7 +24,7 @@ function blankData() {
     menu: [], beverages: [], kidsMenu: [], placeSettings: [], cateringRentals: [], cateringMeta: {}, venue: {}, vtimeline: [], essentials: [], plan: [],
     entertainment: [], mustPlay: [], doNotPlay: [], receptionPlaylist: [], palettes: [], moodPhotos: [], moodFavorites: [], moodItems: [],
     honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], firstMonthBudget: [], homecomingReflection: {}, honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
-    packets: [], emailTemplates: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
+    packets: [], emailTemplates: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {}, photoLibrary: [],
     vision: {}, homecoming: [], firstmonth: {}, rhythms: [], marriageLicense: {},
     vendorCompare: [], reception: {}, attire: [], decor: [], stationery: [], events: [], locations: [], contacts: [],
     weekendTimeline: [], travelAccommodations: [], hotelBlocks: [], transportation: [], vipCare: [],
@@ -202,6 +202,14 @@ function migrateData(d) {
     if (typeof migrateCeremonyVowsFromFlat === 'function') migrateCeremonyVowsFromFlat(d);
     v = 6;
   }
+
+  // v6 → v7: local photo library metadata (blobs in IndexedDB / zip backup).
+  if (v < 7) {
+    if (!Array.isArray(d.photoLibrary)) d.photoLibrary = [];
+    v = 7;
+  }
+
+  if (!Array.isArray(d.photoLibrary)) d.photoLibrary = [];
 
   d.schemaVersion = CURRENT_SCHEMA_VERSION;
   if (typeof ensurePhase2Setup === 'function') ensurePhase2Setup();
@@ -30325,7 +30333,9 @@ function applyRestoredPlannerData(obj, opts) {
   if (!obj || typeof obj !== 'object') { covAlert('That backup did not contain any readable planner data.'); return false; }
   const ig = (obj.guests || []).length, ip = (obj.payments || []).length, it = (obj.tasks || []).length;
   const cg = (data.guests || []).length, cp = (data.payments || []).length, ct = (data.tasks || []).length;
-  const fmtLabel = opts.format === 'sqlite' ? 'SQLite database backup' : 'JSON backup';
+  const fmtLabel = opts.format === 'sqlite' ? 'SQLite database backup'
+    : opts.format === 'zip' ? 'full zip backup'
+    : 'JSON backup';
   const preview = 'This ' + fmtLabel + ' contains: ' + ig + ' guests, ' + ip + ' payments, ' + it + ' tasks.\n'
     + 'Your current profile has: ' + cg + ' guests, ' + cp + ' payments, ' + ct + ' tasks.\n\n'
     + 'Restore will replace all current data in this profile. Continue?';
@@ -30360,7 +30370,7 @@ function restorePlannerBackup(event) {
   }
   Promise.resolve(CovenantBackup.restoreFromFile(file, activeProfile)).catch(err => {
     console.warn('Restore failed', err);
-    covAlert('Could not restore that file: ' + ((err && err.message) || err) + '\n\nMake sure it is a Covenant Planner .json or .sqlite backup.');
+    covAlert('Could not restore that file: ' + ((err && err.message) || err) + '\n\nMake sure it is a Covenant Planner .zip, .json, or .sqlite backup.');
   });
 }
 
@@ -30398,6 +30408,27 @@ function downloadSqliteBackup() {
       } catch (e2) {}
     }
     covAlert('Could not create a backup: ' + ((e && e.message) || e));
+  }
+}
+
+// Full zip backup: planner (.sqlite or JSON) + local photo library blobs.
+async function downloadFullBackup() {
+  try {
+    if (typeof CovenantBackup === 'undefined' || !CovenantBackup || typeof CovenantBackup.downloadFullBackup !== 'function') {
+      covAlert('Full backup is unavailable in this build (zip helper missing).');
+      return;
+    }
+    if (typeof flushSqliteSync === 'function') flushSqliteSync();
+    const result = await CovenantBackup.downloadFullBackup(undefined, activeProfile);
+    if (typeof markBackupTaken === 'function') markBackupTaken();
+    if (typeof showToast === 'function') {
+      const n = result && result.photoCount != null ? result.photoCount : 0;
+      showToast('Full backup downloaded (' + n + ' photo' + (n === 1 ? '' : 's') + ').');
+    }
+    if (typeof renderBackupReminder === 'function') renderBackupReminder();
+  } catch (e) {
+    console.warn('Full backup failed', e);
+    covAlert('Could not create a full backup: ' + ((e && e.message) || e));
   }
 }
 
@@ -31225,6 +31256,16 @@ function uploadHeroPhoto(event) {
     while (result.length > 500000 && quality > 0.3) { quality -= 0.1; result = c.toDataURL('image/jpeg', quality); }
     data.setup.photo = result;
     data.setup.photoPos = { x: 50, y: 50 };
+    // Also keep a copy in the local photo library (IndexedDB) for full zip backups.
+    if (typeof CovenantPhotos !== 'undefined' && CovenantPhotos && typeof CovenantPhotos.putFromDataUrl === 'function') {
+      CovenantPhotos.putFromDataUrl(result, { kind: 'hero', name: 'Couple photo', persist: false })
+        .then(function (entry) {
+          if (entry && entry.id) {
+            /* hero stays as data URL for immediate UI; library holds idb twin */
+          }
+        })
+        .catch(function (e) { console.warn('[photos] hero library copy failed', e); });
+    }
     save();
     renderHeroPhoto();
     renderSetupPhotoBox();
