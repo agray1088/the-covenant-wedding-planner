@@ -94,7 +94,7 @@ ok('reconnect unchanged note', /RECONNECT_AFTER_RESTART|demo@covenant\.local/.te
 
 const roadmap = read('docs/PRODUCT_ROADMAP.md');
 ok('roadmap step 3 shipped', /Offline \+ backup clarity[\s\S]*Shipped/i.test(roadmap));
-ok('roadmap next RSVP', /RSVP \+ guest portal[\s\S]*Next|Next\.\*/i.test(roadmap) || /\*Next\.\*/.test(roadmap));
+ok('roadmap RSVP foundation', /RSVP \+ guest portal[\s\S]*Foundation shipped|RSVP_AND_GUEST_PORTAL\.md/i.test(roadmap));
 
 const envEx = read('server/.env.example');
 ok('env PHOTO_STORAGE', /PHOTO_STORAGE/.test(envEx));
