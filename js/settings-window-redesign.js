@@ -883,6 +883,8 @@
               }).join('')
               + '</ul>';
             cloudMsg(true, 'Loaded ' + list.length + ' pending invite' + (list.length === 1 ? '' : 's') + '.');
+            var ovInbox = document.getElementById(OVERLAY_ID);
+            if (ovInbox) wireActions(ovInbox);
           })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Could not load invites'); });
         return;
@@ -928,6 +930,8 @@
                     + '<button type="button" class="rd-set__btn" data-act="rdPartnerCopyLink">Copy link</button>')
                   : '');
             }
+            var ovInvite = document.getElementById(OVERLAY_ID);
+            if (ovInvite) wireActions(ovInvite);
             cloudMsg(true, (body && body.email && body.email.sent) ? 'Invite emailed.' : 'Invite created — copy the link if needed.');
             run('rdPartnerRefresh');
           })
@@ -986,6 +990,8 @@
                 : '<li class="rd-set__muted">None pending</li>')
               + '</ul>';
             listEl.innerHTML = htmlList;
+            var ov = document.getElementById(OVERLAY_ID);
+            if (ov) wireActions(ov);
             cloudMsg(true, 'Members and invites refreshed.');
           })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Refresh failed'); });
