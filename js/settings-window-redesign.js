@@ -197,6 +197,7 @@
       { id: 'photos', label: 'Photos' },
       { id: 'import', label: 'Import' },
       { id: 'cloud', label: 'Cloud sync (beta)' },
+      { id: 'rsvp', label: 'RSVP & guest portal' },
       { id: 'privacy', label: 'Privacy' },
       { id: 'trash', label: 'Trash' },
       { id: 'about', label: 'About' }
@@ -287,9 +288,61 @@
 
     html += cardRow('Sync now', 'Pull then push guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides (last-write-wins)', btn('Sync now', 'rdCloudSyncNow'));
     html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides', btn('Upload this wedding', 'rdCloudUpload'));
+    html += cardRow('RSVP & guest portal', 'Generate links, send invites, gated landing settings', btn('Open', 'rdSetGotoRsvp'));
     html += cardRow('Sign out', 'Local planner keeps working offline', btn('Sign out', 'rdCloudSignOut'));
     html += cardRow('Disable cloud on this device', 'Flag off; offline GA path unchanged', btn('Turn off', 'rdCloudDisable'));
-    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline) + print packet overrides (vendorPackets / partyPackets / coordPacket)</b> sync in this beta. Hosted <code>covenant.link</code> portals are not part of this sync.</div>';
+    html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline) + print packet overrides (vendorPackets / partyPackets / coordPacket)</b> sync in this beta. RSVP write-backs land on guests in Postgres and pull on sync. Docs: <code>docs/RSVP_AND_GUEST_PORTAL.md</code>.</div>';
+    return html;
+  }
+
+  function rsvpPortalPaneBody() {
+    var st = cloudStatus();
+    var html = '<div class="rd-set__note" id="rd-rsvp-status">RSVP emails and the guest portal need a linked cloud wedding. The planner stays offline-first; sending mail and opening guest links need network when you use them.</div>';
+    if (!st.enabled || st.state === 'disabled') {
+      html += '<div class="rd-set__note">Enable cloud sync and sign in first.</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+    if (st.state === 'signed_out' || !(st.user && st.user.email)) {
+      html += '<div class="rd-set__note">Sign in on the Cloud sync pane, then upload/link this wedding.</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+    if (!st.weddingId) {
+      html += '<div class="rd-set__note">No cloud wedding linked yet — use <b>Upload this wedding</b> on Cloud sync.</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+
+    html += cardRow('Refresh status', 'Tokens, sends, responses (from Postgres)', btn('Refresh', 'rdRsvpRefresh'));
+    html += '<div class="rd-set__note" id="rd-rsvp-summary">Click Refresh to load RSVP status.</div>';
+    html += cardRow('Generate RSVP links', 'Creates unique tokens — does not email. Share links manually if SMTP is unset.', btn('Generate tokens', 'rdRsvpTokens'));
+    html += cardRow('Send RSVP emails', 'User action only — no automatic blasts. Needs SMTP (clear 503 if missing).', btn('Send invites', 'rdRsvpSend'));
+    html += cardRow('Send reminders', 'Manual click only — never auto-blasted', btn('Send reminders', 'rdRsvpRemind'));
+
+    html += '<div class="rd-set__note" style="margin-top:1rem"><b>Gated guest portal</b> — unlisted hard-to-guess link; optional guest-email and/or rotatable couple code. Not a public wedding directory. Only published fields appear for guests.</div>';
+    html += cardRow('Portal slug', 'Letters, numbers, hyphens',
+      '<input type="text" class="rd-set__input" id="rd-portal-slug" placeholder="alex-jordan-a1b2c3">');
+    html += cardRow('Access mode', 'unlisted · email · code · email_or_code',
+      '<select class="rd-set__input" id="rd-portal-mode">'
+      + '<option value="unlisted">Unlisted link only</option>'
+      + '<option value="email">Guest email must match list</option>'
+      + '<option value="code">Custom couple code</option>'
+      + '<option value="email_or_code">Email or code</option>'
+      + '</select>');
+    html += cardRow('Access code', 'Leave blank to keep current; rotate generates a new one',
+      '<input type="text" class="rd-set__input" id="rd-portal-code" placeholder="optional new code" autocomplete="off">'
+      + btn('Rotate code', 'rdPortalRotateCode'));
+    html += cardRow('Published headline', 'Shown on portal only',
+      '<input type="text" class="rd-set__input" id="rd-portal-headline" placeholder="Alex & Jordan">');
+    html += cardRow('Published date / venue', '',
+      '<input type="text" class="rd-set__input" id="rd-portal-date" placeholder="Date">'
+      + '<input type="text" class="rd-set__input" id="rd-portal-venue" placeholder="Venue">');
+    html += cardRow('Published message', 'Planner-private guest notes stay private',
+      '<textarea class="rd-set__input" id="rd-portal-message" rows="3" placeholder="Welcome note for guests"></textarea>');
+    html += cardRow('Enable portal', 'Saves gate + published fields', btn('Save portal', 'rdPortalSave'));
+    html += '<div class="rd-set__note" id="rd-portal-summary">Portal URL appears here after save.</div>';
+    html += '<div class="rd-set__note">Docs: <code>docs/RSVP_AND_GUEST_PORTAL.md</code>. Real email needs SMTP + PUBLIC_URL.</div>';
     return html;
   }
 
@@ -443,6 +496,11 @@
       return paneShell('Cloud sync (beta)',
         'Optional and opt-in. Offline planning always works. When enabled, wedding data you sync is stored on the sync API. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, vendor arrivals, and print packet overrides sync in beta — not full multi-user realtime yet.',
         cloudSyncPaneBody());
+    }
+    if (id === 'rsvp') {
+      return paneShell('RSVP & guest portal',
+        'Couple-controlled RSVP links and a gated wedding landing. Not SEO-indexed. Responses write back to guests in Postgres so cloud sync picks them up.',
+        rsvpPortalPaneBody());
     }
     if (id === 'privacy') {
       return paneShell('Privacy',
@@ -738,6 +796,131 @@
       if (name === 'rdSetGotoCloud') {
         window._rdSetPane = 'cloud';
         refreshPane('cloud');
+        return;
+      }
+      if (name === 'rdSetGotoRsvp') {
+        window._rdSetPane = 'rsvp';
+        refreshPane('rsvp');
+        return;
+      }
+      if (name === 'rdRsvpRefresh') {
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.rsvpStatus !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        window.CovenantCloudSync.rsvpStatus()
+          .then(function (body) {
+            var sum = body && body.summary ? body.summary : {};
+            var smtp = body && body.smtp ? body.smtp : {};
+            var el = document.getElementById('rd-rsvp-summary');
+            if (el) {
+              el.innerHTML = 'Guests: <b>' + esc(String(sum.total || 0)) + '</b> · with email '
+                + esc(String(sum.withEmail || 0)) + ' · tokens ' + esc(String(sum.withToken || 0))
+                + ' · sent ' + esc(String(sum.sent || 0)) + ' · responded ' + esc(String(sum.responded || 0))
+                + '<br>SMTP: ' + (smtp.configured ? 'configured' : 'not configured (send returns 503; links still work)')
+                + (body.publicUrl ? '<br>PUBLIC_URL: <code>' + esc(body.publicUrl) + '</code>' : '');
+            }
+            if (body && body.portal) { /* ignore */ }
+            cloudMsg(true, 'RSVP status loaded.');
+            return window.CovenantCloudSync.portalGet();
+          })
+          .then(function (body) {
+            if (!body || !body.portal) return;
+            var p = body.portal;
+            var slugEl = document.getElementById('rd-portal-slug');
+            var modeEl = document.getElementById('rd-portal-mode');
+            var headEl = document.getElementById('rd-portal-headline');
+            var dateEl = document.getElementById('rd-portal-date');
+            var venueEl = document.getElementById('rd-portal-venue');
+            var msgEl = document.getElementById('rd-portal-message');
+            var sumEl = document.getElementById('rd-portal-summary');
+            if (slugEl && p.slug) slugEl.value = p.slug;
+            if (modeEl && p.accessMode) modeEl.value = p.accessMode;
+            var pub = p.published || {};
+            if (headEl && pub.headline) headEl.value = pub.headline;
+            if (dateEl && pub.date) dateEl.value = pub.date;
+            if (venueEl && pub.venue) venueEl.value = pub.venue;
+            if (msgEl && pub.message) msgEl.value = pub.message;
+            if (sumEl) {
+              sumEl.innerHTML = p.url
+                ? ('Portal: <a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.url) + '</a>'
+                  + (p.enabled ? ' · enabled' : ' · disabled')
+                  + ' · mode ' + esc(p.accessMode || 'unlisted'))
+                : 'Portal not configured yet.';
+            }
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'RSVP status failed'); });
+        return;
+      }
+      if (name === 'rdRsvpTokens') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        window.CovenantCloudSync.rsvpGenerateTokens()
+          .then(function (body) {
+            cloudMsg(true, 'Created ' + ((body && body.created) || 0) + ' token(s)'
+              + (body && body.skipped ? '; skipped ' + body.skipped + ' (already had tokens)' : '') + '.');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Token generate failed'); });
+        return;
+      }
+      if (name === 'rdRsvpSend' || name === 'rdRsvpRemind') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        var kind = name === 'rdRsvpRemind' ? 'rsvp_reminder' : 'rsvp_invite';
+        window.CovenantCloudSync.rsvpSend({ kind: kind })
+          .then(function (body) {
+            cloudMsg(true, 'Sent ' + ((body && body.sent) || 0)
+              + (body && body.failed ? '; failed ' + body.failed : '')
+              + (body && body.skipped ? '; skipped ' + body.skipped : '') + '.');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Send failed'); });
+        return;
+      }
+      if (name === 'rdPortalSave') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        var slug = (document.getElementById('rd-portal-slug') || {}).value || '';
+        var mode = (document.getElementById('rd-portal-mode') || {}).value || 'unlisted';
+        var code = (document.getElementById('rd-portal-code') || {}).value || '';
+        var published = {
+          headline: (document.getElementById('rd-portal-headline') || {}).value || '',
+          date: (document.getElementById('rd-portal-date') || {}).value || '',
+          venue: (document.getElementById('rd-portal-venue') || {}).value || '',
+          message: (document.getElementById('rd-portal-message') || {}).value || ''
+        };
+        var body = {
+          enabled: true,
+          generateSlug: !String(slug).trim(),
+          accessMode: mode,
+          published: published
+        };
+        if (String(slug).trim()) body.slug = String(slug).trim();
+        if (String(code).trim()) body.accessCode = String(code).trim();
+        window.CovenantCloudSync.portalUpdate(body)
+          .then(function (res) {
+            var p = res && res.portal;
+            var sumEl = document.getElementById('rd-portal-summary');
+            if (sumEl && p && p.url) {
+              sumEl.innerHTML = 'Portal: <a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.url) + '</a>';
+            }
+            if (p && p.slug) {
+              var slugEl2 = document.getElementById('rd-portal-slug');
+              if (slugEl2) slugEl2.value = p.slug;
+            }
+            var codeEl = document.getElementById('rd-portal-code');
+            if (codeEl) codeEl.value = '';
+            cloudMsg(true, 'Portal saved.');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Portal save failed'); });
+        return;
+      }
+      if (name === 'rdPortalRotateCode') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        var codeIn = (document.getElementById('rd-portal-code') || {}).value || '';
+        window.CovenantCloudSync.portalRotateCode(String(codeIn).trim() || undefined)
+          .then(function (res) {
+            var codeEl = document.getElementById('rd-portal-code');
+            if (codeEl && res && res.accessCode) codeEl.value = res.accessCode;
+            cloudMsg(true, (res && res.message) || 'Access code rotated.');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Rotate failed'); });
         return;
       }
       if (name === 'rdPhotosAdd') {

@@ -21,7 +21,7 @@ Browser (planner)  ──opt-in──►  HTTPS sync API  ──►  managed Pos
 
 - **Privacy:** local-first; cloud is opt-in. When cloud backup is enabled we store wedding sync data the user uploads — do **not** claim “we store nothing.” We do not sell data.
 - **Auth:** password accounts + Google Sign-In + email recovery — see [`AUTH.md`](./AUTH.md). Redirect URIs and reset links use `PUBLIC_URL`.
-- **RSVP / guest portal / landing (later):** invitation and portal URLs are built from `PUBLIC_URL` (e.g. `${PUBLIC_URL}/r/...`). Wedding landing pages are **gated** (unlisted link and/or guest email and/or couple code) — not a public directory.
+- **RSVP / guest portal / landing:** invitation and portal URLs are built from `PUBLIC_URL` (e.g. `${PUBLIC_URL}/guest/rsvp/…`, `${PUBLIC_URL}/p/…`). Wedding landing pages are **gated** (unlisted link and/or guest email and/or couple code) — not a public directory. See [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md).
 
 Full product order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
 
@@ -53,7 +53,7 @@ Railway fits this stack well: managed Postgres, automatic HTTPS, Dockerfile depl
    | `BOOTSTRAP_EMAIL` / `BOOTSTRAP_PASSWORD` | optional | Only for a private smoke user; remove after real accounts |
    | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | for Google Sign-In | Redirect: `${PUBLIC_URL}/auth/google/callback` — see [`AUTH.md`](./AUTH.md) |
    | `SMTP_*` | for password/username email | Clear 503 until set — see [`AUTH.md`](./AUTH.md) |
-   | `FEATURE_*` | optional | Keep RSVP/landing/photos `0` until those steps ship |
+   | `FEATURE_*` | optional | RSVP/landing default on; set `0` to force off — [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) |
 
 6. **Health check:** open `https://<PUBLIC_URL>/health` — expect `"ok": true`, `"db": "up"`. Platforms probe this path behind the HTTPS proxy.
 7. **DNS (optional):** point `api.yourdomain.com` at Railway; set `PUBLIC_URL` to that HTTPS origin.
@@ -113,7 +113,7 @@ Put a reverse proxy (Caddy/nginx/Traefik) or Cloudflare Tunnel in front for real
 |-----|------------------|
 | Health payload `publicUrl` | Google OAuth redirect: `${PUBLIC_URL}/auth/google/callback` |
 | Operator docs / client config | Password-reset + “forgot username” email links |
-| Auth session API | RSVP + guest-portal links (later) |
+| Auth session API | RSVP + guest-portal links (`/guest/rsvp/…`, `/p/…`) |
 | | Gated wedding landing base URL (later) |
 | | Partner invite + vendor token accept URLs (later) |
 
@@ -157,4 +157,4 @@ Demo login: `demo@covenant.local` (or username `demo`) / `covenant-demo` against
 
 ## What’s next
 
-**Roadmap steps 3–5 foundation shipped** — offline file backup (`.sqlite` + full `.zip` with photos), privacy copy, local photo library + online metadata/object-storage scaffolding: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Next: RSVP + communications → gated guest portal. Accounts: [`AUTH.md`](./AUTH.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+**Roadmap steps 6–7 foundation shipped** — RSVP tokens/emails + gated guest portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Accounts: [`AUTH.md`](./AUTH.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

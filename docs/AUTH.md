@@ -140,4 +140,4 @@ Google / live SMTP paths are manual once secrets exist (see checklists above).
 
 ## What’s next
 
-Roadmap **steps 3–5 foundation shipped** — offline file backup, privacy copy, local photos + object-storage scaffolding: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Next: **RSVP + guest portal**. See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+Roadmap **steps 6–7 foundation shipped** — RSVP + gated guest portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

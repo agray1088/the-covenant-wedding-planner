@@ -329,4 +329,5 @@ If you see `Cannot find package 'playwright'`, you skipped root `npm install` �
 - Production / hosted deploy foundation (**shipped** — [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md))
 - Real accounts foundation (**shipped** — [`AUTH.md`](./AUTH.md); operator still supplies Google/SMTP secrets)
 - Claiming multi-user realtime collaboration
-- Offline + backup clarity / photos object storage (**shipped foundation** — [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md); next: RSVP + gated guest portal)
+- Offline + backup clarity / photos object storage (**shipped foundation** — [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md))
+- RSVP + gated guest portal (**shipped foundation** — [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md); next: portal polish / partner invites)

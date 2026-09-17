@@ -483,3 +483,68 @@ CREATE INDEX IF NOT EXISTS photos_wedding_updated_idx
 CREATE INDEX IF NOT EXISTS photos_storage_key_idx
   ON photos(storage_key) WHERE storage_key IS NOT NULL;
 
+-- ─── RSVP + gated guest portal (roadmap steps 6–7 foundation) ───────────────
+-- Guest RSVP tokens are opaque, unique, and hard to guess. Responses write
+-- back onto guests.* so cloud sync pulls them into the couple's planner.
+-- Planner-private fields (notes for internal use, etc.) are never exposed on
+-- the public portal — only portal_published_json is shown there.
+
+ALTER TABLE guests
+  ADD COLUMN IF NOT EXISTS rsvp_token TEXT;
+ALTER TABLE guests
+  ADD COLUMN IF NOT EXISTS rsvp_token_created_at TIMESTAMPTZ;
+ALTER TABLE guests
+  ADD COLUMN IF NOT EXISTS rsvp_sent_at TIMESTAMPTZ;
+ALTER TABLE guests
+  ADD COLUMN IF NOT EXISTS rsvp_reminded_at TIMESTAMPTZ;
+ALTER TABLE guests
+  ADD COLUMN IF NOT EXISTS rsvp_responded_at TIMESTAMPTZ;
+
+CREATE UNIQUE INDEX IF NOT EXISTS guests_rsvp_token_uidx
+  ON guests(rsvp_token) WHERE rsvp_token IS NOT NULL;
+CREATE INDEX IF NOT EXISTS guests_rsvp_sent_idx
+  ON guests(wedding_id, rsvp_sent_at);
+
+-- Outbound message log — couple-initiated sends only (no automatic blasts).
+CREATE TABLE IF NOT EXISTS outbound_emails (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  wedding_id    UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  guest_id      TEXT,
+  kind          TEXT NOT NULL CHECK (kind IN (
+                  'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username'
+                )),
+  to_email      TEXT NOT NULL,
+  subject       TEXT,
+  status        TEXT NOT NULL DEFAULT 'queued' CHECK (status IN (
+                  'queued', 'sent', 'failed', 'skipped_no_smtp', 'skipped_no_email'
+                )),
+  error         TEXT,
+  meta_json     JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  sent_at       TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS outbound_emails_wedding_idx
+  ON outbound_emails(wedding_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS outbound_emails_guest_idx
+  ON outbound_emails(wedding_id, guest_id);
+
+-- Gated wedding landing / guest portal settings (NOT a public SEO directory).
+-- access_mode: unlisted | email | code | email_or_code
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS portal_slug TEXT;
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS portal_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS portal_access_mode TEXT NOT NULL DEFAULT 'unlisted'
+    CHECK (portal_access_mode IN ('unlisted', 'email', 'code', 'email_or_code'));
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS portal_access_code_hash TEXT;
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS portal_published_json JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE weddings
+  ADD COLUMN IF NOT EXISTS portal_updated_at TIMESTAMPTZ;
+
+CREATE UNIQUE INDEX IF NOT EXISTS weddings_portal_slug_uidx
+  ON weddings(portal_slug) WHERE portal_slug IS NOT NULL;
+

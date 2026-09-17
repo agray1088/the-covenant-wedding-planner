@@ -1247,6 +1247,74 @@
     });
   }
 
+  function requireWeddingPath(suffix) {
+    var weddingId = ls(LS_WEDDING);
+    if (!weddingId) {
+      return Promise.reject(new Error('No cloud wedding — upload/link this wedding first (Settings → Cloud sync).'));
+    }
+    return Promise.resolve('/weddings/' + encodeURIComponent(weddingId) + suffix);
+  }
+
+  /** Couple: RSVP status + outbound log. */
+  function rsvpStatus() {
+    return requireWeddingPath('/rsvp/status').then(function (path) {
+      return api(path, { method: 'GET' });
+    });
+  }
+
+  /** Couple: generate unique RSVP tokens (no email). */
+  function rsvpGenerateTokens(guestIds, rotate) {
+    return requireWeddingPath('/rsvp/tokens').then(function (path) {
+      return api(path, {
+        method: 'POST',
+        body: {
+          guestIds: Array.isArray(guestIds) ? guestIds : undefined,
+          rotate: !!rotate
+        }
+      });
+    });
+  }
+
+  /** Couple: send RSVP invite or reminder emails (needs SMTP). User action only. */
+  function rsvpSend(opts) {
+    opts = opts || {};
+    return requireWeddingPath('/rsvp/send').then(function (path) {
+      return api(path, {
+        method: 'POST',
+        body: {
+          guestIds: Array.isArray(opts.guestIds) ? opts.guestIds : undefined,
+          kind: opts.kind === 'rsvp_reminder' ? 'rsvp_reminder' : 'rsvp_invite',
+          subject: opts.subject || undefined,
+          message: opts.message || undefined
+        }
+      });
+    });
+  }
+
+  /** Couple: get gated portal settings. */
+  function portalGet() {
+    return requireWeddingPath('/portal').then(function (path) {
+      return api(path, { method: 'GET' });
+    });
+  }
+
+  /** Couple: update portal gate + published fields. */
+  function portalUpdate(body) {
+    return requireWeddingPath('/portal').then(function (path) {
+      return api(path, { method: 'PUT', body: body || {} });
+    });
+  }
+
+  /** Couple: rotate portal access code (returns plaintext once). */
+  function portalRotateCode(accessCode) {
+    return requireWeddingPath('/portal/rotate-code').then(function (path) {
+      return api(path, {
+        method: 'POST',
+        body: accessCode ? { accessCode: String(accessCode) } : {}
+      });
+    });
+  }
+
   function googleSignInUrl() {
     var base = cfg().apiBase.replace(/\/$/, '');
     var returnTo = '';
@@ -2543,6 +2611,12 @@
     syncNow: syncNow,
     scheduleGuestSync: scheduleGuestSync,
     scheduleSync: scheduleSync,
+    rsvpStatus: rsvpStatus,
+    rsvpGenerateTokens: rsvpGenerateTokens,
+    rsvpSend: rsvpSend,
+    portalGet: portalGet,
+    portalUpdate: portalUpdate,
+    portalRotateCode: portalRotateCode,
     api: api
   };
 

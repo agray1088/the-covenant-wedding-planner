@@ -23,6 +23,8 @@ import taskRoutes from './routes/tasks.js';
 import vtimelineRoutes from './routes/vtimeline.js';
 import packetOverrideRoutes from './routes/packet-overrides.js';
 import photoRoutes from './routes/photos.js';
+import rsvpRoutes, { guestPublicRoutes } from './routes/rsvp.js';
+import portalRoutes, { portalPublicRoutes } from './routes/portal.js';
 import { storageConfigSummary } from './lib/object-storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -39,11 +41,18 @@ function flag(name) {
   return ['1', 'true', 'yes'].includes(String(process.env[name] || '').trim().toLowerCase());
 }
 
+/** Feature on unless explicitly set to 0/false/no (RSVP + landing ship enabled). */
+function flagDefaultOn(name) {
+  const raw = process.env[name];
+  if (raw == null || String(raw).trim() === '') return true;
+  return !['0', 'false', 'no', 'off'].includes(String(raw).trim().toLowerCase());
+}
+
 const FEATURES = {
   googleAuth: googleConfigured() || flag('FEATURE_GOOGLE_AUTH'),
   email: smtpConfigured() || flag('FEATURE_EMAIL'),
-  rsvp: flag('FEATURE_RSVP'),
-  landing: flag('FEATURE_LANDING'),
+  rsvp: flagDefaultOn('FEATURE_RSVP'),
+  landing: flagDefaultOn('FEATURE_LANDING'),
   photos: flag('FEATURE_PHOTOS'),
   partnerInvites: flag('FEATURE_PARTNER_INVITES'),
   vendorTokens: flag('FEATURE_VENDOR_TOKENS')
@@ -96,7 +105,7 @@ app.get('/health', async (req, res) => {
     res.json({
       ok: true,
       service: 'covenant-sync',
-      version: '0.4.0',
+      version: '0.5.0',
       mode: 'offline-first-optional-cloud',
       db: 'up',
       publicUrl: PUBLIC_URL || null,
@@ -134,6 +143,15 @@ app.use('/weddings/:weddingId/tasks', taskRoutes);
 app.use('/weddings/:weddingId/vtimeline', vtimelineRoutes);
 app.use('/weddings/:weddingId/packet-overrides', packetOverrideRoutes);
 app.use('/weddings/:weddingId/photos', photoRoutes);
+app.use('/weddings/:weddingId/rsvp', rsvpRoutes);
+app.use('/weddings/:weddingId/portal', portalRoutes);
+
+// Public guest surfaces (token / slug gated — not SEO).
+app.use('/guest', guestPublicRoutes);
+app.use('/p', portalPublicRoutes);
+app.get('/r/:token', (req, res) => {
+  res.redirect(302, `/guest/rsvp/${encodeURIComponent(req.params.token)}`);
+});
 
 if (SERVE_STATIC) {
   const staticRoot = path.resolve(
@@ -141,7 +159,14 @@ if (SERVE_STATIC) {
   );
   app.use(express.static(staticRoot, { index: ['index.html'], fallthrough: true }));
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/auth') || req.path.startsWith('/weddings') || req.path === '/health') {
+    if (
+      req.path.startsWith('/auth')
+      || req.path.startsWith('/weddings')
+      || req.path.startsWith('/guest')
+      || req.path.startsWith('/p/')
+      || req.path.startsWith('/r/')
+      || req.path === '/health'
+    ) {
       next();
       return;
     }

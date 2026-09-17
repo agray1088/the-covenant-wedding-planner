@@ -1,0 +1,104 @@
+# RSVP + gated guest portal
+
+Foundation for **roadmap steps 6–7**: couple-controlled RSVP emails, token RSVP forms, and a **gated** wedding landing (not a public SEO directory).
+
+Offline-first is unchanged: the planner works without a network. Sending email and opening guest links need the sync API (+ SMTP / `PUBLIC_URL` when you use those).
+
+## What shipped
+
+| Piece | Behavior |
+|-------|----------|
+| Guest `rsvp_token` | Unique hard-to-guess token per guest (generate or rotate) |
+| RSVP form | `GET/POST /guest/rsvp/:token` — attending, meal, dietary, +1, notes |
+| Write-back | Responses update `guests` in Postgres (`updated_at = now()`) so cloud sync pulls them |
+| Send / remind | `POST …/rsvp/send` — **user action only**; no automatic blasts |
+| Message log | `outbound_emails` rows for invite/reminder attempts |
+| Portal | `GET/PUT …/portal` + public `/p/:slug` with access modes |
+| Gate modes | `unlisted` · `email` · `code` · `email_or_code` |
+| Published fields | Only `portal_published_json` (headline, date, venue, …) — planner-private guest notes stay private |
+| SMTP | Reuses auth mail helper; **503** `smtp_not_configured` when unset |
+| Links | Built from `PUBLIC_URL` (local: `http://localhost:18787` / `http://127.0.0.1:18787`) |
+
+## Couple API (auth + wedding membership)
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/weddings/:id/rsvp/status` | Tokens, sent/responded, recent outbound log, SMTP probe |
+| POST | `/weddings/:id/rsvp/tokens` | `{ guestIds?, rotate? }` — create tokens (no email) |
+| POST | `/weddings/:id/rsvp/send` | `{ guestIds?, kind?: rsvp_invite\|rsvp_reminder, subject?, message? }` |
+| GET | `/weddings/:id/portal` | Portal settings + URL |
+| PUT | `/weddings/:id/portal` | `{ enabled, slug?, generateSlug?, accessMode?, accessCode?, clearAccessCode?, published? }` |
+| POST | `/weddings/:id/portal/rotate-code` | New code (plaintext returned **once**) |
+
+## Public / guest API
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/guest/rsvp/:token` | HTML form (browser) or JSON (`Accept: application/json` / `?format=json`) |
+| POST | `/guest/rsvp/:token` | Submit RSVP → updates guest row |
+| GET | `/r/:token` | Short redirect → `/guest/rsvp/:token` |
+| GET | `/p/:slug` | Gated landing HTML/JSON (`robots: noindex`) |
+| POST | `/p/:slug/verify` | `{ email?, code? }` → unlock token cookie |
+
+## Planner UI
+
+**Settings → RSVP & guest portal** (also linked from Cloud sync when signed in):
+
+1. Refresh status  
+2. Generate tokens (share links manually if SMTP is missing)  
+3. Send invites / reminders (503 + clear message without SMTP)  
+4. Configure portal slug, access mode, code, published fields  
+
+Client helpers on `CovenantCloudSync`: `rsvpStatus`, `rsvpGenerateTokens`, `rsvpSend`, `portalGet`, `portalUpdate`, `portalRotateCode`.
+
+## Env
+
+```bash
+PUBLIC_URL=http://127.0.0.1:18787   # required for correct links in email + UI
+SMTP_HOST=…                         # required to actually send mail
+SMTP_PORT=587
+SMTP_USER=…
+SMTP_PASS=…
+SMTP_FROM=noreply@example.com
+# FEATURE_RSVP=0                    # optional force-off (defaults on)
+# FEATURE_LANDING=0                 # optional force-off (defaults on)
+```
+
+Without SMTP you can still generate tokens and open `/guest/rsvp/…` in a browser. Without `PUBLIC_URL`, links fall back to the request host (fine on local API).
+
+## Schema note (existing Docker volumes)
+
+New columns/tables are applied via `ALTER … IF NOT EXISTS` / `CREATE TABLE IF NOT EXISTS` on API boot (`initSchema`).
+
+If a CHECK constraint fails on an old volume, recreate:
+
+```bash
+docker compose down -v
+docker compose up -d
+# or re-run server against a wiped Postgres
+```
+
+## Verify
+
+```bash
+npm run verify:rsvp
+```
+
+Exercises token create → guest submit → Postgres guest update. SMTP send is asserted as **503** when unset (or success when configured).
+
+## Honest limits / next
+
+- Not a multi-template wedding website builder  
+- Not partner invites or vendor tokens  
+- Does not provision your SMTP/Google accounts in the cloud  
+- LWW guest sync: RSVP responses stamp `updated_at` so they normally win over older local rows; sync after guests reply  
+
+**Next:** portal polish, richer published blocks, partner invites.
+
+## Demo
+
+- Account: `demo@covenant.local` / `covenant-demo` (username `demo`)  
+- API: `http://localhost:18787`  
+- Health should show `features.rsvp` / `features.landing` true unless forced off  
+
+Related: [`AUTH.md`](./AUTH.md), [`OFFLINE_CLOUD_SYNC.md`](./OFFLINE_CLOUD_SYNC.md), [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md), [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md).
