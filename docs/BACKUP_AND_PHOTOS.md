@@ -96,7 +96,7 @@ npm run verify:auth         # must stay green (when API up)
 ## What’s next (roadmap)
 
 1. **Portal polish** / richer published blocks  
-2. **Partner invites** / vendor tokens  
+2. **Vendor portal tokens** (partner invites shipped — [`PARTNER_INVITES.md`](./PARTNER_INVITES.md))  
 3. Later: wire real S3/R2 presigned uploads; optional cloud pull of photo metadata alongside other sync domains  
 
 RSVP + gated guest portal foundation: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
