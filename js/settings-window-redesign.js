@@ -324,7 +324,7 @@
     html += cardRow('Send RSVP emails', 'User action only — no automatic blasts. Needs SMTP (clear 503 if missing).', btn('Send invites', 'rdRsvpSend'));
     html += cardRow('Send reminders', 'Manual click only — never auto-blasted', btn('Send reminders', 'rdRsvpRemind'));
 
-    html += '<div class="rd-set__note" style="margin-top:1rem"><b>Gated guest portal</b> — unlisted hard-to-guess link; optional guest-email and/or rotatable couple code. Not a public wedding directory. Only published fields appear for guests.</div>';
+    html += '<div class="rd-set__note" style="margin-top:1rem"><b>Gated guest portal</b> — unlisted hard-to-guess link; optional guest-email and/or rotatable couple code. Not a public wedding directory. Only published blocks appear for guests (planner-private notes stay private).</div>';
     html += cardRow('Portal slug', 'Letters, numbers, hyphens',
       '<input type="text" class="rd-set__input" id="rd-portal-slug" placeholder="alex-jordan-a1b2c3">');
     html += cardRow('Access mode', 'unlisted · email · code · email_or_code',
@@ -337,14 +337,42 @@
     html += cardRow('Access code', 'Leave blank to keep current; rotate generates a new one',
       '<input type="text" class="rd-set__input" id="rd-portal-code" placeholder="optional new code" autocomplete="off">'
       + btn('Rotate code', 'rdPortalRotateCode'));
-    html += cardRow('Published headline', 'Shown on portal only',
-      '<input type="text" class="rd-set__input" id="rd-portal-headline" placeholder="Alex & Jordan">');
-    html += cardRow('Published date / venue', '',
+    html += '<div class="rd-set__note" style="margin-top:0.75rem"><b>Published blocks</b> — toggle which sections guests see, then edit content. Empty sections are omitted even when enabled.</div>';
+    html += cardRow('Show blocks', 'Welcome · event · schedule · travel · lodging · registry · FAQ · hero',
+      '<label style="display:flex;flex-wrap:wrap;gap:0.65rem 1rem;font-size:0.9rem">'
+      + '<span><input type="checkbox" id="rd-portal-blk-welcome" checked> Welcome</span>'
+      + '<span><input type="checkbox" id="rd-portal-blk-event" checked> Event</span>'
+      + '<span><input type="checkbox" id="rd-portal-blk-schedule" checked> Schedule</span>'
+      + '<span><input type="checkbox" id="rd-portal-blk-travel" checked> Travel</span>'
+      + '<span><input type="checkbox" id="rd-portal-blk-lodging" checked> Lodging</span>'
+      + '<span><input type="checkbox" id="rd-portal-blk-registry" checked> Registry</span>'
+      + '<span><input type="checkbox" id="rd-portal-blk-faq" checked> FAQ</span>'
+      + '<span><input type="checkbox" id="rd-portal-blk-hero" checked> Hero</span>'
+      + '</label>');
+    html += cardRow('Headline / subhead', 'Hero welcome text',
+      '<input type="text" class="rd-set__input" id="rd-portal-headline" placeholder="Alex & Jordan">'
+      + '<input type="text" class="rd-set__input" id="rd-portal-subhead" placeholder="We cannot wait to celebrate with you">');
+    html += cardRow('Date / venue / dress code', 'Event details block',
       '<input type="text" class="rd-set__input" id="rd-portal-date" placeholder="Date">'
-      + '<input type="text" class="rd-set__input" id="rd-portal-venue" placeholder="Venue">');
-    html += cardRow('Published message', 'Planner-private guest notes stay private',
+      + '<input type="text" class="rd-set__input" id="rd-portal-venue" placeholder="Venue">'
+      + '<input type="text" class="rd-set__input" id="rd-portal-dress" placeholder="Dress code">');
+    html += cardRow('Welcome message', 'Planner-private guest notes stay private',
       '<textarea class="rd-set__input" id="rd-portal-message" rows="3" placeholder="Welcome note for guests"></textarea>');
-    html += cardRow('Enable portal', 'Saves gate + published fields', btn('Save portal', 'rdPortalSave'));
+    html += cardRow('Schedule snippet', 'Day-of overview for guests',
+      '<textarea class="rd-set__input" id="rd-portal-schedule" rows="3" placeholder="3pm ceremony · 5pm cocktail hour · 6pm dinner"></textarea>');
+    html += cardRow('Travel', 'Directions, airports, shuttles',
+      '<textarea class="rd-set__input" id="rd-portal-travel" rows="2" placeholder="Fly into…"></textarea>');
+    html += cardRow('Lodging', 'Hotel blocks / room rates',
+      '<textarea class="rd-set__input" id="rd-portal-lodging" rows="2" placeholder="Hotel block under…"></textarea>');
+    html += cardRow('Registry links', 'One per line: Label | https://…',
+      '<textarea class="rd-set__input" id="rd-portal-registry" rows="3" placeholder="Crate & Barrel | https://…"></textarea>');
+    html += cardRow('FAQ', 'One per line: Question || Answer',
+      '<textarea class="rd-set__input" id="rd-portal-faq" rows="4" placeholder="Can I bring a plus-one? || Please RSVP with your guest name."></textarea>');
+    html += cardRow('Hero image URL', 'http(s) or local /path only — optional',
+      '<input type="text" class="rd-set__input" id="rd-portal-hero" placeholder="https://… or /photos/hero.jpg">');
+    html += cardRow('RSVP hint', 'Shown near the bottom',
+      '<input type="text" class="rd-set__input" id="rd-portal-rsvp-hint" placeholder="Check your email for a personal RSVP link">');
+    html += cardRow('Enable portal', 'Saves gate + published blocks', btn('Save portal', 'rdPortalSave'));
     html += '<div class="rd-set__note" id="rd-portal-summary">Portal URL appears here after save.</div>';
     html += '<div class="rd-set__note">Docs: <code>docs/RSVP_AND_GUEST_PORTAL.md</code>. Real email needs SMTP + PUBLIC_URL.</div>';
     return html;
@@ -417,13 +445,39 @@
       '<select class="rd-set__input" id="rd-vp-vendor"><option value="">— refresh to load —</option></select>');
     html += cardRow('Label (optional)', 'e.g. Day-of catering link',
       '<input type="text" class="rd-set__input" id="rd-vp-label" placeholder="optional label" autocomplete="off">');
+    html += '<div class="rd-set__note" style="margin-top:0.75rem"><b>Packet scopes</b> — what this vendor may see. Never dumps the full planner or internal notes.</div>';
+    html += cardRow('Scopes', 'Toggle blocks on this link',
+      '<label style="display:flex;flex-wrap:wrap;gap:0.65rem 1rem;font-size:0.9rem">'
+      + '<span><input type="checkbox" id="rd-vp-sc-brief" checked> Brief</span>'
+      + '<span><input type="checkbox" id="rd-vp-sc-schedule" checked> Schedule</span>'
+      + '<span><input type="checkbox" id="rd-vp-sc-paperwork" checked> Paperwork</span>'
+      + '<span><input type="checkbox" id="rd-vp-sc-counts" checked> Counts</span>'
+      + '<span><input type="checkbox" id="rd-vp-sc-contacts" checked> Contacts</span>'
+      + '<span><input type="checkbox" id="rd-vp-sc-arrival" checked> Arrival</span>'
+      + '<span><input type="checkbox" id="rd-vp-sc-parking" checked> Parking</span>'
+      + '<span><input type="checkbox" id="rd-vp-sc-notes" checked> Day notes</span>'
+      + '<span><input type="checkbox" id="rd-vp-sc-uploads" checked> Uploads</span>'
+      + '</label>');
+    html += '<div class="rd-set__note" style="margin-top:0.5rem"><b>Published packet fields</b> — couple-written content for this link only (not raw vendor.notes).</div>';
+    html += cardRow('Arrival / load-in', '',
+      '<input type="text" class="rd-set__input" id="rd-vp-arrival" placeholder="Arrival window e.g. 2:00–3:00pm">'
+      + '<input type="text" class="rd-set__input" id="rd-vp-loadin" placeholder="Load-in notes">');
+    html += cardRow('Parking / venue access', '',
+      '<textarea class="rd-set__input" id="rd-vp-parking" rows="2" placeholder="Parking instructions"></textarea>'
+      + '<textarea class="rd-set__input" id="rd-vp-venue-access" rows="2" placeholder="Venue access / loading bay"></textarea>');
+    html += cardRow('Day-of notes', 'Published for this vendor link only',
+      '<textarea class="rd-set__input" id="rd-vp-daynotes" rows="3" placeholder="Anything they need on the day"></textarea>');
+    html += cardRow('Day-of contact', 'Shown when Contacts scope is on',
+      '<input type="text" class="rd-set__input" id="rd-vp-contact-name" placeholder="Contact name">'
+      + '<input type="text" class="rd-set__input" id="rd-vp-contact-phone" placeholder="Phone">'
+      + '<input type="text" class="rd-set__input" id="rd-vp-contact-role" placeholder="Role e.g. Planner">');
     html += cardRow('Email link', 'Uses vendor email when checked; needs SMTP',
       '<label style="display:flex;align-items:center;gap:0.4rem;font-size:0.92rem">'
       + '<input type="checkbox" id="rd-vp-send-email"> Send email if SMTP is configured</label>');
     html += cardRow('Create portal link', 'Returns a copyable URL; no public directory', btn('Create link', 'rdVpCreate'));
     html += '<div class="rd-set__note" id="rd-vp-create-result"></div>';
     html += '<div class="rd-set__note" id="rd-vp-list">Click Refresh to load tokens.</div>';
-    html += '<div class="rd-set__note">Docs: <code>docs/VENDOR_PORTAL.md</code>. Revoke stops the live link immediately; rotate issues a new URL.</div>';
+    html += '<div class="rd-set__note">Docs: <code>docs/VENDOR_PORTAL.md</code>. Revoke stops the live link immediately; rotate issues a new URL (keeps published blocks).</div>';
     return html;
   }
 
@@ -1126,10 +1180,37 @@
           cloudMsg(false, 'Cloud bridge not loaded.');
           return;
         }
+        function vpChk(id, fallback) {
+          var el = document.getElementById(id);
+          return el ? !!el.checked : fallback;
+        }
+        var scopes = {
+          brief: vpChk('rd-vp-sc-brief', true),
+          schedule: vpChk('rd-vp-sc-schedule', true),
+          paperwork: vpChk('rd-vp-sc-paperwork', true),
+          uploads: vpChk('rd-vp-sc-uploads', true),
+          counts: vpChk('rd-vp-sc-counts', true),
+          contacts: vpChk('rd-vp-sc-contacts', true),
+          arrival: vpChk('rd-vp-sc-arrival', true),
+          parking: vpChk('rd-vp-sc-parking', true),
+          notes: vpChk('rd-vp-sc-notes', true)
+        };
+        var published = {
+          arrivalWindow: (document.getElementById('rd-vp-arrival') || {}).value || '',
+          loadIn: (document.getElementById('rd-vp-loadin') || {}).value || '',
+          parking: (document.getElementById('rd-vp-parking') || {}).value || '',
+          venueAccess: (document.getElementById('rd-vp-venue-access') || {}).value || '',
+          dayNotes: (document.getElementById('rd-vp-daynotes') || {}).value || '',
+          contactName: (document.getElementById('rd-vp-contact-name') || {}).value || '',
+          contactPhone: (document.getElementById('rd-vp-contact-phone') || {}).value || '',
+          contactRole: (document.getElementById('rd-vp-contact-role') || {}).value || ''
+        };
         window.CovenantCloudSync.createVendorPortalToken({
           vendorId: vendorId,
           label: vLabel ? String(vLabel.value || '').trim() : '',
-          sendEmail: !!(vSend && vSend.checked)
+          sendEmail: !!(vSend && vSend.checked),
+          scopes: scopes,
+          published: published
         })
           .then(function (body) {
             var resEl = document.getElementById('rd-vp-create-result');
@@ -1232,17 +1313,58 @@
             var slugEl = document.getElementById('rd-portal-slug');
             var modeEl = document.getElementById('rd-portal-mode');
             var headEl = document.getElementById('rd-portal-headline');
+            var subEl = document.getElementById('rd-portal-subhead');
             var dateEl = document.getElementById('rd-portal-date');
             var venueEl = document.getElementById('rd-portal-venue');
+            var dressEl = document.getElementById('rd-portal-dress');
             var msgEl = document.getElementById('rd-portal-message');
+            var schedEl = document.getElementById('rd-portal-schedule');
+            var travelEl = document.getElementById('rd-portal-travel');
+            var lodgeEl = document.getElementById('rd-portal-lodging');
+            var regEl = document.getElementById('rd-portal-registry');
+            var faqEl = document.getElementById('rd-portal-faq');
+            var heroEl = document.getElementById('rd-portal-hero');
+            var hintEl = document.getElementById('rd-portal-rsvp-hint');
             var sumEl = document.getElementById('rd-portal-summary');
             if (slugEl && p.slug) slugEl.value = p.slug;
             if (modeEl && p.accessMode) modeEl.value = p.accessMode;
             var pub = p.published || {};
-            if (headEl && pub.headline) headEl.value = pub.headline;
-            if (dateEl && pub.date) dateEl.value = pub.date;
-            if (venueEl && pub.venue) venueEl.value = pub.venue;
-            if (msgEl && pub.message) msgEl.value = pub.message;
+            if (headEl && pub.headline != null) headEl.value = pub.headline || '';
+            if (subEl && pub.subhead != null) subEl.value = pub.subhead || '';
+            if (dateEl && pub.date != null) dateEl.value = pub.date || '';
+            if (venueEl && pub.venue != null) venueEl.value = pub.venue || '';
+            if (dressEl && pub.dressCode != null) dressEl.value = pub.dressCode || '';
+            if (msgEl && pub.message != null) msgEl.value = pub.message || '';
+            if (schedEl && pub.schedule != null) schedEl.value = pub.schedule || '';
+            if (travelEl && pub.travel != null) travelEl.value = pub.travel || '';
+            if (lodgeEl && pub.lodging != null) lodgeEl.value = pub.lodging || '';
+            if (heroEl && pub.heroImageUrl != null) heroEl.value = pub.heroImageUrl || '';
+            if (hintEl && pub.rsvpHint != null) hintEl.value = pub.rsvpHint || '';
+            if (regEl) {
+              regEl.value = (pub.registryLinks || []).map(function (l) {
+                return (l.label || '') + ' | ' + (l.url || '');
+              }).join('\n');
+            }
+            if (faqEl) {
+              faqEl.value = (pub.faqs || []).map(function (f) {
+                return (f.q || '') + ' || ' + (f.a || '');
+              }).join('\n');
+            }
+            var bl = pub.blocks || {};
+            [
+              ['welcome', 'rd-portal-blk-welcome'],
+              ['event', 'rd-portal-blk-event'],
+              ['schedule', 'rd-portal-blk-schedule'],
+              ['travel', 'rd-portal-blk-travel'],
+              ['lodging', 'rd-portal-blk-lodging'],
+              ['registry', 'rd-portal-blk-registry'],
+              ['faq', 'rd-portal-blk-faq'],
+              ['hero', 'rd-portal-blk-hero']
+            ].forEach(function (pair) {
+              var elChk = document.getElementById(pair[1]);
+              if (!elChk) return;
+              if (Object.prototype.hasOwnProperty.call(bl, pair[0])) elChk.checked = !!bl[pair[0]];
+            });
             if (sumEl) {
               sumEl.innerHTML = p.url
                 ? ('Portal: <a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.url) + '</a>'
@@ -1281,11 +1403,55 @@
         var slug = (document.getElementById('rd-portal-slug') || {}).value || '';
         var mode = (document.getElementById('rd-portal-mode') || {}).value || 'unlisted';
         var code = (document.getElementById('rd-portal-code') || {}).value || '';
+        function chk(id, fallback) {
+          var el = document.getElementById(id);
+          return el ? !!el.checked : fallback;
+        }
+        function parseRegistry(raw) {
+          return String(raw || '').split('\n').map(function (line) {
+            var t = String(line || '').trim();
+            if (!t) return null;
+            var pipe = t.indexOf('|');
+            if (pipe < 0) return null;
+            return {
+              label: t.slice(0, pipe).trim(),
+              url: t.slice(pipe + 1).trim()
+            };
+          }).filter(Boolean);
+        }
+        function parseFaq(raw) {
+          return String(raw || '').split('\n').map(function (line) {
+            var t = String(line || '').trim();
+            if (!t) return null;
+            var sep = t.indexOf('||');
+            if (sep < 0) return null;
+            return { q: t.slice(0, sep).trim(), a: t.slice(sep + 2).trim() };
+          }).filter(Boolean);
+        }
         var published = {
           headline: (document.getElementById('rd-portal-headline') || {}).value || '',
+          subhead: (document.getElementById('rd-portal-subhead') || {}).value || '',
           date: (document.getElementById('rd-portal-date') || {}).value || '',
           venue: (document.getElementById('rd-portal-venue') || {}).value || '',
-          message: (document.getElementById('rd-portal-message') || {}).value || ''
+          dressCode: (document.getElementById('rd-portal-dress') || {}).value || '',
+          message: (document.getElementById('rd-portal-message') || {}).value || '',
+          schedule: (document.getElementById('rd-portal-schedule') || {}).value || '',
+          travel: (document.getElementById('rd-portal-travel') || {}).value || '',
+          lodging: (document.getElementById('rd-portal-lodging') || {}).value || '',
+          heroImageUrl: (document.getElementById('rd-portal-hero') || {}).value || '',
+          rsvpHint: (document.getElementById('rd-portal-rsvp-hint') || {}).value || '',
+          registryLinks: parseRegistry((document.getElementById('rd-portal-registry') || {}).value),
+          faqs: parseFaq((document.getElementById('rd-portal-faq') || {}).value),
+          blocks: {
+            welcome: chk('rd-portal-blk-welcome', true),
+            event: chk('rd-portal-blk-event', true),
+            schedule: chk('rd-portal-blk-schedule', true),
+            travel: chk('rd-portal-blk-travel', true),
+            lodging: chk('rd-portal-blk-lodging', true),
+            registry: chk('rd-portal-blk-registry', true),
+            faq: chk('rd-portal-blk-faq', true),
+            hero: chk('rd-portal-blk-hero', true)
+          }
         };
         var body = {
           enabled: true,

@@ -92,9 +92,33 @@ function layout({ title, body, script }) {
   .msg.ok { background: #ecfdf5; color: #065f46; }
   .msg.err { background: #fef2f2; color: var(--warn); }
   .meta { margin-top: 1.5rem; font-size: 0.8rem; color: #a8a29e; }
-  .pub-block { margin: 0 0 1rem; }
+  .pub-block { margin: 0 0 1.15rem; }
+  .pub-block:last-child { margin-bottom: 0; }
   .pub-block h2 { font-size: 1rem; margin: 0 0 0.35rem; }
-  .pub-block p { margin: 0; color: var(--muted); line-height: 1.45; }
+  .pub-block p { margin: 0; color: var(--muted); line-height: 1.45; white-space: pre-wrap; }
+  .pub-hero {
+    display: block;
+    width: 100%;
+    max-height: 14rem;
+    object-fit: cover;
+    border-radius: 12px;
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--line);
+  }
+  .pub-list { list-style: none; margin: 0; padding: 0; }
+  .pub-list li { margin: 0 0 0.55rem; }
+  .pub-list a { color: var(--accent); word-break: break-word; }
+  .pub-faq details {
+    border-top: 1px solid var(--line);
+    padding: 0.65rem 0;
+  }
+  .pub-faq details:first-child { border-top: 0; padding-top: 0; }
+  .pub-faq summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .pub-faq details p { margin: 0.45rem 0 0; color: var(--muted); line-height: 1.45; white-space: pre-wrap; }
 </style>
 </head>
 <body>
@@ -165,16 +189,64 @@ export function rsvpPageHtml({ guestName, weddingName, weddingDate, token, exist
   return layout({ title: `RSVP · ${weddingName || 'Wedding'}`, body, script });
 }
 
+function portalBlockOn(pub, key) {
+  if (!pub || !pub.blocks || typeof pub.blocks !== 'object') return true;
+  if (!Object.prototype.hasOwnProperty.call(pub.blocks, key)) return true;
+  return !!pub.blocks[key];
+}
+
 export function portalPageHtml({ slug, weddingName, accessMode, published, unlocked }) {
   const pub = published || {};
   const title = pub.headline || weddingName || 'Wedding';
   const blocks = [];
-  if (pub.date) blocks.push(`<div class="pub-block"><h2>Date</h2><p>${esc(pub.date)}</p></div>`);
-  if (pub.venue) blocks.push(`<div class="pub-block"><h2>Venue</h2><p>${esc(pub.venue)}</p></div>`);
-  if (pub.schedule) blocks.push(`<div class="pub-block"><h2>Schedule</h2><p>${esc(pub.schedule)}</p></div>`);
-  if (pub.dressCode) blocks.push(`<div class="pub-block"><h2>Dress code</h2><p>${esc(pub.dressCode)}</p></div>`);
-  if (pub.message) blocks.push(`<div class="pub-block"><h2>Note</h2><p>${esc(pub.message)}</p></div>`);
-  if (pub.rsvpHint) blocks.push(`<div class="pub-block"><h2>RSVP</h2><p>${esc(pub.rsvpHint)}</p></div>`);
+
+  if (portalBlockOn(pub, 'hero') && pub.heroImageUrl) {
+    blocks.push(
+      `<img class="pub-hero" src="${esc(pub.heroImageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+    );
+  }
+  if (portalBlockOn(pub, 'welcome') && pub.message) {
+    blocks.push(`<div class="pub-block"><h2>Welcome</h2><p>${esc(pub.message)}</p></div>`);
+  }
+  if (portalBlockOn(pub, 'event')) {
+    if (pub.date) blocks.push(`<div class="pub-block"><h2>Date</h2><p>${esc(pub.date)}</p></div>`);
+    if (pub.venue) blocks.push(`<div class="pub-block"><h2>Venue</h2><p>${esc(pub.venue)}</p></div>`);
+    if (pub.dressCode) {
+      blocks.push(`<div class="pub-block"><h2>Dress code</h2><p>${esc(pub.dressCode)}</p></div>`);
+    }
+  }
+  if (portalBlockOn(pub, 'schedule') && pub.schedule) {
+    blocks.push(`<div class="pub-block"><h2>Schedule</h2><p>${esc(pub.schedule)}</p></div>`);
+  }
+  if (portalBlockOn(pub, 'travel') && pub.travel) {
+    blocks.push(`<div class="pub-block"><h2>Travel</h2><p>${esc(pub.travel)}</p></div>`);
+  }
+  if (portalBlockOn(pub, 'lodging') && pub.lodging) {
+    blocks.push(`<div class="pub-block"><h2>Lodging</h2><p>${esc(pub.lodging)}</p></div>`);
+  }
+  if (portalBlockOn(pub, 'registry') && Array.isArray(pub.registryLinks) && pub.registryLinks.length) {
+    const items = pub.registryLinks
+      .map(
+        (l) =>
+          `<li><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a></li>`
+      )
+      .join('');
+    blocks.push(
+      `<div class="pub-block"><h2>Registry</h2><ul class="pub-list">${items}</ul></div>`
+    );
+  }
+  if (portalBlockOn(pub, 'faq') && Array.isArray(pub.faqs) && pub.faqs.length) {
+    const items = pub.faqs
+      .map(
+        (f) =>
+          `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`
+      )
+      .join('');
+    blocks.push(`<div class="pub-block"><h2>FAQ</h2><div class="pub-faq">${items}</div></div>`);
+  }
+  if (pub.rsvpHint) {
+    blocks.push(`<div class="pub-block"><h2>RSVP</h2><p>${esc(pub.rsvpHint)}</p></div>`);
+  }
 
   let gate = '';
   if (!unlocked && accessMode !== 'unlisted') {
@@ -198,7 +270,7 @@ export function portalPageHtml({ slug, weddingName, accessMode, published, unloc
     <h1>${esc(title)}</h1>
     <p class="lead">${esc(pub.subhead || (weddingName ? `${weddingName}` : 'Private guest page'))}</p>
     ${gate || `<div class="panel">${blocks.length ? blocks.join('') : '<p class="lead" style="margin:0">Welcome. Details will appear here when the couple publishes them.</p>'}</div>`}
-    <p class="meta">Unlisted · not indexed for search engines</p>
+    <p class="meta">Unlisted · not indexed for search engines · published blocks only</p>
   `;
   const script = unlocked || accessMode === 'unlisted' ? '' : `
     const form = document.getElementById('gate-form');

@@ -24,6 +24,10 @@ ok('schema portal_published_json', /portal_published_json/.test(read('server/sch
 ok('rsvp routes', /rsvp\/tokens/.test(read('server/routes/rsvp.js')) || /\/tokens/.test(read('server/routes/rsvp.js')));
 ok('guest public routes', /guestPublicRoutes/.test(read('server/routes/rsvp.js')));
 ok('portal routes', /portal_access_mode|accessMode/.test(read('server/routes/portal.js')));
+ok('portal sanitize registryLinks', /registryLinks/.test(read('server/routes/portal.js')));
+ok('portal sanitize faqs', /faqs/.test(read('server/routes/portal.js')));
+ok('portal sanitize heroImageUrl', /heroImageUrl/.test(read('server/routes/portal.js')));
+ok('guest pages hero/faq render', /pub-hero|pub-faq|Registry/.test(read('server/lib/guest-pages.js')));
 ok('guest pages lib', fs.existsSync(path.join(root, 'server/lib/guest-pages.js')));
 ok('index mounts /guest', /\/guest/.test(read('server/index.js')));
 ok('index mounts /p', /portalPublicRoutes/.test(read('server/index.js')));
@@ -31,6 +35,8 @@ ok('client rsvpStatus', /rsvpStatus/.test(read('js/cloud-sync.js')));
 ok('client portalUpdate', /portalUpdate/.test(read('js/cloud-sync.js')));
 ok('settings RSVP pane', /id: 'rsvp'/.test(read('js/settings-window-redesign.js')));
 ok('settings Generate tokens', /rdRsvpTokens/.test(read('js/settings-window-redesign.js')));
+ok('settings portal block toggles', /rd-portal-blk-welcome/.test(read('js/settings-window-redesign.js')));
+ok('settings portal travel/faq', /rd-portal-travel/.test(read('js/settings-window-redesign.js')) && /rd-portal-faq/.test(read('js/settings-window-redesign.js')));
 ok('package verify:rsvp', /verify:rsvp/.test(read('package.json')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787';
@@ -165,13 +171,69 @@ async function live() {
       accessCode: 'rose-garden',
       published: {
         headline: 'Ava & Ben',
+        subhead: 'A garden celebration',
         date: 'June 12, 2027',
         venue: 'Cedar Hall',
-        message: 'We cannot wait to celebrate with you.'
+        dressCode: 'Garden formal',
+        message: 'We cannot wait to celebrate with you.',
+        schedule: '3pm ceremony · 5pm cocktails · 6pm dinner',
+        travel: 'Fly into Cedar Regional.',
+        lodging: 'Hotel block under Ava-Ben.',
+        rsvpHint: 'Use your email RSVP link.',
+        heroImageUrl: 'https://example.com/hero.jpg',
+        registryLinks: [{ label: 'Registry', url: 'https://example.com/registry' }],
+        faqs: [{ q: 'Plus-ones?', a: 'Please RSVP with your guest name.' }],
+        blocks: {
+          welcome: true,
+          event: true,
+          schedule: true,
+          travel: true,
+          lodging: true,
+          registry: true,
+          faq: true,
+          hero: true
+        }
       }
     })
   }).then(async (r) => ({ status: r.status, body: await r.json() }));
   ok('portal save', portal.status === 200 && portal.body.portal && portal.body.portal.slug === slug);
+  const savedPub = portal.body.portal && portal.body.portal.published;
+  ok(
+    'portal richer published',
+    savedPub
+      && savedPub.travel === 'Fly into Cedar Regional.'
+      && savedPub.lodging === 'Hotel block under Ava-Ben.'
+      && Array.isArray(savedPub.registryLinks)
+      && savedPub.registryLinks[0]
+      && savedPub.registryLinks[0].label === 'Registry'
+      && Array.isArray(savedPub.faqs)
+      && savedPub.faqs[0]
+      && savedPub.faqs[0].q === 'Plus-ones?'
+      && savedPub.heroImageUrl === 'https://example.com/hero.jpg'
+  );
+
+  const badHero = await fetch(API + '/weddings/' + encodeURIComponent(weddingId) + '/portal', {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({
+      enabled: true,
+      slug,
+      accessMode: 'code',
+      accessCode: 'rose-garden',
+      published: {
+        headline: 'Ava & Ben',
+        heroImageUrl: 'javascript:alert(1)',
+        travel: 'Keep travel'
+      }
+    })
+  }).then(async (r) => ({ status: r.status, body: await r.json() }));
+  ok(
+    'portal rejects javascript hero',
+    badHero.status === 200
+      && badHero.body.portal
+      && badHero.body.portal.published
+      && !badHero.body.portal.published.heroImageUrl
+  );
 
   const locked = await fetch(API + '/p/' + encodeURIComponent(slug) + '?format=json', {
     headers: { Accept: 'application/json' }
@@ -191,6 +253,43 @@ async function live() {
     body: JSON.stringify({ code: 'rose-garden' })
   }).then(async (r) => ({ status: r.status, body: await r.json() }));
   ok('portal good code', good.status === 200 && good.body.token);
+
+  // Restore richer published for unlocked HTML check
+  await fetch(API + '/weddings/' + encodeURIComponent(weddingId) + '/portal', {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({
+      enabled: true,
+      slug,
+      accessMode: 'unlisted',
+      published: {
+        headline: 'Ava & Ben',
+        message: 'Welcome friends.',
+        schedule: '3pm ceremony',
+        travel: 'Shuttle from hotel.',
+        lodging: 'Cedar Inn',
+        registryLinks: [{ label: 'Gifts', url: 'https://example.com/gifts' }],
+        faqs: [{ q: 'Kids?', a: 'Adults only, thank you.' }],
+        blocks: { welcome: true, schedule: true, travel: true, lodging: true, registry: true, faq: true }
+      }
+    })
+  });
+
+  const portalHtml = await fetch(API + '/p/' + encodeURIComponent(slug), {
+    headers: { Accept: 'text/html' }
+  });
+  const portalHtmlText = await portalHtml.text();
+  ok(
+    'portal html richer blocks',
+    portalHtml.status === 200
+      && /Welcome/.test(portalHtmlText)
+      && /Schedule/.test(portalHtmlText)
+      && /Travel/.test(portalHtmlText)
+      && /Lodging/.test(portalHtmlText)
+      && /Registry/.test(portalHtmlText)
+      && /FAQ/.test(portalHtmlText)
+      && /noindex/.test(portalHtmlText)
+  );
 
   const emailGate = await fetch(API + '/weddings/' + encodeURIComponent(weddingId) + '/portal', {
     method: 'PUT',

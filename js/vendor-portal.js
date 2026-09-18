@@ -98,6 +98,9 @@
         mode: 'Cloud',
         isDemo: false,
         isCloud: true,
+        scopes: b.scopes || null,
+        published: b.published || {},
+        blocks: b.blocks || {},
         wedding: b.wedding || { coupleNames: 'Wedding', date: '', dateLabel: '—' },
         vendor: b.vendor || { name: 'Vendor', category: 'Vendor' },
         counts: b.counts || { covers: 0, vegetarian: 0, nutAllergy: 0, serviceAt: '—' },
@@ -629,6 +632,48 @@
       + '</div>';
   }
 
+  function renderPublishedBlocks(s) {
+    var pub = s.published || {};
+    var blocks = s.blocks || {};
+    var html = '';
+    var arrival = blocks.arrival || (pub.arrivalWindow || pub.loadIn
+      ? { window: pub.arrivalWindow || '', loadIn: pub.loadIn || '' }
+      : null);
+    var parking = blocks.parking || (pub.parking || pub.venueAccess
+      ? { parking: pub.parking || '', venueAccess: pub.venueAccess || '' }
+      : null);
+    var notes = blocks.notes || (pub.dayNotes ? { dayNotes: pub.dayNotes } : null);
+
+    if (arrival && (arrival.window || arrival.loadIn)) {
+      html += '<div class="vp-section-head"><strong>Arrival window</strong><span>Published for this link · not the full planner</span></div>';
+      if (arrival.window) {
+        html += '<div class="vp-row"><div><strong>On site</strong><em>' + esc(arrival.window)
+          + '</em></div><span class="vp-meta">Arrival</span></div>';
+      }
+      if (arrival.loadIn) {
+        html += '<div class="vp-row"><div><strong>Load-in</strong><em>' + esc(arrival.loadIn)
+          + '</em></div><span class="vp-meta">Access</span></div>';
+      }
+    }
+    if (parking && (parking.parking || parking.venueAccess)) {
+      html += '<div class="vp-section-head"><strong>Parking &amp; venue access</strong><span>Scoped packet only</span></div>';
+      if (parking.parking) {
+        html += '<div class="vp-row"><div><strong>Parking</strong><em>' + esc(parking.parking)
+          + '</em></div></div>';
+      }
+      if (parking.venueAccess) {
+        html += '<div class="vp-row"><div><strong>Venue access</strong><em>' + esc(parking.venueAccess)
+          + '</em></div></div>';
+      }
+    }
+    if (notes && notes.dayNotes) {
+      html += '<div class="vp-section-head"><strong>Day-of notes</strong><span>Couple-published · not internal planner notes</span></div>';
+      html += '<div class="vp-row"><div><strong>Notes for you</strong><em style="white-space:pre-wrap">'
+        + esc(notes.dayNotes) + '</em></div></div>';
+    }
+    return html;
+  }
+
   function renderBrief(s) {
     var counts = s.counts || { covers: 0, vegetarian: 0, nutAllergy: 0, serviceAt: '—' };
     var slice = s.slice || [];
@@ -644,6 +689,7 @@
       + '<div class="vp-stat"><span>Nut allergy</span><strong class="is-warn">' + counts.nutAllergy + '</strong></div>'
       + '<div class="vp-stat"><span>Service at</span><strong>' + esc(counts.serviceAt || '—') + '</strong></div>'
       + '</div>'
+      + renderPublishedBlocks(s)
       + '<div class="vp-section-head"><strong>Your slice of the day</strong><span>' + slice.length + ' obligations · times from this device\'s run sheet</span></div>'
       + slice.map(function (r) {
         return '<div class="vp-row' + (r.kind === 'loadin' || r.kind === 'clear' ? ' is-hatch' : '') + '"><div><strong>'
@@ -671,12 +717,30 @@
     var owed = firstOverdueOwed(s);
     var overdueN = (s.owed || []).filter(function (r) { return r.tone === 'danger'; }).length;
     var contacts = s.contacts || [];
+    var pub = s.published || {};
+    var arrivalLine = pub.arrivalWindow
+      ? ('<div class="vp-m-block"><div class="vp-m-eyebrow">Arrival</div>'
+        + '<div class="vp-m-title">' + esc(pub.arrivalWindow) + '</div>'
+        + (pub.loadIn ? '<div class="vp-m-sub">' + esc(pub.loadIn) + '</div>' : '')
+        + '</div>')
+      : '';
+    var parkLine = (pub.parking || pub.venueAccess)
+      ? ('<div class="vp-m-block"><div class="vp-m-eyebrow">Parking</div>'
+        + '<div class="vp-m-title">' + esc(pub.parking || 'Venue access') + '</div>'
+        + (pub.venueAccess ? '<div class="vp-m-sub">' + esc(pub.venueAccess) + '</div>' : '')
+        + '</div>')
+      : '';
+    var notesLine = pub.dayNotes
+      ? ('<div class="vp-m-block"><div class="vp-m-eyebrow">Day-of notes</div>'
+        + '<div class="vp-m-sub" style="white-space:pre-wrap">' + esc(pub.dayNotes) + '</div></div>')
+      : '';
     return ''
       + '<div class="vp-m-stats">'
       + '<div class="vp-m-stat"><span>Covers</span><strong>' + counts.covers + '</strong></div>'
       + '<div class="vp-m-stat"><span>Veg</span><strong>' + counts.vegetarian + '</strong></div>'
       + '<div class="vp-m-stat"><span>Nut</span><strong class="is-warn">' + counts.nutAllergy + '</strong></div>'
       + '</div>'
+      + arrivalLine + parkLine + notesLine
       + '<div class="vp-m-block">'
       + '<div class="vp-m-eyebrow">Your next obligation</div>'
       + '<div class="vp-m-title">' + esc(next.title) + '</div>'

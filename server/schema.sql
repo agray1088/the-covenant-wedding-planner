@@ -605,12 +605,17 @@ CREATE TABLE IF NOT EXISTS vendor_portal_tokens (
   token         TEXT NOT NULL UNIQUE,
   label         TEXT,
   scopes_json   JSONB NOT NULL DEFAULT '{}'::jsonb,
+  published_json JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_by    UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   revoked_at    TIMESTAMPTZ,
   last_used_at  TIMESTAMPTZ,
   expires_at    TIMESTAMPTZ
 );
+
+-- Older volumes: add published packet blocks column if missing.
+ALTER TABLE vendor_portal_tokens
+  ADD COLUMN IF NOT EXISTS published_json JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 CREATE INDEX IF NOT EXISTS vendor_portal_tokens_wedding_idx
   ON vendor_portal_tokens(wedding_id, created_at DESC);

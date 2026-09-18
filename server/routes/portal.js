@@ -71,14 +71,82 @@ function slugify(input) {
   return s || `w-${crypto.randomBytes(4).toString('hex')}`;
 }
 
+/** Allow http(s) or same-origin relative paths only (no javascript: / data:). */
+function safePublicUrl(u) {
+  const s = String(u || '').trim().slice(0, 500);
+  if (!s) return '';
+  if (s.startsWith('/') && !s.startsWith('//') && !s.includes('\\')) return s;
+  try {
+    const parsed = new URL(s);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return s;
+  } catch {
+    /* ignore */
+  }
+  return '';
+}
+
+/**
+ * Only couple-published fields reach guests. Planner-private notes never appear.
+ * Richer blocks: travel/lodging, registry links, FAQ, optional hero image URL.
+ */
 function sanitizePublished(input) {
   const src = input && typeof input === 'object' ? input : {};
   const out = {};
-  const allow = ['headline', 'subhead', 'date', 'venue', 'schedule', 'dressCode', 'message', 'rsvpHint'];
-  for (const key of allow) {
+  const shortKeys = ['headline', 'subhead', 'date', 'venue', 'dressCode', 'rsvpHint'];
+  const longKeys = ['message', 'schedule', 'travel', 'lodging'];
+  for (const key of shortKeys) {
     if (src[key] == null) continue;
-    const v = String(src[key]).trim().slice(0, key === 'message' || key === 'schedule' ? 2000 : 400);
+    const v = String(src[key]).trim().slice(0, 400);
     if (v) out[key] = v;
+  }
+  for (const key of longKeys) {
+    if (src[key] == null) continue;
+    const v = String(src[key]).trim().slice(0, 2000);
+    if (v) out[key] = v;
+  }
+  const hero = safePublicUrl(src.heroImageUrl);
+  if (hero) out.heroImageUrl = hero;
+
+  if (Array.isArray(src.registryLinks)) {
+    const links = [];
+    for (const item of src.registryLinks.slice(0, 8)) {
+      if (!item || typeof item !== 'object') continue;
+      const label = String(item.label || '').trim().slice(0, 120);
+      const url = safePublicUrl(item.url);
+      if (label && url) links.push({ label, url });
+    }
+    if (links.length) out.registryLinks = links;
+  }
+
+  if (Array.isArray(src.faqs)) {
+    const faqs = [];
+    for (const item of src.faqs.slice(0, 12)) {
+      if (!item || typeof item !== 'object') continue;
+      const q = String(item.q || item.question || '').trim().slice(0, 200);
+      const a = String(item.a || item.answer || '').trim().slice(0, 1000);
+      if (q && a) faqs.push({ q, a });
+    }
+    if (faqs.length) out.faqs = faqs;
+  }
+
+  const blockKeys = [
+    'welcome',
+    'event',
+    'schedule',
+    'travel',
+    'lodging',
+    'registry',
+    'faq',
+    'hero'
+  ];
+  if (src.blocks && typeof src.blocks === 'object') {
+    const blocks = {};
+    for (const k of blockKeys) {
+      if (Object.prototype.hasOwnProperty.call(src.blocks, k)) {
+        blocks[k] = !!src.blocks[k];
+      }
+    }
+    if (Object.keys(blocks).length) out.blocks = blocks;
   }
   return out;
 }

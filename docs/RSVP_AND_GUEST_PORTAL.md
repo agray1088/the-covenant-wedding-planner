@@ -15,7 +15,8 @@ Offline-first is unchanged: the planner works without a network. Sending email a
 | Message log | `outbound_emails` rows for invite/reminder attempts |
 | Portal | `GET/PUT …/portal` + public `/p/:slug` with access modes |
 | Gate modes | `unlisted` · `email` · `code` · `email_or_code` |
-| Published fields | Only `portal_published_json` (headline, date, venue, …) — planner-private guest notes stay private |
+| Published blocks | Only `portal_published_json` — welcome, event, schedule, travel, lodging, registry links, FAQ, optional hero URL, RSVP hint. Planner-private guest notes stay private |
+| Block toggles | `published.blocks.{welcome,event,schedule,travel,lodging,registry,faq,hero}` — empty sections omitted even when enabled |
 | SMTP | Reuses auth mail helper; **503** `smtp_not_configured` when unset |
 | Links | Built from `PUBLIC_URL` (local: `http://localhost:18787` / `http://127.0.0.1:18787`) |
 
@@ -30,6 +31,38 @@ Offline-first is unchanged: the planner works without a network. Sending email a
 | PUT | `/weddings/:id/portal` | `{ enabled, slug?, generateSlug?, accessMode?, accessCode?, clearAccessCode?, published? }` |
 | POST | `/weddings/:id/portal/rotate-code` | New code (plaintext returned **once**) |
 
+### `published` shape (sanitized server-side)
+
+```json
+{
+  "headline": "Alex & Jordan",
+  "subhead": "June celebration",
+  "message": "Welcome note…",
+  "date": "June 12, 2027",
+  "venue": "Cedar Hall",
+  "dressCode": "Garden formal",
+  "schedule": "3pm ceremony · 5pm cocktails",
+  "travel": "Fly into…",
+  "lodging": "Hotel block under…",
+  "rsvpHint": "Check your email for a personal RSVP link",
+  "heroImageUrl": "https://… or /local/path.jpg",
+  "registryLinks": [{ "label": "Registry", "url": "https://…" }],
+  "faqs": [{ "q": "Plus-ones?", "a": "Please RSVP with your guest name." }],
+  "blocks": {
+    "welcome": true,
+    "event": true,
+    "schedule": true,
+    "travel": true,
+    "lodging": true,
+    "registry": true,
+    "faq": true,
+    "hero": true
+  }
+}
+```
+
+`heroImageUrl` accepts **http(s)** or same-origin **relative `/path`** only (no `javascript:` / `data:`).
+
 ## Public / guest API
 
 | Method | Path | Purpose |
@@ -37,7 +70,7 @@ Offline-first is unchanged: the planner works without a network. Sending email a
 | GET | `/guest/rsvp/:token` | HTML form (browser) or JSON (`Accept: application/json` / `?format=json`) |
 | POST | `/guest/rsvp/:token` | Submit RSVP → updates guest row |
 | GET | `/r/:token` | Short redirect → `/guest/rsvp/:token` |
-| GET | `/p/:slug` | Gated landing HTML/JSON (`robots: noindex`) |
+| GET | `/p/:slug` | Gated landing HTML/JSON (`robots: noindex`) — published blocks only when unlocked |
 | POST | `/p/:slug/verify` | `{ email?, code? }` → unlock token cookie |
 
 ## Planner UI
@@ -47,7 +80,8 @@ Offline-first is unchanged: the planner works without a network. Sending email a
 1. Refresh status  
 2. Generate tokens (share links manually if SMTP is missing)  
 3. Send invites / reminders (503 + clear message without SMTP)  
-4. Configure portal slug, access mode, code, published fields  
+4. Configure portal slug, access mode, code  
+5. Toggle published **blocks** and edit content (welcome, event, schedule, travel/lodging, registry, FAQ, hero URL)  
 
 Client helpers on `CovenantCloudSync`: `rsvpStatus`, `rsvpGenerateTokens`, `rsvpSend`, `portalGet`, `portalUpdate`, `portalRotateCode`.
 
@@ -84,16 +118,16 @@ docker compose up -d
 npm run verify:rsvp
 ```
 
-Exercises token create → guest submit → Postgres guest update. SMTP send is asserted as **503** when unset (or success when configured).
+Exercises token create → guest submit → Postgres guest update → richer published blocks on `/p/:slug`. SMTP send is asserted as **503** when unset (or success when configured).
 
 ## Honest limits / next
 
 - Not a multi-template wedding website builder  
-- Not partner invites or vendor tokens  
 - Does not provision your SMTP/Google accounts in the cloud  
 - LWW guest sync: RSVP responses stamp `updated_at` so they normally win over older local rows; sync after guests reply  
+- Hero images are URL-only for now (hosted S3/R2 photo URLs later)
 
-**Next:** portal polish / hosted secrets. Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).
+**Next polish:** hosted secrets checklist UX; S3/R2 photo URLs for portal hero. Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).
 
 ## Demo
 

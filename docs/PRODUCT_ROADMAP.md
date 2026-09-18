@@ -24,6 +24,7 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 | Email when SMTP set; portal URL always returned | Done |
 | Settings → Vendor portal UI | Done |
 | Wire `vendor-portal.html` to cloud tokens | Done |
+| Richer packet blocks (arrival / parking / day notes + scopes) | Done |
 | `verify:vendor-portal` | Done |
 | Vendor password accounts | Out of scope |
 | Payment processing | Out of scope |
@@ -50,6 +51,7 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 | SMTP reuse + clear 503 when unset | Done |
 | Gated portal (`/p/:slug`) — unlisted / email / code | Done |
 | Published fields only (`portal_published_json`) | Done |
+| Richer published blocks (travel, lodging, registry, FAQ, hero URL, toggles) | Done |
 | Settings UI: RSVP & guest portal | Done |
 | `verify:rsvp` | Done |
 | Fancy multi-template website builder | Out of scope |
@@ -63,7 +65,7 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 
 ## Cloud track — largely complete
 
-Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Remaining polish: richer portal blocks, hosted secrets / real Google+SMTP in production, optional S3/R2 provisioning.
+Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Guest + vendor portals now support **richer published blocks**. Remaining polish: hosted secrets / real Google+SMTP in production, optional S3/R2 provisioning for portal hero photos.
 
 ## Docs
 

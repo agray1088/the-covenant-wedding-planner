@@ -1386,9 +1386,27 @@
           vendorId: opts.vendorId,
           label: opts.label || undefined,
           scopes: opts.scopes || undefined,
+          published: opts.published || undefined,
           expiresAt: opts.expiresAt || undefined,
           sendEmail: !!opts.sendEmail,
           email: opts.email || undefined
+        }
+      });
+    });
+  }
+
+  /** Couple: update scopes / published packet blocks on a live token (no URL change). */
+  function updateVendorPortalToken(tokenId, opts) {
+    opts = opts || {};
+    return requireWeddingPath(
+      '/vendor-portal/tokens/' + encodeURIComponent(tokenId)
+    ).then(function (path) {
+      return api(path, {
+        method: 'PUT',
+        body: {
+          label: opts.label,
+          scopes: opts.scopes,
+          published: opts.published
         }
       });
     });
@@ -2722,6 +2740,7 @@
     acceptInvite: acceptInvite,
     listVendorPortalTokens: listVendorPortalTokens,
     createVendorPortalToken: createVendorPortalToken,
+    updateVendorPortalToken: updateVendorPortalToken,
     revokeVendorPortalToken: revokeVendorPortalToken,
     rotateVendorPortalToken: rotateVendorPortalToken,
     api: api

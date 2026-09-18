@@ -23,8 +23,39 @@ const DEFAULT_SCOPES = {
   paperwork: true,
   uploads: true,
   counts: true,
-  contacts: true
+  contacts: true,
+  /** Arrival / load-in window for this vendor */
+  arrival: true,
+  /** Parking / venue access notes the couple publishes */
+  parking: true,
+  /** Day-of notes published for this token only (never raw planner notes) */
+  notes: true
 };
+
+const PUBLISHED_SHORT = [
+  'arrivalWindow',
+  'contactName',
+  'contactPhone',
+  'contactRole'
+];
+const PUBLISHED_LONG = ['parking', 'dayNotes', 'loadIn', 'venueAccess'];
+
+/** Couple-published vendor packet fields — never dumps planner-private vendor.notes. */
+function sanitizeVendorPublished(input) {
+  const src = input && typeof input === 'object' ? input : {};
+  const out = {};
+  for (const key of PUBLISHED_SHORT) {
+    if (src[key] == null) continue;
+    const v = String(src[key]).trim().slice(0, 200);
+    if (v) out[key] = v;
+  }
+  for (const key of PUBLISHED_LONG) {
+    if (src[key] == null) continue;
+    const v = String(src[key]).trim().slice(0, 2000);
+    if (v) out[key] = v;
+  }
+  return out;
+}
 
 function featureOn() {
   const raw = process.env.FEATURE_VENDOR_TOKENS;
@@ -99,6 +130,7 @@ function mapTokenRow(row, { includeUrl = false, req = null } = {}) {
     row.scopes_json && typeof row.scopes_json === 'object'
       ? row.scopes_json
       : DEFAULT_SCOPES;
+  const published = sanitizeVendorPublished(row.published_json || {});
   const out = {
     id: row.id,
     weddingId: row.wedding_id,
@@ -108,6 +140,7 @@ function mapTokenRow(row, { includeUrl = false, req = null } = {}) {
     vendorEmail: row.vendor_email || null,
     label: row.label || null,
     scopes,
+    published,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
     revokedAt: row.revoked_at ? new Date(row.revoked_at).toISOString() : null,
     lastUsedAt: row.last_used_at ? new Date(row.last_used_at).toISOString() : null,
@@ -163,6 +196,7 @@ async function buildScopedPacket(tokenRow) {
   const weddingId = tokenRow.wedding_id;
   const vendorId = tokenRow.vendor_id;
   const scopes = sanitizeScopes(tokenRow.scopes_json);
+  const published = sanitizeVendorPublished(tokenRow.published_json || {});
 
   const weddingQ = await query(
     `SELECT id, name, bride, groom, wedding_date FROM weddings WHERE id = $1`,
@@ -286,12 +320,38 @@ async function buildScopedPacket(tokenRow) {
 
   const contacts = [];
   if (scopes.contacts) {
-    contacts.push({
-      name: coupleNames(wedding),
-      role: 'Couple · day-of',
-      phone: '—'
-    });
+    if (published.contactName || published.contactPhone) {
+      contacts.push({
+        name: published.contactName || coupleNames(wedding),
+        role: published.contactRole || 'Day-of contact',
+        phone: published.contactPhone || '—'
+      });
+    } else {
+      contacts.push({
+        name: coupleNames(wedding),
+        role: 'Couple · day-of',
+        phone: '—'
+      });
+    }
   }
+
+  const packetBlocks = {
+    arrival:
+      scopes.arrival && (published.arrivalWindow || published.loadIn)
+        ? {
+            window: published.arrivalWindow || '',
+            loadIn: published.loadIn || ''
+          }
+        : null,
+    parking:
+      scopes.parking && (published.parking || published.venueAccess)
+        ? {
+            parking: published.parking || '',
+            venueAccess: published.venueAccess || ''
+          }
+        : null,
+    notes: scopes.notes && published.dayNotes ? { dayNotes: published.dayNotes } : null
+  };
 
   const status = tokenRow.revoked_at
     ? 'revoked'
@@ -316,6 +376,19 @@ async function buildScopedPacket(tokenRow) {
     expires: expires || null,
     label: tokenRow.label || null,
     scopes,
+    published: {
+      ...published,
+      // Only expose fields allowed by scopes (privacy)
+      arrivalWindow: scopes.arrival ? published.arrivalWindow || '' : '',
+      loadIn: scopes.arrival ? published.loadIn || '' : '',
+      parking: scopes.parking ? published.parking || '' : '',
+      venueAccess: scopes.parking ? published.venueAccess || '' : '',
+      dayNotes: scopes.notes ? published.dayNotes || '' : '',
+      contactName: scopes.contacts ? published.contactName || '' : '',
+      contactPhone: scopes.contacts ? published.contactPhone || '' : '',
+      contactRole: scopes.contacts ? published.contactRole || '' : ''
+    },
+    blocks: packetBlocks,
     wedding: {
       id: wedding.id,
       name: wedding.name || '',
@@ -370,7 +443,8 @@ async function buildScopedPacket(tokenRow) {
       guestNames: false,
       budgetTotals: false,
       otherVendors: false,
-      internalNotes: false
+      internalNotes: false,
+      rawVendorNotes: false
     }
   };
 }
@@ -408,7 +482,7 @@ router.get(
 
 /**
  * POST /weddings/:weddingId/vendor-portal/tokens
- * Body: { vendorId, label?, scopes?, expiresAt?, sendEmail?, email? }
+ * Body: { vendorId, label?, scopes?, published?, expiresAt?, sendEmail?, email? }
  */
 router.post(
   '/tokens',
@@ -443,6 +517,7 @@ router.post(
 
       const label = String(body.label || '').trim().slice(0, 120) || null;
       const scopes = sanitizeScopes(body.scopes);
+      const published = sanitizeVendorPublished(body.published);
       let expiresAt = null;
       if (body.expiresAt) {
         const d = new Date(body.expiresAt);
@@ -452,8 +527,8 @@ router.post(
       const raw = newPortalToken();
       const { rows } = await query(
         `INSERT INTO vendor_portal_tokens (
-           wedding_id, vendor_id, token, label, scopes_json, created_by, expires_at
-         ) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7)
+           wedding_id, vendor_id, token, label, scopes_json, published_json, created_by, expires_at
+         ) VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7,$8)
          RETURNING *`,
         [
           req.params.weddingId,
@@ -461,6 +536,7 @@ router.post(
           raw,
           label,
           JSON.stringify(scopes),
+          JSON.stringify(published),
           req.user.id,
           expiresAt
         ]
@@ -576,6 +652,85 @@ router.post(
   }
 );
 
+/**
+ * PUT /weddings/:weddingId/vendor-portal/tokens/:tokenId
+ * Body: { scopes?, published?, label? } — update live packet blocks without rotating URL.
+ */
+router.put(
+  '/tokens/:tokenId',
+  requireFeature,
+  requireAuth,
+  requireWeddingMember,
+  async (req, res, next) => {
+    try {
+      const existing = await query(
+        `SELECT * FROM vendor_portal_tokens
+          WHERE wedding_id = $1 AND id = $2`,
+        [req.params.weddingId, req.params.tokenId]
+      );
+      const cur = existing.rows[0];
+      if (!cur) {
+        res.status(404).json({ error: 'not_found', message: 'Token not found.' });
+        return;
+      }
+      if (cur.revoked_at) {
+        res.status(400).json({
+          error: 'revoked',
+          message: 'Cannot update a revoked token.'
+        });
+        return;
+      }
+
+      const body = req.body || {};
+      const scopes =
+        body.scopes != null ? sanitizeScopes(body.scopes) : sanitizeScopes(cur.scopes_json);
+      const published =
+        body.published != null
+          ? sanitizeVendorPublished(body.published)
+          : sanitizeVendorPublished(cur.published_json || {});
+      let label = cur.label;
+      if (body.label != null) {
+        label = String(body.label || '').trim().slice(0, 120) || null;
+      }
+
+      const { rows } = await query(
+        `UPDATE vendor_portal_tokens SET
+           scopes_json = $3::jsonb,
+           published_json = $4::jsonb,
+           label = $5
+         WHERE wedding_id = $1 AND id = $2
+         RETURNING *`,
+        [
+          req.params.weddingId,
+          req.params.tokenId,
+          JSON.stringify(scopes),
+          JSON.stringify(published),
+          label
+        ]
+      );
+      const vendorQ = await query(
+        `SELECT name, category, email FROM vendors
+          WHERE wedding_id = $1 AND id = $2`,
+        [rows[0].wedding_id, rows[0].vendor_id]
+      );
+      const v = vendorQ.rows[0] || {};
+      const row = {
+        ...rows[0],
+        vendor_name: v.name,
+        vendor_category: v.category,
+        vendor_email: v.email
+      };
+      res.json({
+        ok: true,
+        token: mapTokenRow(row, { includeUrl: true, req }),
+        message: 'Portal packet updated.'
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+);
+
 /** POST /weddings/:weddingId/vendor-portal/tokens/:tokenId/revoke */
 router.post(
   '/tokens/:tokenId/revoke',
@@ -654,8 +809,8 @@ router.post(
 
       const { rows } = await query(
         `INSERT INTO vendor_portal_tokens (
-           wedding_id, vendor_id, token, label, scopes_json, created_by, expires_at
-         ) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7)
+           wedding_id, vendor_id, token, label, scopes_json, published_json, created_by, expires_at
+         ) VALUES ($1,$2,$3,$4,$5::jsonb,$6::jsonb,$7,$8)
          RETURNING *`,
         [
           old.wedding_id,
@@ -663,6 +818,7 @@ router.post(
           raw,
           old.label,
           JSON.stringify(sanitizeScopes(old.scopes_json)),
+          JSON.stringify(sanitizeVendorPublished(old.published_json || {})),
           req.user.id,
           old.expires_at
         ]
