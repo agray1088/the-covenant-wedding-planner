@@ -683,7 +683,12 @@ router.put(
 
       const body = req.body || {};
       const scopes =
-        body.scopes != null ? sanitizeScopes(body.scopes) : sanitizeScopes(cur.scopes_json);
+        body.scopes != null
+          ? sanitizeScopes({
+              ...sanitizeScopes(cur.scopes_json),
+              ...body.scopes
+            })
+          : sanitizeScopes(cur.scopes_json);
       const published =
         body.published != null
           ? sanitizeVendorPublished(body.published)
