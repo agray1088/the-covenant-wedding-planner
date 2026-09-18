@@ -595,3 +595,35 @@ ALTER TABLE weddings
 CREATE UNIQUE INDEX IF NOT EXISTS weddings_portal_slug_uidx
   ON weddings(portal_slug) WHERE portal_slug IS NOT NULL;
 
+-- ─── Vendor portal tokens (cloud feature; offline planner unchanged) ─────────
+-- Opaque unguessable tokens grant a scoped vendor packet — not the full planner.
+-- No public vendor directory: link/token required. Couple creates / revokes / rotates.
+CREATE TABLE IF NOT EXISTS vendor_portal_tokens (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  wedding_id    UUID NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  vendor_id     TEXT NOT NULL,
+  token         TEXT NOT NULL UNIQUE,
+  label         TEXT,
+  scopes_json   JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_by    UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revoked_at    TIMESTAMPTZ,
+  last_used_at  TIMESTAMPTZ,
+  expires_at    TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS vendor_portal_tokens_wedding_idx
+  ON vendor_portal_tokens(wedding_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS vendor_portal_tokens_vendor_idx
+  ON vendor_portal_tokens(wedding_id, vendor_id);
+CREATE UNIQUE INDEX IF NOT EXISTS vendor_portal_tokens_token_uidx
+  ON vendor_portal_tokens(token);
+
+-- Allow vendor_portal kind on outbound email log (idempotent for older volumes).
+ALTER TABLE outbound_emails DROP CONSTRAINT IF EXISTS outbound_emails_kind_check;
+ALTER TABLE outbound_emails ADD CONSTRAINT outbound_emails_kind_check
+  CHECK (kind IN (
+    'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username',
+    'partner_invite', 'vendor_portal'
+  ));
+

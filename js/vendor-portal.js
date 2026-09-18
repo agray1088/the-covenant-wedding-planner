@@ -16,6 +16,105 @@
   /* Offline GA: portal actions are local theatre until Postgres + auth. */
   var OFFLINE_LOCAL_NOTE = 'Local preview on this device — not a multi-user vendor portal.';
   var OFFLINE_DEMO_NOTE = 'Sample layout preview — demo data only. Not a live shared link.';
+  var CLOUD_PORTAL_NOTE = 'Live vendor portal — scoped packet only. Link required; not a public directory.';
+
+  function cloudApiBase() {
+    try {
+      var stored = localStorage.getItem('covenant_cloud_api');
+      if (stored) return String(stored).replace(/\/$/, '');
+    } catch (e) { /* ignore */ }
+    try {
+      var u = new URL(window.location.href);
+      if (/18787|8787/.test(u.port) || /covenant/.test(u.hostname)) {
+        return u.origin;
+      }
+      // Common local: planner :8000, API :18787
+      if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') {
+        return u.protocol + '//' + u.hostname + ':18787';
+      }
+      return u.origin;
+    } catch (e2) {
+      return 'http://127.0.0.1:18787';
+    }
+  }
+
+  function tokenFromPath() {
+    try {
+      var m = String(window.location.pathname || '').match(/\/vendor\/portal\/([A-Za-z0-9_-]+)/);
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (e) { return ''; }
+  }
+
+  function fetchCloudSession(token) {
+    if (!token || String(token).length < 16) return Promise.resolve(null);
+    var base = cloudApiBase();
+    var url = base + '/vendor/portal/' + encodeURIComponent(token) + '?format=json';
+    return fetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      credentials: 'omit'
+    }).then(function (res) {
+      return res.json().then(function (body) {
+        return { status: res.status, body: body };
+      }).catch(function () {
+        return { status: res.status, body: null };
+      });
+    }).then(function (pack) {
+      if (!pack || !pack.body) return null;
+      if (pack.status === 410 || (pack.body.status === 'revoked' || pack.body.status === 'expired')) {
+        return {
+          token: token,
+          status: pack.body.status || (pack.status === 410 ? 'revoked' : 'expired'),
+          isDemo: false,
+          isCloud: true,
+          mode: 'Cloud',
+          sharedBy: '—',
+          sharedOn: '—',
+          expires: null,
+          wedding: { coupleNames: '—', date: '', dateLabel: '—' },
+          vendor: { name: 'Vendor portal', category: 'Vendor' },
+          counts: { covers: 0, vegetarian: 0, nutAllergy: 0, serviceAt: '—' },
+          slice: [],
+          scheduleGantt: null,
+          deps: [],
+          owed: [],
+          contacts: [],
+          paperwork: {
+            contractValue: '—', paid: '—', outstanding: '—', nextDue: '—',
+            contract: { title: '—', meta: '', headMeta: '' },
+            clauses: [], instalments: [], invoices: []
+          },
+          uploads: { outstanding: [], done: [] }
+        };
+      }
+      if (pack.status !== 200 || !pack.body.ok) return null;
+      var b = pack.body;
+      return {
+        token: b.token || token,
+        status: b.status || 'live',
+        sharedBy: b.sharedBy || 'Couple',
+        sharedOn: b.sharedOn || '—',
+        expires: b.expires || null,
+        mode: 'Cloud',
+        isDemo: false,
+        isCloud: true,
+        wedding: b.wedding || { coupleNames: 'Wedding', date: '', dateLabel: '—' },
+        vendor: b.vendor || { name: 'Vendor', category: 'Vendor' },
+        counts: b.counts || { covers: 0, vegetarian: 0, nutAllergy: 0, serviceAt: '—' },
+        slice: Array.isArray(b.slice) ? b.slice : [],
+        scheduleGantt: b.scheduleGantt || null,
+        deps: Array.isArray(b.deps) ? b.deps : [],
+        owed: Array.isArray(b.owed) ? b.owed : [],
+        contacts: Array.isArray(b.contacts) ? b.contacts : [],
+        paperwork: b.paperwork || {
+          contractValue: '—', paid: '—', outstanding: '—', nextDue: '—',
+          contract: { title: '—', meta: '', headMeta: '' },
+          clauses: [], instalments: [], invoices: []
+        },
+        uploads: b.uploads || { outstanding: [], done: [] }
+      };
+    }).catch(function () { return null; });
+  }
 
   /* ── The rules underneath (V6/V7) — the scope contract and the access
         lifecycle. Not a fifth tab: the four tabs above are what these two
@@ -792,24 +891,26 @@
     else body = renderBrief(s);
 
     var shellCls = 'vp-shell' + (narrow ? ' vp-shell--mobile' : '');
-    var notice = s.isDemo ? OFFLINE_DEMO_NOTE : OFFLINE_LOCAL_NOTE;
-    var modeBit = s.isDemo
-      ? 'sample layout preview'
-      : 'local planner data from this browser';
+    var notice = s.isCloud ? CLOUD_PORTAL_NOTE : (s.isDemo ? OFFLINE_DEMO_NOTE : OFFLINE_LOCAL_NOTE);
+    var modeBit = s.isCloud
+      ? 'cloud vendor portal'
+      : (s.isDemo ? 'sample layout preview' : 'local planner data from this browser');
+    var badge = s.isCloud ? 'Live' : (s.isDemo ? 'Demo' : 'Local');
     var bannerLong = 'Shared by ' + esc(s.sharedBy) + ' on ' + esc(s.sharedOn)
       + ' · access expires ' + esc(fmtExpiresBanner(s.expires))
       + ' · ' + modeBit;
-    var bannerShort = 'Expires ' + esc(fmtExpiresShort(s.expires)) + ' · local preview';
+    var bannerShort = 'Expires ' + esc(fmtExpiresShort(s.expires))
+      + (s.isCloud ? ' · live link' : ' · local preview');
 
     root.innerHTML = ''
       + '<div class="' + shellCls + '">'
-      + '<div class="vp-offline-banner' + (s.isDemo ? ' is-demo' : '') + '" role="status">' + esc(notice) + '</div>'
+      + '<div class="vp-offline-banner' + (s.isDemo ? ' is-demo' : '') + (s.isCloud ? ' is-cloud' : '') + '" role="status">' + esc(notice) + '</div>'
       + '<div class="vp-topbar' + (narrow ? ' vp-topbar--mobile' : '') + '">'
       + '<span class="vp-topbar__mark">✦</span>'
       + (narrow
         ? '<span class="vp-topbar__vendor-main">' + esc(s.vendor.name) + '</span>'
         : '<span class="vp-topbar__wedding">' + esc(s.wedding.coupleNames) + ' · ' + esc(s.wedding.dateLabel) + '</span>')
-      + '<span class="vp-topbar__badge">' + (s.isDemo ? 'Demo' : 'Local') + '</span>'
+      + '<span class="vp-topbar__badge">' + badge + '</span>'
       + (narrow ? '' : '<span class="vp-topbar__vendor">' + esc(s.vendor.name) + '</span>')
       + '</div>'
       + '<nav class="vp-tabs" aria-label="Vendor portal">'
@@ -861,24 +962,43 @@
 
   function boot() {
     applyVpDarkMode();
-    var token = qs('g') || qs('token') || '';
+    var token = qs('g') || qs('token') || tokenFromPath() || '';
     var tab = qs('tab') || 'brief';
     state.forceExpired = qs('expired') === '1' || qs('expired') === 'true';
     state.tab = TABS.some(function (t) { return t.id === tab; }) ? tab : 'brief';
-    var data = loadPlannerData();
-    state.session = buildSessionFromData(data, token, state.forceExpired);
-    document.title = state.session.vendor.name + ' · Vendor Portal';
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && state.rulesOpen) { state.rulesOpen = false; render(); }
-    });
-    render();
-    if (window.matchMedia) {
-      try {
-        window.matchMedia('(max-width: 520px)').addEventListener('change', render);
-      } catch (e) {
-        window.matchMedia('(max-width: 520px)').addListener(render);
+
+    function finish(session) {
+      state.session = session;
+      document.title = (state.session.vendor && state.session.vendor.name
+        ? state.session.vendor.name
+        : 'Vendor') + ' · Vendor Portal';
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && state.rulesOpen) { state.rulesOpen = false; render(); }
+      });
+      render();
+      if (window.matchMedia) {
+        try {
+          window.matchMedia('(max-width: 520px)').addEventListener('change', render);
+        } catch (e) {
+          window.matchMedia('(max-width: 520px)').addListener(render);
+        }
       }
     }
+
+    var root = document.getElementById('vp-app');
+    if (root && token) {
+      root.innerHTML = '<div class="vp-shell"><p class="vp-note" style="padding:2rem">Loading vendor portal…</p></div>';
+    }
+
+    fetchCloudSession(token).then(function (cloud) {
+      if (cloud) {
+        if (state.forceExpired) cloud.status = 'expired';
+        finish(cloud);
+        return;
+      }
+      var data = loadPlannerData();
+      finish(buildSessionFromData(data, token, state.forceExpired));
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

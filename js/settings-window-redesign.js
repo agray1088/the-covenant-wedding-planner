@@ -199,6 +199,7 @@
       { id: 'cloud', label: 'Cloud sync (beta)' },
       { id: 'rsvp', label: 'RSVP & guest portal' },
       { id: 'partners', label: 'Partner invites' },
+      { id: 'vendors-portal', label: 'Vendor portal' },
       { id: 'privacy', label: 'Privacy' },
       { id: 'trash', label: 'Trash' },
       { id: 'about', label: 'About' }
@@ -291,6 +292,7 @@
     html += cardRow('Upload this wedding', 'Create/link cloud wedding and push local guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides', btn('Upload this wedding', 'rdCloudUpload'));
     html += cardRow('RSVP & guest portal', 'Generate links, send invites, gated landing settings', btn('Open', 'rdSetGotoRsvp'));
     html += cardRow('Partner invites', 'Invite a spouse or planner to this cloud wedding', btn('Open', 'rdSetGotoPartners'));
+    html += cardRow('Vendor portal', 'Tokenized vendor packet links (scoped — not the full planner)', btn('Open', 'rdSetGotoVendorPortal'));
     html += cardRow('Sign out', 'Local planner keeps working offline', btn('Sign out', 'rdCloudSignOut'));
     html += cardRow('Disable cloud on this device', 'Flag off; offline GA path unchanged', btn('Turn off', 'rdCloudDisable'));
     html += '<div class="rd-set__note">Honest scope: <b>guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline) + print packet overrides (vendorPackets / partyPackets / coordPacket)</b> sync in this beta. RSVP write-backs land on guests in Postgres and pull on sync. Docs: <code>docs/RSVP_AND_GUEST_PORTAL.md</code>.</div>';
@@ -388,6 +390,40 @@
     html += cardRow('Members & pending', 'List accepted members and pending invites', btn('Refresh list', 'rdPartnerRefresh'));
     html += '<div class="rd-set__note" id="rd-partner-list">Click Refresh list to load members and pending invites.</div>';
     html += '<div class="rd-set__note">Docs: <code>docs/PARTNER_INVITES.md</code>. Without SMTP, copy the invite URL from the result.</div>';
+    return html;
+  }
+
+  function vendorPortalPaneBody() {
+    var st = cloudStatus();
+    var html = '<div class="rd-set__note" id="rd-vp-status">Create an unguessable portal link for a synced vendor. Vendors see only their scoped packet (brief, schedule slice, paperwork) — not the full planner. Offline planning is unchanged; this is a cloud feature.</div>';
+    if (!st.enabled || st.state === 'disabled') {
+      html += '<div class="rd-set__note">Enable cloud sync and sign in first.</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+    if (st.state === 'signed_out' || !(st.user && st.user.email)) {
+      html += '<div class="rd-set__note">Sign in on the Cloud sync pane first.</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+    if (!st.weddingId) {
+      html += '<div class="rd-set__note">Link this wedding first (Upload this wedding on Cloud sync), then sync vendors.</div>';
+      html += cardRow('Open cloud sync', '', btn('Open', 'rdSetGotoCloud'));
+      return html;
+    }
+
+    html += cardRow('Refresh vendors & tokens', 'Loads cloud vendors and active portal links', btn('Refresh', 'rdVpRefresh'));
+    html += cardRow('Vendor', 'Must already exist on the linked cloud wedding',
+      '<select class="rd-set__input" id="rd-vp-vendor"><option value="">— refresh to load —</option></select>');
+    html += cardRow('Label (optional)', 'e.g. Day-of catering link',
+      '<input type="text" class="rd-set__input" id="rd-vp-label" placeholder="optional label" autocomplete="off">');
+    html += cardRow('Email link', 'Uses vendor email when checked; needs SMTP',
+      '<label style="display:flex;align-items:center;gap:0.4rem;font-size:0.92rem">'
+      + '<input type="checkbox" id="rd-vp-send-email"> Send email if SMTP is configured</label>');
+    html += cardRow('Create portal link', 'Returns a copyable URL; no public directory', btn('Create link', 'rdVpCreate'));
+    html += '<div class="rd-set__note" id="rd-vp-create-result"></div>';
+    html += '<div class="rd-set__note" id="rd-vp-list">Click Refresh to load tokens.</div>';
+    html += '<div class="rd-set__note">Docs: <code>docs/VENDOR_PORTAL.md</code>. Revoke stops the live link immediately; rotate issues a new URL.</div>';
     return html;
   }
 
@@ -551,6 +587,11 @@
       return paneShell('Partner invites',
         'Invite a spouse or planner to this cloud wedding with partner or planner access. Not a public listing.',
         partnerInvitesPaneBody());
+    }
+    if (id === 'vendors-portal') {
+      return paneShell('Vendor portal',
+        'Tokenized links for a scoped vendor packet. Privacy: link required — not a public vendor directory.',
+        vendorPortalPaneBody());
     }
     if (id === 'privacy') {
       return paneShell('Privacy',
@@ -1010,6 +1051,158 @@
             run('rdPartnerRefresh');
           })
           .catch(function (err) { cloudMsg(false, (err && err.message) || 'Revoke failed'); });
+        return;
+      }
+      if (name === 'rdSetGotoVendorPortal') {
+        window._rdSetPane = 'vendors-portal';
+        refreshPane('vendors-portal');
+        return;
+      }
+      if (name === 'rdVpRefresh') {
+        if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        if (typeof window.CovenantCloudSync.listVendorPortalTokens !== 'function') {
+          cloudMsg(false, 'Vendor portal APIs not loaded.');
+          return;
+        }
+        var stVp = cloudStatus();
+        var wid = stVp.weddingId;
+        if (!wid) { cloudMsg(false, 'No linked wedding.'); return; }
+        Promise.all([
+          window.CovenantCloudSync.api('/weddings/' + encodeURIComponent(wid) + '/vendors', { method: 'GET' }),
+          window.CovenantCloudSync.listVendorPortalTokens(false)
+        ])
+          .then(function (pair) {
+            var vendors = (pair[0] && (pair[0].vendors || pair[0].items)) || [];
+            var tokens = (pair[1] && pair[1].tokens) || [];
+            var smtp = pair[1] && pair[1].smtp;
+            var sel = document.getElementById('rd-vp-vendor');
+            if (sel) {
+              if (!vendors.length) {
+                sel.innerHTML = '<option value="">No cloud vendors — sync vendors first</option>';
+              } else {
+                sel.innerHTML = vendors.map(function (v) {
+                  return '<option value="' + esc(v.id || v._id || '') + '">'
+                    + esc((v.name || 'Vendor') + (v.category || v.cat ? ' · ' + (v.category || v.cat) : ''))
+                    + '</option>';
+                }).join('');
+              }
+            }
+            var listEl = document.getElementById('rd-vp-list');
+            if (listEl) {
+              listEl.innerHTML = 'SMTP: ' + (smtp && smtp.configured ? 'configured' : 'not configured (copy link)')
+                + '<br><b>Active portal links</b><ul style="margin:0.35rem 0;padding-left:1.1rem">'
+                + (tokens.length
+                  ? tokens.map(function (t) {
+                    var url = t.portalUrl || t.clientUrl || '';
+                    return '<li style="margin:0.45rem 0">'
+                      + esc(t.vendorName || t.vendorId || 'Vendor')
+                      + (t.label ? ' · ' + esc(t.label) : '')
+                      + ' · <b>' + esc(t.status || 'live') + '</b>'
+                      + (url ? ('<br><code data-vp-url="' + esc(url) + '">' + esc(url) + '</code> '
+                        + '<button type="button" class="rd-set__btn" data-act="rdVpCopy" data-url="'
+                        + esc(url) + '">Copy</button>') : '')
+                      + ' <button type="button" class="rd-set__btn" data-act="rdVpRotate" data-token-id="'
+                      + esc(t.id) + '">Rotate</button>'
+                      + ' <button type="button" class="rd-set__btn rd-set__btn--danger" data-act="rdVpRevoke" data-token-id="'
+                      + esc(t.id) + '">Revoke</button></li>';
+                  }).join('')
+                  : '<li class="rd-set__muted">No active tokens</li>')
+                + '</ul>';
+            }
+            var ov = document.getElementById(OVERLAY_ID);
+            if (ov) wireActions(ov);
+            cloudMsg(true, 'Vendors and portal tokens refreshed.');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Refresh failed'); });
+        return;
+      }
+      if (name === 'rdVpCreate') {
+        var vSel = document.getElementById('rd-vp-vendor');
+        var vLabel = document.getElementById('rd-vp-label');
+        var vSend = document.getElementById('rd-vp-send-email');
+        var vendorId = vSel ? String(vSel.value || '').trim() : '';
+        if (!vendorId) { cloudMsg(false, 'Select a vendor (refresh if the list is empty).'); return; }
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.createVendorPortalToken !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        window.CovenantCloudSync.createVendorPortalToken({
+          vendorId: vendorId,
+          label: vLabel ? String(vLabel.value || '').trim() : '',
+          sendEmail: !!(vSend && vSend.checked)
+        })
+          .then(function (body) {
+            var resEl = document.getElementById('rd-vp-create-result');
+            var url = (body && body.portalUrl) || (body && body.token && body.token.portalUrl) || '';
+            if (resEl) {
+              resEl.innerHTML = esc((body && body.message) || 'Portal link created.')
+                + (url
+                  ? ('<br>Portal URL: <code id="rd-vp-new-url">' + esc(url) + '</code> '
+                    + '<button type="button" class="rd-set__btn" data-act="rdVpCopyNew">Copy link</button>')
+                  : '');
+            }
+            var ovCreate = document.getElementById(OVERLAY_ID);
+            if (ovCreate) wireActions(ovCreate);
+            cloudMsg(true, (body && body.email && body.email.sent) ? 'Portal link emailed.' : 'Portal link created — copy if needed.');
+            run('rdVpRefresh');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Create failed'); });
+        return;
+      }
+      if (name === 'rdVpCopyNew') {
+        var newUrlEl = document.getElementById('rd-vp-new-url');
+        var newUrl = newUrlEl ? String(newUrlEl.textContent || '').trim() : '';
+        if (!newUrl) { cloudMsg(false, 'No URL to copy.'); return; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(newUrl)
+            .then(function () { cloudMsg(true, 'Portal link copied.'); })
+            .catch(function () { cloudMsg(false, 'Could not copy — select the URL manually.'); });
+        } else {
+          cloudMsg(false, 'Clipboard unavailable — select the URL manually.');
+        }
+        return;
+      }
+      if (name === 'rdVpCopy') {
+        var copyVp = el && el.getAttribute('data-url');
+        if (!copyVp) { cloudMsg(false, 'No URL to copy.'); return; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(copyVp)
+            .then(function () { cloudMsg(true, 'Portal link copied.'); })
+            .catch(function () { cloudMsg(false, 'Could not copy — select the URL manually.'); });
+        } else {
+          cloudMsg(false, 'Clipboard unavailable — select the URL manually.');
+        }
+        return;
+      }
+      if (name === 'rdVpRevoke') {
+        var tokRev = el && el.getAttribute('data-token-id');
+        if (!tokRev) { cloudMsg(false, 'Missing token id.'); return; }
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.revokeVendorPortalToken !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        window.CovenantCloudSync.revokeVendorPortalToken(tokRev)
+          .then(function () {
+            cloudMsg(true, 'Portal link revoked.');
+            run('rdVpRefresh');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Revoke failed'); });
+        return;
+      }
+      if (name === 'rdVpRotate') {
+        var tokRot = el && el.getAttribute('data-token-id');
+        if (!tokRot) { cloudMsg(false, 'Missing token id.'); return; }
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.rotateVendorPortalToken !== 'function') {
+          cloudMsg(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        window.CovenantCloudSync.rotateVendorPortalToken(tokRot)
+          .then(function (body) {
+            var url = (body && body.portalUrl) || '';
+            cloudMsg(true, url ? ('Rotated. New URL: ' + url) : 'Rotated — refresh to copy the new URL.');
+            run('rdVpRefresh');
+          })
+          .catch(function (err) { cloudMsg(false, (err && err.message) || 'Rotate failed'); });
         return;
       }
       if (name === 'rdRsvpRefresh') {

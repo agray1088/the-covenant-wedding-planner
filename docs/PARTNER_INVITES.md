@@ -72,8 +72,9 @@ Demo: `demo@covenant.local` / `covenant-demo` · API `http://localhost:18787`
 
 ## Out of scope
 
-- Vendor portal tokens (next)  
 - Complex RBAC beyond owner / partner / planner  
 - Transferring ownership / deleting weddings via partner  
+
+Vendor portal tokens: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md).
 
 Related: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md), [`OFFLINE_CLOUD_SYNC.md`](./OFFLINE_CLOUD_SYNC.md), [`AUTH.md`](./AUTH.md), [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md).

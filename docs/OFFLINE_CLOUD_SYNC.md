@@ -7,7 +7,7 @@ The Covenant Wedding Planner stays **offline-first**. Core planning never requir
 | Mode | Behavior |
 |------|----------|
 | **Offline (default / GA)** | localStorage JSON + SQLite/IndexedDB on this device. Backups are `.sqlite` files. No account required. |
-| **Cloud (optional)** | Sign-in links this device’s wedding to Postgres. **Guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline) + print packet overrides** sync in beta. Second-device pull uses the same account membership. Hosted vendor portal comes later. |
+| **Cloud (optional)** | Sign-in links this device’s wedding to Postgres. **Guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals (vtimeline) + print packet overrides** sync in beta. Second-device pull uses the same account membership. Hosted vendor portal tokens: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). |
 
 **Hard rule:** never block save, navigate, or guest/vendor/payment/budget/seating/contract/timeline/packet/rental/catering-rental/party/task/vtimeline/print-override edits on being online. If the API is down or cloud is disabled, the planner behaves exactly like offline GA.
 
@@ -327,10 +327,11 @@ If you see `Cannot find package 'playwright'`, you skipped root `npm install` �
 - Guest seat numbers beyond whatever travels on guest rows (seat / seatNo fields are still local-only unless guests vertical is extended)
 - Vendor `attrs` / category-schema extras in Postgres
 - Real magic-link email delivery (password reset / username email shipped when SMTP is set — [`AUTH.md`](./AUTH.md))
-- Hosted vendor portal / `covenant.link` packets (**later**)
+- Hosted vendor portal / `covenant.link` packets (**shipped foundation** — [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md); covenant.link vanity domain later)
 - Production / hosted deploy foundation (**shipped** — [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md))
 - Real accounts foundation (**shipped** — [`AUTH.md`](./AUTH.md); operator still supplies Google/SMTP secrets)
 - Claiming multi-user realtime collaboration
 - Offline + backup clarity / photos object storage (**shipped foundation** — [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md))
 - RSVP + gated guest portal (**shipped foundation** — [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md))
-- Partner invites (**shipped** — [`PARTNER_INVITES.md`](./PARTNER_INVITES.md); next: vendor portal tokens)
+- Partner invites (**shipped** — [`PARTNER_INVITES.md`](./PARTNER_INVITES.md))
+- Vendor portal tokens (**shipped** — [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md); next: polish / hosted secrets)

@@ -1369,6 +1369,49 @@
     });
   }
 
+  /** Couple: list vendor portal tokens for the linked wedding. */
+  function listVendorPortalTokens(all) {
+    return requireWeddingPath('/vendor-portal/tokens' + (all ? '?all=1' : '')).then(function (path) {
+      return api(path, { method: 'GET' });
+    });
+  }
+
+  /** Couple: create a vendor portal token (returns portalUrl for copy/email). */
+  function createVendorPortalToken(opts) {
+    opts = opts || {};
+    return requireWeddingPath('/vendor-portal/tokens').then(function (path) {
+      return api(path, {
+        method: 'POST',
+        body: {
+          vendorId: opts.vendorId,
+          label: opts.label || undefined,
+          scopes: opts.scopes || undefined,
+          expiresAt: opts.expiresAt || undefined,
+          sendEmail: !!opts.sendEmail,
+          email: opts.email || undefined
+        }
+      });
+    });
+  }
+
+  /** Couple: revoke a vendor portal token. */
+  function revokeVendorPortalToken(tokenId) {
+    return requireWeddingPath(
+      '/vendor-portal/tokens/' + encodeURIComponent(tokenId) + '/revoke'
+    ).then(function (path) {
+      return api(path, { method: 'POST', body: {} });
+    });
+  }
+
+  /** Couple: rotate a vendor portal token (revokes old, returns new URL). */
+  function rotateVendorPortalToken(tokenId) {
+    return requireWeddingPath(
+      '/vendor-portal/tokens/' + encodeURIComponent(tokenId) + '/rotate'
+    ).then(function (path) {
+      return api(path, { method: 'POST', body: {} });
+    });
+  }
+
   function googleSignInUrl() {
     var base = cfg().apiBase.replace(/\/$/, '');
     var returnTo = '';
@@ -2677,6 +2720,10 @@
     revokeInvite: revokeInvite,
     pendingInvites: pendingInvites,
     acceptInvite: acceptInvite,
+    listVendorPortalTokens: listVendorPortalTokens,
+    createVendorPortalToken: createVendorPortalToken,
+    revokeVendorPortalToken: revokeVendorPortalToken,
+    rotateVendorPortalToken: rotateVendorPortalToken,
     api: api
   };
 

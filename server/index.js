@@ -30,6 +30,9 @@ import {
   invitePublicRoutes,
   inviteTokenPage
 } from './routes/invites.js';
+import vendorPortalRoutes, {
+  vendorPortalPublicRoutes
+} from './routes/vendor-portal.js';
 import { storageConfigSummary } from './lib/object-storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -60,7 +63,7 @@ const FEATURES = {
   landing: flagDefaultOn('FEATURE_LANDING'),
   photos: flag('FEATURE_PHOTOS'),
   partnerInvites: flagDefaultOn('FEATURE_PARTNER_INVITES'),
-  vendorTokens: flag('FEATURE_VENDOR_TOKENS')
+  vendorTokens: flagDefaultOn('FEATURE_VENDOR_TOKENS')
 };
 
 /** Comma-separated CORS origins; empty entries ignored. */
@@ -150,13 +153,15 @@ app.use('/weddings/:weddingId/packet-overrides', packetOverrideRoutes);
 app.use('/weddings/:weddingId/photos', photoRoutes);
 app.use('/weddings/:weddingId/rsvp', rsvpRoutes);
 app.use('/weddings/:weddingId/portal', portalRoutes);
+app.use('/weddings/:weddingId/vendor-portal', vendorPortalRoutes);
 app.use('/weddings/:weddingId', weddingInviteRoutes);
 
-// Partner invites (auth + token preview) and public guest surfaces.
+// Partner invites (auth + token preview) and public guest / vendor surfaces.
 app.use('/invites', invitePublicRoutes);
 app.get('/invite/:token', inviteTokenPage);
 app.use('/guest', guestPublicRoutes);
 app.use('/p', portalPublicRoutes);
+app.use('/vendor', vendorPortalPublicRoutes);
 app.get('/r/:token', (req, res) => {
   res.redirect(302, `/guest/rsvp/${encodeURIComponent(req.params.token)}`);
 });
@@ -175,6 +180,7 @@ if (SERVE_STATIC) {
       || req.path.startsWith('/r/')
       || req.path.startsWith('/invite')
       || req.path.startsWith('/invites')
+      || req.path.startsWith('/vendor')
       || req.path === '/health'
     ) {
       next();

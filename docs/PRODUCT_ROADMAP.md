@@ -12,9 +12,23 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 | **6** | **RSVP + guest portal** | RSVP emails, guest token forms, couple send/monitor controls. Links rooted at `PUBLIC_URL`. **Foundation shipped** (see [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md)). |
 | **7** | **Gated wedding landing** | Unlisted link and/or guest email and/or custom couple code — **not** a public wedding directory. **Foundation shipped** (same doc). |
 | **8** | **Partner invites** | Invite spouse/planner to the same wedding (`owner` / `partner` / `planner`). **Shipped** (see [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)). |
-| **(+)** | **Vendor portal** | Vendor tokens / portal access (after partner invites). |
+| **9** | **Vendor portal** | Vendor tokens / scoped portal access. **Shipped** (see [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md)). |
 
-## Partner invites status (this pass)
+## Vendor portal status (this pass)
+
+| Item | Status |
+|------|--------|
+| `vendor_portal_tokens` schema | Done |
+| Create / list / revoke / rotate APIs | Done |
+| Public GET scoped packet by token | Done |
+| Email when SMTP set; portal URL always returned | Done |
+| Settings → Vendor portal UI | Done |
+| Wire `vendor-portal.html` to cloud tokens | Done |
+| `verify:vendor-portal` | Done |
+| Vendor password accounts | Out of scope |
+| Payment processing | Out of scope |
+
+## Partner invites status
 
 | Item | Status |
 |------|--------|
@@ -24,7 +38,6 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 | Settings → Partner invites UI | Done |
 | Partner cannot revoke owner | Done |
 | `verify:partner-invite` | Done |
-| Vendor portal tokens | Next |
 | Complex RBAC matrix | Out of scope |
 
 ## Steps 6–7 status
@@ -46,10 +59,15 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 - Fully provisioning S3/R2 buckets or shipping the AWS SDK  
 - Multi-template wedding site builder / marketing redesign  
 - Breaking existing sync domains  
-- Vendor portal tokens (next)
+- Vendor password accounts / payment processing  
+
+## Cloud track — largely complete
+
+Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Remaining polish: richer portal blocks, hosted secrets / real Google+SMTP in production, optional S3/R2 provisioning.
 
 ## Docs
 
+- Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md)  
 - Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)  
 - RSVP + gated portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md)  
 - Backup + photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md)  
