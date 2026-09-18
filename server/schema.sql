@@ -550,7 +550,7 @@ CREATE TABLE IF NOT EXISTS outbound_emails (
   guest_id      TEXT,
   kind          TEXT NOT NULL CHECK (kind IN (
                   'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username',
-                  'partner_invite'
+                  'partner_invite', 'vendor_portal'
                 )),
   to_email      TEXT NOT NULL,
   subject       TEXT,
@@ -568,12 +568,13 @@ CREATE INDEX IF NOT EXISTS outbound_emails_wedding_idx
 CREATE INDEX IF NOT EXISTS outbound_emails_guest_idx
   ON outbound_emails(wedding_id, guest_id);
 
--- Allow partner_invite on older volumes that already created outbound_emails.
+-- Allow partner_invite + vendor_portal on older volumes that already created outbound_emails.
+-- Keep the full kind list here so re-running initSchema never temporarily drops vendor_portal.
 ALTER TABLE outbound_emails DROP CONSTRAINT IF EXISTS outbound_emails_kind_check;
 ALTER TABLE outbound_emails ADD CONSTRAINT outbound_emails_kind_check
   CHECK (kind IN (
     'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username',
-    'partner_invite'
+    'partner_invite', 'vendor_portal'
   ));
 
 -- Gated wedding landing / guest portal settings (NOT a public SEO directory).
