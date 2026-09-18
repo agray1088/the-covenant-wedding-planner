@@ -1,0 +1,13 @@
+# LOCAL DEV ONLY — Covenant Postgres with trust host auth baked in.
+# Baking pg_hba into the image avoids flaky Docker Desktop (Windows) bind-mounts
+# of a single conf file (which left SCRAM active and broke desktop pgAdmin).
+FROM postgres:16-alpine
+
+COPY pg_hba.conf /etc/covenant/pg_hba.conf
+COPY docker-postgres-start.sh /usr/local/bin/covenant-pg-start.sh
+
+# Strip CRLF if the repo was checked out on Windows; ensure executable bit.
+RUN sed -i 's/\r$//' /usr/local/bin/covenant-pg-start.sh /etc/covenant/pg_hba.conf \
+  && chmod +x /usr/local/bin/covenant-pg-start.sh
+
+ENTRYPOINT ["/usr/local/bin/covenant-pg-start.sh"]

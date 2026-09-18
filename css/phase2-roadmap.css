@@ -31,7 +31,7 @@
   fill: none;
   stroke: var(--forest, #2f4a3e);
   stroke-width: 6;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   transition: stroke-dashoffset .35s ease;
 }
 .setup-check-pct {

@@ -1,8 +1,9 @@
-/* Payments page — mock 4b.
-   Rail + pagehead + 5-stat strip + insight row, then the payment schedule
-   tracker (every instalment on one timeline, grouped by vendor), the toolbar,
-   and the main table grouped by due month with an expandable payment plan.
-   The 360px drawer is the full editor for a payment.
+/* Payments page — Master §09: 4b + Calendar 30c + Payment drawer.
+   View switcher (not a tab strip): Table · Calendar.
+   Table (4b) is grouped by due month; instalment plans expand on the row.
+   Calendar (30c) is cash-flow shape: colour is status, never size; drag
+   proposes a due date and never silently rewrites a contracted one.
+   Drawer tabs: Payment · Contract · Method · History.
 
    Every figure comes from the planner's own payment math (paymentPlanSummary,
    paymentBudgetDueTotal, paymentBudgetPaidTotal, paymentGratuityPlanned,
@@ -10,7 +11,7 @@
 (function () {
   'use strict';
 
-  const PAY_DRAWER_TABS = ['Payment', 'Installments', 'Links', 'History'];
+  const PAY_DRAWER_TABS = ['Payment', 'Contract', 'Method', 'History'];
 
   window._payRailView = window._payRailView || 'all';
   window._payFilters = window._payFilters || { status: 'all', vendor: 'all', category: 'all' };
@@ -22,6 +23,7 @@
   window._payDrawerTab = window._payDrawerTab || 0;
   window._payMode = window._payMode || 'table';
   window._payExpanded = window._payExpanded || null;
+  window._payCalUnpaid = !!window._payCalUnpaid;
 
   const esc = s => (typeof escapeHtml === 'function' ? escapeHtml(s == null ? '' : String(s)) : String(s == null ? '' : s));
 
@@ -107,6 +109,38 @@
   function payId(p) { return String((p && p._id) || ''); }
   function indexOfRow(p) { return rows().indexOf(p); }
   function rowById(id) { return rows().find(p => payId(p) === String(id)) || null; }
+
+  function payContract(p) {
+    if (!p) return null;
+    const list = typeof safeArray === 'function' ? safeArray(data.contracts) : (data.contracts || []);
+    if (typeof findContractByIdOrIndex === 'function') {
+      const hit = findContractByIdOrIndex(p.contractId || p.contractIdx);
+      if (hit) return hit;
+    }
+    if (p.contractId) {
+      const byId = list.find(c => String(c._id) === String(p.contractId));
+      if (byId) return byId;
+    }
+    if (p.contractIdx !== '' && p.contractIdx != null && list[Number(p.contractIdx)]) {
+      return list[Number(p.contractIdx)];
+    }
+    return null;
+  }
+  function contractLabel(p) {
+    const c = payContract(p);
+    if (!c) return '';
+    return c.name || c.vendor || c.doc || 'Contract';
+  }
+  function contractIsLinked(p) { return !!payContract(p); }
+  function nextInstalmentLabel(p) {
+    const list = Array.isArray(p.installments) ? p.installments : [];
+    if (!list.length) return 'Single payment';
+    const unpaid = list.find(inst => {
+      const st = typeof paymentInstallmentStatus === 'function' ? paymentInstallmentStatus(inst) : (inst.status || '');
+      return st !== 'Paid';
+    });
+    return (unpaid && unpaid.label) || list[0].label || (list.length + ' instalments');
+  }
 
   /* The pill states the next thing that will happen to the money — the spec's
      "a chip that lies is worse than no chip". */
@@ -295,8 +329,8 @@
       { key: 'status', label: 'Status', width: '120px' }
     ],
     main: [
-      { key: 'name', label: 'Vendor & description' },
-      { key: 'due', label: 'Due', width: '96px', num: true },
+      { key: 'vendor', label: 'Vendor & description' },
+      { key: 'dueamt', label: 'Due', width: '96px', num: true },
       { key: 'paid', label: 'Paid', width: '92px', num: true },
       { key: 'gratuity', label: 'Gratuity', width: '88px', num: true },
       { key: 'duedate', label: 'Due date', width: '96px' },
@@ -377,6 +411,13 @@
 
   function pageheadActionsHtml() {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
+    const cal = window._payMode === 'calendar';
+    if (cal) {
+      return `<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print schedule</button>
+      <button type="button" class="rd-btn" data-rd-full-editor onclick="rdPayFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
+      <button type="button" class="rd-btn" onclick="exportSectionCSV('Payments',paymentsExportRows())">Export</button>
+      <button type="button" class="rd-btn rd-btn--primary" onclick="rdPayAddPayment()">Record a payment</button>`;
+    }
     return `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdPayJumpTo('pay-sect-tracker')">Payment schedule</button>
       <button type="button" class="rd-btn" onclick="exportSectionCSV('Payments',paymentsExportRows())">Export</button>
       <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
@@ -388,12 +429,12 @@
     const panel = document.getElementById('panel-payments');
     if (!panel) return;
     panel.classList.add('ued-scope', 'payments-mockup');
-    if (panel.dataset.uedShell === 'payments-rd4b') {
+    if (panel.dataset.uedShell === 'payments-rd09') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'payments-rd4b';
+    panel.dataset.uedShell = 'payments-rd09';
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
@@ -422,9 +463,76 @@
 
   /* ── stat strip (5 cells) ────────────────────────────────────────────── */
 
+  function calendarFigures() {
+    const cursor = payCalCursor();
+    const list = tableRows();
+    let dueMonth = 0, overdue = 0, next90 = 0, left = 0;
+    let overdueLabel = '';
+    list.forEach(p => {
+      if (isSettled(p)) {
+        return;
+      }
+      const remain = Math.max(0, payDue(p) - payPaid(p));
+      const d = daysUntil(payDueDate(p));
+      if (monthKey(payDueDate(p)) === cursor) dueMonth += remain;
+      if (d != null && d < 0) {
+        overdue += remain;
+        if (!overdueLabel) {
+          overdueLabel = (payVendor(p) || payDesc(p) || 'Payment')
+            + (payDueDate(p) ? ', ' + shortDate(payDueDate(p)) : '');
+        }
+      }
+      if (d != null && d >= 0 && d <= 90) next90 += remain;
+      const inst = Array.isArray(p.installments) ? p.installments : [];
+      if (inst.length) {
+        left += inst.filter(i => {
+          const st = typeof paymentInstallmentStatus === 'function' ? paymentInstallmentStatus(i) : (i.status || '');
+          return st !== 'Paid';
+        }).length;
+      } else {
+        left += 1;
+      }
+    });
+    const monthCount = list.filter(p => monthKey(payDueDate(p)) === cursor).length;
+    return {
+      dueMonth: dueMonth, overdue: overdue, overdueLabel: overdueLabel,
+      next90: next90, left: left, paid: paymentFigures().paid,
+      monthCount: monthCount, cursor: cursor
+    };
+  }
+
   function renderPaymentStatsRd() {
     const host = document.getElementById('payment-stats');
     if (!host) return;
+    const cal = window._payMode === 'calendar';
+    if (cal) {
+      const c = calendarFigures();
+      if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
+        RdDepth.renderStats(host, [
+          { label: 'Due this month', value: money0(c.dueMonth), filter: 'Due this month' },
+          {
+            label: 'Overdue',
+            value: money0(c.overdue),
+            filter: 'Filter · Overdue',
+            attention: c.overdue > 0 ? (c.overdueLabel || 'Overdue payments') : undefined
+          },
+          { label: 'Next 90 days', value: money0(c.next90), filter: 'Due in 90 days' },
+          { label: 'Paid to date', value: money0(c.paid), filter: 'Filter · Paid' },
+          { label: 'Instalments left', value: String(c.left), filter: 'Filter · Unpaid' }
+        ]);
+        return;
+      }
+      const cell = (label, val, tone) =>
+        `<div class="m-stat${tone ? ' m-stat--' + tone : ''}"><div class="m-stat-label">${esc(label)}</div><div class="m-stat-val">${val}</div></div>`;
+      host.innerHTML = [
+        cell('Due this month', money0(c.dueMonth)),
+        cell('Overdue', money0(c.overdue), c.overdue > 0 ? 'warn' : ''),
+        cell('Next 90 days', money0(c.next90)),
+        cell('Paid to date', money0(c.paid)),
+        cell('Instalments left', String(c.left))
+      ].join('');
+      return;
+    }
     const f = paymentFigures();
     if (typeof RdDepth !== 'undefined' && RdDepth.renderStats) {
       RdDepth.renderStats(host, [
@@ -626,13 +734,25 @@
 
   /* ── §2 toolbar + main table grouped by due month ────────────────────── */
 
-  function renderPaymentsToolbar() {
+  function viewSwitchHtml() {
     const mode = window._payMode === 'calendar' ? 'calendar' : 'table';
-    const viewswitch = `<div class="rd-viewswitch" role="group" aria-label="Payments view">
+    return `<div class="rd-viewswitch" role="group" aria-label="Payments view">
         <button type="button" class="rd-viewswitch__item${mode === 'table' ? ' is-active' : ''}" onclick="rdPaySetMode('table')">Table</button>
         <button type="button" class="rd-viewswitch__item${mode === 'calendar' ? ' is-active' : ''}" onclick="rdPaySetMode('calendar')">Calendar</button>
       </div>`;
-    return toolbarHtml('main', 8, viewswitch);
+  }
+  function renderPaymentsToolbar() {
+    return toolbarHtml('main', 7, viewSwitchHtml());
+  }
+  function calendarToolbarHtml() {
+    const unpaid = !!window._payCalUnpaid;
+    return `<div class="rd-toolbar rd-pay-toolbar">
+      ${filterChip('Vendor', 'vendor', 'main')}
+      ${filterChip('Status', 'status', 'main')}
+      <button type="button" class="rd-chip${unpaid ? ' is-active' : ''}" onclick="rdPayCalUnpaidOnly()">${unpaid ? 'Unpaid only<span class="rd-chip__clear">✕</span>' : 'Unpaid only'}</button>
+      <span class="rd-pay-toolbar__hint">Drag to propose a new date</span>
+      <div class="rd-toolbar__right">${viewSwitchHtml()}</div>
+    </div>`;
   }
 
   function paymentRowHtml(p) {
@@ -646,21 +766,21 @@
     const sel = window._paySel.has(id);
     const settled = isSettled(p);
     const expanded = String(window._payExpanded || '') === id;
-    /* Only a payment that actually has a plan advertises one; creating a plan
-       lives in the drawer's Installments tab rather than under every row. */
+    /* A payment with a plan expands on the row — the drawer has no
+       Installments tab. Creating a plan lives on the row. */
     const planLink = s.count
       ? `<button type="button" class="rd-pay-planlink" onclick="event.stopPropagation();rdPayTogglePlan('${esc(id)}')">${s.count} instalment${s.count === 1 ? '' : 's'}${expanded ? ' ▾' : ''}</button>`
-      : '';
+      : `<button type="button" class="rd-pay-planlink" onclick="event.stopPropagation();rdPayStartPlan('${esc(id)}')">Set up plan</button>`;
 
     const cell = key => {
       switch (key) {
-        case 'name': return `<td class="rd-pay-namecell" data-col="name"><span class="rd-pay-vendor">${esc(payVendor(p) || 'Untitled')}</span>${payDesc(p) ? ` <span class="rd-pay-desc">· ${esc(payDesc(p))}</span>` : ''}${planLink}</td>`;
-        case 'due': return `<td class="rd-pay-num" data-col="due">${money0(due)}</td>`;
+        case 'vendor': return `<td class="rd-pay-namecell" data-col="vendor"><span class="rd-pay-vendor">${esc(payVendor(p) || 'Untitled')}</span>${payDesc(p) ? ` <span class="rd-pay-desc">· ${esc(payDesc(p))}</span>` : ''} ${planLink}</td>`;
+        case 'dueamt': return `<td class="rd-pay-num" data-col="dueamt">${money0(due)}</td>`;
         case 'paid': return `<td class="rd-pay-num${paid ? ' is-paid' : ''}" data-col="paid">${paid ? money0(paid) : nil('$0')}</td>`;
         case 'gratuity': return `<td class="rd-pay-num" data-col="gratuity">${grat ? money0(grat) : nil()}</td>`;
         case 'duedate': return `<td class="${overdue ? 'rd-pay-due' : 'rd-pay-muted'}" data-col="duedate">${dueDate ? esc(shortDate(dueDate)) : nil()}</td>`;
         case 'status': return `<td data-col="status">${pillHtml(pill)}</td>`;
-        case 'category': return `<td class="rd-pay-cat" data-col="category">${payCategory(p) ? esc(payCategory(p)) : nil('No category')}</td>`;
+        case 'category': return `<td class="rd-pay-cat" data-col="category">${payCategory(p) ? esc(payCategory(p)) : nil()}</td>`;
         default: return '';
       }
     };
@@ -713,6 +833,11 @@
     const list = sortRows(tableRows());
     const pf = window._payFilters || {};
     const filterOn = ['status', 'vendor', 'category'].some(k => pf[k] && pf[k] !== 'all');
+    if (window._payMode === 'calendar') {
+      const calList = window._payCalUnpaid ? list.filter(p => !isSettled(p)) : list;
+      host.innerHTML = calendarToolbarHtml() + calendarViewHtml(calList);
+      return;
+    }
     if (typeof RdStates !== 'undefined' && RdStates.maybeEmpty &&
         (total === 0 || (filterOn && list.length === 0))) {
       const head = `<div class="rd-pay-sect__head is-stacked">
@@ -780,7 +905,7 @@
 
     host.innerHTML = head + renderPaymentsToolbar()
       + '<div class="rd-bulkbar rd-pay-bulkbar" id="payments-bulk-bar" hidden></div>'
-      + (window._payMode === 'calendar' ? calendarViewHtml(list) : `<div class="rd-pay-tablewrap" id="cwp-payments" data-rd-row-height="${esc(rowHeightLabel())}">
+      + `<div class="rd-pay-tablewrap" id="cwp-payments" data-rd-row-height="${esc(rowHeightLabel())}">
         <table class="cwp-table rd-pay-table rd-pay-maintable rd-table--${esc(rowHeightLabel())}">
           <thead><tr>
             <th class="rd-pay-tick" style="width:36px"></th>
@@ -788,9 +913,9 @@
           </tr></thead>
           <tbody>${body}</tbody>
         </table>
-      </div>`)
+      </div>`
       + `<div class="rd-pay-sect__foot">
-        <span>The 360px drawer is the full editor — the Payment tab edits the record, Installments edits the plan, Links shows the budget line and contract this payment is wired to, History shows every change.</span>
+        <span>The 360px drawer is the full editor — Payment is the instalment, Contract is the paper (read-only), Method is how and from which pot, History shows every date and amount change. Expand a row for the payment plan.</span>
       </div>`;
     renderPaymentsBulkBar();
   }
@@ -802,30 +927,96 @@
     })[id] || 'all';
   }
 
-  /* Calendar is a month-by-month cash-out read of the same rows — no second
-     store, no second set of figures. */
+  /* Calendar (30c) is cash-flow shape: when money clusters, not a list of
+     months. Colour is status, never size. Drag proposes a due date. Week
+     starts Monday, matching the Master drawing. */
+  function payCalCursor() {
+    if (window._payCalCursor && /^\d{4}-\d{2}$/.test(window._payCalCursor)) return window._payCalCursor;
+    const first = tableRows().map(payDueDate).filter(Boolean).sort()[0];
+    const iso = first || new Date().toISOString().slice(0, 10);
+    window._payCalCursor = monthKey(iso) || iso.slice(0, 7);
+    return window._payCalCursor;
+  }
+  function calTone(p) {
+    const d = daysUntil(payDueDate(p));
+    const funded = !!payCategory(p) || contractIsLinked(p) || payPaid(p) > 0 || isSettled(p);
+    if (!isSettled(p) && d != null && (d < 0 || d <= 7)) return 'red';
+    const dueMonth = monthKey(payDueDate(p));
+    if (!isSettled(p) && dueMonth && dueMonth === payCalCursor()) return 'amber';
+    if (funded) return 'blue';
+    return 'gray';
+  }
+  function calChipLabel(p) {
+    const name = payVendor(p) || payDesc(p) || 'Payment';
+    const remain = Math.max(0, payDue(p) - payPaid(p)) || payDue(p);
+    return name + ' · ' + money0(remain);
+  }
   function calendarViewHtml(list) {
-    const buckets = [];
+    const cursor = payCalCursor();
+    const [yy, mm] = cursor.split('-').map(Number);
+    const first = new Date(yy, mm - 1, 1);
+    const startPad = (first.getDay() + 6) % 7;
+    const daysInMonth = new Date(yy, mm, 0).getDate();
+    const prevDays = new Date(yy, mm - 1, 0).getDate();
+    const title = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    const byDay = {};
     list.forEach(p => {
-      const key = monthKey(payDueDate(p));
-      let b = buckets.find(x => x.key === key);
-      if (!b) { b = { key: key, label: monthLabel(key), rows: [] }; buckets.push(b); }
-      b.rows.push(p);
+      const due = payDueDate(p);
+      if (!due || monthKey(due) !== cursor) return;
+      const day = parseInt(String(due).slice(8, 10), 10);
+      if (!byDay[day]) byDay[day] = [];
+      byDay[day].push(p);
     });
-    buckets.sort((a, b) => String(a.key || '9999-99').localeCompare(String(b.key || '9999-99')));
-    if (!buckets.length) return '<div class="rd-pay-empty">No payments to place on the calendar yet.</div>';
-    return '<div class="rd-pay-cal">' + buckets.map(b => {
-      const owed = b.rows.reduce((n, p) => n + Math.max(0, payDue(p) - payPaid(p)), 0);
-      return `<div class="rd-pay-cal__month">
-        <div class="rd-pay-cal__head"><span>${esc(b.label)}</span><span class="rd-pay-cal__total">${money0(owed)}</span></div>
-        ${b.rows.map(p => `<button type="button" class="rd-pay-cal__item" onclick="rdPayOpenDrawer('${esc(payId(p))}')">
-          <span class="rd-pay-cal__day">${payDueDate(p) ? esc(shortDate(payDueDate(p))) : '—'}</span>
-          <span class="rd-pay-cal__name">${esc(payLabel(p))}</span>
-          <span class="rd-pay-cal__amt">${money0(payDue(p))}</span>
-          ${pillHtml(payPill(p))}
-        </button>`).join('')}
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    let cells = '';
+    for (let i = 0; i < startPad; i++) {
+      const day = prevDays - startPad + 1 + i;
+      const prev = new Date(yy, mm - 2, day);
+      const iso = prev.getFullYear() + '-' + String(prev.getMonth() + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      cells += `<div class="rd-pay-calgrid__cell is-pad" data-cal-day="${esc(iso)}" ondragover="event.preventDefault()" ondrop="rdPayCalDrop(event,'${esc(iso)}')" onclick="rdPayCalAddOn('${esc(iso)}')">
+        <span class="rd-pay-calgrid__num">${day}</span>
       </div>`;
-    }).join('') + '</div>';
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const iso = cursor + '-' + String(day).padStart(2, '0');
+      const items = byDay[day] || [];
+      const chips = items.map(p => {
+        const tone = calTone(p);
+        return `<button type="button" class="rd-pay-calchip is-${esc(tone)}" draggable="true" data-pay-id="${esc(payId(p))}" ondragstart="rdPayCalDrag(event,'${esc(payId(p))}')" onclick="event.stopPropagation();rdPayOpenDrawer('${esc(payId(p))}')">${esc(calChipLabel(p))}</button>`;
+      }).join('');
+      cells += `<div class="rd-pay-calgrid__cell" data-cal-day="${esc(iso)}" ondragover="event.preventDefault()" ondrop="rdPayCalDrop(event,'${esc(iso)}')" onclick="rdPayCalAddOn('${esc(iso)}')">
+        <span class="rd-pay-calgrid__num">${day}</span>
+        <div class="rd-pay-calgrid__chips">${chips}</div>
+      </div>`;
+    }
+    const trailing = (7 - ((startPad + daysInMonth) % 7)) % 7;
+    for (let i = 1; i <= trailing; i++) {
+      const next = new Date(yy, mm, i);
+      const iso = next.getFullYear() + '-' + String(next.getMonth() + 1).padStart(2, '0') + '-' + String(i).padStart(2, '0');
+      cells += `<div class="rd-pay-calgrid__cell is-pad" data-cal-day="${esc(iso)}" ondragover="event.preventDefault()" ondrop="rdPayCalDrop(event,'${esc(iso)}')" onclick="rdPayCalAddOn('${esc(iso)}')">
+        <span class="rd-pay-calgrid__num">${i}</span>
+      </div>`;
+    }
+    const cf = calendarFigures();
+    return `<div class="rd-pay-cal">
+      <div class="rd-pay-cal__head">
+        <button type="button" class="rd-pay-link" onclick="rdPayCalShift(-1)">Previous</button>
+        <div class="rd-pay-cal__title">${esc(title)} · ${cf.monthCount} payment${cf.monthCount === 1 ? '' : 's'} · ${money0(cf.dueMonth)} due</div>
+        <span class="rd-pay-cal__hint">Click a day to add · drag an event to move it</span>
+        <button type="button" class="rd-pay-link rd-pay-cal__today" onclick="rdPayCalToday()">Today</button>
+        <button type="button" class="rd-pay-link" onclick="rdPayCalShift(1)">Next</button>
+      </div>
+      <div class="rd-pay-cal__legend">
+        <span><i class="is-red"></i> Overdue or at-risk</span>
+        <span><i class="is-amber"></i> Due this month</span>
+        <span><i class="is-blue"></i> Scheduled and funded</span>
+        <span>Colour never encodes size.</span>
+      </div>
+      <div class="rd-pay-calgrid">
+        ${weekdays.map(d => `<div class="rd-pay-calgrid__dow">${d}</div>`).join('')}
+        ${cells}
+      </div>
+    </div>`;
   }
 
   function renderPaymentsBulkBar() {
@@ -898,121 +1089,197 @@
     const cats = typeof safeArray === 'function' ? safeArray(data.budget) : (data.budget || []);
     return [{ value: '', label: 'No category' }].concat(cats.map(c => ({ value: c.cat || '', label: c.cat || 'Category' })));
   }
-  function contractLabel(p) {
-    const list = typeof safeArray === 'function' ? safeArray(data.contracts) : (data.contracts || []);
-    const idx = p && p.contractIdx;
-    if (idx === '' || idx == null) return '';
-    const c = list[Number(idx)];
-    if (!c) return '';
-    return c.name || c.vendor || c.doc || ('Contract ' + (Number(idx) + 1));
+
+  function linkedVendor(p) {
+    if (typeof findRecordById === 'function' && p.vendorId) {
+      const byId = findRecordById('vendors', p.vendorId);
+      if (byId) return byId;
+    }
+    if (typeof findVendorByName === 'function') return findVendorByName(payVendor(p));
+    return null;
+  }
+  function instalmentIndex(p) {
+    const list = Array.isArray(p.installments) ? p.installments : [];
+    if (list.length) {
+      const unpaid = list.findIndex(inst => {
+        const st = typeof paymentInstallmentStatus === 'function' ? paymentInstallmentStatus(inst) : (inst.status || '');
+        return st !== 'Paid';
+      });
+      return { n: (unpaid >= 0 ? unpaid : 0) + 1, of: list.length };
+    }
+    const c = payContract(p);
+    if (!c) return { n: 1, of: 1 };
+    const siblings = rows().filter(x => payContract(x) === c)
+      .sort((a, b) => String(payDueDate(a) || '').localeCompare(String(payDueDate(b) || '')));
+    const pos = siblings.indexOf(p);
+    return { n: pos >= 0 ? pos + 1 : 1, of: Math.max(1, siblings.length) };
   }
 
   function drawerPaymentTab(p) {
-    const s = plan(p);
-    const due = payDue(p), paid = payPaid(p);
-    const dueDate = payDueDate(p);
     const overdue = payPill(p).scheme === 'red';
+    const proposed = window._payProposedDate && window._payProposedDate.id === payId(p)
+      ? window._payProposedDate.date : '';
+    const idx = instalmentIndex(p);
+    const d = daysUntil(payDueDate(p));
+    const c = payContract(p);
+    const siblings = c
+      ? rows().filter(x => payContract(x) === c)
+      : [];
+    const remainAfter = siblings.reduce((n, x) => {
+      if (x === p) return n;
+      return n + Math.max(0, payDue(x) - payPaid(x));
+    }, 0);
     const cat = payCategory(p);
-    const catTotal = (function () {
-      const cats = typeof safeArray === 'function' ? safeArray(data.budget) : (data.budget || []);
-      const c = cats.find(x => String(x.cat || '') === cat);
-      if (!c) return 0;
-      return typeof catPlanned === 'function' ? catPlanned(c) : (parseFloat(c.planned) || 0);
-    })();
-    const contract = contractLabel(p);
-    return fieldInput('Vendor', 'vendor', payVendor(p))
-      + fieldInput('Description', 'desc', payDesc(p))
-      + fieldInput('Amount due', 'due', (parseFloat(p.due) || 0).toFixed(2), { type: 'number', step: '0.01' })
-      + fieldRow('Paid to date', money(paid) + (s.hasPlan ? ' · from plan' : ''), { muted: !paid })
-      + fieldInput('Gratuity', 'gratuity', (payGratuity(p) || 0).toFixed(2), { type: 'number', step: '0.01' })
-      + fieldSelect('Gratuity status', 'gratuityStatus', payGratuityStatus(p), gratuityStatusOptions())
-      + fieldInput('Due date', 'date', String(p.date || '').slice(0, 10), { type: 'date', over: overdue })
-      + fieldInput('Paid date', 'paiddate', String(p.paiddate || '').slice(0, 10), { type: 'date' })
-      + fieldSelect('Method', 'ptype', payMethod(p), methodOptions())
+    const budgetLine = p.budgetItem || '';
+    return drawerSectionTitle('The instalment')
+      + fieldInput('Amount', 'due', (parseFloat(p.due) || 0).toFixed(2), { type: 'number', step: '0.01' })
+      + fieldRow('Instalment', idx.n + ' of ' + idx.of)
+      + fieldInput('Due', 'date', String(p.date || '').slice(0, 10), { type: 'date', over: overdue })
       + fieldSelect('Status', 'status', (function () { const n = typeof normalizePaymentStatus === 'function' ? normalizePaymentStatus(p.status || '') : p.status; return n || payStatus(p); })(), statusOptions())
-      + fieldSelect('Budget line', 'budgetCat', cat, categoryOptions())
-      + fieldRow('Contract', contract ? esc(contract) + ' →' : '—', { link: !!contract, muted: !contract })
-      + drawerSectionTitle('Balance')
-      + drawerKv('Amount due', money0(due))
-      + drawerKv('Paid', money0(paid), paid ? 'paid' : '')
-      + drawerKv('Balance', money0(Math.max(0, due - paid)), due - paid > 0 ? 'over' : '')
-      + (dueDate ? drawerKv('Next date', shortDate(dueDate, true), overdue ? 'over' : '') : '')
-      + (cat && catTotal ? `<div class="rd-drawer-note">Wired to <b>${esc(cat)}</b> (${money0(catTotal)} planned) — editing this payment moves the Budget figure through the same math.</div>` : '')
-      + `<div class="rd-drawer-note">The payment&rsquo;s totals and status are recalculated from its instalment rows, so editing one instalment updates this table and Budget.</div>`;
+      + fieldRow('Days out', d == null ? '—' : String(d), { over: d != null && d < 0 })
+      + drawerSectionTitle('Against')
+      + fieldRow('Contract', c ? esc(c.name || c.doc || c.vendor || 'Contract') : '—', { link: !!c, muted: !c })
+      + fieldSelect('Budget category', 'budgetCat', cat, categoryOptions())
+      + fieldRow('Line item', budgetLine || '—', { muted: !budgetLine })
+      + (proposed
+        ? `<p class="rd-drawer-callout is-warn">Calendar proposed ${esc(shortDate(proposed, true))} as a new due date. This instalment is held by a contract, so the date was not rewritten. Open the Contract tab.</p>`
+        : (remainAfter
+          ? `<p class="rd-drawer-callout is-warn">Paying this leaves ${money0(remainAfter)} outstanding across the rest of the schedule${cat ? ', and writes through to the ' + esc(cat) + ' category' : ''}.</p>`
+          : '<p class="rd-drawer-callout">One instalment. Amount, date and the state it is in — never a running balance, which belongs to the contract.</p>'))
+      + (c && (c.cancelNote || c.cancellation || /forfeit|cancel/i.test(String(c.notes || '')))
+        ? drawerSectionTitle('If it is missed') + `<p class="rd-drawer-note">${esc(c.cancelNote || c.cancellation || c.notes)}</p>`
+        : '');
   }
 
-  function drawerInstallmentsTab(p) {
-    const i = indexOfRow(p);
-    const list = Array.isArray(p.installments) ? p.installments : [];
-    if (!list.length) {
-      return `<div class="rd-pay-empty">No payment plan yet. A plan splits this payment into deposit, balance and gratuity stages that roll up into the totals above.</div>
-        <button type="button" class="rd-btn rd-btn--primary" onclick="rdPayStartPlan('${esc(payId(p))}')">Set up payment plan</button>`;
+  function drawerContractTab(p) {
+    const c = payContract(p);
+    const list = typeof safeArray === 'function' ? safeArray(data.contracts) : (data.contracts || []);
+    const proposed = window._payProposedDate && window._payProposedDate.id === payId(p)
+      ? window._payProposedDate.date : '';
+    if (!c) {
+      return '<div class="rd-pay-empty">No contract is wired to this instalment. The paper owns its own totals — link one from the Full editor if this cash-out is held by signed terms.</div>'
+        + '<button type="button" class="rd-btn" onclick="showPanel(\'contracts\')">Open Contracts &amp; Invoices</button>';
     }
-    const head = `<div class="rd-pay-instgrid rd-pay-instgrid--head"><span>Label</span><span class="is-num">Due</span><span class="is-num">Amount</span><span class="is-num">Paid</span><span></span></div>`;
-    const body = list.map((inst, j) => {
-      const pill = instPill(inst);
-      return `<div class="rd-pay-instrow">
-        <div class="rd-pay-instgrid">
-          <div class="rd-pay-instname">
-            <div class="rd-pay-instlabel">${esc(inst.label || 'Instalment ' + (j + 1))}</div>
-            ${inst.notes ? `<div class="rd-pay-instnote">${esc(inst.notes)}</div>` : ''}
-          </div>
-          <span class="is-num rd-pay-muted">${inst.dueDate ? esc(shortDate(inst.dueDate)) : nil()}</span>
-          <span class="is-num">${money0(inst.amountDue)}</span>
-          <span class="is-num${parseFloat(inst.amountPaid) ? ' is-paid' : ''}">${parseFloat(inst.amountPaid) ? money0(inst.amountPaid) : nil('$0')}</span>
-          <span class="rd-pay-instdel"><button type="button" aria-label="Delete instalment" onclick="deletePaymentInstallment(${i},${j})">&#10005;</button></span>
-        </div>
-        <div class="rd-pay-instfoot">${pillHtml(pill)}<span>${inst.paidDate ? 'Paid ' + esc(shortDate(inst.paidDate, true)) : 'Not paid'}</span></div>
-      </div>`;
-    }).join('');
-    const dueTotal = list.reduce((n, x) => n + (parseFloat(x.amountDue) || 0), 0);
-    const paidTotal = list.reduce((n, x) => n + (parseFloat(x.amountPaid) || 0), 0);
-    return drawerSectionTitle('Installment payments · ' + list.length,
-      `<button type="button" class="rd-pay-link" onclick="addPaymentInstallment(${i})">+ Add</button>`)
-      + head + body
-      + `<div class="rd-pay-insttotal"><span>Plan total</span><span>${money0(dueTotal)} due · ${money0(paidTotal)} paid</span></div>`
-      + `<div class="rd-drawer-note">Deposit, balance and payment-plan rows stay attached to this payment. The payment&rsquo;s own totals and status are recalculated from these rows, so editing an instalment updates the table and Budget.</div>`;
+    const siblings = rows().filter(x => payContract(x) === c)
+      .sort((a, b) => String(payDueDate(a) || '').localeCompare(String(payDueDate(b) || '')));
+    const total = parseFloat(c.total) || parseFloat(c.amount) || siblings.reduce((n, x) => n + payDue(x), 0);
+    const paidOnContract = siblings.reduce((n, x) => n + payPaid(x), 0);
+    const remainAfter = Math.max(0, total - paidOnContract - (isSettled(p) ? 0 : payDue(p)));
+    const signed = c.signed || c.signedOn || c.signedBy || c.status || '';
+    const planRows = Array.isArray(p.installments) && p.installments.length
+      ? p.installments.map((inst, j) => {
+        const st = typeof paymentInstallmentStatus === 'function' ? paymentInstallmentStatus(inst) : (inst.status || '');
+        const isThis = (st !== 'Paid' && !p.installments.slice(0, j).some(x => {
+          const s = typeof paymentInstallmentStatus === 'function' ? paymentInstallmentStatus(x) : (x.status || '');
+          return s !== 'Paid';
+        }));
+        return { label: (j + 1) + ' · ' + (inst.label || 'Instalment'), when: inst.paidDate ? 'Paid ' + shortDate(inst.paidDate) : (inst.dueDate ? 'Due ' + shortDate(inst.dueDate) : '—'), thisRow: isThis, paid: st === 'Paid' };
+      })
+      : siblings.map((x, j) => ({
+        label: (j + 1) + ' · ' + (payDesc(x) || nextInstalmentLabel(x)),
+        when: isSettled(x) ? 'Paid ' + shortDate(x.paiddate || payDueDate(x)) : (payDueDate(x) ? 'Due ' + shortDate(payDueDate(x)) : '—'),
+        thisRow: x === p,
+        paid: isSettled(x)
+      }));
+    const docs = c.docs || c.documents || c.files;
+    const docCount = Array.isArray(docs) ? docs.length : (parseInt(c.docCount, 10) || 0);
+    return drawerSectionTitle((c.vendor || payVendor(p) || 'Contract') + (signed ? ' · ' + signed : ''))
+      + drawerKv('Total', money0(total))
+      + drawerKv('Paid to date', money0(paidOnContract), 'paid')
+      + drawerKv('This instalment', money0(payDue(p)))
+      + drawerKv('Remaining after', money0(remainAfter), remainAfter ? 'over' : 'paid')
+      + drawerSectionTitle('Schedule · ' + planRows.length + ' instalment' + (planRows.length === 1 ? '' : 's'))
+      + (planRows.length
+        ? `<div class="rd-pay-sched">${planRows.map(r =>
+          `<div class="rd-pay-sched__row${r.thisRow ? ' is-this' : ''}"><span>${esc(r.label)}${r.thisRow ? ' <em>· this</em>' : ''}</span><span class="${r.paid ? 'is-paid' : (r.thisRow ? 'is-warn' : '')}">${esc(r.when)}</span></div>`
+        ).join('')}</div>`
+        : '<div class="rd-pay-empty">This is the only payment on the contract.</div>')
+      + (proposed
+        ? `<p class="rd-drawer-callout is-warn">${esc(payVendor(p) || 'This vendor')}&rsquo;s contract sets the due date. Calendar asked for ${esc(shortDate(proposed, true))} — change the date on the contract, not here.</p>`
+        : '<p class="rd-drawer-callout">The paper this instalment came from, and where it sits in the schedule. Read-only here — the contract owns its own totals.</p>')
+      + drawerKv('Signed by', signed || '—', /both|signed/i.test(String(signed)) ? 'paid' : '')
+      + drawerKv('Documents', docCount ? docCount + ' on file' : '—');
   }
 
-  function drawerLinksTab(p) {
+  function drawerMethodTab(p) {
     const cat = payCategory(p);
-    const contract = contractLabel(p);
-    const item = typeof paymentLinkedBudgetItem === 'function' ? paymentLinkedBudgetItem(p) : null;
-    const vendorList = typeof safeArray === 'function' ? safeArray(data.vendors) : (data.vendors || []);
-    const vendor = vendorList.find(v => String(v.name || '') === payVendor(p));
-    const siblings = rows().filter(x => x !== p && payVendor(x) && payVendor(x) === payVendor(p));
-    return fieldRow('Vendor', payVendor(p) ? esc(payVendor(p)) + ' →' : '—', { link: !!vendor, muted: !payVendor(p) })
-      + fieldRow('Budget category', cat ? esc(cat) + ' →' : 'Not linked', { link: !!cat, muted: !cat })
-      + fieldRow('Budget line', item && item.name ? esc(item.name) : (p.budgetItem ? esc(p.budgetItem) : '—'), { muted: !(item || p.budgetItem) })
-      + fieldRow('Contract', contract ? esc(contract) + ' →' : 'Not linked', { link: !!contract, muted: !contract })
-      + drawerSectionTitle('Same vendor · ' + siblings.length)
-      + (siblings.length
-        ? siblings.map(x => `<button type="button" class="rd-pay-sibling" onclick="rdPayOpenDrawer('${esc(payId(x))}')">
-            <span class="rd-pay-sibling__name">${esc(payDesc(x) || 'Payment')}</span>
-            <span class="rd-pay-sibling__meta">${money0(payDue(x))}</span>
-            ${pillHtml(payPill(x))}
-          </button>`).join('')
-        : '<div class="rd-pay-empty">This is the only payment for this vendor.</div>')
-      + `<div class="rd-drawer-note">${cat
-        ? 'Every figure here is derived from the owning record — changing the amount updates Budget, Contracts and the Dashboard at once.'
-        : 'Without a budget category this payment is invisible to the Budget page. Set one so the committed figures agree.'}</div>`;
+    const v = linkedVendor(p);
+    const ref = p.reference || p.ref || '';
+    const payer = p.payer || p.paidBy || '';
+    const acct = (v && (v.accountName || v.bankAccount || v.payee)) || payVendor(p) || '';
+    const bank = (v && (v.bank || v.bankName)) || '';
+    const last4 = (v && (v.accountLast4 || v.account)) || '';
+    const verified = (v && (v.verified || v.verifiedOn)) || '';
+    return drawerSectionTitle('Payment method')
+      + fieldSelect('Method', 'ptype', payMethod(p), methodOptions())
+      + fieldSelect('From', 'budgetCat', cat, categoryOptions())
+      + fieldRow('Reference', ref || '—', { muted: !ref })
+      + fieldRow('Payer', payer || '—', { muted: !payer })
+      + drawerSectionTitle('Vendor details')
+      + fieldRow('Account name', acct || '—', { muted: !acct })
+      + fieldRow('Bank', bank || '—', { muted: !bank })
+      + fieldRow('Account', last4 ? (String(last4).indexOf('•') >= 0 ? last4 : '•••• ' + String(last4).slice(-4)) : '—', { muted: !last4 })
+      + fieldRow('Verified', verified || '—', { muted: !verified })
+      + '<p class="rd-drawer-callout is-warn">Re-verify before sending — changed bank details on an emailed invoice are the common fraud here.</p>'
+      + fieldRow('Receipt required', p.receiptRequired === false ? 'No' : 'Yes')
+      + fieldRow('Receipt on file', p.receipt || p.receiptOnFile ? 'Yes' : 'No', { over: !(p.receipt || p.receiptOnFile) })
+      + fieldRow('Reminder', p.reminder || '—', { muted: !p.reminder })
+      + '<p class="rd-drawer-callout">How it will actually be paid, and from which pot. The tab that stops two people paying the same invoice twice.</p>';
   }
 
   function drawerHistoryTab(p) {
+    const log = typeof recordHistoryFor === 'function' ? recordHistoryFor('payments', payId(p)) : [];
     const events = [];
-    if (p.paiddate) events.push({ when: p.paiddate, what: 'Marked paid · ' + money0(payPaid(p)) });
-    (Array.isArray(p.installments) ? p.installments : []).forEach(inst => {
-      if (inst.paidDate) events.push({ when: inst.paidDate, what: (inst.label || 'Instalment') + ' paid · ' + money0(inst.amountPaid) });
-      else if (inst.dueDate) events.push({ when: inst.dueDate, what: (inst.label || 'Instalment') + ' due · ' + money0(inst.amountDue) });
+    log.forEach(entry => {
+      const when = entry.iso || ((entry.date || '') + 'T' + (entry.time || '12:00'));
+      (entry.changes || []).forEach(ch => {
+        const field = (ch.label || ch.field || '').toLowerCase();
+        let what = (ch.label || ch.field || 'Field') + ' ' + (ch.from || '—') + ' → ' + (ch.to || '—');
+        let derived = '';
+        if (field.indexOf('date') >= 0 || field === 'due') {
+          derived = '→ Payments calendar re-flowed';
+        } else if (field.indexOf('due') >= 0 || field.indexOf('amount') >= 0 || field === 'paid') {
+          derived = '→ Money tab figures re-derived from this edit';
+        }
+        events.push({ when: when, date: entry.date, time: entry.time, who: entry.who || entry.action || '', what: what, derived: derived, tone: 'gold' });
+      });
+      if (!(entry.changes || []).length) {
+        events.push({ when: when, date: entry.date, time: entry.time, who: entry.who || '', what: entry.action || 'Edited', derived: '', tone: 'gold' });
+      }
     });
-    if (p.date) events.push({ when: p.date, what: 'Payment due · ' + money0(payDue(p)) });
+    if (p.paiddate) events.push({ when: p.paiddate, date: p.paiddate, what: 'Marked paid · ' + money0(payPaid(p)), derived: '', tone: 'green' });
+    (Array.isArray(p.installments) ? p.installments : []).forEach(inst => {
+      if (inst.paidDate) events.push({ when: inst.paidDate, date: inst.paidDate, what: (inst.label || 'Instalment') + ' paid · ' + money0(inst.amountPaid), derived: '', tone: 'green' });
+    });
+    if (!events.length && p.date) {
+      events.push({ when: p.date, date: p.date, what: 'Instalment created' + (contractLabel(p) ? ' with the contract' : ''), derived: '', tone: 'gold' });
+    }
     events.sort((a, b) => String(b.when).localeCompare(String(a.when)));
-    return drawerSectionTitle('History · ' + events.length)
-      + (events.length
-        ? events.map(e => `<div class="rd-pay-histrow"><span class="rd-pay-muted">${esc(shortDate(e.when, true))}</span><span>${esc(e.what)}</span></div>`).join('')
-        : '<div class="rd-pay-empty">No dated activity on this payment yet.</div>')
-      + (p.notes ? drawerSectionTitle('Notes') + `<div class="rd-drawer-note">${esc(p.notes)}</div>` : '')
-      + `<div class="rd-drawer-note">History is derived from the dates on the record and its instalments — it is a read of the data, not a second log.</div>`;
+    const rowsHtml = events.length
+      ? events.map(e => {
+        const meta = [e.who, e.date ? shortDate(e.date, true) : '', e.time].filter(Boolean).join(' · ');
+        return `<div class="rd-pay-histline"><i class="is-${esc(e.tone || 'gold')}"></i><div><div class="rd-pay-histline__what">${esc(e.what)}</div>${e.derived ? `<div class="rd-pay-histline__derived">${esc(e.derived)}</div>` : ''}${meta ? `<div class="rd-pay-histline__meta">${esc(meta)}</div>` : ''}</div></div>`;
+      }).join('')
+      : '<div class="rd-pay-empty">No dated activity on this payment yet.</div>';
+    return rowsHtml
+      + '<p class="rd-drawer-callout is-ok">An amount edit re-derives the contract total, the category percentage and the Dashboard money figure. That is why it confirms first.</p>';
+  }
+
+  function drawerFootHtml(tabIdx, p) {
+    if (tabIdx === 0) {
+      return `<button type="button" class="rd-btn rd-btn--primary" onclick="rdPayDrawerMarkPaid()">${isSettled(p) ? 'Mark unpaid' : 'Mark paid'}</button>`
+        + '<button type="button" class="rd-btn" onclick="rdPayDrawerReschedule()">Reschedule</button>';
+    }
+    if (tabIdx === 1) {
+      return '<button type="button" class="rd-btn rd-btn--primary" onclick="showPanel(\'contracts\')">Open contract</button>'
+        + '<button type="button" class="rd-btn" onclick="rdPayJumpTo(\'pay-sect-tracker\')">View schedule</button>';
+    }
+    if (tabIdx === 2) {
+      return `<button type="button" class="rd-btn rd-btn--primary" onclick="rdPayDrawerSave({quiet:true});rdPayDrawerMarkPaid()">${isSettled(p) ? 'Mark unpaid' : 'Mark paid'}</button>`
+        + '<button type="button" class="rd-btn" onclick="rdPayDrawerCopyMethod()">Copy details</button>';
+    }
+    return '<button type="button" class="rd-btn rd-btn--primary" onclick="rdPayCloseDrawer()">Close</button>'
+      + '<button type="button" class="rd-btn" onclick="rdPayDrawerExport()">Export record</button>';
   }
 
   function renderPaymentsDrawer() {
@@ -1026,14 +1293,16 @@
       return;
     }
     const tabIdx = Math.min(Math.max(0, window._payDrawerTab | 0), PAY_DRAWER_TABS.length - 1);
-    const pills = [payPill(p)];
-    if (contractLabel(p)) pills.push({ label: 'Contract linked', scheme: 'blue' });
-    else if (!payCategory(p)) pills.push({ label: 'No budget category', scheme: 'gold' });
+    const pills = [
+      { label: money0(payDue(p)), scheme: 'gray' },
+      { label: payDueDate(p) ? 'Due ' + shortDate(payDueDate(p)) : 'No due date', scheme: 'gold' },
+      isSettled(p) ? { label: 'Paid', scheme: 'green' } : { label: 'Unpaid', scheme: 'red' }
+    ];
 
     let body;
     if (tabIdx === 0) body = drawerPaymentTab(p);
-    else if (tabIdx === 1) body = drawerInstallmentsTab(p);
-    else if (tabIdx === 2) body = drawerLinksTab(p);
+    else if (tabIdx === 1) body = drawerContractTab(p);
+    else if (tabIdx === 2) body = drawerMethodTab(p);
     else body = drawerHistoryTab(p);
 
     const month = monthKey(payDueDate(p));
@@ -1052,13 +1321,14 @@
       `<button type="button" class="rd-drawer__tab${i === tabIdx ? ' is-active' : ''}" onclick="rdPayDrawerTab(${i})">${esc(t)}</button>`).join('')}</div>
       </div>
       <div class="rd-drawer__body rd-drawer-fields">${body}</div>
-      <div class="rd-drawer__foot">
-        ${tabIdx === 0
-        ? '<button type="button" class="rd-btn rd-btn--primary" onclick="rdPayDrawerSave()">Save</button>'
-        : `<button type="button" class="rd-btn rd-btn--primary" onclick="rdPayDrawerMarkPaid()">${isSettled(p) ? 'Mark unpaid' : 'Mark paid'}</button>`}
-        <button type="button" class="rd-btn" onclick="rdPayDrawerFullEditor()">Full editor</button>
-      </div>
+      <div class="rd-drawer__foot">${drawerFootHtml(tabIdx, p)}</div>
     </aside>`;
+    const slotEl = slot.querySelector('.rd-drawer__body');
+    if (slotEl) {
+      slotEl.querySelectorAll('[data-payf]').forEach(el => {
+        el.addEventListener('change', () => rdPayDrawerSave({ quiet: true }));
+      });
+    }
   }
 
   /* ── actions ─────────────────────────────────────────────────────────── */
@@ -1085,10 +1355,12 @@
     window._payDrawerTab = i | 0;
     renderPaymentsDrawer();
   }
-  function rdPayDrawerSave() {
+  function rdPayDrawerSave(opts) {
+    opts = opts || {};
     const p = window._payDrawerId ? rowById(window._payDrawerId) : null;
     const slot = document.getElementById('payments-drawer-slot');
     if (!p || !slot) return;
+    const before = typeof recordClone === 'function' ? recordClone(p) : JSON.parse(JSON.stringify(p));
     const read = key => {
       const el = slot.querySelector('[data-payf="' + key + '"]');
       return el ? el.value : null;
@@ -1105,10 +1377,11 @@
       syncPaymentRowFromInstallments(p);
     }
     if (typeof syncRelationshipIdsForRow === 'function') syncRelationshipIdsForRow('payments', p);
+    if (typeof recordHistoryLog === 'function') recordHistoryLog('payments', before, p);
     syncBudget();
     persist();
     rerender();
-    if (typeof toast === 'function') toast('Payment saved');
+    if (!opts.quiet && typeof toast === 'function') toast('Payment saved');
   }
   function rdPayDrawerMarkPaid() {
     const p = window._payDrawerId ? rowById(window._payDrawerId) : null;
@@ -1180,8 +1453,13 @@
   }
 
   function rdPayJumpTo(sectionId) {
-    const el = document.getElementById(sectionId);
-    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window._payMode = 'table';
+    window._payJumpSection = sectionId || '';
+    renderPaymentsRd();
+    requestAnimationFrame(() => {
+      const el = document.getElementById(sectionId);
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
   function applyPaymentsRailView(view) {
     window._payRailView = view || 'all';
@@ -1191,7 +1469,127 @@
   }
   function rdPaySetMode(mode) {
     window._payMode = mode === 'calendar' ? 'calendar' : 'table';
+    renderPaymentsRd();
+  }
+  function applyPayViewMode() {
+    const cal = window._payMode === 'calendar';
+    const page = document.querySelector('#panel-payments .rd-page');
+    if (page) {
+      page.classList.toggle('is-pay-calendar', cal);
+      page.classList.toggle('is-pay-table', !cal);
+    }
+    const tracker = document.getElementById('pay-sect-tracker');
+    const insight = document.getElementById('payment-insight');
+    if (tracker) tracker.hidden = cal;
+    if (insight) insight.hidden = cal;
+  }
+  function rdPayCalShift(dir) {
+    const [y, m] = payCalCursor().split('-').map(Number);
+    const d = new Date(y, m - 1 + (dir || 0), 1);
+    window._payCalCursor = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
     renderPaymentsTable();
+  }
+  function rdPayCalDrag(ev, id) {
+    if (ev.dataTransfer) {
+      ev.dataTransfer.setData('text/plain', String(id));
+      ev.dataTransfer.effectAllowed = 'move';
+    }
+    window._payCalDragId = String(id);
+  }
+  function applyDueDate(p, iso) {
+    const before = typeof recordClone === 'function' ? recordClone(p) : JSON.parse(JSON.stringify(p));
+    if (contractIsLinked(p)) {
+      window._payProposedDate = { id: payId(p), date: iso };
+      window._payDrawerId = payId(p);
+      window._payDrawerTab = 1;
+      renderPaymentsDrawer();
+      if (typeof toast === 'function') {
+        toast((payVendor(p) || 'Vendor') + '’s contract sets this date — it was not rewritten.');
+      }
+      return false;
+    }
+    window._payProposedDate = null;
+    p.date = iso;
+    if (Array.isArray(p.installments) && p.installments.length) {
+      const next = p.installments.find(inst => {
+        const st = typeof paymentInstallmentStatus === 'function' ? paymentInstallmentStatus(inst) : inst.status;
+        return st !== 'Paid';
+      }) || p.installments[0];
+      if (next) next.dueDate = iso;
+    }
+    if (typeof recordHistoryLog === 'function') recordHistoryLog('payments', before, p);
+    persist();
+    rerender();
+    if (typeof toast === 'function') toast('Due date moved to ' + shortDate(iso, true));
+    return true;
+  }
+  function rdPayCalDrop(ev, iso) {
+    if (ev.preventDefault) ev.preventDefault();
+    if (ev.stopPropagation) ev.stopPropagation();
+    const id = (ev.dataTransfer && ev.dataTransfer.getData('text/plain')) || window._payCalDragId;
+    window._payCalDragId = null;
+    if (!id || !iso) return;
+    const p = rowById(id);
+    if (!p) return;
+    applyDueDate(p, iso);
+  }
+  function rdPayCalToday() {
+    const t = new Date();
+    window._payCalCursor = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0');
+    renderPaymentsTable();
+  }
+  function rdPayCalUnpaidOnly() {
+    window._payCalUnpaid = !window._payCalUnpaid;
+    renderPaymentsTable();
+  }
+  function rdPayCalAddOn(iso) {
+    const list = typeof safeArray === 'function' ? safeArray(data.payments) : (data.payments || (data.payments = []));
+    const row = {
+      vendor: '', desc: '', due: 0, paid: 0, gratuity: 0, gratuityStatus: 'Not Planned',
+      date: iso, paiddate: '', ptype: '', status: 'Not Paid', notes: '',
+      installments: [], budgetCat: ''
+    };
+    if (typeof ensureRowId === 'function') ensureRowId(row, 'payments');
+    list.push(row);
+    persist();
+    window._payDrawerId = payId(row);
+    window._payDrawerTab = 0;
+    rerender();
+  }
+  async function rdPayDrawerReschedule() {
+    const p = window._payDrawerId ? rowById(window._payDrawerId) : null;
+    if (!p) return;
+    const cur = String(payDueDate(p) || p.date || '').slice(0, 10);
+    const iso = typeof covPrompt === 'function'
+      ? await covPrompt('New due date (YYYY-MM-DD)', { value: cur })
+      : window.prompt('New due date (YYYY-MM-DD)', cur);
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(String(iso).slice(0, 10))) return;
+    applyDueDate(p, String(iso).slice(0, 10));
+  }
+  function rdPayDrawerCopyMethod() {
+    const p = window._payDrawerId ? rowById(window._payDrawerId) : null;
+    if (!p) return;
+    const v = linkedVendor(p);
+    const lines = [
+      'Method: ' + (payMethod(p) || '—'),
+      'From: ' + (payCategory(p) || '—'),
+      'Vendor: ' + (payVendor(p) || '—'),
+      v && (v.accountName || v.bank) ? 'Payee: ' + (v.accountName || v.bank) : ''
+    ].filter(Boolean).join('\n');
+    const done = () => { if (typeof toast === 'function') toast('Payment details copied'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lines).then(done).catch(done);
+    } else {
+      done();
+    }
+  }
+  function rdPayDrawerExport() {
+    const p = window._payDrawerId ? rowById(window._payDrawerId) : null;
+    if (!p || typeof exportSectionCSV !== 'function') return;
+    exportSectionCSV('Payment', [{
+      Vendor: payVendor(p), Description: payDesc(p), Due: payDue(p), Paid: payPaid(p),
+      Date: payDueDate(p), Status: payStatus(p), Method: payMethod(p), Category: payCategory(p)
+    }]);
   }
 
   /* Each toolbar redraws only the section it belongs to. */
@@ -1363,6 +1761,7 @@
     renderPaymentsInsight();
     renderPaymentsTracker();
     renderPaymentsTable();
+    applyPayViewMode();
     renderPaymentsDrawer();
 
     if (typeof renderContextSidebar === 'function'
@@ -1416,6 +1815,15 @@
   window.rdPayAddPayment = rdPayAddPayment;
   window.rdPayTogglePlan = rdPayTogglePlan;
   window.rdPayStartPlan = rdPayStartPlan;
+  window.rdPayCalShift = rdPayCalShift;
+  window.rdPayCalDrag = rdPayCalDrag;
+  window.rdPayCalDrop = rdPayCalDrop;
+  window.rdPayCalToday = rdPayCalToday;
+  window.rdPayCalUnpaidOnly = rdPayCalUnpaidOnly;
+  window.rdPayCalAddOn = rdPayCalAddOn;
+  window.rdPayDrawerReschedule = rdPayDrawerReschedule;
+  window.rdPayDrawerCopyMethod = rdPayDrawerCopyMethod;
+  window.rdPayDrawerExport = rdPayDrawerExport;
 
   function hookPaymentsPanelRenderer() {
     if (window.SYSTEM_PANEL_RENDERERS) {
