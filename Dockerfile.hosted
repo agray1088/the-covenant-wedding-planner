@@ -1,0 +1,46 @@
+# Optional single-service image: sync API + static planner (index.html, js/, css/).
+# Use when you want one HTTPS origin for both UI and API (SERVE_STATIC=1).
+# Preferred multi-host setup still uses server/Dockerfile (API only) + static CDN.
+# Deploy checklist: docs/HOSTED_DEPLOY.md  |  Env template: server/.env.production.example
+#
+#   docker build -f Dockerfile.hosted -t covenant-hosted .
+#   # or set Railway dockerfilePath = "Dockerfile.hosted"
+#
+# Same runtime secrets as server/Dockerfile (paste in host dashboard — never bake in):
+#   DATABASE_URL, DATABASE_SSL=1, PUBLIC_URL, CORS_ORIGIN, SESSION_SECRET, TRUST_PROXY=1
+#   CLIENT_APP_URL (set both PUBLIC_URL and CORS_ORIGIN to this same HTTPS origin)
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET [, GOOGLE_REDIRECT_URI]
+#   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM [, SMTP_SECURE]
+#   Optional: PHOTO_STORAGE=s3|r2 + S3_* / R2_* + public base URL
+
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY server/package.json server/package-lock.json ./
+RUN npm ci --omit=dev
+
+FROM node:20-alpine
+WORKDIR /app
+ENV NODE_ENV=production \
+    PORT=8787 \
+    HOST=0.0.0.0 \
+    COVENANT_SYNC_DOCKER=1 \
+    SERVE_STATIC=1 \
+    STATIC_ROOT=/app/public
+RUN apk add --no-cache wget \
+  && addgroup -S covenant && adduser -S covenant -G covenant
+COPY --from=deps /app/node_modules ./node_modules
+COPY server/package.json server/package-lock.json ./
+COPY server/index.js ./
+COPY server/lib ./lib
+COPY server/routes ./routes
+COPY server/schema.sql ./
+COPY server/scripts ./scripts
+# Static planner (offline-first client)
+COPY index.html vendor-portal.html ./public/
+COPY js ./public/js
+COPY css ./public/css
+USER covenant
+EXPOSE 8787
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8787/health || exit 1
+CMD ["node", "index.js"]

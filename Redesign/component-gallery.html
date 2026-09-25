@@ -371,12 +371,80 @@
       <div id="g-state-filter" class="rd-state rd-state--filter rd-state--table"></div>
     </div>
   </section>
+
+  <section class="g-sec"><h2>Furniture · overlays</h2>
+    <div class="g-row"><span class="g-label">Filter builder · Views · Shortcuts · Bulk edit · Share · Undo · Templates · Trash · Merge · Notifications</span></div>
+    <div class="g-row">
+      <button type="button" class="rd-btn rd-btn--primary" id="g-fb">Filter builder</button>
+      <button type="button" class="rd-btn" id="g-views">Saved views</button>
+      <button type="button" class="rd-btn" id="g-kbd">Shortcuts (?)</button>
+      <button type="button" class="rd-btn" id="g-bulk">Bulk edit</button>
+      <button type="button" class="rd-btn" id="g-share">Share</button>
+      <button type="button" class="rd-btn" id="g-undo">Undo toast</button>
+      <button type="button" class="rd-btn" id="g-tpl">Templates</button>
+      <button type="button" class="rd-btn" id="g-trash">Trash</button>
+      <button type="button" class="rd-btn" id="g-merge">Merge</button>
+      <button type="button" class="rd-btn" id="g-notif">Notifications</button>
+    </div>
+    <div id="g-notif-host" style="margin-top:16px;width:min(560px,100%);border:1px solid var(--border-control,#d9cfba);background:#fff;display:none"></div>
+  </section>
 </div>
 <script src="../js/rd-states.js"></script>
+<script src="../js/rd-furniture.js"></script>
 <script>
   if (window.RdStates) {
     RdStates.renderEmpty(document.getElementById('g-state-empty'), 'guests');
     RdStates.renderFilterEmpty(document.getElementById('g-state-filter'));
+  }
+  if (window.RdFurniture) {
+    var fields = [
+      { key: 'rsvp', label: 'Reply status', options: ['No reply', 'Accepted', 'Declined'] },
+      { key: 'side', label: 'Side', options: ['Bride', 'Groom'] },
+      { key: 'chased', label: 'Chased', options: ['Never', 'Once', 'Twice'] }
+    ];
+    document.getElementById('g-fb').onclick = function () {
+      RdFurniture.openFilterBuilder({ pageLabel: 'Guest List', totalRows: 142, fields: fields, estimateMatch: function () { return 7; } });
+    };
+    document.getElementById('g-views').onclick = function () {
+      RdFurniture.openSavedViewsManager({ pageLabel: 'Guest List', panelId: 'guests', fields: fields, totalRows: 142 });
+    };
+    document.getElementById('g-kbd').onclick = function () { RdFurniture.openShortcutSheet(); };
+    document.getElementById('g-bulk').onclick = function () {
+      RdFurniture.openBulkEdit({ count: 23, names: ['Mensah household', 'Asante household', 'Boateng household'], conflictCount: 3, fields: [{ key: 'meal', label: 'Meal choice', options: ['Beef', 'Chicken', 'Fish'] }] });
+    };
+    document.getElementById('g-share').onclick = function () { RdFurniture.openShareDialog({ pageLabel: 'Guest List', panelId: 'guests' }); };
+    document.getElementById('g-undo').onclick = function () {
+      RdFurniture.showUndoToast({ title: '23 guests updated', detail: 'Meal choice set to Beef · seating unchanged' });
+    };
+    document.getElementById('g-tpl').onclick = function () { RdFurniture.openTemplatePicker(); };
+    document.getElementById('g-trash').onclick = function () {
+      RdFurniture.openTrash({ items: [
+        { id: '1', title: 'Boateng household', meta: 'Guest · deleted yesterday', daysLeft: 29 },
+        { id: '2', title: 'Deposit · Sankofa Films', meta: 'Payment · parent in trash', daysLeft: 12 }
+      ] });
+    };
+    document.getElementById('g-merge').onclick = function () {
+      RdFurniture.openMergeReview({
+        left: { name: 'Ama Mensah', email: 'ama@example.com', household: 'Mensah', rsvp: 'Yes', table: 'Table 4' },
+        right: { name: 'Ama Mensah', email: 'ama.m@gmail.com', household: 'Mensah', rsvp: 'Pending', table: '' }
+      });
+    };
+    document.getElementById('g-notif').onclick = function () {
+      var host = document.getElementById('g-notif-host');
+      host.style.display = 'block';
+      host.innerHTML = RdFurniture.notificationsHtml({
+        needsYou: [
+          { title: 'Sankofa Films quote expires in 6 days', note: 'Unsigned · $2,400 · 3 obligations already scheduled', chip: '5 Sep' },
+          { title: 'Grace Hall want the insurance certificate by 1 Oct', note: 'Adom owes it · chased twice', chip: 'Blocker', chipTone: 'red', urgent: true },
+          { title: '2 counseling sessions unscheduled', note: 'Both must sit before the rehearsal on 6 Nov', chip: 'Covenant', chipTone: 'gold' }
+        ],
+        activity: [
+          { title: 'Michael marked 4 duties done', note: 'Wedding Party · before the day', when: '2h ago' },
+          { title: 'Mrs Owusu opened the guest packet', note: '24 opens · most-read packet', when: '7h ago' }
+        ],
+        activityMeta: 'yesterday 18:40'
+      });
+    };
   }
 </script>
 </body>
