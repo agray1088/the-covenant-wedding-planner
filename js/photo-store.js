@@ -181,13 +181,48 @@
       caption: meta.caption || '',
       createdAt: meta.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      src: 'idb:' + id
+      src: 'idb:' + id,
+      publicUrl: null,
+      cloudSynced: false
     };
     var lib = ensureLibrary();
     var idx = lib.findIndex(function (p) { return p && p.id === id; });
     if (idx >= 0) lib[idx] = Object.assign({}, lib[idx], entry);
     else lib.push(entry);
     if (typeof save === 'function') save();
+
+    // Optional cloud object storage — only when cloud sync is opted in.
+    // Failure never removes the local IndexedDB copy (offline path).
+    if (meta.skipCloud !== true) {
+      try {
+        var CS = global.CovenantCloudSync;
+        var st = CS && typeof CS.getStatus === 'function' ? CS.getStatus() : null;
+        if (CS && typeof CS.uploadPhoto === 'function' && st && st.enabled
+          && st.weddingId && (st.state === 'signed_in' || st.state === 'syncing' || st.state === 'synced')) {
+          var up = await CS.uploadPhoto({
+            id: id,
+            name: entry.name,
+            mime: mime,
+            kind: entry.kind,
+            size: entry.size,
+            bytes: buf
+          });
+          if (up && up.publicUrl) {
+            entry.publicUrl = up.publicUrl;
+            entry.cloudSynced = true;
+            var lib2 = ensureLibrary();
+            var i2 = lib2.findIndex(function (p) { return p && p.id === id; });
+            if (i2 >= 0) {
+              lib2[i2].publicUrl = up.publicUrl;
+              lib2[i2].cloudSynced = true;
+            }
+            if (typeof save === 'function') save();
+          }
+        }
+      } catch (cloudErr) {
+        console.warn('[photos] cloud upload skipped', cloudErr && cloudErr.message ? cloudErr.message : cloudErr);
+      }
+    }
     return entry;
   }
 

@@ -1,6 +1,7 @@
 /**
- * Photo metadata + local blob content routes.
- * Blobs are NOT stored as base64 in Postgres — only metadata + storage_key.
+ * Photo metadata + blob content routes.
+ * Blobs are NOT stored as base64 in Postgres — only metadata + storage_key + public_url.
+ * Offline clients keep IndexedDB; object storage is optional when S3/R2 is configured.
  */
 import { Router } from 'express';
 import { query } from '../lib/db.js';
@@ -11,7 +12,9 @@ import {
   deleteObject,
   getObject,
   newPhotoId,
+  objectStorageConfigured,
   photoStorageMode,
+  publicObjectUrl,
   putObject,
   storageConfigSummary
 } from '../lib/object-storage.js';
@@ -42,11 +45,13 @@ function fromClient(c = {}) {
     kind: c.kind || 'library',
     storage_key: c.storageKey || c.storage_key || null,
     storage_backend: c.storageBackend || c.storage_backend || photoStorageMode(),
+    public_url: c.publicUrl || c.public_url || null,
     updated_at: updatedAt
   };
 }
 
 function toClient(row) {
+  const publicUrl = row.public_url || publicObjectUrl(row.storage_key) || null;
   return {
     id: row.id,
     _id: row.id,
@@ -60,6 +65,7 @@ function toClient(row) {
     kind: row.kind || 'library',
     storageKey: row.storage_key || null,
     storageBackend: row.storage_backend || null,
+    publicUrl,
     updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : null
   };
@@ -84,19 +90,23 @@ async function upsertPhoto(req, res, photoId) {
     return;
   }
   if (!body.storage_key) {
-    body.storage_key = createUploadDescriptor({
+    const desc = await createUploadDescriptor({
       weddingId: req.params.weddingId,
       photoId: body.id,
       mime: body.mime,
       ext: extFromMime(body.mime)
-    }).storageKey;
+    });
+    body.storage_key = desc.storageKey;
+    if (!body.public_url && desc.publicUrl) body.public_url = desc.publicUrl;
+  } else if (!body.public_url) {
+    body.public_url = publicObjectUrl(body.storage_key);
   }
   const { rows } = await query(
     `INSERT INTO photos (
        id, wedding_id, name, mime, size_bytes, width, height,
-       caption, album, kind, storage_key, storage_backend, updated_at
+       caption, album, kind, storage_key, storage_backend, public_url, updated_at
      ) VALUES (
-       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::timestamptz
+       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::timestamptz
      )
      ON CONFLICT (wedding_id, id) DO UPDATE SET
        name = EXCLUDED.name,
@@ -109,6 +119,7 @@ async function upsertPhoto(req, res, photoId) {
        kind = EXCLUDED.kind,
        storage_key = COALESCE(EXCLUDED.storage_key, photos.storage_key),
        storage_backend = COALESCE(EXCLUDED.storage_backend, photos.storage_backend),
+       public_url = COALESCE(EXCLUDED.public_url, photos.public_url),
        updated_at = CASE
          WHEN EXCLUDED.updated_at >= photos.updated_at THEN EXCLUDED.updated_at
          ELSE photos.updated_at
@@ -127,6 +138,7 @@ async function upsertPhoto(req, res, photoId) {
       body.kind,
       body.storage_key,
       body.storage_backend,
+      body.public_url,
       body.updated_at
     ]
   );
@@ -134,7 +146,8 @@ async function upsertPhoto(req, res, photoId) {
   res.json({
     ack: true,
     photo: toClient(row),
-    inserted: !!(row && row.inserted)
+    inserted: !!(row && row.inserted),
+    storage: storageConfigSummary()
   });
 }
 
@@ -154,19 +167,20 @@ router.post('/:photoId/upload-url', requireAuth, requireWeddingMember, async (re
     return;
   }
   const mime = (req.body && (req.body.mime || req.body.contentType)) || 'application/octet-stream';
-  const desc = createUploadDescriptor({
+  const desc = await createUploadDescriptor({
     weddingId: req.params.weddingId,
     photoId,
     mime,
     ext: extFromMime(mime)
   });
   await query(
-    `INSERT INTO photos (id, wedding_id, name, mime, storage_key, storage_backend, kind, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,now())
+    `INSERT INTO photos (id, wedding_id, name, mime, storage_key, storage_backend, public_url, kind, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,now())
      ON CONFLICT (wedding_id, id) DO UPDATE SET
        mime = COALESCE(EXCLUDED.mime, photos.mime),
        storage_key = COALESCE(EXCLUDED.storage_key, photos.storage_key),
        storage_backend = EXCLUDED.storage_backend,
+       public_url = COALESCE(EXCLUDED.public_url, photos.public_url),
        updated_at = now()`,
     [
       photoId,
@@ -175,10 +189,11 @@ router.post('/:photoId/upload-url', requireAuth, requireWeddingMember, async (re
       mime,
       desc.storageKey,
       desc.backend,
+      desc.publicUrl || null,
       (req.body && req.body.kind) || 'library'
     ]
   );
-  res.json({ ok: true, upload: desc });
+  res.json({ ok: true, upload: desc, storage: storageConfigSummary() });
 });
 
 router.get('/:photoId/download-url', requireAuth, requireWeddingMember, async (req, res) => {
@@ -191,16 +206,21 @@ router.get('/:photoId/download-url', requireAuth, requireWeddingMember, async (r
     return;
   }
   const row = rows[0];
-  const desc = createDownloadDescriptor({
+  const desc = await createDownloadDescriptor({
     weddingId: req.params.weddingId,
     photoId: row.id,
     storageKey: row.storage_key,
-    mime: row.mime
+    mime: row.mime,
+    publicUrl: row.public_url
   });
   res.json({ ok: true, photo: toClient(row), download: desc });
 });
 
-/** Local-backend blob PUT/GET (dev). S3/R2 uses presigned URLs instead. */
+/**
+ * Authenticated blob PUT.
+ * Works for local backend and for S3/R2 (server-side PutObject) —
+ * clients may also PUT directly to a presigned upload-url.
+ */
 router.put('/:photoId/content', requireAuth, requireWeddingMember, async (req, res) => {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -210,30 +230,35 @@ router.put('/:photoId/content', requireAuth, requireWeddingMember, async (req, r
     return;
   }
   const mime = req.get('content-type') || 'application/octet-stream';
-  const desc = createUploadDescriptor({
+  const desc = await createUploadDescriptor({
     weddingId: req.params.weddingId,
     photoId: req.params.photoId,
     mime,
     ext: extFromMime(mime)
   });
+  let put;
   try {
-    await putObject({ storageKey: desc.storageKey, bytes, mime });
+    put = await putObject({ storageKey: desc.storageKey, bytes, mime });
   } catch (e) {
-    res.status(e.code === 'object_storage_not_configured' ? 503 : 501).json({
-      error: e.code || 'put_failed',
+    const code = e.code || 'put_failed';
+    res.status(code === 'object_storage_not_configured' ? 503 : 500).json({
+      error: code,
       message: e.message,
-      hint: e.hint || null
+      hint: e.hint || null,
+      storage: storageConfigSummary()
     });
     return;
   }
+  const publicUrl = put.publicUrl || desc.publicUrl || publicObjectUrl(desc.storageKey);
   await query(
-    `INSERT INTO photos (id, wedding_id, name, mime, size_bytes, storage_key, storage_backend, kind, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,'library',now())
+    `INSERT INTO photos (id, wedding_id, name, mime, size_bytes, storage_key, storage_backend, public_url, kind, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'library',now())
      ON CONFLICT (wedding_id, id) DO UPDATE SET
        mime = EXCLUDED.mime,
        size_bytes = EXCLUDED.size_bytes,
        storage_key = EXCLUDED.storage_key,
        storage_backend = EXCLUDED.storage_backend,
+       public_url = COALESCE(EXCLUDED.public_url, photos.public_url),
        updated_at = now()`,
     [
       req.params.photoId,
@@ -242,10 +267,18 @@ router.put('/:photoId/content', requireAuth, requireWeddingMember, async (req, r
       mime,
       bytes.length,
       desc.storageKey,
-      desc.backend
+      desc.backend,
+      publicUrl
     ]
   );
-  res.json({ ok: true, storageKey: desc.storageKey, size: bytes.length, backend: desc.backend });
+  res.json({
+    ok: true,
+    storageKey: desc.storageKey,
+    size: bytes.length,
+    backend: desc.backend,
+    publicUrl,
+    storage: storageConfigSummary()
+  });
 });
 
 router.get('/:photoId/content', requireAuth, requireWeddingMember, async (req, res) => {
@@ -257,17 +290,24 @@ router.get('/:photoId/content', requireAuth, requireWeddingMember, async (req, r
     res.status(404).json({ error: 'not_found' });
     return;
   }
+  const row = rows[0];
+  // Prefer redirect to stable public URL when available (portal-friendly).
+  const pub = row.public_url || publicObjectUrl(row.storage_key);
+  if (pub && objectStorageConfigured() && req.query.redirect !== '0') {
+    res.redirect(302, pub);
+    return;
+  }
   try {
-    const obj = await getObject({ storageKey: rows[0].storage_key });
+    const obj = await getObject({ storageKey: row.storage_key });
     if (!obj) {
       res.status(404).json({ error: 'blob_missing' });
       return;
     }
-    res.setHeader('Content-Type', rows[0].mime || 'application/octet-stream');
+    res.setHeader('Content-Type', row.mime || obj.mime || 'application/octet-stream');
     res.setHeader('Cache-Control', 'private, max-age=60');
     res.send(Buffer.from(obj.bytes));
   } catch (e) {
-    res.status(e.code === 'object_storage_not_configured' ? 503 : 501).json({
+    res.status(e.code === 'object_storage_not_configured' ? 503 : 500).json({
       error: e.code || 'get_failed',
       message: e.message
     });

@@ -53,10 +53,11 @@ Railway fits this stack well: managed Postgres, automatic HTTPS, Dockerfile depl
    | `BOOTSTRAP_EMAIL` / `BOOTSTRAP_PASSWORD` | optional | Only for a private smoke user; remove after real accounts |
    | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | for Google Sign-In | Redirect: `${PUBLIC_URL}/auth/google/callback` — see [`AUTH.md`](./AUTH.md) |
    | `SMTP_*` | for password/username email | Clear 503 until set — see [`AUTH.md`](./AUTH.md) |
+   | `PHOTO_STORAGE` + `S3_*` or `R2_*` + public base URL | optional portal/packet photos | See [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md); `/setup/status` → `objectStorageConfigured` |
    | `FEATURE_*` | optional | RSVP/landing default on; set `0` to force off — [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) |
 
 6. **Health check:** open `https://<PUBLIC_URL>/health` — expect `"ok": true`, `"db": "up"`. Platforms probe this path behind the HTTPS proxy.
-7. **Setup checklist:** open `https://<PUBLIC_URL>/setup/status` — expect booleans for `publicUrlConfigured`, `googleConfigured`, `smtpConfigured` (never secret values). The planner **Settings → Cloud sync** pane shows the same checklist live and disables Google / email actions until ready.
+7. **Setup checklist:** open `https://<PUBLIC_URL>/setup/status` — expect booleans for `publicUrlConfigured`, `googleConfigured`, `smtpConfigured`, `objectStorageConfigured` (never secret values). The planner **Settings → Cloud sync** pane shows the same checklist live and disables Google / email actions until ready.
 8. **DNS (optional):** point `api.yourdomain.com` at Railway; set `PUBLIC_URL` to that HTTPS origin.
 9. **Point the planner at the API** (Settings → Cloud sync, or console):
    ```js
@@ -141,11 +142,12 @@ Configure Google Cloud Console redirect URIs and SMTP **when enabling accounts**
 - [ ] `SESSION_SECRET` (≥32 random)  
 - [ ] `TRUST_PROXY=1`  
 - [ ] `/health` returns 200 over HTTPS  
-- [ ] `/setup/status` shows expected booleans (confirm in Settings → Cloud sync checklist)  
+- [ ] `/setup/status` shows expected booleans including `objectStorageConfigured` (confirm in Settings → Cloud sync checklist)  
 - [ ] Planner `covenant_cloud_api` points at `PUBLIC_URL`  
 - [ ] No public `BOOTSTRAP_PASSWORD` for real couples  
 - [ ] (Accounts) `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` + redirect URI — [`AUTH.md`](./AUTH.md)  
 - [ ] (Accounts) `SMTP_*` for reset / username / RSVP email — [`AUTH.md`](./AUTH.md)  
+- [ ] (Photos, optional) `PHOTO_STORAGE=s3|r2` + bucket/keys + `S3_PUBLIC_BASE_URL` or `R2_PUBLIC_BASE_URL` — [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md)  
 
 ## Local demo still works
 
@@ -160,4 +162,4 @@ Demo login: `demo@covenant.local` (or username `demo`) / `covenant-demo` against
 
 ## What’s next
 
-**Polish #1 shipped** — in-app Hosted setup checklist (`GET /setup/status` + Settings UI). **Next:** S3/R2 photo storage, then Railway/Fly production secrets wiring. RSVP: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Accounts: [`AUTH.md`](./AUTH.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+**Polish #2 shipped** — S3/R2 photo storage foundation (`objectStorageConfigured`, AWS SDK uploads, portal/packet HTTPS URLs). **Next:** Railway/Fly production secrets wiring with real Google + SMTP (+ optional R2/S3). RSVP: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Accounts: [`AUTH.md`](./AUTH.md). Photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

@@ -97,8 +97,8 @@
   function hostedSetupShellHtml() {
     return '<div class="rd-hosted-setup" id="rd-hosted-setup">'
       + '<div class="rd-set__note"><b>Hosted setup checklist</b> — live capability from the sync API for '
-      + '<code>PUBLIC_URL</code>, Google OAuth, and SMTP. Values of secrets are never shown — only ready / missing. '
-      + 'Local demo still works with password login when Google/SMTP are unset.</div>'
+      + '<code>PUBLIC_URL</code>, Google OAuth, SMTP, and optional S3/R2 object storage. Values of secrets are never shown — only ready / missing. '
+      + 'Local demo still works with password login when Google/SMTP/object storage are unset.</div>'
       + '<div id="rd-hosted-setup-body"><div class="rd-set__note">Checking API…</div></div>'
       + cardRow('Refresh checklist', 'Re-reads GET /setup/status (booleans only)', btn('Refresh', 'rdHostedSetupRefresh'))
       + '</div>';
@@ -117,6 +117,7 @@
     var matchReady = !!status.clientMatchesPublicUrl;
     var googleReady = !!status.googleConfigured;
     var smtpReady = !!status.smtpConfigured;
+    var objectReady = !!status.objectStorageConfigured;
     var publicDesc = publicReady
       ? ('Configured as <code>' + esc(status.publicUrl || '') + '</code> — used for OAuth redirects, password-reset links, RSVP / portal / invite URLs.')
       : 'Not set. Local demos fall back to the request host; hosted deploys need HTTPS <code>PUBLIC_URL</code> (see <code>docs/HOSTED_DEPLOY.md</code>).';
@@ -137,13 +138,21 @@
     var smtpDesc = smtpReady
       ? 'SMTP is ready — password reset, RSVP invites, partner invite email, and vendor portal email can send.'
       : 'Set <code>SMTP_HOST</code> (and usually <code>SMTP_USER</code> / <code>SMTP_PASS</code> / <code>SMTP_FROM</code>). Without SMTP, reset / RSVP / invite <b>send</b> return 503 — you can still copy links manually. See <code>docs/AUTH.md</code>.';
+    var objectDesc = objectReady
+      ? ('Object storage ready (' + esc((status.photoStorage && status.photoStorage.mode) || 's3/r2')
+        + '). Portal hero and vendor packet images can use HTTPS public URLs. '
+        + (status.photoStorage && status.photoStorage.publicBaseConfigured
+          ? 'Public/CDN base is set.'
+          : 'Tip: set <code>S3_PUBLIC_BASE_URL</code> / <code>R2_PUBLIC_BASE_URL</code> for stable guest-facing URLs.'))
+      : 'Optional. Set <code>PHOTO_STORAGE=s3|r2</code> plus bucket, region/endpoint, access key, secret, and public base URL. Until then photos stay in IndexedDB / local blob store (offline zip backup still includes them). See <code>docs/BACKUP_AND_PHOTOS.md</code>.';
 
     return setupStep(publicReady, 'PUBLIC_URL', publicDesc, 'Unset')
       + setupStep(matchReady || (!publicReady && !!status.clientApi), 'Client API matches PUBLIC_URL', matchDesc, matchReady ? 'Ready' : 'Check')
       + setupStep(googleReady, 'Google OAuth', googleDesc, 'Missing')
       + setupStep(smtpReady, 'SMTP (email)', smtpDesc, 'Missing')
-      + '<div class="rd-set__note">Guides: <code>docs/AUTH.md</code> (Google + SMTP) · <code>docs/HOSTED_DEPLOY.md</code> (Railway/Fly secrets). '
-      + '<b>Next polish (not this pass):</b> S3/R2 photo storage, then full Railway/Fly deploy wiring.</div>';
+      + setupStep(objectReady, 'S3 / R2 object storage', objectDesc, 'Optional')
+      + '<div class="rd-set__note">Guides: <code>docs/AUTH.md</code> · <code>docs/HOSTED_DEPLOY.md</code> · <code>docs/BACKUP_AND_PHOTOS.md</code>. '
+      + '<b>Next:</b> Railway/Fly deploy wiring with real secrets.</div>';
   }
 
   function applySetupStatusToControls(status) {
@@ -552,7 +561,7 @@
     html += cardRow('FAQ', 'One per line: Question || Answer',
       '<textarea class="rd-set__input" id="rd-portal-faq" rows="4" placeholder="Can I bring a plus-one? || Please RSVP with your guest name."></textarea>');
     html += cardRow('Hero image URL', 'http(s) or local /path only — optional',
-      '<input type="text" class="rd-set__input" id="rd-portal-hero" placeholder="https://… or /photos/hero.jpg">');
+      '<input type="text" class="rd-set__input" id="rd-portal-hero" placeholder="https://… cloud URL (from Photos when S3/R2 configured)">');
     html += cardRow('RSVP hint', 'Shown near the bottom',
       '<input type="text" class="rd-set__input" id="rd-portal-rsvp-hint" placeholder="Check your email for a personal RSVP link">');
     html += cardRow('Enable portal', 'Saves gate + published blocks', btn('Save portal', 'rdPortalSave'));
@@ -654,6 +663,8 @@
       '<input type="text" class="rd-set__input" id="rd-vp-contact-name" placeholder="Contact name">'
       + '<input type="text" class="rd-set__input" id="rd-vp-contact-phone" placeholder="Phone">'
       + '<input type="text" class="rd-set__input" id="rd-vp-contact-role" placeholder="Role e.g. Planner">');
+    html += cardRow('Packet image URL', 'Optional HTTPS asset from Photos / S3/R2 (Uploads scope)',
+      '<input type="text" class="rd-set__input" id="rd-vp-packet-image" placeholder="https://… or photo id">');
     html += cardRow('Email link', 'Uses vendor email when checked; needs SMTP',
       '<label style="display:flex;align-items:center;gap:0.4rem;font-size:0.92rem">'
       + '<input type="checkbox" id="rd-vp-send-email"> Send email if SMTP is configured</label>');
@@ -685,8 +696,17 @@
       + lib.slice(0, 40).map(function (p) {
         var label = esc((p && (p.name || p.caption || p.id)) || 'photo');
         var meta = esc([p && p.mime, p && p.size ? (Math.round(p.size / 1024) + ' KB') : '', p && p.kind].filter(Boolean).join(' · '));
+        var cloud = '';
+        if (p && p.publicUrl) {
+          cloud = ' <button type="button" class="rd-set__btn" data-act="rdPhotoUsePortalHero" data-url="'
+            + esc(p.publicUrl) + '" style="margin-left:0.35rem">Use as portal hero</button>'
+            + ' <span class="rd-set__muted" title="' + esc(p.publicUrl) + '">cloud URL</span>';
+        } else {
+          cloud = ' <span class="rd-set__muted">local only</span>';
+        }
         return '<li style="margin:0.35rem 0"><span>' + label + '</span>'
           + (meta ? ' <span class="rd-set__muted">(' + meta + ')</span>' : '')
+          + cloud
           + ' <button type="button" class="rd-set__btn" data-act="rdPhotosRemove" data-photo-id="'
           + esc(p && p.id ? p.id : '') + '" style="margin-left:0.35rem">Remove</button></li>';
       }).join('')
@@ -798,11 +818,11 @@
       } catch (e) {}
       var count = lib.length;
       return paneShell('Photos',
-        'Local photo library for offline use. Bytes stay in IndexedDB on this device; metadata is listed here. Include them in a full .zip backup.',
+        'Local photo library for offline use. Bytes stay in IndexedDB on this device; metadata is listed here. Include them in a full .zip backup. When cloud sync is on and S3/R2 is configured, uploads also push to object storage and return an HTTPS URL for portal hero / packet assets.',
         cardRow('Photo library', count + ' photo' + (count === 1 ? '' : 's') + ' on this device',
           btn('Add photos', 'rdPhotosAdd') + ' ' + btn('Refresh list', 'rdPhotosRefresh'))
         + '<div id="rd-photos-list" class="rd-set__note">' + photosListHtml(lib) + '</div>'
-        + '<div class="rd-set__note">Couple hero and Vision Board pins still work as before. New library photos use IndexedDB blobs (refs like <code>idb:…</code>) so backups can ship binaries without stuffing huge base64 into cloud Postgres rows. Online photo metadata + object storage scaffolding: <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>'
+        + '<div class="rd-set__note">Couple hero and Vision Board pins still work as before. New library photos use IndexedDB blobs (refs like <code>idb:…</code>) so backups can ship binaries without stuffing huge base64 into cloud Postgres rows. Optional online object storage (metadata in Postgres + S3/R2): <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>'
         + '<input type="file" id="rd-photos-file" accept="image/*" multiple style="display:none">');
     }
     if (id === 'import') {
@@ -1416,7 +1436,8 @@
           dayNotes: (document.getElementById('rd-vp-daynotes') || {}).value || '',
           contactName: (document.getElementById('rd-vp-contact-name') || {}).value || '',
           contactPhone: (document.getElementById('rd-vp-contact-phone') || {}).value || '',
-          contactRole: (document.getElementById('rd-vp-contact-role') || {}).value || ''
+          contactRole: (document.getElementById('rd-vp-contact-role') || {}).value || '',
+          packetImageUrl: (document.getElementById('rd-vp-packet-image') || {}).value || ''
         };
         window.CovenantCloudSync.createVendorPortalToken({
           vendorId: vendorId,
@@ -1729,6 +1750,27 @@
           refreshPhotosPane(document.getElementById(OVERLAY_ID));
           if (typeof showToast === 'function') showToast('Photo removed from local library');
         });
+        return;
+      }
+      if (name === 'rdPhotoUsePortalHero') {
+        var heroUrl = el && el.getAttribute('data-url');
+        if (!heroUrl) { cloudMsg(false, 'No cloud URL on this photo yet.'); return; }
+        var heroInput = document.getElementById('rd-portal-hero');
+        if (heroInput) {
+          heroInput.value = heroUrl;
+          cloudMsg(true, 'Portal hero URL filled — open RSVP & guest portal and Save portal.');
+        } else {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(heroUrl);
+              cloudMsg(true, 'Cloud photo URL copied — paste into portal hero field.');
+            } else {
+              cloudMsg(true, 'Cloud URL: ' + heroUrl);
+            }
+          } catch (e) {
+            cloudMsg(true, 'Cloud URL: ' + heroUrl);
+          }
+        }
         return;
       }
       if (name === 'rdSetHistory') {

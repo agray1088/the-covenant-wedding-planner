@@ -76,33 +76,40 @@ ok('storage_key column', /storage_key/.test(schema));
 
 const objStore = read('server/lib/object-storage.js');
 ok('PHOTO_STORAGE modes', /photoStorageMode/.test(objStore));
-ok('S3/R2 placeholders', /S3_BUCKET/.test(objStore) && /R2_BUCKET/.test(objStore));
+ok('S3/R2 env + SDK', /S3_BUCKET/.test(objStore) && /R2_BUCKET/.test(objStore) && /PutObjectCommand/.test(objStore));
+ok('objectStorageConfigured', /objectStorageConfigured/.test(objStore));
+ok('public base URL', /S3_PUBLIC_BASE_URL|R2_PUBLIC_BASE_URL/.test(objStore));
 
 const photoRoutes = read('server/routes/photos.js');
 ok('upload-url route', /upload-url/.test(photoRoutes));
 ok('download-url route', /download-url/.test(photoRoutes));
 ok('content put/get', /\/content/.test(photoRoutes));
+ok('public_url / publicUrl', /public_url|publicUrl/.test(photoRoutes));
 
 const serverIndex = read('server/index.js');
 ok('photos routes mounted', /\/photos/.test(serverIndex) && /photoRoutes/.test(serverIndex));
 ok('health photoStorage', /photoStorage/.test(serverIndex));
+ok('setup objectStorageConfigured', /objectStorageConfigured/.test(serverIndex));
 
 const docs = read('docs/BACKUP_AND_PHOTOS.md');
 ok('backup docs present', /covenant-backup-v1/.test(docs));
 ok('privacy section', /Local by default/i.test(docs));
 ok('reconnect unchanged note', /RECONNECT_AFTER_RESTART|demo@covenant\.local/.test(docs));
+ok('object storage polish', /objectStorageConfigured|S3_PUBLIC_BASE_URL/.test(docs));
 
 const roadmap = read('docs/PRODUCT_ROADMAP.md');
 ok('roadmap step 3 shipped', /Offline \+ backup clarity[\s\S]*Shipped/i.test(roadmap));
 ok('roadmap RSVP foundation', /RSVP \+ guest portal[\s\S]*Foundation shipped|RSVP_AND_GUEST_PORTAL\.md/i.test(roadmap));
+ok('roadmap S3/R2 photos', /S3\/R2 photo storage/i.test(roadmap));
 
 const envEx = read('server/.env.example');
 ok('env PHOTO_STORAGE', /PHOTO_STORAGE/.test(envEx));
 ok('env S3 placeholders', /S3_BUCKET/.test(envEx));
+ok('env public base URL', /S3_PUBLIC_BASE_URL|R2_PUBLIC_BASE_URL/.test(envEx));
 
 if (issues.length) {
   console.error('backup-photos verify FAILED:');
   issues.forEach((i) => console.error(' -', i));
   process.exit(1);
 }
-console.log('backup-photos verify ok (zip round-trip, client wiring, privacy copy, server scaffolding, docs)');
+console.log('backup-photos verify ok (zip round-trip, client wiring, privacy copy, server object storage, docs)');

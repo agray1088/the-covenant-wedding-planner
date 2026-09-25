@@ -33,7 +33,10 @@ import {
 import vendorPortalRoutes, {
   vendorPortalPublicRoutes
 } from './routes/vendor-portal.js';
-import { storageConfigSummary } from './lib/object-storage.js';
+import {
+  objectStorageConfigured,
+  storageConfigSummary
+} from './lib/object-storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -109,7 +112,9 @@ function setupStatusPayload(req) {
   const google = googleConfigured();
   const smtp = smtpConfigured();
   const publicUrlConfigured = !!PUBLIC_URL;
-  // Booleans + non-secret PUBLIC_URL only — never client secrets / SMTP passwords.
+  const objectStorage = objectStorageConfigured();
+  const photoStorage = storageConfigSummary();
+  // Booleans + non-secret PUBLIC_URL only — never client secrets / SMTP / S3 passwords.
   return {
     ok: true,
     service: 'covenant-sync',
@@ -118,6 +123,13 @@ function setupStatusPayload(req) {
     publicUrl: PUBLIC_URL || null,
     googleConfigured: google,
     smtpConfigured: smtp,
+    objectStorageConfigured: objectStorage,
+    photoStorage: {
+      mode: photoStorage.mode,
+      configured: photoStorage.configured,
+      publicBaseConfigured: photoStorage.publicBaseConfigured,
+      note: photoStorage.note
+    },
     // What each secret enables (for Settings → Hosted setup checklist).
     enables: {
       googleSignIn: google,
@@ -125,17 +137,21 @@ function setupStatusPayload(req) {
       forgotUsernameEmail: smtp,
       rsvpEmail: smtp,
       partnerInviteEmail: smtp,
-      vendorPortalEmail: smtp
+      vendorPortalEmail: smtp,
+      portalHeroPhotos: objectStorage,
+      packetImageAssets: objectStorage
     },
     features: {
       rsvp: FEATURES.rsvp,
       landing: FEATURES.landing,
       partnerInvites: FEATURES.partnerInvites,
-      vendorTokens: FEATURES.vendorTokens
+      vendorTokens: FEATURES.vendorTokens,
+      photos: FEATURES.photos
     },
     docs: {
       auth: 'docs/AUTH.md',
-      hosted: 'docs/HOSTED_DEPLOY.md'
+      hosted: 'docs/HOSTED_DEPLOY.md',
+      photos: 'docs/BACKUP_AND_PHOTOS.md'
     },
     time: new Date().toISOString(),
     proto: req.protocol,
@@ -161,8 +177,10 @@ app.get('/health', async (req, res) => {
         ...FEATURES,
         googleConfigured: setup.googleConfigured,
         smtpConfigured: setup.smtpConfigured,
+        objectStorageConfigured: setup.objectStorageConfigured,
         photoStorage: storageConfigSummary()
       },
+      objectStorageConfigured: setup.objectStorageConfigured,
       time: setup.time,
       // Echo how the proxy sees us (useful when debugging HTTPS / redirects).
       proto: setup.proto,
@@ -186,6 +204,7 @@ app.get('/setup/status', async (req, res) => {
       publicUrl: PUBLIC_URL || null,
       googleConfigured: false,
       smtpConfigured: false,
+      objectStorageConfigured: false,
       error: String(e.message || e)
     });
   }

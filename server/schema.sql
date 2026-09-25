@@ -511,15 +511,20 @@ CREATE TABLE IF NOT EXISTS photos (
   kind             TEXT NOT NULL DEFAULT 'library',
   storage_key      TEXT,
   storage_backend  TEXT NOT NULL DEFAULT 'local',
+  public_url       TEXT,
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (wedding_id, id)
 );
 
+ALTER TABLE photos ADD COLUMN IF NOT EXISTS public_url TEXT;
+
 CREATE INDEX IF NOT EXISTS photos_wedding_updated_idx
   ON photos(wedding_id, updated_at);
 CREATE INDEX IF NOT EXISTS photos_storage_key_idx
   ON photos(storage_key) WHERE storage_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS photos_public_url_idx
+  ON photos(wedding_id) WHERE public_url IS NOT NULL;
 
 -- ─── RSVP + gated guest portal (roadmap steps 6–7 foundation) ───────────────
 -- Guest RSVP tokens are opaque, unique, and hard to guess. Responses write

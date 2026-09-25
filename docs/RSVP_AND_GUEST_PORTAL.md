@@ -125,9 +125,9 @@ Exercises token create → guest submit → Postgres guest update → richer pub
 - Not a multi-template wedding website builder  
 - Does not provision your SMTP/Google accounts in the cloud  
 - LWW guest sync: RSVP responses stamp `updated_at` so they normally win over older local rows; sync after guests reply  
-- Hero images are URL-only for now (hosted S3/R2 photo URLs later)
+- Hero images accept HTTPS URLs (and wedding-scoped photo ids that resolve to `photos.public_url` when S3/R2 is configured)
 
-**Next polish:** S3/R2 photo URLs for portal hero (after hosted secrets checklist — **shipped** in Settings → Cloud sync). Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).
+**S3/R2 portal hero URLs shipped** — see [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).
 
 ## Demo
 

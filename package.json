@@ -16,6 +16,7 @@
     "verify:auth": "node scripts/_verify-auth.mjs",
     "verify:setup-status": "node scripts/_verify-setup-status.mjs",
     "verify:backup-photos": "node scripts/_verify-backup-photos.mjs",
+    "verify:object-storage": "node scripts/_verify-object-storage.mjs",
     "verify:rsvp": "node scripts/_verify-rsvp.mjs",
     "verify:partner-invite": "node scripts/_verify-partner-invite.mjs",
     "verify:vendor-portal": "node scripts/_verify-vendor-portal.mjs",

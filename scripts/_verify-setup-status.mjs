@@ -22,8 +22,11 @@ ok('setup/status route', /app\.get\(['"]\/setup\/status['"]/.test(indexJs));
 ok('setupStatusPayload', /function setupStatusPayload/.test(indexJs));
 ok('setup payload uses googleConfigured()', /googleConfigured:\s*google/.test(indexJs)
   || /googleConfigured:\s*googleConfigured\(\)/.test(indexJs));
+ok('setup objectStorageConfigured', /objectStorageConfigured/.test(indexJs));
 ok('client fetchSetupStatus', /fetchSetupStatus/.test(cloudJs));
+ok('client objectStorageConfigured normalize', /objectStorageConfigured/.test(cloudJs));
 ok('settings Hosted setup checklist', /Hosted setup checklist/.test(settingsJs));
+ok('settings S3/R2 checklist step', /objectStorageConfigured|S3 \/ R2 object storage/.test(settingsJs));
 ok('settings rdHostedSetupRefresh', /rdHostedSetupRefresh/.test(settingsJs));
 ok('settings hydrateHostedSetup', /hydrateHostedSetup/.test(settingsJs));
 ok('settings disables Google when missing', /googleConfigured/.test(settingsJs)
@@ -33,7 +36,7 @@ ok('settings disables RSVP send when SMTP missing', /rdRsvpSend/.test(settingsJs
 ok('docs AUTH setup/status', /\/setup\/status/.test(read('docs/AUTH.md')));
 ok('docs HOSTED_DEPLOY setup/status', /\/setup\/status/.test(read('docs/HOSTED_DEPLOY.md')));
 ok('docs PRODUCT_ROADMAP checklist', /Hosted secrets checklist/.test(read('docs/PRODUCT_ROADMAP.md')));
-
+ok('docs PRODUCT_ROADMAP S3/R2', /S3\/R2 photo storage/.test(read('docs/PRODUCT_ROADMAP.md')));
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787';
 
 function assertNoSecrets(obj, label) {
@@ -63,10 +66,16 @@ async function live() {
   ok('setup publicUrlConfigured boolean', typeof setup.publicUrlConfigured === 'boolean');
   ok('setup googleConfigured boolean', typeof setup.googleConfigured === 'boolean');
   ok('setup smtpConfigured boolean', typeof setup.smtpConfigured === 'boolean');
+  ok('setup objectStorageConfigured boolean', typeof setup.objectStorageConfigured === 'boolean');
   ok('setup enables object', setup.enables && typeof setup.enables.googleSignIn === 'boolean'
     && typeof setup.enables.rsvpEmail === 'boolean');
+  if (typeof setup.enables?.portalHeroPhotos === 'boolean') {
+    ok('setup enables.portalHeroPhotos matches objectStorage',
+      setup.enables.portalHeroPhotos === setup.objectStorageConfigured);
+  }
   assertNoSecrets(setup, 'setup/status');
-
+  ok('setup no S3 secret key', !/"S3_SECRET_ACCESS_KEY"\s*:/.test(JSON.stringify(setup)));
+  ok('setup no R2 secret key', !/"R2_SECRET_ACCESS_KEY"\s*:/.test(JSON.stringify(setup)));
   // Align with /auth/config booleans (may include non-secret host/from — not asserted here).
   const cfgRes = await fetch(API + '/auth/config');
   const cfg = await cfgRes.json();

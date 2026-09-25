@@ -45,6 +45,8 @@ ok('settings Google + forgot', /rdCloudGoogle/.test(read('js/settings-window-red
   && /rdCloudForgotPassword/.test(read('js/settings-window-redesign.js')));
 ok('settings hosted checklist', /Hosted setup checklist/.test(read('js/settings-window-redesign.js')));
 ok('client fetchSetupStatus', /fetchSetupStatus/.test(read('js/cloud-sync.js')));
+ok('client uploadPhoto', /function uploadPhoto/.test(read('js/cloud-sync.js')));
+ok('client objectStorageConfigured', /objectStorageConfigured/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes payments', /\/payments\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes budget', /\/budget\/bulk/.test(read('js/cloud-sync.js')));

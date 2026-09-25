@@ -15,6 +15,7 @@ import {
   verifyPassword
 } from '../lib/auth.js';
 import { portalPageHtml, simpleMessagePage } from '../lib/guest-pages.js';
+import { publicObjectUrl } from '../lib/object-storage.js';
 
 const router = Router({ mergeParams: true });
 const publicRouter = Router();
@@ -86,10 +87,37 @@ function safePublicUrl(u) {
 }
 
 /**
+ * Resolve a portal/packet asset reference to an HTTPS (or relative) URL.
+ * Accepts: https URL, relative path, photo id, or idb:<photoId>.
+ * Looks up wedding-scoped photos.public_url (no cross-wedding listing).
+ */
+async function resolveAssetUrl(weddingId, raw) {
+  const direct = safePublicUrl(raw);
+  if (direct) return direct;
+  const s = String(raw || '').trim();
+  if (!s || !weddingId) return '';
+  const photoId = /^idb:/i.test(s) ? s.replace(/^idb:/i, '') : s;
+  // Photo ids are uuid-ish or ph_… — reject obvious junk / path traversal.
+  if (!/^[a-zA-Z0-9_-]{8,80}$/.test(photoId)) return '';
+  try {
+    const { rows } = await query(
+      `SELECT public_url, storage_key FROM photos
+       WHERE wedding_id = $1 AND id = $2 LIMIT 1`,
+      [weddingId, photoId]
+    );
+    if (!rows[0]) return '';
+    const url = rows[0].public_url || publicObjectUrl(rows[0].storage_key);
+    return safePublicUrl(url);
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Only couple-published fields reach guests. Planner-private notes never appear.
  * Richer blocks: travel/lodging, registry links, FAQ, optional hero image URL.
  */
-function sanitizePublished(input) {
+async function sanitizePublished(input, weddingId) {
   const src = input && typeof input === 'object' ? input : {};
   const out = {};
   const shortKeys = ['headline', 'subhead', 'date', 'venue', 'dressCode', 'rsvpHint'];
@@ -104,7 +132,8 @@ function sanitizePublished(input) {
     const v = String(src[key]).trim().slice(0, 2000);
     if (v) out[key] = v;
   }
-  const hero = safePublicUrl(src.heroImageUrl);
+  const heroRaw = src.heroImageUrl || src.heroPhotoId || '';
+  const hero = await resolveAssetUrl(weddingId, heroRaw);
   if (hero) out.heroImageUrl = hero;
 
   if (Array.isArray(src.registryLinks)) {
@@ -148,16 +177,19 @@ function sanitizePublished(input) {
     }
     if (Object.keys(blocks).length) out.blocks = blocks;
   }
+
   return out;
 }
 
-function portalPublicView(row, baseUrl) {
+async function portalPublicView(row, baseUrl) {
+  const weddingId = row.id || row.wedding_id || null;
+  const published = await sanitizePublished(row.portal_published_json || {}, weddingId);
   return {
     enabled: !!row.portal_enabled,
     slug: row.portal_slug || null,
     accessMode: row.portal_access_mode || 'unlisted',
     hasAccessCode: !!row.portal_access_code_hash,
-    published: sanitizePublished(row.portal_published_json || {}),
+    published,
     url: row.portal_slug ? `${baseUrl}/p/${encodeURIComponent(row.portal_slug)}` : null,
     updatedAt: row.portal_updated_at
       ? new Date(row.portal_updated_at).toISOString()
@@ -169,7 +201,7 @@ function portalPublicView(row, baseUrl) {
 router.get('/', requireAuth, requireWeddingMember, async (req, res, next) => {
   try {
     const { rows } = await query(
-      `SELECT portal_slug, portal_enabled, portal_access_mode, portal_access_code_hash,
+      `SELECT id, portal_slug, portal_enabled, portal_access_mode, portal_access_code_hash,
               portal_published_json, portal_updated_at, name, bride, groom, wedding_date
          FROM weddings WHERE id = $1`,
       [req.params.weddingId]
@@ -178,7 +210,7 @@ router.get('/', requireAuth, requireWeddingMember, async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ ok: true, portal: portalPublicView(rows[0], publicUrl(req)) });
+    res.json({ ok: true, portal: await portalPublicView(rows[0], publicUrl(req)) });
   } catch (e) {
     next(e);
   }
@@ -232,8 +264,8 @@ router.put('/', requireAuth, requireWeddingMember, async (req, res, next) => {
     const enabled = body.enabled != null ? !!body.enabled : !!cur.portal_enabled;
     const published =
       body.published != null
-        ? sanitizePublished(body.published)
-        : sanitizePublished(cur.portal_published_json || {});
+        ? await sanitizePublished(body.published, weddingId)
+        : await sanitizePublished(cur.portal_published_json || {}, weddingId);
 
     if (enabled && !slug) {
       res.status(400).json({
@@ -262,11 +294,11 @@ router.put('/', requireAuth, requireWeddingMember, async (req, res, next) => {
            portal_updated_at = now(),
            updated_at = now()
          WHERE id = $1
-         RETURNING portal_slug, portal_enabled, portal_access_mode, portal_access_code_hash,
+         RETURNING id, portal_slug, portal_enabled, portal_access_mode, portal_access_code_hash,
                    portal_published_json, portal_updated_at`,
         [weddingId, slug, enabled, accessMode, codeHash, JSON.stringify(published)]
       );
-      res.json({ ok: true, portal: portalPublicView(rows[0], publicUrl(req)) });
+      res.json({ ok: true, portal: await portalPublicView(rows[0], publicUrl(req)) });
     } catch (e) {
       if (e && e.code === '23505') {
         res.status(409).json({
@@ -295,7 +327,7 @@ router.post('/rotate-code', requireAuth, requireWeddingMember, async (req, res, 
          portal_updated_at = now(),
          updated_at = now()
        WHERE id = $1
-       RETURNING portal_slug, portal_enabled, portal_access_mode, portal_access_code_hash,
+       RETURNING id, portal_slug, portal_enabled, portal_access_mode, portal_access_code_hash,
                  portal_published_json, portal_updated_at`,
       [req.params.weddingId, hash]
     );
@@ -306,7 +338,7 @@ router.post('/rotate-code', requireAuth, requireWeddingMember, async (req, res, 
     res.json({
       ok: true,
       accessCode: code,
-      portal: portalPublicView(rows[0], publicUrl(req)),
+      portal: await portalPublicView(rows[0], publicUrl(req)),
       message: 'Access code rotated. Copy it now — it is not stored in plaintext.'
     });
   } catch (e) {
@@ -357,7 +389,7 @@ publicRouter.get('/:slug', async (req, res, next) => {
     }
 
     const unlocked = isUnlocked(req, row);
-    const published = sanitizePublished(row.portal_published_json || {});
+    const published = await sanitizePublished(row.portal_published_json || {}, row.id);
     const payload = {
       ok: true,
       locked: !unlocked,

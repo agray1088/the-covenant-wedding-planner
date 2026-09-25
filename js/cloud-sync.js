@@ -1247,13 +1247,18 @@
       ));
       // When PUBLIC_URL unset (typical local), treat client pointing at reachable API as OK.
       if (!publicUrlConfigured && clientApi) clientMatchesPublicUrl = true;
+      var objectStorageConfigured = typeof body.objectStorageConfigured === 'boolean'
+        ? body.objectStorageConfigured
+        : !!(features.objectStorageConfigured || (features.photoStorage && features.photoStorage.configured));
       var enables = body.enables || {
         googleSignIn: google,
         passwordResetEmail: smtp,
         forgotUsernameEmail: smtp,
         rsvpEmail: smtp,
         partnerInviteEmail: smtp,
-        vendorPortalEmail: smtp
+        vendorPortalEmail: smtp,
+        portalHeroPhotos: objectStorageConfigured,
+        packetImageAssets: objectStorageConfigured
       };
       return {
         ok: body.ok !== false,
@@ -1263,10 +1268,16 @@
         publicUrl: publicUrl,
         googleConfigured: google,
         smtpConfigured: smtp,
+        objectStorageConfigured: objectStorageConfigured,
+        photoStorage: body.photoStorage || features.photoStorage || null,
         clientApi: clientApi || null,
         clientMatchesPublicUrl: clientMatchesPublicUrl,
         enables: enables,
-        docs: body.docs || { auth: 'docs/AUTH.md', hosted: 'docs/HOSTED_DEPLOY.md' }
+        docs: body.docs || {
+          auth: 'docs/AUTH.md',
+          hosted: 'docs/HOSTED_DEPLOY.md',
+          photos: 'docs/BACKUP_AND_PHOTOS.md'
+        }
       };
     }
     return api('/setup/status', { method: 'GET' })
@@ -1280,7 +1291,8 @@
               db: 'unreachable',
               publicUrlConfigured: false,
               googleConfigured: false,
-              smtpConfigured: false
+              smtpConfigured: false,
+              objectStorageConfigured: false
             }, 'unreachable');
           });
       });
@@ -1380,6 +1392,161 @@
         body: accessCode ? { accessCode: String(accessCode) } : {}
       });
     });
+  }
+
+  /** Photo object-storage readiness (no secrets). */
+  function photosStorage() {
+    return requireWeddingPath('/photos/storage').then(function (path) {
+      return api(path, { method: 'GET' });
+    });
+  }
+
+  /** List wedding photo metadata (no public directory — wedding-scoped). */
+  function listPhotos() {
+    return requireWeddingPath('/photos').then(function (path) {
+      return api(path, { method: 'GET' });
+    });
+  }
+
+  /**
+   * Upload a local photo blob to optional object storage (S3/R2) or local API store.
+   * Keeps IndexedDB as offline source of truth; returns publicUrl when CDN base is set.
+   * bytes: ArrayBuffer | Uint8Array | Blob
+   */
+  function uploadPhoto(opts) {
+    opts = opts || {};
+    var photoId = String(opts.id || opts.photoId || '').trim();
+    if (!photoId) {
+      photoId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : ('ph_' + Date.now().toString(36));
+    }
+    var mime = opts.mime || opts.contentType || 'application/octet-stream';
+    var name = opts.name || photoId;
+    var kind = opts.kind || 'library';
+    var bytes = opts.bytes || opts.body;
+    if (!bytes) return Promise.reject(new Error('missing_bytes'));
+
+    return requireWeddingPath('/photos/' + encodeURIComponent(photoId) + '/upload-url')
+      .then(function (path) {
+        return api(path, {
+          method: 'POST',
+          body: { mime: mime, name: name, kind: kind }
+        });
+      })
+      .then(function (meta) {
+        var upload = (meta && meta.upload) || {};
+        var url = upload.url;
+        if (!url) {
+          var err = new Error(
+            (upload && upload.message) || 'object_storage_not_configured'
+          );
+          err.code = 'object_storage_not_configured';
+          err.storage = meta && meta.storage;
+          throw err;
+        }
+        var bodyBytes = bytes;
+        if (bytes instanceof Blob) {
+          return bytes.arrayBuffer().then(function (ab) {
+            return { meta: meta, upload: upload, url: url, body: ab };
+          });
+        }
+        return { meta: meta, upload: upload, url: url, body: bytes };
+      })
+      .then(function (ctx) {
+        var upload = ctx.upload;
+        var url = ctx.url;
+        var headers = Object.assign({}, upload.headers || {});
+        var isAbsolute = /^https?:\/\//i.test(url);
+        var putPromise;
+        if (isAbsolute) {
+          // Presigned S3/R2 — do not attach Covenant bearer token.
+          putPromise = fetch(url, {
+            method: upload.method || 'PUT',
+            headers: headers,
+            body: ctx.body
+          });
+        } else {
+          var c = cfg();
+          var token = ls(LS_TOKEN);
+          if (token) headers.Authorization = 'Bearer ' + token;
+          putPromise = fetch(c.apiBase + url, {
+            method: upload.method || 'PUT',
+            headers: headers,
+            body: ctx.body
+          });
+        }
+        return putPromise.then(function (res) {
+          if (!res.ok) {
+            return res.text().then(function (t) {
+              var err = new Error('photo_upload_failed:' + res.status + ' ' + (t || '').slice(0, 200));
+              err.status = res.status;
+              throw err;
+            });
+          }
+          var publicUrl = upload.publicUrl || null;
+          // For local backend, content PUT returns publicUrl:null — parse JSON if present.
+          var ct = res.headers.get('content-type') || '';
+          if (ct.indexOf('application/json') >= 0) {
+            return res.json().then(function (body) {
+              return {
+                ok: true,
+                photoId: photoId,
+                publicUrl: (body && body.publicUrl) || publicUrl,
+                storageKey: (body && body.storageKey) || upload.storageKey,
+                backend: (body && body.backend) || upload.backend,
+                storage: (ctx.meta && ctx.meta.storage) || null
+              };
+            }).catch(function () {
+              return {
+                ok: true,
+                photoId: photoId,
+                publicUrl: publicUrl,
+                storageKey: upload.storageKey,
+                backend: upload.backend,
+                storage: (ctx.meta && ctx.meta.storage) || null
+              };
+            });
+          }
+          return {
+            ok: true,
+            photoId: photoId,
+            publicUrl: publicUrl,
+            storageKey: upload.storageKey,
+            backend: upload.backend,
+            storage: (ctx.meta && ctx.meta.storage) || null
+          };
+        });
+      })
+      .then(function (result) {
+        // Upsert metadata so Postgres has name/kind even after bare content PUT.
+        return requireWeddingPath('/photos/' + encodeURIComponent(photoId)).then(function (path) {
+          return api(path, {
+            method: 'PUT',
+            body: {
+              id: photoId,
+              name: name,
+              mime: mime,
+              kind: kind,
+              size: opts.size || null,
+              storageKey: result.storageKey,
+              storageBackend: result.backend,
+              publicUrl: result.publicUrl
+            }
+          }).then(function (ack) {
+            var photo = (ack && ack.photo) || null;
+            return {
+              ok: true,
+              photoId: photoId,
+              publicUrl: (photo && photo.publicUrl) || result.publicUrl,
+              photo: photo,
+              storage: result.storage
+            };
+          }).catch(function () {
+            return result;
+          });
+        });
+      });
   }
 
   /** Couple: list accepted members for the linked wedding. */
@@ -2800,6 +2967,9 @@
     portalGet: portalGet,
     portalUpdate: portalUpdate,
     portalRotateCode: portalRotateCode,
+    photosStorage: photosStorage,
+    listPhotos: listPhotos,
+    uploadPhoto: uploadPhoto,
     listMembers: listMembers,
     listInvites: listInvites,
     createInvite: createInvite,

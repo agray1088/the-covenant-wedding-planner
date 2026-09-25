@@ -13,6 +13,7 @@ import {
 } from '../lib/auth.js';
 import { sendMail, smtpConfigured, smtpStatus } from '../lib/mail.js';
 import { simpleMessagePage } from '../lib/guest-pages.js';
+import { publicObjectUrl } from '../lib/object-storage.js';
 
 const router = Router({ mergeParams: true });
 const publicRouter = Router();
@@ -40,8 +41,41 @@ const PUBLISHED_SHORT = [
 ];
 const PUBLISHED_LONG = ['parking', 'dayNotes', 'loadIn', 'venueAccess'];
 
+function safePublicUrl(u) {
+  const s = String(u || '').trim().slice(0, 500);
+  if (!s) return '';
+  if (s.startsWith('/') && !s.startsWith('//') && !s.includes('\\')) return s;
+  try {
+    const parsed = new URL(s);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return s;
+  } catch {
+    /* ignore */
+  }
+  return '';
+}
+
+async function resolvePacketImageUrl(weddingId, raw) {
+  const direct = safePublicUrl(raw);
+  if (direct) return direct;
+  const s = String(raw || '').trim();
+  if (!s || !weddingId) return '';
+  const photoId = /^idb:/i.test(s) ? s.replace(/^idb:/i, '') : s;
+  if (!/^[a-zA-Z0-9_-]{8,80}$/.test(photoId)) return '';
+  try {
+    const { rows } = await query(
+      `SELECT public_url, storage_key FROM photos
+       WHERE wedding_id = $1 AND id = $2 LIMIT 1`,
+      [weddingId, photoId]
+    );
+    if (!rows[0]) return '';
+    return safePublicUrl(rows[0].public_url || publicObjectUrl(rows[0].storage_key));
+  } catch {
+    return '';
+  }
+}
+
 /** Couple-published vendor packet fields — never dumps planner-private vendor.notes. */
-function sanitizeVendorPublished(input) {
+async function sanitizeVendorPublished(input, weddingId) {
   const src = input && typeof input === 'object' ? input : {};
   const out = {};
   for (const key of PUBLISHED_SHORT) {
@@ -54,6 +88,9 @@ function sanitizeVendorPublished(input) {
     const v = String(src[key]).trim().slice(0, 2000);
     if (v) out[key] = v;
   }
+  const imageRaw = src.packetImageUrl || src.imageUrl || src.coverImageUrl || '';
+  const imageUrl = await resolvePacketImageUrl(weddingId, imageRaw);
+  if (imageUrl) out.packetImageUrl = imageUrl;
   return out;
 }
 
@@ -130,7 +167,11 @@ function mapTokenRow(row, { includeUrl = false, req = null } = {}) {
     row.scopes_json && typeof row.scopes_json === 'object'
       ? row.scopes_json
       : DEFAULT_SCOPES;
-  const published = sanitizeVendorPublished(row.published_json || {});
+  // published_json is sanitized on write (HTTPS packetImageUrl resolved then).
+  const published =
+    row.published_json && typeof row.published_json === 'object'
+      ? row.published_json
+      : {};
   const out = {
     id: row.id,
     weddingId: row.wedding_id,
@@ -196,7 +237,7 @@ async function buildScopedPacket(tokenRow) {
   const weddingId = tokenRow.wedding_id;
   const vendorId = tokenRow.vendor_id;
   const scopes = sanitizeScopes(tokenRow.scopes_json);
-  const published = sanitizeVendorPublished(tokenRow.published_json || {});
+  const published = await sanitizeVendorPublished(tokenRow.published_json || {}, weddingId);
 
   const weddingQ = await query(
     `SELECT id, name, bride, groom, wedding_date FROM weddings WHERE id = $1`,
@@ -386,9 +427,17 @@ async function buildScopedPacket(tokenRow) {
       dayNotes: scopes.notes ? published.dayNotes || '' : '',
       contactName: scopes.contacts ? published.contactName || '' : '',
       contactPhone: scopes.contacts ? published.contactPhone || '' : '',
-      contactRole: scopes.contacts ? published.contactRole || '' : ''
+      contactRole: scopes.contacts ? published.contactRole || '' : '',
+      // Packet image (HTTPS from object storage when configured) — uploads scope
+      packetImageUrl: scopes.uploads ? published.packetImageUrl || '' : ''
     },
-    blocks: packetBlocks,
+    blocks: {
+      ...packetBlocks,
+      image:
+        scopes.uploads && published.packetImageUrl
+          ? { url: published.packetImageUrl }
+          : null
+    },
     wedding: {
       id: wedding.id,
       name: wedding.name || '',
@@ -517,7 +566,7 @@ router.post(
 
       const label = String(body.label || '').trim().slice(0, 120) || null;
       const scopes = sanitizeScopes(body.scopes);
-      const published = sanitizeVendorPublished(body.published);
+      const published = await sanitizeVendorPublished(body.published, req.params.weddingId);
       let expiresAt = null;
       if (body.expiresAt) {
         const d = new Date(body.expiresAt);
@@ -691,8 +740,8 @@ router.put(
           : sanitizeScopes(cur.scopes_json);
       const published =
         body.published != null
-          ? sanitizeVendorPublished(body.published)
-          : sanitizeVendorPublished(cur.published_json || {});
+          ? await sanitizeVendorPublished(body.published, req.params.weddingId)
+          : await sanitizeVendorPublished(cur.published_json || {}, req.params.weddingId);
       let label = cur.label;
       if (body.label != null) {
         label = String(body.label || '').trim().slice(0, 120) || null;
@@ -823,7 +872,7 @@ router.post(
           raw,
           old.label,
           JSON.stringify(sanitizeScopes(old.scopes_json)),
-          JSON.stringify(sanitizeVendorPublished(old.published_json || {})),
+          JSON.stringify(await sanitizeVendorPublished(old.published_json || {}, old.wedding_id)),
           req.user.id,
           old.expires_at
         ]
