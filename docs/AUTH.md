@@ -145,4 +145,4 @@ Google / live SMTP paths are manual once secrets exist (see checklists above).
 
 ## What’s next
 
-**Hosted secrets checklist + S3/R2 foundation shipped.** **Next:** Railway/Fly deploy wiring with real Google + SMTP (+ optional R2/S3) secrets. RSVP portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+**Polish trio done** (hosted checklist + S3/R2 foundation + Railway/Fly deploy wiring). Paste Google + SMTP (+ optional R2/S3) secrets in your host dashboard — [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md). RSVP portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

@@ -1,6 +1,36 @@
-# Fly.io config for the Covenant sync API.
-# Deploy steps: docs/HOSTED_DEPLOY.md (Fly section).
-# App name is a placeholder — change before first `fly launch` / `fly deploy`.
+# Fly.io — alternate hosted path for the Covenant sync API.
+# Full checklist: docs/HOSTED_DEPLOY.md
+# Env template: server/.env.production.example
+#
+# App name below is a placeholder — change before first `fly launch` / `fly deploy`.
+# Secrets: use `fly secrets set` or the Fly dashboard. NEVER put real secrets in this file.
+#
+# Quick path:
+#   fly apps create <name>
+#   fly postgres create && fly postgres attach <pg-app>
+#   fly secrets set SESSION_SECRET=… PUBLIC_URL=… CORS_ORIGIN=… DATABASE_SSL=1 TRUST_PROXY=1 \
+#     GOOGLE_CLIENT_ID=… GOOGLE_CLIENT_SECRET=… \
+#     SMTP_HOST=… SMTP_PORT=587 SMTP_USER=… SMTP_PASS=… SMTP_FROM=…
+#     # optional: PHOTO_STORAGE=r2 R2_BUCKET=… R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… \
+#     #           R2_ENDPOINT=… R2_PUBLIC_BASE_URL=…
+#   fly deploy
+#   curl https://$PUBLIC_URL/health && curl https://$PUBLIC_URL/setup/status
+#
+# --- Required secrets (fly secrets set) ---
+#   DATABASE_URL          # usually from `fly postgres attach`
+#   DATABASE_SSL=1        # also set in [env] below as default
+#   PUBLIC_URL            # https://<app>.fly.dev  (no trailing slash)
+#   CORS_ORIGIN
+#   SESSION_SECRET
+#   TRUST_PROXY=1
+# --- Recommended ---
+#   CLIENT_APP_URL
+# --- Google ---
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET [, GOOGLE_REDIRECT_URI]
+# --- SMTP ---
+#   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM [, SMTP_SECURE]
+# --- Optional R2/S3 ---
+#   PHOTO_STORAGE + S3_* or R2_* + public base URL
 
 app = "covenant-sync-api"
 primary_region = "iad"
@@ -8,6 +38,7 @@ primary_region = "iad"
 [build]
   dockerfile = "server/Dockerfile"
 
+# Non-secret defaults only. Real secrets → `fly secrets set`.
 [env]
   NODE_ENV = "production"
   PORT = "8787"

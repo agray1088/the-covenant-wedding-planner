@@ -1,9 +1,17 @@
 # Optional single-service image: sync API + static planner (index.html, js/, css/).
 # Use when you want one HTTPS origin for both UI and API (SERVE_STATIC=1).
 # Preferred multi-host setup still uses server/Dockerfile (API only) + static CDN.
+# Deploy checklist: docs/HOSTED_DEPLOY.md  |  Env template: server/.env.production.example
 #
 #   docker build -f Dockerfile.hosted -t covenant-hosted .
 #   # or set Railway dockerfilePath = "Dockerfile.hosted"
+#
+# Same runtime secrets as server/Dockerfile (paste in host dashboard — never bake in):
+#   DATABASE_URL, DATABASE_SSL=1, PUBLIC_URL, CORS_ORIGIN, SESSION_SECRET, TRUST_PROXY=1
+#   CLIENT_APP_URL (set both PUBLIC_URL and CORS_ORIGIN to this same HTTPS origin)
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET [, GOOGLE_REDIRECT_URI]
+#   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM [, SMTP_SECURE]
+#   Optional: PHOTO_STORAGE=s3|r2 + S3_* / R2_* + public base URL
 
 FROM node:20-alpine AS deps
 WORKDIR /app

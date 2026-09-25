@@ -105,7 +105,7 @@ R2_PUBLIC_BASE_URL=       # e.g. https://photos.example.com
 # PHOTO_PUBLIC_BASE_URL=  # alias for either
 ```
 
-Placeholders live in `server/.env.example` and `server/.env.production.example`. **Do not** create the user’s bucket here — operators provision R2/S3, then set secrets (Railway/Fly wiring is polish #3).
+Placeholders live in `server/.env.example` and `server/.env.production.example`. **Do not** create the user’s bucket here — operators provision R2/S3, then paste secrets in Railway Variables / `fly secrets set` (see [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md)).
 
 `server/lib/object-storage.js` uses `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`. `/setup/status` and `/health` expose `objectStorageConfigured` (boolean only — never keys).
 
@@ -128,8 +128,8 @@ npm run verify:auth                       # must stay green (when API up)
 
 ## What’s next (roadmap)
 
-1. ~~S3/R2 photo storage foundation~~ (this pass)  
-2. **Next:** Railway/Fly production secrets wiring (Google + SMTP + optional R2/S3)  
+1. ~~S3/R2 photo storage foundation~~ (shipped)  
+2. ~~Railway/Fly production secrets wiring~~ (shipped — [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md); operator pastes real secrets)  
 3. Optional: cloud pull of photo metadata alongside other sync domains  
 
 Vendor portal tokens: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).  

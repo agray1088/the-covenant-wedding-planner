@@ -98,6 +98,7 @@
     return '<div class="rd-hosted-setup" id="rd-hosted-setup">'
       + '<div class="rd-set__note"><b>Hosted setup checklist</b> — live capability from the sync API for '
       + '<code>PUBLIC_URL</code>, Google OAuth, SMTP, and optional S3/R2 object storage. Values of secrets are never shown — only ready / missing. '
+      + 'Paste secrets in the Railway Variables or Fly secrets dashboard (see <code>docs/HOSTED_DEPLOY.md</code>) — this UI only reads readiness. '
       + 'Local demo still works with password login when Google/SMTP/object storage are unset.</div>'
       + '<div id="rd-hosted-setup-body"><div class="rd-set__note">Checking API…</div></div>'
       + cardRow('Refresh checklist', 'Re-reads GET /setup/status (booleans only)', btn('Refresh', 'rdHostedSetupRefresh'))
@@ -151,8 +152,10 @@
       + setupStep(googleReady, 'Google OAuth', googleDesc, 'Missing')
       + setupStep(smtpReady, 'SMTP (email)', smtpDesc, 'Missing')
       + setupStep(objectReady, 'S3 / R2 object storage', objectDesc, 'Optional')
-      + '<div class="rd-set__note">Guides: <code>docs/AUTH.md</code> · <code>docs/HOSTED_DEPLOY.md</code> · <code>docs/BACKUP_AND_PHOTOS.md</code>. '
-      + '<b>Next:</b> Railway/Fly deploy wiring with real secrets.</div>';
+      + '<div class="rd-set__note">Deploy tips: set <code>PUBLIC_URL</code> to the platform HTTPS URL (no trailing slash), register '
+      + '<code>${PUBLIC_URL}/auth/google/callback</code> in Google Cloud, paste <code>SMTP_*</code> for RSVP/auth email, '
+      + 'optional <code>PHOTO_STORAGE=s3|r2</code>, then point Cloud sync API base at that same HTTPS origin. '
+      + 'Guides: <code>docs/HOSTED_DEPLOY.md</code> · <code>docs/AUTH.md</code> · <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>';
   }
 
   function applySetupStatusToControls(status) {

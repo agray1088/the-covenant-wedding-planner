@@ -58,14 +58,15 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 
 ## Non-goals for this pass
 
-- Creating the operator’s R2/S3 bucket or deploying to Railway/Fly (polish #3)  
+- Creating the operator’s cloud accounts or pasting their real Railway/Fly/Google/SMTP/R2 secrets (docs + templates only)  
+- Buying custom domains  
 - Multi-template wedding site builder / marketing redesign  
 - Breaking existing sync domains or offline zip backup  
 - Vendor password accounts / payment processing  
 
-## Cloud track — largely complete
+## Cloud track — major polish trio complete
 
-Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Guest + vendor portals support **richer published blocks**. **Hosted secrets checklist UX shipped**. **S3/R2 photo storage foundation shipped** (`objectStorageConfigured` on `/setup/status`, AWS SDK uploads, portal hero / packet image HTTPS URLs). **Next:** Railway/Fly deploy wiring with real Google + SMTP (+ optional R2/S3) secrets.
+Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Guest + vendor portals support **richer published blocks**. **Polish trio done:** (1) hosted secrets checklist UX, (2) S3/R2 photo storage foundation, (3) Railway/Fly deploy wiring docs + config. Operator still pastes Google + SMTP (+ optional R2/S3) secrets in the host dashboard — see [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md).
 
 ## Hosted secrets checklist (polish #1)
 
@@ -78,7 +79,7 @@ Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, priva
 | Docs cross-links (`AUTH.md`, `HOSTED_DEPLOY.md`) | Done |
 | `verify:setup-status` | Done |
 | S3/R2 photo storage (`objectStorageConfigured`) | **Done** (polish #2) |
-| Railway/Fly production secrets wiring | **Next** (polish #3) |
+| Railway/Fly production secrets wiring | **Done** (polish #3) |
 
 ## S3 / R2 photo storage (polish #2)
 
@@ -92,7 +93,20 @@ Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, priva
 | `/setup/status` → `objectStorageConfigured` | Done |
 | `verify:object-storage` (scaffold + skip without credentials) | Done |
 | Operator creates R2/S3 bucket | Out of scope (operator) |
-| Railway/Fly secret injection | Next (polish #3) |
+| Railway/Fly secret injection docs + templates | **Done** (polish #3) |
+
+## Railway / Fly deploy wiring (polish #3)
+
+| Item | Status |
+|------|--------|
+| End-to-end `HOSTED_DEPLOY.md` (Railway preferred + Fly) | Done |
+| `railway.toml` / `fly.toml` comment checklists for every required var | Done |
+| `server/.env.production.example` + Dockerfile env comments | Done |
+| Google redirect URI + SMTP + optional PHOTO_STORAGE steps | Done |
+| Verify `/health` + `/setup/status`; point planner at HTTPS `PUBLIC_URL` | Done |
+| Settings checklist deploy tips | Done |
+| Operator pastes real secrets in host dashboard | Out of scope (operator) |
+| Buying domains / creating cloud accounts for the user | Out of scope |
 
 ## Docs
 

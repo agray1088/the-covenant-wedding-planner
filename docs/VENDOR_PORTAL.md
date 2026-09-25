@@ -93,6 +93,6 @@ Demo: `demo@covenant.local` / `covenant-demo` · API `http://localhost:18787`
 - Payment processing / uploads write-back  
 - Fancy multi-template vendor sites  
 
-**S3/R2 photo assets for packets shipped** (optional `packetImageUrl` when object storage configured — [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md)). **Next:** Railway/Fly deploy wiring.
+**S3/R2 photo assets for packets shipped** (optional `packetImageUrl` when object storage configured — [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md)). **Deploy wiring shipped** — paste secrets via [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md).
 
 Related: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md), [`PARTNER_INVITES.md`](./PARTNER_INVITES.md), [`OFFLINE_CLOUD_SYNC.md`](./OFFLINE_CLOUD_SYNC.md), [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md).
