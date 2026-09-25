@@ -43,6 +43,8 @@ ok('client default off', /enabledFlag && api/.test(read('js/cloud-sync.js')));
 ok('client auth helpers', /forgotPassword/.test(read('js/cloud-sync.js')) && /startGoogleSignIn/.test(read('js/cloud-sync.js')));
 ok('settings Google + forgot', /rdCloudGoogle/.test(read('js/settings-window-redesign.js'))
   && /rdCloudForgotPassword/.test(read('js/settings-window-redesign.js')));
+ok('settings hosted checklist', /Hosted setup checklist/.test(read('js/settings-window-redesign.js')));
+ok('client fetchSetupStatus', /fetchSetupStatus/.test(read('js/cloud-sync.js')));
 ok('client pushes vendors', /\/vendors\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes payments', /\/payments\/bulk/.test(read('js/cloud-sync.js')));
 ok('client pushes budget', /\/budget\/bulk/.test(read('js/cloud-sync.js')));

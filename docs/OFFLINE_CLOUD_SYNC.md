@@ -334,4 +334,4 @@ If you see `Cannot find package 'playwright'`, you skipped root `npm install` �
 - Offline + backup clarity / photos object storage (**shipped foundation** — [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md))
 - RSVP + gated guest portal (**shipped foundation** — [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md))
 - Partner invites (**shipped** — [`PARTNER_INVITES.md`](./PARTNER_INVITES.md))
-- Vendor portal tokens (**shipped** — [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md); next: polish / hosted secrets)
+- Vendor portal tokens (**shipped** — [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md); hosted secrets checklist **shipped**)

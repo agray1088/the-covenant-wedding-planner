@@ -26,6 +26,8 @@ Local demo still works:
 
 | Method | Path | Notes |
 |--------|------|--------|
+| GET | `/setup/status` | Public: hosted secrets checklist flags (`googleConfigured`, `smtpConfigured`, `publicUrlConfigured`, `publicUrl`) — **booleans / PUBLIC_URL only**, never secret values |
+| GET | `/health` | Liveness + same capability flags under `features` |
 | GET | `/auth/config` | Public: password/google/smtp capability flags + redirect hints |
 | POST | `/auth/register` | `{ email, password, username?, displayName? }` |
 | POST | `/auth/login` | `{ email\|username\|login, password }` |
@@ -113,10 +115,11 @@ Without SMTP, those endpoints return **503** with `error: "smtp_not_configured"`
 
 ## Client (Settings → Cloud sync)
 
+- **Hosted setup checklist** — live readiness for `PUBLIC_URL`, Google OAuth, and SMTP (from `GET /setup/status`). Disables Continue with Google / forgot-password email when those secrets are missing, with links to this doc and [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md).
 - Sign in with **email or username** + password  
 - Register with email + password + optional username  
-- **Continue with Google** (redirect)  
-- Forgot password / forgot username  
+- **Continue with Google** (redirect; disabled in UI until configured)  
+- Forgot password / forgot username (disabled in UI until SMTP)  
 - Reset-with-token fields (also picks up `?cloudResetToken=` / `?cloudToken=` from redirects)
 
 Session storage keys unchanged: `covenant_cloud_token`, `covenant_cloud_user`, etc.
@@ -126,6 +129,7 @@ Session storage keys unchanged: `covenant_cloud_token`, `covenant_cloud_user`, e
 ```bash
 # Docker API up
 curl -s http://127.0.0.1:18787/health
+curl -s http://127.0.0.1:18787/setup/status
 curl -s http://127.0.0.1:18787/auth/config
 
 # Demo login
@@ -134,10 +138,11 @@ curl -s -X POST http://127.0.0.1:18787/auth/login \
   -d '{"email":"demo@covenant.local","password":"covenant-demo"}'
 
 # Or: node scripts/_verify-auth.mjs
+# Or: node scripts/_verify-setup-status.mjs
 ```
 
 Google / live SMTP paths are manual once secrets exist (see checklists above).
 
 ## What’s next
 
-Roadmap **steps 6–7 foundation shipped** — RSVP + gated guest portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+**Polish #1 (this pass) shipped** — in-app hosted secrets checklist. **Next:** S3/R2 photo storage provisioning, then Railway/Fly deploy wiring with real Google + SMTP secrets. RSVP portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

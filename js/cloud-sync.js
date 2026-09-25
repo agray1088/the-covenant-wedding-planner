@@ -1219,6 +1219,73 @@
     });
   }
 
+  /**
+   * Hosted secrets / capability checklist (booleans only — no secret values).
+   * Prefers GET /setup/status; falls back to /health features when older API.
+   */
+  function fetchSetupStatus() {
+    function normalize(body, source) {
+      body = body || {};
+      var features = body.features || {};
+      var google = typeof body.googleConfigured === 'boolean'
+        ? body.googleConfigured
+        : !!features.googleConfigured;
+      var smtp = typeof body.smtpConfigured === 'boolean'
+        ? body.smtpConfigured
+        : !!features.smtpConfigured;
+      var publicUrl = body.publicUrl || null;
+      var publicUrlConfigured = typeof body.publicUrlConfigured === 'boolean'
+        ? body.publicUrlConfigured
+        : !!(publicUrl && String(publicUrl).trim());
+      var clientApi = '';
+      try { clientApi = String(cfg().apiBase || '').replace(/\/$/, ''); } catch (e) { clientApi = ''; }
+      var serverUrl = publicUrl ? String(publicUrl).replace(/\/$/, '') : '';
+      var clientMatchesPublicUrl = !!(clientApi && serverUrl && (
+        clientApi === serverUrl
+        || clientApi.replace('://localhost', '://127.0.0.1') === serverUrl.replace('://localhost', '://127.0.0.1')
+        || clientApi.replace('://127.0.0.1', '://localhost') === serverUrl.replace('://127.0.0.1', '://localhost')
+      ));
+      // When PUBLIC_URL unset (typical local), treat client pointing at reachable API as OK.
+      if (!publicUrlConfigured && clientApi) clientMatchesPublicUrl = true;
+      var enables = body.enables || {
+        googleSignIn: google,
+        passwordResetEmail: smtp,
+        forgotUsernameEmail: smtp,
+        rsvpEmail: smtp,
+        partnerInviteEmail: smtp,
+        vendorPortalEmail: smtp
+      };
+      return {
+        ok: body.ok !== false,
+        db: body.db || (body.ok === false ? 'down' : 'unknown'),
+        source: source,
+        publicUrlConfigured: publicUrlConfigured,
+        publicUrl: publicUrl,
+        googleConfigured: google,
+        smtpConfigured: smtp,
+        clientApi: clientApi || null,
+        clientMatchesPublicUrl: clientMatchesPublicUrl,
+        enables: enables,
+        docs: body.docs || { auth: 'docs/AUTH.md', hosted: 'docs/HOSTED_DEPLOY.md' }
+      };
+    }
+    return api('/setup/status', { method: 'GET' })
+      .then(function (body) { return normalize(body, 'setup/status'); })
+      .catch(function () {
+        return api('/health', { method: 'GET' })
+          .then(function (body) { return normalize(body, 'health'); })
+          .catch(function () {
+            return normalize({
+              ok: false,
+              db: 'unreachable',
+              publicUrlConfigured: false,
+              googleConfigured: false,
+              smtpConfigured: false
+            }, 'unreachable');
+          });
+      });
+  }
+
   function forgotPassword(email) {
     return api('/auth/forgot-password', {
       method: 'POST',
@@ -2714,6 +2781,7 @@
     register: register,
     signOut: signOut,
     fetchAuthConfig: fetchAuthConfig,
+    fetchSetupStatus: fetchSetupStatus,
     forgotPassword: forgotPassword,
     resetPassword: resetPassword,
     forgotUsername: forgotUsername,

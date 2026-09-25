@@ -65,7 +65,20 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 
 ## Cloud track — largely complete
 
-Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Guest + vendor portals now support **richer published blocks**. Remaining polish: hosted secrets / real Google+SMTP in production, optional S3/R2 provisioning for portal hero photos.
+Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Guest + vendor portals now support **richer published blocks**. **Hosted secrets checklist UX shipped** (Settings → Cloud sync → live `GET /setup/status` for PUBLIC_URL / Google / SMTP). Remaining polish: optional S3/R2 provisioning for portal hero photos, then actual Railway/Fly deploy wiring with real secrets.
+
+## Hosted secrets checklist (polish #1)
+
+| Item | Status |
+|------|--------|
+| `GET /setup/status` (booleans only — no secret values) | Done |
+| Settings → Cloud sync → Hosted setup checklist | Done |
+| Disable / explain Google Sign-In when OAuth unset | Done |
+| Disable / explain RSVP send when SMTP unset | Done |
+| Docs cross-links (`AUTH.md`, `HOSTED_DEPLOY.md`) | Done |
+| `verify:setup-status` | Done |
+| S3/R2 photo storage provisioning | **Next** (not this pass) |
+| Railway/Fly production secrets wiring | **Next** after S3 |
 
 ## Docs
 

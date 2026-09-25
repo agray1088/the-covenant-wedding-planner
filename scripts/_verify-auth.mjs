@@ -26,6 +26,8 @@ ok('client forgotPassword', /forgotPassword/.test(read('js/cloud-sync.js')));
 ok('client googleSignIn', /startGoogleSignIn/.test(read('js/cloud-sync.js')));
 ok('settings Google button', /rdCloudGoogle/.test(read('js/settings-window-redesign.js')));
 ok('settings forgot password', /rdCloudForgotPassword/.test(read('js/settings-window-redesign.js')));
+ok('settings hosted checklist', /Hosted setup checklist/.test(read('js/settings-window-redesign.js')));
+ok('client fetchSetupStatus', /fetchSetupStatus/.test(read('js/cloud-sync.js')));
 ok('roadmap mentions AUTH', /AUTH\.md/.test(read('docs/PRODUCT_ROADMAP.md')));
 
 const API = process.env.COVENANT_CLOUD_API || 'http://127.0.0.1:18787';
@@ -43,6 +45,12 @@ async function live() {
     return;
   }
   ok('health ok', health && health.ok === true && health.db === 'up');
+
+  const setupRes = await fetch(API + '/setup/status');
+  const setup = await setupRes.json();
+  ok('setup/status', setupRes.ok && setup && setup.ok === true
+    && typeof setup.googleConfigured === 'boolean'
+    && typeof setup.smtpConfigured === 'boolean');
 
   const cfgRes = await fetch(API + '/auth/config');
   const cfg = await cfgRes.json();

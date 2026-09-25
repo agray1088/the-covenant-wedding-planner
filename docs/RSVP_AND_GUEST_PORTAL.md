@@ -127,7 +127,7 @@ Exercises token create → guest submit → Postgres guest update → richer pub
 - LWW guest sync: RSVP responses stamp `updated_at` so they normally win over older local rows; sync after guests reply  
 - Hero images are URL-only for now (hosted S3/R2 photo URLs later)
 
-**Next polish:** hosted secrets checklist UX; S3/R2 photo URLs for portal hero. Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).
+**Next polish:** S3/R2 photo URLs for portal hero (after hosted secrets checklist — **shipped** in Settings → Cloud sync). Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).
 
 ## Demo
 

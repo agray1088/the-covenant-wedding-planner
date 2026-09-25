@@ -184,6 +184,7 @@ Bootstrap demo user (from `.env.example`):
 | Method | Path | Body / notes |
 |--------|------|----------------|
 | GET | `/auth/config` | Public capability probe (google/smtp flags) |
+| GET | `/setup/status` | Hosted secrets checklist (booleans + PUBLIC_URL only) |
 | POST | `/auth/register` | `{ email, password, username?, displayName? }` |
 | POST | `/auth/login` | `{ email\|username\|login, password }` → `{ token, user }` |
 | POST | `/auth/logout` | Bearer token |
@@ -206,7 +207,8 @@ node scripts/_verify-auth.mjs
 
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/health` | DB ping |
+| GET | `/health` | DB ping + capability flags |
+| GET | `/setup/status` | Hosted secrets checklist (booleans only) |
 | * | `/auth/*` | See **Auth endpoints** above — [`docs/AUTH.md`](../docs/AUTH.md) |
 | GET/POST | `/weddings` | List / create (upload this wedding) |
 | GET | `/weddings/:id` | Membership-gated |

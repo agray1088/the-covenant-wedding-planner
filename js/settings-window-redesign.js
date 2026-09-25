@@ -60,9 +60,12 @@
       + '</div>';
   }
 
-  function btn(label, onclick, danger) {
+  function btn(label, onclick, danger, disabled) {
     return '<button type="button" class="rd-set__btn' + (danger ? ' rd-set__btn--danger' : '')
-      + '" data-act="' + esc(onclick) + '">' + esc(label) + '</button>';
+      + (disabled ? ' is-disabled' : '')
+      + '" data-act="' + esc(onclick) + '"'
+      + (disabled ? ' disabled aria-disabled="true"' : '')
+      + '>' + esc(label) + '</button>';
   }
   function slot(id) { return '<span class="rd-set__slot" data-slot="' + esc(id) + '"></span>'; }
 
@@ -71,6 +74,149 @@
       + '<div class="rd-set__card-row-title">' + esc(title) + '</div>'
       + (desc ? '<div class="rd-set__card-row-desc">' + esc(desc) + '</div>' : '')
       + '</div><div class="rd-set__card-row-control">' + control + '</div></div>';
+  }
+
+  function cachedSetupStatus() {
+    return window._rdHostedSetupStatus || null;
+  }
+
+  function setupChip(ready, pendingLabel) {
+    if (ready) return '<span class="rd-set__gs-chip rd-set__gs-chip--done">Ready</span>';
+    return '<span class="rd-set__gs-chip rd-set__gs-chip--pend">' + esc(pendingLabel || 'Missing') + '</span>';
+  }
+
+  function setupStep(ready, title, desc, pendingLabel) {
+    return '<div class="rd-set__gs-step' + (ready ? '' : ' is-muted') + '">'
+      + setupChip(ready, pendingLabel)
+      + '<div class="rd-set__gs-body">'
+      + '<div class="rd-set__gs-title">' + esc(title) + '</div>'
+      + '<div class="rd-set__gs-desc">' + desc + '</div>'
+      + '</div></div>';
+  }
+
+  function hostedSetupShellHtml() {
+    return '<div class="rd-hosted-setup" id="rd-hosted-setup">'
+      + '<div class="rd-set__note"><b>Hosted setup checklist</b> — live capability from the sync API for '
+      + '<code>PUBLIC_URL</code>, Google OAuth, and SMTP. Values of secrets are never shown — only ready / missing. '
+      + 'Local demo still works with password login when Google/SMTP are unset.</div>'
+      + '<div id="rd-hosted-setup-body"><div class="rd-set__note">Checking API…</div></div>'
+      + cardRow('Refresh checklist', 'Re-reads GET /setup/status (booleans only)', btn('Refresh', 'rdHostedSetupRefresh'))
+      + '</div>';
+  }
+
+  function renderHostedSetupBody(status) {
+    if (!status || status.source === 'unreachable' || status.ok === false && status.db === 'unreachable') {
+      return '<div class="rd-set__note rd-set__note--amber">Cannot reach the sync API. Set an API base URL and enable cloud, '
+        + 'or start local Docker (<code>http://localhost:18787</code>). Offline planning still works.</div>';
+    }
+    if (status.db === 'down') {
+      return '<div class="rd-set__note rd-set__note--amber">API reachable but database is down. Fix <code>DATABASE_URL</code> before auth/email will work.</div>';
+    }
+
+    var publicReady = !!status.publicUrlConfigured;
+    var matchReady = !!status.clientMatchesPublicUrl;
+    var googleReady = !!status.googleConfigured;
+    var smtpReady = !!status.smtpConfigured;
+    var publicDesc = publicReady
+      ? ('Configured as <code>' + esc(status.publicUrl || '') + '</code> — used for OAuth redirects, password-reset links, RSVP / portal / invite URLs.')
+      : 'Not set. Local demos fall back to the request host; hosted deploys need HTTPS <code>PUBLIC_URL</code> (see <code>docs/HOSTED_DEPLOY.md</code>).';
+    var matchDesc;
+    if (!status.clientApi) {
+      matchDesc = 'No client API base saved yet. Paste the same origin as <code>PUBLIC_URL</code> under Cloud sync.';
+    } else if (!publicReady) {
+      matchDesc = 'Client points at <code>' + esc(status.clientApi) + '</code>. Server has no <code>PUBLIC_URL</code> (OK for local Docker).';
+    } else if (matchReady) {
+      matchDesc = 'Client <code>' + esc(status.clientApi) + '</code> matches server <code>PUBLIC_URL</code>.';
+    } else {
+      matchDesc = 'Client <code>' + esc(status.clientApi) + '</code> does <b>not</b> match server <code>'
+        + esc(status.publicUrl || '') + '</code>. Update Settings → Cloud sync API base (or fix <code>PUBLIC_URL</code>).';
+    }
+    var googleDesc = googleReady
+      ? 'Google Sign-In is ready. Redirect URI must include <code>…/auth/google/callback</code> — steps in <code>docs/AUTH.md</code>.'
+      : 'Set <code>GOOGLE_CLIENT_ID</code> + <code>GOOGLE_CLIENT_SECRET</code> on the API. Until then, use email/password (local demo: <code>demo@covenant.local</code> / <code>covenant-demo</code>). Continue with Google stays disabled.';
+    var smtpDesc = smtpReady
+      ? 'SMTP is ready — password reset, RSVP invites, partner invite email, and vendor portal email can send.'
+      : 'Set <code>SMTP_HOST</code> (and usually <code>SMTP_USER</code> / <code>SMTP_PASS</code> / <code>SMTP_FROM</code>). Without SMTP, reset / RSVP / invite <b>send</b> return 503 — you can still copy links manually. See <code>docs/AUTH.md</code>.';
+
+    return setupStep(publicReady, 'PUBLIC_URL', publicDesc, 'Unset')
+      + setupStep(matchReady || (!publicReady && !!status.clientApi), 'Client API matches PUBLIC_URL', matchDesc, matchReady ? 'Ready' : 'Check')
+      + setupStep(googleReady, 'Google OAuth', googleDesc, 'Missing')
+      + setupStep(smtpReady, 'SMTP (email)', smtpDesc, 'Missing')
+      + '<div class="rd-set__note">Guides: <code>docs/AUTH.md</code> (Google + SMTP) · <code>docs/HOSTED_DEPLOY.md</code> (Railway/Fly secrets). '
+      + '<b>Next polish (not this pass):</b> S3/R2 photo storage, then full Railway/Fly deploy wiring.</div>';
+  }
+
+  function applySetupStatusToControls(status) {
+    if (!status) return;
+    var googleBtn = document.querySelector('#rd-settings-overlay [data-act="rdCloudGoogle"]');
+    if (googleBtn) {
+      googleBtn.disabled = !status.googleConfigured;
+      googleBtn.setAttribute('aria-disabled', status.googleConfigured ? 'false' : 'true');
+      googleBtn.classList.toggle('is-disabled', !status.googleConfigured);
+      googleBtn.title = status.googleConfigured
+        ? ''
+        : 'Google Sign-In needs GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET on the API (docs/AUTH.md).';
+    }
+    ['rdCloudForgotPassword', 'rdCloudForgotUsername'].forEach(function (act) {
+      var el = document.querySelector('#rd-settings-overlay [data-act="' + act + '"]');
+      if (!el) return;
+      el.disabled = !status.smtpConfigured;
+      el.setAttribute('aria-disabled', status.smtpConfigured ? 'false' : 'true');
+      el.classList.toggle('is-disabled', !status.smtpConfigured);
+      el.title = status.smtpConfigured
+        ? ''
+        : 'Email needs SMTP_* on the API (docs/AUTH.md). Endpoint returns 503 until configured.';
+    });
+    ['rdRsvpSend', 'rdRsvpRemind'].forEach(function (act) {
+      var el = document.querySelector('#rd-settings-overlay [data-act="' + act + '"]');
+      if (!el) return;
+      el.disabled = !status.smtpConfigured;
+      el.setAttribute('aria-disabled', status.smtpConfigured ? 'false' : 'true');
+      el.classList.toggle('is-disabled', !status.smtpConfigured);
+      el.title = status.smtpConfigured
+        ? ''
+        : 'RSVP email needs SMTP. Generate tokens and share links manually until SMTP is set.';
+    });
+    var rsvpHint = document.getElementById('rd-rsvp-smtp-hint');
+    if (rsvpHint) {
+      rsvpHint.innerHTML = status.smtpConfigured
+        ? 'SMTP is configured — Send invites / reminders will attempt email.'
+        : '<b>SMTP missing</b> — Send invites is disabled. Generate tokens and copy links, or set <code>SMTP_*</code> (see Hosted setup checklist on Cloud sync). API returns 503 <code>smtp_not_configured</code> until then.';
+      rsvpHint.classList.toggle('rd-set__note--amber', !status.smtpConfigured);
+    }
+  }
+
+  function hydrateHostedSetup() {
+    var body = document.getElementById('rd-hosted-setup-body');
+    var CS = window.CovenantCloudSync;
+    if (!CS || typeof CS.fetchSetupStatus !== 'function') {
+      if (body) {
+        body.innerHTML = '<div class="rd-set__note rd-set__note--amber">Cloud bridge not loaded — open the planner with <code>js/cloud-sync.js</code>.</div>';
+      }
+      return;
+    }
+    var st = cloudStatus();
+    if (!st.enabled && st.state === 'disabled') {
+      // Still try if an API URL is saved; otherwise explain.
+      var apiSaved = '';
+      try { apiSaved = localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { apiSaved = ''; }
+      if (!apiSaved) {
+        if (body) {
+          body.innerHTML = '<div class="rd-set__note">Enable cloud with an API base first (local: <code>http://localhost:18787</code>). '
+            + 'The checklist then reflects live Google / SMTP / PUBLIC_URL readiness.</div>';
+        }
+        return;
+      }
+    }
+    CS.fetchSetupStatus().then(function (status) {
+      window._rdHostedSetupStatus = status;
+      if (body) body.innerHTML = renderHostedSetupBody(status);
+      applySetupStatusToControls(status);
+    }).catch(function () {
+      if (body) {
+        body.innerHTML = '<div class="rd-set__note rd-set__note--amber">Could not load setup status.</div>';
+      }
+    });
   }
 
   function card(title, desc, inner, extraClass, id) {
@@ -229,6 +375,7 @@
 
   function cloudSyncPaneBody() {
     var st = cloudStatus();
+    var setup = cachedSetupStatus();
     var stateLabel = ({
       disabled: 'Offline only',
       offline: 'Offline (no network)',
@@ -247,6 +394,8 @@
       + (st.detail ? '<br>' + esc(st.detail) : '')
       + '</div>';
 
+    html += hostedSetupShellHtml();
+
     if (!st.enabled && st.state === 'disabled') {
       html += '<div class="rd-set__note">Cloud stays off until an API base is configured, so offline GA is unbroken. '
         + 'Local Docker: <code>http://localhost:18787</code>. Hosted HTTPS: your deploy <code>PUBLIC_URL</code> '
@@ -263,6 +412,8 @@
     }
 
     if (st.state === 'signed_out' || (st.enabled && !user && st.state !== 'syncing' && st.state !== 'synced' && st.state !== 'error' && st.state !== 'signed_in')) {
+      var googleReady = setup ? !!setup.googleConfigured : false;
+      var smtpReady = setup ? !!setup.smtpConfigured : false;
       html += cardRow('Email or username', 'Demo: demo@covenant.local or demo',
         '<input type="text" class="rd-set__input" id="rd-cloud-email" autocomplete="username" placeholder="you@example.com or username">');
       html += cardRow('Password', '8+ characters',
@@ -271,12 +422,24 @@
       html += cardRow('Username (optional)', 'For new accounts — 3–32 chars',
         '<input type="text" class="rd-set__input" id="rd-cloud-username" autocomplete="nickname" placeholder="optional username">');
       html += cardRow('Create account', 'Email + password; username optional', btn('Register', 'rdCloudRegister'));
-      html += cardRow('Google Sign-In', 'Requires GOOGLE_CLIENT_ID / SECRET on the API', btn('Continue with Google', 'rdCloudGoogle'));
-      html += cardRow('Forgot password', 'Emails a reset link when SMTP is configured',
+      html += cardRow(
+        'Google Sign-In',
+        googleReady
+          ? 'Google OAuth is configured on this API'
+          : 'Needs GOOGLE_CLIENT_ID / SECRET — see checklist above and docs/AUTH.md',
+        btn('Continue with Google', 'rdCloudGoogle', false, setup ? !googleReady : false)
+      );
+      html += cardRow(
+        'Forgot password',
+        smtpReady ? 'Emails a reset link via SMTP' : 'Needs SMTP — disabled until configured (503 otherwise)',
         '<input type="email" class="rd-set__input" id="rd-cloud-forgot-email" placeholder="account email">'
-        + btn('Send reset email', 'rdCloudForgotPassword'));
-      html += cardRow('Forgot username', 'Emails your username when SMTP is configured',
-        btn('Send username reminder', 'rdCloudForgotUsername'));
+        + btn('Send reset email', 'rdCloudForgotPassword', false, setup ? !smtpReady : false)
+      );
+      html += cardRow(
+        'Forgot username',
+        smtpReady ? 'Emails your username via SMTP' : 'Needs SMTP — disabled until configured',
+        btn('Send username reminder', 'rdCloudForgotUsername', false, setup ? !smtpReady : false)
+      );
       html += cardRow('Reset with token', 'Paste token from email if the link opened here',
         '<input type="text" class="rd-set__input" id="rd-cloud-reset-token" placeholder="reset token" value="'
         + esc((function () { try { return sessionStorage.getItem('covenant_cloud_reset_token') || ''; } catch (e) { return ''; } })())
@@ -301,6 +464,8 @@
 
   function rsvpPortalPaneBody() {
     var st = cloudStatus();
+    var setup = cachedSetupStatus();
+    var smtpReady = setup ? !!setup.smtpConfigured : false;
     var html = '<div class="rd-set__note" id="rd-rsvp-status">RSVP emails and the guest portal need a linked cloud wedding. The planner stays offline-first; sending mail and opening guest links need network when you use them.</div>';
     if (!st.enabled || st.state === 'disabled') {
       html += '<div class="rd-set__note">Enable cloud sync and sign in first.</div>';
@@ -318,11 +483,29 @@
       return html;
     }
 
+    html += '<div class="rd-set__note' + (setup && !smtpReady ? ' rd-set__note--amber' : '') + '" id="rd-rsvp-smtp-hint">'
+      + (setup
+        ? (smtpReady
+          ? 'SMTP is configured — Send invites / reminders will attempt email.'
+          : '<b>SMTP missing</b> — Send invites is disabled. Generate tokens and copy links, or set <code>SMTP_*</code> on Cloud sync → Hosted setup checklist.')
+        : 'Checking SMTP capability…')
+      + '</div>';
+
     html += cardRow('Refresh status', 'Tokens, sends, responses (from Postgres)', btn('Refresh', 'rdRsvpRefresh'));
     html += '<div class="rd-set__note" id="rd-rsvp-summary">Click Refresh to load RSVP status.</div>';
     html += cardRow('Generate RSVP links', 'Creates unique tokens — does not email. Share links manually if SMTP is unset.', btn('Generate tokens', 'rdRsvpTokens'));
-    html += cardRow('Send RSVP emails', 'User action only — no automatic blasts. Needs SMTP (clear 503 if missing).', btn('Send invites', 'rdRsvpSend'));
-    html += cardRow('Send reminders', 'Manual click only — never auto-blasted', btn('Send reminders', 'rdRsvpRemind'));
+    html += cardRow(
+      'Send RSVP emails',
+      smtpReady
+        ? 'User action only — no automatic blasts.'
+        : 'Disabled until SMTP is configured (API would return 503 smtp_not_configured).',
+      btn('Send invites', 'rdRsvpSend', false, setup ? !smtpReady : false)
+    );
+    html += cardRow(
+      'Send reminders',
+      smtpReady ? 'Manual click only — never auto-blasted' : 'Disabled until SMTP is configured',
+      btn('Send reminders', 'rdRsvpRemind', false, setup ? !smtpReady : false)
+    );
 
     html += '<div class="rd-set__note" style="margin-top:1rem"><b>Gated guest portal</b> — unlisted hard-to-guess link; optional guest-email and/or rotatable couple code. Not a public wedding directory. Only published blocks appear for guests (planner-private notes stay private).</div>';
     html += cardRow('Portal slug', 'Letters, numbers, hyphens',
@@ -374,7 +557,7 @@
       '<input type="text" class="rd-set__input" id="rd-portal-rsvp-hint" placeholder="Check your email for a personal RSVP link">');
     html += cardRow('Enable portal', 'Saves gate + published blocks', btn('Save portal', 'rdPortalSave'));
     html += '<div class="rd-set__note" id="rd-portal-summary">Portal URL appears here after save.</div>';
-    html += '<div class="rd-set__note">Docs: <code>docs/RSVP_AND_GUEST_PORTAL.md</code>. Real email needs SMTP + PUBLIC_URL.</div>';
+    html += '<div class="rd-set__note">Docs: <code>docs/RSVP_AND_GUEST_PORTAL.md</code>. Real email needs SMTP + PUBLIC_URL — see Cloud sync → Hosted setup checklist.</div>';
     return html;
   }
 
@@ -726,6 +909,7 @@
           main.innerHTML = paneHtml(window._rdSetPane);
           moveSlots(ov);
           wireActions(ov);
+          afterPanePaint(window._rdSetPane);
         }
         Array.prototype.forEach.call(ov.querySelectorAll('[data-set-pane]'), function (b) {
           b.classList.toggle('is-active', b === btn);
@@ -734,12 +918,17 @@
     });
   }
 
+  function afterPanePaint(paneId) {
+    if (paneId === 'cloud' || paneId === 'rsvp') hydrateHostedSetup();
+  }
+
   function refreshCloudPane(ov) {
     if ((window._rdSetPane || 'overview') !== 'cloud') return;
     var main = ov && ov.querySelector('#rd-set-main');
     if (!main) return;
     main.innerHTML = paneHtml('cloud');
     wireActions(ov);
+    afterPanePaint('cloud');
   }
 
   function cloudMsg(ok, text) {
@@ -798,6 +987,7 @@
     moveSlots(ov);
     wireActions(ov);
     wireNav(ov);
+    afterPanePaint(window._rdSetPane || 'overview');
     return ov;
   }
 
@@ -810,6 +1000,7 @@
       main.innerHTML = paneHtml(window._rdSetPane);
       moveSlots(ov);
       wireActions(ov);
+      afterPanePaint(window._rdSetPane);
     }
     Array.prototype.forEach.call(ov.querySelectorAll('[data-set-pane]'), function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-set-pane') === window._rdSetPane);
@@ -854,6 +1045,11 @@
         return;
       }
       if (name === 'rdCloudGoogle') {
+        var gSetup = cachedSetupStatus();
+        if (gSetup && !gSetup.googleConfigured) {
+          cloudMsg(false, 'Google Sign-In is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET (docs/AUTH.md).');
+          return;
+        }
         if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.startGoogleSignIn !== 'function') {
           cloudMsg(false, 'Cloud bridge not loaded.');
           return;
@@ -862,7 +1058,19 @@
         window.CovenantCloudSync.startGoogleSignIn();
         return;
       }
+      if (name === 'rdHostedSetupRefresh') {
+        var bodyEl = document.getElementById('rd-hosted-setup-body');
+        if (bodyEl) bodyEl.innerHTML = '<div class="rd-set__note">Refreshing…</div>';
+        hydrateHostedSetup();
+        if (typeof showToast === 'function') showToast('Hosted setup checklist refreshed');
+        return;
+      }
       if (name === 'rdCloudForgotPassword') {
+        var fpSetup = cachedSetupStatus();
+        if (fpSetup && !fpSetup.smtpConfigured) {
+          cloudMsg(false, 'SMTP is not configured. Set SMTP_HOST (and usually SMTP_USER / SMTP_PASS / SMTP_FROM) — docs/AUTH.md.');
+          return;
+        }
         var fe = document.getElementById('rd-cloud-forgot-email') || document.getElementById('rd-cloud-email');
         var femail = fe ? String(fe.value || '').trim() : '';
         if (!femail) { cloudMsg(false, 'Enter the account email first.'); return; }
@@ -873,6 +1081,11 @@
         return;
       }
       if (name === 'rdCloudForgotUsername') {
+        var fuSetup = cachedSetupStatus();
+        if (fuSetup && !fuSetup.smtpConfigured) {
+          cloudMsg(false, 'SMTP is not configured. Set SMTP_* on the API — docs/AUTH.md.');
+          return;
+        }
         var ue = document.getElementById('rd-cloud-forgot-email') || document.getElementById('rd-cloud-email');
         var uemail = ue ? String(ue.value || '').trim() : '';
         if (!uemail) { cloudMsg(false, 'Enter the account email first.'); return; }
@@ -1388,6 +1601,11 @@
       }
       if (name === 'rdRsvpSend' || name === 'rdRsvpRemind') {
         if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
+        var smtpSetup = cachedSetupStatus();
+        if (smtpSetup && !smtpSetup.smtpConfigured) {
+          cloudMsg(false, 'SMTP is not configured — generate tokens and share links manually, or set SMTP_* (docs/AUTH.md).');
+          return;
+        }
         var kind = name === 'rdRsvpRemind' ? 'rsvp_reminder' : 'rsvp_invite';
         window.CovenantCloudSync.rsvpSend({ kind: kind })
           .then(function (body) {

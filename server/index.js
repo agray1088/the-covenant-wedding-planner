@@ -105,31 +105,89 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '2mb' }));
 
+function setupStatusPayload(req) {
+  const google = googleConfigured();
+  const smtp = smtpConfigured();
+  const publicUrlConfigured = !!PUBLIC_URL;
+  // Booleans + non-secret PUBLIC_URL only — never client secrets / SMTP passwords.
+  return {
+    ok: true,
+    service: 'covenant-sync',
+    db: 'up',
+    publicUrlConfigured,
+    publicUrl: PUBLIC_URL || null,
+    googleConfigured: google,
+    smtpConfigured: smtp,
+    // What each secret enables (for Settings → Hosted setup checklist).
+    enables: {
+      googleSignIn: google,
+      passwordResetEmail: smtp,
+      forgotUsernameEmail: smtp,
+      rsvpEmail: smtp,
+      partnerInviteEmail: smtp,
+      vendorPortalEmail: smtp
+    },
+    features: {
+      rsvp: FEATURES.rsvp,
+      landing: FEATURES.landing,
+      partnerInvites: FEATURES.partnerInvites,
+      vendorTokens: FEATURES.vendorTokens
+    },
+    docs: {
+      auth: 'docs/AUTH.md',
+      hosted: 'docs/HOSTED_DEPLOY.md'
+    },
+    time: new Date().toISOString(),
+    proto: req.protocol,
+    host: req.get('host') || null
+  };
+}
+
 app.get('/health', async (req, res) => {
   // Cheap liveness for platform probes — do not require auth.
   // Works behind HTTPS terminators (trust proxy) so platforms can hit /health.
   try {
     await query('SELECT 1');
+    const setup = setupStatusPayload(req);
     res.json({
       ok: true,
       service: 'covenant-sync',
       version: '0.5.0',
       mode: 'offline-first-optional-cloud',
       db: 'up',
-      publicUrl: PUBLIC_URL || null,
+      publicUrl: setup.publicUrl,
+      publicUrlConfigured: setup.publicUrlConfigured,
       features: {
         ...FEATURES,
-        googleConfigured: googleConfigured(),
-        smtpConfigured: smtpConfigured(),
+        googleConfigured: setup.googleConfigured,
+        smtpConfigured: setup.smtpConfigured,
         photoStorage: storageConfigSummary()
       },
-      time: new Date().toISOString(),
+      time: setup.time,
       // Echo how the proxy sees us (useful when debugging HTTPS / redirects).
-      proto: req.protocol,
-      host: req.get('host') || null
+      proto: setup.proto,
+      host: setup.host
     });
   } catch (e) {
     res.status(503).json({ ok: false, db: 'down', error: String(e.message || e) });
+  }
+});
+
+/** Operator / Settings checklist — capability flags only (no secret values). */
+app.get('/setup/status', async (req, res) => {
+  try {
+    await query('SELECT 1');
+    res.json(setupStatusPayload(req));
+  } catch (e) {
+    res.status(503).json({
+      ok: false,
+      db: 'down',
+      publicUrlConfigured: !!PUBLIC_URL,
+      publicUrl: PUBLIC_URL || null,
+      googleConfigured: false,
+      smtpConfigured: false,
+      error: String(e.message || e)
+    });
   }
 });
 
@@ -182,6 +240,8 @@ if (SERVE_STATIC) {
       || req.path.startsWith('/invites')
       || req.path.startsWith('/vendor')
       || req.path === '/health'
+      || req.path === '/setup/status'
+      || req.path.startsWith('/setup/')
     ) {
       next();
       return;

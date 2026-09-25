@@ -27961,6 +27961,19 @@ body.rd-gaps-font-large.rd-scope { font-size: 106%; }
   display: inline-flex; align-items: center; justify-content: center;
   box-sizing: border-box;
 }
+.rd-set__btn:disabled,
+.rd-set__btn.is-disabled,
+.rd-set__btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.rd-hosted-setup {
+  margin: 0 0 14px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-hairline, #e8e0d4);
+}
+.rd-hosted-setup .rd-set__gs-step { margin-top: 8px; }
 .rd-set__input {
   width: min(260px, 100%);
   height: var(--component-button-height, 28px);

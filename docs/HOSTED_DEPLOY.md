@@ -56,14 +56,15 @@ Railway fits this stack well: managed Postgres, automatic HTTPS, Dockerfile depl
    | `FEATURE_*` | optional | RSVP/landing default on; set `0` to force off — [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) |
 
 6. **Health check:** open `https://<PUBLIC_URL>/health` — expect `"ok": true`, `"db": "up"`. Platforms probe this path behind the HTTPS proxy.
-7. **DNS (optional):** point `api.yourdomain.com` at Railway; set `PUBLIC_URL` to that HTTPS origin.
-8. **Point the planner at the API** (Settings → Cloud sync, or console):
+7. **Setup checklist:** open `https://<PUBLIC_URL>/setup/status` — expect booleans for `publicUrlConfigured`, `googleConfigured`, `smtpConfigured` (never secret values). The planner **Settings → Cloud sync** pane shows the same checklist live and disables Google / email actions until ready.
+8. **DNS (optional):** point `api.yourdomain.com` at Railway; set `PUBLIC_URL` to that HTTPS origin.
+9. **Point the planner at the API** (Settings → Cloud sync, or console):
    ```js
    localStorage.setItem('covenant_cloud_api', 'https://<PUBLIC_URL>');
    localStorage.setItem('covenant_cloud_enabled', '1');
    location.reload();
    ```
-9. **Do not** enable demo bootstrap credentials on a public internet deployment used by real couples.
+10. **Do not** enable demo bootstrap credentials on a public internet deployment used by real couples.
 
 ### CORS
 
@@ -140,10 +141,11 @@ Configure Google Cloud Console redirect URIs and SMTP **when enabling accounts**
 - [ ] `SESSION_SECRET` (≥32 random)  
 - [ ] `TRUST_PROXY=1`  
 - [ ] `/health` returns 200 over HTTPS  
+- [ ] `/setup/status` shows expected booleans (confirm in Settings → Cloud sync checklist)  
 - [ ] Planner `covenant_cloud_api` points at `PUBLIC_URL`  
 - [ ] No public `BOOTSTRAP_PASSWORD` for real couples  
 - [ ] (Accounts) `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` + redirect URI — [`AUTH.md`](./AUTH.md)  
-- [ ] (Accounts) `SMTP_*` for reset / username email — [`AUTH.md`](./AUTH.md)  
+- [ ] (Accounts) `SMTP_*` for reset / username / RSVP email — [`AUTH.md`](./AUTH.md)  
 
 ## Local demo still works
 
@@ -151,10 +153,11 @@ Configure Google Cloud Console redirect URIs and SMTP **when enabling accounts**
 git pull origin cursor/offline-cloud-sync-017e
 docker compose up -d
 curl http://127.0.0.1:18787/health
+curl http://127.0.0.1:18787/setup/status
 ```
 
 Demo login: `demo@covenant.local` (or username `demo`) / `covenant-demo` against `http://localhost:18787`.
 
 ## What’s next
 
-**Roadmap steps 6–7 foundation shipped** — RSVP tokens/emails + gated guest portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Accounts: [`AUTH.md`](./AUTH.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+**Polish #1 shipped** — in-app Hosted setup checklist (`GET /setup/status` + Settings UI). **Next:** S3/R2 photo storage, then Railway/Fly production secrets wiring. RSVP: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Accounts: [`AUTH.md`](./AUTH.md). Full order: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
