@@ -4,7 +4,7 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 
 | Step | Theme | Outcome |
 |------|--------|---------|
-| **1** | **Hosted deploy** | Public HTTPS sync API (+ optional static hosting). Managed Postgres. Users never install a database. **Shipped** (see [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md)). |
+| **1** | **Hosted deploy** | Public HTTPS sync API (+ optional static hosting). Managed Postgres. Users never install a database. **Shipped** (see [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md); guided PC steps: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md)). |
 | **2** | **Real accounts** | Password accounts + Google Sign-In + forgot password/username via email (`PUBLIC_URL` + SMTP / provider). **Foundation shipped** (see [`AUTH.md`](./AUTH.md)): password register/login/username, Google OAuth + SMTP scaffolding; operator still creates Google Cloud / SMTP accounts. |
 | **3** | **Offline + backup clarity** | Offline-first preserved; file backup (`.sqlite` + full `.zip` with photos); optional cloud Postgres backup documented honestly. **Shipped** (see [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md)). |
 | **4** | **Privacy model** | Local-first, cloud opt-in, no selling data. Honest copy when cloud backup exists (we store what you sync). **Shipped** (Settings → Privacy + banner/About/cloud copy). |
@@ -66,7 +66,7 @@ Ordered delivery track. Offline-first never regresses: local save + file backup 
 
 ## Cloud track — major polish trio complete
 
-Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Guest + vendor portals support **richer published blocks**. **Polish trio done:** (1) hosted secrets checklist UX, (2) S3/R2 photo storage foundation, (3) Railway/Fly deploy wiring docs + config. Operator still pastes Google + SMTP (+ optional R2/S3) secrets in the host dashboard — see [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md).
+Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, privacy, RSVP + gated landing, partner invites, vendor portal tokens) are **shipped as foundations**. Guest + vendor portals support **richer published blocks**. **Polish trio done:** (1) hosted secrets checklist UX, (2) S3/R2 photo storage foundation, (3) Railway/Fly deploy wiring docs + config. Operator still pastes Google + SMTP (+ optional R2/S3) secrets in the host dashboard — guided steps: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md); reference: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md).
 
 ## Hosted secrets checklist (polish #1)
 
@@ -107,6 +107,7 @@ Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, priva
 | Settings checklist deploy tips | Done |
 | Operator pastes real secrets in host dashboard | Out of scope (operator) |
 | Buying domains / creating cloud accounts for the user | Out of scope |
+| Guided Railway PC walkthrough (`DEPLOY_WALKTHROUGH.md` + PDF) | Done |
 
 ## Docs
 
@@ -115,6 +116,7 @@ Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, priva
 - RSVP + gated portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md)  
 - Backup + photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md)  
 - Auth (accounts + Google + SMTP): [`AUTH.md`](./AUTH.md)  
-- Hosted deploy: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md)  
+- Hosted deploy (reference): [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md)  
+- Railway PC walkthrough: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md)  
 - Offline + cloud sync: [`OFFLINE_CLOUD_SYNC.md`](./OFFLINE_CLOUD_SYNC.md)  
 - Local reconnect: [`RECONNECT_AFTER_RESTART.md`](./RECONNECT_AFTER_RESTART.md)

@@ -2,6 +2,8 @@
 
 End-to-end operator path to put the Covenant sync API on public HTTPS with managed Postgres, Google Sign-In, SMTP, and optional R2/S3 photo storage.
 
+**Guided PC walkthrough (numbered, copy-paste):** [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · printable [`DEPLOY_WALKTHROUGH.pdf`](./DEPLOY_WALKTHROUGH.pdf).
+
 **Honest limit:** this repo ships Dockerfiles, `railway.toml` / `fly.toml`, and env templates. **You** create the Railway/Fly/Google/SMTP/(optional R2) accounts and **paste secrets in the host dashboard** (or `fly secrets set`). Agents and docs cannot log into your cloud for you.
 
 Local Docker Desktop demo is unchanged — see [Local demo still works](#local-demo-still-works). Couples never install Postgres.
@@ -37,6 +39,8 @@ Template for every secret: **`server/.env.production.example`**. Copy names into
 ## Recommended path: Railway
 
 Railway fits this stack: managed Postgres, automatic HTTPS, Dockerfile deploy, dashboard Variables.
+
+**Prefer the step-by-step guide?** Start at Step 1 in [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) (create the Railway project on your PC).
 
 ### 1. Create the project
 
@@ -294,4 +298,4 @@ See [`RECONNECT_AFTER_RESTART.md`](./RECONNECT_AFTER_RESTART.md).
 
 **Polish trio done:** (1) hosted secrets checklist UX, (2) S3/R2 photo foundation, (3) Railway/Fly deploy wiring docs + config. Operator still pastes real Google + SMTP (+ optional R2/S3) secrets in the host dashboard.
 
-Related: [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) · [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+Related: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) · [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

@@ -1,4 +1,5 @@
 # Railway — preferred path for Node + managed Postgres + HTTPS.
+# Guided walkthrough: docs/DEPLOY_WALKTHROUGH.md
 # Full checklist: docs/HOSTED_DEPLOY.md
 # Env template: server/.env.production.example
 #

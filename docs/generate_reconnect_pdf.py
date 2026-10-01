@@ -194,8 +194,8 @@ def main():
     body(
         pdf,
         "Local Docker above is still the day-to-day reconnect path. For public HTTPS "
-        "(Railway / Fly), see docs/HOSTED_DEPLOY.md. Point Cloud sync at your HTTPS "
-        "PUBLIC_URL - not localhost. Demo login is for local stacks only.",
+        "(Railway / Fly), see docs/DEPLOY_WALKTHROUGH.md (guided) or docs/HOSTED_DEPLOY.md. "
+        "Point Cloud sync at your HTTPS PUBLIC_URL - not localhost. Demo login is for local stacks only.",
     )
 
     pdf.ln(4)

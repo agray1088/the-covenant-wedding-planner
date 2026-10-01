@@ -2,7 +2,7 @@
 
 Offline-first planner stays the default. This Node + Postgres API is **opt-in** for multi-device guest + vendor + payment + budget + seating + contract + timeline + packet + rental + catering-rental + party + task + vtimeline + print-packet-override sync (beta).
 
-**Hosted HTTPS (production):** see [`docs/HOSTED_DEPLOY.md`](../docs/HOSTED_DEPLOY.md) — Railway (preferred) or Fly.io, `server/Dockerfile`, env template `server/.env.production.example`. Local Compose below is for Docker Desktop only.
+**Hosted HTTPS (production):** guided PC steps [`docs/DEPLOY_WALKTHROUGH.md`](../docs/DEPLOY_WALKTHROUGH.md); reference [`docs/HOSTED_DEPLOY.md`](../docs/HOSTED_DEPLOY.md) — Railway (preferred) or Fly.io, `server/Dockerfile`, env template `server/.env.production.example`. Local Compose below is for Docker Desktop only.
 
 ## Prerequisites
 
@@ -380,7 +380,7 @@ curl.exe -s -H "Authorization: Bearer $token" "http://127.0.0.1:18787/weddings/$
 
 ## Cloud host next steps
 
-1. Deploy with [`docs/HOSTED_DEPLOY.md`](../docs/HOSTED_DEPLOY.md).
+1. Deploy with [`docs/DEPLOY_WALKTHROUGH.md`](../docs/DEPLOY_WALKTHROUGH.md) (or [`docs/HOSTED_DEPLOY.md`](../docs/HOSTED_DEPLOY.md)).
 2. Wire Google + SMTP with [`docs/AUTH.md`](../docs/AUTH.md).
 3. Backup + photos + **S3/R2 object storage foundation** shipped — [`docs/BACKUP_AND_PHOTOS.md`](../docs/BACKUP_AND_PHOTOS.md). RSVP + gated guest portal foundation shipped — [`docs/RSVP_AND_GUEST_PORTAL.md`](../docs/RSVP_AND_GUEST_PORTAL.md). Roadmap: [`docs/PRODUCT_ROADMAP.md`](../docs/PRODUCT_ROADMAP.md).
 
