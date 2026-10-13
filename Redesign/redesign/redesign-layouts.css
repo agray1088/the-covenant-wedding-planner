@@ -173,7 +173,8 @@
 .rd-chip--ghost:hover { border-color: var(--border-control); }
 .rd-toolbar__right { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); min-width: 0; }
 .rd-bulkbar__sep { width: 1px; height: 14px; background: var(--border-control); }
-.rd-viewswitch__item { background: none; border: 0; font: inherit; }
+/* View items use the chip metric — do not inherit body 17px type. */
+.rd-viewswitch__item { background: none; border-top: 0; border-right: 0; border-bottom: 0; }
 
 
 /* §08: the table scrolls inside its own pane — the PAGE never scrolls sideways. */
