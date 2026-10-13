@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="css/phase2-roadmap.css">
 <link rel="stylesheet" href="css/phase3-roadmap.css">
 <link rel="stylesheet" href="css/phase4-roadmap.css">
-<link rel="stylesheet" href="css/planner.css?v=redesign-step15a">
+<link rel="stylesheet" href="css/planner.css?v=banner-center1">
 <link rel="stylesheet" href="css/planner-shell.css">
 <link rel="stylesheet" href="css/phase-data-hub.css">
 <link rel="stylesheet" href="css/phase-record-cards.css">
@@ -31,14 +31,14 @@
      Loads after every legacy sheet so its token values win the cascade.
      Step 1: tokens only.
      ========================================================================== -->
-<link rel="stylesheet" href="Redesign/redesign-tokens.css?v=redesign-step6n">
-<link rel="stylesheet" href="Redesign/redesign-components.css?v=redesign-depth4">
+<link rel="stylesheet" href="Redesign/redesign-tokens.css?v=group-band2">
+<link rel="stylesheet" href="Redesign/redesign-components.css?v=group-band2">
 <link rel="stylesheet" href="Redesign/redesign-shell.css?v=redesign-step6n">
-<link rel="stylesheet" href="Redesign/redesign-layouts.css?v=redesign-depth1">
+<link rel="stylesheet" href="Redesign/redesign-layouts.css?v=viewswitch-chip28">
 <!-- Implementation glue, not design: re-asserts the redesign components at a
      specificity that beats planner.css's body.editorial-v4 #main .panel chains.
      Values come from tokens only — never new hex. -->
-<link rel="stylesheet" href="css/redesign-overrides.css?v=redesign-step25a">
+<link rel="stylesheet" href="css/redesign-overrides.css?v=autofit-scrub2">
 
 </head>
 <body class="editorial-v4 nav-category-mode context-sidebar-mode developer-mode">
@@ -304,6 +304,22 @@
     <!-- 5 · MODES & TOOLS -->
     <section class="pd-sec">
       <div class="pd-sec-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v1h1a3 3 0 0 1 3 3v8H4v-8a3 3 0 0 1 3-3h1V6a3 3 0 0 1 3-3Z"/></svg> Modes &amp; Tools</div>
+      <div data-rd-roles-block="1" class="rd-roles-block">
+        <div class="pd-toggle-row rd-roles-block__head">
+          <div class="pd-tr-text"><strong>View as</strong><span>Role shells from Views · 43a. Vendor opens the separate Vendor Portal product.</span></div>
+        </div>
+        <div class="rd-roles-seg" role="group" aria-label="View as role">
+          <button type="button" class="rd-roles-seg__btn" data-rd-role-opt="couple" onclick="rdSetViewerRole('couple')">Couple</button>
+          <button type="button" class="rd-roles-seg__btn" data-rd-role-opt="planner" onclick="rdSetViewerRole('planner')">Planner</button>
+          <button type="button" class="rd-roles-seg__btn" data-rd-role-opt="vendorPreview" onclick="rdSetViewerRole('vendorPreview')">Vendor</button>
+        </div>
+        <p class="rd-roles-note" id="rd-role-planner-note" hidden></p>
+        <div class="pd-toggle-row" id="rd-covenant-grant-row">
+          <span class="pd-tr-icon" aria-hidden="true">✦</span>
+          <div class="pd-tr-text"><strong>Share Covenant with planner</strong><span id="rd-covenant-grant-meta">Default is off.</span></div>
+          <button type="button" class="pd-switch" id="rd-covenant-grant-btn" role="switch" aria-checked="false" onclick="rdToggleCovenantAccess()" aria-label="Share Covenant with planner"></button>
+        </div>
+      </div>
       <div class="pd-toggle-row">
         <span class="pd-tr-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
         <div class="pd-tr-text"><strong>Preview Mode</strong><span>Lock editing for sharing or presenting.</span></div>
@@ -313,6 +329,11 @@
         <span class="pd-tr-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z"/></svg></span>
         <div class="pd-tr-text"><strong>Gentle Mode</strong><span>Soften warning language; alerts stay active.</span></div>
         <button type="button" class="pd-switch" id="gentle-mode-btn" role="switch" aria-checked="false" onclick="toggleGentleMode()" aria-label="Gentle Mode"></button>
+      </div>
+      <div class="pd-toggle-row">
+        <span class="pd-tr-icon" aria-hidden="true">◉</span>
+        <div class="pd-tr-text"><strong>Day-of mode</strong><span>Dark, large, read-only cues for the corridor.</span></div>
+        <button type="button" class="btn btn-forest btn-sm" onclick="rdEnterDayOf()">Enter</button>
       </div>
     </section>
 
@@ -486,14 +507,11 @@
   <div id="main-column" class="main-column">
   <main id="main">
 
-    <!-- ═══ DASHBOARD ═══ -->
-    <div id="panel-dashboard" class="panel dashboard-v4">
+    <!-- ═══ DASHBOARD — §07 shell · 224 rail · mock 3a · redesign-3a1 ═══ -->
+    <div id="panel-dashboard" class="panel dashboard-v4 dashboard-mockup ued-scope">
       <input type="file" id="heroPhotoInput" accept="image/*" style="display:none" onchange="uploadHeroPhoto(event)">
-      <!-- v4 editorial dashboard is built by renderDashboard() into this root -->
-      <div id="dash-v4-root"></div>
-
-      <!-- Banner Scripture editor (feature preserved) -->
-      <div class="m-block" id="dash-banner-editor">
+      <!-- Banner Scripture editor (ids preserved; parked by dashboard-redesign.js) -->
+      <div class="m-block" id="dash-banner-editor" hidden>
         <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h12l4 4v10H4z"/><path d="M16 5v4h4"/><path d="M8 13h8M8 16h6"/></svg> Banner Scripture</div>
         <p class="v4-help-note">Add a verse to display in the footer of every page. Leave blank to hide it.</p>
         <div class="banner-editor">
@@ -784,51 +802,9 @@
     </div>
 
     <!-- ═══ VENDORS ═══ -->
+    <!-- ═══ VENDORS — redesign shell · Tracker | Shortlist · Table/Cards · Batch 30 ═══ -->
     <div id="panel-vendors" class="panel vendors-mockup ued-scope">
-      <div class="m-stats" id="vendor-stats" aria-label="Vendor summary"></div>
-
-      <div class="m-tabbar vnd-tabbar">
-        <button class="m-tab on" data-tab="tracker" onclick="vndTab('tracker')">Vendor Tracker</button>
-        <button class="m-tab" data-tab="shortlist" onclick="vndTab('shortlist')">Shortlist &amp; Compare</button>
-      </div>
-
-      <div data-vnd-tab="tracker">
-      <div class="log-questions" role="region" aria-label="Curated Questions to Ask Every Vendor">
-        <h4>Curated Questions to Ask Every Vendor</h4>
-        <ol>
-        <li>What is included in the quoted price, and what is extra?</li>
-        <li>How many weddings have you served at our venue / in our style?</li>
-        <li>Do you have a backup plan for illness, weather, or emergencies?</li>
-        <li>What is your deposit, payment schedule, and refund policy?</li>
-        <li>Do you carry liability insurance? May I see proof?</li>
-        <li>What time will you arrive and depart? Setup and breakdown?</li>
-        <li>Do you provide a vendor meal? Is that an extra cost?</li>
-        <li>Who is the on-site lead the day-of? What if they cancel?</li>
-        <li>Can we see a full event from start to finish (not just highlights)?</li>
-        <li>Are you comfortable with a Christian ceremony / Scripture / hymns?</li>
-      </ol></div>
-
-      <!-- Vendor tracker + day-of timeline injected by uedVendorShell() -->
-      </div>
-
-      <div data-vnd-tab="shortlist" style="display:none">
-        <div class="m-block vendors-compare-card">
-          <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h7v7H4z"/><path d="M13 7h7v7h-7z"/><path d="M4 16h7v7H4z"/><path d="M13 16h7v7h-7z"/></svg> Vendor Comparisons
-            <span class="m-actions" style="margin-left:auto;display:inline-flex">
-              <button class="m-btn" type="button" onclick="exportSectionCSV('Vendor Comparisons', data.vendorCompare)">Export CSV</button>
-            </span>
-          </div>
-          <p class="v4-help-note">Compare up to 3 vendors side by side for each category.</p>
-          <div class="vcmp-style-bar" role="tablist" aria-label="Comparison view style">
-            <button type="button" class="vcmp-style-btn on" data-style="matrix" onclick="setVendorCompareStyle('matrix')">Matrix</button>
-            <button type="button" class="vcmp-style-btn" data-style="cards" onclick="setVendorCompareStyle('cards')">Cards</button>
-            <button type="button" class="vcmp-style-btn" data-style="h2h" onclick="setVendorCompareStyle('h2h')">Head-to-head</button>
-          </div>
-          <div class="vcmp-caption" aria-live="polite"></div>
-          <div class="log-actions"><button class="btn btn-forest" type="button" onclick="logAdd('vendorCompare',{category:'',a:'',qa:'',b:'',qb:'',c:'',qc:'',decision:''})">+ Add Comparison</button></div>
-          <!-- vendor compare preview injected by uedVendorShell -->
-        </div>
-      </div>
+      <!-- Filled by uedVendorShell() / renderVendors() (pagehead · KPIs · tabstrip · toolbar · table/cards/compare) -->
     </div>
 
     <!-- ═══ GUESTS ═══ -->
@@ -836,6 +812,12 @@
     <div id="panel-guests" class="panel guests-mockup guestlist-mockup ued-scope">
       <!-- Filled by uedGuestShell() / renderGuests() (pagehead · KPIs · costs/events/workflow · toolbar · table · drawer) -->
     </div>
+
+    <!-- ═══ HOUSEHOLDS — All.dc #14b · Views #28 · derived from guests · households-redesign.js ═══ -->
+    <div id="panel-households" class="panel households-mockup ued-scope"></div>
+
+    <!-- ═══ CONTACTS — All.dc #14c · Views #28 · derived directory · contacts-redesign.js ═══ -->
+    <div id="panel-contacts" class="panel contacts-mockup ued-scope"></div>
 
     <!-- ═══ TASKS — §07 anatomy; uedTaskShell() fills toolbar/bulk on first render -->
     <div id="panel-tasks" class="panel tasks-mockup ued-scope">
@@ -881,450 +863,29 @@
       </div>
     </div>
 
-    <!-- ═══ TIMELINE ═══ -->
+    <!-- ═══ TIMELINE — redesign shell · Vertical | Details · Needs an owner residual ═══ -->
+    <!-- ═══ WEDDING DAY TIMELINE — All.dc #6b · Views 31a/31b · Drawers 25 · timeline-redesign.js ═══ -->
     <div id="panel-timeline" class="panel wday-mockup ued-scope">
-      <div class="wday-title-wrap">
-        <div class="wday-title-copy">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="wday-title">Wedding Day Timeline</h2>
-        <p class="wday-subtitle">Your day, thoughtfully planned. Every moment with purpose.</p>
-        </div>
-        <div class="wday-header-actions no-print">
-          <button class="m-btn" type="button" onclick="openWdayTimelinePrint()">Print section</button>
-          <button class="m-btn m-btn-primary" type="button" onclick="openDataHub('planning','wdayTimeline')">Planning Hub</button>
-        </div>
-      </div>
-
-      <div class="m-stats" id="wday-stats"></div>
-
-      <!-- Two views of the same day-of timeline data (Batch: WD Timeline page).
-           Tab 1 = vertical timeline (same component as the Dashboard).
-           Tab 2 = editable details: summary cards on top, then the Day-Of table. -->
-      <div class="m-tabbar wday-tabbar">
-        <button class="m-tab" data-tab="vertical" onclick="wdayTab('vertical')">Vertical Timeline</button>
-        <button class="m-tab" data-tab="details" onclick="wdayTab('details')">Day-Of Details</button>
-      </div>
-
-      <!-- TAB 1: Vertical timeline -->
-      <div data-tl-tab="vertical">
-        <div class="m-block">
-          <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><circle cx="12" cy="7" r="2"/><circle cx="12" cy="17" r="2"/></svg> Vertical timeline</div>
-          <div id="wday-vertical" class="wday-vertical"></div>
-          <p class="v4-help-note" style="margin-top:.8rem">All times are subject to change. Final timeline will be shared with vendors. Edit events on the <b>Day-Of Details</b> tab.</p>
-        </div>
-      </div>
-
-      <!-- TAB 2: Day-Of details — summary cards above the editable table -->
-      <div data-tl-tab="details">
-        <div class="m-grid-3">
-          <div class="m-block">
-            <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2 7.5 14 3 9.6l6.2-.9L12 3Z"/></svg> Key moments</div>
-            <div id="wday-key-moments" class="wday-key-list"></div>
-            <button class="m-btn" style="margin-top:.8rem" type="button" onclick="scrollToWeddingDayTable()">View full timeline ›</button>
-          </div>
-          <div class="m-block">
-            <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3v15H5V6h3l1-2Z"/><path d="M9 10h6M9 14h6"/></svg> Coordinator notes</div>
-            <textarea id="wday-coordinator-note" class="wday-note-box" oninput="saveTimelineMeta('coordinatorNote', this.value)" style="width:100%;min-height:120px;border:1px solid var(--v4-hair2);background:transparent;padding:.6rem;font-size:13px;color:var(--v4-forest)"></textarea>
-          </div>
-          <div class="m-block">
-            <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.7 19.7 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.7 19.7 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.4 2.8a2 2 0 0 1-.6 1.8l-1.3 1.3a16 16 0 0 0 6.8 6.8l1.3-1.3a2 2 0 0 1 1.8-.6l2.8.4a2 2 0 0 1 1.7 2Z"/></svg> Contact reminders</div>
-            <div id="wday-contact-list" class="wday-contact-list"></div>
-            <button class="m-btn" style="margin-top:.8rem" type="button" onclick="showPanel('vendors')">View full contact list ›</button>
-          </div>
-        </div>
-
-        <div class="m-toolbar ued-table-control-card" id="timeline-filter-card">
-          <select class="sel" id="timeline-responsible-filter" onchange="renderTimeline()" aria-label="Filter wedding day timeline by responsible person"><option value="">All Responsible</option></select>
-          <select class="sel" id="timeline-location-filter" onchange="renderTimeline()" aria-label="Filter wedding day timeline by location"><option value="">All Locations</option></select>
-          <label class="srch grow"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;stroke:var(--v4-muted2);fill:none;stroke-width:1.8"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="timeline-search" type="search" placeholder="Search day-of timeline..." oninput="renderTimeline()" style="border:none;background:transparent;outline:none;font-size:.8rem;color:var(--v4-forest);flex:1"></label>
-          <button class="m-btn" type="button" onclick="clearTimelineFilters()">Clear Filters</button>
-        </div>
-
-        <section class="ued-table-card" id="wday-full-timeline">
-          <div class="ued-table-head">
-            <div class="ued-table-title"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;vertical-align:-.15em;margin-right:.35em"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg> Day-of timeline</div>
-            <div class="ued-actions">
-              <button class="m-btn m-btn-primary" type="button" onclick="addTimelineRow()">+ Add event</button>
-              <button class="m-btn" type="button" onclick="loadWdayTimelinePreset()">Load starter</button>
-              <button class="m-btn" type="button" onclick="openWdayTimelinePrint()">Print section</button>
-              <button class="m-btn" type="button" onclick="openDataHub('planning','wdayTimeline')">Edit in Planning Hub</button>
-            </div>
-          </div>
-          <!-- Day-of Timeline now rendered by the CWP unified engine (renderTimeline -> cwpRenderTable('wdayTimeline')); manual rows editable + vendor-arrival rows synced read-only -->
-          <div id="cwp-wdayTimeline" class="cwp-mount ro-preview"></div>
-          <div class="preview-foot"><span class="ued-soft" id="wday-hub-preview-foot"></span></div>
-        </section>
-      </div>
+      <!-- Filled by uedTimelineShell() / renderTimelinePage() (Table|Ribbon|By vendor · drawer) -->
     </div>
 
-    <!-- CEREMONY -->
+    <!-- ═══ CEREMONY & RECEPTION — All.dc #11a · Views 31c/31d · Drawers 25 · ceremony-redesign.js ═══ -->
     <div id="panel-ceremony" class="panel ceremony-service-mockup ued-scope">
-      <div class="ceremony-title-wrap">
-        <div>
-          <h2 class="ceremony-title">Ceremony &amp; Reception</h2>
-          <p class="ceremony-subtitle">Plan the order of worship, vows, Scripture, prayers, legal details, and reception moments that should not get lost in the larger timeline.</p>
-        </div>
-        <div class="cer-header-actions no-print">
-          <button type="button" class="m-btn" onclick="openDataHub('ceremony','ceremonyOrder')">Ceremony Hub</button>
-          <button type="button" class="m-btn m-btn-primary" onclick="openCeremonyProgram()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Print Program
-          </button>
-        </div>
-      </div>
-
-      <div class="m-stats" id="ceremony-stats"></div>
-
-      <!-- Ceremony tab bar (Batch 5b) — one section per tab -->
-      <div class="m-tabbar cer-tabbar">
-        <button class="m-tab" data-tab="overview" onclick="cerTab('overview')">Overview</button>
-        <button class="m-tab" data-tab="order" onclick="cerTab('order')">Order of Worship</button>
-        <button class="m-tab" data-tab="processional" onclick="cerTab('processional')">Processional</button>
-        <button class="m-tab" data-tab="recessional" onclick="cerTab('recessional')">Recessional</button>
-        <button class="m-tab" data-tab="scripture" onclick="cerTab('scripture')">Scripture &amp; Prayer</button>
-        <button class="m-tab" data-tab="vows" onclick="cerTab('vows')">Vows &amp; Rings</button>
-        <button class="m-tab" data-tab="officiant" onclick="cerTab('officiant')">Officiant &amp; Legal</button>
-        <button class="m-tab" data-tab="reception" onclick="cerTab('reception')">Reception Details</button>
-        <button class="m-tab" data-tab="traditions" onclick="cerTab('traditions')">Traditions &amp; Cultural Moments</button>
-      </div>
-
-      <section class="ued-panel span12 ceremony-overview-panel" data-cer-tab="overview">
-        <div class="ued-table-head">
-          <div class="ued-table-title">Ceremony Overview</div>
-        </div>
-        <div class="ceremony-form-grid">
-          <label><span>Ceremony Location</span><select id="cer-location" onchange="saveCeremony()"><option value="">Grace Fellowship Church</option><option>Grace Fellowship Church</option><option>Grace Community Church</option><option>Ceremony Chapel</option><option>Garden Ceremony Site</option></select></label>
-          <label><span>Start Time</span><input type="time" id="cer-start" oninput="saveCeremony()"></label>
-          <label><span>Officiant</span><select id="cer-officiant" onchange="saveCeremony()"><option value="">Pastor Daniel Hayes</option><option>Pastor Daniel Hayes</option><option>Lead Officiant</option><option>Family Pastor</option></select></label>
-          <label><span>Service Style</span><select id="cer-style" onchange="saveCeremony()"><option value="">Traditional</option><option>Traditional</option><option>Christ-Centered</option><option>Worshipful</option><option>Intimate</option></select></label>
-          <label><span>Estimated Length</span><select id="cer-duration" onchange="saveCeremony()"><option value="">45-50 minutes</option><option>30-35 minutes</option><option>35-45 minutes</option><option>45-50 minutes</option><option>60 minutes</option></select></label>
-          <label><span>Marriage License Signing Location</span><select id="cer-license" onchange="saveCeremony()"><option value="">Church Office - After Ceremony</option><option>Church Office - After Ceremony</option><option>Bridal Suite</option><option>Reception Office</option><option>Pastor's Office</option></select></label>
-        </div>
-      </section>
-
-      <div class="ceremony-flow-grid" id="ceremony-flow-preview">
-        <section class="ued-table-card span12 ceremony-order-panel" data-cer-tab="order">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Order of Ceremony / Order of Worship</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyOrderRow()">Add Step <span>+</span></button></div>
-          </div>
-          <!-- Order of Worship table now rendered by the CWP unified engine (renderCeremonyOrder -> cwpRenderTable('ceremonyOrder')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyOrder" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyOrder')">Edit in Ceremony Hub</button></div>
-          </div>
-        </section>
-        <div class="ceremony-side-orders">
-        <section class="ued-table-card span12 ceremony-processional-panel" data-cer-tab="processional">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Processional Order</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addProcessionalRow()">Add <span>+</span></button></div>
-          </div>
-          <!-- Processional table now rendered by the CWP unified engine (renderProcessional -> cwpRenderTable('ceremonyProcessional')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyProcessional" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyProcessional')">Edit in Ceremony Hub</button></div>
-          </div>
-        </section>
-        <section class="ued-table-card span12 ceremony-recessional-panel" data-cer-tab="recessional">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Recessional Order</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addRecessionalRow()">Add <span>+</span></button></div>
-          </div>
-          <!-- Recessional table now rendered by the CWP unified engine (renderRecessional -> cwpRenderTable('ceremonyRecessional')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyRecessional" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyRecessional')">Edit in Ceremony Hub</button></div>
-          </div>
-        </section>
-        </div>
-      </div>
-
-      <section class="ued-table-card span12 ceremony-scripture-panel" data-cer-tab="scripture">
-        <div class="ued-table-head">
-          <div class="ued-table-title">Scripture, Prayer &amp; Worship</div>
-          <div class="ued-actions"><label class="scripture-translation-field">Translation <select id="scripture-translation-select" onchange="setScriptureTranslation(this.value)"></select></label><button class="ceremony-edit-btn" onclick="addScriptureRow()">Add <span>+</span></button></div>
-        </div>
-        <!-- Scripture & Prayer table now rendered by the CWP unified engine (renderScriptures -> cwpRenderTable('scriptures')) -->
-        <div class="ceremony-cwp-shell">
-          <div id="cwp-scriptures" class="cwp-mount"></div>
-          <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','scriptures')">Edit in Ceremony Hub</button></div>
-        </div>
-        <div class="ceremony-prayer-grid" style="display:none;">
-          <label><span>Opening Prayer</span><textarea id="cer-openingPrayer" rows="2" oninput="saveCeremony()"></textarea></label>
-          <label><span>Worship / Special Music</span><textarea id="cer-worship" rows="2" placeholder="Song, hymn, musician, or cue" oninput="saveCeremony()"></textarea></label>
-          <label><span>Family Blessing / Prayer Notes</span><textarea id="cer-blessing" rows="2" oninput="saveCeremony()"></textarea></label>
-        </div>
-      </section>
-
-      <div class="ceremony-two-col ceremony-focus-grid">
-        <section class="ued-table-card span12 ceremony-vows-panel" data-cer-tab="vows">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Vows, Rings &amp; Covenant Moment</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyVowRow()">Add Detail <span>+</span></button></div>
-          </div>
-          <!-- Vows / rings table rendered by the CWP unified engine (renderCeremonyVows -> cwpRenderTable('ceremonyVows')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyVows" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyVows')">Edit in Ceremony Hub</button></div>
-          </div>
-        </section>
-        <section class="ued-table-card span12 ceremony-officiant-panel" data-cer-tab="officiant">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Officiant, Rehearsal &amp; Legal Notes</div>
-            <div class="ued-actions"><button class="ceremony-edit-btn" onclick="loadCeremonyChecklistPreset()"><svg class="line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button></div>
-          </div>
-          <div class="ceremony-form-grid one-col compact" style="display:none;">
-            <label><span>Rehearsal Time</span><input type="text" id="cer-rehearsal" placeholder="Date, time, who must attend" oninput="saveCeremony()"></label>
-            <label><span>Witnesses</span><input type="text" id="cer-witnesses" placeholder="Marriage license witnesses" oninput="saveCeremony()"></label>
-          </div>
-          <!-- Officiant & Legal checklist now rendered by the CWP unified engine (renderCeremonyChecklist -> cwpRenderTable('ceremonyChecklist')) -->
-          <div class="ceremony-cwp-shell">
-            <div id="cwp-ceremonyChecklist" class="cwp-mount"></div>
-            <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyChecklist')">Edit in Ceremony Hub</button></div>
-          </div>
-          <label class="ceremony-notes-box"><span>Notes</span><textarea id="cer-notes" rows="2" placeholder="License will be signed in the church office with witnesses." oninput="saveCeremony()"></textarea></label>
-        </section>
-      </div>
-
-      <section class="ued-table-card span12 ceremony-reception-panel" data-cer-tab="reception">
-        <div class="ued-table-head">
-          <div>
-            <div class="ued-table-title">Reception Details</div>
-            <p>Capture meaningful reception moments that support the ceremony and family flow without duplicating music, speeches, catering, or timeline tables.</p>
-          </div>
-          <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyReceptionRow()">Add Detail <span>+</span></button></div>
-        </div>
-        <!-- Reception Details table now rendered by the CWP unified engine (renderCeremonyReceptionDetails -> cwpRenderTable('ceremonyReceptionDetails')) -->
-        <div class="ceremony-cwp-shell">
-          <div id="cwp-ceremonyReceptionDetails" class="cwp-mount"></div>
-          <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyReceptionDetails')">Edit in Ceremony Hub</button></div>
-        </div>
-      </section>
-
-      <section class="ued-table-card span12 ceremony-traditions-panel" data-cer-tab="traditions">
-        <div class="ued-table-head">
-          <div>
-            <div class="ued-table-title">Traditions &amp; Cultural Moments</div>
-            <p>Plan family, cultural, and Christ-centered moments with clear meaning, people involved, items needed, wording, and stage directions.</p>
-          </div>
-          <div class="ued-actions"><button class="ceremony-edit-btn" onclick="addCeremonyTraditionRow()">Add Moment <span>+</span></button></div>
-        </div>
-        <!-- Traditions & Cultural Moments table now rendered by the CWP unified engine (renderCeremonyTraditions -> cwpRenderTable('ceremonyTraditions')) -->
-        <div class="ceremony-cwp-shell">
-          <div id="cwp-ceremonyTraditions" class="cwp-mount"></div>
-          <div class="preview-foot ceremony-hub-foot"><span class="ued-soft">Ceremony Hub</span><button type="button" class="hub-link" onclick="openDataHub('ceremony','ceremonyTraditions')">Edit in Ceremony Hub</button></div>
-        </div>
-      </section>
-
+      <!-- Filled by uedCeremonyShell() / renderCeremonyPage() (Order|Programme|Script · drawer) -->
     </div>
-    <!-- ═══ PRAYER ═══ -->
+
+    <!-- ═══ PRAYER JOURNAL — All.dc #13b · Views 32c/32d · Drawers 26 · prayer-redesign.js ═══ -->
     <div id="panel-prayer" class="panel prayer-mockup ued-scope">
-      <div class="m-stats" id="prayer-stats" aria-label="Prayer summary"></div>
-
-      <div class="m-banner" id="prayer-prompt-card">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3c1.5 3 1.8 6.5.6 10L8 21"/><path d="M14 3c-1.5 3-1.8 6.5-.6 10L16 21"/><path d="M10.8 13h2.4"/></svg>
-        <span class="m-banner-t"><b>Prayer prompt</b> — <span id="prayer-prompt-text"></span></span>
-      </div>
-
-      <section class="prayer-focus-grid" aria-label="Prayer focus cards">
-        <article class="prayer-focus-card">
-          <h3>Wisdom</h3>
-          <p>Ask for clear decisions, gentle words, and ordered priorities.</p>
-          <cite>James 1:5</cite>
-        </article>
-        <article class="prayer-focus-card">
-          <h3>Unity</h3>
-          <p>Pray for one heart as you prepare for covenant and family.</p>
-          <cite>Ecclesiastes 4:12</cite>
-        </article>
-        <article class="prayer-focus-card">
-          <h3>Peace</h3>
-          <p>Bring pressure, details, and expectations before the Lord.</p>
-          <cite>Philippians 4:7</cite>
-        </article>
-      </section>
-
-      <section class="ued-panel span12 record-editor-inline-shell prayer-inline-editor" id="prayer-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div>
-            <div class="ued-table-title">Prayer journal editor <span class="gie-mode" data-inline-editor-mode>Adding a new prayer journal entry</span></div>
-            <p class="gie-note">Record the full prayer, scripture, answer, and status in one place.</p>
-          </div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="prayer-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('prayer',null,'prayer-inline-editor-body')" style="display:none">Start new prayer</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add prayer journal entry</button>
-        </div>
-      </section>
-
-      <section class="ued-table-card prayer-table-card">
-        <div class="ued-table-head">
-          <div class="ued-table-title">Prayer log <span class="ro-badge-inline">Read only</span></div>
-          <div class="ued-actions">
-            <button class="ued-link" onclick="exportSectionCSV('Prayer Journal',data.prayer)">Export CSV</button>
-            <button class="ued-btn db-edit-btn" onclick="openDataHub('faith','prayer')">Edit in Faith Hub</button>
-          </div>
-        </div>
-        <div id="cwp-prayer" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Full table editing lives in Faith Hub; bulk remains off for this reflective journal.</span></div>
-      </section>
+      <!-- Filled by uedPrayerShell() / renderPrayerPage() (Journal|Table|Print · drawer) -->
     </div>
 
-    <!-- ═══ COUNSELING ═══ -->
+    <!-- ═══ PREMARITAL COUNSELING — All.dc #13c · Views 32e/32f · Drawers 26 · counseling-redesign.js ═══ -->
     <div id="panel-counseling" class="panel counseling-mockup ued-scope">
-      <div class="m-stats" id="counseling-stats" aria-label="Counseling summary"></div>
-
-      <div id="counseling-curriculum-host" aria-label="Premarital counseling curriculum"></div>
-
-      <section class="ued-panel span12 record-editor-inline-shell counseling-inline-editor" id="counseling-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div>
-            <div class="ued-table-title">Counseling session editor <span class="gie-mode" data-inline-editor-mode>Adding a new counseling session</span></div>
-            <p class="gie-note">Record the session topic, homework, key takeaway, questions, and status in one place.</p>
-          </div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="counseling-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('counseling',null,'counseling-inline-editor-body')" style="display:none">Start new session</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add counseling session</button>
-        </div>
-      </section>
-
-      <section class="ued-table-card counseling-table-card">
-        <div class="ued-table-head">
-          <div class="ued-table-title">Session tracker <span class="ro-badge-inline">Read only</span></div>
-          <div class="ued-actions">
-            <button class="ued-link" onclick="exportSectionCSV('Premarital Counseling',data.counseling)">Export CSV</button>
-            <button class="ued-btn db-edit-btn" onclick="openDataHub('faith','counseling')">Edit in Faith Hub</button>
-          </div>
-        </div>
-        <div id="cwp-counseling" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Full table editing lives in Faith Hub; bulk remains off for this reflective tracker.</span></div>
-      </section>
-
-      <div class="m-block" id="counsel-topics-card" style="display:none">
-        <div class="m-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h7M8 11h8"/></svg> Topics covered</div>
-        <div class="counsel-topic-grid" id="counsel-topic-chips"></div>
-      </div>
+      <!-- Filled by uedCounselingShell() / renderCounselingPage() (Table|Cards|Calendar · drawer) -->
     </div>
 
-    <!-- ═══ NOTES ═══ -->
-    <div id="panel-notes" class="panel notes-mockup ued-scope">
-      <svg class="notes-symbols" aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute; width:0; height:0; overflow:hidden;">
-        <symbol id="notes-icon-clipboard" viewBox="0 0 24 24"><path d="M9 4h6l1 2h3v15H5V6h3l1-2Z"/><path d="M9 6h6"/><path d="M8 11h8M8 15h8M8 19h5"/></symbol>
-        <symbol id="notes-icon-pin" viewBox="0 0 24 24"><path d="M14 3l7 7-4 1-4 4 1 4-2 2-4-7-5-4 2-2 4 1 4-4 1-4Z"/><path d="M9 15l-5 5"/></symbol>
-        <symbol id="notes-icon-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 3h9v10H3z"/><path d="M3 9h18"/></symbol>
-        <symbol id="notes-icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></symbol>
-        <symbol id="notes-icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></symbol>
-        <symbol id="notes-icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></symbol>
-        <symbol id="notes-icon-church" viewBox="0 0 24 24"><path d="M12 3v5"/><path d="M9.5 5.5h5"/><path d="M4 11l8-6 8 6v10H4z"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/></symbol>
-        <symbol id="notes-icon-glasses" viewBox="0 0 24 24"><circle cx="7" cy="14" r="3"/><circle cx="17" cy="14" r="3"/><path d="M10 14h4M4 11l1.8 1M20 11l-1.8 1"/></symbol>
-        <symbol id="notes-icon-heart" viewBox="0 0 24 24"><path d="M20 8.5c0 5-8 10-8 10s-8-5-8-10A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8 2.5Z"/></symbol>
-        <symbol id="notes-icon-book" viewBox="0 0 24 24"><path d="M4 5c2-1 4-1 8 1v15c-4-2-6-2-8-1z"/><path d="M20 5c-2-1-4-1-8 1v15c4-2 6-2 8-1z"/></symbol>
-        <symbol id="notes-icon-calendar" viewBox="0 0 24 24"><path d="M5 5h14v16H5z"/><path d="M8 3v4M16 3v4M5 10h14"/></symbol>
-        <symbol id="notes-icon-plane" viewBox="0 0 24 24"><path d="M3 11l18-7-7 18-3-8-8-3Z"/><path d="M21 4l-10 10"/></symbol>
-        <symbol id="notes-icon-tag" viewBox="0 0 24 24"><path d="M4 12V5h7l9 9-7 7z"/><circle cx="8" cy="8" r="1.2"/></symbol>
-        <symbol id="notes-icon-pencil" viewBox="0 0 24 24"><path d="M4 20l4-1 11-11a2 2 0 0 0-3-3L5 16z"/><path d="M14 6l4 4"/></symbol>
-        <symbol id="notes-icon-image" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="2"/><path d="M20 16l-5-5-4 4-2-2-5 5"/></symbol>
-        <symbol id="notes-icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></symbol>
-        <symbol id="notes-icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
-        <symbol id="notes-icon-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></symbol>
-        <symbol id="notes-icon-dollar" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M16 7.5c-.8-1.1-2.1-1.8-4-1.8-2.2 0-3.5 1-3.5 2.6 0 4.2 7 2.1 7 6.5 0 1.8-1.6 3.2-4 3.2-2 0-3.5-.7-4.5-2"/></symbol>
-        <symbol id="notes-icon-pray" viewBox="0 0 24 24"><path d="M10 3c1.5 3 1.8 6.5.6 10L8 21"/><path d="M14 3c-1.5 3-1.8 6.5-.6 10L16 21"/><path d="M10.8 13h2.4"/></symbol>
-        <symbol id="notes-icon-check" viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></symbol>
-      </svg>
-
-      <section class="notes-title-wrap">
-        <span class="notes-orn" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></span>
-        <h2 class="notes-title">Notes</h2>
-        <p class="notes-subtitle">Your free-form planning space — capture every idea, reminder, and detail in one beautiful place.</p>
-      </section>
-
-      <div id="notes-stat-grid" class="m-stats" aria-label="Notes summary"></div>
-
-      <section class="ued-panel notes-side-panel notes-quick-card notes-quick-wide" aria-label="Quick Note">
-        <div class="notes-side-title"><span class="notes-small-icon"><svg><use href="#notes-icon-pencil"></use></svg></span><h3>Quick Note</h3></div>
-        <div class="notes-quick-wide-layout">
-          <textarea id="notes-quick-text" class="notes-quick-text" placeholder="Jot something down..."></textarea>
-          <div class="notes-quick-actions">
-            <button type="button" class="notes-quick-tool" title="Add a tag" onclick="insertQuickNoteText('#tag ')"><svg><use href="#notes-icon-tag"></use></svg></button>
-            <button type="button" class="notes-quick-tool" title="Add an image reminder" onclick="insertQuickNoteText('[image idea] ')"><svg><use href="#notes-icon-image"></use></svg></button>
-            <button type="button" class="btn btn-forest btn-sm" onclick="addQuickNote()">Add Note</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="notes-toolbar" aria-label="Notes filters">
-        <div class="notes-search-wrap"><span aria-hidden="true"><svg><use href="#notes-icon-search"></use></svg></span><input id="notes-search" type="search" placeholder="Search notes..." oninput="renderNotesPage()"></div>
-        <select id="notes-category-filter" class="notes-filter" onchange="renderNotesPage()"><option value="">All Categories</option></select>
-        <select id="notes-tag-filter" class="notes-filter" onchange="renderNotesPage()"><option value="">All Tags</option></select>
-        <select id="notes-sort-filter" class="notes-filter notes-sort" onchange="renderNotesPage()"><option value="recent">Recent</option><option value="pinned">Pinned First</option><option value="title">Title A–Z</option><option value="category">Category</option></select>
-        <button type="button" class="btn btn-forest notes-add-top" onclick="addNotesDetailRow()">+ Add Note</button>
-      </section>
-
-      <section class="ued-panel span12 record-editor-inline-shell notes-inline-editor" id="notes-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div>
-            <div class="ued-table-title">Notes tracker editor <span class="gie-mode" data-inline-editor-mode>Adding a new note</span></div>
-            <p class="gie-note">Record the full title, category, tags, details, next step, pin, and status in one place.</p>
-          </div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="notes-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('notesDetails',null,'notes-inline-editor-body')" style="display:none">Start new note</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add note</button>
-        </div>
-      </section>
-
-      <section class="notes-layout">
-        <div class="notes-main">
-          <div id="notes-card-grid" class="notes-card-grid" aria-live="polite"></div>
-        </div>
-        <aside class="notes-sidebar">
-          <div class="ued-panel notes-side-panel" id="notes-pinned-card"></div>
-        </aside>
-      </section>
-
-      <section class="notes-longform-section" aria-label="Free-form notes">
-        <div class="notes-section-head"><span class="notes-small-icon"><svg><use href="#notes-icon-clipboard"></use></svg></span><div><h3>Free-Form Planning Notes</h3><p>Keep the original long-form planning spaces for deeper thoughts and reminders.</p></div></div>
-        <div class="notes-legacy-grid">
-          <div class="ued-panel notes-legacy-panel"><label>General Notes</label><textarea id="note-general" rows="5" placeholder="Any planning notes…" oninput="saveNotes()"></textarea></div>
-          <div class="ued-panel notes-legacy-panel"><label>Family & Hospitality Notes</label><textarea id="note-family" rows="5" placeholder="Family dynamics, special needs, hospitality ideas…" oninput="saveNotes()"></textarea></div>
-          <div class="ued-panel notes-legacy-panel"><label>Vendor Instincts</label><textarea id="note-vendors" rows="5" placeholder="First impressions from vendor meetings…" oninput="saveNotes()"></textarea></div>
-          <div class="ued-panel notes-legacy-panel"><label>Marriage Preparation Reflections</label><textarea id="note-marriage" rows="5" placeholder="Thoughts on the covenant you are entering…" oninput="saveNotes()"></textarea></div>
-        </div>
-      </section>
-
-      <section class="ued-table-card notes-tracker-table-card">
-        <div class="ued-table-head notes-table-head">
-          <div>
-            <div class="ued-table-title">Notes tracker <span class="ro-badge-inline">Read only</span></div>
-            <p>Use this full-width table to organize every note, tag, category, reminder, and follow-up.</p>
-          </div>
-          <div class="ued-actions">
-            <button class="ued-link" onclick="exportSectionCSV('Notes Tracker',data.notesDetails)">Export CSV</button>
-            <button class="ued-btn db-edit-btn" onclick="openDataHub('planning','notesDetails')">Edit in Planning Hub</button>
-          </div>
-        </div>
-        <div id="cwp-notesDetails" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Planning Hub.</span></div>
-      </section>
-
-    </div>
+    <!-- ═══ NOTES — §07 shell · 224 rail · 360 drawer · mock 12a / Views 33a·33b · redesign-12a1 ═══ -->
+    <div id="panel-notes" class="panel notes-mockup notes-rd ued-scope"></div>
 
     <!-- ═══ TABLE LAYOUT — §07 shell · 224 rail · 360 drawer · mock 8a · redesign-step16a ═══ -->
     <div id="panel-tables" class="panel table-layout-mockup ued-scope">
@@ -1341,227 +902,15 @@
       <!-- Filled by uedGiftsShell() / renderGifts() -->
     </div>
 
-    <!-- ═══ PHOTO & VIDEO SHOT LISTS ═══ -->
+    <!-- ═══ SHOT LISTS — All.dc #11b · Views 30l/30m · Drawers 24 · shotlist-redesign.js ═══ -->
     <div id="panel-shotlist" class="panel shotlist-mockup ued-scope">
-      <div class="shotlist-title-wrap">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="shotlist-title">Photo &amp; Video Shot Lists</h2>
-        <p class="shotlist-subtitle">Plan must-have photo moments and wedding-film coverage for your photographer and videographer.</p>
-      </div>
-
-      <div class="shotlist-tabs-shell">
-        <div class="m-tabs shotlist-page-tabs" role="tablist" aria-label="Shot list type">
-          <button class="m-tab active" type="button" data-shot-tab="photo" onclick="shotlistTab('photo')">Photo Shot List</button>
-          <button class="m-tab" type="button" data-shot-tab="video" onclick="shotlistTab('video')">Video Shot List</button>
-        </div>
-      </div>
-
-      <section class="ued-panel span12 record-editor-inline-shell shotlist-inline-editor" id="shotlist-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div><div class="ued-table-title">Shot list inline editor <span id="shotlist-inline-table-label">Photo Shot List</span> <span class="gie-mode" data-inline-editor-mode>Adding a new photo shot</span></div><p class="gie-note">Choose Photo or Video, edit one full row here, then use the preview tables below to scan, filter, Auto-fit, and select another row.</p></div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div class="m-tabbar shotlist-inline-tabs" id="shotlist-inline-table-tabs" role="tablist">
-          <button type="button" class="m-tab on" data-shot-inline-tab="shotlist" onclick="setShotInlineTable('shotlist',null)" role="tab" aria-selected="true">Photo</button>
-          <button type="button" class="m-tab" data-shot-inline-tab="videoShots" onclick="setShotInlineTable('videoShots',null)" role="tab" aria-selected="false">Video</button>
-        </div>
-        <div id="shotlist-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="setShotInlineTable(_shotInlineKey,null)" style="display:none">Start new row</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add photo shot</button>
-        </div>
-      </section>
-
-      <div id="shotlist-photo-panel" class="shotlist-tab-panel">
-      <div class="m-banner">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17V7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M12 10v6"/><path d="m9 13 3 3 3-3"/></svg>
-        <span class="m-banner-t"><b>Photo starter list</b> — loads 45+ editable shots, then add your own rows, priorities, and notes below.</span>
-        <button class="m-btn m-btn-primary" onclick="loadShotPreset()">Load photo shot list</button>
-      </div>
-
-      <div id="shotlist-stat-grid" class="m-stats" aria-live="polite"></div>
-      <div id="shotlist-overview-grid" class="shotlist-overview-grid" aria-live="polite"></div>
-
-      <!-- Filter card removed: filtering now lives in the table's per-column Excel filters + search (CWP engine). -->
-      <datalist id="shot-people-options"></datalist>
-
-      <section class="ued-table-card shotlist-table-card">
-        <!-- Photo shot list table now rendered by the CWP unified engine (renderShotlist → cwpRenderTable('shotlist')) -->
-        <div class="ued-table-head">
-          <div class="ued-table-title">Photo shot list</div>
-          <div class="ued-actions shotlist-table-actions no-print">
-            <button type="button" class="ued-btn" onclick="setShotInlineTable('shotlist',null)">+ Add photo shot</button>
-            <button type="button" class="ued-btn" onclick="openDataHub('design','shotlist')">Edit in Design Hub</button>
-          </div>
-        </div>
-        <div id="cwp-shotlist" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-        <datalist id="shot-section-options">
-          <option value="Getting Ready"></option>
-          <option value="Detail"></option>
-          <option value="First Look"></option>
-          <option value="Couple"></option>
-          <option value="Family"></option>
-          <option value="Wedding Party"></option>
-          <option value="Ceremony"></option>
-          <option value="Cocktail"></option>
-          <option value="Reception"></option>
-          <option value="Send-Off"></option>
-        </datalist>
-        <datalist id="shot-timing-options">
-          <option value="Getting Ready"></option>
-          <option value="Pre-Ceremony"></option>
-          <option value="First Look"></option>
-          <option value="Ceremony"></option>
-          <option value="Family Portraits"></option>
-          <option value="Cocktail Hour"></option>
-          <option value="Reception"></option>
-          <option value="Golden Hour"></option>
-          <option value="Send-Off"></option>
-        </datalist>
-      </section>
-      </div>
-
-      <div id="shotlist-video-panel" class="shotlist-tab-panel" hidden>
-        <div class="m-banner">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 11 5-3v8l-5-3z"/><rect x="3" y="6" width="13" height="12" rx="2"/></svg>
-          <span class="m-banner-t"><b>Video starter list</b> — loads essential wedding-film moments for your videographer (B-roll, vows, speeches, dances, and send-off).</span>
-          <button class="m-btn m-btn-primary" onclick="loadVideoShotPreset()">Load video shot list</button>
-        </div>
-        <div id="video-shotlist-stat-grid" class="m-stats" aria-live="polite"></div>
-        <div id="video-shotlist-overview-grid" class="shotlist-overview-grid" aria-live="polite"></div>
-        <section class="ued-table-card shotlist-table-card">
-          <div class="ued-table-head">
-            <div class="ued-table-title">Video shot list</div>
-            <div class="ued-actions shotlist-table-actions no-print">
-              <button type="button" class="ued-btn" onclick="setShotInlineTable('videoShots',null)">+ Add video shot</button>
-              <button type="button" class="ued-btn" onclick="openDataHub('design','videoShots')">Edit in Design Hub</button>
-            </div>
-          </div>
-          <div id="cwp-videoShots" class="ro-preview"></div>
-          <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-        </section>
-      </div>
+      <!-- Filled by uedShotlistShell() / renderShotlistPage() (Table|Cards|By window · drawer) -->
     </div>
 
     <!-- ═══ WEDDING VENUE ═══ -->
+    <!-- ═══ VENUE COMPARISON — §07 shell · thin All.dc inventory · venue-redesign.js ═══ -->
     <div id="panel-venue" class="panel venue-mockup ued-scope">
-      <div class="venue-title-wrap">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="venue-title">Wedding Venue</h2>
-        <p class="venue-subtitle">Find the perfect place to celebrate your covenant.</p>
-      </div>
-
-      <div class="m-stats">
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg><span class="m-stat-label">Ceremony venue</span></div><div class="m-stat-val" id="venue-stat-ceremony">—</div><div class="m-stat-sub" id="venue-stat-ceremony-sub">Add ceremony venue details</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg><span class="m-stat-label">Reception venue</span></div><div class="m-stat-val" id="venue-stat-reception">—</div><div class="m-stat-sub" id="venue-stat-reception-sub">Add reception venue details</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><span class="m-stat-label">Guest capacity</span></div><div class="m-stat-val" id="venue-stat-capacity">—</div><div class="m-stat-sub" id="venue-stat-capacity-sub">Comfortable seating overview</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/><path d="M7 15h4"/></svg><span class="m-stat-label">Cost / deposit</span></div><div class="m-stat-val" id="venue-stat-cost">—</div><div class="m-stat-sub" id="venue-stat-cost-sub">Track your venue investment</div></div>
-      </div>
-
-      <!-- Venue Details / Notes / Reminders now live on the shared Venue & Vendors hub bar (.vv-hub-tabbar, injected after the masthead). Old .ven-tabbar removed. -->
-
-      <div class="venue-arrange-grid" id="venue-arrange-grid">
-        <section class="ued-panel venue-details-panel venue-widget" data-card="details" data-size="half">
-          <div class="venue-widget-toolbar">
-            <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Selected Details</span></div>
-            <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('details')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
-          </div>
-          <div class="venue-section-head">
-            <div>
-              <h3>Selected Venue Details</h3>
-              <div class="venue-rule"></div>
-              <p>Keep all your original venue details, but organize them in a more polished editorial layout.</p>
-            </div>
-            <div class="venue-view-toggle">
-              <button class="venue-view-btn active" type="button" id="venue-view-c" onclick="setVenueView('c')"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg> Ceremony</button>
-              <button class="venue-view-btn" type="button" id="venue-view-r" onclick="setVenueView('r')"><svg viewBox="0 0 24 24"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg> Reception</button>
-            </div>
-          </div>
-
-          <div class="venue-detail-panel active" id="venue-detail-c">
-            <div class="venue-detail-top">
-              <div class="venue-detail-title"><strong id="venue-detail-c-name">Ceremony Venue</strong><span class="venue-pill">Ceremony</span></div>
-            </div>
-            <div class="venue-detail-grid">
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-name"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg> Venue Name</label><input type="text" id="ven-c-name" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-contact"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg> Contact Name</label><input type="text" id="ven-c-contact" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-address"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.33-6-10a6 6 0 1 1 12 0c0 4.67-6 10-6 10Z"/><circle cx="12" cy="11" r="2.5"/></svg> Address</label><input type="text" id="ven-c-address" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-phone"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72l.35 2.57a2 2 0 0 1-.57 1.72l-1.27 1.27a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 1.72-.57l2.57.35A2 2 0 0 1 22 16.92z"/></svg> Phone / Email</label><input type="text" id="ven-c-phone" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-capacity"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Capacity</label><input type="text" id="ven-c-capacity" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-space"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg> Venue Type</label><input type="text" id="ven-c-space" placeholder="Indoor, Outdoor, Garden, Chapel…" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-hours"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Rental Hours</label><input type="text" id="ven-c-hours" placeholder="e.g. 3pm–6pm" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-cost"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.7-1.4-2.3-2.2-5-2.2-3 0-4.7 1.2-4.7 3 0 4.6 9.4 2 9.4 7 0 1.9-1.7 3.4-4.8 3.4-2.6 0-4.4-1-5.2-2.7"/></svg> Total Cost</label><input type="text" id="ven-c-cost" placeholder="$2,500" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-deposit"><svg viewBox="0 0 24 24"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/><path d="M7 15h4"/></svg> Deposit Paid</label><input type="text" id="ven-c-deposit" placeholder="$500" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-c-setup"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg> Setup Time</label><input type="text" id="ven-c-setup" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-parking"><svg viewBox="0 0 24 24"><path d="M7 19V5h6a4 4 0 1 1 0 8H7"/></svg> Parking Info</label><input type="text" id="ven-c-parking" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-best"><svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.1-8.23C1.2 10.06 2.1 6.7 5.1 5.2c1.93-.97 4.23-.57 5.9.9 1.67-1.47 3.97-1.87 5.9-.9 3 1.5 3.9 4.86 2.2 7.57C18.7 16.65 12 21 12 21z"/></svg> Best For</label><input type="text" id="ven-c-best" placeholder="Traditional ceremonies, intimate gatherings, outdoor portraits…" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-amenities"><svg viewBox="0 0 24 24"><path d="m12 3 2.2 5 5.3.5-4 3.5 1.2 5.2L12 14.5 7.3 17.2 8.5 12l-4-3.5 5.3-.5Z"/></svg> Amenities</label><textarea id="ven-c-amenities" rows="2" placeholder="Bridal room, sound system, parking, coordinator…" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-food"><svg viewBox="0 0 24 24"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg> Food &amp; Drink Rules</label><textarea id="ven-c-food" rows="2" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-cancel"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/><path d="M4.93 4.93 19.07 19.07"/></svg> Cancellation Policy</label><textarea id="ven-c-cancel" rows="2" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-c-other"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Other Important Info</label><textarea id="ven-c-other" rows="2" oninput="saveVenue()"></textarea></div>
-            </div>
-            <div class="venue-detail-actions"><button type="button" class="venue-full-link" onclick="toggleVenueFullDetails()"><span class="venue-full-toggle-text">View Full Details</span> <span aria-hidden="true">→</span></button></div>
-          </div>
-
-          <div class="venue-detail-panel" id="venue-detail-r">
-            <div class="venue-detail-top">
-              <div class="venue-detail-title"><strong id="venue-detail-r-name">Reception Venue</strong><span class="venue-pill">Reception</span></div>
-            </div>
-            <div class="venue-detail-grid">
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-name"><svg viewBox="0 0 24 24"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg> Venue Name</label><input type="text" id="ven-r-name" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-contact"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg> Contact Name</label><input type="text" id="ven-r-contact" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-address"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.33-6-10a6 6 0 1 1 12 0c0 4.67-6 10-6 10Z"/><circle cx="12" cy="11" r="2.5"/></svg> Address</label><input type="text" id="ven-r-address" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-phone"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72l.35 2.57a2 2 0 0 1-.57 1.72l-1.27 1.27a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 1.72-.57l2.57.35A2 2 0 0 1 22 16.92z"/></svg> Phone / Email</label><input type="text" id="ven-r-phone" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-capacity"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Capacity</label><input type="text" id="ven-r-capacity" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-space"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg> Venue Type</label><input type="text" id="ven-r-space" placeholder="Indoor, Outdoor, Garden, Ballroom…" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-hours"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Rental Hours</label><input type="text" id="ven-r-hours" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-cost"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.7-1.4-2.3-2.2-5-2.2-3 0-4.7 1.2-4.7 3 0 4.6 9.4 2 9.4 7 0 1.9-1.7 3.4-4.8 3.4-2.6 0-4.4-1-5.2-2.7"/></svg> Total Cost</label><input type="text" id="ven-r-cost" placeholder="$3,000" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-deposit"><svg viewBox="0 0 24 24"><path d="M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/><path d="M7 15h4"/></svg> Deposit Paid</label><input type="text" id="ven-r-deposit" placeholder="$1,000" oninput="saveVenue()"></div>
-              <div class="venue-detail-row"><label class="venue-detail-label" for="ven-r-setup"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg> Setup Time</label><input type="text" id="ven-r-setup" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-parking"><svg viewBox="0 0 24 24"><path d="M7 19V5h6a4 4 0 1 1 0 8H7"/></svg> Parking Info</label><input type="text" id="ven-r-parking" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-best"><svg viewBox="0 0 24 24"><path d="M12 21s-6.7-4.35-9.1-8.23C1.2 10.06 2.1 6.7 5.1 5.2c1.93-.97 4.23-.57 5.9.9 1.67-1.47 3.97-1.87 5.9-.9 3 1.5 3.9 4.86 2.2 7.57C18.7 16.65 12 21 12 21z"/></svg> Best For</label><input type="text" id="ven-r-best" placeholder="Dinner reception, dancing, cocktail hour, garden portraits…" oninput="saveVenue()"></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-amenities"><svg viewBox="0 0 24 24"><path d="m12 3 2.2 5 5.3.5-4 3.5 1.2 5.2L12 14.5 7.3 17.2 8.5 12l-4-3.5 5.3-.5Z"/></svg> Amenities</label><textarea id="ven-r-amenities" rows="2" placeholder="Tables, chairs, dance floor, bridal suite, catering kitchen…" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-food"><svg viewBox="0 0 24 24"><path d="M8 4v6M16 4v6"/><path d="M5 10c0 2 1.5 3.5 3.5 3.5S12 12 12 10V4"/><path d="M19 4v6c0 2-1.5 3.5-3.5 3.5S12 12 12 10"/><path d="M12 13v7"/></svg> Food &amp; Drink Rules</label><textarea id="ven-r-food" rows="2" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-cancel"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/><path d="M4.93 4.93 19.07 19.07"/></svg> Cancellation Policy</label><textarea id="ven-r-cancel" rows="2" oninput="saveVenue()"></textarea></div>
-              <div class="venue-detail-row span-2"><label class="venue-detail-label" for="ven-r-other"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Other Important Info</label><textarea id="ven-r-other" rows="2" oninput="saveVenue()"></textarea></div>
-            </div>
-            <div class="venue-detail-actions"><button type="button" class="venue-full-link" onclick="toggleVenueFullDetails()"><span class="venue-full-toggle-text">View Full Details</span> <span aria-hidden="true">→</span></button></div>
-          </div>
-          <div class="venue-full-details" id="venue-full-details"></div>
-        </section>
-
-        <!-- Venue Shortlist card removed — venue vs. vendor shortlisting now lives on the shared "Shortlist & Compare" tab (Vendors engine). -->
-
-        <section class="ued-panel venue-notes-panel venue-widget" data-card="notes" data-size="half">
-          <div class="venue-widget-toolbar">
-            <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Notes</span></div>
-            <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('notes')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
-          </div>
-          <div class="venue-note-header">
-            <div class="venue-note-title-wrap">
-              <h3>Notes</h3>
-              <div class="venue-rule"></div>
-            </div>
-            <button class="venue-edit-note-btn" id="venue-edit-note-btn" type="button" onclick="editVenueNote()">Edit Note</button>
-          </div>
-          <div class="venue-note-stack" id="venue-note-stack"></div>
-        </section>
-        <section class="ued-panel venue-reminders-panel venue-widget" data-card="reminders" data-size="half">
-          <div class="venue-widget-toolbar">
-            <div class="venue-widget-left"><button class="venue-drag-handle" type="button" draggable="true" title="Drag to move this card"><svg viewBox="0 0 24 24"><path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01"/></svg> Move</button><span class="venue-widget-name">Reminders</span></div>
-            <div class="venue-widget-right"><button class="venue-size-toggle" type="button" onclick="toggleVenueWidgetSize('reminders')"><svg viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="M4 4l6 6"/><path d="M20 20l-6-6"/></svg><span>Make Wide</span></button><span class="venue-resize-note">Resize corner</span></div>
-          </div>
-          <h3>Reminders &amp; Next Steps</h3>
-          <div class="venue-rule"></div>
-          <div class="venue-reminder-list" id="venue-reminder-list"></div>
-          <div class="venue-reminder-summary" id="venue-reminder-summary"></div>
-        </section>
-      </div>
-
+      <!-- Filled by uedVenueShell() / renderVenuePage() (pagehead · KPIs · Compare|Details|Notes · drawer) -->
     </div>
 
 
@@ -1663,641 +1012,31 @@
     </div>
 
 
-    <!-- ═══ CATERING, MENU & BEVERAGE ═══ -->
+    <!-- ═══ CATERING & MENU — All.dc #7a · Views 30h/30i · Drawers 24 · catering-redesign.js ═══ -->
     <div id="panel-catering" class="panel catering-mockup ued-scope">
-      <svg class="cat-symbols" aria-hidden="true" focusable="false" width="0" height="0">
-        <symbol id="cat-i-guests" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M14.5 15.5A4.6 4.6 0 0 1 20.5 20"/></symbol>
-        <symbol id="cat-i-dollar" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.7-1.4-2.3-2.2-5-2.2-3 0-4.7 1.2-4.7 3 0 4.6 9.4 2 9.4 7 0 1.9-1.7 3.4-4.8 3.4-2.6 0-4.4-1-5.2-2.7"/></symbol>
-        <symbol id="cat-i-utensils" viewBox="0 0 24 24"><path d="M8 2v8"/><path d="M5 2v8"/><path d="M11 2v8"/><path d="M5 10h6"/><path d="M8 10v12"/><path d="M17 2v20"/><path d="M14 2c2.2 1.6 3 3.6 3 7"/></symbol>
-        <symbol id="cat-i-alert" viewBox="0 0 24 24"><path d="M12 3 2.5 20.5h19L12 3Z"/><path d="M12 9v5"/><path d="M12 17h.01"/></symbol>
-        <symbol id="cat-i-menu" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
-        <symbol id="cat-i-glass" viewBox="0 0 24 24"><path d="M7 3h10l-1 8a4 4 0 0 1-8 0L7 3Z"/><path d="M12 15v6"/><path d="M8.5 21h7"/></symbol>
-        <symbol id="cat-i-child" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"/><path d="M6 21c1-4 3-6 6-6s5 2 6 6"/><path d="M9 11c1.2 1 4.8 1 6 0"/></symbol>
-        <symbol id="cat-i-plate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.5"/></symbol>
-        <symbol id="cat-i-table" viewBox="0 0 24 24"><path d="M4 8h16"/><path d="M6 8v12"/><path d="M18 8v12"/><path d="M8 14h8"/><path d="M10 14v6M14 14v6"/></symbol>
-        <symbol id="cat-i-leaf" viewBox="0 0 24 24"><path d="M20 4C12 4 6 9 5 19c8 0 14-5 15-15Z"/><path d="M5 19c4-5 8-8 15-15"/></symbol>
-      </svg>
-
-      <div class="cat-title-wrap">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="cat-title">Catering &amp; Menu</h2>
-        <p class="cat-subtitle">Plan food, bar, and place settings — estimates use your <strong>target guest count</strong> from Wedding Setup.</p>
-        <p class="cat-note" id="catering-guest-target-note"></p>
-        <div class="cat-header-actions no-print">
-          <button type="button" class="m-btn m-btn-primary" onclick="openMealCountSheet()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Print Caterer Sheet
-          </button>
-          <button type="button" class="m-btn" onclick="openMenuCard()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-            Print Menu Card
-          </button>
-        </div>
-      </div>
-
-      <div class="m-stats" id="catering-stats"></div>
-
-      <section class="cat-top-grid" aria-label="Catering overview">
-        <div class="ued-panel cat-menu-panel">
-          <div class="cat-card-head">
-            <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-menu"></use></svg></span><div><h3>Menu Builder</h3><p>Snapshot by course</p></div></div>
-            <span class="cat-badge gold">Summary</span>
-          </div>
-          <div id="catering-menu-summary"></div>
-        </div>
-        <div class="ued-panel cat-bar-panel">
-          <div class="cat-card-head">
-            <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-glass"></use></svg></span><div><h3>Bar &amp; Beverages</h3><p>Type · signature · calculator</p></div></div>
-          </div>
-          <div class="cat-meta-grid" id="catering-bar-summary"></div>
-          <div class="cat-divider"></div>
-          <div class="cat-note">Auto-estimates from Wedding Setup target guest count</div>
-        </div>
-      </section>
-
-      <div class="preview-foot data-hub-foot">
-        <span class="ued-soft">Menu, bar, place settings, snacks, and vendor meals — manage every catering table in the Database Hub.</span>
-        <button type="button" class="hub-link" onclick="openDataHub('catering','menu')">Open Catering Database Hub →</button>
-      </div>
-
-      <section class="cat-bottom-grid">
-        <div class="ued-panel cat-dietary-panel">
-          <div class="cat-card-head">
-            <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-alert"></use></svg></span><div><h3>Dietary Summary</h3><p>Auto-counted from your guest list and menu tags</p></div></div>
-          </div>
-          <div class="cat-dietary-wrap" id="catering-dietary-summary"></div>
-        </div>
-        <div class="ued-panel cat-costs-panel">
-          <div class="cat-card-head">
-            <div class="cat-card-title"><span class="cat-section-icon"><svg><use href="#cat-i-dollar"></use></svg></span><div><h3>Catering Costs</h3><p>Rolls into Budget</p></div></div>
-          </div>
-          <div id="catering-costs"></div>
-        </div>
-      </section>
-
+      <!-- Filled by uedCateringShell() / renderCateringPage() (pagehead · KPIs · Menu|Tasting|Allergens · drawer) -->
     </div>
 
-    <!-- ═══ ENTERTAINMENT ═══ -->
+
+    <!-- ═══ ENTERTAINMENT — All.dc #10d · Views 30j/30k · Drawers 24 · entertainment-redesign.js ═══ -->
     <div id="panel-entertainment" class="panel entertainment-mockup ued-scope">
-      <svg class="ent-icon-sprite" aria-hidden="true" focusable="false">
-        <symbol id="ent-i-music" viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></symbol>
-        <symbol id="ent-i-toast" viewBox="0 0 24 24"><path d="M7 3h4v4c0 2.2-1.8 4-4 4s-4-1.8-4-4V3h4Z"/><path d="M17 3h4v4c0 2.2-1.8 4-4 4s-4-1.8-4-4V3h4Z"/><path d="M7 11v7M17 11v7M4.5 21h5M14.5 21h5"/><path d="M11 6h2"/></symbol>
-        <symbol id="ent-i-mic" viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 18v3M8.5 21h7"/></symbol>
-        <symbol id="ent-i-heart" viewBox="0 0 24 24"><path d="M20.8 7.9c0 5.1-8.8 10.2-8.8 10.2S3.2 13 3.2 7.9A4.4 4.4 0 0 1 12 6.4a4.4 4.4 0 0 1 8.8 1.5Z"/></symbol>
-        <symbol id="ent-i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m6.2 17.8 11.6-11.6"/></symbol>
-        <symbol id="ent-i-church" viewBox="0 0 24 24"><path d="M12 3v5M9.5 5.5h5"/><path d="M5 11.5 12 6l7 5.5"/><path d="M7 10.3V21h10V10.3"/><path d="M10 21v-5a2 2 0 0 1 4 0v5"/></symbol>
-        <symbol id="ent-i-cocktail" viewBox="0 0 24 24"><path d="M5 4h14l-7 8-7-8Z"/><path d="M12 12v7M8 21h8"/><path d="M16 4l3-2"/></symbol>
-        <symbol id="ent-i-playlist" viewBox="0 0 24 24"><path d="M4 6h10M4 11h10M4 16h7"/><path d="M17 18V9l4-1v8"/><circle cx="15.5" cy="18" r="1.8"/><circle cx="20" cy="16" r="1.8"/></symbol>
-        <symbol id="ent-i-headphones" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14h4v6H6a2 2 0 0 1-2-2v-4Z"/><path d="M20 14h-4v6h2a2 2 0 0 0 2-2v-4Z"/></symbol>
-        <symbol id="ent-i-dance" viewBox="0 0 24 24"><path d="M8 5a2 2 0 1 0 0 .1"/><path d="M16 5a2 2 0 1 0 0 .1"/><path d="M8 8v5l-3 5"/><path d="M16 8v5l3 5"/><path d="M8 11h8"/><path d="M11 13l-1 6"/><path d="M13 13l1 6"/></symbol>
-        <symbol id="ent-i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></symbol>
-        <symbol id="ent-i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.2 2.2 2.3 4.8-5"/></symbol>
-      </svg>
-
-      <div class="ent-title-wrap">
-        <div class="dash-orn"><svg class="leaf-orn" viewBox="0 0 96 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="ent-title">Music &amp; Speeches</h2>
-        <p class="ent-subtitle">Set the perfect tone for every moment of your celebration.</p>
-      </div>
-
-      <div class="m-stats" aria-label="Entertainment summary">
-        <div class="m-stat"><div class="m-stat-top"><svg><use href="#ent-i-music"></use></svg><span class="m-stat-label">Ceremony songs</span></div><div class="m-stat-val" id="ent-stat-ceremony">0</div><div class="m-stat-sub">Selected</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg><use href="#ent-i-toast"></use></svg><span class="m-stat-label">Reception events</span></div><div class="m-stat-val" id="ent-stat-events">0</div><div class="m-stat-sub">Planned</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg><use href="#ent-i-mic"></use></svg><span class="m-stat-label">Speeches</span></div><div class="m-stat-val" id="ent-stat-speeches">0</div><div class="m-stat-sub">Queued</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg><use href="#ent-i-heart"></use></svg><span class="m-stat-label">Must-play songs</span></div><div class="m-stat-val" id="ent-stat-must">0</div><div class="m-stat-sub">Curated</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg><use href="#ent-i-ban"></use></svg><span class="m-stat-label">Do-not-play</span></div><div class="m-stat-val" id="ent-stat-dont">0</div><div class="m-stat-sub">Added</div></div>
-      </div>
-
-      <!-- Music & Speeches tab bar (Batch 5b) — shows one section group at a time -->
-      <div class="m-tabbar ent-tabbar">
-        <button class="m-tab" data-tab="overview" onclick="entTab('overview')">Overview</button>
-        <button class="m-tab" data-tab="vendors" onclick="entTab('vendors')">Vendors</button>
-        <button class="m-tab" data-tab="cues" onclick="entTab('cues')">Reception Cues</button>
-        <button class="m-tab" data-tab="speeches" onclick="entTab('speeches')">Speeches</button>
-        <button class="m-tab" data-tab="playlist" onclick="entTab('playlist')">Playlist</button>
-      </div>
-
-      <section class="ued-panel span12 record-editor-inline-shell music-inline-editor" id="music-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div><div class="ued-table-title">Music inline editor <span id="music-inline-table-label">Entertainment Vendors</span> <span class="gie-mode" data-inline-editor-mode>Adding a new entertainment vendor</span></div><p class="gie-note">Choose a Music table, edit one full row here, then use the read-only previews below to scan, filter, Auto-fit, and select another row.</p></div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div class="m-tabbar music-inline-tabs" id="music-inline-table-tabs" role="tablist">
-          <button type="button" class="m-tab on" data-music-inline-tab="entertainment" onclick="setMusicInlineTable('entertainment',null)" role="tab" aria-selected="true">Vendors</button>
-          <button type="button" class="m-tab" data-music-inline-tab="recSongs" onclick="setMusicInlineTable('recSongs',null)" role="tab" aria-selected="false">Cues</button>
-          <button type="button" class="m-tab" data-music-inline-tab="speeches" onclick="setMusicInlineTable('speeches',null)" role="tab" aria-selected="false">Speeches</button>
-          <button type="button" class="m-tab" data-music-inline-tab="receptionPlaylist" onclick="setMusicInlineTable('receptionPlaylist',null)" role="tab" aria-selected="false">Playlist</button>
-          <button type="button" class="m-tab" data-music-inline-tab="doNotPlay" onclick="setMusicInlineTable('doNotPlay',null)" role="tab" aria-selected="false">Do-Not-Play</button>
-        </div>
-        <div id="music-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="setMusicInlineTable(_musicInlineKey,null)" style="display:none">Start new row</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add entertainment vendor</button>
-        </div>
-      </section>
-
-      <div class="ent-card-grid" data-ent-tab="overview">
-        <section class="ued-panel ent-info-panel">
-          <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-church"></use></svg></span><h3>Ceremony Music</h3></div>
-          <div class="ent-data-list" id="ent-ceremony-list"></div>
-          <div class="ent-card-note"><span><svg><use href="#ent-i-music"></use></svg></span><em id="ent-ceremony-note">0 songs selected</em></div>
-        </section>
-        <section class="ued-panel ent-info-panel">
-          <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-cocktail"></use></svg></span><h3>Cocktail Hour</h3></div>
-          <div class="ent-data-list ent-edit-list">
-            <label><span>Vibe</span><input id="ent-meta-cocktailVibe" type="text" oninput="updateEntertainmentMeta('cocktailVibe',this.value)"></label>
-            <label><span>Genre</span><input id="ent-meta-cocktailGenre" type="text" oninput="updateEntertainmentMeta('cocktailGenre',this.value)"></label>
-            <label><span>Notes</span><textarea id="ent-meta-cocktailNotes" rows="2" oninput="updateEntertainmentMeta('cocktailNotes',this.value)"></textarea></label>
-            <label><span>Must-Play</span><input id="ent-meta-cocktailMust" type="text" oninput="updateEntertainmentMeta('cocktailMust',this.value)"></label>
-          </div>
-          <div class="ent-card-note"><span><svg><use href="#ent-i-music"></use></svg></span><em>Playlist curated</em></div>
-        </section>
-        <section class="ued-panel ent-info-panel">
-          <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-playlist"></use></svg></span><h3>Reception Playlist</h3></div>
-          <div class="ent-data-list ent-edit-list">
-            <label><span>Vibe</span><input id="ent-meta-receptionVibe" type="text" oninput="updateEntertainmentMeta('receptionVibe',this.value)"></label>
-            <label><span>Genre</span><input id="ent-meta-receptionGenre" type="text" oninput="updateEntertainmentMeta('receptionGenre',this.value)"></label>
-            <div><span>Must-Play Songs</span><strong id="ent-reception-must-count">0</strong></div>
-            <div><span>Do-Not-Play Songs</span><strong id="ent-reception-dont-count">0</strong></div>
-            <label><span>Total Duration</span><input id="ent-meta-receptionDuration" type="text" oninput="updateEntertainmentMeta('receptionDuration',this.value)"></label>
-          </div>
-          <div class="ent-card-note"><span><svg><use href="#ent-i-music"></use></svg></span><em>Playlist in progress</em></div>
-        </section>
-      </div>
-
-      <div class="ent-wide-grid" data-ent-tab="overview">
-        <section class="ued-panel ent-info-panel ent-wide-card">
-          <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-headphones"></use></svg></span><h3>DJ or Band Details</h3></div>
-          <div class="ent-data-list" id="ent-vendor-summary"></div>
-          <div class="ent-card-note"><span><svg><use href="#ent-i-user"></use></svg></span><em id="ent-vendor-note">Vendor details ready</em></div>
-        </section>
-        <section class="ued-panel ent-info-panel ent-wide-card">
-          <div class="ent-card-head"><span class="ent-small-icon"><svg><use href="#ent-i-dance"></use></svg></span><h3>Special Dances</h3></div>
-          <div class="ent-data-list" id="ent-special-dances"></div>
-          <div class="ent-card-note"><span><svg><use href="#ent-i-heart"></use></svg></span><em id="ent-dance-note">0 dances planned</em></div>
-        </section>
-      </div>
-
-      <section class="ent-table-card" data-ent-tab="vendors">
-        <div class="ent-table-head">
-          <div><h3>Entertainment Vendor Tracker <span class="ro-badge-inline">Read only</span></h3><p>Track DJs, bands, ceremony musicians, playlists, and sound contacts.</p></div>
-          <div class="ent-table-actions no-print"><button type="button" class="ued-link" onclick="setMusicInlineTable('entertainment',null)">+ Add vendor</button><button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','entertainment')">Edit in Music Hub</button></div>
-        </div>
-        <!-- Entertainment Vendor Tracker: read-only preview; full editing in the inline editor and Music Hub -->
-        <div id="cwp-entertainment" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Music Hub.</span></div>
-      </section>
-
-      <div class="ent-program-grid">
-        <section class="ent-table-card" data-ent-tab="cues">
-          <div class="ent-table-head">
-            <div><h3>Reception Music Cues <span class="ro-badge-inline">Read only</span></h3><p>Plan entrances, dances, cake cutting, last dance, and every key song handoff.</p></div>
-            <div class="ent-table-actions no-print">
-              <button type="button" class="ued-link" onclick="setMusicInlineTable('recSongs',null)">+ Add cue</button>
-              <button class="btn btn-outline" onclick="loadRecSongPreset()"><span class="btn-text">Load Moments</span></button>
-              <button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','recSongs')">Edit in Music Hub</button>
-            </div>
-          </div>
-          <!-- Reception Music Cues: read-only preview; full editing in the inline editor and Music Hub -->
-          <div id="cwp-recSongs" class="ro-preview"></div>
-          <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Music Hub.</span></div>
-        </section>
-        <section class="ent-table-card" data-ent-tab="speeches">
-          <div class="ent-table-head">
-            <div><h3>Speeches, Scripture Reading, Prayer, &amp; Toasts</h3><p>Plan your speakers, scripture readers, prayer moments, toasts, and timing — everything your MC or coordinator needs.</p></div>
-          </div>
-          <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('speeches',null)">+ Add speaker</button><button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','speeches')">Edit in Music Hub</button></div>
-          <!-- Speeches: read-only preview; full editing in the inline editor and Music Hub -->
-          <div id="cwp-speeches" class="ro-preview"></div>
-          <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Music Hub.</span></div>
-        </section>
-        <section class="ent-table-card" data-ent-tab="playlist">
-          <div class="ent-table-head">
-            <div><h3>Reception Playlist</h3><p>Assign songs to ceremony music, cocktail hour, the reception playlist, special dances, or reception cue moments.</p></div>
-          </div>
-          <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('receptionPlaylist',null)">+ Add song</button><button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','receptionPlaylist')">Edit in Music Hub</button></div>
-          <!-- Reception Playlist: read-only preview; full editing in the inline editor and Music Hub -->
-          <div id="cwp-receptionPlaylist" class="ro-preview"></div>
-          <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Music Hub.</span></div>
-        </section>
-      </div>
-
-      <section class="ent-table-card" data-ent-tab="playlist">
-        <div class="ent-table-head"><div><h3>Do-Not-Play Songs</h3><p>Songs or styles you want avoided.</p></div></div>
-        <div class="ent-table-actions no-print music-standalone-actions"><button type="button" class="ued-link" onclick="setMusicInlineTable('doNotPlay',null)">+ Add song</button><button type="button" class="ued-btn db-edit-btn" onclick="openDataHub('entertainment','doNotPlay')">Edit in Music Hub</button></div>
-        <!-- Do-Not-Play Songs: read-only preview; full editing in the inline editor and Music Hub -->
-        <div id="cwp-doNotPlay" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits and bulk actions live in Music Hub.</span></div>
-      </section>
-
+      <!-- Filled by uedEntertainmentShell() / renderEntertainmentPage() (Set list|Performers|Timeline · drawer) -->
     </div>
 
-    <!-- ESSENTIALS CHECKLIST -->
-    <div id="panel-essentials" class="panel essentials-mockup ued-scope" data-essentials-v2="true">
-      <section class="ess-hero">
-        <div aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 96 22"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M48 11H22"/><path d="M48 11h26"/><path d="M35 11c-2-3.6-7-4.7-11.5-3 2 3.6 7 4.7 11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M40 11c-1.6-3.1-1.1-7.2 1-9.4 1.6 3.1 1.1 7.2-1 9.4Z" fill="currentColor" fill-opacity=".22"/><path d="M61 11c2-3.6 7-4.7 11.5-3-2 3.6-7 4.7-11.5 3Z" fill="currentColor" fill-opacity=".22"/><path d="M56 11c1.6-3.1 1.1-7.2-1-9.4-1.6 3.1-1.1 7.2 1 9.4Z" fill="currentColor" fill-opacity=".22"/><circle cx="48" cy="11" r="1.5" fill="currentColor"/></g></svg></div>
-        <h2 class="ess-title">Wedding Day Essentials</h2>
-        <p class="ess-subtitle">A calm packing checklist — assign, locate, and check off every must-have for ceremony and reception.</p>
-      </section>
 
-      <div class="ess-progress-overview" id="essentials-progress-overview" aria-label="Packing progress overview" hidden></div>
-
-      <div class="m-stats ess-stats-row" id="essentials-stats" aria-label="Packing summary"></div>
-
-      <nav class="ess-quick-links" aria-label="Related planner pages">
-        <button type="button" class="ess-quick-link" onclick="showPanel('guests')"><span class="ess-quick-label">Guest List</span><span class="ess-quick-note">Who is bringing what</span></button>
-        <button type="button" class="ess-quick-link" onclick="showPanel('timeline')"><span class="ess-quick-label">Day-of Timeline</span><span class="ess-quick-note">Ceremony &amp; reception flow</span></button>
-        <button type="button" class="ess-quick-link" onclick="showPanel('instructions')"><span class="ess-quick-label">Get Started</span><span class="ess-quick-note">Backup &amp; setup tips</span></button>
-        <button type="button" class="ess-quick-link" onclick="startHereBackup()"><span class="ess-quick-label">Download Backup</span><span class="ess-quick-note">Protect your checklist</span></button>
-      </nav>
-
-      <section class="ued-panel essentials-action-card ess-toolbar-card">
-        <div class="essentials-card-head">
-          <div>
-            <h3>Build your checklist</h3>
-            <p>Load a starter list or add items one at a time. Every row stays fully editable.</p>
-          </div>
-        </div>
-        <div class="ess-toolbar-actions">
-          <button class="btn btn-forest" onclick="loadEssentialsPreset()"><svg class="line-icon " viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span class="btn-text">Load Essentials Checklist</span></button>
-          <button class="btn btn-outline" onclick="loadGroomPackingPreset()"><span class="btn-text">Load Groom Packing</span></button>
-          <button class="btn btn-forest" onclick="addEssentialRow()"><span class="btn-text">+ Add Checklist Item</span></button>
-        </div>
-        <div id="essentials-kit-chips"></div>
-      </section>
-
-      <div id="essentials-category-progress" class="ess-category-progress" aria-label="Progress by category" hidden></div>
-
-      <section class="ued-panel span12 record-editor-inline-shell essentials-inline-editor" id="essentials-inline-editor-wrap">
-        <div class="inline-editor-head">
-          <div><div class="ued-table-title">Checklist item editor <span class="gie-mode" data-inline-editor-mode>Adding a new checklist item</span></div><p class="gie-note">Edit category, item, packed status, assignment, location, and notes here. Use Design Hub for full spreadsheet and bulk editing.</p></div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="essentials-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('essentials',null,'essentials-inline-editor-body')" style="display:none">Start new item</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add item</button>
-        </div>
-      </section>
-
-      <section class="ued-table-card essentials-table-card ess-table-shell">
-        <div class="essentials-card-head ess-table-head">
-          <div>
-            <h3>Your packing list</h3>
-            <p>Check items off as you pack. Use column filters or search to focus on one category or person.</p>
-          </div>
-        </div>
-        <div class="ued-table-head"><div class="ued-table-title">Packing checklist <span class="ro-badge-inline">Read only</span></div><div class="ued-actions"><button class="ued-btn db-edit-btn" onclick="openDataHub('design','essentials')">Edit in Design Hub</button></div></div>
-        <div class="ued-table-wrap ro-preview" id="cwp-essentials"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-        <datalist id="essentials-cat-options">
-          <option value="Tech"></option>
-          <option value="Tech Kit"></option>
-          <option value="Quick Fixes"></option>
-          <option value="Emergency Kit"></option>
-          <option value="Personal & Health"></option>
-          <option value="Medicine Kit"></option>
-          <option value="Snack Kit"></option>
-          <option value="Beauty Kit"></option>
-          <option value="Marriage Essentials"></option>
-          <option value="Ceremony Documents"></option>
-          <option value="Bride Essentials"></option>
-          <option value="Groom Essentials"></option>
-          <option value="Reception Bag"></option>
-          <option value="Decor & Signage"></option>
-          <option value="Exit / Send-Off"></option>
-          <option value="Misc"></option>
-        </datalist>
-        <datalist id="essentials-item-filter-options"></datalist>
-      </section>
+    <!-- ═══ ESSENTIALS CHECKLIST — All.dc #17a · Views By person/Print · Drawers item · essentials-redesign.js ═══ -->
+    <div id="panel-essentials" class="panel essentials-mockup ued-scope">
+      <!-- Filled by uedEssentialsShell() / renderEssentialsPage() (Checklist|By person|Print · drawer) -->
     </div>
-    <!-- VISION BOARD -->
+
+<!-- ═══ VISION BOARD — All.dc #8b · Dark rail · Drawers pin · mood-redesign.js ═══ -->
     <div id="panel-mood" class="panel mood-mockup ued-scope">
-      <div class="mood-title-wrap">
-        <div class="mood-leaf-wrap" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 120 26"><path d="M6 13h108" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><path d="M52 13c-10-8-18-7-24-2 10 3 17 2 24 2Zm16 0c10-8 18-7 24-2-10 3-17 2-24 2Z" fill="currentColor" opacity=".85"/><path d="M60 13c-7-7-7-12-2-18 4 9 4 14 2 18Zm0 0c7-7 7-12 2-18-4 9-4 14-2 18Z" fill="currentColor" opacity=".65"/></svg></div>
-        <h2 class="mood-title">Vision Board</h2>
-        <p class="mood-subtitle">Your color palette and visual inspiration in one beautiful place</p>
-      </div>
-
-      <div class="m-stats" aria-label="Vision board overview">
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 5.7a5.1 5.1 0 0 0-7.2 0L12 7.3l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.1a5.1 5.1 0 0 0 0-7.2Z"/></svg><span class="m-stat-label">Inspiration saved</span></div><div id="mood-stat-inspiration" class="m-stat-val">0</div><div class="m-stat-sub">Ideas &amp; images</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 1.3-3.5 1.8 1.8 0 0 1 1.2-3.2H18a3 3 0 0 0 3-3C21 6.7 17 3 12 3Z"/><path d="M7.5 10h.01M10 7.5h.01M14 7.5h.01M16.5 10h.01"/></svg><span class="m-stat-label">Color stories</span></div><div id="mood-stat-palettes" class="m-stat-val">0</div><div class="m-stat-sub">Curated palettes</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M14.5 15.5A4.6 4.6 0 0 1 20.5 20"/></svg><span class="m-stat-label">Vendor matches</span></div><div id="mood-stat-vendors" class="m-stat-val">0</div><div class="m-stat-sub">Style-aligned picks</div></div>
-        <div class="m-stat"><div class="m-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v17l-5-3-5 3z"/></svg><span class="m-stat-label">Finalized looks</span></div><div id="mood-stat-finalized" class="m-stat-val">0</div><div class="m-stat-sub">Ready to bring to life</div></div>
-      </div>
-
-      <div class="m-tabbar vision-tabbar">
-        <button class="m-tab" data-tab="decisions" onclick="visionTab('decisions')">Vision Decisions / Visual Statement</button>
-        <button class="m-tab" data-tab="palette" onclick="visionTab('palette')">Color Palette</button>
-        <button class="m-tab" data-tab="inspiration" onclick="visionTab('inspiration')">Inspiration Cards</button>
-        <button class="m-tab" data-tab="gallery" onclick="visionTab('gallery')">Inspiration Gallery</button>
-        <button class="m-tab" data-tab="details" onclick="visionTab('details')">Vision Board Details Tracker</button>
-      </div>
-
-      <section class="ued-panel mood-statement-card mood-card" data-vision-tab="decisions">
-        <div class="mood-card-head">
-          <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h7M8 11h8M8 15h5"/></svg></span>
-          <div><h3>Visual Statement</h3><p>Gather the visual inspiration that shapes your celebration.</p></div>
-        </div>
-        <textarea id="mood-statement" rows="2" placeholder="Describe the look and feel of your wedding…" oninput="saveMoodStatement()"></textarea>
-      </section>
-
-      <section class="mood-board-grid" aria-label="Vision board inspiration cards">
-        <article class="ued-panel mood-card mood-palette-feature" data-vision-tab="palette">
-          <div class="mood-card-head">
-            <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 1.3-3.5 1.8 1.8 0 0 1 1.2-3.2H18a3 3 0 0 0 3-3C21 6.7 17 3 12 3Z"/><path d="M7.5 10h.01M10 7.5h.01M14 7.5h.01M16.5 10h.01"/></svg></span>
-            <div><h3>Color Palette</h3><p>Pick a ready-made palette or build your own.</p></div>
-          </div>
-          <div id="preset-palettes" class="preset-palettes mood-palette-cards"></div>
-          <div class="mood-divider"><span>Build Your Own</span></div>
-          <div class="palette-builder mood-palette-builder">
-            <input type="text" id="mb-name" placeholder="Palette name (optional)">
-            <input type="color" id="mb-c1" value="#F9F7F4" title="Color 1">
-            <input type="color" id="mb-c2" value="#2D4A3E" title="Color 2">
-            <input type="color" id="mb-c3" value="#B89968" title="Color 3">
-            <input type="color" id="mb-c4" value="#D4B896" title="Color 4">
-            <input type="color" id="mb-c5" value="#A95D4E" title="Color 5">
-            <button class="btn btn-forest btn-sm" onclick="addCustomPalette()">+ Save Palette</button>
-          </div>
-          <div id="saved-palettes" class="saved-palettes mood-palette-cards"></div>
-        </article>
-
-        <!-- Inspiration Gallery tabs (Batch 7) — one category per tab -->
-        <div class="m-tabbar mood-tabbar" data-vision-tab="inspiration" style="grid-column:1 / -1">
-          <button class="m-tab" data-tab="floral" onclick="moodTab('floral')">Floral</button>
-          <button class="m-tab" data-tab="bridal" onclick="moodTab('bridal')">Bridal</button>
-          <button class="m-tab" data-tab="decor" onclick="moodTab('decor')">Decor</button>
-          <button class="m-tab" data-tab="stationery" onclick="moodTab('stationery')">Stationery</button>
-          <button class="m-tab" data-tab="favorites" onclick="moodTab('favorites')">Favorite Details</button>
-        </div>
-        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="floral" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22c-2.5-3.8-4-6.8-4-9.2C8 8 12 3 12 3s4 5 4 9.8c0 2.4-1.5 5.4-4 9.2Z"/><path d="M12 12c-3.6-2-6.2-2.4-8-1.2 1 3.5 4.2 4.9 8 1.2Z"/><path d="M12 12c3.6-2 6.2-2.4 8-1.2-1 3.5-4.2 4.9-8 1.2Z"/></svg></span><div><h3>Floral Inspiration</h3><p>Romantic blooms with natural greenery.</p></div></div><div id="mood-board-floral" class="mood-preview-grid"></div></article>
-        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="bridal" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l3 5h-6l3-5Z"/><path d="M9 8 5 21h14L15 8"/><path d="M9 13h6"/></svg></span><div><h3>Bridal Style</h3><p>Classic silhouettes, accessories, and attire details.</p></div></div><div id="mood-board-bridal" class="mood-preview-grid"></div></article>
-        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="decor" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V8l6-4 6 4v12"/><path d="M9 20v-6h6v6"/></svg></span><div><h3>Ceremony &amp; Reception Decor</h3><p>Natural greenery, soft candlelight, and thoughtful touches.</p></div></div><div id="mood-board-decor" class="mood-preview-grid"></div></article>
-        <article class="ued-panel mood-card" data-vision-tab="inspiration" data-mood-tab="stationery" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg></span><div><h3>Stationery</h3><p>Botanical details with classic typography.</p></div></div><div id="mood-board-stationery" class="mood-preview-grid"></div></article>
-        <article class="ued-panel mood-card mood-favorites-card" data-vision-tab="inspiration" data-mood-tab="favorites" style="grid-column:1 / -1"><div class="mood-card-head"><span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.8 5.7a5.1 5.1 0 0 0-7.2 0L12 7.3l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 21l8.8-8.1a5.1 5.1 0 0 0 0-7.2Z"/></svg></span><div><h3>Favorite Details</h3><p>The small moments and design touches you want to remember.</p></div></div><div id="mood-favorites-list" class="mood-favorites-list"></div><div class="mood-add-favorite"><input id="mood-favorite-input" type="text" placeholder="Add a new favorite detail"><button class="btn btn-outline btn-sm" onclick="addMoodFavorite()">Add</button></div></article>
-      </section>
-
-      <section class="ued-panel mood-card mood-gallery-card" data-vision-tab="gallery">
-        <div class="mood-card-head">
-          <span class="mood-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 15 4-4 4 4 2-2 6 6"/><circle cx="15.5" cy="9.5" r="1.5"/></svg></span>
-          <div><h3>Inspiration Gallery</h3><p>Upload images for each part of your design. Photos are shrunk to fit and saved with your planner.</p></div>
-        </div>
-        <div id="mood-gallery"></div>
-      </section>
-
-      <section class="ued-panel span12 record-editor-inline-shell mood-inline-editor" id="mood-inline-editor-wrap" data-vision-tab="details">
-        <div class="inline-editor-head">
-          <div>
-            <div class="ued-table-title">Vision detail editor <span class="gie-mode" data-inline-editor-mode>Adding a new vision detail</span></div>
-            <p class="gie-note">Track the full inspiration item, color story, vendor match, finalized status, and notes in one place.</p>
-          </div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div id="mood-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="inline-editor-actions">
-          <button type="button" class="ued-link danger" data-inline-editor-delete onclick="recordEditorDelete()" style="display:none">Delete</button>
-          <span class="inline-editor-spacer"></span>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="covInlineLoad('moodItems',null,'mood-inline-editor-body')" style="display:none">Start new detail</button>
-          <button type="button" class="ued-btn" onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">+ Add vision detail</button>
-        </div>
-      </section>
-
-      <section class="mood-table-card ued-table-card mood-tracker-table-card" data-vision-tab="details">
-        <div class="ued-table-head mood-table-head">
-          <div>
-            <div class="ued-table-title">Vision Board Details Tracker <span class="ro-badge-inline">Read only</span></div>
-            <p>Use this full-width table to connect each inspiration idea to a color story, vendor match, and finalized look.</p>
-          </div>
-          <div class="ued-actions">
-            <button class="ued-link" onclick="exportSectionCSV('Vision Board Details',data.moodItems)">Export CSV</button>
-            <button class="ued-btn db-edit-btn" onclick="openDataHub('design','moodItems')">Edit in Design Hub</button>
-          </div>
-        </div>
-        <div id="cwp-moodItems" class="ro-preview"></div>
-        <div class="preview-foot"><span class="ued-soft">Select a row to edit it above. Spreadsheet edits, View all, and bulk actions live in Design Hub.</span></div>
-      </section>
-
+      <!-- Filled by uedMoodShell() / renderMoodPage() (Board|Palette|List · drawer) -->
     </div>
 
-    <!-- ═══ HONEYMOON & AFTER ═══ -->
+    <!-- ═══ HONEYMOON & AFTER — All.dc #17b · Dark rail · Drawers 25 · honeymoon-redesign.js ═══ -->
     <div id="panel-honeymoon" class="panel honeymoon-mockup ued-scope">
-      <svg class="hm-symbols" aria-hidden="true" focusable="false">
-        <symbol id="hm-plane" viewBox="0 0 24 24"><path d="M4 12 21 4l-4 16-5-7-8-1Z"/><path d="m12 13-4 6"/></symbol>
-        <symbol id="hm-suitcase" viewBox="0 0 24 24"><path d="M9 7V5h6v2"/><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M8 12h8M9 7v13M15 7v13"/></symbol>
-        <symbol id="hm-clipboard" viewBox="0 0 24 24"><path d="M9 4h6l1 2h3v15H5V6h3l1-2Z"/><path d="M9 10h6M9 14h6M9 18h4"/></symbol>
-        <symbol id="hm-envelope-heart" viewBox="0 0 24 24"><path d="M4 6h16v12H4Z"/><path d="m4 7 8 6 8-6"/><path d="M12 16c-2.6-1.7-4-2.9-4-4.4A2 2 0 0 1 12 10a2 2 0 0 1 4 1.6c0 1.5-1.4 2.7-4 4.4Z"/></symbol>
-        <symbol id="hm-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></symbol>
-        <symbol id="hm-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12A7 7 0 0 0 5 9c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.2"/></symbol>
-        <symbol id="hm-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></symbol>
-        <symbol id="hm-bed" viewBox="0 0 24 24"><path d="M4 10V6h7v4M13 10h7v8M4 18h16M4 10h16v8"/><path d="M4 18v2M20 18v2"/></symbol>
-        <symbol id="hm-check" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></symbol>
-        <symbol id="hm-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
-        <symbol id="hm-heart" viewBox="0 0 24 24"><path d="M12 20s-8-4.9-8-11a4.2 4.2 0 0 1 7.2-3A4.2 4.2 0 0 1 20 9c0 6.1-8 11-8 11Z"/></symbol>
-        <symbol id="hm-ticket" viewBox="0 0 24 24"><path d="M5 7h14v4a2 2 0 0 0 0 4v2H5v-2a2 2 0 0 0 0-4Z"/><path d="M9 8v8"/></symbol>
-        <symbol id="hm-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></symbol>
-        <symbol id="hm-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
-        <symbol id="hm-dollar" viewBox="0 0 24 24"><path d="M12 3v18M16 7.5c-.8-1-2.1-1.6-3.8-1.6-2.1 0-3.7 1.1-3.7 2.8 0 4.1 7.7 2 7.7 6 0 1.8-1.7 3.1-4.1 3.1-1.9 0-3.5-.7-4.5-2"/></symbol>
-        <symbol id="hm-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
-        <symbol id="hm-phone" viewBox="0 0 24 24"><path d="M8 3h8v18H8z"/><path d="M11 18h2"/></symbol>
-        <symbol id="hm-car" viewBox="0 0 24 24"><path d="M5 13 7 7h10l2 6"/><path d="M5 13h14v5H5z"/><circle cx="8" cy="18" r="1.5"/><circle cx="16" cy="18" r="1.5"/></symbol>
-        <symbol id="hm-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6Z"/><path d="m9 12 2 2 4-5"/></symbol>
-        <symbol id="hm-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
-        <symbol id="hm-pencil" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13 7 4 4"/></symbol>
-      </svg>
-
-      <div class="hm-title-wrap">
-        <span class="hm-orn" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 120 26"><path d="M6 13h108" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><path d="M52 13c-10-8-18-7-24-2 10 3 17 2 24 2Zm16 0c10-8 18-7 24-2-10 3-17 2-24 2Z" fill="currentColor" opacity=".85"/><path d="M60 13c-7-7-7-12-2-18 4 9 4 14 2 18Zm0 0c7-7 7-12 2-18-4 9-4 14-2 18Z" fill="currentColor" opacity=".65"/></svg></span>
-        <h2 class="hm-title">Honeymoon &amp; After-Wedding</h2>
-        <p class="hm-subtitle">Travel details, itinerary, packing, and after-wedding shortcuts</p>
-      </div>
-
-      <div class="hm-stat-grid">
-        <article class="hm-stat-card">
-          <span class="hm-stat-icon"><svg><use href="#hm-plane"></use></svg></span>
-          <div><div class="hm-stat-kicker">Days Until Trip</div><div class="hm-stat-value" id="hm-stat-days">—</div><div class="hm-stat-sub" id="hm-stat-days-sub">Add departure date</div></div>
-        </article>
-        <article class="hm-stat-card">
-          <span class="hm-stat-icon"><svg><use href="#hm-suitcase"></use></svg></span>
-          <div><div class="hm-stat-kicker">Bookings Complete</div><div class="hm-stat-value" id="hm-stat-bookings">0</div><div class="hm-stat-sub" id="hm-stat-bookings-sub">0% of bookings</div></div>
-        </article>
-        <article class="hm-stat-card soft">
-          <span class="hm-stat-icon"><svg><use href="#hm-clipboard"></use></svg></span>
-          <div><div class="hm-stat-kicker">Post-Wedding Tasks</div><div class="hm-stat-value" id="hm-stat-after">0</div><div class="hm-stat-sub" id="hm-stat-after-sub">0% of tasks</div></div>
-        </article>
-        <article class="hm-stat-card">
-          <span class="hm-stat-icon"><svg><use href="#hm-envelope-heart"></use></svg></span>
-          <div><div class="hm-stat-kicker">Thank-You Notes Remaining</div><div class="hm-stat-value" id="hm-stat-thanks">0</div><div class="hm-stat-sub" id="hm-stat-thanks-sub">Based on guest tracker</div></div>
-        </article>
-      </div>
-
-      <!-- Honeymoon tab bar (Batch 5b) — one section per tab -->
-      <div class="m-tabbar hm-tabbar">
-        <button class="m-tab" data-tab="overview" onclick="hmTab('overview')">Overview</button>
-        <button class="m-tab" data-tab="details" onclick="hmTab('details')">Details</button>
-        <button class="m-tab" data-tab="transport" onclick="hmTab('transport')">Transportation</button>
-        <button class="m-tab" data-tab="itinerary" onclick="hmTab('itinerary')">Itinerary</button>
-        <button class="m-tab" data-tab="packing" onclick="hmTab('packing')">Packing</button>
-        <button class="m-tab" data-tab="budget" onclick="hmTab('budget')">Budget</button>
-        <button class="m-tab" data-tab="journal" onclick="hmTab('journal')">Daily Journal</button>
-      </div>
-
-      <section class="ued-panel span12 record-editor-inline-shell honeymoon-inline-editor" id="honeymoon-inline-editor-wrap" data-hm-inline-key="honeyDetails">
-        <div class="inline-editor-head">
-          <div><div class="ued-table-title">Honeymoon inline editor <span id="honeymoon-inline-table-label">Honeymoon Details</span> <span class="gie-mode" data-inline-editor-mode>Adding a new honeymoon detail</span></div><p class="gie-note">Edit one full travel row here, then use the preview table below to scan, Auto-fit, and choose another row.</p></div>
-          <span class="inline-editor-position" data-inline-editor-position>New record</span>
-        </div>
-        <div class="m-tabbar honeymoon-inline-tabs" id="honeymoon-inline-table-tabs" role="tablist">
-          <button type="button" class="m-tab on" data-honeymoon-inline-tab="honeyDetails" onclick="setHoneymoonInlineTable('honeyDetails',null)" role="tab" aria-selected="true">Details</button>
-          <button type="button" class="m-tab" data-honeymoon-inline-tab="honeyTransport" onclick="setHoneymoonInlineTable('honeyTransport',null)" role="tab" aria-selected="false">Transportation</button>
-          <button type="button" class="m-tab" data-honeymoon-inline-tab="honeyItinerary" onclick="setHoneymoonInlineTable('honeyItinerary',null)" role="tab" aria-selected="false">Itinerary</button>
-          <button type="button" class="m-tab" data-honeymoon-inline-tab="packing" onclick="setHoneymoonInlineTable('packing',null)" role="tab" aria-selected="false">Packing</button>
-          <button type="button" class="m-tab" data-honeymoon-inline-tab="hmBudgetItems" onclick="setHoneymoonInlineTable('hmBudgetItems',null)" role="tab" aria-selected="false">Budget</button>
-        </div>
-        <div id="honeymoon-inline-editor-body" class="gie-body record-editor-inline"></div>
-        <div class="record-editor-inline-actions">
-          <button type="button" class="ued-btn danger" data-inline-editor-delete onclick="deleteInlineRecordEditor()" style="display:none">Delete</button>
-          <button type="button" class="ued-btn" data-inline-editor-cancel onclick="setHoneymoonInlineTable(_honeymoonInlineKey,null)" style="display:none">Start new row</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save-add onclick="saveInlineRecordEditor(true)">Save &amp; add another</button>
-          <button type="button" class="ued-btn primary" data-inline-editor-save onclick="saveInlineRecordEditor(false)">Save</button>
-          <button type="button" class="ued-btn" data-inline-editor-add onclick="setHoneymoonInlineTable(_honeymoonInlineKey,null)">+ Add row</button>
-        </div>
-      </section>
-
-      <div class="hm-card-grid" data-hm-tab="overview">
-        <section class="hm-card hm-travel-card">
-          <div class="hm-card-head"><span class="hm-card-icon"><svg><use href="#hm-globe"></use></svg></span><h3>Travel Information</h3></div>
-          <div class="hm-travel-overview-art" id="hm-dest-photo-area" onclick="document.getElementById('hm-dest-photo-input').click()" style="cursor:pointer" title="Click to upload a destination photo">
-            <img id="hm-dest-photo-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:10px;">
-            <span id="hm-dest-photo-placeholder"><svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><br><small style="color:var(--gold);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;">Add Destination Photo</small></span>
-            <button type="button" class="hm-dest-photo-remove" onclick="removeHoneymoonDestPhoto(event)">Remove photo</button>
-            <input type="file" id="hm-dest-photo-input" accept="image/*" style="display:none" onchange="uploadHoneymoonDestPhoto(event)">
-          </div>
-          <div class="hm-info-list">
-            <label class="hm-info-row"><span class="hm-mini-icon"><svg><use href="#hm-pin"></use></svg></span><span><em>Destination</em><input type="text" id="hm-dest" placeholder="Bali, Indonesia" oninput="saveHoneymoon()"></span></label>
-            <label class="hm-info-row"><span class="hm-mini-icon"><svg><use href="#hm-calendar"></use></svg></span><span><em>Departure Date</em><input type="date" id="hm-depart" oninput="saveHoneymoon()"></span></label>
-            <label class="hm-info-row"><span class="hm-mini-icon"><svg><use href="#hm-calendar"></use></svg></span><span><em>Return Date</em><input type="date" id="hm-return" oninput="saveHoneymoon()"></span></label>
-            <label class="hm-info-row"><span class="hm-mini-icon"><svg><use href="#hm-bed"></use></svg></span><span><em>Hotel / Resort</em><input type="text" id="hm-hotel" placeholder="Resort or lodging name" oninput="saveHoneymoon()"></span></label>
-          </div>
-        </section>
-
-        <section class="hm-card">
-          <div class="hm-card-head"><span class="hm-card-icon"><svg><use href="#hm-calendar"></use></svg></span><h3>Itinerary</h3></div>
-          <div id="hm-itinerary-preview" class="hm-timeline-preview"></div>
-          <button class="hm-link-btn" type="button" onclick="scrollToHoneymoonSection('hm-itinerary-section')">View full itinerary <svg><use href="#hm-arrow"></use></svg></button>
-        </section>
-
-        <section class="hm-card">
-          <div class="hm-card-head"><span class="hm-card-icon"><svg><use href="#hm-suitcase"></use></svg></span><h3>Packing List</h3></div>
-          <div id="hm-packing-preview" class="hm-check-preview"></div>
-          <button class="hm-link-btn" type="button" onclick="scrollToHoneymoonSection('hm-packing-section')">View all items <svg><use href="#hm-arrow"></use></svg></button>
-        </section>
-
-        <section class="hm-card">
-          <div class="hm-card-head"><span class="hm-card-icon"><svg><use href="#hm-heart"></use></svg></span><h3>Marriage Rhythms</h3></div>
-          <div id="hm-after-preview" class="hm-check-preview"></div>
-          <button class="hm-link-btn" type="button" onclick="showReflectTabPage('homecoming')">Open Newlywed Homecoming <svg><use href="#hm-arrow"></use></svg></button>
-        </section>
-
-        <section class="hm-card">
-          <div class="hm-card-head"><span class="hm-card-icon"><svg><use href="#hm-ticket"></use></svg></span><h3>Booking Details</h3></div>
-          <div class="hm-booking-list">
-            <label><span><svg><use href="#hm-plane"></use></svg></span><em>Outbound Flight</em><input type="text" id="hm-flightout" placeholder="Airline, flight #, time" oninput="saveHoneymoon()"></label>
-            <label><span><svg><use href="#hm-plane"></use></svg></span><em>Return Flight</em><input type="text" id="hm-flightback" placeholder="Airline, flight #, time" oninput="saveHoneymoon()"></label>
-            <label><span><svg><use href="#hm-car"></use></svg></span><em>Transport</em><input type="text" id="hm-transport" placeholder="Airport transfer / rental car" oninput="saveHoneymoon()"></label>
-            <label><span><svg><use href="#hm-shield"></use></svg></span><em>Travel Insurance</em><input type="text" id="hm-insurance" placeholder="Policy or provider" oninput="saveHoneymoon()"></label>
-            <label class="span-2"><span><svg><use href="#hm-clipboard"></use></svg></span><em>Confirmation Numbers</em><input type="text" id="hm-confirm" placeholder="Booking refs, reservation numbers" oninput="saveHoneymoon()"></label>
-          </div>
-          <button class="hm-link-btn" type="button" onclick="scrollToHoneymoonSection('hm-details-section')">View all reservations <svg><use href="#hm-arrow"></use></svg></button>
-        </section>
-
-        <section class="hm-card">
-          <div class="hm-card-head"><span class="hm-card-icon"><svg><use href="#hm-info"></use></svg></span><h3>Important Information</h3></div>
-          <div class="hm-important-list">
-            <label><span><svg><use href="#hm-clock"></use></svg></span><em>Time Zone</em><input type="text" id="hm-timezone" placeholder="GMT+8" oninput="saveHoneymoon()"></label>
-            <label><span><svg><use href="#hm-dollar"></use></svg></span><em>Currency</em><input type="text" id="hm-currency" placeholder="Indonesian Rupiah (IDR)" oninput="saveHoneymoon()"></label>
-            <label><span><svg><use href="#hm-sun"></use></svg></span><em>Weather</em><input type="text" id="hm-weather" placeholder="Highs, lows, rain notes" oninput="saveHoneymoon()"></label>
-            <label><span><svg><use href="#hm-phone"></use></svg></span><em>Contact</em><input type="text" id="hm-contact" placeholder="Hotel / emergency contact" oninput="saveHoneymoon()"></label>
-            <label class="span-2"><span><svg><use href="#hm-pencil"></use></svg></span><em>Travel Tips &amp; Notes</em><textarea id="hm-travelnotes" placeholder="Local customs, restaurant ideas, reminders…" oninput="saveHoneymoon()"></textarea></label>
-          </div>
-        </section>
-      </div>
-
-      <section id="hm-details-section" class="hm-table-section" data-bulk-key="honeyDetails" data-hm-tab="details">
-        <div class="hm-table-head">
-          <div><h3>Honeymoon &amp; After Details Tracker</h3><p>Track bookings, travel details, reservations, post-wedding tasks, and important notes in one full-width table.</p></div>
-          <div class="hm-table-actions"><button class="btn btn-outline btn-sm" onclick="loadHoneymoonDetailsPreset()">Load starter details</button></div>
-        </div>
-        <!-- Honeymoon & After Details table now rendered by the CWP unified engine (renderHoneyDetails -> cwpRenderTable('honeyDetails')) -->
-        <div class="hub-preview-card"><div class="ued-table-wrap ro-preview" id="cwp-honeyDetails"></div></div>
-      </section>
-
-
-      <section id="hm-transport-section" class="hm-table-section" data-bulk-key="honeyTransport" data-hm-tab="transport">
-        <div class="hm-table-head">
-          <div><h3>Transportation Tracker</h3><p>Track flights, airport transfers, rental cars, pickup/drop-off times, ticket details, arrival windows, and travel notes.</p></div>
-          <div class="hm-table-actions"><button class="btn btn-outline btn-sm" onclick="loadHoneyTransportPreset()">Load starter transportation</button></div>
-        </div>
-        <!-- Transportation Tracker table now rendered by the CWP unified engine (renderHoneyTransport -> cwpRenderTable('honeyTransport')) -->
-        <div class="hub-preview-card"><div class="ued-table-wrap ro-preview" id="cwp-honeyTransport"></div></div>
-      </section>
-
-      <section id="hm-itinerary-section" class="hm-table-section" data-bulk-key="honeyItinerary" data-hm-tab="itinerary">
-        <div class="hm-table-head">
-          <div><h3>Trip Itinerary</h3><p>Plan each day with timing, reservations, confirmations, and flexible notes.</p></div>
-        </div>
-        <!-- Trip Itinerary table now rendered by the CWP unified engine (renderHoneyIti -> cwpRenderTable('honeyItinerary')) -->
-        <div class="hub-preview-card"><div class="ued-table-wrap ro-preview" id="cwp-honeyItinerary"></div></div>
-      </section>
-
-      <section id="hm-packing-section" class="hm-table-section" data-bulk-key="packing" data-hm-tab="packing">
-        <div class="hm-table-head">
-          <div><h3>Packing List</h3><p>Keep essentials organized by category, priority, and packed status.</p></div>
-          <div class="hm-table-actions"><button class="btn btn-outline btn-sm" onclick="loadPackingPreset()">Load packing starter list</button></div>
-        </div>
-        <!-- Packing List table now rendered by the CWP unified engine (renderPacking -> cwpRenderTable('packing')) -->
-        <div class="hub-preview-card"><div class="ued-table-wrap ro-preview" id="cwp-packing"></div></div>
-      </section>
-
-      <section class="hm-table-section" data-hm-tab="budget">
-        <div class="hm-table-head">
-          <div><h3>Honeymoon Budget</h3><p>Track each trip cost with budgeted and actual amounts — separate from your wedding budget.</p></div>
-          <div class="hm-table-actions"><button class="btn btn-outline btn-sm" type="button" onclick="loadHmBudgetPreset()">Load budget starter list</button></div>
-        </div>
-
-        <!-- Currency Converter — above budget lines for trip planning abroad -->
-        <div class="hm-cc-card" id="hm-currency-converter">
-          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.15rem"><svg style="width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.8" viewBox="0 0 24 24"><use href="#hm-globe"></use></svg><h4 style="font-family:var(--font-serif);color:var(--forest);margin:0">Currency Converter</h4></div>
-          <p style="font-size:.74rem;color:var(--muted);margin:0 0 .8rem">For travelling abroad — convert between currencies offline. Rates are editable so you can keep them current.</p>
-          <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end;margin-bottom:.6rem">
-            <label style="display:flex;flex-direction:column;gap:.2rem;font-size:.7rem;font-weight:700;color:var(--forest)">Amount<input type="number" id="cc-amount" value="100" min="0" oninput="convertCurrency()" style="width:110px"></label>
-            <label style="display:flex;flex-direction:column;gap:.2rem;font-size:.7rem;font-weight:700;color:var(--forest)">From<select id="cc-from" onchange="convertCurrency()"></select></label>
-            <button class="btn btn-outline btn-sm" type="button" onclick="swapCurrency()" title="Swap" style="margin-bottom:.1rem">⇆</button>
-            <label style="display:flex;flex-direction:column;gap:.2rem;font-size:.7rem;font-weight:700;color:var(--forest)">To<select id="cc-to" onchange="convertCurrency()"></select></label>
-            <div id="cc-result" style="font-family:var(--font-serif);font-size:1.05rem;color:var(--forest);font-weight:700;margin-bottom:.2rem;margin-left:.4rem"></div>
-          </div>
-          <div id="cc-rates"></div>
-        </div>
-
-        <div id="hm-budget-stats" class="m-stats hm-budget-stats" aria-live="polite"></div>
-        <div class="hub-preview-card"><div class="ued-table-wrap ro-preview" id="cwp-hmBudgetItems"></div></div>
-        <div id="hm-budget-total" class="hm-budget-total-note"></div>
-      </section>
-
-      <section class="hm-table-section" data-hm-tab="journal">
-        <div class="hm-table-head">
-          <div><h3>Daily Journal</h3><p>Capture memories, gratitude, and moments from your honeymoon.</p></div>
-          <div class="hm-table-actions"><button class="btn btn-forest btn-sm" onclick="addHmJournalEntry()">+ Add Entry</button></div>
-        </div>
-        <div id="hm-journal-list"></div>
-      </section>
-
+      <!-- Filled by uedHoneymoonShell() / renderHoneymoonPage() (6 sections · booking drawer) -->
     </div>
 
     <!-- ═══ WEEKEND LOGISTICS (§07 shell · 224 rail · 360 drawer · mock 11d · redesign-step11b) ═══ -->
@@ -2313,50 +1052,35 @@
       </section>
     </div>
 
-    <!-- ═══ VISION & RHYTHMS (Reflective Pages) ═══ -->
+    <!-- ═══ VISION & RHYTHMS (legacy reflect host — redirects to dedicated panels) ═══ -->
     <div id="panel-reflect" class="panel">
       <div class="rfl-tabs" id="rfl-tabs"></div>
       <div id="rfl-content"></div>
     </div>
 
-    <!-- ═══ SHARE PACKETS ═══ -->
-    <div id="panel-packets" class="panel">
-      <div class="pkt-header">
-        <h2>Share Packets</h2>
-        <p>Print-ready packets auto-filled from your planner data. Create vendor, wedding party, coordinator, and wedding-weekend handoffs, then print or copy.</p>
-      </div>
-      <div class="pkt-section-tabs" id="pkt-section-tabs"></div>
-      <div class="pkt-sub-tabs" id="pkt-sub-tabs"></div>
-      <div id="pkt-content"></div>
+    <!-- ═══ VISION & FOUNDATION — All.dc #13a · Views #32 · vision-redesign.js ═══ -->
+    <div id="panel-vision" class="panel vision-mockup ued-scope"></div>
+
+    <!-- ═══ FIRST-MONTH RHYTHMS — All.dc #13d · Views #32 · firstmonth-redesign.js ═══ -->
+    <div id="panel-firstmonth" class="panel firstmonth-mockup ued-scope"></div>
+
+    <!-- ═══ NEWLYWED HOMECOMING — All.dc · Views #31 · homecoming-redesign.js ═══ -->
+    <div id="panel-homecoming" class="panel homecoming-mockup ued-scope"></div>
+
+        <!-- ═══ SHARE PACKETS — All.dc #12b · Views Cards/Activity · Drawers packet · packets-redesign.js ═══ -->
+    <div id="panel-packets" class="panel packets-mockup ued-scope">
+      <!-- Filled by uedPacketsShell() / renderPacketsPage() (Table|Cards|Activity · drawer) -->
     </div>
 
-    <!-- ═══ EMAIL TEMPLATES ═══ -->
-    <div id="panel-emails" class="panel">
-      <div class="et-header">
-        <div>
-          <h2>Vendor Questions &amp; Email Templates</h2>
-          <p>Start with vendor questions, then use ready-to-send templates with merge fields from your Wedding Setup.</p>
-        </div>
-      </div>
-      <div class="et-stats" id="et-stats"></div>
-      <!-- Two-column workspace: category rail (left) + template cards (right), per Editorial v4 -->
-      <div class="et-layout">
-        <aside class="et-sidebar">
-          <!-- Category filter rail; buttons are injected by renderEmailTemplates() -->
-          <div class="et-sidebar-head">Categories</div>
-          <div class="et-cat-tabs" id="et-cat-tabs"></div>
-          <!-- Available Merge Fields card: shows every {{token}} and its live value -->
-          <div class="et-merge-card">
-            <h3>Available Merge Fields</h3>
-            <p>These fill automatically from Wedding Setup &amp; your planner data.</p>
-            <div class="et-merge-grid" id="et-merge-fields"></div>
-          </div>
-        </aside>
-        <div id="et-list"></div>
-      </div>
+    <!-- ═══ EMAIL TEMPLATES — All.dc #12c · Views Preview/Sent log · Drawers template · emails-redesign.js ═══ -->
+    <div id="panel-emails" class="panel emails-mockup ued-scope">
+      <!-- Filled by uedEmailsShell() / renderEmailsPage() (Table|Preview|Sent log · drawer) -->
     </div>
 
-    <!-- ═══ FAQ ═══ -->
+    <!-- ═══ PRINT CENTRE — All.dc #12d · Views #33 · print-centre-redesign.js ═══ -->
+    <div id="panel-print-centre" class="panel print-centre-mockup ued-scope"></div>
+
+<!-- ═══ FAQ ═══ -->
     <div id="panel-faq" class="panel faq-mockup ued-scope">
       <div class="faq-title-wrap">
         <div class="faq-leaf-wrap" aria-hidden="true"><svg class="leaf-orn" viewBox="0 0 120 26"><path d="M6 13h108" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".45"/><path d="M52 13c-10-8-18-7-24-2 10 3 17 2 24 2Zm16 0c10-8 18-7 24-2-10 3-17 2-24 2Z" fill="currentColor" opacity=".85"/><path d="M60 13c-7-7-7-12-2-18 4 9 4 14 2 18Zm0 0c7-7 7-12 2-18-4 9-4 14-2 18Z" fill="currentColor" opacity=".65"/></svg></div>
@@ -2565,22 +1289,8 @@
       </section>
     </div>
 
-    <!-- ═══ LIVE DATABASE HUB (34th panel — table unification) ═══ -->
-    <div id="panel-data-hub" class="panel data-hub-panel ued-scope">
-      <div class="data-hub-layout">
-        <aside class="data-hub-sidebar" id="data-hub-sidebar" aria-label="Database hub categories"></aside>
-        <div class="data-hub-main">
-          <header class="data-hub-head" id="data-hub-head"></header>
-          <div class="data-hub-toolbar" id="data-hub-toolbar"></div>
-          <div class="data-hub-filters" id="data-hub-filters" hidden></div>
-          <div class="data-hub-table-tabs" id="data-hub-table-tabs" role="tablist"></div>
-          <div class="data-hub-table-mount" id="data-hub-table-mount">
-            <div id="cwp-data-hub-active" class="cwp-mount"></div>
-            <div id="data-hub-budget-wrap" class="data-hub-budget-wrap" hidden></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- ═══ DATABASE HUB — §07 shell · 224 rail · 360 drawer · mock 7b/7c · redesign-7b1 ═══ -->
+    <div id="panel-data-hub" class="panel data-hub-mockup ued-scope"></div>
 
 <!-- Global planner footer — collapsible popup panel (redesign-step10g) -->
 <footer class="planner-footer" id="planner-footer" role="contentinfo">
@@ -3084,27 +1794,52 @@
 <script src="js/sqlite-backup.js"></script>
 <script src="js/ux-kit.js?v=redesign-step6n"></script>
 <div id="milestone-celebration-host" class="milestone-celebration-host" aria-live="polite"></div>
-<script src="js/planner-context-sidebar.js?v=redesign-step25a"></script>
+<script src="js/planner-context-sidebar.js?v=redesign-fullia1"></script>
 <!-- Defines pillSchemeFor(), which planner.js calls but never defines.
      Must load BEFORE planner.js so it exists for the first render. -->
 <script src="js/planner-pill-scheme.js?v=redesign-step5e"></script>
 <script src="Redesign/autofit-columns.js?v=redesign-step6n"></script>
-<script src="js/planner.js?v=redesign-depth4"></script>
-<!-- Defines rdOpenPicker(), the column registry and rdAutoFitTable(), which the
-     page redesign modules below all rely on. Must load before them. -->
-<script src="js/rd-table-controls.js?v=redesign-step23"></script>
+<!-- Defines rdOpenPicker() / rdAnchorToButton() used by planner filter pops and
+     every redesign toolbar. Must load before planner.js and page modules. -->
+<script src="js/rd-table-controls.js?v=table-design1"></script>
+<script src="js/planner.js?v=hc-input-clear1"></script>
 <script src="js/rd-depth.js?v=redesign-depth3"></script>
-<script src="js/rd-states.js?v=redesign-depth4"></script>
-<script src="js/rd-furniture.js?v=redesign-depth4"></script>
-<script src="js/party-redesign.js?v=redesign-depth4"></script>
-<script src="js/tables-redesign.js?v=redesign-depth4"></script>
-<script src="js/gifts-redesign.js?v=redesign-depth4"></script>
-<script src="js/budget-redesign.js?v=redesign-depth4"></script>
-<script src="js/payments-redesign.js?v=redesign-depth4"></script>
-<script src="js/contracts-redesign.js?v=redesign-depth4"></script>
+<script src="js/rd-states.js?v=redesign-furniture3"></script>
+<script src="js/rd-furniture.js?v=redesign-furniture3"></script>
+<script src="js/party-redesign.js?v=redesign-furniture3"></script>
+<script src="js/households-redesign.js?v=table-toolbar1"></script>
+<script src="js/contacts-redesign.js?v=ct-add-editor1"></script>
+<script src="js/tables-redesign.js?v=table-shape1"></script>
+<script src="js/gifts-redesign.js?v=redesign-furniture3"></script>
+<script src="js/budget-redesign.js?v=table-toolbar1"></script>
+<script src="js/payments-redesign.js?v=redesign-furniture3"></script>
+<script src="js/contracts-redesign.js?v=con-drawer1"></script>
+<script src="js/vendors-redesign.js?v=redesign-4c3"></script>
+<script src="js/venue-redesign.js?v=redesign-venue1"></script>
+<script src="js/catering-redesign.js?v=table-toolbar1"></script>
+<script src="js/entertainment-redesign.js?v=table-toolbar1"></script>
+<script src="js/shotlist-redesign.js?v=table-toolbar1"></script>
+<script src="js/timeline-redesign.js?v=autofit-scrub2"></script>
+<script src="js/ceremony-redesign.js?v=table-toolbar1"></script>
+<script src="js/honeymoon-redesign.js?v=table-toolbar1"></script>
+<script src="js/prayer-redesign.js?v=table-toolbar1"></script>
+<script src="js/counseling-redesign.js?v=table-toolbar1"></script>
+<script src="js/vision-redesign.js?v=table-toolbar1"></script>
+<script src="js/firstmonth-redesign.js?v=table-toolbar1"></script>
+<script src="js/homecoming-redesign.js?v=hc-input-clear1"></script>
+<script src="js/mood-redesign.js?v=table-toolbar1"></script>
+<script src="js/essentials-redesign.js?v=table-toolbar1"></script>
+<script src="js/packets-redesign.js?v=table-toolbar1"></script>
+<script src="js/emails-redesign.js?v=table-toolbar1"></script>
+<script src="js/print-centre-redesign.js?v=redesign-fullia1"></script>
+<script src="js/data-hub-redesign.js?v=table-toolbar1"></script>
+<script src="js/dashboard-redesign.js?v=redesign-3a1"></script>
+<script src="js/notes-redesign.js?v=table-toolbar1"></script>
 <!-- Builds the redesign chrome and relocates the planner's live top-bar
      controls into it. Must load AFTER planner.js so the handlers exist. -->
-<script src="js/redesign-shell.js?v=redesign-depth3"></script>
+<script src="js/redesign-shell.js?v=add-drawer1"></script>
+<script src="js/responsive-redesign.js?v=redesign-41a1"></script>
+<script src="js/roles-redesign.js?v=redesign-fullia1"></script>
 <script>
 (function () {
   try {

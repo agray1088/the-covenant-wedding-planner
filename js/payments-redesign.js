@@ -818,12 +818,15 @@
       const owed = b.rows.reduce((n, p) => n + Math.max(0, payDue(p) - payPaid(p)), 0);
       return `<div class="rd-pay-cal__month">
         <div class="rd-pay-cal__head"><span>${esc(b.label)}</span><span class="rd-pay-cal__total">${money0(owed)}</span></div>
-        ${b.rows.map(p => `<button type="button" class="rd-pay-cal__item" onclick="rdPayOpenDrawer('${esc(payId(p))}')">
+        ${b.rows.map(p => {
+          const pill = payPill(p);
+          return `<button type="button" class="rd-pay-cal__item is-${esc(pill.scheme || 'gray')}" onclick="rdPayOpenDrawer('${esc(payId(p))}')">
           <span class="rd-pay-cal__day">${payDueDate(p) ? esc(shortDate(payDueDate(p))) : '—'}</span>
           <span class="rd-pay-cal__name">${esc(payLabel(p))}</span>
           <span class="rd-pay-cal__amt">${money0(payDue(p))}</span>
-          ${pillHtml(payPill(p))}
-        </button>`).join('')}
+          ${pillHtml(pill)}
+        </button>`;
+        }).join('')}
       </div>`;
     }).join('') + '</div>';
   }
