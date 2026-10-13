@@ -713,27 +713,52 @@
     ).join('') || '<p class="rd-help">No registry gifts match this view.</p>'}</div>`;
   }
 
+  function giftDaysOwed(row) {
+    if (giftThankStatus(row) === 'Sent') return -Infinity;
+    const received = row && row.date ? Date.parse(String(row.date)) : NaN;
+    const today = Date.now();
+    if (!isFinite(received)) return 999;
+    const daysSince = Math.floor((today - received) / 86400000);
+    /* Target: thank-you within 3 weeks (21 days). Days owed = days past that window. */
+    return daysSince - 21;
+  }
+
+  function giftDaysOwedLabel(row) {
+    const owed = giftDaysOwed(row);
+    if (!isFinite(owed) || owed === -Infinity) return 'Sent';
+    if (owed > 0) return owed + ' day' + (owed === 1 ? '' : 's') + ' overdue';
+    if (owed === 0) return 'Due today';
+    const left = Math.abs(owed);
+    return left + ' day' + (left === 1 ? '' : 's') + ' left';
+  }
+
   function renderGiftsNotesView() {
     const host = document.getElementById('gifts-notes-view');
     if (!host) return;
     const due = giftRows().filter(r => giftThankStatus(r) !== 'Sent').sort((a, b) => {
+      const d = giftDaysOwed(b) - giftDaysOwed(a);
+      if (d) return d;
       const rank = s => (s === 'Not started' ? 0 : 1);
       return rank(giftThankStatus(a)) - rank(giftThankStatus(b));
     });
     const s = giftsStatsData();
+    const overdue = due.filter(r => giftDaysOwed(r) > 0);
+    const soon = due.filter(r => giftDaysOwed(r) <= 0);
+    const group = (title, rows, danger) => rows.length ? `<div class="rd-grouplist__group${danger ? ' is-danger' : ''}">
+        <div class="rd-grouplist__head">${escapeHtml(title)}<span class="rd-grouplist__count">${rows.length}</span></div>
+        <div class="rd-grouplist__rows">${rows.map(r =>
+          `<button type="button" class="rd-grouplist__row rd-gifts-note-row" onclick="giftsOpenDrawerById('${escapeHtml(r._id || '')}')">
+            <span><strong>${escapeHtml(r.from || 'Unknown')}</strong> · ${escapeHtml(r.desc || '')}</span>
+            <span>${escapeHtml(giftDaysOwedLabel(r))} · ${giftThankPillHtml(r)}</span>
+          </button>`
+        ).join('')}</div>
+      </div>` : '';
     host.innerHTML = `<div class="rd-gifts-notes__head">
         <div class="rd-gifts-registry__eyebrow">Thank-you notes</div>
-        <p class="rd-help">${s.sent} of ${s.total} sent · ${s.drafted} drafted · ${s.notStarted} not started · target within 3 weeks</p>
+        <p class="rd-help">${s.sent} of ${s.total} sent · ${s.drafted} drafted · ${s.notStarted} not started · target within 3 weeks · sorted by days owed</p>
         <button type="button" class="rd-btn rd-btn--quiet" onclick="typeof openThankYouList==='function'&&openThankYouList()">Print thank-you list</button>
       </div>
-      <div class="rd-gifts-notes-list">${due.map(r =>
-        `<button type="button" class="rd-gifts-note-row" onclick="giftsOpenDrawerById('${escapeHtml(r._id || '')}')">
-          <strong>${escapeHtml(r.from || 'Unknown')}</strong>
-          <span>${escapeHtml(r.desc || '')}</span>
-          <span>${giftShortDate(r.date)}</span>
-          ${giftThankPillHtml(r)}
-        </button>`
-      ).join('') || '<p class="rd-help">Every note is sent. Beautifully done.</p>'}</div>`;
+      <div class="rd-grouplist">${group('Overdue', overdue, true)}${group('Within window', soon, false) || (!due.length ? '<p class="rd-help">Every note is sent. Beautifully done.</p>' : '')}</div>`;
   }
 
   function giftsOpenDrawerById(id) {
