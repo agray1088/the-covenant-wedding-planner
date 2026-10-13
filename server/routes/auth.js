@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { query } from '../lib/db.js';
 import {
   clientAppUrl,
+  safeReturnTo,
   consumeAuthToken,
   createAuthToken,
   createSession,
@@ -419,7 +420,7 @@ router.get('/google', async (req, res, next) => {
       });
       return;
     }
-    const returnTo = String(req.query.returnTo || req.query.next || '').trim() || clientAppUrl();
+    const returnTo = safeReturnTo(req.query.returnTo || req.query.next);
     const state = await createOAuthState({ returnTo });
     res.redirect(302, googleAuthUrl(state, req));
   } catch (e) {
@@ -490,7 +491,7 @@ router.get('/google/callback', async (req, res, next) => {
     }
 
     const session = await createSession(userRow.id);
-    const returnTo = String(meta.returnTo || clientAppUrl()).replace(/\/$/, '');
+    const returnTo = safeReturnTo(meta.returnTo).replace(/\/$/, '');
     const sep = returnTo.includes('?') ? '&' : '?';
     const dest = `${returnTo}${sep}cloudToken=${encodeURIComponent(session.token)}&cloudOAuth=1`;
     res.redirect(302, dest);

@@ -52,7 +52,7 @@ git pull origin cursor/offline-cloud-sync-017e
 
 Repo config (`railway.toml`) also forces `builder = "DOCKERFILE"` and `dockerfilePath = "Dockerfile"` (API-only image at repo root). The root `Dockerfile` exists so Railway auto-detect prefers Docker over Railpack on the static planner.
 
-Optional later (one HTTPS origin for planner + API): set Dockerfile path to `Dockerfile.hosted` and Variable `SERVE_STATIC=1`. First deploy: keep the default API-only `Dockerfile`.
+Optional later (one HTTPS origin for planner + API): set Dockerfile path to `Dockerfile.single` and Variable `SERVE_STATIC=1`. First deploy: keep the default API-only `Dockerfile`.
 
 Wait until the first deploy finishes (it may fail health checks until Postgres + env vars exist — that is OK).
 
@@ -158,7 +158,7 @@ CORS_ORIGIN=http://localhost:8000,https://app.example.com
 CLIENT_APP_URL=https://app.example.com
 ```
 
-- Single-service UI+API (`Dockerfile.hosted` + `SERVE_STATIC=1`): set all three to the same Railway HTTPS origin.
+- Single-service UI+API (`Dockerfile.single` + `SERVE_STATIC=1`): set all three to the same Railway HTTPS origin.
 
 Redeploy if Railway does not auto-redeploy after Variable changes.
 
@@ -436,3 +436,40 @@ Fly.io alternate path and self-host Compose: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLO
 - [ ] No public `BOOTSTRAP_PASSWORD` for real couples  
 
 Related: [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md) · [`OFFLINE_CLOUD_SYNC.md`](./OFFLINE_CLOUD_SYNC.md).
+
+---
+
+## 14. Host the planner itself (second Railway service) — open it on any device
+
+Goal: a permanent HTTPS link to the planner so you do not need `python -m http.server`, and partner/guest/vendor links work 24/7. This is a **second service in the same Railway project**, built from the **same GitHub repo**. It is static files only: no database, no secrets. Your API service is not touched.
+
+Your API URL below is `https://the-covenant-wedding-planner-production.up.railway.app` (replace with yours if different).
+
+1. Open your Railway project (the one with the API + Postgres).
+2. Click **+ New** (top right of the canvas) → **GitHub Repo** → pick `the-covenant-wedding-planner`. A new service appears.
+3. Click the new service → **Settings** → **Source** → confirm branch is `cursor/offline-cloud-sync-017e` (or `master` once merged). Leave **Root Directory** empty.
+4. Click **Variables** → **New Variable** and add both:
+
+```
+RAILWAY_DOCKERFILE_PATH=Dockerfile.hosted
+API_BASE_URL=https://the-covenant-wedding-planner-production.up.railway.app
+```
+
+   (No trailing slash. Do **not** set `PORT`; Railway provides it.) Optionally rename the service to `planner-web` (Settings → Service Name).
+5. **Settings** → **Networking** → **Generate Domain**. Copy the URL, e.g. `https://planner-web-production.up.railway.app`.
+6. Wait for the deploy to go green (**Deployments** tab). Open `<new URL>/health` — it should say `ok`.
+7. Go to the **API service** → **Variables**. Edit these (comma-separated, no spaces, no trailing slashes):
+
+```
+CORS_ORIGIN=http://localhost:8000,https://planner-web-production.up.railway.app
+CLIENT_APP_URL=https://planner-web-production.up.railway.app
+```
+
+   Sign-in redirects only return to origins listed in `CORS_ORIGIN` / `CLIENT_APP_URL` (plus localhost), so the hosted URL must be there. Let the API redeploy.
+8. **Google sign-in only:** [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → your OAuth Web client → under **Authorized JavaScript origins** add the planner URL. The **Authorized redirect URI** stays the API one (`<API URL>/auth/google/callback`) — do not change it.
+9. Open the planner URL on any device. Cloud sync defaults to your API automatically (no need to type it); click Enable / sign in under Settings → Cloud sync. If you saved a different API base before, that saved value wins. Local `localhost` use is unchanged and still offline-first.
+10. After pushing new code, Railway rebuilds both services. HTML is never cached; JS/CSS revalidate every 60 seconds, so a normal refresh picks up updates.
+
+Alternative to step 4: Service → Settings → **Config-as-code** → file path `/railway.hosted.toml` (sets the same Dockerfile and a `/health` check).
+
+Troubleshooting: sign-in returns to the wrong place → fix `CLIENT_APP_URL`/`CORS_ORIGIN` on the API. Browser console shows a CORS error → the planner origin is missing from `CORS_ORIGIN`. Planner works but no API default → check `<planner URL>/config.js` shows your `API_BASE_URL`.

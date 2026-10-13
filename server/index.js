@@ -74,7 +74,7 @@ function parseCorsOrigins() {
   const raw = process.env.CORS_ORIGIN || 'http://localhost:8000';
   return String(raw)
     .split(',')
-    .map((s) => s.trim())
+    .map((s) => s.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 }
 

@@ -51,7 +51,7 @@ Railway fits this stack: managed Postgres, automatic HTTPS, Dockerfile deploy, d
    - **Root Directory** = empty / `/`
    - Click **Deploy** on any pending-changes banner
 3. Root `railway.toml` also sets `builder = "DOCKERFILE"` + `dockerfilePath = "Dockerfile"`. A root `Dockerfile` is required so Railway does not Railpack the static planner (`No start command detected`).
-4. Optional single-service UI+API: set Dockerfile path to `Dockerfile.hosted` and Variable `SERVE_STATIC=1`.
+4. Optional single-service UI+API: set Dockerfile path to `Dockerfile.single` and Variable `SERVE_STATIC=1`.
 
 **Already failing with Railpack?** Fix Builder/path in the dashboard first (steps above), then `git pull origin cursor/offline-cloud-sync-017e` and redeploy. Exact clicks: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) §1.
 
@@ -73,7 +73,7 @@ Open the API service → **Variables**. Paste from `server/.env.production.examp
 | `DATABASE_URL` | yes | Injected when Postgres is linked |
 | `DATABASE_SSL` | yes | `1` |
 | `PUBLIC_URL` | yes | `https://<your-api>.up.railway.app` — **include `https://`, no trailing slash** (a missing scheme is auto-prefixed with `https://` and logged as a warning). After first deploy, copy the public HTTPS URL from Railway Networking / Domains. |
-| `CORS_ORIGIN` | yes | Planner UI origin(s), comma-separated (e.g. `https://app.example.com` or same as `PUBLIC_URL` if `Dockerfile.hosted`) |
+| `CORS_ORIGIN` | yes | Planner UI origin(s), comma-separated (e.g. `https://app.example.com` or same as `PUBLIC_URL` if `Dockerfile.single`) |
 | `CLIENT_APP_URL` | recommended | Where Google returns `?cloudToken=` — defaults to first `CORS_ORIGIN` |
 | `SESSION_SECRET` | yes | ≥32 random chars (`openssl rand -hex 32`) |
 | `TRUST_PROXY` | yes | `1` (Railway terminates TLS) |
@@ -181,7 +181,7 @@ Client base must match `PUBLIC_URL` (same origin string, no trailing slash).
 CORS_ORIGIN=https://app.example.com
 PUBLIC_URL=https://api.example.com
 
-# Single service (Dockerfile.hosted + SERVE_STATIC=1)
+# Single service (Dockerfile.single + SERVE_STATIC=1)
 CORS_ORIGIN=https://your-app.up.railway.app
 PUBLIC_URL=https://your-app.up.railway.app
 CLIENT_APP_URL=https://your-app.up.railway.app
@@ -326,7 +326,7 @@ See [`RECONNECT_AFTER_RESTART.md`](./RECONNECT_AFTER_RESTART.md).
 | `railway.toml` | Forces Dockerfile builder + `/health` (avoids Railpack on static root) |
 | `fly.toml` | Fly app, force HTTPS, `/health` |
 | `server/Dockerfile` | Same API image when build context is `./server` (Compose) |
-| `Dockerfile.hosted` | Optional API + static planner |
+| `Dockerfile.single` | Optional API + static planner |
 | `server/.env.production.example` | **Every** production var with comments |
 | `docker-compose.prod.yml` | Optional self-host |
 

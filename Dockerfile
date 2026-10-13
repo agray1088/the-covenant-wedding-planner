@@ -1,7 +1,7 @@
 # Production image for the Covenant sync API (Node + Express).
 # Named Dockerfile at repo root so Railway auto-detects it (not Railpack on the static planner).
 # Compose still uses server/Dockerfile with context ./server — see docker-compose.prod.yml.
-# Optional UI+API: Dockerfile.hosted + SERVE_STATIC=1.
+# Optional UI+API: Dockerfile.single + SERVE_STATIC=1.
 # Deploy checklist: docs/HOSTED_DEPLOY.md  |  Walkthrough: docs/DEPLOY_WALKTHROUGH.md
 # Env template: server/.env.production.example
 #

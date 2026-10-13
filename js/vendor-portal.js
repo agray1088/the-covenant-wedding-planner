@@ -24,6 +24,11 @@
       if (stored) return String(stored).replace(/\/$/, '');
     } catch (e) { /* ignore */ }
     try {
+      var d = window.COVENANT_API_DEFAULT;
+      var h = window.location.hostname;
+      if (/^https?:\/\//i.test(d || '') && h !== 'localhost' && h !== '127.0.0.1') return String(d).replace(/\/$/, '');
+    } catch (e3) { /* ignore */ }
+    try {
       var u = new URL(window.location.href);
       if (/18787|8787/.test(u.port) || /covenant/.test(u.hostname)) {
         return u.origin;

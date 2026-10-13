@@ -69,6 +69,34 @@ export function clientAppUrl() {
   return 'http://localhost:8000';
 }
 
+/** Allowed frontend origins: CORS_ORIGIN list, CLIENT_APP_URL, PUBLIC_URL, localhost. */
+export function allowedClientOrigins() {
+  const list = String(process.env.CORS_ORIGIN || '').split(',');
+  list.push(process.env.CLIENT_APP_URL || '', process.env.PUBLIC_URL || '');
+  const out = new Set();
+  for (const raw of list) {
+    try {
+      const v = raw.trim();
+      if (v) out.add(new URL(v).origin);
+    } catch { /* skip invalid */ }
+  }
+  return out;
+}
+
+/** Return `candidate` only if its origin is allowed; otherwise the default client app URL. */
+export function safeReturnTo(candidate) {
+  const fallback = clientAppUrl();
+  const raw = String(candidate || '').trim();
+  if (!raw) return fallback;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return fallback;
+    const local = /^(localhost|127\.0\.0\.1)$/.test(u.hostname);
+    if (local || allowedClientOrigins().has(u.origin)) return u.origin + u.pathname + u.search;
+  } catch { /* fall through */ }
+  return fallback;
+}
+
 export function mapUser(row) {
   if (!row) return null;
   return {

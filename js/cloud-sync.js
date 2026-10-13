@@ -20,9 +20,23 @@
   var syncing = false;
   var statusListeners = [];
 
+  /** Deploy-time default (config.js / meta tag); never used on localhost or file://. */
+  function hostedDefaultApi() {
+    try {
+      var h = window.location.hostname;
+      if (!h || h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || window.location.protocol === 'file:') return '';
+      var v = window.COVENANT_API_DEFAULT;
+      if (!v) {
+        var m = document.querySelector('meta[name="covenant-api-base"]');
+        v = m && m.getAttribute('content');
+      }
+      return /^https?:\/\//i.test(v || '') ? String(v) : '';
+    } catch (e) { return ''; }
+  }
+
   function cfg() {
     var w = (typeof window !== 'undefined' && window.COVENANT_CLOUD) ? window.COVENANT_CLOUD : {};
-    var api = (w.apiBase || w.api || ls(LS_API) || '').replace(/\/$/, '');
+    var api = (w.apiBase || w.api || ls(LS_API) || hostedDefaultApi() || '').replace(/\/$/, '');
     var enabledFlag = w.enabled === true
       || String(ls(LS_ENABLED) || '') === '1'
       || String(ls(LS_ENABLED) || '').toLowerCase() === 'true';

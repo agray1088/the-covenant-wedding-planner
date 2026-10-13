@@ -1124,7 +1124,7 @@
           return;
         }
         var apiBaseNow = '';
-        try { apiBaseNow = (window.COVENANT_CLOUD && (window.COVENANT_CLOUD.apiBase || window.COVENANT_CLOUD.api)) || localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { apiBaseNow = ''; }
+        try { apiBaseNow = (window.COVENANT_CLOUD && (window.COVENANT_CLOUD.apiBase || window.COVENANT_CLOUD.api)) || localStorage.getItem('covenant_cloud_api') || ((window.CovenantCloudSync && window.CovenantCloudSync.cfg && window.CovenantCloudSync.cfg().apiBase) || ''); } catch (e) { apiBaseNow = ''; }
         if (!apiBaseNow) {
           show(false, 'No API base URL set. Enter it under Cloud sync and click Enable first.');
           return;

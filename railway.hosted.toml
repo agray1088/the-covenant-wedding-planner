@@ -1,0 +1,13 @@
+# Config-as-code for the STATIC FRONTEND service (second Railway service).
+# The API service keeps railway.toml + root Dockerfile.
+# In Railway, either set service variable RAILWAY_DOCKERFILE_PATH=Dockerfile.hosted
+# or Settings -> Config-as-code -> file path /railway.hosted.toml.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.hosted"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
