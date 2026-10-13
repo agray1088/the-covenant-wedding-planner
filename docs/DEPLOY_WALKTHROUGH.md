@@ -106,11 +106,14 @@ Copy the output. You will paste it as `SESSION_SECRET` in the next step.
 
 Open the API service → **Variables**. Add these (replace placeholders after you have a public URL in Step 5).
 
+**Port:** do not set `PORT` unless you want to. Railway injects `PORT` (usually `8080`) and the API listens on it. In **Settings → Networking → Public Domain**, the target port must match the port in the deploy log line `listening on http://0.0.0.0:<port>` (usually 8080). If you set `PORT` yourself, use that same number as the domain target port. Do not assume 8787 on Railway.
+
+**`PUBLIC_URL`** must include the scheme (`https://<app>.up.railway.app`, no trailing slash). If the scheme is missing the server prepends `https://` and logs a warning, but fix the variable anyway.
+
 **Safe to paste now** (exact keys from `.env.production.example`):
 
 ```
 NODE_ENV=production
-PORT=8787
 HOST=0.0.0.0
 TRUST_PROXY=1
 DATABASE_SSL=1

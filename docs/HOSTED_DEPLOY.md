@@ -63,13 +63,16 @@ Railway fits this stack: managed Postgres, automatic HTTPS, Dockerfile deploy, d
 
 ### 3. Set all Variables (paste secrets here)
 
+**Port:** Railway injects `PORT` (usually `8080`); the API listens on it. In Networking → Public Domain, set the target port to whatever the deploy log says (`[covenant-sync] listening on http://0.0.0.0:<port>`), usually 8080, or set `PORT` explicitly and match it. Dockerfile path is `Dockerfile` at the repo root.
+
+
 Open the API service → **Variables**. Paste from `server/.env.production.example`:
 
 | Variable | Required | Value / notes |
 |----------|----------|----------------|
 | `DATABASE_URL` | yes | Injected when Postgres is linked |
 | `DATABASE_SSL` | yes | `1` |
-| `PUBLIC_URL` | yes | `https://<your-api>.up.railway.app` — **no trailing slash**. After first deploy, copy the public HTTPS URL from Railway Networking / Domains. |
+| `PUBLIC_URL` | yes | `https://<your-api>.up.railway.app` — **include `https://`, no trailing slash** (a missing scheme is auto-prefixed with `https://` and logged as a warning). After first deploy, copy the public HTTPS URL from Railway Networking / Domains. |
 | `CORS_ORIGIN` | yes | Planner UI origin(s), comma-separated (e.g. `https://app.example.com` or same as `PUBLIC_URL` if `Dockerfile.hosted`) |
 | `CLIENT_APP_URL` | recommended | Where Google returns `?cloudToken=` — defaults to first `CORS_ORIGIN` |
 | `SESSION_SECRET` | yes | ≥32 random chars (`openssl rand -hex 32`) |

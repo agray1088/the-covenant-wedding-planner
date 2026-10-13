@@ -39,8 +39,16 @@ export function validUsername(username) {
   return /^[a-z0-9][a-z0-9._-]{2,31}$/.test(u);
 }
 
+export function normalizePublicUrl(raw = process.env.PUBLIC_URL) {
+  let v = String(raw || '').trim();
+  if (!v) return { url: '', missingScheme: false };
+  const missingScheme = !/^https?:\/\//i.test(v);
+  if (missingScheme) v = `https://${v}`;
+  return { url: v.replace(/\/+$/, ''), missingScheme };
+}
+
 export function publicUrl(req) {
-  const env = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
+  const env = normalizePublicUrl().url;
   if (env) return env;
   if (req) {
     const proto = req.protocol || 'http';

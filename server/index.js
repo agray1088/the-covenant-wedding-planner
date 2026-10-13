@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import { initSchema, pool, query, describeDatabaseUrl, databaseUrl } from './lib/db.js';
-import { hashPassword } from './lib/auth.js';
+import { hashPassword, normalizePublicUrl } from './lib/auth.js';
 import { googleConfigured } from './lib/google-oauth.js';
 import { smtpConfigured } from './lib/mail.js';
 import authRoutes from './routes/auth.js';
@@ -42,7 +42,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = Number(process.env.PORT || 8787);
 const HOST = (process.env.HOST || '0.0.0.0').trim();
-const PUBLIC_URL = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
+const { url: PUBLIC_URL, missingScheme: PUBLIC_URL_MISSING_SCHEME } = normalizePublicUrl();
 const TRUST_PROXY = String(process.env.TRUST_PROXY || '').trim();
 const SERVE_STATIC = ['1', 'true', 'yes'].includes(
   String(process.env.SERVE_STATIC || '').trim().toLowerCase()
@@ -307,12 +307,15 @@ async function main() {
   }
   const dbInfo = describeDatabaseUrl(databaseUrl);
   console.log(
-    `[covenant-sync] db target ${dbInfo.user}@${dbInfo.host}:${dbInfo.port}/${dbInfo.database} (${dbInfo.source}) pwdLen=${dbInfo.passwordLength} codes=${dbInfo.passwordCharCodes}`
+    `[covenant-sync] db target ${dbInfo.user}@${dbInfo.host}:${dbInfo.port}/${dbInfo.database} (${dbInfo.source})`
   );
   await initSchema();
   await bootstrapUser();
   app.listen(PORT, HOST, () => {
     console.log(`[covenant-sync] listening on http://${HOST}:${PORT}`);
+    if (PUBLIC_URL_MISSING_SCHEME) {
+      console.warn('[covenant-sync] WARNING: PUBLIC_URL was missing http(s)://; using https:// prefix. Fix the variable to include the scheme.');
+    }
     if (PUBLIC_URL) console.log(`[covenant-sync] PUBLIC_URL=${PUBLIC_URL}`);
     console.log('[covenant-sync] offline planner remains default; cloud is optional.');
   });

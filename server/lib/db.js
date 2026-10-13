@@ -74,15 +74,14 @@ export function parseDatabaseUrl(url = databaseUrl) {
 export function describeDatabaseUrl(url = databaseUrl) {
   try {
     const cfg = parseDatabaseUrl(url);
-    const codes = [...cfg.password].map((ch) => ch.charCodeAt(0));
     return {
       user: cfg.user,
       host: cfg.host,
       port: String(cfg.port),
       database: cfg.database,
-      source: inDocker ? 'docker-compose' : (fs.existsSync(envPath) ? envPath : 'default'),
-      passwordLength: cfg.password.length,
-      passwordCharCodes: codes.join(',')
+      source: process.env.DATABASE_URL
+        ? 'DATABASE_URL'
+        : (inDocker ? 'compose default' : 'local default')
     };
   } catch {
     return {
@@ -90,9 +89,7 @@ export function describeDatabaseUrl(url = databaseUrl) {
       host: '?',
       port: '?',
       database: '?',
-      source: 'invalid-url',
-      passwordLength: 0,
-      passwordCharCodes: ''
+      source: 'invalid-url'
     };
   }
 }
