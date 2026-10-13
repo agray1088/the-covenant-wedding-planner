@@ -24,7 +24,7 @@ function blankData() {
     menu: [], beverages: [], kidsMenu: [], placeSettings: [], cateringRentals: [], cateringMeta: {}, venue: {}, vtimeline: [], essentials: [], plan: [],
     entertainment: [], mustPlay: [], doNotPlay: [], receptionPlaylist: [], palettes: [], moodPhotos: [], moodFavorites: [], moodItems: [],
     honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
-    vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
+    packets: [], emailTemplates: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
     vision: {}, homecoming: [], firstmonth: {}, marriageLicense: {},
     vendorCompare: [], reception: {}, attire: [], decor: [], stationery: [], events: [], locations: [], contacts: [],
     weekendTimeline: [], travelAccommodations: [], hotelBlocks: [], transportation: [], vipCare: [],
@@ -2161,6 +2161,9 @@ function tryCovenantPrintTemplate(target){
       if (_rflTab === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
       if (_rflTab === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
     }
+    if (target === 'vision') { openCovenantPrintTemplate(buildVisionFoundationPrintSheets()); return true; }
+    if (target === 'firstmonth' || target === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
+    if (target === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
     if (target === 'packets') {
       openCovenantPrintTemplate(buildPacketsPrintSheets());
       return true;
@@ -5518,7 +5521,8 @@ document.addEventListener('keydown', function(e){
   if(e.altKey && e.key.toLowerCase()==='b'){ e.preventDefault(); showPanel('budget'); }
   if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey && !plannerShortcutTypingContext()) {
     e.preventDefault();
-    scrollToPlannerKeyboardShortcuts(true);
+    if (document.body.classList.contains('rd-scope') && typeof openShortcutSheet === 'function') openShortcutSheet();
+    else scrollToPlannerKeyboardShortcuts(true);
   }
 });
 
@@ -5837,8 +5841,8 @@ function showPanel(id, forceOpen = false) {
   if (id === 'venue' && typeof syncVenueVendorsHubTabs === 'function') syncVenueVendorsHubTabs('venue');
   else if (id === 'vendors' && typeof syncVenueVendorsHubTabs === 'function') syncVenueVendorsHubTabs(_vndTab === 'shortlist' ? 'shortlist' : 'vendors');
   if (typeof updateTopbarNotificationsBell === 'function') updateTopbarNotificationsBell();
-  requestAnimationFrame(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); mountAllTabs(); normalizeCurrencyTableInputs(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot, { reset:true }); });
-  setTimeout(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot); }, 80);
+  requestAnimationFrame(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; if (typeof rdRemoveDuplicateToolbars === 'function') rdRemoveDuplicateToolbars(panelRoot); enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); mountAllTabs(); normalizeCurrencyTableInputs(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot, { reset:true }); });
+  setTimeout(()=>{ const panelRoot = document.getElementById('panel-' + id) || document; if (typeof rdRemoveDuplicateToolbars === 'function') rdRemoveDuplicateToolbars(panelRoot); enhanceAllTables(panelRoot); makeColumnsResizable(panelRoot); canonicalizeEditorialUI(panelRoot); if (typeof activateEditorialStatMotion === 'function') activateEditorialStatMotion(panelRoot); }, 80);
   injectMasthead(id);
   injectPageScripture(id);
   injectPrayerPrompt(id);
@@ -6420,52 +6424,85 @@ function buildSmartCalendarNotificationItems(){
   });
   return items;
 }
-function buildPlannerNotificationSections(){
+function buildPlannerNotificationModel(){
   const guidance = typeof plannerGuidanceState === 'function' ? plannerGuidanceState() : { alerts: [], attentionCount: 0 };
-  const kindLabel = { rsvp:'RSVP', budget:'Budget', vendor:'Vendors', legal:'Legal', backup:'Backup', general:'General' };
-  const attention = safeArray(guidance.alerts).map((a, i) => ({
+  const kindLabel = { rsvp:'RSVP', budget:'Budget', vendor:'Vendors', legal:'Legal', backup:'Backup', general:'General', covenant:'Covenant' };
+  const needsYou = safeArray(guidance.alerts).map((a, i) => ({
     id: 'attention-' + i,
     title: (a.kind && kindLabel[a.kind] ? kindLabel[a.kind] + ': ' : '') + (a.title || 'Needs attention'),
     note: a.note || '',
     urgent: a.priority === 1,
+    chip: a.chip || (a.priority === 1 ? 'Blocker' : (a.kind === 'covenant' ? 'Covenant' : '')),
+    chipTone: a.kind === 'covenant' ? 'gold' : (a.priority === 1 ? 'red' : ''),
     action: a.action || `showPanel('${a.page || 'dashboard'}')`
   }));
   const backup = getBackupReminderState();
-  const backupItems = backup.due ? [{
-    id: 'backup-reminder',
-    title: backup.title,
-    note: backup.message,
-    urgent: true,
-    action: backup.action,
-    laterAction: backup.laterAction
-  }] : [];
+  if (backup.due) {
+    needsYou.unshift({
+      id: 'backup-reminder',
+      title: backup.title,
+      note: backup.message,
+      urgent: true,
+      chip: 'Backup',
+      chipTone: 'red',
+      action: backup.action,
+      laterAction: backup.laterAction
+    });
+  }
   const smart = buildSmartCalendarNotificationItems();
-  const sections = [
-    { id: 'attention', label: 'Needs attention', items: attention },
-    { id: 'backup', label: 'Backup reminder', items: backupItems },
-    { id: 'smart', label: 'Smart alerts', items: smart }
-  ];
-  const totalCount = sections.reduce((sum, s) => sum + s.items.length, 0);
-  return { sections, totalCount };
+  const activity = smart.map((item, i) => ({
+    id: item.id || ('activity-' + i),
+    title: item.title,
+    note: item.note || '',
+    when: item.when || item.chip || 'recently',
+    action: item.action || ''
+  }));
+  return {
+    needsYou,
+    activity,
+    activityMeta: activity.length ? 'recently' : '—',
+    quiet: 'No alert is raised for a guest replying, a payment coming due more than 14 days out, or a vendor opening a packet. Those are visible on their own pages and would train you to ignore this panel.',
+    needsCount: needsYou.length
+  };
+}
+function buildPlannerNotificationSections(){
+  const model = buildPlannerNotificationModel();
+  return {
+    sections: [
+      { id: 'needs', label: 'Needs you', items: model.needsYou },
+      { id: 'activity', label: 'Changed since you last looked', items: model.activity }
+    ],
+    totalCount: model.needsCount,
+    model
+  };
 }
 function renderTopbarNotificationsDrop(){
   const drop = document.getElementById('topbar-notifications-drop');
   if (!drop) return;
-  const { sections } = buildPlannerNotificationSections();
-  const activeSections = sections.filter(section => section.items.length);
-  const html = activeSections.length ? activeSections.map(section => {
-    const items = section.items.map(item => {
-      const later = item.laterAction
-        ? `<button type="button" class="tb-notif-later" onclick="event.stopPropagation();${item.laterAction};closeTopbarNotifications();">Later</button>`
-        : '';
-      return `<button type="button" class="tb-notif-item${item.urgent ? ' urgent' : ''}" role="menuitem" onclick="${item.action};closeTopbarNotifications();">
-        <span class="tb-notif-item-icon" aria-hidden="true">${item.urgent ? '!' : 'i'}</span>
-        <span class="tb-notif-item-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.note || '')}</span></span>
-        ${later}
-      </button>`;
-    }).join('');
-    return `<div class="tb-notif-section"><div class="tb-notif-section-head">${escapeHtml(section.label)}</div>${items}</div>`;
-  }).join('') : '<div class="tb-notif-empty">No alerts right now.</div>';
+  const { model } = buildPlannerNotificationSections();
+  if (typeof RdFurniture !== 'undefined' && RdFurniture.notificationsHtml) {
+    drop.innerHTML = `<div class="topbar-notifications-drop-scroll">${RdFurniture.notificationsHtml(model)}</div>`;
+    drop.querySelectorAll('[data-notif-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-notif-action') || '';
+        closeTopbarNotifications();
+        if (!action) return;
+        try { Function(action)(); } catch (e) { /* ignore bad action strings */ }
+      });
+    });
+    const mark = drop.querySelector('[data-notif-read]');
+    if (mark) mark.onclick = () => { closeTopbarNotifications(); if (typeof showToast === 'function') showToast('Activity marked as read'); };
+    const settings = drop.querySelector('[data-notif-settings]');
+    if (settings) settings.onclick = () => {
+      closeTopbarNotifications();
+      const gear = document.getElementById('rd-gear-btn');
+      if (gear) gear.click();
+    };
+    return;
+  }
+  const html = model.needsYou.length
+    ? model.needsYou.map(item => `<button type="button" class="tb-notif-item${item.urgent ? ' urgent' : ''}" role="menuitem" onclick="${item.action};closeTopbarNotifications();"><span class="tb-notif-item-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.note || '')}</span></span></button>`).join('')
+    : '<div class="tb-notif-empty">Nothing needs you right now.</div>';
   drop.innerHTML = `<div class="topbar-notifications-drop-scroll">${html}</div>`;
 }
 function updateTopbarNotificationsBell(){
@@ -6478,7 +6515,7 @@ function updateTopbarNotificationsBell(){
     badge.classList.toggle('is-empty', totalCount <= 0);
   }
   if (btn) {
-    btn.setAttribute('aria-label', totalCount ? `${totalCount} alert${totalCount === 1 ? '' : 's'}` : 'No alerts');
+    btn.setAttribute('aria-label', totalCount ? `${totalCount} need${totalCount === 1 ? 's' : ''} you` : 'No alerts');
     btn.classList.toggle('has-alerts', totalCount > 0);
   }
   const drop = document.getElementById('topbar-notifications-drop');
@@ -8286,7 +8323,9 @@ function cmdPaletteActionHits(q){
     { title:'Open Wedding Setup', sub:'Form · date and names', panel:'setup' },
     { title:'Download backup', sub:'Save a .sqlite copy', run:()=>{ if (typeof downloadSqliteBackup==='function') downloadSqliteBackup(); else if (typeof startHereBackup==='function') startHereBackup(); } },
     { title:'Import guests CSV', sub:'People · Guest List', panel:'guests', run:()=>{ showPanel('guests', true); if (typeof openImportModal==='function') openImportModal(); } },
-    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } }
+    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } },
+    { title:'Open trash', sub:'Restore deleted records · 30 days', run:()=>{ if (typeof RdFurniture!=='undefined' && RdFurniture.openTrash) RdFurniture.openTrash({ items: Array.isArray(data.trash)?data.trash:[] }); } },
+    { title:'Review duplicate guests', sub:'People · merge review', run:()=>{ if (typeof openGuestDuplicateReview==='function') openGuestDuplicateReview(); } },
   ];
   return actions.map(a => {
     const sc = q ? commandPaletteScore(q, a.title, a.sub) : 88;
@@ -8308,7 +8347,16 @@ function runCommandPalette(qRaw){
     const fav = (ob.favoritePages||[]).filter(p=>QJ_PAGES[p]).slice(0,4);
     fav.forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Favourite', panel:id, score:90 }));
     if (!fav.length) {
-      ['guests','tasks','budget','calendar'].filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Most used', panel:id, score:85 }));
+      ['guests','budget','timeline','appointments'].filter(p=>QJ_PAGES[p]).forEach(id=>{
+        let count = '';
+        try {
+          if (id === 'guests') count = safeArray(data.guests).length + ' guests';
+          if (id === 'budget') count = safeArray(data.budget).length + ' categories';
+          if (id === 'appointments') count = safeArray(data.appointments).length + ' booked';
+          if (id === 'timeline') count = safeArray(data.timeline).length + ' events';
+        } catch (e) { count = ''; }
+        hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub: count || 'Most used', panel:id, score:85, count: count || undefined });
+      });
     }
     (ob.recentPages||[]).slice(0,4).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Recent', type:'Recent', title:QJ_PAGES[id], sub:'Recently viewed', panel:id, score:70 }));
   } else {
@@ -8367,14 +8415,26 @@ function runCommandPalette(qRaw){
     return;
   }
   let lastGroup = '';
+  const GROUP_HINTS = {
+    'Needs you': 'derived from live records',
+    Actions: 'run without leaving this page',
+    Pages: 'jump without searching',
+    Records: 'matching across pages',
+    Recent: 'last four things you opened'
+  };
   box.innerHTML = _cmdPaletteResults.map((h,i)=>{
     let groupHtml = '';
     if (h.group && h.group !== lastGroup) {
       lastGroup = h.group;
-      groupHtml = `<div class="rd-cmd__group" role="presentation">${escapeHtml(h.group)}</div>`;
+      const hint = GROUP_HINTS[h.group] || '';
+      groupHtml = `<div class="rd-cmd__group" role="presentation" data-hint="${escapeHtml(hint)}">${escapeHtml(h.group)}</div>`;
     }
+    const trail = h.trail || (h.panel && h.record ? (typeof QJ_PAGES !== 'undefined' && QJ_PAGES[h.panel] ? QJ_PAGES[h.panel] : '') : '');
+    const trailHtml = trail ? `<span class="rd-cmd__trail">${escapeHtml(trail)}</span>` : '';
+    const kbd = (i === 0 || h.action) && i === Math.max(0, _cmdPaletteResults.findIndex(x => x.group === h.group))
+      ? '<span class="rd-cmd__kbd-chip">↵</span>' : '';
     const count = h.count != null ? `<span class="rd-cmd__count">${escapeHtml(String(h.count))}</span>` : '';
-    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}</button>`;
+    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}${trailHtml}${kbd}</button>`;
   }).join('');
 }
 function executeCommandPaletteResult(i, opts){
@@ -11414,7 +11474,16 @@ function renderReflectPage(){
 function rflSetTab(t){ _rflTab = t; renderReflectPage(); if(typeof injectMasthead==='function') injectMasthead('reflect'); }
 function showReflectTabPage(t){
   _rflTab = t || 'vision';
-  if (_rflTab === 'homecoming') _homecomingSubTab = 'checklist';
+  if (_rflTab === 'homecoming') {
+    _homecomingSubTab = 'checklist';
+    if (document.getElementById('panel-homecoming')) { showPanel('homecoming', true); return; }
+  }
+  if (_rflTab === 'rhythms') {
+    if (document.getElementById('panel-firstmonth')) { showPanel('firstmonth', true); return; }
+  }
+  if (_rflTab === 'vision') {
+    if (document.getElementById('panel-vision')) { showPanel('vision', true); return; }
+  }
   showPanel('reflect', true);
   renderReflectPage();
   if(typeof injectMasthead==='function') injectMasthead('reflect');
@@ -11422,6 +11491,11 @@ function showReflectTabPage(t){
 function showNameChangePage(){
   _rflTab = 'homecoming';
   _homecomingSubTab = 'namechange';
+  if (document.getElementById('panel-homecoming')) {
+    showPanel('homecoming', true);
+    if (typeof rdSetHomecomingView === 'function') rdSetHomecomingView('namechange');
+    return;
+  }
   showPanel('reflect');
 }
 function setHomecomingSubTab(tab){
@@ -17863,6 +17937,7 @@ function paymentFormatDate(val) {
   return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 function addPaymentRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('payments')) return;
   if (document.body.getAttribute('data-active-panel') === 'payments' && document.getElementById('payment-inline-editor-body')) {
     covInlineLoad('payments', null, 'payment-inline-editor-body');
     return;
@@ -18747,6 +18822,7 @@ function addVendorRow() {
     const catDef = typeof vendorCategoryByKey === 'function' ? vendorCategoryByKey(catKey) : null;
     if (catDef && catDef.label) seed.cat = catDef.label;
   }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('vendors', seed)) return;
   if (document.body.getAttribute('data-active-panel') === 'vendors' && document.getElementById('vendor-inline-editor-body')) {
     covInlineLoad('vendors', null, 'vendor-inline-editor-body', seed);
     return;
@@ -19034,15 +19110,10 @@ function setGuestPage(page) {
 }
 function changeGuestPage(direction) { setGuestPage(guestPageIndex + direction); }
 function addGuestRow() {
-  if (document.body.getAttribute('data-active-panel') === 'guests') {
-    if (typeof rdOpenDrawer === 'function' && document.getElementById('record-drawer-body')) {
-      rdOpenDrawer('guests', null);
-      return;
-    }
-    if (document.getElementById('guest-inline-editor-body')) {
-      covInlineLoad('guests', null, 'guest-inline-editor-body');
-      return;
-    }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('guests')) return;
+  if (document.body.getAttribute('data-active-panel') === 'guests' && document.getElementById('guest-inline-editor-body')) {
+    covInlineLoad('guests', null, 'guest-inline-editor-body');
+    return;
   }
   openRecordEditor('guests');
 }
@@ -19119,6 +19190,52 @@ function parseGuestCSV(text){
   if (row.some(v => String(v).trim())) rows.push(row);
   return rows.filter(r => r.some(v => String(v).trim()));
 }
+function openGuestDuplicateReview(){
+  if (typeof RdFurniture === 'undefined' || !RdFurniture.openMergeReview) {
+    showToast('Merge review is not available yet.', 'warn');
+    return;
+  }
+  const guests = safeArray(data.guests);
+  let left = null, right = null;
+  for (let i = 0; i < guests.length; i++) {
+    const a = guests[i];
+    const aEmail = normalizeGuestImportKey(a.email);
+    const aName = normalizeGuestImportKey(a.name);
+    for (let j = i + 1; j < guests.length; j++) {
+      const b = guests[j];
+      const sameEmail = aEmail && aEmail === normalizeGuestImportKey(b.email);
+      const sameName = aName && aName === normalizeGuestImportKey(b.name);
+      if (sameEmail || sameName) { left = a; right = b; break; }
+    }
+    if (left) break;
+  }
+  if (!left || !right) {
+    showToast('No obvious duplicates found on the guest list.');
+    return;
+  }
+  showPanel('guests', true);
+  RdFurniture.openMergeReview({
+    left: { name: left.name, email: left.email, household: left.household, rsvp: left.rsvp, table: left.table },
+    right: { name: right.name, email: right.email, household: right.household, rsvp: right.rsvp, table: right.table },
+    onMerge: function () {
+      /* Keep left; fold right email into notes/history and remove right. */
+      if (right.email && left.email && right.email !== left.email) {
+        left.altEmail = right.email;
+        left.notes = (left.notes ? left.notes + '\n' : '') + 'Merged alternate email: ' + right.email;
+      }
+      Object.keys(right).forEach(k => {
+        if (k === '_id') return;
+        if ((left[k] == null || left[k] === '') && right[k] != null && right[k] !== '') left[k] = right[k];
+      });
+      const idx = guests.indexOf(right);
+      if (idx >= 0) guests.splice(idx, 1);
+      save();
+      if (typeof renderGuests === 'function') renderGuests();
+    }
+  });
+}
+window.openGuestDuplicateReview = openGuestDuplicateReview;
+
 function ensureGuestCsvModal(){
   let overlay = document.getElementById('guest-csv-overlay');
   if (overlay) return overlay;
@@ -19127,16 +19244,17 @@ function ensureGuestCsvModal(){
   overlay.className = 'tb-overlay';
   overlay.onclick = (event) => { if (event.target === overlay) closeGuestCSVImport(); };
   overlay.innerHTML = `
-    <div class="tb-modal" role="dialog" aria-modal="true" aria-labelledby="guest-csv-title" style="max-width:860px">
+    <div class="tb-modal rd-import-modal" role="dialog" aria-modal="true" aria-labelledby="guest-csv-title" style="max-width:660px">
       <div class="tb-head">
-        <h3 id="guest-csv-title">Import Guest CSV</h3>
+        <h3 id="guest-csv-title">Import guests · step 1 of 3</h3>
         <button type="button" class="tb-close" onclick="closeGuestCSVImport()" aria-label="Close">x</button>
       </div>
       <p class="tb-sub" id="guest-csv-sub">Import guests from Excel, Google Sheets, or RSVP responses exported as CSV.</p>
       <input id="guest-csv-file" type="file" accept=".csv,text/csv" style="display:none" onchange="handleGuestCSVFile(event)">
       <div id="guest-csv-body"></div>
-      <div class="tb-actions">
-        <button type="button" class="btn btn-outline btn-sm" onclick="closeGuestCSVImport()">Cancel</button>
+      <div class="tb-actions" id="guest-csv-actions">
+        <button type="button" class="btn btn-outline btn-sm" id="guest-csv-back-btn" onclick="closeGuestCSVImport()">Cancel</button>
+        <button type="button" class="btn btn-outline btn-sm" id="guest-csv-template-btn" onclick="downloadGuestCSVTemplate((guestCsvImportState&&guestCsvImportState.mode)||'guests')">Download a template instead</button>
         <button type="button" class="btn btn-forest btn-sm" id="guest-csv-import-btn" onclick="commitEntityCSVImport()" disabled>Import</button>
       </div>
     </div>`;
@@ -19145,25 +19263,31 @@ function ensureGuestCsvModal(){
 }
 function openGuestCSVImport(mode='guests'){
   const overlay = ensureGuestCsvModal();
-  guestCsvImportState = {mode, headers:[], rows:[], mapping:{}};
+  guestCsvImportState = {mode, headers:[], rows:[], mapping:{}, step:1, fileName:'', conflicts:[], conflictResolutions:{}};
   const title = document.getElementById('guest-csv-title');
   const sub = document.getElementById('guest-csv-sub');
   const body = document.getElementById('guest-csv-body');
   const btn = document.getElementById('guest-csv-import-btn');
-  if (title) title.textContent = mode === 'rsvp' ? 'Import RSVP Responses' : 'Import Guest List CSV';
+  if (title) title.textContent = mode === 'rsvp' ? 'Import RSVP · step 1 of 3' : 'Import guests · step 1 of 3';
   if (sub) sub.textContent = mode === 'rsvp'
-    ? 'Use this for Google Forms or RSVP spreadsheet exports. The planner matches guests by email or name, then updates RSVP, meal, dietary, plus-one, children, and notes.'
-    : 'Use this for large guest lists exported from Excel or Google Sheets. You will preview the columns before anything is added.';
+    ? 'Use this for Google Forms or RSVP spreadsheet exports. Map columns next — nothing is written until you confirm.'
+    : 'Map the file’s columns to planner fields. Nothing is written until step 3.';
   if (body) body.innerHTML = `
     <div class="v4-help-note">
-      <strong>CSV import is additive.</strong> Existing guests are matched by email or name. New rows are added; matched rows are updated with non-empty values.
+      <strong>CSV import is additive.</strong> Existing guests are matched by email or name. Import never deletes guests that are missing from the file.
     </div>
     <div class="m-actions" style="margin:.8rem 0 1rem">
       <button type="button" class="m-btn m-btn-primary" onclick="document.getElementById('guest-csv-file').click()">Choose CSV File</button>
       <button type="button" class="m-btn" onclick="downloadGuestCSVTemplate('${mode}')">Download Template</button>
     </div>
     <div class="empty-dashboard-note">No file selected yet.</div>`;
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Import';
+    btn.onclick = () => commitEntityCSVImport();
+  }
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) { back.textContent = 'Cancel'; back.onclick = () => closeGuestCSVImport(); }
   overlay.style.display = 'flex';
 }
 function closeGuestCSVImport(){
@@ -19185,40 +19309,213 @@ function handleGuestCSVFile(event){
     const rows = parsed.slice(1).filter(r => r.some(v => String(v || '').trim()));
     guestCsvImportState.headers = headers;
     guestCsvImportState.rows = rows;
+    guestCsvImportState.fileName = file.name || 'import.csv';
+    guestCsvImportState.step = 2;
     guestCsvImportState.mapping = {};
+    guestCsvImportState.conflicts = [];
+    guestCsvImportState.conflictResolutions = {};
     headers.forEach((h,i) => {
       const guessFn = guestCsvImportState.mode === 'vendors' ? guessVendorCsvField : (guestCsvImportState.mode === 'gifts' ? guessGiftCsvField : guessGuestCsvField);
-      guestCsvImportState.mapping[i] = guessFn(h, guestCsvImportState.mode);
+      let mapped = guessFn(h, guestCsvImportState.mode);
+      /* Seating is owned by Table Layout — never take it from a file (Views · import). */
+      if (mapped === 'table') mapped = 'skip';
+      guestCsvImportState.mapping[i] = mapped;
     });
     renderGuestCSVMapping();
   };
   reader.readAsText(file);
   event.target.value = '';
 }
+function guestCsvImportPreflight(){
+  const state = guestCsvImportState;
+  if (!state) return { create:0, match:0, conflict:0, skip:0, untouched:0, conflicts:[], matchHow:'' };
+  let create = 0, match = 0, conflict = 0, skip = 0;
+  let matchEmail = 0, matchName = 0;
+  const conflicts = [];
+  const matchedIds = new Set();
+  state.rows.forEach((row, rowIndex) => {
+    const incoming = buildGuestImportObject(row);
+    if (!incoming.name && !incoming.email) { skip++; return; }
+    const email = normalizeGuestImportKey(incoming.email);
+    const name = normalizeGuestImportKey(incoming.name);
+    let byEmail = -1, byName = -1;
+    if (email) byEmail = data.guests.findIndex(g => normalizeGuestImportKey(g.email) === email);
+    if (name) byName = data.guests.findIndex(g => normalizeGuestImportKey(g.name) === name);
+    if (byEmail >= 0) {
+      match++; matchEmail++;
+      matchedIds.add(String(data.guests[byEmail]._id || byEmail));
+      return;
+    }
+    if (byName >= 0) {
+      const existing = data.guests[byName];
+      const existingEmail = normalizeGuestImportKey(existing.email);
+      if (email && existingEmail && email !== existingEmail) {
+        conflict++;
+        conflicts.push({
+          id: 'c-' + rowIndex,
+          rowIndex,
+          left: { name: existing.name, email: existing.email, household: existing.household, rsvp: existing.rsvp, table: existing.table },
+          right: { name: incoming.name, email: incoming.email, household: incoming.household, rsvp: incoming.rsvp, table: incoming.table },
+          incoming
+        });
+        matchedIds.add(String(existing._id || byName));
+        return;
+      }
+      match++; matchName++;
+      matchedIds.add(String(existing._id || byName));
+      return;
+    }
+    create++;
+  });
+  const untouched = Math.max(0, safeArray(data.guests).length - matchedIds.size);
+  return {
+    create, match, conflict, skip, untouched, conflicts,
+    matchHow: matchEmail && !matchName ? 'by email' : (matchName && !matchEmail ? 'by name' : (match ? 'by email or name' : ''))
+  };
+}
+function guestCsvMappingChip(header, field){
+  const h = normalizeGuestImportKey(header);
+  if (/table|seat|seating/.test(h) || field === 'table') {
+    return { label: 'ignored · seating is set in the planner', tone: 'gray', locked: true };
+  }
+  if (field === 'skip') {
+    return { label: 'not imported · no field for it', tone: 'gray', locked: false };
+  }
+  if (field === 'side' && /(b\/g|bride|groom)/.test(h)) {
+    return { label: 'matched · values will be mapped', tone: 'amber', locked: false };
+  }
+  if (field === 'plusone' || /^(y\/n|yesno|plus)/.test(h)) {
+    return { label: field === 'plusone' ? 'matched · Y/N → yes/no' : 'matched', tone: field === 'plusone' ? 'amber' : 'green', locked: false };
+  }
+  if (field === 'rsvp') return { label: 'matched · values will be mapped', tone: 'amber', locked: false };
+  return { label: 'matched', tone: 'green', locked: false };
+}
 function renderGuestCSVMapping(){
   const state = guestCsvImportState;
   const body = document.getElementById('guest-csv-body');
   const btn = document.getElementById('guest-csv-import-btn');
+  const title = document.getElementById('guest-csv-title');
+  const sub = document.getElementById('guest-csv-sub');
   if (!state || !body) return;
-  const opts = (state.mode === 'guests' || state.mode === 'rsvp') ? guestCsvFieldOptions(state.mode) : entityCsvFieldOptions(state.mode);
-  const previewRows = state.rows.slice(0,5);
-  const mapSelects = state.headers.map((h,i) => `
-    <label class="m-field">
-      <span>${escapeHtml(h || 'Column '+(i+1))}</span>
-      <select onchange="setGuestCsvMapping(${i},this.value)">
-        ${opts.map(([k,label]) => `<option value="${k}"${state.mapping[i]===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}
-      </select>
-    </label>`).join('');
-  const table = `<div style="overflow:auto;margin-top:1rem"><table class="budget-table" style="min-width:760px"><thead><tr>${state.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${state.headers.map((_,i)=>`<td>${escapeHtml(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  body.innerHTML = `
-    <div class="v4-help-note"><strong>${state.rows.length} rows found.</strong> Map each CSV column to a planner field. Leave unused columns as Skip.</div>
-    <div class="m-form cols-3">${mapSelects}</div>
-    ${table}`;
-  if (btn) btn.disabled = false;
+  if (state.mode !== 'guests' && state.mode !== 'rsvp') {
+    const opts = entityCsvFieldOptions(state.mode);
+    const previewRows = state.rows.slice(0, 5);
+    const mapSelects = state.headers.map((h, i) => `
+      <label class="m-field">
+        <span>${escapeHtml(h || 'Column '+(i+1))}</span>
+        <select onchange="setGuestCsvMapping(${i},this.value)">
+          ${opts.map(([k,label]) => `<option value="${k}"${state.mapping[i]===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}
+        </select>
+      </label>`).join('');
+    const table = `<div style="overflow:auto;margin-top:1rem"><table class="budget-table" style="min-width:760px"><thead><tr>${state.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${state.headers.map((_,i)=>`<td>${escapeHtml(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    body.innerHTML = `<div class="v4-help-note"><strong>${state.rows.length} rows found.</strong> Map each CSV column to a planner field. Leave unused columns as Skip.</div><div class="m-form cols-3">${mapSelects}</div>${table}`;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Import';
+      btn.onclick = () => commitEntityCSVImport();
+    }
+    return;
+  }
+  if (state.step === 3) {
+    renderGuestCSVConflicts();
+    return;
+  }
+  const opts = guestCsvFieldOptions(state.mode);
+  const pre = guestCsvImportPreflight();
+  state.conflicts = pre.conflicts;
+  if (title) title.textContent = (state.mode === 'rsvp' ? 'Import RSVP' : 'Import guests') + ' · step 2 of 3';
+  if (sub) sub.textContent = 'Map the file’s columns to planner fields. Nothing is written until step 3.';
+  const rowsHtml = state.headers.map((h, i) => {
+    const field = state.mapping[i] || 'skip';
+    const chip = guestCsvMappingChip(h, field);
+    const lockedTable = chip.locked && /table|seat|seating/.test(normalizeGuestImportKey(h));
+    if (lockedTable) state.mapping[i] = 'skip';
+    const dst = lockedTable
+      ? `<span class="rd-import__dst is-muted">—</span>`
+      : `<span class="rd-import__dst"><select onchange="setGuestCsvMapping(${i},this.value)">${opts.map(([k,label]) => `<option value="${k}"${(state.mapping[i]||'skip')===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}</select></span>`;
+    return `<div class="rd-import__row">
+      <div class="rd-import__src">${escapeHtml(h || 'Column '+(i+1))}</div>
+      <div class="rd-import__arrow">→</div>
+      ${dst}
+      <span class="rd-import__chip${chip.tone==='amber'?' is-amber':chip.tone==='gray'?' is-gray':''}">${escapeHtml(chip.label)}</span>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="rd-import">
+    <div class="rd-import__eyebrow"><span>Mapping ${state.headers.length} columns</span><span>${escapeHtml(state.fileName || 'file.csv')} · ${state.rows.length} rows detected</span></div>
+    <div class="rd-import__map">${rowsHtml}</div>
+    <div class="rd-import__preflight">
+      <div class="rd-import__preflight-title">Before anything is written</div>
+      <div class="rd-import__count"><span>New guests to create</span><strong>${pre.create}</strong></div>
+      <div class="rd-import__count"><span>Matched to existing guests</span><strong>${pre.match}${pre.matchHow ? ' · ' + pre.matchHow : ''}</strong></div>
+      <div class="rd-import__count is-amber"><span>Conflicts to review</span><strong>${pre.conflict}${pre.conflict ? ' · same name, different email' : ''}</strong></div>
+      <div class="rd-import__count is-red"><span>Rows that will be skipped</span><strong>${pre.skip}</strong></div>
+      <div class="rd-import__count"><span>Existing guests not in this file</span><strong>${pre.untouched} · nothing will be deleted</strong></div>
+    </div>
+  </div>`;
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) {
+    back.textContent = 'Back';
+    back.onclick = () => openGuestCSVImport(state.mode);
+  }
+  if (btn) {
+    btn.disabled = false;
+    if (pre.conflict > 0) {
+      btn.textContent = `Review ${pre.conflict} conflict${pre.conflict === 1 ? '' : 's'}`;
+      btn.onclick = () => { guestCsvImportState.step = 3; renderGuestCSVConflicts(); };
+    } else {
+      btn.textContent = `Import ${pre.create + pre.match} row${(pre.create + pre.match) === 1 ? '' : 's'}`;
+      btn.onclick = () => commitEntityCSVImport();
+    }
+  }
 }
 function setGuestCsvMapping(index, value){
   if (!guestCsvImportState) return;
+  if (value === 'table') value = 'skip';
   guestCsvImportState.mapping[index] = value;
+  if (guestCsvImportState.mode === 'guests' || guestCsvImportState.mode === 'rsvp') renderGuestCSVMapping();
+}
+function renderGuestCSVConflicts(){
+  const state = guestCsvImportState;
+  const body = document.getElementById('guest-csv-body');
+  const btn = document.getElementById('guest-csv-import-btn');
+  const title = document.getElementById('guest-csv-title');
+  const sub = document.getElementById('guest-csv-sub');
+  if (!state || !body) return;
+  if (title) title.textContent = (state.mode === 'rsvp' ? 'Import RSVP' : 'Import guests') + ' · step 3 of 3';
+  if (sub) sub.textContent = 'Keep the existing record or take the file’s values. You cannot write until every conflict is decided.';
+  const list = (state.conflicts || []).map(c => {
+    const res = (state.conflictResolutions && state.conflictResolutions[c.id]) || 'keep';
+    return `<div class="rd-import__conflict-row">
+      <div><strong>${escapeHtml(c.left.name || 'Existing')}</strong><div class="rd-help">${escapeHtml(c.left.email || '—')}</div></div>
+      <div><strong>${escapeHtml(c.right.name || 'From file')}</strong><div class="rd-help">${escapeHtml(c.right.email || '—')}</div></div>
+      <div>
+        <select onchange="setGuestCsvConflictResolution('${c.id}',this.value)">
+          <option value="keep"${res==='keep'?' selected':''}>Keep existing</option>
+          <option value="file"${res==='file'?' selected':''}>Use file</option>
+          <option value="skip"${res==='skip'?' selected':''}>Skip row</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="rd-import">
+    <div class="rd-import__eyebrow"><span>Conflicts</span><span>${(state.conflicts||[]).length} ambiguous rows</span></div>
+    <div class="rd-import__conflicts">${list || '<p class="rd-help">No conflicts left.</p>'}</div>
+  </div>`;
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) {
+    back.textContent = 'Back';
+    back.onclick = () => { guestCsvImportState.step = 2; renderGuestCSVMapping(); };
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Write import';
+    btn.onclick = () => commitEntityCSVImport();
+  }
+}
+function setGuestCsvConflictResolution(id, value){
+  if (!guestCsvImportState) return;
+  if (!guestCsvImportState.conflictResolutions) guestCsvImportState.conflictResolutions = {};
+  guestCsvImportState.conflictResolutions[id] = value;
 }
 function guestCsvValue(row, field){
   const state = guestCsvImportState;
@@ -19271,19 +19568,50 @@ function commitGuestCSVImport(){
     showToast('Map at least a Guest Name or Email column before importing.', 'warn');
     return;
   }
+  const pre = guestCsvImportPreflight();
+  if (pre.conflict > 0 && state.step !== 3) {
+    state.conflicts = pre.conflicts;
+    state.step = 3;
+    renderGuestCSVConflicts();
+    showToast('Review conflicts before writing.', 'warn');
+    return;
+  }
+  const conflictByRow = {};
+  (state.conflicts || pre.conflicts || []).forEach(c => { conflictByRow[c.rowIndex] = c; });
   let added = 0, updated = 0, skipped = 0;
-  state.rows.forEach(row => {
+  state.rows.forEach((row, rowIndex) => {
     const incoming = buildGuestImportObject(row);
+    delete incoming.table; /* seating owned by Table Layout */
     if (!incoming.name && !incoming.email) { skipped++; return; }
+    const conflict = conflictByRow[rowIndex];
+    if (conflict) {
+      const res = (state.conflictResolutions && state.conflictResolutions[conflict.id]) || 'keep';
+      if (res === 'skip') { skipped++; return; }
+      const idx = findGuestForImport({ name: conflict.left.name, email: conflict.left.email });
+      if (idx < 0) { skipped++; return; }
+      if (res === 'file') {
+        const target = data.guests[idx];
+        Object.entries(incoming).forEach(([key,val]) => {
+          if (key === 'table') return;
+          if (val !== '' && val != null) target[key] = val;
+        });
+        updated++;
+      } else {
+        skipped++; /* keep existing — counted as reviewed, not mutated */
+      }
+      return;
+    }
     const idx = findGuestForImport(incoming);
     if (idx >= 0) {
       const target = data.guests[idx];
       Object.entries(incoming).forEach(([key,val]) => {
+        if (key === 'table') return;
         if (val !== '' && val != null) target[key] = val;
       });
       updated++;
     } else {
       const next = Object.assign(guestCsvDefaultRow(), incoming);
+      delete next.table;
       if (state.mode === 'rsvp' && !next.notes) next.notes = 'Imported from RSVP CSV';
       data.guests.push(next);
       added++;
@@ -19905,15 +20233,10 @@ function ensureWitnessTask(){
   save();
 }
 function addTaskRow() {
-  if (document.body.getAttribute('data-active-panel') === 'tasks') {
-    if (document.getElementById('record-drawer-body') && typeof rdOpenDrawer === 'function') {
-      rdOpenDrawer('tasks', null);
-      return;
-    }
-    if (document.getElementById('task-inline-editor-body')) {
-      covInlineLoad('tasks', null, 'task-inline-editor-body');
-      return;
-    }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('tasks')) return;
+  if (document.body.getAttribute('data-active-panel') === 'tasks' && document.getElementById('task-inline-editor-body')) {
+    covInlineLoad('tasks', null, 'task-inline-editor-body');
+    return;
   }
   openRecordEditor('tasks');
 }
@@ -22002,6 +22325,7 @@ function resetTasksSpreadsheetWidthsOnce(){
    TIMELINE
 ════════════════════════════════════════════════ */
 function addTimelineRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('timeline')) return;
   openRecordEditor('timeline');
 }
 const WDAY_TIMELINE_PRESET = [
@@ -22820,6 +23144,7 @@ function prayerInlineAvailable(){
 }
 
 function addPrayerRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('prayer')) return;
   if (prayerInlineAvailable()) {
     covInlineLoad('prayer', null, 'prayer-inline-editor-body');
     return;
@@ -22910,6 +23235,7 @@ function counselingInlineAvailable(){
 }
 
 function addCounselingRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('counseling')) return;
   if (counselingInlineAvailable()) {
     covInlineLoad('counseling', null, 'counseling-inline-editor-body');
     return;
@@ -24580,11 +24906,7 @@ function appointmentClashCount(){
 function addAppointmentRow(){
   ensureAppointmentData();
   smartAppointmentFilters.range = 'All Dates';
-  if (document.body.getAttribute('data-active-panel') === 'appointments' && document.getElementById('record-drawer-body')) {
-    if (typeof rdOpenDrawer === 'function') rdOpenDrawer('appointments', null);
-    else openRecordEditor('appointments');
-    return;
-  }
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('appointments')) return;
   if (document.body.getAttribute('data-active-panel') === 'appointments' && document.getElementById('appointment-inline-editor-body')) {
     covInlineLoad('appointments', null, 'appointment-inline-editor-body');
     return;
@@ -29220,6 +29542,15 @@ const SAMPLE_DATA = {
     { vendor: "Magnolia Catering Co.", time: "16:00", location: "The Magnolia Barn", contact: "(555) 010-2222", notes: "Kitchen setup" },
     { vendor: "DJ Marcus Reed", time: "17:30", location: "The Magnolia Barn", contact: "(555) 010-5555", notes: "Sound check before reception" }
   ],
+  packets: [
+    { name: "Grace Hall day-of packet", recipient: "Grace Hall events", recipientType: "Vendors", contains: "Timeline · floor plan · contacts", sections: ["Wedding Day Timeline","Table Layout · plan only","Contacts · vendors","Ceremony & Reception"], mode: "Live", opens: 14, expires: "2026-12-08", status: "Live", created: "2026-07-12", link: "covenant.link/g/4kq9", lastOpen: "2 hours ago from Accra", contact: "events@gracehall.gh", activity: [{when:"2 hours ago",where:"Accra",browser:"Chrome"},{when:"Yesterday",where:"Accra",browser:"Chrome"},{when:"26 Jul",where:"Accra",browser:"Safari"}], openedThisWeek: true },
+    { name: "Catering brief", recipient: "Adom Catering", recipientType: "Vendors", contains: "Menu · headcount · dietary", sections: ["Catering & Menu","Headcount","Dietary notes"], mode: "Live", opens: 9, expires: "2026-12-08", status: "Live", created: "2026-07-18", link: "covenant.link/g/cat9", lastOpen: "yesterday", openedThisWeek: true },
+    { name: "Photography brief", recipient: "Nii Photography", recipientType: "Vendors", contains: "Shot lists · timeline", sections: ["Shot Lists","Wedding Day Timeline"], mode: "Snapshot", opens: 6, expires: "2026-08-04", status: "Expiring", created: "2026-06-01", link: "covenant.link/g/pho6" },
+    { name: "Wedding party brief", recipient: "10 members", recipientType: "Family & party", contains: "Duties · attire · weekend", sections: ["Wedding Party","Weekend Logistics"], mode: "Live", opens: 7, expires: "2026-11-09", status: "Live", created: "2026-07-20", link: "covenant.link/g/pty7", openedThisWeek: true },
+    { name: "Parents’ overview", recipient: "Both sets of parents", recipientType: "Family & party", contains: "Timeline · order of service", sections: ["Wedding Day Timeline","Ceremony & Reception"], mode: "Snapshot", opens: 2, expires: "2026-08-03", status: "Expiring", created: "2026-06-15", link: "covenant.link/g/par2" },
+    { name: "Officiant packet", recipient: "Rev. Mensah", recipientType: "Family & party", contains: "Order of service · vows", sections: ["Ceremony & Reception","Vows"], mode: "Live", opens: 0, expires: "2026-11-09", status: "Never opened", created: "2026-07-22", link: "covenant.link/g/off0" },
+    { name: "Venue shortlist comparison", recipient: "Mr & Mrs Owusu", recipientType: "Closed", contains: "Venue comparison only", sections: ["Venue Comparison"], mode: "Snapshot", opens: 0, expires: "2026-03-14", status: "Expired", created: "2026-02-01", link: "covenant.link/g/ven0" }
+  ],
   essentials: [
     { cat: "Marriage Essentials", item: "Marriage license", packed: true, notes: "In white folder" },
     { cat: "Marriage Essentials", item: "Wedding rings", packed: false, notes: "Best man to hold" },
@@ -29794,6 +30125,7 @@ let partyStatusFilter = 'all';
 const PARTY_ROLE_OPTIONS = ['Maid of Honor','Matron of Honor','Bridesmaid','Junior Bridesmaid','Best Man','Groomsman','Usher','Flower Girl','Ring Bearer','Honor Attendant','Reader','Officiant Assistant'];
 const PARTY_STATUS_OPTIONS = ['Dress Ordered','Dress Ready','Tux Confirmed','Fitting Scheduled','Tux Fitting','Outfit Ready','Needs Follow-Up','Not Started'];
 function addPartyRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('party')) return;
   if (document.body.getAttribute('data-active-panel') === 'party' && document.getElementById('party-inline-editor-body')) {
     covInlineLoad('party', null, 'party-inline-editor-body');
     return;
@@ -30761,6 +31093,7 @@ function giftIconSvg(type) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[type] || icons.gift}</svg>`;
 }
 function addGiftRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('gifts')) return;
   if (document.getElementById('gifts-inline-editor-body')) {
     covInlineLoad('gifts', null, 'gifts-inline-editor-body');
     return;
@@ -31185,11 +31518,13 @@ function ensureShotInlineEditor(){
 }
 window.setShotInlineTable = setShotInlineTable;
 function addShotRow() {
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('shotlist')) return;
   if (shotInlineAdd('shotlist')) return;
   openRecordEditor('shotlist');
 }
 function addVideoShotRow() {
   if (!Array.isArray(data.videoShotlist)) data.videoShotlist = [];
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('videoShots')) return;
   if (shotInlineAdd('videoShots')) return;
   openRecordEditor('videoShots');
 }
@@ -31458,9 +31793,16 @@ function openShotPeoplePicker(entity, id, btn){
     }).join('') : '<p class="spp-empty">Add guests on the Guest List first, then pick names here.</p>')
     + '</div><div class="spp-actions"><button type="button" class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="closeShotPeoplePicker()">Cancel</button><button type="button" class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="addShotPeoplePicker()">Add</button></div>';
   document.body.appendChild(pop);
-  const rect = btn.getBoundingClientRect();
-  pop.style.top = (window.scrollY + rect.bottom + 6) + 'px';
-  pop.style.left = Math.min(window.scrollX + rect.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 12) + 'px';
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 280, gap: 6, zIndex: 12000 });
+  } else {
+    const rect = btn.getBoundingClientRect();
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    const w = Math.max(pop.offsetWidth || 0, 280);
+    pop.style.top = (rect.bottom + 6) + 'px';
+    pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - w - 12)) + 'px';
+  }
   setTimeout(() => document.addEventListener('mousedown', shotPeoplePickerOutside, true), 0);
 }
 function addShotPeoplePicker(){
@@ -35537,6 +35879,7 @@ const ESSENTIALS_PRESET = [
   ['Exit / Send-Off','Getaway car keys','Best Man','Coordinator binder','Confirm assigned person']
 ];
 function addEssentialRow(){
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('essentials')) return;
   if (document.getElementById('essentials-inline-editor-body')) {
     covInlineLoad('essentials', null, 'essentials-inline-editor-body');
     return;
@@ -36193,6 +36536,7 @@ function uedContractsShell(){
   </div>`;
 }
 function addContractRow(){
+  if (typeof rdOpenNewInDrawer === 'function' && rdOpenNewInDrawer('contracts')) return;
   if (document.body.getAttribute('data-active-panel') === 'contracts' && document.getElementById('contracts-inline-editor-body')) {
     covInlineLoad('contracts', null, 'contracts-inline-editor-body');
     return;
@@ -39119,14 +39463,18 @@ function guestFilterOutside(ev){
 }
 function positionGuestMenu(pop, btn){
   if (!pop || !btn || !btn.getBoundingClientRect) return;
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { minWidth: 180, gap: 4, zIndex: 12000 });
+    return;
+  }
   const r = btn.getBoundingClientRect();
-  pop.style.position = 'absolute';
+  pop.style.position = 'fixed';
+  pop.style.display = 'inline-block';
+  pop.style.width = 'max-content';
   pop.style.zIndex = '12000';
-  let left = window.scrollX + r.left;
-  const maxLeft = window.scrollX + document.documentElement.clientWidth - Math.max(pop.offsetWidth, 180) - 8;
-  if (left > maxLeft) left = Math.max(window.scrollX + 8, maxLeft);
-  pop.style.top = (window.scrollY + r.bottom + 4) + 'px';
-  pop.style.left = left + 'px';
+  const w = Math.max(pop.offsetWidth || 0, 180);
+  pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+  pop.style.top = (r.bottom + 4) + 'px';
 }
 function openGuestFilter(field, btn){
   closeGuestFilterMenu();
@@ -40264,9 +40612,10 @@ function renderGuestPreviewTable(){
     }
   }
 }
-function guestAggregatedHouseholds(){
+function guestAggregatedHouseholds(opts){
+  const skipFilters = !!(opts && opts.all);
   const map = new Map();
-  safeArray(data.guests).filter(g => typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true).forEach((g, idx) => {
+  safeArray(data.guests).filter(g => skipFilters ? true : (typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true)).forEach((g, idx) => {
     const key = String(g.household || '').trim() || ('__solo__:' + (g._id || g.name || idx));
     const label = String(g.household || '').trim() || (g.name || 'Household');
     if (!map.has(key)) {
@@ -42835,6 +43184,7 @@ function mountAllTabs(root){
       entity:'counseling', title:'Session tracker', mount:'cwp-counseling',
       search:true, filters:[], bulk:{enabled:false}, rowClickEdit:true,
       addLabel:'+ Add session', recordLabel:'Counseling Session',
+      addFn:()=>{ if(typeof addCounselingRow==='function') addCounselingRow(); },
       newRecord:()=>({ date:'', topic:'', homework:'', takeaway:'', questions:'', status:'Not Started' }),
       afterChange:()=>{ if(typeof renderCounselingStats==='function') renderCounselingStats(); if(typeof renderCounselingCurriculum==='function') renderCounselingCurriculum(); },
       columns:[
@@ -42851,6 +43201,7 @@ function mountAllTabs(root){
       entity:'essentials', title:'Packing checklist', mount:'cwp-essentials',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add item', recordLabel:'Essential Item',
+      addFn:()=>{ if(typeof addEssentialRow==='function') addEssentialRow(); },
       newRecord:()=>({ cat:'', item:'', packed:false, assigned:'', location:'', notes:'' }),
       afterChange:()=>{ if(typeof renderEssentialsStats==='function') renderEssentialsStats(); if(typeof renderEssentialsCategoryProgress==='function') renderEssentialsCategoryProgress(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('essentials'); },
       columns:[
@@ -42866,6 +43217,7 @@ function mountAllTabs(root){
       entity:'shotlist', title:'Photo shot list', mount:'cwp-shotlist',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add shot', recordLabel:'Photo Shot',
+      addFn:()=>{ if(typeof addShotRow==='function') addShotRow(); },
       newRecord:()=>({ completed:false, section:'', shot:'', priority:'Important', must:'No', people:'', timing:'', notes:'' }),
       afterChange:()=>{ if(typeof renderShotlistStats==='function') renderShotlistStats(); if(typeof renderShotOverviewCards==='function') renderShotOverviewCards(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('shotlist'); },
       columns:[
@@ -42884,6 +43236,7 @@ function mountAllTabs(root){
       entity:'videoShots', title:'Video shot list', mount:'cwp-videoShots',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add video shot', recordLabel:'Video Shot',
+      addFn:()=>{ if(typeof addVideoShotRow==='function') addVideoShotRow(); },
       newRecord:()=>({ completed:false, section:'', shot:'', priority:'Important', must:'No', people:'', timing:'', notes:'' }),
       afterChange:()=>{ if(typeof renderVideoShotlistStats==='function') renderVideoShotlistStats(); if(typeof renderVideoShotOverviewCards==='function') renderVideoShotOverviewCards(); },
       columns:[
@@ -42902,6 +43255,7 @@ function mountAllTabs(root){
       entity:'party', title:'Wedding party members', mount:'cwp-party',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add member', recordLabel:'Wedding Party Member',
+      addFn:()=>{ if(typeof addPartyRow==='function') addPartyRow(); },
       newRecord:()=>({ name:'', role:'Bridesmaid', phone:'', email:'', attire:'', size:'', status:'', notes:'' }),
       afterChange:()=>{ if(typeof renderPartyStats==='function') renderPartyStats(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('party'); },
       columns:[
@@ -42919,6 +43273,7 @@ function mountAllTabs(root){
       entity:'prayer', title:'Prayer log', mount:'cwp-prayer',
       search:true, filters:[], bulk:{enabled:false}, rowClickEdit:true,
       addLabel:'+ Add prayer', recordLabel:'Prayer Entry',
+      addFn:()=>{ if(typeof addPrayerRow==='function') addPrayerRow(); },
       newRecord:()=>({ date:'', focus:'', request:'', scripture:'', answer:'', status:'Praying' }),
       afterChange:()=>{ if(typeof renderPrayerStats==='function') renderPrayerStats(); },
       columns:[
@@ -42953,6 +43308,7 @@ function mountAllTabs(root){
       entity:'gifts', title:'Gifts received', mount:'cwp-gifts',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add gift', recordLabel:'Gift',
+      addFn:()=>{ if(typeof addGiftRow==='function') addGiftRow(); },
       newRecord:()=>({ from:'', desc:'', value:0, category:'Registry', date:'', thankyou:false, phone:'', email:'', address:'', notes:'' }),
       afterChange:()=>{ if(typeof renderGiftStats==='function') renderGiftStats(); if(typeof renderGiftDashboardExtras==='function') renderGiftDashboardExtras(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('gifts'); },
       /* honor the category / thank-you quick-filter pills (global giftLogFilter) */
@@ -42979,6 +43335,7 @@ function mountAllTabs(root){
       entity:'guests', title:'Guest tracker', mount:'cwp-guests',
       search:false, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ Add guest', recordLabel:'Guest',
+      addFn:()=>{ if(typeof addGuestRow==='function') addGuestRow(); },
       pageSize:(typeof GUEST_PAGE_SIZE!=='undefined'?GUEST_PAGE_SIZE:15),
       newRecord:()=>({ name:'', household:'', group:'Everyone', side:'Both', role:'Adult Guest', phone:'', email:'', inviteDecision:'Maybe', invited:false, rsvp:'Pending', meal:'', dietary:'', plusone:false, children:0, family:false, companions:[], table:'', thankyou:false, notes:'' }),
       /* Group by rail (household/side/table/group/rsvp); residual buckets always last. */
@@ -43068,6 +43425,7 @@ function mountAllTabs(root){
       entity:'payments', title:'Payment schedule', mount:'cwp-payments',
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ Add payment', recordLabel:'Payment',
+      addFn:()=>{ if(typeof addPaymentRow==='function') addPaymentRow(); },
       pageSize:(typeof PAYMENT_PAGE_SIZE!=='undefined'?PAYMENT_PAGE_SIZE:8),
       wrapClass:'payments-table-wrap',
       newRecord:()=>({ vendor:'', desc:'', due:0, paid:0, gratuity:0, gratuityStatus:'Not Planned', date:'', paiddate:'', ptype:'', status:'Not Paid', notes:'', installments:[], budgetCat:'', budgetItemId:'', budgetItem:'', contractIdx:'' }),
@@ -43120,6 +43478,7 @@ function mountAllTabs(root){
       entity:'contracts', title:'Contracts, invoices & receipts', mount:'cwp-contracts',
       search:false, filters:[], bulk:{enabled:true, actions:['edit','delete']}, rowClickEdit:true,
       addLabel:'+ Add document', recordLabel:'Contract or Invoice',
+      addFn:()=>{ if(typeof addContractRow==='function') addContractRow(); },
       newRecord:()=>({ name:'', vendor:'', type:'Contract', date:'', total:0, deposit:0, status:'Not Signed', where:'', notes:'' }),
       afterChange:()=>{ if(typeof renderContractStats==='function') renderContractStats(); if(typeof renderPageUxChrome==='function') renderPageUxChrome('contracts'); },
       /* the shell keeps its search + type/status filter card */
@@ -43155,6 +43514,7 @@ function mountAllTabs(root){
       entity:'appointments', title:'Appointment tracker', mount:'cwp-appointments',
       search:false, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true, hideToolbar:true,
       addLabel:'+ Book appointment', recordLabel:'Appointment',
+      addFn:()=>{ if(typeof addAppointmentRow==='function') addAppointmentRow(); },
       /* Row grouping: month buckets + Held residual (undated). Other Group-by modes from rail. */
       rowGroup:(r)=> (typeof apptRowGroupMeta === 'function' ? apptRowGroupMeta(r) : null),
       groupHeader:(meta, groupRows)=> (typeof apptGroupHeaderLabel === 'function'
@@ -43219,6 +43579,7 @@ function mountAllTabs(root){
       hideToolbar:true,
       search:true, filters:[], bulk:{enabled:true, actions:['edit','delete','clone']}, rowClickEdit:true,
       addLabel:'+ New task', recordLabel:'Task',
+      addFn:()=>{ if(typeof addTaskRow==='function') addTaskRow(); },
       pageSize:(typeof TASKS_PER_PAGE!=='undefined'?TASKS_PER_PAGE:8),
       sortRows:(a,b)=>{
         const da=String(a.date||a.suggestedDue||''), db=String(b.date||b.suggestedDue||'');
@@ -44346,7 +44707,37 @@ function mountAllTabs(root){
 
   /* ---------- per-table UI state ---------- */
   const STATE={};
-  function st(k){ return STATE[k] || (STATE[k]={search:'', filters:{}, colf:{}, sel:new Set(), page:0, viewAll:false, colw:{}, rowh:{}}); }
+  function st(k){ return STATE[k] || (STATE[k]={search:'', filters:{}, colf:{}, sel:new Set(), page:0, viewAll:false, colw:{}, rowh:{}, sortKey:'', sortDir:'asc'}); }
+  /* Pages that already paint a complete Tasks-style chip toolbar above the
+     mount (filters + sort + Columns · N of M + Auto-fit + Row height). Those
+     mounts skip the injected CWP rd-toolbar to avoid a duplicate bar. */
+  const CWP_PAGE_OWNS_TOOLBAR=new Set([
+    'tasks','guests','appointments','party','gifts','vendors','budgetItems',
+    'payments','paymentStages','contracts','tables',
+    /* logistics page chrome owns Day/Type/Owner + Columns/Auto-fit/Row height */
+    'weekendTimeline','travelAccommodations','hotelBlocks','transportation','vipCare',
+    /* Redesign pages that paint rdStandardRightHtml on the page toolbar */
+    'counseling','essentials','prayer','shotlist','videoShots','menu','kidsMenu',
+    'beverages','placeSettings','cateringRentals','snacks','vendorMeals',
+    'ceremonyOrder','ceremonyProcessional','ceremonyRecessional','scriptures',
+    'ceremonyChecklist','ceremonyVows','ceremonyReceptionDetails','ceremonyTraditions',
+    'entertainment','honeymoon','honeyDetails','honeyTransport','honeyItinerary',
+    'wdayTimeline','notesDetails','notes','contactsDirectory','homecoming','nameChange',
+    'moodItems','packing'
+  ]);
+  function pageOwnsToolbar(key){
+    const d=TABLES[key];
+    if(d && d.pageOwnsToolbar===true) return true;
+    if(d && d.pageOwnsToolbar===false) return false;
+    if(CWP_PAGE_OWNS_TOOLBAR.has(key)) return true;
+    /* Live DOM: the redesign page toolbar already has Columns/Auto-fit/Row height. */
+    try {
+      const mountId=(d && d.mount) || ('cwp-'+key);
+      const mount=document.getElementById(mountId);
+      if(mount && typeof window.rdPanelHasPageToolbarChrome==='function' && window.rdPanelHasPageToolbarChrome(mount)) return true;
+    } catch(e) { /* ignore */ }
+    return false;
+  }
   /* Tables that manage their OWN selection or show merged/computed rows that
      cannot be mutated through DB — the engine selection column is suppressed here. */
   const CWP_NO_BULK=new Set(['contactsDirectory']);
@@ -44426,7 +44817,16 @@ function mountAllTabs(root){
       if(typeof window.linkedPageMatchesRow==='function' && !window.linkedPageMatchesRow(key, r)) return false;
       return true;
     });
-    if(typeof d.sortRows==='function') out.sort((a,b)=>d.sortRows(a.r,b.r));
+    if(s.sortKey){
+      const col=d.columns.find(c=>c.key===s.sortKey);
+      const dir=s.sortDir==='desc'?-1:1;
+      out.sort((a,b)=>{
+        const av=col?colText(col,a.r):String(a.r[s.sortKey]==null?'':a.r[s.sortKey]);
+        const bv=col?colText(col,b.r):String(b.r[s.sortKey]==null?'':b.r[s.sortKey]);
+        if(av===bv) return 0;
+        return av<bv?-1*dir:1*dir;
+      });
+    } else if(typeof d.sortRows==='function') out.sort((a,b)=>d.sortRows(a.r,b.r));
     return out;
   }
 
@@ -44542,7 +44942,11 @@ function mountAllTabs(root){
     const hasGroups=typeof d.rowGroup==='function';
     if(hasGroups) all=applyRowGroups(key, all);
     const s=st(key);
-    const cols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns, bulk=!readOnlyPreview&&bulkOn(key);
+    const rawCols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns;
+    const cols=(typeof window.rdColumns!=='undefined' && window.rdColumns.isVisible)
+      ? rawCols.filter(c=>window.rdColumns.isVisible(key, c.key))
+      : rawCols;
+    const bulk=!readOnlyPreview&&bulkOn(key);
     const span=cols.length+(bulk?1:0);
     if(!all.length){
       const ghostHtml = typeof cwpGhostRowsHtml === 'function' ? cwpGhostRowsHtml(key, cols, bulk) : '';
@@ -44661,10 +45065,16 @@ function mountAllTabs(root){
         return '<label class="cfp-item" data-val="'+attr(String(v).toLowerCase())+'"><input type="checkbox" value="'+attr(v)+'" '+(checked?'checked':'')+' onchange="cwpColFilterToggle(\''+key+'\',\''+colKey+'\',this.value,this.checked)"> '+label+'</label>'; }).join('')+'</div>'
       +'<div class="cfp-actions"><button type="button" class="cfp-btn" onclick="cwpColFilterClear(\''+key+'\',\''+colKey+'\')">Clear</button><button type="button" class="cfp-btn cfp-btn-primary" onclick="cwpCloseColFilter()">Done</button></div>';
     document.body.appendChild(pop);
-    const r=btn.getBoundingClientRect(); let left=window.scrollX+r.left;
-    const maxLeft=window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-8;
-    if(left>maxLeft) left=Math.max(window.scrollX+8,maxLeft);
-    pop.style.top=(window.scrollY+r.bottom+4)+'px'; pop.style.left=left+'px';
+    if (typeof window.rdAnchorToButton === 'function') {
+      window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 236, gap: 4, zIndex: 2147483600 });
+    } else {
+      pop.style.position = 'fixed';
+      pop.style.display = 'inline-block';
+      const r = btn.getBoundingClientRect();
+      const w = Math.max(pop.offsetWidth || 0, 236);
+      pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+      pop.style.top = (r.bottom + 4) + 'px';
+    }
     setTimeout(()=>document.addEventListener('mousedown', colFilterOutside, true),0);
   };
   window.cwpColFilterToggle=(key,colKey,val,on)=>{ const s=st(key); if(!s.colf[colKey]) s.colf[colKey]=new Set(distinctValues(key,colKey)); if(on) s.colf[colKey].add(val); else s.colf[colKey].delete(val); if(s.colf[colKey].size===distinctValues(key,colKey).length) delete s.colf[colKey]; s.page=0; renderRows(key); };
@@ -44672,6 +45082,126 @@ function mountAllTabs(root){
   window.cwpColFilterClear=(key,colKey)=>{ delete st(key).colf[colKey]; closeColFilter(); renderRows(key); };
   window.cwpCloseColFilter=()=>closeColFilter();
   window.cwpColFilterSearch=(q)=>{ q=String(q||'').toLowerCase(); const pop=document.getElementById('cwp-colfilter-pop'); if(!pop) return; pop.querySelectorAll('.cfp-list .cfp-item').forEach(it=>{ it.style.display=it.getAttribute('data-val').indexOf(q)>-1?'':'none'; }); };
+
+  function cwpColIsFixed(c){
+    if(!c||!c.key) return true;
+    if(String(c.key).startsWith('_')) return true;
+    if(c.type==='index'||c.type==='drag'||c.type==='id') return true;
+    return !!c.fixed;
+  }
+  function cwpRegisterRdColumns(key, allCols){
+    if(typeof window.rdColumns==='undefined'||!window.rdColumns.register) return allCols;
+    const catalog=(allCols||[]).map(c=>({ key:c.key, label:c.label||c.key, fixed:cwpColIsFixed(c) }));
+    window.rdColumns.register(key, catalog, function(){ renderTable(key); });
+    return (allCols||[]).filter(c=>window.rdColumns.isVisible(key, c.key));
+  }
+  function cwpChipFilterCols(cols){
+    let list=(cols||[]).filter(c=>c.filter===true && !cwpColIsFixed(c));
+    if(!list.length){
+      list=(cols||[]).filter(c=>colFilterable(c) && (c.type==='select'||c.type==='status'||c.type==='text'||c.type==='date'||c.type==='checkbox'));
+    }
+    return list.slice(0, 3);
+  }
+  function cwpSortableCols(cols){
+    return (cols||[]).filter(c=>!cwpColIsFixed(c) && c.type!=='longtext' && c.type!=='stars' && c.type!=='review' && colFilterable(c));
+  }
+  function cwpSortLabel(key){
+    const s=st(key), d=TABLES[key]; if(!d) return 'Sort';
+    if(!s.sortKey) return 'Sort by '+(cwpSortableCols(d.columns)[0]?.label||'column').toLowerCase();
+    const col=d.columns.find(c=>c.key===s.sortKey);
+    const dir=s.sortDir==='desc'?' (Z–A)':'';
+    return 'Sort by '+((col&&col.label)||s.sortKey).toLowerCase()+dir;
+  }
+  function cwpRdToolbarHtml(key){
+    const d=TABLES[key]; if(!d) return '';
+    const s=st(key);
+    const filterCols=cwpChipFilterCols(d.columns);
+    let html='<div class="rd-toolbar rd-cwp-toolbar" data-rd-cwp-key="'+esc(key)+'">';
+    filterCols.forEach(col=>{
+      const cur=s.filters[col.key]||'all';
+      const on=cur && cur!=='all' && cur!=='';
+      const text=on?(col.label+': '+cur):(col.label+': all');
+      html+='<button type="button" class="rd-chip'+(on?' is-active':'')+'" onclick="rdCwpOpenFilter(\''+key+'\',\''+col.key+'\',this)">'
+        +esc(text)
+        +(on?'<span class="rd-chip__clear" onclick="event.stopPropagation();rdCwpClearFilter(\''+key+'\',\''+col.key+'\')">&#10005;</span>'
+            :'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg>')
+        +'</button>';
+    });
+    html+='<button type="button" class="rd-chip rd-chip--ghost" onclick="rdCwpOpenSort(\''+key+'\',this)">'
+      +'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>'
+      +esc(cwpSortLabel(key))
+      +'<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><path d="m6 9 6 6 6-6"/></svg></button>';
+    if(typeof window.rdStandardRightHtml==='function'){
+      html+=window.rdStandardRightHtml(key, {
+        openColumns:"rdCwpOpenColumns(this,'"+key+"')",
+        autofit:"rdCwpAutoFit('"+key+"')",
+        rowHeight:"rdCwpCycleRowHeight('"+key+"')"
+      });
+    } else {
+      html+='<button type="button" class="rd-chip" onclick="rdCwpOpenColumns(this,\''+key+'\')">Columns</button>'
+        +'<button type="button" class="rd-chip" onclick="rdCwpAutoFit(\''+key+'\')">Auto-fit columns</button>'
+        +'<button type="button" class="rd-chip" onclick="rdCwpCycleRowHeight(\''+key+'\')">Row height</button>';
+    }
+    html+='</div>';
+    return html;
+  }
+  window.rdCwpToolbarHtml=cwpRdToolbarHtml;
+  window.rdCwpOpenFilter=function(key, field, btn){
+    const d=TABLES[key]; if(!d) return;
+    const col=d.columns.find(c=>c.key===field);
+    const s=st(key);
+    const cur=s.filters[field]||'all';
+    const values=[...new Set(DB.all(d.entity).map(r=>{
+      return col?colText(col,r):String(r[field]==null?'':r[field]).trim();
+    }).filter(v=>v!==''))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+    const opts=[{value:'all',label:'All'}].concat(values.map(v=>({value:v,label:v})));
+    if(typeof window.rdPickOne==='function'){
+      window.rdPickOne(btn, opts, cur||'all', val=>{
+        if(!val||val==='all') delete s.filters[field];
+        else s.filters[field]=val;
+        s.page=0; renderTable(key);
+      });
+    }
+  };
+  window.rdCwpClearFilter=function(key, field){
+    const s=st(key); delete s.filters[field]; s.page=0; renderTable(key);
+  };
+  window.rdCwpOpenSort=function(key, btn){
+    const d=TABLES[key]; if(!d) return;
+    const s=st(key);
+    const cols=cwpSortableCols(d.columns);
+    const opts=[{value:'',label:'Default order'}].concat(cols.map(c=>({
+      value:c.key+':asc', label:c.label+' (A–Z)'
+    })).concat(cols.map(c=>({
+      value:c.key+':desc', label:c.label+' (Z–A)'
+    }))));
+    const current=s.sortKey?(s.sortKey+':'+(s.sortDir||'asc')):'';
+    if(typeof window.rdPickOne==='function'){
+      window.rdPickOne(btn, opts, current, val=>{
+        if(!val){ s.sortKey=''; s.sortDir='asc'; }
+        else { const parts=String(val).split(':'); s.sortKey=parts[0]; s.sortDir=parts[1]==='desc'?'desc':'asc'; }
+        s.page=0; renderTable(key);
+      });
+    }
+  };
+  window.rdCwpOpenColumns=function(btn, key){
+    if(typeof window.rdOpenColumns==='function') window.rdOpenColumns(btn, key);
+  };
+  window.rdCwpAutoFit=function(key){
+    if(typeof window.rdStdAutoFit==='function') window.rdStdAutoFit(null, key);
+    else if(typeof window.cwpAutoFitTableColumns==='function') window.cwpAutoFitTableColumns(key);
+  };
+  window.rdCwpCycleRowHeight=function(key){
+    const mount=cwpMountEl(key);
+    if(typeof window.rdStdApplyRowHeight==='function' && typeof window.rdStdHeightLabel==='function'){
+      const order=['compact','default','tall'];
+      const cur=window.rdStdHeightLabel(key);
+      const next=order[(Math.max(0, order.indexOf(cur))+1)%order.length];
+      try { localStorage.setItem('rdRowHeight:'+(typeof activeProfile!=='undefined'&&activeProfile!=null?activeProfile:'default')+':'+key, next); } catch(e) {}
+      window.rdStdApplyRowHeight(key, mount);
+    }
+    renderTable(key);
+  };
 
   function renderTable(key, mountOverride){
     const d=TABLES[key]; if(!d) return;
@@ -44683,9 +45213,12 @@ function mountAllTabs(root){
     mount.classList.add('cwp-mount');
     const readOnlyPreview=mount.classList.contains('ro-preview');
     mount.classList.toggle('cwp-readonly-preview', readOnlyPreview);
-    const cols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns, bulk=!readOnlyPreview&&bulkOn(key);
+    const rawCols=readOnlyPreview?cwpColumnsForMount(key,true):d.columns;
+    const cols=cwpRegisterRdColumns(key, rawCols), bulk=!readOnlyPreview&&bulkOn(key);
     const s=st(key);
     const hubFullToolbar = isCwpHubMount(mountId);
+    const ownsPage = pageOwnsToolbar(key) && !hubFullToolbar && !readOnlyPreview;
+    const injectRdToolbar = !ownsPage;
     const showFullToolbar = !d.hideToolbar || hubFullToolbar || readOnlyPreview;
     /* bulk action buttons (Edit Selected / Delete Selected) — shared so they can
        appear in the full toolbar OR in a slim bar when the page owns the header */
@@ -44708,11 +45241,15 @@ function mountAllTabs(root){
     const autofitRowsBtn='<button class="cwp-btn cwp-btn-ghost cwp-btn-sm" onclick="cwpAutoFitTableRows(\''+key+'\')" title="Size all rows to fit their contents">Auto-fit rows</button>';
     if(readOnlyPreview) {
       tools+=autofitBtn+autofitRowsBtn;
-    } else if(d.hideToolbar && bulk && !hubFullToolbar) bulkTools=autofitBtn+autofitRowsBtn+bulkTools;
-    else {
+    } else if(d.hideToolbar && bulk && !hubFullToolbar) bulkTools=bulkTools;
+    else if(!injectRdToolbar) {
       tools+=autofitBtn+autofitRowsBtn;
       tools+='<button class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="cwpAdd(\''+key+'\')">'+esc(d.addLabel||'+ Add')+'</button>';
       tools+=bulkTools;
+    } else {
+      /* Chip toolbar owns Filters / Sort / Columns / Auto-fit / Row height.
+         Keep Add + bulk on a slim secondary strip. */
+      tools='<button class="cwp-btn cwp-btn-primary cwp-btn-sm" onclick="cwpAdd(\''+key+'\')">'+esc(d.addLabel||'+ Add')+'</button>'+bulkTools;
     }
 
     let head='<tr>';
@@ -44725,10 +45262,23 @@ function mountAllTabs(root){
       ? '<th data-t="'+c.type+'"'+w+'><span class="cwp-th-flx">'+esc(c.label)+'<button type="button" class="col-filter cwp-col-filter" data-col="'+attr(c.key)+'" onclick="cwpOpenColFilter(\''+key+'\',\''+c.key+'\',this)" aria-label="Filter '+attr(c.label)+'">▾</button></span><span class="cwp-col-resizer" data-col="'+attr(c.key)+'"></span></th>'
       : '<th data-t="'+c.type+'"'+w+'>'+esc(c.label)+'<span class="cwp-col-resizer" data-col="'+attr(c.key)+'"></span></th>'; }).join('')+'</tr>';
 
+    const rdBar = injectRdToolbar ? cwpRdToolbarHtml(key) : '';
+    let legacyBar='';
+    if(ownsPage){
+      legacyBar = showFullToolbar
+        ? '<div class="cwp-toolbar">'+tools+'</div>'
+        : (bulk?'<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>':'');
+    } else if(tools){
+      legacyBar = '<div class="cwp-toolbar cwp-toolbar--bulk">'+tools+'</div>';
+    } else if(bulk){
+      legacyBar = '<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>';
+    }
+
     mount.innerHTML=
       '<section class="cwp-section">'
       +(!d.hideToolbar?'<div class="cwp-section-head"><h2 class="cwp-section-title">'+esc(d.title)+'</h2></div>':'')
-      +(showFullToolbar?'<div class="cwp-toolbar">'+tools+'</div>':(bulk?'<div class="cwp-toolbar cwp-toolbar--bulk">'+bulkTools+'</div>':'<div class="cwp-toolbar cwp-toolbar--autofit">'+autofitBtn+autofitRowsBtn+'</div>'))
+      +rdBar
+      +legacyBar
       +'<div class="cwp-section-body"><div class="cwp-table-wrap'+(d.wrapClass?' '+d.wrapClass:'')+'"><table class="cwp-table"><thead>'+head+'</thead><tbody id="cwp-tbody-'+key+'"></tbody></table></div></div>'
       +'<div class="cwp-pager" id="cwp-pager-'+key+'"></div>'
       +'</section>';
@@ -44737,11 +45287,19 @@ function mountAllTabs(root){
     if(stripActions(key)){ const hr=mount.querySelector('thead tr'); if(hr && hr.lastElementChild) hr.removeChild(hr.lastElementChild); }
     cwpWireResizers(key);
     const tableEl = mount.querySelector('table.cwp-table');
+    if (typeof window.rdStdApplyRowHeight === 'function') window.rdStdApplyRowHeight(key, mount);
     if (tableEl && typeof scheduleStretchPlannerTable === 'function') scheduleStretchPlannerTable(tableEl);
     if (tableEl && typeof ensureTableWidthStretchObserver === 'function') ensureTableWidthStretchObserver(tableEl);
     if (typeof uedApplyTableHeaderColor === 'function') uedApplyTableHeaderColor(mount);
     if (typeof RdDepth !== 'undefined' && RdDepth.decorateTable && tableEl) {
       try { RdDepth.decorateTable(tableEl, { force: true, summary: true, addColumn: false }); } catch (e) {}
+    }
+    try {
+      mount.dispatchEvent(new CustomEvent('cwp:table-rendered', { bubbles: true, detail: { key: key } }));
+    } catch (e) { /* IE ignore */ }
+    /* Page chrome owns Columns/Auto-fit — drop any inject that slipped in. */
+    if (ownsPage && typeof window.rdRemoveDuplicateToolbars === 'function') {
+      try { window.rdRemoveDuplicateToolbars(mount.closest('.panel, .rd-page') || mount); } catch (e) {}
     }
   }
 
@@ -44981,7 +45539,25 @@ function mountAllTabs(root){
   window.cwpViewAll=(key,on)=>{ const s=st(key); s.viewAll=!!on; s.page=0; renderRows(key); };
   window.cwpClear=(key)=>{ const s=st(key); s.search=''; s.filters={}; s.colf={}; renderTable(key); };
   function indexOf(entity,id){ return DB.all(entity).findIndex(r=>String(r._id)===String(id)); }
-  window.cwpAdd=(key)=>{ const d=TABLES[key]; if(typeof d.addFn==='function'){ d.addFn(); return; } if(typeof openRecordEditor==='function'){ openRecordEditor(d.entity); } else { const rec=DB.add(d.entity, d.newRecord?d.newRecord():{}); renderRows(key); openEditor(d.entity, rec._id); } };
+  window.cwpAdd=(key)=>{
+    const d=TABLES[key]; if(!d) return;
+    /* Prefer page helpers / redesign drawer — never jump straight to the
+       traffic-light full-editor window for a blank +Add when a drawer exists. */
+    if(typeof d.addFn==='function'){ d.addFn(); return; }
+    const entity=d.entity||key;
+    const helpers={
+      tasks:'addTaskRow', guests:'addGuestRow', appointments:'addAppointmentRow',
+      vendors:'addVendorRow', party:'addPartyRow', gifts:'addGiftRow',
+      payments:'addPaymentRow', contracts:'addContractRow', essentials:'addEssentialRow',
+      shotlist:'addShotRow', videoShots:'addVideoShotRow', prayer:'addPrayerRow',
+      counseling:'addCounselingRow', timeline:'addTimelineRow', notesDetails:'addNotesDetailRow'
+    };
+    const fnName=helpers[entity]||helpers[key];
+    if(fnName && typeof window[fnName]==='function'){ window[fnName](); return; }
+    if(typeof rdOpenNewInDrawer==='function' && rdOpenNewInDrawer(entity)) return;
+    if(typeof openRecordEditor==='function'){ openRecordEditor(entity); return; }
+    const rec=DB.add(entity, d.newRecord?d.newRecord():{}); renderRows(key); openEditor(entity, rec._id);
+  };
   window.cwpDelete=async (key,id)=>{ const d=TABLES[key]; if(!(await covConfirm('Delete this '+(ENTITIES[d.entity].label||'record').toLowerCase()+'?', {title:'Delete record?', danger:true, okText:'Delete'}))) return; DB.remove(d.entity,id); st(key).sel.delete(String(id)); renderRows(key); if(typeof afterCwpChange==='function') afterCwpChange(d.entity); };
   window.cwpToggleRow=(key,id,on,el)=>{
     const s=st(key);
@@ -45074,9 +45650,17 @@ function openFieldPicker(input, getOptions, cfg){
     it.addEventListener('mousedown', function(ev){ ev.preventDefault(); pickFieldOption(it.getAttribute('data-val')); });
   });
   var r = input.getBoundingClientRect();
-  pop.style.top = (window.scrollY + r.bottom + 2) + 'px';
-  pop.style.left = (window.scrollX + r.left) + 'px';
-  pop.style.minWidth = Math.max(180, r.width) + 'px';
+  var minW = Math.max(180, r.width);
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, input, { minWidth: minW, gap: 2, zIndex: 2147483600 });
+  } else {
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    pop.style.width = 'max-content';
+    pop.style.minWidth = minW + 'px';
+    pop.style.top = (r.bottom + 2) + 'px';
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - minW - 8)) + 'px';
+  }
 }
 function pickFieldOption(val){
   var s = _fpState, input = s.input; if(!input) return;
@@ -45316,10 +45900,16 @@ PT.openColFilter = function(key, field, btn){
       }).join('') + '</div>'
     + '<div class="cfp-actions"><button type="button" class="cfp-btn" onclick="PT.colClear(\''+key+'\',\''+field+'\')">Clear</button><button type="button" class="cfp-btn cfp-btn-primary" onclick="PT.closeColFilter()">Done</button></div>';
   document.body.appendChild(pop);
-  var r = btn.getBoundingClientRect(), left = window.scrollX + r.left;
-  var maxLeft = window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 8;
-  if(left > maxLeft) left = Math.max(window.scrollX + 8, maxLeft);
-  pop.style.top = (window.scrollY + r.bottom + 4) + 'px'; pop.style.left = left + 'px';
+  if (typeof window.rdAnchorToButton === 'function') {
+    window.rdAnchorToButton(pop, btn, { keepWidth: true, minWidth: 236, gap: 4, zIndex: 2147483600 });
+  } else {
+    pop.style.position = 'fixed';
+    pop.style.display = 'inline-block';
+    var r = btn.getBoundingClientRect();
+    var w = Math.max(pop.offsetWidth || 0, 236);
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+    pop.style.top = (r.bottom + 4) + 'px';
+  }
   setTimeout(function(){ document.addEventListener('mousedown', PT._colOutside, true); }, 0);
 };
 PT.cfpFilter = function(q){ q = (q||'').toLowerCase(); document.querySelectorAll('#pt-col-pop .cfp-list .cfp-item').forEach(function(it){ it.style.display = (!q || (it.getAttribute('data-val')||'').indexOf(q) !== -1) ? '' : 'none'; }); };
