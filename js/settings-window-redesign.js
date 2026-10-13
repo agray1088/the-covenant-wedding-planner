@@ -230,7 +230,17 @@
     }
     CS.fetchSetupStatus().then(function (status) {
       window._rdHostedSetupStatus = status;
-      if (body) body.innerHTML = renderHostedSetupBody(status);
+      if (body) {
+        body.innerHTML = renderHostedSetupBody(status);
+        var hostOv = document.getElementById(OVERLAY_ID);
+        if (hostOv) wireActions(hostOv);
+        var lastTe = window._rdLastTestEmail;
+        var teEl = document.getElementById('rd-test-email-result');
+        if (teEl && lastTe) {
+          teEl.className = 'rd-set__note' + (lastTe.ok ? '' : ' rd-set__note--amber');
+          teEl.textContent = lastTe.msg;
+        }
+      }
       applySetupStatusToControls(status);
     }).catch(function () {
       if (body) {
@@ -1099,22 +1109,44 @@
       if (name === 'rdSendTestEmail') {
         var resEl = document.getElementById('rd-test-email-result');
         var show = function (ok, msg) {
-          if (resEl) {
-            resEl.className = 'rd-set__note' + (ok ? '' : ' rd-set__note--amber');
-            resEl.textContent = msg;
+          window._rdLastTestEmail = { ok: ok, msg: msg };
+          var cur = document.getElementById('rd-test-email-result') || resEl;
+          if (cur) {
+            cur.className = 'rd-set__note' + (ok ? '' : ' rd-set__note--amber');
+            cur.textContent = msg;
           }
+          if (el) { el.disabled = false; el.classList.remove('is-disabled'); }
           if (typeof showToast === 'function') showToast(msg);
         };
-        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.sendTestEmail !== 'function') {
-          show(false, 'Cloud bridge not loaded.');
+        var CSE = window.CovenantCloudSync;
+        if (!CSE || typeof CSE.sendTestEmail !== 'function') {
+          show(false, 'Cloud bridge not loaded. Hard refresh (Ctrl+Shift+R) and try again.');
           return;
         }
-        if (resEl) resEl.textContent = 'Sending test email…';
-        window.CovenantCloudSync.sendTestEmail()
+        var apiBaseNow = '';
+        try { apiBaseNow = (window.COVENANT_CLOUD && (window.COVENANT_CLOUD.apiBase || window.COVENANT_CLOUD.api)) || localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { apiBaseNow = ''; }
+        if (!apiBaseNow) {
+          show(false, 'No API base URL set. Enter it under Cloud sync and click Enable first.');
+          return;
+        }
+        var signedIn = false;
+        try { signedIn = !!localStorage.getItem('covenant_cloud_token'); } catch (e) { signedIn = false; }
+        if (!signedIn) {
+          show(false, 'Not signed in. Sign in under Cloud sync, then send the test email.');
+          return;
+        }
+        if (el) { el.disabled = true; el.classList.add('is-disabled'); }
+        if (resEl) { resEl.className = 'rd-set__note'; resEl.textContent = 'Sending test email…'; }
+        var p;
+        try { p = CSE.sendTestEmail(); } catch (e) { p = Promise.reject(e); }
+        Promise.resolve(p)
           .then(function (body) { show(true, (body && body.message) || 'Test email sent.'); })
           .catch(function (err) {
             var code = err && err.body && err.body.error;
-            show(false, 'Test email failed' + (code ? ' (' + code + ')' : '') + ': ' + ((err && err.message) || 'unknown error'));
+            var msg = (err && err.message) || 'unknown error';
+            if (err && err.status === 401) msg = 'Not signed in or session expired. Sign in again. (' + msg + ')';
+            else if (err instanceof TypeError || /fetch|network/i.test(msg)) msg = 'Request failed — cannot reach the API at ' + apiBaseNow + ' (' + msg + ')';
+            show(false, 'Test email failed' + (code ? ' (' + code + ')' : '') + ': ' + msg);
           });
         return;
       }
