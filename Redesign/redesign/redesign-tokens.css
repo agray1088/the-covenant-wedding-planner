@@ -29,7 +29,8 @@
   --surface-canvas:  #F9F7F4;   /* app background behind the frame */
   --surface-content: #FFFFFF;   /* the work surface: tables, forms */
   --surface-raised:  #FDFCFA;   /* toolbars, page-header strip */
-  --surface-sunken:  #F9F5EF;   /* the 224px rail, group rows */
+  --surface-sunken:  #F9F5EF;   /* the 224px rail, recessed chrome */
+  --surface-group:   #EEE8DE;   /* table category / group bands (slightly deeper than sunken) */
   --surface-active:  #F4F1EA;   /* bulk bar, selected rail section */
   --surface-chrome:  #FDFCFA;   /* tab strip */
   --surface-footer:  #F3EFE8;
@@ -71,13 +72,15 @@
   --font-display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
   --font-mono:   ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --type-page-title:  20px;   --type-page-title-lh:  1.2;
-  --type-section:     10px;   /* eyebrow: uppercase, .16em, 700 */
-  --type-stat:        24px;
-  --type-body:        13px;   --type-body-lh: 1.6;
-  --type-table:       13px;
-  --type-meta:        12px;
-  --type-micro:       11px;
+  /* Type scale ~10% denser than Master baseline (--type-scale). */
+  --type-scale:       0.9;
+  --type-page-title:  calc(20px * var(--type-scale));   --type-page-title-lh:  1.2;
+  --type-section:     calc(10px * var(--type-scale));   /* eyebrow: uppercase, .16em, 700 */
+  --type-stat:        calc(24px * var(--type-scale));
+  --type-body:        calc(13px * var(--type-scale));   --type-body-lh: 1.6;
+  --type-table:       calc(13px * var(--type-scale));
+  --type-meta:        calc(12px * var(--type-scale));
+  --type-micro:       calc(11px * var(--type-scale));
   --tracking-eyebrow: .16em;
   --tracking-header:  .12em;  /* table header cells */
   --tracking-tab:     .1em;
@@ -99,8 +102,9 @@
   --component-table-row-height: 36px;
   --component-input-height:     32px;
   --component-button-height:    32px;
-  --component-chip-height:      28px;
-  --component-icon-button-size: 28px;
+  /* Same as buttons — toolbar continuity (chips, viewswitch, dropdowns). */
+  --component-chip-height:      32px;
+  --component-icon-button-size: 32px;
   --component-card-padding:     var(--space-5);
   --component-section-gap:      0px;   /* sections butt against hairlines */
 
@@ -115,9 +119,9 @@
 
   /* ---- buttons ----------------------------------------------------------- */
   --btn-pad-y: 0;         --btn-pad-x: 16px;
-  --btn-font-size: 13px;  --btn-font-weight: 600;
+  --btn-font-size: calc(13px * var(--type-scale, 0.9));  --btn-font-weight: 600;
   --btn-toolbar-pad-y: 0; --btn-toolbar-pad-x: 11px;
-  --btn-toolbar-font-size: 12px;
+  --btn-toolbar-font-size: calc(12px * var(--type-scale, 0.9));
 
   /* ---- progress ---------------------------------------------------------- */
   --progress-track-height: 4px;      /* rail meters; 12px for page-level bars */
@@ -168,17 +172,18 @@ body.editorial-v4[data-theme="dark"],
 
   --surface-canvas:  #141414;
   --surface-content: #1A1A1A;
-  --surface-raised:  #1E1E1E;
+  --surface-raised:  #222222;
   --surface-sunken:  #1C1C1C;
-  --surface-active:  #222222;
-  --surface-chrome:  #1E1E1E;
+  --surface-group:   #22201C;
+  --surface-active:  #262626;
+  --surface-chrome:  #222222;
   --surface-footer:  #181818;
   --surface-selected:#1B2028;
   --surface-focused: #24211B;
 
   --text-primary:  #E6E6E6;
   --text-body:     #D2D2D2;
-  --text-muted:    #9A9A9A;
+  --text-muted:    #8A8A8A;
   --text-subtle:   #8A8A8A;
   --text-faint:    #6E6E6E;
   --text-empty:    #5A5A5A;
@@ -217,6 +222,22 @@ body.editorial-v4[data-theme="dark"],
   --shell-topbar-bg:   var(--forest);
   --table-header-bg:   var(--forest-deep);
   --table-header-rule: var(--gold);
+
+  /* Scrollbars (light) */
+  --scroll-track:        transparent;
+  --scroll-thumb:        rgba(54, 39, 20, .28);
+  --scroll-thumb-hover:  rgba(54, 39, 20, .42);
+
+  /* Calendar / chip mix bases */
+  --smart-chip-mix-base: #fff;
+  --cal-cell-cream:        #FCFAF6;
+  --cal-cell-outside:      #F5F2EC;
+  --cal-cell-selected:     #F4F1EA;
+  --rd-agenda-line-soft:   #f0ebe0;
+  --rd-agenda-date-bg:     var(--surface-content);
+  --rd-agenda-date-today:  #f9f5ef;
+  --rd-agenda-overdue-bg:  #fff8f6;
+  --rd-week-today-cell:    #f9f5ef;
 }
 
 /* Print is light, always. Paper has no dark mode. */
