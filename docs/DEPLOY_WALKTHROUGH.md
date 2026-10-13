@@ -39,11 +39,40 @@ git pull origin cursor/offline-cloud-sync-017e
 2. **New Project** → **Deploy from GitHub**.
 3. Select **`agray1088/the-covenant-wedding-planner`**.
 4. When asked for a branch, choose **`cursor/offline-cloud-sync-017e`** (or `master` once this PR is merged).
-5. Confirm the service builds from root config **`railway.toml`** → Dockerfile **`server/Dockerfile`** (API only).
+5. Open the new service → **Settings** → **Build** and set **exactly**:
 
-Optional later (one HTTPS origin for planner + API): change `dockerfilePath` in `railway.toml` to `Dockerfile.hosted` and set `SERVE_STATIC=1`. First deploy: keep the default API-only image.
+| Setting | Value |
+|---------|--------|
+| **Builder** | **Dockerfile** (not Railpack / Nixpacks) |
+| **Dockerfile path** | `Dockerfile` |
+| **Root Directory** | empty / `/` (repo root — do **not** point at a static UI folder) |
+
+6. If Railway shows a yellow **pending changes** banner on the project canvas, click **Deploy** there — saved Builder settings do not apply until that banner is committed.
+7. Confirm deploy logs say **`Using detected Dockerfile!`** (or build from `Dockerfile`). You should **not** see Railpack / “No start command detected”.
+
+Repo config (`railway.toml`) also forces `builder = "DOCKERFILE"` and `dockerfilePath = "Dockerfile"` (API-only image at repo root). The root `Dockerfile` exists so Railway auto-detect prefers Docker over Railpack on the static planner.
+
+Optional later (one HTTPS origin for planner + API): set Dockerfile path to `Dockerfile.hosted` and Variable `SERVE_STATIC=1`. First deploy: keep the default API-only `Dockerfile`.
 
 Wait until the first deploy finishes (it may fail health checks until Postgres + env vars exist — that is OK).
+
+### Fix right now if you already see Railpack / “No start command detected”
+
+Railway is building the **repo-root static planner** (no `start` script) instead of the sync API image. Fix in the dashboard **before** waiting on a git pull:
+
+1. Service → **Settings** → **Build**.
+2. **Builder** → **Dockerfile**.
+3. **Dockerfile path** → `Dockerfile` (or `server/Dockerfile` **and** Root Directory → `/server`).
+4. **Root Directory** → leave empty / `/` when using root `Dockerfile`.
+5. Click **Deploy** on the pending-changes banner (required — otherwise the next build stays on Railpack).
+6. Then pull the latest branch and redeploy:
+
+```powershell
+git checkout cursor/offline-cloud-sync-017e
+git pull origin cursor/offline-cloud-sync-017e
+```
+
+Redeploy from Railway (or push an empty commit) so the new root `Dockerfile` + `railway.toml` are used.
 
 ---
 
@@ -338,6 +367,7 @@ Reconnect checklist: [`RECONNECT_AFTER_RESTART.md`](./RECONNECT_AFTER_RESTART.md
 
 | Symptom | Likely fix |
 |---------|------------|
+| **`No start command detected` / Railpack prepare error** | Builder is Railpack on repo root (static planner). Settings → Build → **Dockerfile**, path **`Dockerfile`**, Root Directory empty, then **Deploy** the pending banner. See [Fix right now](#fix-right-now-if-you-already-see-railpack--no-start-command-detected) |
 | Deploy crash / healthcheck fail | Link Postgres; set `DATABASE_SSL=1`; wait for `DATABASE_URL`; check deploy logs |
 | `/health` → db not `up` | Postgres not linked or TLS — confirm `DATABASE_URL` + `DATABASE_SSL=1` |
 | Browser CORS errors | Add the exact planner origin to `CORS_ORIGIN` (scheme + host + port) |
@@ -355,7 +385,8 @@ Fly.io alternate path and self-host Compose: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLO
 
 ## Done checklist
 
-- [ ] Railway project + `server/Dockerfile` deploy from this branch  
+- [ ] Railway **Builder = Dockerfile**, path **`Dockerfile`**, branch `cursor/offline-cloud-sync-017e`  
+- [ ] Deploy logs show Dockerfile (not Railpack / “No start command”)  
 - [ ] Postgres linked + `DATABASE_SSL=1`  
 - [ ] `SESSION_SECRET`, `TRUST_PROXY=1`, `PUBLIC_URL`, `CORS_ORIGIN`  
 - [ ] `GET /health` → ok + db up over HTTPS  

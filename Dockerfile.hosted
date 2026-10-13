@@ -1,6 +1,7 @@
 # Optional single-service image: sync API + static planner (index.html, js/, css/).
 # Use when you want one HTTPS origin for both UI and API (SERVE_STATIC=1).
-# Preferred multi-host setup still uses server/Dockerfile (API only) + static CDN.
+# Preferred multi-host setup uses root Dockerfile (API only) + static CDN.
+# Do not name this file Dockerfile — Railway auto-detects root Dockerfile for the API.
 # Deploy checklist: docs/HOSTED_DEPLOY.md  |  Env template: server/.env.production.example
 #
 #   docker build -f Dockerfile.hosted -t covenant-hosted .

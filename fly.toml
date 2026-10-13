@@ -35,8 +35,10 @@
 app = "covenant-sync-api"
 primary_region = "iad"
 
+# Prefer repo-root Dockerfile (Railway-compatible API image). server/Dockerfile
+# remains valid when build context is ./server (Compose).
 [build]
-  dockerfile = "server/Dockerfile"
+  dockerfile = "Dockerfile"
 
 # Non-secret defaults only. Real secrets → `fly secrets set`.
 [env]

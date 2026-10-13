@@ -44,9 +44,16 @@ Railway fits this stack: managed Postgres, automatic HTTPS, Dockerfile deploy, d
 
 ### 1. Create the project
 
-1. [Railway](https://railway.app/) → **New Project** → **Deploy from GitHub** (this repo).
-2. Root config is `railway.toml` → builds with `server/Dockerfile` (API only).
-3. Optional single-service UI+API: change `dockerfilePath` to `Dockerfile.hosted` and set `SERVE_STATIC=1` (one HTTPS origin for planner + API).
+1. [Railway](https://railway.app/) → **New Project** → **Deploy from GitHub** (this repo), branch **`cursor/offline-cloud-sync-017e`**.
+2. Service → **Settings** → **Build**:
+   - **Builder** = **Dockerfile** (not Railpack)
+   - **Dockerfile path** = `Dockerfile` (repo-root API image)
+   - **Root Directory** = empty / `/`
+   - Click **Deploy** on any pending-changes banner
+3. Root `railway.toml` also sets `builder = "DOCKERFILE"` + `dockerfilePath = "Dockerfile"`. A root `Dockerfile` is required so Railway does not Railpack the static planner (`No start command detected`).
+4. Optional single-service UI+API: set Dockerfile path to `Dockerfile.hosted` and Variable `SERVE_STATIC=1`.
+
+**Already failing with Railpack?** Fix Builder/path in the dashboard first (steps above), then `git pull origin cursor/offline-cloud-sync-017e` and redeploy. Exact clicks: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) §1.
 
 ### 2. Add Postgres
 
@@ -158,7 +165,7 @@ Optional custom domain: point DNS at Railway, then set `PUBLIC_URL` (and Google 
 
 ## Alternate path: Fly.io
 
-Same image (`server/Dockerfile`). Root `fly.toml` force-HTTPS + `/health` check. App name in `fly.toml` is a placeholder — change it before first deploy.
+Same image (root `Dockerfile`). Root `fly.toml` force-HTTPS + `/health` check. App name in `fly.toml` is a placeholder — change it before first deploy.
 
 ```bash
 # once — edit app name in fly.toml if needed
@@ -287,9 +294,10 @@ See [`RECONNECT_AFTER_RESTART.md`](./RECONNECT_AFTER_RESTART.md).
 
 | File | Role |
 |------|------|
-| `railway.toml` | Preferred Railway Dockerfile + `/health` |
+| `Dockerfile` | **Railway default** — API-only image (repo-root context; auto-detected) |
+| `railway.toml` | Forces Dockerfile builder + `/health` (avoids Railpack on static root) |
 | `fly.toml` | Fly app, force HTTPS, `/health` |
-| `server/Dockerfile` | API-only production image |
+| `server/Dockerfile` | Same API image when build context is `./server` (Compose) |
 | `Dockerfile.hosted` | Optional API + static planner |
 | `server/.env.production.example` | **Every** production var with comments |
 | `docker-compose.prod.yml` | Optional self-host |

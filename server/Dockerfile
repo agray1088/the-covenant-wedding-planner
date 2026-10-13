@@ -1,5 +1,7 @@
 # Production image for the Covenant sync API (Node + Express).
-# Pair with managed Postgres (Railway/Fly/Render) via DATABASE_URL.
+# Build context must be ./server (docker compose / Fly). Railway prefers the repo-root
+# Dockerfile (same image, context = repo root) so auto-detect does not run Railpack on
+# the static planner — see railway.toml and docs/DEPLOY_WALKTHROUGH.md.
 # Local Docker Desktop still uses docker-compose.yml (dev trust auth) — not this file.
 # Deploy checklist: docs/HOSTED_DEPLOY.md  |  Env template: .env.production.example
 #

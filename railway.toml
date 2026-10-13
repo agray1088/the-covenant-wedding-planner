@@ -3,15 +3,26 @@
 # Full checklist: docs/HOSTED_DEPLOY.md
 # Env template: server/.env.production.example
 #
-# Dashboard steps (you paste secrets — we cannot log into your Railway account):
-# 1. New Project → Deploy from GitHub (this repo)
-# 2. Add Postgres → link to this service (injects DATABASE_URL)
-# 3. Variables → set every required secret below, then redeploy
-# 4. Copy the public HTTPS URL → PUBLIC_URL (no trailing slash)
-# 5. curl https://$PUBLIC_URL/health and /setup/status
-# 6. Planner Settings → Cloud sync → set API base to that PUBLIC_URL
+# WHY THIS FILE EXISTS
+# The repo root is a static planner (package.json has no "start"). If Railway uses
+# Railpack/Nixpacks on "/", you get: "No start command detected". This config forces
+# the Dockerfile builder so Railpack never runs against the frontend.
+#
+# Dashboard steps (paste secrets — we cannot log into your Railway account):
+# 1. New Project → Deploy from GitHub (this repo), branch cursor/offline-cloud-sync-017e
+# 2. Service → Settings → Build:
+#      Builder = Dockerfile
+#      Dockerfile path = Dockerfile   (repo-root API image; not Dockerfile.hosted)
+#      Root Directory = /             (leave empty / repo root — do NOT set to a UI folder)
+#    If you already hit Railpack: apply those three, then Deploy the pending-changes banner
+# 3. Add Postgres → link to this service (injects DATABASE_URL)
+# 4. Variables → set every required secret below, then redeploy
+# 5. Copy the public HTTPS URL → PUBLIC_URL (no trailing slash)
+# 6. curl https://$PUBLIC_URL/health and /setup/status
+# 7. Planner Settings → Cloud sync → set API base to that PUBLIC_URL
 #
 # Optional single-service UI+API: dockerfilePath = "Dockerfile.hosted" + SERVE_STATIC=1
+# Alternate: Root Directory = /server + Dockerfile path = Dockerfile (server/Dockerfile)
 #
 # --- Required Variables (Railway dashboard) ---
 #   DATABASE_URL          # from linked Postgres
@@ -39,9 +50,11 @@
 
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "server/Dockerfile"
+dockerfilePath = "Dockerfile"
+watchPatterns = ["Dockerfile", "railway.toml", "server/**"]
 
 [deploy]
+startCommand = "node index.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
