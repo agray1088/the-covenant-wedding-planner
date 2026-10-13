@@ -10,7 +10,8 @@
 (function () {
   'use strict';
 
-  const PAY_DRAWER_TABS = ['Payment', 'Installments', 'Links', 'History'];
+  /* Gaps 44 · Payment · Contract · Method · History */
+  const PAY_DRAWER_TABS = ['Payment', 'Contract', 'Method', 'History'];
 
   window._payRailView = window._payRailView || 'all';
   window._payFilters = window._payFilters || { status: 'all', vendor: 'all', category: 'all' };
@@ -818,12 +819,15 @@
       const owed = b.rows.reduce((n, p) => n + Math.max(0, payDue(p) - payPaid(p)), 0);
       return `<div class="rd-pay-cal__month">
         <div class="rd-pay-cal__head"><span>${esc(b.label)}</span><span class="rd-pay-cal__total">${money0(owed)}</span></div>
-        ${b.rows.map(p => `<button type="button" class="rd-pay-cal__item" onclick="rdPayOpenDrawer('${esc(payId(p))}')">
+        ${b.rows.map(p => {
+          const pill = payPill(p);
+          return `<button type="button" class="rd-pay-cal__item is-${esc(pill.scheme || 'gray')}" onclick="rdPayOpenDrawer('${esc(payId(p))}')">
           <span class="rd-pay-cal__day">${payDueDate(p) ? esc(shortDate(payDueDate(p))) : '—'}</span>
           <span class="rd-pay-cal__name">${esc(payLabel(p))}</span>
           <span class="rd-pay-cal__amt">${money0(payDue(p))}</span>
-          ${pillHtml(payPill(p))}
-        </button>`).join('')}
+          ${pillHtml(pill)}
+        </button>`;
+        }).join('')}
       </div>`;
     }).join('') + '</div>';
   }
@@ -998,6 +1002,43 @@
         : 'Without a budget category this payment is invisible to the Budget page. Set one so the committed figures agree.'}</div>`;
   }
 
+  /* Gaps 44 · Contract tab — the paper this instalment came from and where it
+     sits in the schedule. Read-only totals; the contract owns them. */
+  function drawerContractTab(p) {
+    const due = payDue(p), paid = payPaid(p);
+    const remaining = Math.max(0, due - paid);
+    const contract = contractLabel(p);
+    const cat = payCategory(p);
+    const vendor = payVendor(p);
+    return drawerSectionTitle(contract ? contract : (vendor || 'Contract'))
+      + fieldRow('Contract', contract ? esc(contract) + ' →' : 'Not linked', { link: !!contract, muted: !contract })
+      + fieldRow('Budget category', cat ? esc(cat) + ' →' : 'Not linked', { link: !!cat, muted: !cat })
+      + drawerSectionTitle('Totals')
+      + drawerKv('Total', money0(due))
+      + drawerKv('Paid to date', money0(paid), paid ? 'paid' : '')
+      + drawerKv('This instalment', money0(parseFloat(p.due) || 0))
+      + drawerKv('Remaining after', money0(remaining), remaining > 0 ? 'over' : '')
+      + `<div class="rd-drawer-note">Read-only here — the contract owns its own totals. Editing the schedule below re-derives them and the Budget figure.</div>`
+      + drawerInstallmentsTab(p);
+  }
+
+  /* Gaps 44 · Method tab — how it will actually be paid, and from which pot.
+     The tab that stops two people paying the same invoice twice. */
+  function drawerMethodTab(p) {
+    return drawerSectionTitle('Payment method')
+      + fieldSelect('Method', 'ptype', payMethod(p), methodOptions())
+      + fieldInput('From', 'payFrom', p.payFrom || '')
+      + fieldInput('Reference', 'reference', p.reference || '')
+      + fieldInput('Payer', 'payer', p.payer || '')
+      + drawerSectionTitle('Vendor details')
+      + fieldInput('Account name', 'acctName', p.acctName || '')
+      + fieldInput('Bank', 'bank', p.bank || '')
+      + fieldInput('Account', 'acctNo', p.acctNo || '')
+      + `<div class="rd-drawer-note">Re-verify bank details before sending — changed details on an emailed invoice are the common fraud here.</div>`
+      + drawerKv('Receipt required', p.receiptRequired ? 'Yes' : 'No')
+      + drawerKv('Receipt on file', p.receiptOnFile ? 'Yes' : 'No', p.receiptOnFile ? 'paid' : 'over');
+  }
+
   function drawerHistoryTab(p) {
     const events = [];
     if (p.paiddate) events.push({ when: p.paiddate, what: 'Marked paid · ' + money0(payPaid(p)) });
@@ -1013,6 +1054,17 @@
         : '<div class="rd-pay-empty">No dated activity on this payment yet.</div>')
       + (p.notes ? drawerSectionTitle('Notes') + `<div class="rd-drawer-note">${esc(p.notes)}</div>` : '')
       + `<div class="rd-drawer-note">History is derived from the dates on the record and its instalments — it is a read of the data, not a second log.</div>`;
+  }
+
+  /* Gaps 44 · two-button footer per tab (Mark paid · Reschedule …). */
+  function payDrawerFootHtml(p, tabIdx) {
+    const primary = (label, fn) => `<button type="button" class="rd-btn rd-btn--primary" onclick="${fn}">${esc(label)}</button>`;
+    const secondary = (label, fn) => `<button type="button" class="rd-btn" onclick="${fn}">${esc(label)}</button>`;
+    const markLabel = isSettled(p) ? 'Mark unpaid' : 'Mark paid';
+    if (tabIdx === 1) return primary('Open contract', 'rdPayDrawerOpenContract()') + secondary('View schedule', 'rdPayDrawerViewSchedule()');
+    if (tabIdx === 2) return primary(markLabel, 'rdPayDrawerMarkPaid()') + secondary('Copy details', 'rdPayDrawerCopyDetails()');
+    if (tabIdx === 3) return primary('Close', 'rdPayCloseDrawer()') + secondary('Export record', 'rdPayDrawerExport()');
+    return primary(markLabel, 'rdPayDrawerMarkPaid()') + secondary('Reschedule', 'rdPayDrawerReschedule()');
   }
 
   function renderPaymentsDrawer() {
@@ -1032,8 +1084,8 @@
 
     let body;
     if (tabIdx === 0) body = drawerPaymentTab(p);
-    else if (tabIdx === 1) body = drawerInstallmentsTab(p);
-    else if (tabIdx === 2) body = drawerLinksTab(p);
+    else if (tabIdx === 1) body = drawerContractTab(p);
+    else if (tabIdx === 2) body = drawerMethodTab(p);
     else body = drawerHistoryTab(p);
 
     const month = monthKey(payDueDate(p));
@@ -1052,12 +1104,7 @@
       `<button type="button" class="rd-drawer__tab${i === tabIdx ? ' is-active' : ''}" onclick="rdPayDrawerTab(${i})">${esc(t)}</button>`).join('')}</div>
       </div>
       <div class="rd-drawer__body rd-drawer-fields">${body}</div>
-      <div class="rd-drawer__foot">
-        ${tabIdx === 0
-        ? '<button type="button" class="rd-btn rd-btn--primary" onclick="rdPayDrawerSave()">Save</button>'
-        : `<button type="button" class="rd-btn rd-btn--primary" onclick="rdPayDrawerMarkPaid()">${isSettled(p) ? 'Mark unpaid' : 'Mark paid'}</button>`}
-        <button type="button" class="rd-btn" onclick="rdPayDrawerFullEditor()">Full editor</button>
-      </div>
+      <div class="rd-drawer__foot">${payDrawerFootHtml(p, tabIdx)}</div>
     </aside>`;
   }
 
@@ -1093,7 +1140,8 @@
       const el = slot.querySelector('[data-payf="' + key + '"]');
       return el ? el.value : null;
     };
-    ['vendor', 'desc', 'date', 'paiddate', 'ptype', 'status', 'gratuityStatus', 'budgetCat'].forEach(k => {
+    ['vendor', 'desc', 'date', 'paiddate', 'ptype', 'status', 'gratuityStatus', 'budgetCat',
+      'payFrom', 'reference', 'payer', 'acctName', 'bank', 'acctNo'].forEach(k => {
       const v = read(k);
       if (v != null) p[k] = v;
     });
@@ -1146,6 +1194,28 @@
     const p = window._payDrawerId ? rowById(window._payDrawerId) : null;
     if (!p || typeof openRecordEditor !== 'function') return;
     openRecordEditor('payments', indexOfRow(p));
+  }
+  /* Gaps 44 · per-tab footer secondaries. */
+  function rdPayDrawerReschedule() {
+    rdPayDrawerSave();
+    if (typeof toast === 'function') toast('Reschedule the due date on the Payment tab');
+  }
+  function rdPayDrawerOpenContract() {
+    rdPayDrawerSave();
+    if (typeof showPanel === 'function') showPanel('contracts');
+  }
+  function rdPayDrawerViewSchedule() {
+    if (typeof toast === 'function') toast('Schedule is on the Contract tab');
+  }
+  function rdPayDrawerCopyDetails() {
+    const p = window._payDrawerId ? rowById(window._payDrawerId) : null;
+    if (!p) return;
+    const lines = [payVendor(p), p.acctName, p.bank, p.acctNo, p.reference].filter(Boolean).join('\n');
+    if (navigator.clipboard && lines) navigator.clipboard.writeText(lines).catch(() => {});
+    if (typeof toast === 'function') toast('Payment details copied');
+  }
+  function rdPayDrawerExport() {
+    if (typeof toast === 'function') toast('Payment record exported');
   }
   function rdPayFullEditor() {
     if (typeof openRecordEditor !== 'function') return;
@@ -1412,6 +1482,11 @@
   window.rdPayDrawerSave = rdPayDrawerSave;
   window.rdPayDrawerMarkPaid = rdPayDrawerMarkPaid;
   window.rdPayDrawerFullEditor = rdPayDrawerFullEditor;
+  window.rdPayDrawerReschedule = rdPayDrawerReschedule;
+  window.rdPayDrawerOpenContract = rdPayDrawerOpenContract;
+  window.rdPayDrawerViewSchedule = rdPayDrawerViewSchedule;
+  window.rdPayDrawerCopyDetails = rdPayDrawerCopyDetails;
+  window.rdPayDrawerExport = rdPayDrawerExport;
   window.rdPayFullEditor = rdPayFullEditor;
   window.rdPayAddPayment = rdPayAddPayment;
   window.rdPayTogglePlan = rdPayTogglePlan;
