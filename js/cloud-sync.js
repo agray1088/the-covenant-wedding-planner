@@ -11,6 +11,7 @@
   var LS_TOKEN = 'covenant_cloud_token';
   var LS_USER = 'covenant_cloud_user';
   var LS_WEDDING = 'covenant_cloud_wedding_id';
+  var LS_WEDDING_SCOPE = 'covenant_cloud_wedding_scope';
   var LS_STATUS = 'covenant_cloud_status';
   var LS_LAST_SYNC = 'covenant_cloud_last_sync';
   var LS_LAST_ERROR = 'covenant_cloud_last_error';
@@ -74,7 +75,7 @@
       detail: ls(LS_LAST_ERROR) || '',
       enabled: true,
       user: readJson(LS_USER),
-      weddingId: ls(LS_WEDDING),
+      weddingId: getWeddingId(),
       lastSync: ls(LS_LAST_SYNC)
     };
   }
@@ -87,7 +88,65 @@
     if (typeof fn === 'function') statusListeners.push(fn);
   }
 
+  function weddingScope() {
+    var u = readJson(LS_USER);
+    return cfg().apiBase + '|' + ((u && (u.id || u.userId)) || '');
+  }
+
+  /** Cached wedding id is only valid for the same API base + signed-in user. */
+  function getWeddingId() {
+    var id = ls(LS_WEDDING);
+    if (!id) return null;
+    if (ls(LS_WEDDING_SCOPE) !== weddingScope()) {
+      clearWeddingId();
+      return null;
+    }
+    return id;
+  }
+
+  function setWeddingId(id) {
+    lsSet(LS_WEDDING, id);
+    lsSet(LS_WEDDING_SCOPE, id ? weddingScope() : null);
+  }
+
+  function clearWeddingId() {
+    lsSet(LS_WEDDING, null);
+    lsSet(LS_WEDDING_SCOPE, null);
+  }
+
+  function recoverWedding() {
+    clearWeddingId();
+    setStatus('syncing', 'This account has no access to the cached wedding; re-linking...');
+    return api('/weddings').then(function (body) {
+      var list = Array.isArray(body.weddings) ? body.weddings : [];
+      if (list.length && list[0].id) return list[0].id;
+      return api('/weddings', { method: 'POST', body: setupPayload() }).then(function (b) {
+        return b.wedding && b.wedding.id;
+      });
+    }).then(function (id) {
+      if (!id) throw new Error('No wedding id returned');
+      setWeddingId(id);
+      lsSet(LS_LAST_ERROR, null);
+      return id;
+    });
+  }
+
   function api(path, opts) {
+    opts = opts || {};
+    return rawApi(path, opts).catch(function (err) {
+      var m = /^\/weddings\/[^/?]+(\/.*)?$/.exec(path);
+      if (!m || opts._relinked || !(err.status === 403 || err.status === 404) || !ls(LS_TOKEN)) throw err;
+      return recoverWedding().then(function (id) {
+        var next = Object.assign({}, opts, { _relinked: true });
+        return rawApi('/weddings/' + encodeURIComponent(id) + (m[1] || ''), next);
+      }, function (e2) {
+        setStatus('error', 'This account has no access to the cached wedding and re-linking failed: ' + (e2.message || e2));
+        throw err;
+      });
+    });
+  }
+
+  function rawApi(path, opts) {
     var c = cfg();
     if (!c.apiBase) return Promise.reject(new Error('Cloud API not configured'));
     opts = opts || {};
@@ -1176,6 +1235,14 @@
     return { pulled: 0, kept: 1 };
   }
 
+  function switchUser(user) {
+    var prev = readJson(LS_USER);
+    var pid = prev && (prev.id || prev.userId);
+    var nid = user && (user.id || user.userId);
+    if (pid !== nid) clearWeddingId();
+    lsSet(LS_USER, JSON.stringify(user || {}));
+  }
+
   function signIn(emailOrUsername, password) {
     return api('/auth/login', {
       method: 'POST',
@@ -1183,7 +1250,7 @@
     })
       .then(function (body) {
         lsSet(LS_TOKEN, body.token);
-        lsSet(LS_USER, JSON.stringify(body.user || {}));
+        switchUser(body.user);
         setStatus('signed_in');
         return body;
       });
@@ -1200,7 +1267,7 @@
       }
     }).then(function (body) {
       lsSet(LS_TOKEN, body.token);
-      lsSet(LS_USER, JSON.stringify(body.user || {}));
+      switchUser(body.user);
       setStatus('signed_in');
       return body;
     });
@@ -1312,7 +1379,7 @@
     }).then(function (body) {
       if (body && body.token) {
         lsSet(LS_TOKEN, body.token);
-        lsSet(LS_USER, JSON.stringify(body.user || {}));
+        switchUser(body.user);
         setStatus('signed_in');
       }
       return body;
@@ -1327,7 +1394,7 @@
   }
 
   function requireWeddingPath(suffix) {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) {
       return Promise.reject(new Error('No cloud wedding — upload/link this wedding first (Settings → Cloud sync).'));
     }
@@ -1715,7 +1782,7 @@
     return p.finally(function () {
       lsSet(LS_TOKEN, null);
       lsSet(LS_USER, null);
-      // Keep wedding id so re-login can resume; user can clear via Upload.
+      clearWeddingId();
       setStatus('signed_out');
     });
   }
@@ -1756,7 +1823,7 @@
       var w = weddings[0];
       var id = w && w.id;
       if (!id) return null;
-      lsSet(LS_WEDDING, id);
+      setWeddingId(id);
       return w;
     });
   }
@@ -1784,7 +1851,7 @@
           .then(function (body) {
             var id = body.wedding && body.wedding.id;
             if (!id) throw new Error('No wedding id returned');
-            lsSet(LS_WEDDING, id);
+            setWeddingId(id);
             return pushAll().then(function (pushResult) {
               setStatus('synced');
               lsSet(LS_LAST_SYNC, new Date().toISOString());
@@ -1799,7 +1866,7 @@
   }
 
   function pushGuests() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureGuestIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -1831,7 +1898,7 @@
   }
 
   function pushVendors() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureVendorIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -1867,7 +1934,7 @@
   }
 
   function pushPayments() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensurePaymentIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -1908,7 +1975,7 @@
   }
 
   function pushBudget() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureBudgetIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -1950,7 +2017,7 @@
   }
 
   function pushSeating() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureSeatingIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -1997,7 +2064,7 @@
   }
 
   function pushContracts() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureContractIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -2033,7 +2100,7 @@
   }
 
   function pushTimeline() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureTimelineIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -2076,7 +2143,7 @@
   }
 
   function pushPackets() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensurePacketIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -2119,7 +2186,7 @@
   }
 
   function pushRentals() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureRentalIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -2159,7 +2226,7 @@
   }
 
   function pushCateringRentals() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureCateringRentalIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -2199,7 +2266,7 @@
   }
 
   function pushParty() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensurePartyIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -2239,7 +2306,7 @@
   }
 
   function pushTasks() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureTaskIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -2279,7 +2346,7 @@
   }
 
   function pushVtimeline() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensureVtimelineIds();
     var now = (typeof data !== 'undefined' && data && data.updatedAt) || new Date().toISOString();
@@ -2319,7 +2386,7 @@
   }
 
   function pushPacketOverrides() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding — use Upload this wedding first.'));
     ensurePacketOverridesTs();
     var vendorPackets = (typeof data !== 'undefined' && data && data.vendorPackets
@@ -2435,7 +2502,7 @@
   }
 
   function pullGuests() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/guests')
       .then(function (body) {
@@ -2453,7 +2520,7 @@
   }
 
   function pullVendors() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/vendors')
       .then(function (body) {
@@ -2471,7 +2538,7 @@
   }
 
   function pullPayments() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/payments')
       .then(function (body) {
@@ -2489,7 +2556,7 @@
   }
 
   function pullBudget() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/budget')
       .then(function (body) {
@@ -2507,7 +2574,7 @@
   }
 
   function pullSeating() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/seating')
       .then(function (body) {
@@ -2529,7 +2596,7 @@
   }
 
   function pullContracts() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/contracts')
       .then(function (body) {
@@ -2550,7 +2617,7 @@
   }
 
   function pullTimeline() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/timeline')
       .then(function (body) {
@@ -2572,7 +2639,7 @@
   }
 
   function pullPackets() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/packets')
       .then(function (body) {
@@ -2594,7 +2661,7 @@
   }
 
   function pullRentals() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/rentals')
       .then(function (body) {
@@ -2615,7 +2682,7 @@
   }
 
   function pullCateringRentals() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/catering-rentals')
       .then(function (body) {
@@ -2638,7 +2705,7 @@
   }
 
   function pullParty() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/party')
       .then(function (body) {
@@ -2659,7 +2726,7 @@
   }
 
   function pullTasks() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/tasks')
       .then(function (body) {
@@ -2680,7 +2747,7 @@
   }
 
   function pullVtimeline() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/vtimeline')
       .then(function (body) {
@@ -2702,7 +2769,7 @@
   }
 
   function pullPacketOverrides() {
-    var weddingId = ls(LS_WEDDING);
+    var weddingId = getWeddingId();
     if (!weddingId) return Promise.reject(new Error('No cloud wedding linked.'));
     return api('/weddings/' + encodeURIComponent(weddingId) + '/packet-overrides')
       .then(function (body) {
@@ -2777,8 +2844,8 @@
     if (!ls(LS_TOKEN)) return Promise.reject(new Error('Sign in required'));
 
     // Device B has no local wedding id — link the account's existing wedding before creating one.
-    var ensureLinked = ls(LS_WEDDING)
-      ? Promise.resolve(ls(LS_WEDDING))
+    var ensureLinked = getWeddingId()
+      ? Promise.resolve(getWeddingId())
       : linkExistingWeddingIfAny().then(function (w) {
           return w && w.id ? w.id : null;
         });
@@ -2808,7 +2875,7 @@
 
   function scheduleGuestSync() {
     var c = cfg();
-    if (!c.enabled || !ls(LS_TOKEN) || !ls(LS_WEDDING)) return;
+    if (!c.enabled || !ls(LS_TOKEN) || !getWeddingId()) return;
     if (syncTimer) clearTimeout(syncTimer);
     syncTimer = setTimeout(function () {
       syncTimer = null;
@@ -2936,7 +3003,7 @@
       return;
     }
     if (!ls(LS_TOKEN)) setStatus('signed_out');
-    else if (!ls(LS_WEDDING)) setStatus('signed_in');
+    else if (!getWeddingId()) setStatus('signed_in');
     else setStatus(ls(LS_STATUS) || 'signed_in');
   }
 
