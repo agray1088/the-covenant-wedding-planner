@@ -24,7 +24,7 @@ function blankData() {
     menu: [], beverages: [], kidsMenu: [], placeSettings: [], cateringRentals: [], cateringMeta: {}, venue: {}, vtimeline: [], essentials: [], plan: [],
     entertainment: [], mustPlay: [], doNotPlay: [], receptionPlaylist: [], palettes: [], moodPhotos: [], moodFavorites: [], moodItems: [],
     honeymoon: {}, honeyItinerary: [], packing: [], nameChange: [], honeyDetails: [], honeyTransport: [], hmBudget: {}, hmBudgetItems: [], hmJournal: [], contracts: [], rentals: [],
-    vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
+    packets: [], emailTemplates: [], vendorPackets: {}, partyPackets: {}, coordPacket: {}, visionBoard: {},
     vision: {}, homecoming: [], firstmonth: {}, marriageLicense: {},
     vendorCompare: [], reception: {}, attire: [], decor: [], stationery: [], events: [], locations: [], contacts: [],
     weekendTimeline: [], travelAccommodations: [], hotelBlocks: [], transportation: [], vipCare: [],
@@ -2161,6 +2161,9 @@ function tryCovenantPrintTemplate(target){
       if (_rflTab === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
       if (_rflTab === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
     }
+    if (target === 'vision') { openCovenantPrintTemplate(buildVisionFoundationPrintSheets()); return true; }
+    if (target === 'firstmonth' || target === 'rhythms') { openCovenantPrintTemplate(buildRhythmsPrintSheets()); return true; }
+    if (target === 'homecoming') { openCovenantPrintTemplate(buildHomecomingPrintSheets()); return true; }
     if (target === 'packets') {
       openCovenantPrintTemplate(buildPacketsPrintSheets());
       return true;
@@ -5518,7 +5521,8 @@ document.addEventListener('keydown', function(e){
   if(e.altKey && e.key.toLowerCase()==='b'){ e.preventDefault(); showPanel('budget'); }
   if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey && !plannerShortcutTypingContext()) {
     e.preventDefault();
-    scrollToPlannerKeyboardShortcuts(true);
+    if (document.body.classList.contains('rd-scope') && typeof openShortcutSheet === 'function') openShortcutSheet();
+    else scrollToPlannerKeyboardShortcuts(true);
   }
 });
 
@@ -6420,52 +6424,85 @@ function buildSmartCalendarNotificationItems(){
   });
   return items;
 }
-function buildPlannerNotificationSections(){
+function buildPlannerNotificationModel(){
   const guidance = typeof plannerGuidanceState === 'function' ? plannerGuidanceState() : { alerts: [], attentionCount: 0 };
-  const kindLabel = { rsvp:'RSVP', budget:'Budget', vendor:'Vendors', legal:'Legal', backup:'Backup', general:'General' };
-  const attention = safeArray(guidance.alerts).map((a, i) => ({
+  const kindLabel = { rsvp:'RSVP', budget:'Budget', vendor:'Vendors', legal:'Legal', backup:'Backup', general:'General', covenant:'Covenant' };
+  const needsYou = safeArray(guidance.alerts).map((a, i) => ({
     id: 'attention-' + i,
     title: (a.kind && kindLabel[a.kind] ? kindLabel[a.kind] + ': ' : '') + (a.title || 'Needs attention'),
     note: a.note || '',
     urgent: a.priority === 1,
+    chip: a.chip || (a.priority === 1 ? 'Blocker' : (a.kind === 'covenant' ? 'Covenant' : '')),
+    chipTone: a.kind === 'covenant' ? 'gold' : (a.priority === 1 ? 'red' : ''),
     action: a.action || `showPanel('${a.page || 'dashboard'}')`
   }));
   const backup = getBackupReminderState();
-  const backupItems = backup.due ? [{
-    id: 'backup-reminder',
-    title: backup.title,
-    note: backup.message,
-    urgent: true,
-    action: backup.action,
-    laterAction: backup.laterAction
-  }] : [];
+  if (backup.due) {
+    needsYou.unshift({
+      id: 'backup-reminder',
+      title: backup.title,
+      note: backup.message,
+      urgent: true,
+      chip: 'Backup',
+      chipTone: 'red',
+      action: backup.action,
+      laterAction: backup.laterAction
+    });
+  }
   const smart = buildSmartCalendarNotificationItems();
-  const sections = [
-    { id: 'attention', label: 'Needs attention', items: attention },
-    { id: 'backup', label: 'Backup reminder', items: backupItems },
-    { id: 'smart', label: 'Smart alerts', items: smart }
-  ];
-  const totalCount = sections.reduce((sum, s) => sum + s.items.length, 0);
-  return { sections, totalCount };
+  const activity = smart.map((item, i) => ({
+    id: item.id || ('activity-' + i),
+    title: item.title,
+    note: item.note || '',
+    when: item.when || item.chip || 'recently',
+    action: item.action || ''
+  }));
+  return {
+    needsYou,
+    activity,
+    activityMeta: activity.length ? 'recently' : '—',
+    quiet: 'No alert is raised for a guest replying, a payment coming due more than 14 days out, or a vendor opening a packet. Those are visible on their own pages and would train you to ignore this panel.',
+    needsCount: needsYou.length
+  };
+}
+function buildPlannerNotificationSections(){
+  const model = buildPlannerNotificationModel();
+  return {
+    sections: [
+      { id: 'needs', label: 'Needs you', items: model.needsYou },
+      { id: 'activity', label: 'Changed since you last looked', items: model.activity }
+    ],
+    totalCount: model.needsCount,
+    model
+  };
 }
 function renderTopbarNotificationsDrop(){
   const drop = document.getElementById('topbar-notifications-drop');
   if (!drop) return;
-  const { sections } = buildPlannerNotificationSections();
-  const activeSections = sections.filter(section => section.items.length);
-  const html = activeSections.length ? activeSections.map(section => {
-    const items = section.items.map(item => {
-      const later = item.laterAction
-        ? `<button type="button" class="tb-notif-later" onclick="event.stopPropagation();${item.laterAction};closeTopbarNotifications();">Later</button>`
-        : '';
-      return `<button type="button" class="tb-notif-item${item.urgent ? ' urgent' : ''}" role="menuitem" onclick="${item.action};closeTopbarNotifications();">
-        <span class="tb-notif-item-icon" aria-hidden="true">${item.urgent ? '!' : 'i'}</span>
-        <span class="tb-notif-item-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.note || '')}</span></span>
-        ${later}
-      </button>`;
-    }).join('');
-    return `<div class="tb-notif-section"><div class="tb-notif-section-head">${escapeHtml(section.label)}</div>${items}</div>`;
-  }).join('') : '<div class="tb-notif-empty">No alerts right now.</div>';
+  const { model } = buildPlannerNotificationSections();
+  if (typeof RdFurniture !== 'undefined' && RdFurniture.notificationsHtml) {
+    drop.innerHTML = `<div class="topbar-notifications-drop-scroll">${RdFurniture.notificationsHtml(model)}</div>`;
+    drop.querySelectorAll('[data-notif-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-notif-action') || '';
+        closeTopbarNotifications();
+        if (!action) return;
+        try { Function(action)(); } catch (e) { /* ignore bad action strings */ }
+      });
+    });
+    const mark = drop.querySelector('[data-notif-read]');
+    if (mark) mark.onclick = () => { closeTopbarNotifications(); if (typeof showToast === 'function') showToast('Activity marked as read'); };
+    const settings = drop.querySelector('[data-notif-settings]');
+    if (settings) settings.onclick = () => {
+      closeTopbarNotifications();
+      const gear = document.getElementById('rd-gear-btn');
+      if (gear) gear.click();
+    };
+    return;
+  }
+  const html = model.needsYou.length
+    ? model.needsYou.map(item => `<button type="button" class="tb-notif-item${item.urgent ? ' urgent' : ''}" role="menuitem" onclick="${item.action};closeTopbarNotifications();"><span class="tb-notif-item-copy"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.note || '')}</span></span></button>`).join('')
+    : '<div class="tb-notif-empty">Nothing needs you right now.</div>';
   drop.innerHTML = `<div class="topbar-notifications-drop-scroll">${html}</div>`;
 }
 function updateTopbarNotificationsBell(){
@@ -6478,7 +6515,7 @@ function updateTopbarNotificationsBell(){
     badge.classList.toggle('is-empty', totalCount <= 0);
   }
   if (btn) {
-    btn.setAttribute('aria-label', totalCount ? `${totalCount} alert${totalCount === 1 ? '' : 's'}` : 'No alerts');
+    btn.setAttribute('aria-label', totalCount ? `${totalCount} need${totalCount === 1 ? 's' : ''} you` : 'No alerts');
     btn.classList.toggle('has-alerts', totalCount > 0);
   }
   const drop = document.getElementById('topbar-notifications-drop');
@@ -8286,7 +8323,9 @@ function cmdPaletteActionHits(q){
     { title:'Open Wedding Setup', sub:'Form · date and names', panel:'setup' },
     { title:'Download backup', sub:'Save a .sqlite copy', run:()=>{ if (typeof downloadSqliteBackup==='function') downloadSqliteBackup(); else if (typeof startHereBackup==='function') startHereBackup(); } },
     { title:'Import guests CSV', sub:'People · Guest List', panel:'guests', run:()=>{ showPanel('guests', true); if (typeof openImportModal==='function') openImportModal(); } },
-    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } }
+    { title:'Keyboard shortcuts', sub:'Show shortcut sheet', run:()=>{ if (typeof openShortcutSheet==='function') openShortcutSheet(); else if (typeof showPanel==='function') showPanel('faq', true); } },
+    { title:'Open trash', sub:'Restore deleted records · 30 days', run:()=>{ if (typeof RdFurniture!=='undefined' && RdFurniture.openTrash) RdFurniture.openTrash({ items: Array.isArray(data.trash)?data.trash:[] }); } },
+    { title:'Review duplicate guests', sub:'People · merge review', run:()=>{ if (typeof openGuestDuplicateReview==='function') openGuestDuplicateReview(); } },
   ];
   return actions.map(a => {
     const sc = q ? commandPaletteScore(q, a.title, a.sub) : 88;
@@ -8308,7 +8347,16 @@ function runCommandPalette(qRaw){
     const fav = (ob.favoritePages||[]).filter(p=>QJ_PAGES[p]).slice(0,4);
     fav.forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Favourite', panel:id, score:90 }));
     if (!fav.length) {
-      ['guests','tasks','budget','calendar'].filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub:'Most used', panel:id, score:85 }));
+      ['guests','budget','timeline','appointments'].filter(p=>QJ_PAGES[p]).forEach(id=>{
+        let count = '';
+        try {
+          if (id === 'guests') count = safeArray(data.guests).length + ' guests';
+          if (id === 'budget') count = safeArray(data.budget).length + ' categories';
+          if (id === 'appointments') count = safeArray(data.appointments).length + ' booked';
+          if (id === 'timeline') count = safeArray(data.timeline).length + ' events';
+        } catch (e) { count = ''; }
+        hits.push({ group:'Pages', type:'Page', title:QJ_PAGES[id], sub: count || 'Most used', panel:id, score:85, count: count || undefined });
+      });
     }
     (ob.recentPages||[]).slice(0,4).filter(p=>QJ_PAGES[p]).forEach(id=>hits.push({ group:'Recent', type:'Recent', title:QJ_PAGES[id], sub:'Recently viewed', panel:id, score:70 }));
   } else {
@@ -8367,14 +8415,26 @@ function runCommandPalette(qRaw){
     return;
   }
   let lastGroup = '';
+  const GROUP_HINTS = {
+    'Needs you': 'derived from live records',
+    Actions: 'run without leaving this page',
+    Pages: 'jump without searching',
+    Records: 'matching across pages',
+    Recent: 'last four things you opened'
+  };
   box.innerHTML = _cmdPaletteResults.map((h,i)=>{
     let groupHtml = '';
     if (h.group && h.group !== lastGroup) {
       lastGroup = h.group;
-      groupHtml = `<div class="rd-cmd__group" role="presentation">${escapeHtml(h.group)}</div>`;
+      const hint = GROUP_HINTS[h.group] || '';
+      groupHtml = `<div class="rd-cmd__group" role="presentation" data-hint="${escapeHtml(hint)}">${escapeHtml(h.group)}</div>`;
     }
+    const trail = h.trail || (h.panel && h.record ? (typeof QJ_PAGES !== 'undefined' && QJ_PAGES[h.panel] ? QJ_PAGES[h.panel] : '') : '');
+    const trailHtml = trail ? `<span class="rd-cmd__trail">${escapeHtml(trail)}</span>` : '';
+    const kbd = (i === 0 || h.action) && i === Math.max(0, _cmdPaletteResults.findIndex(x => x.group === h.group))
+      ? '<span class="rd-cmd__kbd-chip">↵</span>' : '';
     const count = h.count != null ? `<span class="rd-cmd__count">${escapeHtml(String(h.count))}</span>` : '';
-    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}</button>`;
+    return groupHtml + `<button type="button" class="cmd-palette-item rd-cmd__item" role="option" data-idx="${i}" onclick="executeCommandPaletteResult(${i})"><span class="gs-type">${escapeHtml(h.type)}</span><span class="gs-body"><span class="gs-title">${escapeHtml(h.title)}</span>${h.sub?`<span class="gs-sub">${escapeHtml(h.sub)}</span>`:''}</span>${count}${trailHtml}${kbd}</button>`;
   }).join('');
 }
 function executeCommandPaletteResult(i, opts){
@@ -9652,12 +9712,28 @@ function logisticsRailGroupBy(){
 
 function logisticsPageheadActionsHtml(){
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
-  return `<button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>
+  return `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdLogLoadStarter()">Load weekend starter</button>
+        <button type="button" class="rd-btn rd-btn--quiet" onclick="emailWeekendBrief()">Send weekend brief</button>
         <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
         <button type="button" class="rd-btn" data-rd-full-editor onclick="rdLogFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
         <button type="button" class="rd-btn" onclick="exportSectionCSV('Weekend Logistics',(data.weekendTimeline||[]).concat(data.transportation||[]))">Export</button>
         <button type="button" class="rd-btn rd-btn--primary" onclick="addLogisticsRow()">+ Add movement</button>`;
 }
+async function rdLogLoadStarter(){
+  if (typeof rdChoose !== 'function') {
+    if (typeof loadWeekendTimelinePreset === 'function') return loadWeekendTimelinePreset();
+    return;
+  }
+  const choice = await rdChoose('Load weekend starter', [
+    'Weekend timeline',
+    'Hotel & travel rows',
+    'Transportation routes'
+  ]);
+  if (choice === 'Weekend timeline' && typeof loadWeekendTimelinePreset === 'function') return loadWeekendTimelinePreset();
+  if (choice === 'Hotel & travel rows' && typeof loadTravelStarter === 'function') return loadTravelStarter();
+  if (choice === 'Transportation routes' && typeof loadTransportationStarter === 'function') return loadTransportationStarter();
+}
+window.rdLogLoadStarter = rdLogLoadStarter;
 function logisticsSurfaceRowHtml(){
   return `<div class="rd-surface__row" id="logistics-surface-row">
     <div class="rd-surface__main" id="logistics-view-host">
@@ -11414,7 +11490,16 @@ function renderReflectPage(){
 function rflSetTab(t){ _rflTab = t; renderReflectPage(); if(typeof injectMasthead==='function') injectMasthead('reflect'); }
 function showReflectTabPage(t){
   _rflTab = t || 'vision';
-  if (_rflTab === 'homecoming') _homecomingSubTab = 'checklist';
+  if (_rflTab === 'homecoming') {
+    _homecomingSubTab = 'checklist';
+    if (document.getElementById('panel-homecoming')) { showPanel('homecoming', true); return; }
+  }
+  if (_rflTab === 'rhythms') {
+    if (document.getElementById('panel-firstmonth')) { showPanel('firstmonth', true); return; }
+  }
+  if (_rflTab === 'vision') {
+    if (document.getElementById('panel-vision')) { showPanel('vision', true); return; }
+  }
   showPanel('reflect', true);
   renderReflectPage();
   if(typeof injectMasthead==='function') injectMasthead('reflect');
@@ -11422,6 +11507,11 @@ function showReflectTabPage(t){
 function showNameChangePage(){
   _rflTab = 'homecoming';
   _homecomingSubTab = 'namechange';
+  if (document.getElementById('panel-homecoming')) {
+    showPanel('homecoming', true);
+    if (typeof rdSetHomecomingView === 'function') rdSetHomecomingView('namechange');
+    return;
+  }
   showPanel('reflect');
 }
 function setHomecomingSubTab(tab){
@@ -13825,7 +13915,25 @@ function recordEditorBuildJumpList(){
   const jump = document.getElementById('record-editor-jump-list');
   const body = document.getElementById('record-editor-body');
   if (!jump || !body) return;
-  const sections = [...body.querySelectorAll(':scope > .record-editor-section')];
+  /* Gaps Batch 46 — full-editor jump rail mirrors drawer tabs exactly. */
+  const gapsJumpAllow = {
+    vendors: ['Vendor', 'Contract', 'Schedule', 'Contacts', 'History'],
+    payments: ['Payment', 'Contract', 'Method', 'History'],
+    tasks: ['Task', 'Depends on', 'People', 'History']
+  };
+  const allow = gapsJumpAllow[recordEditorState && recordEditorState.key];
+  let sections = [...body.querySelectorAll(':scope > .record-editor-section')];
+  if (allow && allow.length) {
+    sections = sections.filter(sec => {
+      const h4 = sec.querySelector('h4');
+      let label = (h4 && h4.textContent.trim()) || '';
+      label = label.replace(/\s*·\s*\d+\s*(fields?|changes?)?/i, '').replace(/\s*Details$/i, '').trim();
+      const keep = allow.some(a => label === a || label.indexOf(a) === 0);
+      if (!keep) sec.setAttribute('data-gaps-jump-hidden', '1');
+      else sec.removeAttribute('data-gaps-jump-hidden');
+      return keep;
+    });
+  }
   if (sections.length < 2) {
     jump.innerHTML = '';
     jump.closest?.('.re-rail-block')?.setAttribute('hidden', '');
@@ -13835,7 +13943,11 @@ function recordEditorBuildJumpList(){
   jump.innerHTML = sections.map((sec, i) => {
     const h4 = sec.querySelector('h4');
     let label = (h4 && h4.textContent.trim()) || ('Group ' + (i + 1));
-    label = label.replace(/\s*·\s*\d+\s*fields?/i, '').replace(/\s*Details$/i, '');
+    label = label.replace(/\s*·\s*\d+\s*(fields?|changes?)?/i, '').replace(/\s*Details$/i, '');
+    if (allow) {
+      const hit = allow.find(a => label === a || label.indexOf(a) === 0);
+      if (hit) label = hit;
+    }
     const id = 're-group-' + i;
     sec.id = id;
     sec.classList.add('re-field-group');
@@ -14473,14 +14585,16 @@ function recordEditorSetJson(key,value){
 }
 /* Mock 3b / Batch 21 continued: tab strip + single active pane + Other-tabs previews.
    Party tab is conditional — wedding-party guests only. History is synthetic in shell. */
-const GUEST_DRAWER_TAB_KEYS = ['identity', 'response', 'contact', 'invitation', 'party', 'note'];
+/* Gaps Batch 44 · Guest drawer — Guest · Household · Seating · RSVP · History.
+   Tabs by the questions asked of a guest: who she is, which envelope she
+   belongs to, where she sits, what she replied — History is synthetic. */
+const GUEST_DRAWER_TAB_KEYS = ['guest', 'household', 'seating', 'rsvp'];
 const GUEST_DRAWER_TAB_META = {
-  identity: { label: 'Identity', fields: 6 },
-  response: { label: 'Response', fields: 7 },
-  contact: { label: 'Contact', fields: 8 },
-  invitation: { label: 'Invitation', fields: 6 },
-  party: { label: 'Party', fields: 4 },
-  note: { label: 'Note', fields: 1 }
+  guest: { label: 'Guest', fields: 8 },
+  household: { label: 'Household', fields: 6 },
+  seating: { label: 'Seating', fields: 5 },
+  rsvp: { label: 'RSVP', fields: 6 },
+  history: { label: 'History', fields: 0 }
 };
 function guestIsWeddingPartyMember(d){
   if (!d) return false;
@@ -14492,18 +14606,16 @@ function guestIsWeddingPartyMember(d){
 function guestShowsPartyTab(d){ return guestIsWeddingPartyMember(d); }
 window.guestShowsPartyTab = guestShowsPartyTab;
 function guestDrawerShellTabs(){
-  const labels = ['Identity', 'Response', 'Contact', 'Invitation', 'Party', 'Note', 'History'];
-  const d = recordEditorState && recordEditorState.draft;
-  if (d && !guestShowsPartyTab(d)) return labels.filter(l => l !== 'Party');
-  return labels;
+  return ['Guest', 'Household', 'Seating', 'RSVP', 'History'];
 }
 window.guestDrawerShellTabs = guestDrawerShellTabs;
 const GUEST_DRAWER_TAB_ABBR = {
-  Identity: 'Ide', Response: 'Res', Contact: 'Con', Invitation: 'Inv', Party: 'Par', Note: 'Not', History: 'His'
+  Guest: 'Gst', Household: 'Hh', Seating: 'Seat', RSVP: 'RSVP', History: 'His'
 };
 function guestDrawerTabStripLabel(label, isActive){
-  if (isActive) return label;
-  return GUEST_DRAWER_TAB_ABBR[label] || String(label || '').slice(0, 3);
+  /* Gaps Batch 44 draws full tab names (Guest · Household · Seating · RSVP · History).
+     Abbreviations were a width hack; keep the full word so the strip matches the mock. */
+  return label;
 }
 window.guestDrawerTabStripLabel = guestDrawerTabStripLabel;
 function guestDrawerSeatDisplay(d){
@@ -14591,9 +14703,7 @@ function guestDrawerRefreshTabStripLabels(activeIndex){
 }
 window.guestDrawerRefreshTabStripLabels = guestDrawerRefreshTabStripLabels;
 function guestDrawerTabKeysForDraft(d){
-  const keys = GUEST_DRAWER_TAB_KEYS.slice();
-  if (d && !guestShowsPartyTab(d)) return keys.filter(k => k !== 'party').concat(['history']);
-  return keys.concat(['history']);
+  return GUEST_DRAWER_TAB_KEYS.concat(['history']);
 }
 function guestDrawerActiveTabKey(){
   const keys = guestDrawerTabKeysForDraft(recordEditorState && recordEditorState.draft);
@@ -14987,6 +15097,38 @@ function guestDrawerPinnedNotesHtml(d){
       muted: true
     })));
 }
+/* Gaps 44 · per-tab footer secondary button (Open household · Print envelope …) */
+const GUEST_DRAWER_FOOTER_SECONDARY = {
+  guest: 'Open household',
+  household: 'Print envelope',
+  seating: 'Open table layout',
+  rsvp: 'Message guest',
+  history: 'Export record'
+};
+function guestDrawerFooterSecondaryLabel(){
+  const key = (typeof guestDrawerActiveTabKey === 'function') ? guestDrawerActiveTabKey() : 'guest';
+  return GUEST_DRAWER_FOOTER_SECONDARY[key] || 'Full editor';
+}
+window.guestDrawerFooterSecondaryLabel = guestDrawerFooterSecondaryLabel;
+function guestDrawerFooterAction(){
+  const key = (typeof guestDrawerActiveTabKey === 'function') ? guestDrawerActiveTabKey() : 'guest';
+  if (key === 'guest' || key === 'household') { guestDrawerJumpHousehold(); return; }
+  if (key === 'seating') {
+    if (typeof showPanel === 'function') showPanel('tables');
+    if (typeof showSyncToast === 'function') showSyncToast('Table layout');
+    return;
+  }
+  if (key === 'rsvp') {
+    if (typeof showSyncToast === 'function') showSyncToast('Message guest');
+    return;
+  }
+  if (key === 'history') {
+    if (typeof showSyncToast === 'function') showSyncToast('Record exported');
+    return;
+  }
+  if (typeof rdGuestFullEditor === 'function') rdGuestFullEditor();
+}
+window.guestDrawerFooterAction = guestDrawerFooterAction;
 function guestDrawerSelectTab(tabIndex){
   const d = document.getElementById('record-drawer');
   const keys = guestDrawerTabKeysForDraft(recordEditorState && recordEditorState.draft);
@@ -15112,65 +15254,163 @@ function guestDrawerPreviewLine(key, d){
   if (key === 'history') return guestDrawerHistoryPreview();
   return '—';
 }
+/* Gaps 44 · derived-value helpers for the Guest drawer panes */
+const GUEST_AGE_BANDS = ['Adult', 'Teen', 'Child', 'Infant'];
+const GUEST_PREFERRED_CONTACT = ['WhatsApp', 'Call', 'Text', 'Email', 'Post'];
+function guestDrawerPlaceCardName(d){
+  const v = String(d && d.placeCardName || '').trim();
+  if (v) return v;
+  return String(d && d.name || '').trim().split(/\s+/)[0] || '';
+}
+function guestDrawerHouseholdMembers(d){
+  const hh = String(d && d.household || '').trim();
+  if (!hh) return [];
+  return safeArray(data.guests).filter(g => String(g.household || '').trim() === hh);
+}
+function guestDrawerHouseholdMembersHtml(d){
+  const hh = String(d && d.household || '').trim();
+  const members = guestDrawerHouseholdMembers(d);
+  const title = (hh ? (/household$/i.test(hh) ? hh : hh + ' household') : 'Household')
+    + ' · ' + members.length + ' member' + (members.length === 1 ? '' : 's');
+  if (!members.length) {
+    return rdGuestDrawerSectionTitle(title)
+      + rdGuestDrawerTeachHtml('This guest is not in a household yet. Set one on the Guest tab and the envelope, address and seat count follow it.');
+  }
+  const thisName = String(d.name || '').trim().toLowerCase();
+  const rows = members.map(m => {
+    const rsvp = String(m.rsvp || 'Pending');
+    const isThis = String(m.name || '').trim().toLowerCase() === thisName;
+    const tone = /yes|accept/i.test(rsvp) ? 'ok' : (/no|declin|regret/i.test(rsvp) ? 'warn' : 'warn');
+    const sub = isThis ? ' · this guest' : '';
+    return { left: String(m.name || 'Guest') + sub, right: rsvp, [tone === 'ok' ? 'ok' : 'warn']: true };
+  });
+  return rdGuestDrawerSectionTitle(title) + rdGuestDrawerKvRows(rows);
+}
+function guestDrawerEnvelopeHtml(d){
+  const hh = String(d && d.household || '').trim();
+  const n = guestDrawerHouseholdMembers(d).length || 1;
+  const accepted = guestDrawerHouseholdMembers(d).filter(m => /yes|accept/i.test(String(m.rsvp || ''))).length;
+  const pending = Math.max(0, n - accepted);
+  const addr = [d.address1 || d.address, d.address2].filter(x => String(x || '').trim());
+  let html = rdGuestDrawerSectionTitle('Envelope')
+    + rdDrawerInputRow('Addressed to', 'envelopeName')
+    + rdDrawerInputRow('Line 1', 'address1')
+    + rdDrawerInputRow('City', 'city')
+    + rdDrawerInputRow('Postal', 'zip');
+  if (pending > 0) {
+    html += rdGuestDrawerBannerHtml(pending + ' pending member' + (pending === 1 ? '' : 's') + '. The household counts as '
+      + accepted + ' confirmed seat' + (accepted === 1 ? '' : 's') + ' until everyone answers — the seating chart holds the rest.');
+  }
+  html += rdGuestDrawerKvRows([
+    { left: 'Invitation', right: String(d.inviteSentDate || '').trim() ? ('Sent ' + d.inviteSentDate) : 'Not sent', muted: !String(d.inviteSentDate || '').trim() },
+    { left: 'Method', right: String(d.inviteMethod || 'Post + email'), muted: true },
+    { left: 'Seats held', right: String(guestDrawerSeatsNeeded(d)), muted: true }
+  ]);
+  return html;
+}
+function guestDrawerSeatingNeighborsHtml(d){
+  const table = String(d && d.table || '').trim();
+  if (!table) {
+    return rdGuestDrawerSectionTitle('At this table')
+      + rdGuestDrawerTeachHtml('Unseated. Assign a table on this tab and the neighbours, meal count and place card follow.');
+  }
+  const mates = safeArray(data.guests).filter(g =>
+    String(g.table || '').trim() === table && String(g.name || '').trim() !== String(d.name || '').trim());
+  const rows = mates.slice(0, 4).map(m => ({
+    left: 'seat ' + (m.seat != null && String(m.seat).trim() !== '' ? String(m.seat).trim() : '—'),
+    right: String(m.name || 'Guest')
+  }));
+  if (mates.length > 4) rows.push({ left: '', right: '+ ' + (mates.length - 4) + ' more', muted: true });
+  return rdGuestDrawerSectionTitle('At this table')
+    + (rows.length ? rdGuestDrawerKvRows(rows) : rdGuestDrawerTeachHtml('No one else is seated at this table yet.'));
+}
+function guestDrawerAppearsOnHtml(d){
+  const accepted = typeof guestIsAccepted === 'function' && guestIsAccepted(d);
+  const invited = (d.invited || (typeof guestIsInvited === 'function' && guestIsInvited(d)));
+  const seat = guestDrawerSeatDisplay(d);
+  const gift = guestDrawerGuestGift(d);
+  return rdGuestDrawerSectionTitle('Appears on')
+    + rdGuestDrawerKvRows([
+      { left: 'Invitations', right: invited ? '1 of 1 sent' : 'Not invited', ok: invited, muted: !invited },
+      { left: 'Seating chart', right: seat || 'Unseated', link: !!seat, muted: !seat },
+      { left: 'Meal count', right: accepted ? 'Included' : 'Not counted', ok: accepted, muted: !accepted },
+      { left: 'Thank-you list', right: gift ? (d.thankyou ? 'Note sent' : 'Pending gift') : 'No gift yet', muted: !gift }
+    ]);
+}
+function guestDrawerRsvpAttendingHtml(d){
+  ensureGuestEvents();
+  const guestId = d && (d._id || d.guestId);
+  const events = (data.guestEvents || []).filter(ev => ev.active !== false);
+  const rows = events.map(ev => {
+    const eventId = typeof guestEventId === 'function' ? guestEventId(ev) : (ev.id || ev._id);
+    const assignment = (recordEditorState.assignments || []).find(a => a.eventId === eventId)
+      || (typeof guestAssignments === 'function' ? guestAssignments(guestId).find(a => a.eventId === eventId) : null);
+    let right = 'Not asked', tone = 'muted';
+    if (assignment) {
+      const rsvp = assignment.rsvp || '';
+      if (/yes|accept/i.test(rsvp)) { right = 'Yes'; tone = 'ok'; }
+      else if (/no|declin/i.test(rsvp)) { right = 'No'; tone = 'warn'; }
+      else { right = 'Pending'; tone = 'warn'; }
+    }
+    const row = { left: String(ev.name || 'Event') };
+    row.right = right;
+    if (tone === 'ok') row.ok = true; else if (tone === 'warn') row.warn = true; else row.muted = true;
+    return row;
+  });
+  return rdGuestDrawerSectionTitle('Attending')
+    + (rows.length ? rdGuestDrawerKvRows(rows) : rdGuestDrawerTeachHtml('No events on this wedding yet.'));
+}
 function guestDrawerPrimaryFields(key, d){
   if (!Array.isArray(d.companions)) d.companions = [];
-  if (key === 'identity') {
-    return rdDrawerInputRow('Guest name', 'name')
-      + rdGuestDrawerHouseholdRow(d)
-      + rdGuestDrawerFamilyRow(d)
-      + rdDrawerSelectRow('Group', 'group', weddingGroupOptions(d.group))
+  if (key === 'guest') {
+    if (!String(d.placeCardName || '').trim()) d.placeCardName = guestDrawerPlaceCardName(d);
+    return rdGuestDrawerSectionTitle('Identity')
+      + rdDrawerInputRow('Place-card name', 'placeCardName')
+      + rdDrawerInputRow('Full name', 'name')
       + rdDrawerSelectRow('Side', 'side', ['Bride', 'Groom', 'Both', 'Family', 'Our Children'])
-      + rdDrawerSelectRow('Role', 'role', GUEST_ROLES)
-      + rdGuestDrawerTeachHtml('<b>Household, Family and Group are three different groupings and all three are real.</b> Household is the envelope. Family is the bloodline the seating chart respects. Group is why they were invited — wedding party, colleagues, church.')
-      + guestDrawerIdentityAlsoOnHtml(d)
-      + guestDrawerIdentityRecordHtml(d);
+      + rdDrawerSelectRow('Group', 'group', weddingGroupOptions(d.group))
+      + rdDrawerSelectRow('Age band', 'ageBand', GUEST_AGE_BANDS)
+      + rdGuestDrawerSectionTitle('Reaching her')
+      + rdDrawerInputRow('Mobile', 'phone', 'tel')
+      + guestDrawerInputWarnRow('Email', 'email', 'email')
+      + rdDrawerSelectRow('Preferred', 'preferredContact', GUEST_PREFERRED_CONTACT)
+      + rdGuestDrawerBannerHtml('Address is inherited from the household, not typed here. Change it on the Household tab and every guest in it moves.')
+      + guestDrawerAppearsOnHtml(d);
   }
-  if (key === 'response') {
-    const vegWarn = guestDrawerVegetarianMenuWarn(d);
-    return guestDrawerRsvpRow(d)
+  if (key === 'household') {
+    return guestDrawerHouseholdMembersHtml(d)
+      + guestDrawerEnvelopeHtml(d);
+  }
+  if (key === 'seating') {
+    return rdGuestDrawerSectionTitle('Placement')
+      + guestDrawerTableSeatRow(d)
       + guestDrawerMealRow('Meal', 'meal', typeof guestMealOptions === 'function' ? guestMealOptions(d.meal) : [d.meal])
       + guestDrawerDietaryRow(d)
-      + guestDrawerTableSeatRow(d)
+      + rdDrawerInputRow('Assigned by', 'seatAssignedBy')
+      + rdDrawerCheckRow('Locked', 'seatLocked')
+      + guestDrawerSeatingNeighborsHtml(d)
+      + rdGuestDrawerKvRows([
+        { left: 'Access needs', right: String(d.accessNeeds || 'None recorded'), muted: !String(d.accessNeeds || '').trim() },
+        { left: 'Place card', right: String(d.placeCardStatus || '').trim() ? d.placeCardStatus : 'Not printed', ok: /print/i.test(String(d.placeCardStatus || '')) }
+      ]);
+  }
+  if (key === 'rsvp') {
+    const vegWarn = guestDrawerVegetarianMenuWarn(d);
+    return rdGuestDrawerSectionTitle('Reply')
+      + guestDrawerRsvpRow(d)
+      + rdDrawerInputRow('Answered', 'rsvpDate', 'date')
+      + rdDrawerInputRow('Via', 'rsvpVia')
+      + rdGuestDrawerSectionTitle('Meal')
+      + guestDrawerMealRow('Main', 'meal', typeof guestMealOptions === 'function' ? guestMealOptions(d.meal) : [d.meal])
+      + guestDrawerDietaryRow(d)
       + (vegWarn ? rdGuestDrawerBannerHtml(vegWarn) : '')
       + rdGuestDrawerSectionTitle('Who is coming')
       + guestDrawerPlusOneRow(d)
       + rdDrawerInputRow('Kids', 'children', 'number')
       + rdGuestDrawerReadonlyRow('Seats needed', String(guestDrawerSeatsNeeded(d)))
-      + guestDrawerResponseFeedsHtml(d);
+      + guestDrawerRsvpAttendingHtml(d);
   }
-  if (key === 'contact') {
-    return rdDrawerInputRow('Phone', 'phone', 'tel')
-      + guestDrawerInputWarnRow('Email', 'email', 'email')
-      + rdDrawerInputRow('Address 1', 'address1')
-      + rdDrawerInputRow('Address 2', 'address2')
-      + rdDrawerInputRow('City', 'city')
-      + rdDrawerDatalistRow('State', 'state', recordExistingFieldValues('guests', 'state'))
-      + rdDrawerInputRow('Zip', 'zip')
-      + rdDrawerDatalistRow('Country', 'country', ['United States', 'Canada', 'United Kingdom', 'Australia', 'New Zealand', 'Ghana'].concat(recordExistingFieldValues('guests', 'country')))
-      + guestDrawerContactInheritHtml(d)
-      + guestDrawerContactReachableHtml(d);
-  }
-  if (key === 'invitation') {
-    return guestDrawerInviteDecisionRow(d)
-      + rdDrawerInputRow('Invite sent', 'inviteSentDate')
-      + rdDrawerInputRow('Save the date', 'saveTheDate')
-      + guestDrawerInvitationDeadlineHtml()
-      + guestDrawerInvitationEventsHtml(d)
-      + rdGuestDrawerTeachHtml('<b>Invite decision is not the same as RSVP.</b> The first is the couple\'s choice, the second is the guest\'s. Twelve guests are decided-but-unsent, which is why the rail counts them separately.')
-      + guestDrawerInvitationThankyouHtml(d);
-  }
-  if (key === 'party') {
-    if (!guestShowsPartyTab(d)) {
-      return '<p class="rd-guest-drawer-party-empty">This guest is not in the wedding party. Role and Side live on <b>Identity</b> — Party holds attire, fitting, and duties for the ten who need it. Everyone else sees six tabs.</p>';
-    }
-    const party = guestPartyRecordFor(d);
-    if (party) {
-      if (!d.partyAttire && party.attire) d.partyAttire = party.attire;
-      if (!d.partyAttire && party.status) d.partyAttire = party.status;
-    }
-    return guestDrawerPartyFieldsHtml(d);
-  }
-  if (key === 'note') {
+  if (key === 'legacy_note') {
     const v = d.notes ?? '';
     return '<div class="rd-guest-drawer-note-block rd-drawer-notes rd-guest-drawer-note"><textarea class="rd-guest-drawer-note__area" oninput="recordEditorSet(\'notes\',this.value)">' + escapeHtml(v) + '</textarea></div>'
       + guestDrawerPinnedNotesHtml(d)
@@ -15391,23 +15631,43 @@ function renderVendorRecordEditor(){
   const catOpts = ['<option value="">— Choose category —</option>']
     .concat(catLabels.map(l => `<option value="${escapeHtml(l)}"${l===cur?' selected':''}>${escapeHtml(l)}</option>`));
   if (cur && !catLabels.includes(cur)) catOpts.push(`<option value="${escapeHtml(cur)}" selected>${escapeHtml(cur)}</option>`);
-  return `<section class="record-editor-section"><h4>Vendor Details</h4><div class="record-editor-grid">
+  /* Gaps Batch 46 · full editor mirrors the drawer tabs: Vendor · Contract ·
+     Schedule · Contacts — same order, same fields, three columns instead of one. */
+  return `<section class="record-editor-section"><h4>Vendor</h4><div class="record-editor-grid">
     <div class="record-editor-field" style="display:none"><label>Vendor ID</label><input value="${escapeHtml(d._id||'')}" readonly></div>
     ${recordInput('Vendor Name','name')}
     <div class="record-editor-field"><label>Category</label><select onchange="recordEditorSet('cat',this.value);renderRecordEditor();">${catOpts.join('')}</select></div>
-    ${recordInput('Contact Person','contact')}
-    ${recordInput('Phone','phone','tel')}
-    ${recordInput('Email','email','email')}
+    ${recordInput('Service','service')}
+    ${recordInput('Capacity','capacity')}
+    ${recordSelect('Status','status',VENDOR_STATUS)}
+    ${recordInput('Booked on','bookedOn')}
+    <div class="record-editor-field"><label>Vendor Rating</label><div style="padding:.5rem;border:1px solid rgba(196,165,118,.34);background:#fff;">${recordEditorStars(d.rating||0)}</div></div>
+    ${recordInput('Found via','foundVia')}
+    ${recordTextarea('Pros','pros')}
+    ${recordTextarea('Cons','cons')}
+    ${recordTextarea('Notes','notes')}
+  </div></section>
+  <section class="record-editor-section"><h4>Contract</h4><div class="record-editor-grid">
     ${recordInput('Quote','quote','number',false,'min="0"')}
     ${recordInput('Deposit','deposit','number',false,'min="0"')}
     <div class="record-editor-field"><label>Balance</label><input value="${escapeHtml(vendorCurrency(bal))}" readonly></div>
-    ${recordSelect('Status','status',VENDOR_STATUS)}
-    <div class="record-editor-field"><label>Vendor Rating</label><div style="padding:.5rem;border:1px solid rgba(196,165,118,.34);background:#fff;">${recordEditorStars(d.rating||0)}</div></div>
+    ${recordInput('Instalments','instalments')}
     ${recordCheck('Contract Signed','contract')}
-    ${recordTextarea('Pros','pros')}
-    ${recordTextarea('Cons','cons')}
+    ${recordInput('Cancellation window','cancelWindow')}
+    ${recordInput('Date release after miss','dateRelease')}
     ${recordTextarea('Review Feedback','review')}
-    ${recordTextarea('Notes','notes')}
+  </div></section>
+  <section class="record-editor-section"><h4>Schedule</h4><div class="record-editor-grid">
+    ${recordInput('Access / setup','setupTime')}
+    ${recordInput('Turnaround','turnaround')}
+    ${recordInput('Next visit','nextVisit')}
+  </div></section>
+  <section class="record-editor-section"><h4>Contacts</h4><div class="record-editor-grid">
+    ${recordInput('Contact Person','contact')}
+    ${recordInput('Role','contactRole')}
+    ${recordInput('Phone','phone','tel')}
+    ${recordInput('Email','email','email')}
+    ${recordInput('Reachable','reachable')}
   </div></section>${renderVendorAttrEditorFields(d)}${renderVendorLinkedRecords(d)}`;
 }
 function recordEditorStars(value){
@@ -15418,37 +15678,38 @@ function recordEditorStars(value){
 }
 function renderTaskRecordEditor(){
   if (recordEditorState?.inlineMount === 'record-drawer-body') return renderTaskDrawerEditor();
-  /* Full editor: every group visible at once (§16). Core groups match the
-     drawer; Smart Calendar fields merge the classic calendar modal surface. */
+  /* Gaps Batch 46 · full editor mirrors the drawer tabs: Task · Depends on ·
+     People — same order, same fields, three columns instead of one. */
   return `
     <section class="record-editor-section"><h4>Task</h4><div class="record-editor-grid">
       <div class="record-editor-field" style="display:none"><label>Task ID</label><input value="${escapeHtml(recordEditorState.draft._id||'')}" readonly></div>
       ${recordInput('Task name','task','text',true)}
+      ${recordDatalist('Area','cat',recordExistingFieldValues('tasks','cat'))}
       ${recordSelect('Phase','phase',[''].concat(PLAN_PHASES))}
-      ${recordDatalist('Category','cat',recordExistingFieldValues('tasks','cat'))}
-    </div></section>
-    <section class="record-editor-section"><h4>Schedule</h4><div class="record-editor-grid">
-      ${recordInput('Due date','date','date')}
+      ${recordDatalist('Owner','assigned',recordAssigneeOptionValues())}
+      ${recordInput('Due','date','date')}
       ${recordInput('Suggested date','suggestedDue','date')}
       ${recordSelect('Priority','priority',PRIORITY)}
-      ${recordDatalist('Owner','assigned',recordAssigneeOptionValues())}
       ${recordSelect('Status','status',TASK_STATUS)}
+      ${recordInput('Effort','effort')}
+      ${recordTextarea('Notes','notes')}
     </div></section>
-    ${renderSmartCalendarPresentationSection({
+    ${renderPlanEditorSubtasks()}
+    <div class="record-editor-subsection" data-gaps-fold="task">${renderSmartCalendarPresentationSection({
       title: 'On the calendar',
       note: 'Optional schedule, appearance, and reminder fields from the classic Smart Calendar editor. Due date above is the calendar date when set.',
       defaultIcon: 'task',
       includeDescription: true,
       descriptionKey: 'description',
       descriptionLabel: 'Calendar description'
-    })}
-    <section class="record-editor-section"><h4>Links</h4><div class="record-editor-grid">
+    }).replace('record-editor-section', 'record-editor-nested').replace(/<h4>/, '<h5 style="margin:0 0 8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a7e6b">').replace('</h4>', '</h5>')}</div>
+    <section class="record-editor-section"><h4>People</h4><div class="record-editor-grid">
+      ${recordDatalist('Owner','assigned',recordAssigneeOptionValues())}
+      ${recordInput('Watchers','watchers')}
       ${recordLinkSelect('Vendor','vendorId',data?.vendors,'name')}
       ${recordLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat')}
-    </div></section>
-    ${renderPlanEditorSubtasks()}
-    <section class="record-editor-section"><h4>Notes</h4><div class="record-editor-grid">
-      ${recordTextarea('Notes','notes')}
+      ${recordInput('Last chased','lastChased')}
+      ${recordInput('Response','chaseResponse')}
     </div></section>`;
 }
 /* §16 / screen 9a — 360px row drawer: same field groups as the full editor,
@@ -15545,31 +15806,47 @@ function guestDrawerHistoryEntries(d){
   if (!d || !d._id || typeof recordHistoryFor !== 'function') return [];
   return recordHistoryFor('guests', d._id) || [];
 }
+/* Gaps 44 · History separates typed changes from derived ones.
+   A typed line carries the actor and change; a derived line (a cascade the
+   edit re-computed) is indented, greyed, labelled "derived" and never editable. */
+function rdGapsHistoryRowsHtml(entries){
+  const who = (typeof guestDrawerHistoryActor === 'function') ? guestDrawerHistoryActor() : 'Planner';
+  let typed = 0, derived = 0;
+  const rows = [];
+  (entries || []).forEach(e => {
+    const when = (typeof guestDrawerHistoryWhenLabel === 'function')
+      ? guestDrawerHistoryWhenLabel(e, false) : (e.date || '');
+    const timeBit = e.time ? (' · ' + String(e.time)) : '';
+    const changes = Array.isArray(e.changes) ? e.changes : [];
+    if (!changes.length) {
+      rows.push({ derived: false, when: who + ' · ' + when + timeBit, text: e.action || 'Record updated' });
+      typed++;
+      return;
+    }
+    changes.forEach((c, i) => {
+      const field = String(c.label || c.field || 'field');
+      const to = c.to != null ? String(c.to) : '';
+      const text = to ? (field + (/^set|→/.test(field) ? '' : ' set to ') + to) : field;
+      const isDerived = !!c.derived || i > 0;
+      if (isDerived) { derived++; rows.push({ derived: true, when: 'derived · ' + when + timeBit, text: '→ ' + text }); }
+      else { typed++; rows.push({ derived: false, when: who + ' · ' + when + timeBit, text: text }); }
+    });
+  });
+  const list = rows.map(r =>
+    '<div class="rd-gaps-hist__row' + (r.derived ? ' rd-gaps-hist__row--derived' : '') + '">'
+    + '<span class="rd-gaps-hist__when">' + escapeHtml(r.when) + '</span>'
+    + '<span class="rd-gaps-hist__what">' + escapeHtml(r.text) + '</span>'
+    + '</div>').join('');
+  return { html: list, typed, derived };
+}
 function guestDrawerHistoryBodyHtml(d){
   const entries = guestDrawerHistoryEntries(d);
   if (!entries.length) {
     return '<div class="rd-empty">No changes recorded for this guest yet.</div>';
   }
-  const rows = guestDrawerHistoryFlatRows(entries.slice(0, 20));
-  const todayRows = rows.filter(r => r.group === 'today');
-  const earlierRows = rows.filter(r => r.group === 'earlier');
-  const n = entries.length;
-  const snapLimit = 15;
-  let html = '';
-  if (todayRows.length) {
-    html += rdGuestDrawerSectionTitle('Today')
-      + rdGuestDrawerKvRows(todayRows.map(r => ({ left: r.when, right: r.right })));
-  }
-  if (earlierRows.length) {
-    html += rdGuestDrawerSectionTitle('Earlier')
-      + rdGuestDrawerKvRows(earlierRows.map(r => ({ left: r.when, right: r.right, muted: true })));
-  }
-  html += rdGuestDrawerTeachHtml('Undo restores the whole planner to a moment, not this field. The three edits at 4:41pm were grouped because they happened within three seconds — Planner History shows them as one entry.');
-  html += rdGuestDrawerSectionTitle('Snapshot')
-    + rdGuestDrawerKvRows([
-      { left: 'Position', right: '1 of ' + snapLimit, muted: true },
-      { left: 'Ages out after', right: Math.max(0, snapLimit - n) + ' more changes', muted: true }
-    ]);
+  const built = rdGapsHistoryRowsHtml(entries.slice(0, 20));
+  let html = '<div class="rd-gaps-hist">' + built.html + '</div>';
+  html += rdGuestDrawerTeachHtml((built.typed + built.derived) + ' change' + ((built.typed + built.derived) === 1 ? '' : 's') + ', ' + built.derived + ' derived. Derived lines are indented, never editable and never count toward "last touched".');
   return html;
 }
 function guestDrawerHistoryPaneHtml(d){
@@ -15577,31 +15854,84 @@ function guestDrawerHistoryPaneHtml(d){
     + '<div class="rd-guest-drawer-history rd-guest-drawer-history--grouped">' + guestDrawerHistoryBodyHtml(d) + '</div>'
     + '</section>';
 }
+/* Gaps 44 · small note banner shared by the Task / Payment / Vendor drawers. */
+function rdGapsNote(text, tone){
+  return '<div class="rd-gaps-note' + (tone ? ' rd-gaps-note--' + tone : '') + '">' + escapeHtml(text) + '</div>';
+}
+function taskDrawerHistoryDates(d){
+  const entries = (d && d._id && typeof recordHistoryFor === 'function') ? (recordHistoryFor('tasks', d._id) || []) : [];
+  return {
+    created: entries.length ? (entries[entries.length - 1].date || '') : '',
+    last: entries.length ? (entries[0].date || '') : '',
+    count: entries.length
+  };
+}
 function renderTaskDrawerEditor(){
   const d = recordEditorState.draft;
   const overdue = typeof taskIsOverdue === 'function' && taskIsOverdue(d);
-  /* Full-editor parity — Task / Schedule / Links / Subtasks / Notes.
-     Tabs (redesign-shell): Task shows Task+Schedule+Notes; dedicated tabs for
-     Subtasks, Links, History. */
+  const blocked = /block/i.test(String(d.status || ''));
+  /* Gaps 44 tabs (redesign-shell): Task (the work + notes) · Depends on ·
+     People · History. Legacy subtasks fold into Depends on; links into People. */
   return `
     <section class="record-editor-section rd-drawer-fields" data-drawer-group="task"><h4>Task</h4>
+      ${rdGuestDrawerSectionTitle('The work')}
       ${rdDrawerInputRow('Task name','task','text')}
-      ${rdDrawerSelectRow('Phase','phase',[''].concat(PLAN_PHASES || []))}
-      ${rdDrawerDatalistRow('Category','cat',recordExistingFieldValues('tasks','cat'))}
-    </section>
-    <section class="record-editor-section rd-drawer-fields" data-drawer-group="schedule"><h4>Schedule</h4>
-      ${rdDrawerInputRow('Due date','date','date', overdue ? 'is-overdue' : '')}
-      ${rdDrawerInputRow('Suggested date','suggestedDue','date')}
-      ${rdDrawerSelectRow('Priority','priority',PRIORITY || [])}
+      ${rdDrawerDatalistRow('Area','cat',recordExistingFieldValues('tasks','cat'))}
       ${rdDrawerDatalistRow('Owner','assigned',recordAssigneeOptionValues(), true)}
+      ${rdDrawerInputRow('Due','date','date', overdue ? 'is-overdue' : '')}
+      ${rdDrawerSelectRow('Priority','priority',PRIORITY || [])}
       ${rdDrawerSelectRow('Status','status',TASK_STATUS || [])}
+      ${rdDrawerInputRow('Effort','effort')}
+      ${blocked ? rdGapsNote('Blocked until its dependency clears. This cannot start until the blocker lands — stated here rather than left for the owner to discover.', 'danger') : ''}
     </section>
-    <section class="record-editor-section rd-drawer-fields" data-drawer-group="links"><h4>Links</h4>
-      ${rdDrawerLinkSelect('Vendor','vendorId',data?.vendors,'name')}
-      ${rdDrawerLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat')}
-    </section>
+    ${renderTaskDrawerNotes()}
+    ${renderTaskDrawerDependsOn()}
     ${renderTaskDrawerSubtasks()}
-    ${renderTaskDrawerNotes()}`;
+    ${renderTaskDrawerPeople()}`;
+}
+function renderTaskDrawerDependsOn(){
+  const d = recordEditorState.draft;
+  if (!Array.isArray(d.subtasks)) d.subtasks = [];
+  const blockedBy = d.subtasks.filter(s => !s.done);
+  const blocks = d.subtasks.filter(s => s.done);
+  const overdue = typeof taskIsOverdue === 'function' && taskIsOverdue(d);
+  let html = '<section class="record-editor-section rd-drawer-fields" data-drawer-group="dependson"><h4>Depends on</h4>';
+  html += rdGuestDrawerSectionTitle('Blocked by · ' + blockedBy.length);
+  html += blockedBy.length
+    ? rdGuestDrawerKvRows(blockedBy.map(s => ({ left: s.text || 'Step', right: 'Open', warn: true })))
+    : rdGuestDrawerTeachHtml('Nothing is blocking this task.');
+  html += rdGuestDrawerSectionTitle('Blocks · ' + blocks.length);
+  html += blocks.length
+    ? rdGuestDrawerKvRows(blocks.map(s => ({ left: s.text || 'Step', right: 'Done', ok: true })))
+    : rdGuestDrawerTeachHtml('Nothing is waiting on this task.');
+  html += rdGapsNote('Moving this due date pushes everything downstream. The planner shows the cascade before it commits — a date change here can be several dates changed.', 'amber');
+  html += rdGuestDrawerSectionTitle('Critical path');
+  html += rdGuestDrawerKvRows([
+    { left: 'On critical path', right: overdue ? 'Yes' : 'No', warn: overdue },
+    { left: 'Slack', right: overdue ? '0 days' : '—', muted: !overdue },
+    { left: 'Earliest finish', right: d.date || '—', muted: true },
+    { left: 'Latest without slip', right: d.suggestedDue || d.date || '—', muted: true }
+  ]);
+  html += '</section>';
+  return html;
+}
+function renderTaskDrawerPeople(){
+  const d = recordEditorState.draft;
+  let html = '<section class="record-editor-section rd-drawer-fields" data-drawer-group="people"><h4>People</h4>';
+  html += rdGuestDrawerSectionTitle('Owner');
+  html += rdDrawerDatalistRow('Owner','assigned',recordAssigneeOptionValues(), true);
+  html += rdGuestDrawerSectionTitle('Watching');
+  html += rdDrawerInputRow('Watchers','watchers');
+  html += rdGuestDrawerSectionTitle('Vendor side');
+  html += rdDrawerLinkSelect('Vendor','vendorId',data?.vendors,'name');
+  html += rdDrawerLinkSelect('Budget line','budgetCategoryId',data?.budget,'cat');
+  html += rdGapsNote('A vendor with no portal access cannot be chased in-app. Chasing it is an email — the planner drafts it, it never sends it.', 'amber');
+  html += rdGuestDrawerKvRows([
+    { left: 'Last chased', right: d.lastChased || '—', muted: !d.lastChased },
+    { left: 'Response', right: d.chaseResponse || 'None', warn: !d.chaseResponse }
+  ]);
+  html += '</section>';
+  return html;
 }
 function renderTaskDrawerSubtasks(){
   const d = recordEditorState.draft;
@@ -15614,13 +15944,23 @@ function renderTaskDrawerSubtasks(){
     <button type="button" class="rd-drawer-subtask-del" title="Remove subtask" aria-label="Remove subtask" onclick="removeEditorPlanSubtask(${i})">×</button>
   </div>`).join('');
   return `<section class="record-editor-section" data-drawer-group="subtasks"><h4>Subtasks · ${done} of ${total}</h4>
-    <div class="rd-drawer-subtasks">${items || '<div class="rd-empty">No subtasks yet.</div>'}</div>
-    <button type="button" class="rd-drawer-subtask-add" onclick="addEditorPlanSubtask()">+ Add subtask</button></section>`;
+    ${rdGuestDrawerSectionTitle('Steps · ' + done + ' of ' + total)}
+    <div class="rd-drawer-subtasks">${items || '<div class="rd-empty">No steps yet.</div>'}</div>
+    <button type="button" class="rd-drawer-subtask-add" onclick="addEditorPlanSubtask()">+ Add step</button></section>`;
 }
 function renderTaskDrawerNotes(){
-  const v = recordEditorState?.draft?.notes ?? '';
-  return `<section class="record-editor-section" data-drawer-group="notes"><h4>Notes</h4>
-    <div class="rd-drawer-notes"><textarea oninput="recordEditorSet('notes',this.value)">${escapeHtml(v)}</textarea></div></section>`;
+  const d = recordEditorState?.draft || {};
+  const v = d.notes ?? '';
+  const h = taskDrawerHistoryDates(d);
+  return `<section class="record-editor-section rd-drawer-fields" data-drawer-group="notes"><h4>Notes</h4>
+    ${rdGuestDrawerSectionTitle('Notes')}
+    <div class="rd-drawer-notes"><textarea oninput="recordEditorSet('notes',this.value)">${escapeHtml(v)}</textarea></div>
+    ${rdGuestDrawerKvRows([
+      { left: 'Created', right: h.created || '—', muted: true },
+      { left: 'Last touched', right: h.last || '—', muted: true },
+      { left: 'Reminders', right: String(d.reminders || '0 sent'), muted: true }
+    ])}
+  </section>`;
 }
 function renderAppointmentRecordEditor(){
   const d = recordEditorState.draft;
@@ -15926,24 +16266,36 @@ function renderPaymentBudgetItemField(){
 function renderPaymentRecordEditor(){
   const d = recordEditorState.draft;
   const summary = paymentPlanSummary(d);
-  return `<section class="record-editor-section"><h4>Payment Details</h4><div class="record-editor-grid">
+  /* Gaps Batch 46 · full editor mirrors the drawer tabs: Payment · Contract ·
+     Method — same order, same fields, three columns instead of one. */
+  return `<section class="record-editor-section"><h4>Payment</h4><div class="record-editor-grid">
     <div class="record-editor-field" style="display:none"><label>Payment ID</label><input value="${escapeHtml(d._id||'')}" readonly></div>
     ${recordDatalist('Vendor','vendor',safeArray(data?.vendors).map(v=>v.name).concat(recordExistingFieldValues('payments','vendor')))}
     ${recordInput('Description','desc','text',true)}
     ${recordInput('Amount Due','due','number',false,'min="0"')}
     ${recordInput('Amount Paid','paid','number',false,'min="0"')}
-    ${recordInput('Gratuity / Tip','gratuity','number',false,'min="0"')}
-    ${recordSelect('Gratuity Status','gratuityStatus',['Not Planned','Planned','Included in Quote','Prepared Cash','Given','Not Needed'])}
     <div class="record-editor-field"><label>Balance</label><input value="${escapeHtml(fmt(summary.balance||0))}" readonly></div>
     ${recordInput('Due Date','date','date')}
     ${recordInput('Date Paid','paiddate','date')}
-    ${recordSelect('Payment Type','ptype',PAYMENT_TYPES)}
     ${recordSelect('Status','status',PAYMENT_STATUS)}
+    ${recordTextarea('Notes','notes')}
+  </div></section>
+  <section class="record-editor-section"><h4>Contract</h4><div class="record-editor-grid">
+    ${recordSelect('Contract','contractIdx',(data.contracts||[]).map((c,i)=>String(i)),false,'--')}
     ${recordSelect('Budget Category','budgetCat',(data.budget||[]).filter(c=>!c.cateringOwned).map(c=>c.cat),false,'--')}
     ${renderPaymentBudgetItemField()}
-    ${recordSelect('Contract','contractIdx',(data.contracts||[]).map((c,i)=>String(i)),false,'--')}
-    ${recordTextarea('Notes','notes')}
-  </div></section>${renderPaymentEditorInstallments()}`;
+  </div></section>${renderPaymentEditorInstallments()}
+  <section class="record-editor-section"><h4>Method</h4><div class="record-editor-grid">
+    ${recordSelect('Payment Type','ptype',PAYMENT_TYPES)}
+    ${recordInput('From','payFrom')}
+    ${recordInput('Reference','reference')}
+    ${recordInput('Payer','payer')}
+    ${recordInput('Account name','acctName')}
+    ${recordInput('Bank','bank')}
+    ${recordInput('Account','acctNo')}
+    ${recordInput('Gratuity / Tip','gratuity','number',false,'min="0"')}
+    ${recordSelect('Gratuity Status','gratuityStatus',['Not Planned','Planned','Included in Quote','Prepared Cash','Given','Not Needed'])}
+  </div></section>`;
 }
 function renderPaymentEditorInstallments(){
   const d = recordEditorState.draft;
@@ -15958,7 +16310,8 @@ function renderPaymentEditorInstallments(){
     <td><input value="${escapeHtml(inst.notes||'')}" oninput="setEditorInstallment(${i},'notes',this.value)"></td>
     <td><button type="button" class="tracker-open-btn" onclick="removeEditorInstallment(${i})">Delete</button></td>
   </tr>`).join('');
-  return `<section class="record-editor-section"><h4>Installment Payments</h4><p class="record-editor-note">Deposit, balance, and payment-plan rows stay attached to this payment. The main payment totals update from these rows.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Installment</th><th>Due Date</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th><th>Date Paid</th><th>Notes</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="8" style="text-align:center;padding:.85rem;color:#7a7268;">No installments yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorInstallment()">+ Add Installment</button></div></section>`;
+  /* Gaps Batch 46 — instalment schedule lives under Contract, not its own jump tab. */
+  return `<div class="record-editor-subsection" data-gaps-fold="contract"><h5 style="margin:16px 0 8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a7e6b">Instalment schedule</h5><p class="record-editor-note">Deposit, balance, and payment-plan rows stay attached to this payment. The main payment totals update from these rows.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Installment</th><th>Due Date</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th><th>Date Paid</th><th>Notes</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="8" style="text-align:center;padding:.85rem;color:#7a7268;">No installments yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorInstallment()">+ Add Installment</button></div></div>`;
 }
 function addEditorInstallment(){
   const d = recordEditorState?.draft;
@@ -16062,7 +16415,7 @@ function renderPlanEditorSubtasks(){
     <td><input value="${escapeHtml(sub.text||'')}" placeholder="Describe this step..." oninput="setEditorPlanSubtask(${i},'text',this.value)"></td>
     <td><button type="button" class="tracker-open-btn" onclick="removeEditorPlanSubtask(${i})">Delete</button></td>
   </tr>`).join('');
-  return `<section class="record-editor-section"><h4>Subtasks</h4><p class="record-editor-note">Keep each task's nested checklist attached here. These are the same subtasks shown when the Planning Timeline row is expanded.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Done</th><th>Subtask</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="3" style="text-align:center;padding:.85rem;color:#7a7268;">No subtasks yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorPlanSubtask()">+ Add Subtask</button></div></section>`;
+  return `<section class="record-editor-section"><h4>Depends on</h4><p class="record-editor-note">What must happen first, and what is waiting on this. Keep each task's nested checklist attached here — the same steps shown when the Planning Timeline row is expanded.</p><div style="overflow:auto;margin-top:.65rem"><table class="record-editor-small-table"><thead><tr><th>Done</th><th>Depends on</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="3" style="text-align:center;padding:.85rem;color:#7a7268;">No dependencies yet.</td></tr>'}</tbody></table></div><div class="record-editor-inline-actions"><button type="button" class="m-btn" onclick="addEditorPlanSubtask()">+ Add dependency</button></div></section>`;
 }
 function addEditorPlanSubtask(){
   if (!recordEditorState?.draft) return;
@@ -19119,6 +19472,52 @@ function parseGuestCSV(text){
   if (row.some(v => String(v).trim())) rows.push(row);
   return rows.filter(r => r.some(v => String(v).trim()));
 }
+function openGuestDuplicateReview(){
+  if (typeof RdFurniture === 'undefined' || !RdFurniture.openMergeReview) {
+    showToast('Merge review is not available yet.', 'warn');
+    return;
+  }
+  const guests = safeArray(data.guests);
+  let left = null, right = null;
+  for (let i = 0; i < guests.length; i++) {
+    const a = guests[i];
+    const aEmail = normalizeGuestImportKey(a.email);
+    const aName = normalizeGuestImportKey(a.name);
+    for (let j = i + 1; j < guests.length; j++) {
+      const b = guests[j];
+      const sameEmail = aEmail && aEmail === normalizeGuestImportKey(b.email);
+      const sameName = aName && aName === normalizeGuestImportKey(b.name);
+      if (sameEmail || sameName) { left = a; right = b; break; }
+    }
+    if (left) break;
+  }
+  if (!left || !right) {
+    showToast('No obvious duplicates found on the guest list.');
+    return;
+  }
+  showPanel('guests', true);
+  RdFurniture.openMergeReview({
+    left: { name: left.name, email: left.email, household: left.household, rsvp: left.rsvp, table: left.table },
+    right: { name: right.name, email: right.email, household: right.household, rsvp: right.rsvp, table: right.table },
+    onMerge: function () {
+      /* Keep left; fold right email into notes/history and remove right. */
+      if (right.email && left.email && right.email !== left.email) {
+        left.altEmail = right.email;
+        left.notes = (left.notes ? left.notes + '\n' : '') + 'Merged alternate email: ' + right.email;
+      }
+      Object.keys(right).forEach(k => {
+        if (k === '_id') return;
+        if ((left[k] == null || left[k] === '') && right[k] != null && right[k] !== '') left[k] = right[k];
+      });
+      const idx = guests.indexOf(right);
+      if (idx >= 0) guests.splice(idx, 1);
+      save();
+      if (typeof renderGuests === 'function') renderGuests();
+    }
+  });
+}
+window.openGuestDuplicateReview = openGuestDuplicateReview;
+
 function ensureGuestCsvModal(){
   let overlay = document.getElementById('guest-csv-overlay');
   if (overlay) return overlay;
@@ -19127,16 +19526,17 @@ function ensureGuestCsvModal(){
   overlay.className = 'tb-overlay';
   overlay.onclick = (event) => { if (event.target === overlay) closeGuestCSVImport(); };
   overlay.innerHTML = `
-    <div class="tb-modal" role="dialog" aria-modal="true" aria-labelledby="guest-csv-title" style="max-width:860px">
+    <div class="tb-modal rd-import-modal" role="dialog" aria-modal="true" aria-labelledby="guest-csv-title" style="max-width:660px">
       <div class="tb-head">
-        <h3 id="guest-csv-title">Import Guest CSV</h3>
+        <h3 id="guest-csv-title">Import guests · step 1 of 3</h3>
         <button type="button" class="tb-close" onclick="closeGuestCSVImport()" aria-label="Close">x</button>
       </div>
       <p class="tb-sub" id="guest-csv-sub">Import guests from Excel, Google Sheets, or RSVP responses exported as CSV.</p>
       <input id="guest-csv-file" type="file" accept=".csv,text/csv" style="display:none" onchange="handleGuestCSVFile(event)">
       <div id="guest-csv-body"></div>
-      <div class="tb-actions">
-        <button type="button" class="btn btn-outline btn-sm" onclick="closeGuestCSVImport()">Cancel</button>
+      <div class="tb-actions" id="guest-csv-actions">
+        <button type="button" class="btn btn-outline btn-sm" id="guest-csv-back-btn" onclick="closeGuestCSVImport()">Cancel</button>
+        <button type="button" class="btn btn-outline btn-sm" id="guest-csv-template-btn" onclick="downloadGuestCSVTemplate((guestCsvImportState&&guestCsvImportState.mode)||'guests')">Download a template instead</button>
         <button type="button" class="btn btn-forest btn-sm" id="guest-csv-import-btn" onclick="commitEntityCSVImport()" disabled>Import</button>
       </div>
     </div>`;
@@ -19145,25 +19545,31 @@ function ensureGuestCsvModal(){
 }
 function openGuestCSVImport(mode='guests'){
   const overlay = ensureGuestCsvModal();
-  guestCsvImportState = {mode, headers:[], rows:[], mapping:{}};
+  guestCsvImportState = {mode, headers:[], rows:[], mapping:{}, step:1, fileName:'', conflicts:[], conflictResolutions:{}};
   const title = document.getElementById('guest-csv-title');
   const sub = document.getElementById('guest-csv-sub');
   const body = document.getElementById('guest-csv-body');
   const btn = document.getElementById('guest-csv-import-btn');
-  if (title) title.textContent = mode === 'rsvp' ? 'Import RSVP Responses' : 'Import Guest List CSV';
+  if (title) title.textContent = mode === 'rsvp' ? 'Import RSVP · step 1 of 3' : 'Import guests · step 1 of 3';
   if (sub) sub.textContent = mode === 'rsvp'
-    ? 'Use this for Google Forms or RSVP spreadsheet exports. The planner matches guests by email or name, then updates RSVP, meal, dietary, plus-one, children, and notes.'
-    : 'Use this for large guest lists exported from Excel or Google Sheets. You will preview the columns before anything is added.';
+    ? 'Use this for Google Forms or RSVP spreadsheet exports. Map columns next — nothing is written until you confirm.'
+    : 'Map the file’s columns to planner fields. Nothing is written until step 3.';
   if (body) body.innerHTML = `
     <div class="v4-help-note">
-      <strong>CSV import is additive.</strong> Existing guests are matched by email or name. New rows are added; matched rows are updated with non-empty values.
+      <strong>CSV import is additive.</strong> Existing guests are matched by email or name. Import never deletes guests that are missing from the file.
     </div>
     <div class="m-actions" style="margin:.8rem 0 1rem">
       <button type="button" class="m-btn m-btn-primary" onclick="document.getElementById('guest-csv-file').click()">Choose CSV File</button>
       <button type="button" class="m-btn" onclick="downloadGuestCSVTemplate('${mode}')">Download Template</button>
     </div>
     <div class="empty-dashboard-note">No file selected yet.</div>`;
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Import';
+    btn.onclick = () => commitEntityCSVImport();
+  }
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) { back.textContent = 'Cancel'; back.onclick = () => closeGuestCSVImport(); }
   overlay.style.display = 'flex';
 }
 function closeGuestCSVImport(){
@@ -19185,40 +19591,213 @@ function handleGuestCSVFile(event){
     const rows = parsed.slice(1).filter(r => r.some(v => String(v || '').trim()));
     guestCsvImportState.headers = headers;
     guestCsvImportState.rows = rows;
+    guestCsvImportState.fileName = file.name || 'import.csv';
+    guestCsvImportState.step = 2;
     guestCsvImportState.mapping = {};
+    guestCsvImportState.conflicts = [];
+    guestCsvImportState.conflictResolutions = {};
     headers.forEach((h,i) => {
       const guessFn = guestCsvImportState.mode === 'vendors' ? guessVendorCsvField : (guestCsvImportState.mode === 'gifts' ? guessGiftCsvField : guessGuestCsvField);
-      guestCsvImportState.mapping[i] = guessFn(h, guestCsvImportState.mode);
+      let mapped = guessFn(h, guestCsvImportState.mode);
+      /* Seating is owned by Table Layout — never take it from a file (Views · import). */
+      if (mapped === 'table') mapped = 'skip';
+      guestCsvImportState.mapping[i] = mapped;
     });
     renderGuestCSVMapping();
   };
   reader.readAsText(file);
   event.target.value = '';
 }
+function guestCsvImportPreflight(){
+  const state = guestCsvImportState;
+  if (!state) return { create:0, match:0, conflict:0, skip:0, untouched:0, conflicts:[], matchHow:'' };
+  let create = 0, match = 0, conflict = 0, skip = 0;
+  let matchEmail = 0, matchName = 0;
+  const conflicts = [];
+  const matchedIds = new Set();
+  state.rows.forEach((row, rowIndex) => {
+    const incoming = buildGuestImportObject(row);
+    if (!incoming.name && !incoming.email) { skip++; return; }
+    const email = normalizeGuestImportKey(incoming.email);
+    const name = normalizeGuestImportKey(incoming.name);
+    let byEmail = -1, byName = -1;
+    if (email) byEmail = data.guests.findIndex(g => normalizeGuestImportKey(g.email) === email);
+    if (name) byName = data.guests.findIndex(g => normalizeGuestImportKey(g.name) === name);
+    if (byEmail >= 0) {
+      match++; matchEmail++;
+      matchedIds.add(String(data.guests[byEmail]._id || byEmail));
+      return;
+    }
+    if (byName >= 0) {
+      const existing = data.guests[byName];
+      const existingEmail = normalizeGuestImportKey(existing.email);
+      if (email && existingEmail && email !== existingEmail) {
+        conflict++;
+        conflicts.push({
+          id: 'c-' + rowIndex,
+          rowIndex,
+          left: { name: existing.name, email: existing.email, household: existing.household, rsvp: existing.rsvp, table: existing.table },
+          right: { name: incoming.name, email: incoming.email, household: incoming.household, rsvp: incoming.rsvp, table: incoming.table },
+          incoming
+        });
+        matchedIds.add(String(existing._id || byName));
+        return;
+      }
+      match++; matchName++;
+      matchedIds.add(String(existing._id || byName));
+      return;
+    }
+    create++;
+  });
+  const untouched = Math.max(0, safeArray(data.guests).length - matchedIds.size);
+  return {
+    create, match, conflict, skip, untouched, conflicts,
+    matchHow: matchEmail && !matchName ? 'by email' : (matchName && !matchEmail ? 'by name' : (match ? 'by email or name' : ''))
+  };
+}
+function guestCsvMappingChip(header, field){
+  const h = normalizeGuestImportKey(header);
+  if (/table|seat|seating/.test(h) || field === 'table') {
+    return { label: 'ignored · seating is set in the planner', tone: 'gray', locked: true };
+  }
+  if (field === 'skip') {
+    return { label: 'not imported · no field for it', tone: 'gray', locked: false };
+  }
+  if (field === 'side' && /(b\/g|bride|groom)/.test(h)) {
+    return { label: 'matched · values will be mapped', tone: 'amber', locked: false };
+  }
+  if (field === 'plusone' || /^(y\/n|yesno|plus)/.test(h)) {
+    return { label: field === 'plusone' ? 'matched · Y/N → yes/no' : 'matched', tone: field === 'plusone' ? 'amber' : 'green', locked: false };
+  }
+  if (field === 'rsvp') return { label: 'matched · values will be mapped', tone: 'amber', locked: false };
+  return { label: 'matched', tone: 'green', locked: false };
+}
 function renderGuestCSVMapping(){
   const state = guestCsvImportState;
   const body = document.getElementById('guest-csv-body');
   const btn = document.getElementById('guest-csv-import-btn');
+  const title = document.getElementById('guest-csv-title');
+  const sub = document.getElementById('guest-csv-sub');
   if (!state || !body) return;
-  const opts = (state.mode === 'guests' || state.mode === 'rsvp') ? guestCsvFieldOptions(state.mode) : entityCsvFieldOptions(state.mode);
-  const previewRows = state.rows.slice(0,5);
-  const mapSelects = state.headers.map((h,i) => `
-    <label class="m-field">
-      <span>${escapeHtml(h || 'Column '+(i+1))}</span>
-      <select onchange="setGuestCsvMapping(${i},this.value)">
-        ${opts.map(([k,label]) => `<option value="${k}"${state.mapping[i]===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}
-      </select>
-    </label>`).join('');
-  const table = `<div style="overflow:auto;margin-top:1rem"><table class="budget-table" style="min-width:760px"><thead><tr>${state.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${state.headers.map((_,i)=>`<td>${escapeHtml(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  body.innerHTML = `
-    <div class="v4-help-note"><strong>${state.rows.length} rows found.</strong> Map each CSV column to a planner field. Leave unused columns as Skip.</div>
-    <div class="m-form cols-3">${mapSelects}</div>
-    ${table}`;
-  if (btn) btn.disabled = false;
+  if (state.mode !== 'guests' && state.mode !== 'rsvp') {
+    const opts = entityCsvFieldOptions(state.mode);
+    const previewRows = state.rows.slice(0, 5);
+    const mapSelects = state.headers.map((h, i) => `
+      <label class="m-field">
+        <span>${escapeHtml(h || 'Column '+(i+1))}</span>
+        <select onchange="setGuestCsvMapping(${i},this.value)">
+          ${opts.map(([k,label]) => `<option value="${k}"${state.mapping[i]===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}
+        </select>
+      </label>`).join('');
+    const table = `<div style="overflow:auto;margin-top:1rem"><table class="budget-table" style="min-width:760px"><thead><tr>${state.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${previewRows.map(r=>`<tr>${state.headers.map((_,i)=>`<td>${escapeHtml(r[i] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    body.innerHTML = `<div class="v4-help-note"><strong>${state.rows.length} rows found.</strong> Map each CSV column to a planner field. Leave unused columns as Skip.</div><div class="m-form cols-3">${mapSelects}</div>${table}`;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Import';
+      btn.onclick = () => commitEntityCSVImport();
+    }
+    return;
+  }
+  if (state.step === 3) {
+    renderGuestCSVConflicts();
+    return;
+  }
+  const opts = guestCsvFieldOptions(state.mode);
+  const pre = guestCsvImportPreflight();
+  state.conflicts = pre.conflicts;
+  if (title) title.textContent = (state.mode === 'rsvp' ? 'Import RSVP' : 'Import guests') + ' · step 2 of 3';
+  if (sub) sub.textContent = 'Map the file’s columns to planner fields. Nothing is written until step 3.';
+  const rowsHtml = state.headers.map((h, i) => {
+    const field = state.mapping[i] || 'skip';
+    const chip = guestCsvMappingChip(h, field);
+    const lockedTable = chip.locked && /table|seat|seating/.test(normalizeGuestImportKey(h));
+    if (lockedTable) state.mapping[i] = 'skip';
+    const dst = lockedTable
+      ? `<span class="rd-import__dst is-muted">—</span>`
+      : `<span class="rd-import__dst"><select onchange="setGuestCsvMapping(${i},this.value)">${opts.map(([k,label]) => `<option value="${k}"${(state.mapping[i]||'skip')===k?' selected':''}>${escapeHtml(label)}</option>`).join('')}</select></span>`;
+    return `<div class="rd-import__row">
+      <div class="rd-import__src">${escapeHtml(h || 'Column '+(i+1))}</div>
+      <div class="rd-import__arrow">→</div>
+      ${dst}
+      <span class="rd-import__chip${chip.tone==='amber'?' is-amber':chip.tone==='gray'?' is-gray':''}">${escapeHtml(chip.label)}</span>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="rd-import">
+    <div class="rd-import__eyebrow"><span>Mapping ${state.headers.length} columns</span><span>${escapeHtml(state.fileName || 'file.csv')} · ${state.rows.length} rows detected</span></div>
+    <div class="rd-import__map">${rowsHtml}</div>
+    <div class="rd-import__preflight">
+      <div class="rd-import__preflight-title">Before anything is written</div>
+      <div class="rd-import__count"><span>New guests to create</span><strong>${pre.create}</strong></div>
+      <div class="rd-import__count"><span>Matched to existing guests</span><strong>${pre.match}${pre.matchHow ? ' · ' + pre.matchHow : ''}</strong></div>
+      <div class="rd-import__count is-amber"><span>Conflicts to review</span><strong>${pre.conflict}${pre.conflict ? ' · same name, different email' : ''}</strong></div>
+      <div class="rd-import__count is-red"><span>Rows that will be skipped</span><strong>${pre.skip}</strong></div>
+      <div class="rd-import__count"><span>Existing guests not in this file</span><strong>${pre.untouched} · nothing will be deleted</strong></div>
+    </div>
+  </div>`;
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) {
+    back.textContent = 'Back';
+    back.onclick = () => openGuestCSVImport(state.mode);
+  }
+  if (btn) {
+    btn.disabled = false;
+    if (pre.conflict > 0) {
+      btn.textContent = `Review ${pre.conflict} conflict${pre.conflict === 1 ? '' : 's'}`;
+      btn.onclick = () => { guestCsvImportState.step = 3; renderGuestCSVConflicts(); };
+    } else {
+      btn.textContent = `Import ${pre.create + pre.match} row${(pre.create + pre.match) === 1 ? '' : 's'}`;
+      btn.onclick = () => commitEntityCSVImport();
+    }
+  }
 }
 function setGuestCsvMapping(index, value){
   if (!guestCsvImportState) return;
+  if (value === 'table') value = 'skip';
   guestCsvImportState.mapping[index] = value;
+  if (guestCsvImportState.mode === 'guests' || guestCsvImportState.mode === 'rsvp') renderGuestCSVMapping();
+}
+function renderGuestCSVConflicts(){
+  const state = guestCsvImportState;
+  const body = document.getElementById('guest-csv-body');
+  const btn = document.getElementById('guest-csv-import-btn');
+  const title = document.getElementById('guest-csv-title');
+  const sub = document.getElementById('guest-csv-sub');
+  if (!state || !body) return;
+  if (title) title.textContent = (state.mode === 'rsvp' ? 'Import RSVP' : 'Import guests') + ' · step 3 of 3';
+  if (sub) sub.textContent = 'Keep the existing record or take the file’s values. You cannot write until every conflict is decided.';
+  const list = (state.conflicts || []).map(c => {
+    const res = (state.conflictResolutions && state.conflictResolutions[c.id]) || 'keep';
+    return `<div class="rd-import__conflict-row">
+      <div><strong>${escapeHtml(c.left.name || 'Existing')}</strong><div class="rd-help">${escapeHtml(c.left.email || '—')}</div></div>
+      <div><strong>${escapeHtml(c.right.name || 'From file')}</strong><div class="rd-help">${escapeHtml(c.right.email || '—')}</div></div>
+      <div>
+        <select onchange="setGuestCsvConflictResolution('${c.id}',this.value)">
+          <option value="keep"${res==='keep'?' selected':''}>Keep existing</option>
+          <option value="file"${res==='file'?' selected':''}>Use file</option>
+          <option value="skip"${res==='skip'?' selected':''}>Skip row</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+  body.innerHTML = `<div class="rd-import">
+    <div class="rd-import__eyebrow"><span>Conflicts</span><span>${(state.conflicts||[]).length} ambiguous rows</span></div>
+    <div class="rd-import__conflicts">${list || '<p class="rd-help">No conflicts left.</p>'}</div>
+  </div>`;
+  const back = document.getElementById('guest-csv-back-btn');
+  if (back) {
+    back.textContent = 'Back';
+    back.onclick = () => { guestCsvImportState.step = 2; renderGuestCSVMapping(); };
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Write import';
+    btn.onclick = () => commitEntityCSVImport();
+  }
+}
+function setGuestCsvConflictResolution(id, value){
+  if (!guestCsvImportState) return;
+  if (!guestCsvImportState.conflictResolutions) guestCsvImportState.conflictResolutions = {};
+  guestCsvImportState.conflictResolutions[id] = value;
 }
 function guestCsvValue(row, field){
   const state = guestCsvImportState;
@@ -19271,19 +19850,50 @@ function commitGuestCSVImport(){
     showToast('Map at least a Guest Name or Email column before importing.', 'warn');
     return;
   }
+  const pre = guestCsvImportPreflight();
+  if (pre.conflict > 0 && state.step !== 3) {
+    state.conflicts = pre.conflicts;
+    state.step = 3;
+    renderGuestCSVConflicts();
+    showToast('Review conflicts before writing.', 'warn');
+    return;
+  }
+  const conflictByRow = {};
+  (state.conflicts || pre.conflicts || []).forEach(c => { conflictByRow[c.rowIndex] = c; });
   let added = 0, updated = 0, skipped = 0;
-  state.rows.forEach(row => {
+  state.rows.forEach((row, rowIndex) => {
     const incoming = buildGuestImportObject(row);
+    delete incoming.table; /* seating owned by Table Layout */
     if (!incoming.name && !incoming.email) { skipped++; return; }
+    const conflict = conflictByRow[rowIndex];
+    if (conflict) {
+      const res = (state.conflictResolutions && state.conflictResolutions[conflict.id]) || 'keep';
+      if (res === 'skip') { skipped++; return; }
+      const idx = findGuestForImport({ name: conflict.left.name, email: conflict.left.email });
+      if (idx < 0) { skipped++; return; }
+      if (res === 'file') {
+        const target = data.guests[idx];
+        Object.entries(incoming).forEach(([key,val]) => {
+          if (key === 'table') return;
+          if (val !== '' && val != null) target[key] = val;
+        });
+        updated++;
+      } else {
+        skipped++; /* keep existing — counted as reviewed, not mutated */
+      }
+      return;
+    }
     const idx = findGuestForImport(incoming);
     if (idx >= 0) {
       const target = data.guests[idx];
       Object.entries(incoming).forEach(([key,val]) => {
+        if (key === 'table') return;
         if (val !== '' && val != null) target[key] = val;
       });
       updated++;
     } else {
       const next = Object.assign(guestCsvDefaultRow(), incoming);
+      delete next.table;
       if (state.mode === 'rsvp' && !next.notes) next.notes = 'Imported from RSVP CSV';
       data.guests.push(next);
       added++;
@@ -29219,6 +29829,15 @@ const SAMPLE_DATA = {
     { vendor: "Bloom & Light Photography", time: "14:00", location: "Bride's getting-ready suite", contact: "(555) 010-3333", notes: "Detail & getting-ready shots" },
     { vendor: "Magnolia Catering Co.", time: "16:00", location: "The Magnolia Barn", contact: "(555) 010-2222", notes: "Kitchen setup" },
     { vendor: "DJ Marcus Reed", time: "17:30", location: "The Magnolia Barn", contact: "(555) 010-5555", notes: "Sound check before reception" }
+  ],
+  packets: [
+    { name: "Grace Hall day-of packet", recipient: "Grace Hall events", recipientType: "Vendors", contains: "Timeline · floor plan · contacts", sections: ["Wedding Day Timeline","Table Layout · plan only","Contacts · vendors","Ceremony & Reception"], mode: "Live", opens: 14, expires: "2026-12-08", status: "Live", created: "2026-07-12", link: "covenant.link/g/4kq9", lastOpen: "2 hours ago from Accra", contact: "events@gracehall.gh", activity: [{when:"2 hours ago",where:"Accra",browser:"Chrome"},{when:"Yesterday",where:"Accra",browser:"Chrome"},{when:"26 Jul",where:"Accra",browser:"Safari"}], openedThisWeek: true },
+    { name: "Catering brief", recipient: "Adom Catering", recipientType: "Vendors", contains: "Menu · headcount · dietary", sections: ["Catering & Menu","Headcount","Dietary notes"], mode: "Live", opens: 9, expires: "2026-12-08", status: "Live", created: "2026-07-18", link: "covenant.link/g/cat9", lastOpen: "yesterday", openedThisWeek: true },
+    { name: "Photography brief", recipient: "Nii Photography", recipientType: "Vendors", contains: "Shot lists · timeline", sections: ["Shot Lists","Wedding Day Timeline"], mode: "Snapshot", opens: 6, expires: "2026-08-04", status: "Expiring", created: "2026-06-01", link: "covenant.link/g/pho6" },
+    { name: "Wedding party brief", recipient: "10 members", recipientType: "Family & party", contains: "Duties · attire · weekend", sections: ["Wedding Party","Weekend Logistics"], mode: "Live", opens: 7, expires: "2026-11-09", status: "Live", created: "2026-07-20", link: "covenant.link/g/pty7", openedThisWeek: true },
+    { name: "Parents’ overview", recipient: "Both sets of parents", recipientType: "Family & party", contains: "Timeline · order of service", sections: ["Wedding Day Timeline","Ceremony & Reception"], mode: "Snapshot", opens: 2, expires: "2026-08-03", status: "Expiring", created: "2026-06-15", link: "covenant.link/g/par2" },
+    { name: "Officiant packet", recipient: "Rev. Mensah", recipientType: "Family & party", contains: "Order of service · vows", sections: ["Ceremony & Reception","Vows"], mode: "Live", opens: 0, expires: "2026-11-09", status: "Never opened", created: "2026-07-22", link: "covenant.link/g/off0" },
+    { name: "Venue shortlist comparison", recipient: "Mr & Mrs Owusu", recipientType: "Closed", contains: "Venue comparison only", sections: ["Venue Comparison"], mode: "Snapshot", opens: 0, expires: "2026-03-14", status: "Expired", created: "2026-02-01", link: "covenant.link/g/ven0" }
   ],
   essentials: [
     { cat: "Marriage Essentials", item: "Marriage license", packed: true, notes: "In white folder" },
@@ -40264,9 +40883,10 @@ function renderGuestPreviewTable(){
     }
   }
 }
-function guestAggregatedHouseholds(){
+function guestAggregatedHouseholds(opts){
+  const skipFilters = !!(opts && opts.all);
   const map = new Map();
-  safeArray(data.guests).filter(g => typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true).forEach((g, idx) => {
+  safeArray(data.guests).filter(g => skipFilters ? true : (typeof guestMatchesFilters === 'function' ? guestMatchesFilters(g) : true)).forEach((g, idx) => {
     const key = String(g.household || '').trim() || ('__solo__:' + (g._id || g.name || idx));
     const label = String(g.household || '').trim() || (g.name || 'Household');
     if (!map.has(key)) {
