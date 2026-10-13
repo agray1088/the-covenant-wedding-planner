@@ -29,7 +29,8 @@
   --surface-canvas:  #F9F7F4;   /* app background behind the frame */
   --surface-content: #FFFFFF;   /* the work surface: tables, forms */
   --surface-raised:  #FDFCFA;   /* toolbars, page-header strip */
-  --surface-sunken:  #F9F5EF;   /* the 224px rail, group rows */
+  --surface-sunken:  #F9F5EF;   /* the 224px rail, recessed chrome */
+  --surface-group:   #EEE8DE;   /* table category / group bands (slightly deeper than sunken) */
   --surface-active:  #F4F1EA;   /* bulk bar, selected rail section */
   --surface-chrome:  #FDFCFA;   /* tab strip */
   --surface-footer:  #F3EFE8;
@@ -98,7 +99,8 @@
 
   --component-table-row-height: 36px;
   --component-input-height:     32px;
-  --component-button-height:    32px;
+  /* Action buttons match filter-bar chips (Auto-fit columns): 28px / 12px */
+  --component-button-height:    28px;
   --component-chip-height:      28px;
   --component-icon-button-size: 28px;
   --component-card-padding:     var(--space-5);
@@ -114,8 +116,8 @@
   --radius-round: 50%;   /* avatars and floor-plan tables only */
 
   /* ---- buttons ----------------------------------------------------------- */
-  --btn-pad-y: 0;         --btn-pad-x: 16px;
-  --btn-font-size: 13px;  --btn-font-weight: 600;
+  --btn-pad-y: 0;         --btn-pad-x: 11px;
+  --btn-font-size: 12px;  --btn-font-weight: 400;
   --btn-toolbar-pad-y: 0; --btn-toolbar-pad-x: 11px;
   --btn-toolbar-font-size: 12px;
 
@@ -170,6 +172,7 @@ body.editorial-v4[data-theme="dark"],
   --surface-content: #1A1A1A;
   --surface-raised:  #1E1E1E;
   --surface-sunken:  #1C1C1C;
+  --surface-group:   #22201C;
   --surface-active:  #222222;
   --surface-chrome:  #1E1E1E;
   --surface-footer:  #181818;

@@ -6,6 +6,14 @@ most importantly — **what changed under the three categories you have already 
 
 Read §1 and §7 first. §7 is the delta list for work you have already done.
 
+**For every remaining page, follow §11 · Page implementation playbook.** It is the standing
+process distilled from Venue & Vendors (4c) and the People/Money redesign — do not wait for the
+user to re-state it.
+
+**When the user says “continue” (or equivalent), run §11.0 immediately** — pick the next page in
+§11.7, find every mock for it, implement to **exact** mock fidelity, gap-pass, commit/push/PR.
+No re-brief required.
+
 ---
 
 ## 1 · The five documents, and what each is for
@@ -101,9 +109,10 @@ Every view is one of these. Class names in `redesign/class-map.md`.
 | Planning | Timeline & Tasks · Appointments · Smart Calendar · Database Hub |
 | People | Guest List · Households · Contacts · Wedding Party · Table Layout · Gifts |
 | Money | Budget · Payments · Contracts & Invoices |
-| Vendors | Venue & Vendors · Catering & Menu · Entertainment · Shot Lists |
-| The Day | Wedding Day Timeline · Ceremony & Reception · Weekend Logistics · Newlywed Homecoming · Planner History |
-| Covenant | Vision & Foundation · Prayer Journal · Premarital Counseling · First-Month Rhythms |
+| Vendors | Venue & Vendors · **Venue Comparison** · Catering & Menu · Entertainment · Shot Lists |
+| The Day | Wedding Day Timeline · Ceremony & Reception · Weekend Logistics · Honeymoon |
+| Covenant | Vision & Foundation · Prayer Journal · Premarital Counseling · First-Month Rhythms · Newlywed Homecoming |
+| No tab | Planner History (top-bar undo/redo · prefs) · Wedding Setup · Get Started · FAQ · Guide |
 | Documents | Share Packets · Email Templates · Print Centre · Vision Board |
 
 ### `Planner Screens Views.dc.html` — organised in batches, newest first
@@ -264,15 +273,15 @@ Guest List, Timeline & Tasks, Appointments and Smart Calendar were already compl
 
 - [ ] The **depth pass (§7.1)** applies to all of them
 - [ ] `Appointments` — travel time renders **hatched**, and the same hatch language now means "not the thing itself" everywhere (load-in on Entertainment, setup on the vendor schedule). Keep them consistent
-- [ ] `Database Hub` — see the drawer document for `Hub table · 7b` and `Hub row · 7c`
+- [x] `Database Hub` — see the drawer document for `Hub table · 7b` and `Hub row · 7c`
 
 ### 7.5 · Also new since your handoff, and cross-cutting
 
 - [ ] **State library (37)** — every page needs its 4 states. Copy deck for all 30 pages is in Views
 - [ ] **Furniture (34–36)** — 10 overlays that belong to no page: ⌘K, filter builder, saved views, bulk edit, import, shortcuts, notifications, share, small states, templates/trash/merge
 - [ ] **All 28 drawer types** now have every tab drawn in `Planner Screens Drawers.dc.html` — previously only the first tab existed. Check the record types on your finished pages: Household `14b`, Contact `14c`, Wedding party member `10a`, Table `8a`, Gift `10b`, Appointment `14a`
-- [ ] **Responsive (41–42)** — 1240px and 720px
-- [ ] **Roles (43)**
+- [x] **Responsive (41–42)** — 1240px and 720px + Day-of → `js/responsive-redesign.js`
+- [x] **Roles (43)** — planner / couple / vendor preview → `js/roles-redesign.js`
 
 ---
 
@@ -322,3 +331,257 @@ stat strip. The panel is `#panel-{page}-{view}` with `data-panel` and `data-view
 - **No shells for furniture, states or responsive** — they are overlays, per-archetype states and breakpoint behaviours, not pages. Reserved class names are at the foot of `class-map.md`.
 - **`Planner Screens All.dc.html` is 2.2MB** and slow to open. Give it time.
 - **`Planner Screens Views.dc.html` is 1.3MB** — over a minute to first paint, and it cannot be exported to PNG or PDF.
+
+---
+
+## 11 · Page implementation playbook (standing process)
+
+Use this for **every** unfinished page. The user should not have to re-explain fidelity, mock
+lookup, or queue order.
+
+### 11.0 · “Continue” trigger
+
+When the user says **continue**, **keep going**, **next page**, or similar:
+
+1. Take the **next unfinished page** from §11.7 — that queue follows **live category → sub-page
+   order** from `js/redesign-shell.js` `TABS` (not a reshuffled “priority” list).
+2. Resolve its panel key / All.dc badge and find **all** mocks (§11.1a).
+3. Complete the mandatory inventory (§11.2) — no coding until that is done.
+4. Implement so the live UI **matches the mockups exactly** (§11.1 fidelity rule).
+5. Run the gap pass (§11.5), then commit, push, and update the PR.
+
+Do not ask which page unless the queue is ambiguous or blocked. Do not wait for mock file paths —
+look them up. Do **not** skip ahead inside a category (e.g. after Venue & Vendors, next is
+**Venue Comparison**, not Catering & Menu).
+
+### 11.1 · Fidelity rule (non-negotiable)
+
+**What you implement must match the mockups exactly** from the files in §11.1a — rail, stats,
+pagehead, toolbar, view switcher, work surface, drawer, marks, copy, and view-specific chrome.
+
+- Match the drawings. **Do not approximate**, restyle “in the spirit of”, or invent alternate UX.
+- If All.dc / Views / Drawers disagree with older shells or Sub-Tabs, **All.dc + Views + Drawers win**.
+- If something is undrawn (e.g. no vendor-only Full editor screen), reuse the shared pattern
+  (`openRecordEditor` / §16) and say so in the PR — do not invent a third chrome.
+- Keep legacy `data.*` models and schemas; restyle into the redesign surface.
+
+### 11.1a · How to find every mock for a page
+
+Lookup by **live sub-nav order** first, then **page / badge id** — not by guessing filenames.
+
+| Step | Where | What to do |
+|---|---|---|
+| 0 | `js/redesign-shell.js` → `TABS` | Authoritative **category → sub-page** order for “continue” |
+| A | Guide §3 + `planner-screens-all-catalog.md` | Map page name → All.dc badge id when one exists (`4c`, `7a`, `10d`, …) |
+| B | `Planner Screens All.dc.html` | Open `id="{badge}"`. Read **Build notes**, then the full 1440px screen |
+| C | `Planner Screens Views.dc.html` | §3 batch map (30 Vendors/Money, 31 The Day, 32 Covenant, 33 Documents). Collect every sibling view for that page |
+| D | `Planner Screens Drawers.dc.html` | Tab-group batch (Vendors 24, The Day 25, Covenant 26, Documents 27). Every tab of the record type |
+| E | `redesign/pages/{page}*.html` | Shell/rail hints only — secondary |
+| F | Views batches **34–43** | Depth, states, furniture, responsive, roles — apply when relevant |
+
+If a **live sub-nav page has no All.dc badge yet** (e.g. Venue Comparison may be inventory-thin):
+search All/Views/Drawers/Dark/Spec by page title and panel id (`#panel-venue`), use every
+drawing that applies, keep legacy `data.venue` behaviour, and still apply §07 frame + exact
+match to whatever is drawn. Note undrawn gaps in the PR — do not skip the page in the queue.
+
+Worked examples: Venue & Vendors = All `#4c` + Views `#30f` / `#30g` + 4c drawer panel.
+Venue Comparison (`venue`) = thin inventory → `js/venue-redesign.js`.
+Catering & Menu = All `#7a` + Views `#30h` / `#30i` + Drawers batch 24 → `js/catering-redesign.js`.
+Entertainment = All `#10d` + Views `#30j` / `#30k` + Drawers Song → `js/entertainment-redesign.js`.
+Shot Lists = All `#11b` + Views `#30l` / `#30m` + Drawers Shot → `js/shotlist-redesign.js`.
+Wedding Day Timeline = All `#6b` + Views `#31a` / `#31b` + Drawers Event → `js/timeline-redesign.js`.
+Ceremony & Reception = All `#11a` + Views `#31c` / `#31d` + Drawers Element → `js/ceremony-redesign.js`.
+Honeymoon & After = All `#17b` + Dark rail + Drawers Booking → `js/honeymoon-redesign.js`.
+Prayer Journal = All `#13b` + Views `#32c` / `#32d` + Drawers Entry → `js/prayer-redesign.js`.
+Premarital Counseling = All `#13c` + Views `#32e` / `#32f` + Drawers Session → `js/counseling-redesign.js`.
+Vision Board = All `#8b` + Dark rail + Drawers Vision pin → `js/mood-redesign.js`.
+Essentials Checklist = All `#17a` + Views By person / Print + Drawers Item → `js/essentials-redesign.js`.
+Share Packets = All `#12b` + Views Cards / Activity + Drawers Packet → `js/packets-redesign.js`.
+Email Templates = All `#12c` + Views Preview / Sent log + Drawers Template → `js/emails-redesign.js`.
+Database Hub = All `#7b` / `#7c` + Dark rails + Drawers Hub table / Hub row → `js/data-hub-redesign.js`.
+Dashboard = All `#3a` + Dark rail (jump links + Foundation) → `js/dashboard-redesign.js`.
+Notes = All `#12a` + Views `#33a` Cards / `#33b` Timeline + Drawers Note → `js/notes-redesign.js`.
+(**33c** is Share Packets, not Notes.)
+Responsive = Views `#41a` (≤1240) / `#42a` (≤720) / `#42b` Day-of → `js/responsive-redesign.js`.
+Roles = Views `#43a` planner / couple / vendor preview → `js/roles-redesign.js`.
+Vendor Portal = `Planner Vendor Portal.dc.html` V1–V5 → `vendor-portal.html` + `js/vendor-portal.js` (separate product).
+**Playbook queue complete** for live `TABS` + cross-cutting Responsive / Roles / Vendor Portal.
+
+### 11.1b · Sources of truth (priority order)
+
+1. **`Planner Screens All.dc.html`** — base state for the page id.
+2. **`Planner Screens Views.dc.html`** — every alternate view; build notes before the picture.
+3. **`Planner Screens Drawers.dc.html`** — every drawer tab for the record type.
+4. **Guest `5a` / §16** — shared Full editor chrome when no page-specific drawing exists.
+5. **`redesign/pages/` shells** — secondary; superseded when All/Views disagree.
+6. **`spec-update-notes.md`** + **`class-map.md`**.
+7. **Legacy `js/planner.js` (and page modules)** — data/schemas only; UI follows mocks.
+
+### 11.2 · Read before you write (mandatory inventory)
+
+For the page id you are building, extract and keep a checklist from:
+
+| Surface | What to capture |
+|---|---|
+| All.dc build notes | Purpose, rail views/meters, columns, stats, primary action, connections |
+| All.dc picture | Pagehead button order, toolbar chips, view switcher, groups, empty/add row, drawer fields |
+| Each Views screen | Purpose, marks/rules, alternate stats/rail, work-surface shape, pagehead deltas |
+| Drawers.dc | Every tab label + fields; footer actions (Save / Full editor / domain CTA) |
+| Legacy code | Entity key, `data.*` arrays, status helpers, schemas/attrs, linked records |
+
+If you only skimmed All.dc chrome and skipped drawer / Full editor / view build notes, **stop and
+finish the inventory** before coding. A partial read is how 4c missed Budget line →, Coverage
+rail, and §16 Full editor.
+
+### 11.3 · Build order (same anatomy every page)
+
+1. **Shell** — `#panel-{page}` → `.rd-page` with pagehead, `#…-stats`, toolbar, bulk bar,
+   `.rd-surface > .rd-surface__row` containing `.rd-surface__main` + `#{page}-drawer-slot`.
+2. **Rail** — `js/planner-context-sidebar.js` `build{Page}Context()`: Views list + meters + note
+   from the mock. View switching must not reload the page.
+3. **Stat strip** — labels/values/attention from All.dc; alternate strips per view when Views
+   draw them (use `RdDepth.renderStats` when available).
+4. **Toolbar** — filters, sort, columns, density, **view switcher on the right**.
+5. **Default work surface** — table/cards/plan/etc. from All.dc (columns, groups, rating marks,
+   contract chips, add row).
+6. **Alternate views** — one render path per Views screen; only the work surface + relevant
+   chrome change.
+7. **Drawer** — 360px docked **right of the table**, not under it. See §11.4.
+8. **Full editor** — pagehead + drawer + row action → `openRecordEditor(entity, idx)` (§16).
+   Open-in-drawer and open-full-editor are **separate** actions (hover row actions with kbd hints).
+9. **Wire-up** — `SYSTEM_PANEL_RENDERERS`, cache-bust `?v=` on touched CSS/JS in `index.html`,
+   rail counts helpers on `window`, commit / push / update PR.
+
+Prefer a focused `{page}-redesign.js` (pattern: `vendors-redesign.js`, `party-redesign.js`) over
+growing `planner.js` further.
+
+### 11.4 · Drawer docking (do not skip)
+
+Other redesigned pages already do this; copy the pattern or the drawer stacks under the table:
+
+```css
+#panel-{page} .rd-surface { flex column; flex 1; min-height 0; overflow hidden; }
+#panel-{page} .rd-surface__row { display flex; align-items stretch; flex 1; min-height 0; }
+#panel-{page} .rd-surface__main { flex 1; min-width 0; overflow hidden; }
+#panel-{page} #{page}-drawer-slot { display: none; }
+#panel-{page} #{page}-drawer-slot.is-open {
+  display: flex; flex: 0 0 360px; width/min/max 360px; border-left; background;
+}
+```
+
+Also register the slot in `redesign-shell.js` `syncDrawerSlot()` and `DRAWER_PAGE_CRUMB` when using
+the shared `#record-drawer`. Custom decision drawers (like Vendors 4c) still live in the same
+slot and must set `.is-open` on it.
+
+### 11.5 · Fidelity gap pass (before you call the page done)
+
+Re-diff live UI against the **exact** mock inventory from §11.1a:
+
+- [ ] Rail views + meters (and per-view meter swaps)
+- [ ] Pagehead actions **per view**
+- [ ] Stats per view
+- [ ] Every view's work surface (not just the default table)
+- [ ] Drawer fields exactly as drawn (links with →, overdue chips, pros/cons, domain CTAs)
+- [ ] Full editor opens §16 pop-out for the correct index
+- [ ] Row actions: Open (drawer) ≠ Full editor
+- [ ] Legacy schemas/attrs/linked data still drive the matrix/forms
+- [ ] Drawer docks right (flex row), desktop + narrow overlay behaviour
+- [ ] Hard-refresh cache bust on changed assets
+
+Call out deferred items honestly in the PR (whole-app depth 38–40, responsive 41–42, roles 43,
+missing dedicated Full-editor drawings, etc.). Do not pretend a skim equals a gap pass.
+
+### 11.6 · Reference implementation
+
+**Venue & Vendors (`4c`)** is the template for this playbook:
+
+| Piece | Where |
+|---|---|
+| Page module | `js/vendors-redesign.js` |
+| Rail | `js/planner-context-sidebar.js` → `buildVendorsContext` |
+| Drawer slot + crumb | `js/redesign-shell.js` |
+| Layout / drawer dock CSS | `css/redesign-overrides.css` (`#panel-vendors` surface row) |
+| Mocks | All.dc `#4c`, Views `#30f` `#30g` |
+
+People/Money pages (`party-`, `gifts-`, `budget-`, `payments-`, `contracts-`, `tables-redesign.js`)
+follow the same shell + slot + renderer shape — reuse their CSS dock blocks when starting a new
+panel.
+
+### 11.7 · Remaining page queue (default order for “continue”)
+
+**Order = live `TABS` in `js/redesign-shell.js` (full planning IA, guide §3).** Finish each
+category’s sub-pages left-to-right. Gap passes and furniture (batches 34–40) still apply to
+every page already shipped.
+
+**People** (live nav order):
+
+| # | Sub-page | Panel key | All.dc / notes |
+|---|---|---|---|
+| ✓ | Guest List | `guests` | Batch 21 · guest shell |
+| ✓ | Households | `households` | All **14b** · Views **28** · derived · `js/households-redesign.js` |
+| ✓ | Contacts | `contacts` | All **14c** · Views **28** · derived · `js/contacts-redesign.js` |
+| ✓ | Wedding Party | `party` | All **10a** · `js/party-redesign.js` |
+| ✓ | Table Layout | `tables` | All **8a** · `js/tables-redesign.js` |
+| ✓ | Gifts | `gifts` | All **10b** · `js/gifts-redesign.js` |
+
+**The Day** (live nav order):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| ✓ | Wedding Day Timeline | `timeline` | All **6b** · Views `#31a`/`#31b` · `js/timeline-redesign.js` |
+| ✓ | Ceremony & Reception | `ceremony` | All **11a** · Views `#31c`/`#31d` · `js/ceremony-redesign.js` |
+| ✓ | Weekend Logistics | `logistics` | Moved under The Day per §3 IA |
+| ✓ | Honeymoon | `honeymoon` | All **17b** · Dark rail · `js/honeymoon-redesign.js` |
+
+**Covenant** (live nav order):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| ✓ | Vision & Foundation | `vision` | All **13a** · Views **32** · `js/vision-redesign.js` |
+| ✓ | Prayer Journal | `prayer` | All **13b** · Views `#32c`/`#32d` · `js/prayer-redesign.js` |
+| ✓ | Premarital Counseling | `counseling` | All **13c** · Views `#32e`/`#32f` · `js/counseling-redesign.js` |
+| ✓ | First-Month Rhythms | `firstmonth` | All **13d** · Views **32** · `js/firstmonth-redesign.js` |
+| ✓ | Newlywed Homecoming | `homecoming` | All **18a** · `js/homecoming-redesign.js` |
+
+**No tab** (reached from top bar / prefs):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| ✓ | Planner History | `history` | All **18b** · `js/history-redesign.js` · log **200** · undo snapshots **15** |
+
+**Documents** (live nav order):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| ✓ | Share Packets | `packets` | All **12b** · Views Cards/Activity · `js/packets-redesign.js` |
+| ✓ | Email Templates | `emails` | All **12c** · Views Preview/Sent log · `js/emails-redesign.js` |
+| ✓ | Print Centre | `print-centre` | All **12d** · Views **33** · `js/print-centre-redesign.js` |
+| ✓ | Vision Board | `mood` | All **8b** · Dark rail · `js/mood-redesign.js` |
+| ✓ | Essentials Checklist | `essentials` | All **17a** · Views By person/Print · `js/essentials-redesign.js` |
+
+**Planning** (Database Hub lives here per §3):
+
+| # | Sub-page | Panel key | All.dc |
+|---|---|---|---|
+| ✓ | Timeline & Tasks | `tasks` | existing |
+| ✓ | Smart Calendar | `calendar` | existing |
+| ✓ | Appointments | `appointments` | existing |
+| ✓ | Database Hub | `data-hub` | All **7b** / **7c** · `js/data-hub-redesign.js` |
+
+**Vendors / Money / Overview / Cross-cutting** — already complete (venue→shotlist, budget→contracts,
+dashboard+notes, Responsive **41–42**, Roles **43a**, Vendor Portal V1–V5).
+
+**Planner Screens Gaps (`Planner Screens Gaps.dc.html`, batches 44–48) — complete.**
+
+| Batch | What | Implementation |
+|---|---|---|
+| **44** | Guest / Task / Payment / Vendor drawers (18 tabs) | `planner.js` guest tabs · `redesign-shell.js` Task · `payments-redesign.js` · `vendors-redesign.js` |
+| **45** | Avatar menu · search · undo flyout · help | `js/gaps-redesign.js` (gear retired) |
+| **46** | Full editors for Task / Vendor / Payment | Same tab IA as drawers in `render*RecordEditor` |
+| **47** | Settings window · 14 panes | `openSettingsWindow(paneId)` |
+| **48** | Profile drawer · Profile / Display / Alerts / Access | `#profile-drawer` retabbed; device prefs shared with Settings |
+
+**Next “continue” work:** depth / state / furniture gap passes (batches **34–40**) across live pages.
+
+For each page: **§11.1a find mocks → §11.2 inventory → §11.3–11.4 build → §11.5 gap pass →
+commit / push / PR update.**
