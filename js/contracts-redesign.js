@@ -594,17 +594,59 @@
 
   function documentsGridHtml() {
     const docs = allDocuments();
-    const cells = docs.slice(0, 12).map(({ d }) => {
-      const sub = d.kind + (d.pages ? ' · ' + d.pages + ' pages' : '') + (d.amount ? ' · ' + money0(d.amount) : '');
-      return `<div class="rd-con-doc">
+    const requiredKinds = [
+      { kind: 'Contract', label: 'Signed contract' },
+      { kind: 'Insurance', label: 'Insurance certificate' },
+      { kind: 'Invoice', label: 'Final invoice' },
+      { kind: 'W-9', label: 'Tax form / W-9' }
+    ];
+    const presentKinds = new Set(docs.map(({ d }) => String(d.kind || d.name || '').toLowerCase()));
+    const missing = [];
+    rows().forEach(c => {
+      const named = Array.isArray(c.missingDocs) ? c.missingDocs : [];
+      named.forEach(m => {
+        missing.push({
+          name: m.label || m.name || m,
+          meta: (conName(c) || 'Contract') + ' · Missing',
+          missing: true,
+          contractId: conId(c)
+        });
+      });
+      if (!named.length && !docList(c).length) {
+        requiredKinds.slice(0, 1).forEach(rk => {
+          missing.push({
+            name: rk.label,
+            meta: (conName(c) || 'Contract') + ' · Missing',
+            missing: true,
+            contractId: conId(c)
+          });
+        });
+      }
+    });
+    /* Global required kinds that never appear across any contract. */
+    requiredKinds.forEach(rk => {
+      const hit = [...presentKinds].some(k => k.includes(rk.kind.toLowerCase()) || k.includes(rk.label.toLowerCase()));
+      if (!hit && !missing.some(m => String(m.name).toLowerCase() === rk.label.toLowerCase())) {
+        missing.push({ name: rk.label, meta: 'Required · Missing', missing: true });
+      }
+    });
+    const cells = docs.map(({ c, d }) => {
+      const sub = (d.kind || 'Document') + (d.pages ? ' · ' + d.pages + ' pages' : '') + (d.amount ? ' · ' + money0(d.amount) : '');
+      return `<button type="button" class="rd-con-doc" onclick="rdConOpenDrawer('${esc(conId(c) || indexOfRow(c))}')">
         <div class="rd-con-doc__name">${esc(d.name)}</div>
         <div class="rd-con-doc__meta">${esc(sub)}</div>
         <div class="rd-con-doc__date">${d.date ? esc(shortDate(d.date)) : ''}</div>
-      </div>`;
-    }).join('');
+      </button>`;
+    }).join('') + missing.map(m =>
+      `<button type="button" class="rd-con-doc is-missing" onclick="${m.contractId ? `rdConOpenDrawer('${esc(m.contractId)}')` : 'rdConSetMode(\'documents\')'}">
+        <div class="rd-con-doc__name">${esc(m.name)}</div>
+        <div class="rd-con-doc__meta">${esc(m.meta)}</div>
+        <div class="rd-con-doc__date">Missing</div>
+      </button>`
+    ).join('');
     return `<div class="rd-con-docshead">
-        <div class="rd-con-eyebrow">Documents · ${docs.length}</div>
-        <div class="rd-con-muted">Every file is attached to a contract; nothing floats loose</div>
+        <div class="rd-con-eyebrow">Documents · ${docs.length}${missing.length ? ' · ' + missing.length + ' missing' : ''}</div>
+        <div class="rd-con-muted">A required document that doesn&rsquo;t exist yet still gets a card — rendered red.</div>
         <button type="button" class="rd-con-link" style="margin-left:auto" onclick="rdConUploadDoc()">Upload</button>
       </div>
       <div class="rd-con-docsgrid">${cells || '<div class="rd-con-empty">No documents attached yet.</div>'}</div>`;
@@ -650,8 +692,8 @@
         (all.length === 0 || (filterOn && list.length === 0))) {
       host.innerHTML = toolbarHtml()
         + '<div class="rd-bulkbar rd-con-bulkbar" id="contracts-bulk-bar" hidden></div>'
-        + '<div id="cwp-contracts" data-rd-state-slot="1"></div>';
-      RdStates.maybeEmpty(host.querySelector('#cwp-contracts'), {
+        + '<div id="rd-contracts-table" data-rd-state-slot="1"></div>';
+      RdStates.maybeEmpty(host.querySelector('#rd-contracts-table'), {
         pageId: 'contracts',
         total: all.length,
         filtered: list.length,
@@ -697,8 +739,8 @@
       if (!list.length) {
         body = `<tr class="rd-con-addrow" onclick="rdConAddContract()"><td class="rd-con-tick">+</td><td colspan="${dataSpan}">${anyFilter() ? 'No contracts match these filters' : 'No contracts yet'} — add the first one…</td></tr>`;
       }
-      main = `<div class="rd-con-tablewrap" id="cwp-contracts" data-rd-row-height="${esc(rowHeightLabel())}">
-        <table class="cwp-table rd-con-table rd-table--${esc(rowHeightLabel())}">
+      main = `<div class="rd-con-tablewrap" id="rd-contracts-table" data-rd-row-height="${esc(rowHeightLabel())}">
+        <table class="rd-con-table rd-table rd-table--${esc(rowHeightLabel())}">
           <thead><tr>
             <th class="rd-con-tick" style="width:34px"></th>
             ${colHeadHtml()}
@@ -893,9 +935,30 @@
   function rerender() { renderContractsRd(); }
 
   function rdConOpenDrawer(id) {
-    window._conDrawerId = String(id);
+    /* Ensure every contract has a stable id so row clicks resolve after sort/filter. */
+    rows().forEach(c => {
+      if (!c._id && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
+    });
+    let key = id == null ? '' : String(id);
+    let c = key ? rowById(key) : null;
+    if (!c && key !== '' && /^\d+$/.test(key)) {
+      const list = rows();
+      const i = parseInt(key, 10);
+      if (i >= 0 && i < list.length) c = list[i];
+    }
+    if (!c) return;
+    if (!conId(c) && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
+    window._conDrawerId = conId(c) || String(indexOfRow(c));
     window._conDrawerTab = 0;
     renderContractsDrawer();
+    const slot = document.getElementById('contracts-drawer-slot');
+    if (!slot) {
+      /* Fallback: full record editor if the page drawer slot is missing. */
+      const i = indexOfRow(c);
+      if (i >= 0 && typeof openRecordEditor === 'function') openRecordEditor('contracts', i);
+      return;
+    }
+    slot.classList.add('is-open');
     const row = document.getElementById('contracts-surface-row');
     if (row && typeof row.scrollIntoView === 'function') row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
@@ -1096,7 +1159,7 @@
     }
   }
   function rdConAutoFitColumns() {
-    const mount = document.getElementById('cwp-contracts');
+    const mount = document.getElementById('rd-contracts-table');
     const table = mount && mount.querySelector('table');
     if (!table) return;
     if (typeof window.rdAutoFitTable === 'function') window.rdAutoFitTable(table);
@@ -1140,6 +1203,21 @@
 
   /* ── orchestration ────────────────────────────────────────────────────── */
 
+  function wireContractsRowClicks() {
+    const host = document.getElementById('contracts-body');
+    if (!host || host.dataset.rdConClickWired === '1') return;
+    host.dataset.rdConClickWired = '1';
+    host.addEventListener('click', function (ev) {
+      const t = ev.target;
+      if (!t || !t.closest) return;
+      if (t.closest('input,select,textarea,button,a,label,.rd-con-planlink,.rd-chip,.rd-viewswitch')) return;
+      const row = t.closest('tr.rd-con-row[data-con-id]');
+      if (!row) return;
+      const id = row.getAttribute('data-con-id');
+      if (id != null && id !== '') rdConOpenDrawer(id);
+    });
+  }
+
   function renderContractsRd() {
     rows().forEach(c => {
       if (!c._id && typeof ensureRowId === 'function') ensureRowId(c, 'contracts');
@@ -1149,6 +1227,7 @@
     if (typeof syncVendorNameOptions === 'function') syncVendorNameOptions();
     renderContractStatsRd();
     renderContractsTable();
+    wireContractsRowClicks();
     renderContractsDrawer();
 
     if (typeof renderContextSidebar === 'function'
