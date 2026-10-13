@@ -605,6 +605,131 @@
     return '<div class="rd-drawer__quick" data-drawer-quick>' + call + mail + wa + '</div>';
   }
 
+  /**
+   * Depth · drawer header extras (§7.1) — avatar, status chips, up to three
+   * quick actions and prev/next-with-position, as one HTML block any
+   * hand-rolled drawer (Households, Contacts, …) can drop into its head.
+   * opts: { avatar, avatarName, chips:[{label,scheme}],
+   *         quickActions:[{label,onclick,title}], position, onPrev, onNext }
+   */
+  function drawerHeaderExtras(opts) {
+    opts = opts || {};
+    var avatarText = opts.avatar || initials(opts.avatarName || opts.name || '');
+    var html = '<div class="rd-drawer__depth-extras" data-rd-depth-header>';
+    html += '<div class="rd-drawer__identity" data-drawer-identity>' +
+      '<span class="rd-avatar rd-avatar--lg" aria-hidden="true">' + esc(avatarText) + '</span>';
+    if (opts.chips && opts.chips.length) {
+      html += '<div class="rd-drawer__pills">' + opts.chips.map(function (c) {
+        return '<span class="status-pill" data-pillscheme="' + esc(c.scheme || 'gray') + '">' + esc(c.label || '') + '</span>';
+      }).join('') + '</div>';
+    }
+    html += '</div>';
+    if (opts.position || opts.onPrev || opts.onNext) {
+      html += '<div class="rd-drawer__nav" data-drawer-nav>' +
+        '<button type="button" class="rd-drawer__nav-btn" aria-label="Previous record" title="Previous record"' +
+        (opts.onPrev ? ' onclick="' + esc(opts.onPrev) + '"' : ' disabled') + '>&#8593;</button>' +
+        '<button type="button" class="rd-drawer__nav-btn" aria-label="Next record" title="Next record"' +
+        (opts.onNext ? ' onclick="' + esc(opts.onNext) + '"' : ' disabled') + '>&#8595;</button>' +
+        (opts.position ? '<span class="rd-drawer__position" data-drawer-position>' + esc(opts.position) + '</span>' : '') +
+        '</div>';
+    }
+    if (opts.quickActions && opts.quickActions.length) {
+      html += '<div class="rd-drawer__quick" data-drawer-quick>' +
+        opts.quickActions.slice(0, 3).map(function (q) {
+          q = q || {};
+          var disabled = !q.onclick;
+          return '<button type="button" class="rd-btn"' +
+            (disabled ? ' disabled' : ' onclick="' + esc(q.onclick) + '"') +
+            (q.title ? ' title="' + esc(q.title) + '"' : '') +
+            '>' + esc(q.label || '') + '</button>';
+        }).join('') +
+        '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  /** Depth · drawer empty field (§7.1) — a full field row with a pale "Add…"
+   * placeholder instead of a blank box, for hand-rolled drawers that build
+   * `.rd-drawer__field` rows (label + value) as plain strings. */
+  function emptyField(label) {
+    return '<div class="rd-drawer__field rd-drawer__field--empty"><span>' +
+      esc(label) + '</span>' + emptyAdd('Add…') + '</div>';
+  }
+
+  /**
+   * Depth · drawer related list (§7.1) — a mini table of records the drawer's
+   * record owns or touches, with an optional add action.
+   * rows: [{ left, right }] (or { label, value }).
+   * opts: { id, addLabel, addOnclick, empty }
+   */
+  function relatedList(title, rows, opts) {
+    opts = opts || {};
+    rows = rows || [];
+    var head = '<div class="rd-related__head">' + esc(title) +
+      (opts.addLabel
+        ? '<button type="button" class="rd-related__add"' +
+          (opts.addOnclick ? ' onclick="' + esc(opts.addOnclick) + '"' : '') +
+          '>' + esc(opts.addLabel) + '</button>'
+        : '') +
+      '</div>';
+    var body;
+    if (!rows.length) {
+      body = '<div class="rd-empty">' + esc(opts.empty || 'Nothing linked yet.') + '</div>';
+    } else {
+      body = '<table class="rd-table"><tbody>' + rows.map(function (r) {
+        r = r || {};
+        var left = r.left != null ? r.left : r.label;
+        var right = r.right != null ? r.right : r.value;
+        return '<tr><td>' + esc(left) + '</td><td class="is-num">' + esc(right) + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    }
+    return '<div class="rd-related" data-rd-related="' + esc(opts.id || '') + '">' + head + body + '</div>';
+  }
+
+  /** Depth · drawer provenance foot line (§7.1). opts: { created, createdBy,
+   * modified, modifiedBy } — createdBy/modifiedBy are optional so callers
+   * with no real actor (derived rows) can pass a plain sentence instead. */
+  function provenance(opts) {
+    opts = opts || {};
+    var created = opts.created || '—';
+    var modified = opts.modified || created;
+    return '<div class="rd-drawer__provenance" data-rd-provenance>Created ' +
+      esc(created) + (opts.createdBy ? ' by ' + esc(opts.createdBy) : '') +
+      ' · Last modified ' + esc(modified) + (opts.modifiedBy ? ' by ' + esc(opts.modifiedBy) : '') +
+      '</div>';
+  }
+
+  /**
+   * Depth · drawer optional enhancer. Runs after a hand-rolled drawer sets its
+   * innerHTML: swaps empty `.rd-drawer__field` values for the pale "Add…"
+   * placeholder and (optionally) re-applies table depth to any mini related
+   * tables the drawer just drew. Safe to call on every render — idempotent.
+   * opts: { valueSelector, emptyTexts, addLabel, decorateTables }
+   */
+  function decorateDrawer(slotEl, opts) {
+    if (!slotEl || !slotEl.querySelectorAll) return;
+    opts = opts || {};
+    var emptyTexts = (opts.emptyTexts || ['—', '-', 'not on file', 'nothing on file', 'no company', 'no address on file'])
+      .map(function (s) { return String(s).toLowerCase(); });
+    var sel = opts.valueSelector || '.rd-drawer__field > strong';
+    slotEl.querySelectorAll(sel).forEach(function (el) {
+      if (el.classList.contains('is-empty') || el.querySelector('.rd-empty-add')) return;
+      var txt = (el.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!txt || emptyTexts.indexOf(txt.toLowerCase()) !== -1) {
+        el.classList.add('is-empty');
+        el.innerHTML = emptyAdd(opts.addLabel || 'Add…');
+        var row = el.closest('.rd-drawer__field');
+        if (row) row.classList.add('rd-drawer__field--empty');
+      }
+    });
+    if (opts.decorateTables !== false) {
+      slotEl.querySelectorAll('table.rd-table').forEach(function (t) {
+        try { decorateTable(t, { summary: false, addColumn: false }); } catch (e) { /* non-fatal */ }
+      });
+    }
+  }
+
   /* Auto-run after panel paints when redesign chrome is live. */
   function scheduleDecorate(root) {
     if (!document.body.classList.contains('rd-scope')) return;
@@ -634,6 +759,11 @@
     commentsBlock: commentsBlock,
     activityBlock: activityBlock,
     provenanceLine: provenanceLine,
-    quickActionsHtml: quickActionsHtml
+    quickActionsHtml: quickActionsHtml,
+    drawerHeaderExtras: drawerHeaderExtras,
+    emptyField: emptyField,
+    relatedList: relatedList,
+    provenance: provenance,
+    decorateDrawer: decorateDrawer
   };
 })(typeof window !== 'undefined' ? window : globalThis);
