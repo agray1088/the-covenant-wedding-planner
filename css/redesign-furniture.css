@@ -1,0 +1,501 @@
+/* Redesign furniture — Master s42 · the system-wide overlays.
+   js/rd-furniture.js builds ten overlays the Master draws in §42 — command
+   palette neighbours, filter builder (34b), saved-views manager (34c), bulk
+   edit (34d), import-adjacent sheets, keyboard shortcuts (35b), notification
+   centre (35c), share dialog (35d), undo toast (36a), templates / trash /
+   merge (36b). The markup shipped; the styling never did, so every one of
+   them rendered as unstyled content appended to the end of the page.
+
+   House style (§41 · 2a): forest is the action colour, gold is a hairline and
+   never a button fill, 13px Inter, an 8px spacing scale, square corners, one
+   primary button per view. Light first, night by token swap. */
+
+:root {
+  --rdf-ink: #23211c;
+  --rdf-head: #20362D;
+  --rdf-forest: #2D4A3E;
+  --rdf-muted: #8a7e6b;
+  --rdf-soft: #6f6a60;
+  --rdf-line: #e7e1d4;
+  --rdf-hair: #f0ebe0;
+  --rdf-sunken: #f9f5ef;
+  --rdf-gold: #B89968;
+  --rdf-paper: #fff;
+  --rdf-ok-bg: #eef6f0; --rdf-ok-bd: #cfe3d5; --rdf-ok: #2f6b45;
+  --rdf-warn-bg: #fff7df; --rdf-warn-bd: #e7ce80; --rdf-warn: #8a640f;
+  --rdf-danger-bg: #fbeeec; --rdf-danger-bd: #eccfc9; --rdf-danger: #9c3b34;
+}
+
+/* ── shared overlay shell ───────────────────────────────────────────────── */
+#rd-filter-builder-overlay,
+#rd-views-mgr-overlay,
+#rd-kbd-overlay,
+#rd-bulk-edit-overlay,
+#rd-share-overlay,
+#rd-template-overlay,
+#rd-trash-overlay,
+#rd-merge-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(24, 26, 22, .42);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 11.7px;
+  line-height: 1.5;
+  color: var(--rdf-ink);
+}
+
+/* the panel inside each overlay */
+#rd-filter-builder-overlay > .rd-filter-builder,
+#rd-views-mgr-overlay > .rd-views-mgr,
+#rd-kbd-overlay > .rd-kbd,
+#rd-bulk-edit-overlay > .rd-bulk-edit,
+#rd-share-overlay > .rd-share,
+#rd-template-overlay > .rd-template-picker,
+#rd-trash-overlay > .rd-trash,
+#rd-merge-overlay > .rd-merge {
+  width: 100%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--rdf-paper);
+  border: 1px solid var(--rdf-line);
+  box-shadow: 0 24px 64px rgba(20, 22, 18, .3);
+}
+/* drawn widths, per the Master's per-sheet notes */
+#rd-filter-builder-overlay > .rd-filter-builder { max-width: 620px; }
+#rd-bulk-edit-overlay     > .rd-bulk-edit       { max-width: 620px; }
+#rd-views-mgr-overlay     > .rd-views-mgr       { max-width: 640px; }
+#rd-share-overlay         > .rd-share           { max-width: 560px; }
+#rd-template-overlay      > .rd-template-picker { max-width: 600px; }
+#rd-trash-overlay         > .rd-trash           { max-width: 640px; }
+#rd-merge-overlay         > .rd-merge           { max-width: 720px; }
+#rd-kbd-overlay           > .rd-kbd             { max-width: 760px; }
+
+/* heads / feet shared by every sheet */
+.rd-filter-builder__head, .rd-views-mgr__head, .rd-kbd__head,
+.rd-bulk-edit__head, .rd-share__head, .rd-template-picker__head,
+.rd-trash__head, .rd-merge__head, .rd-notif__head {
+  flex: 0 0 auto;
+  padding: 16px 20px 13px;
+  border-bottom: 1px solid var(--rdf-line);
+  background: var(--rdf-sunken);
+}
+.rd-filter-builder__title, .rd-views-mgr__title, .rd-kbd__title,
+.rd-bulk-edit__title, .rd-share__title, .rd-template-picker__title,
+.rd-trash__title, .rd-merge__title, .rd-notif__title {
+  margin: 0;
+  font-size: 14.4px;
+  font-weight: 600;
+  color: var(--rdf-head);
+}
+.rd-filter-builder__sub, .rd-views-mgr__sub, .rd-kbd__sub,
+.rd-bulk-edit__sub, .rd-share__sub, .rd-template-picker__sub,
+.rd-trash__sub, .rd-merge__sub, .rd-notif__sub {
+  margin: 3px 0 0;
+  font-size: 10.3px;
+  color: var(--rdf-muted);
+}
+.rd-filter-builder__eyebrow, .rd-views-mgr__eyebrow,
+.rd-bulk-edit__eyebrow, .rd-notif__eyebrow {
+  font-size: 8.1px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--rdf-muted);
+  margin-bottom: 3px;
+}
+.rd-filter-builder__foot, .rd-views-mgr__foot, .rd-kbd__foot,
+.rd-bulk-edit__foot, .rd-share__foot, .rd-template-picker__foot,
+.rd-trash__foot, .rd-merge__foot, .rd-notif__foot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-top: 1px solid var(--rdf-line);
+  background: var(--rdf-sunken);
+  font-size: 10.3px;
+  color: var(--rdf-muted);
+}
+.rd-filter-builder__spacer { flex: 1 1 auto; }
+
+/* scrolling bodies */
+.rd-filter-builder__body, .rd-kbd__body, .rd-share__body,
+.rd-views-mgr__list, .rd-template-picker__list, .rd-trash__list,
+.rd-merge__grid, .rd-bulk-edit__fields {
+  overflow: auto;
+  padding: 16px 20px;
+}
+
+/* buttons — forest primary, gold never a fill. Scoped to the overlays: the
+   app's own `#main#main .rd-btn` rules cannot reach a body-level overlay, and
+   these must not reach anything else. */
+#rd-filter-builder-overlay .rd-btn,
+#rd-views-mgr-overlay .rd-btn,
+#rd-kbd-overlay .rd-btn,
+#rd-bulk-edit-overlay .rd-btn,
+#rd-share-overlay .rd-btn,
+#rd-template-overlay .rd-btn,
+#rd-trash-overlay .rd-btn,
+#rd-merge-overlay .rd-btn {
+  font: inherit;
+  font-size: 10.8px;
+  padding: 7px 13px;
+  background: var(--rdf-paper);
+  border: 1px solid #d8d0c0;
+  color: #3a4a42;
+  cursor: pointer;
+}
+#rd-filter-builder-overlay .rd-btn:hover,
+#rd-views-mgr-overlay .rd-btn:hover,
+#rd-kbd-overlay .rd-btn:hover,
+#rd-bulk-edit-overlay .rd-btn:hover,
+#rd-share-overlay .rd-btn:hover,
+#rd-template-overlay .rd-btn:hover,
+#rd-trash-overlay .rd-btn:hover,
+#rd-merge-overlay .rd-btn:hover { border-color: var(--rdf-forest); color: var(--rdf-head); }
+#rd-filter-builder-overlay .rd-btn--primary,
+#rd-views-mgr-overlay .rd-btn--primary,
+#rd-kbd-overlay .rd-btn--primary,
+#rd-bulk-edit-overlay .rd-btn--primary,
+#rd-share-overlay .rd-btn--primary,
+#rd-template-overlay .rd-btn--primary,
+#rd-trash-overlay .rd-btn--primary,
+#rd-merge-overlay .rd-btn--primary {
+  background: var(--rdf-forest);
+  border-color: var(--rdf-forest);
+  color: #f4efe6;
+}
+#rd-filter-builder-overlay .rd-btn--primary:hover,
+#rd-views-mgr-overlay .rd-btn--primary:hover,
+#rd-kbd-overlay .rd-btn--primary:hover,
+#rd-bulk-edit-overlay .rd-btn--primary:hover,
+#rd-share-overlay .rd-btn--primary:hover,
+#rd-template-overlay .rd-btn--primary:hover,
+#rd-trash-overlay .rd-btn--primary:hover,
+#rd-merge-overlay .rd-btn--primary:hover { background: var(--rdf-head); border-color: var(--rdf-head); }
+#rd-filter-builder-overlay .rd-btn--quiet,
+#rd-views-mgr-overlay .rd-btn--quiet,
+#rd-kbd-overlay .rd-btn--quiet,
+#rd-bulk-edit-overlay .rd-btn--quiet,
+#rd-share-overlay .rd-btn--quiet,
+#rd-template-overlay .rd-btn--quiet,
+#rd-trash-overlay .rd-btn--quiet,
+#rd-merge-overlay .rd-btn--quiet { background: transparent; border-color: transparent; color: var(--rdf-soft); }
+#rd-filter-builder-overlay .rd-btn--quiet:hover,
+#rd-views-mgr-overlay .rd-btn--quiet:hover,
+#rd-kbd-overlay .rd-btn--quiet:hover,
+#rd-bulk-edit-overlay .rd-btn--quiet:hover,
+#rd-share-overlay .rd-btn--quiet:hover,
+#rd-template-overlay .rd-btn--quiet:hover,
+#rd-trash-overlay .rd-btn--quiet:hover,
+#rd-merge-overlay .rd-btn--quiet:hover { color: var(--rdf-head); border-color: var(--rdf-line); }
+#rd-filter-builder-overlay .rd-btn[disabled],
+#rd-views-mgr-overlay .rd-btn[disabled],
+#rd-kbd-overlay .rd-btn[disabled],
+#rd-bulk-edit-overlay .rd-btn[disabled],
+#rd-share-overlay .rd-btn[disabled],
+#rd-template-overlay .rd-btn[disabled],
+#rd-trash-overlay .rd-btn[disabled],
+#rd-merge-overlay .rd-btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+/* form controls inside the sheets */
+#rd-filter-builder-overlay select, #rd-filter-builder-overlay input,
+#rd-bulk-edit-overlay select, #rd-bulk-edit-overlay input,
+#rd-share-overlay select, #rd-share-overlay input,
+#rd-views-mgr-overlay input {
+  font: inherit;
+  font-size: 10.8px;
+  padding: 5px 7px;
+  background: var(--rdf-paper);
+  border: 1px solid #e0d8c8;
+  color: var(--rdf-ink);
+}
+
+/* ── 34b · filter builder ───────────────────────────────────────────────── */
+.rd-filter-builder__where {
+  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 700; color: var(--rdf-muted); margin-bottom: 6px;
+}
+.rd-filter-builder__cond {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 0;
+}
+.rd-filter-builder__join {
+  font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--rdf-soft); background: var(--rdf-hair);
+  border: 1px solid var(--rdf-line); padding: 2px 7px;
+}
+.rd-filter-builder__join.is-or { color: var(--rdf-warn); background: var(--rdf-warn-bg); border-color: var(--rdf-warn-bd); }
+/* a nested group joins internally with or and joins outward as one unit —
+   the indentation is the parenthesis (Master 34b). */
+.rd-filter-builder__nested {
+  margin: 8px 0 8px 18px;
+  padding: 8px 12px;
+  border-left: 2px solid var(--rdf-gold);
+  background: var(--rdf-sunken);
+}
+.rd-filter-builder__nested-title {
+  font-size: 9.5px; color: var(--rdf-muted); margin-bottom: 4px;
+}
+.rd-filter-builder__x {
+  font: inherit; font-size: 12.6px; line-height: 1; padding: 2px 6px;
+  background: none; border: 0; color: #b3a894; cursor: pointer;
+}
+.rd-filter-builder__x:hover { color: var(--rdf-danger); }
+.rd-filter-builder__adds { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.rd-filter-builder__link {
+  font: inherit; font-size: 10.8px; background: none; border: 0;
+  color: var(--rdf-forest); cursor: pointer; padding: 4px 0; text-decoration: underline;
+}
+/* the plain-English restatement — always visible, the honesty check */
+.rd-filter-builder__readas {
+  margin: 14px 0 0; padding: 11px 13px;
+  background: var(--rdf-sunken); border: 1px solid var(--rdf-line);
+  border-left: 2px solid var(--rdf-forest);
+  font-size: 10.8px; line-height: 1.6; color: var(--rdf-soft);
+}
+.rd-filter-builder__match { font-weight: 600; color: var(--rdf-head); }
+/* condition parts sit inline — the selects must not inherit the planner's
+   global full-width select rule, or every condition stacks vertically. */
+.rd-filter-builder__cond > .rd-filter-builder__chip,
+.rd-filter-builder__cond select,
+.rd-filter-builder__cond input {
+  display: inline-block !important;
+  width: auto !important;
+  min-width: 0;
+  max-width: 200px;
+  flex: 0 1 auto;
+  margin: 0 !important;
+}
+select.rd-filter-builder__chip {
+  font: inherit; font-size: 10.8px; padding: 5px 7px;
+  background: var(--rdf-paper); border: 1px solid #e0d8c8; color: var(--rdf-ink);
+}
+span.rd-filter-builder__chip.is-op {
+  font-size: 9.9px; font-weight: 600; color: var(--rdf-soft);
+  background: var(--rdf-hair); border: 1px solid var(--rdf-line);
+  padding: 4px 9px; white-space: nowrap;
+}
+
+/* ── 34c · saved views manager ──────────────────────────────────────────── */
+.rd-views-mgr__label {
+  margin: 14px 0 6px; font-size: 9px; letter-spacing: .1em;
+  text-transform: uppercase; font-weight: 700; color: var(--rdf-muted);
+}
+.rd-views-mgr__label:first-child { margin-top: 0; }
+.rd-views-mgr__list > div,
+.rd-template-picker__row, .rd-trash__row, .rd-share__row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--rdf-hair);
+}
+.rd-template-picker__main, .rd-trash__main { flex: 1 1 auto; min-width: 0; }
+.rd-template-picker__used, .rd-trash__chip, .rd-notif__when {
+  font-size: 9.9px; color: var(--rdf-muted); white-space: nowrap;
+}
+.rd-trash__chip {
+  background: var(--rdf-warn-bg); border: 1px solid var(--rdf-warn-bd);
+  color: var(--rdf-warn); padding: 2px 7px; font-weight: 600;
+}
+.rd-trash__empty, .rd-notif__empty, .rd-template-picker__list:empty {
+  padding: 22px 0; text-align: center; color: var(--rdf-muted); font-size: 10.8px;
+}
+
+/* ── 34d · bulk edit ────────────────────────────────────────────────────── */
+.rd-bulk-edit__names {
+  margin: 0 0 12px; padding: 10px 12px;
+  background: var(--rdf-sunken); border: 1px solid var(--rdf-line);
+  font-size: 10.8px; line-height: 1.55; color: var(--rdf-soft);
+}
+.rd-bulk-edit__field {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 0; border-bottom: 1px solid var(--rdf-hair);
+}
+.rd-bulk-edit__field > span {
+  min-width: 74px; font-size: 9.9px; font-weight: 600; color: var(--rdf-muted);
+}
+/* rows that already hold a value are named and skipped by default */
+.rd-bulk-edit__conflict {
+  margin-top: 12px; padding: 10px 12px;
+  background: var(--rdf-warn-bg); border: 1px solid var(--rdf-warn-bd);
+  font-size: 10.3px; line-height: 1.55; color: var(--rdf-warn);
+}
+.rd-bulk-edit__conflict-note { margin-bottom: 8px; color: var(--rdf-ink); }
+.rd-bulk-edit__conflict label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+/* will / will-not — the “will not” half matters as much (Master 34d) */
+.rd-bulk-edit__downstream {
+  margin-top: 12px; padding: 10px 12px;
+  background: var(--rdf-sunken); border: 1px solid var(--rdf-line);
+  border-left: 2px solid var(--rdf-forest);
+  font-size: 10.3px; line-height: 1.55; color: var(--rdf-soft);
+}
+.rd-bulk-edit__hint {
+  margin-top: 10px; font-size: 9.9px; line-height: 1.55; color: var(--rdf-muted);
+}
+
+/* ── 35b · keyboard shortcuts ───────────────────────────────────────────── */
+.rd-kbd__body {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 24px;
+}
+.rd-kbd__col-title {
+  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  font-weight: 700; color: var(--rdf-muted);
+  padding-bottom: 6px; margin-bottom: 4px;
+  border-bottom: 1px solid var(--rdf-gold);
+}
+.rd-kbd__row {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 5px 0; font-size: 10.8px; color: var(--rdf-soft);
+}
+.rd-kbd__row kbd {
+  flex: 0 0 auto; min-width: 44px; text-align: center;
+  font-family: inherit; font-size: 9.9px; font-weight: 600;
+  background: var(--rdf-hair); border: 1px solid var(--rdf-line);
+  color: var(--rdf-ink); padding: 2px 6px;
+}
+/* the consistency rule, stated on the sheet itself */
+.rd-kbd__rule {
+  flex: 0 0 auto; padding: 10px 20px;
+  border-top: 1px solid var(--rdf-hair);
+  font-size: 10.3px; color: var(--rdf-muted); font-style: italic;
+}
+
+/* ── 35c · notification centre ──────────────────────────────────────────── */
+.rd-notif { font-size: 11.7px; color: var(--rdf-ink); }
+.rd-notif__list { padding: 4px 0; }
+.rd-notif__list > button, .rd-notif__list > div {
+  display: flex; align-items: flex-start; gap: 10px; width: 100%;
+  padding: 10px 14px; text-align: left;
+  background: none; border: 0; border-bottom: 1px solid var(--rdf-hair);
+  font: inherit; color: inherit; cursor: pointer;
+}
+.rd-notif__list > button:hover { background: var(--rdf-sunken); }
+.rd-notif__copy { flex: 1 1 auto; min-width: 0; }
+.rd-notif__copy strong { display: block; font-size: 11.2px; font-weight: 600; color: var(--rdf-head); }
+.rd-notif__copy span { display: block; margin-top: 2px; font-size: 10.3px; color: var(--rdf-soft); }
+/* what the system will NOT alert on — the commitment that keeps this short */
+.rd-notif__quiet {
+  padding: 11px 14px; background: var(--rdf-sunken);
+  border-top: 1px solid var(--rdf-line);
+  font-size: 9.9px; line-height: 1.55; color: var(--rdf-muted);
+}
+
+/* ── 35d · share dialog ─────────────────────────────────────────────────── */
+.rd-share__row { align-items: flex-start; }
+.rd-share__link {
+  width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9.9px; padding: 8px 10px;
+  background: var(--rdf-sunken); border: 1px solid var(--rdf-line);
+  color: var(--rdf-soft); word-break: break-all;
+}
+.rd-share__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.rd-share__chip {
+  font-size: 9.9px; font-weight: 600; padding: 2px 8px;
+  background: var(--rdf-ok-bg); border: 1px solid var(--rdf-ok-bd); color: var(--rdf-ok);
+}
+.rd-share__chips.is-ok .rd-share__chip,
+.rd-share__chips.is-ok {
+  background: var(--rdf-ok-bg); border-color: var(--rdf-ok-bd); color: var(--rdf-ok);
+}
+/* the Never list is fixed — no control includes budget, guest names or Covenant */
+.rd-share__chips.is-never .rd-share__chip,
+.rd-share__chips.is-never {
+  background: var(--rdf-danger-bg); border-color: var(--rdf-danger-bd); color: var(--rdf-danger);
+}
+.rd-share__chips {
+  font-size: 9.9px; font-weight: 600; padding: 3px 8px;
+  border: 1px solid var(--rdf-line);
+}
+.rd-trash__chip.is-expired {
+  background: var(--rdf-danger-bg); border-color: var(--rdf-danger-bd); color: var(--rdf-danger);
+}
+.rd-notif__chip {
+  flex: 0 0 auto; font-size: 9px; font-weight: 700; padding: 2px 7px;
+  background: var(--rdf-warn-bg); border: 1px solid var(--rdf-warn-bd); color: var(--rdf-warn);
+  white-space: nowrap;
+}
+/* honest revocation / live-not-a-copy, said plainly */
+.rd-share__note {
+  margin: 12px 0 0; padding: 10px 12px;
+  background: var(--rdf-sunken); border: 1px solid var(--rdf-line);
+  font-size: 10.3px; line-height: 1.6; color: var(--rdf-soft);
+}
+
+/* ── 36a · undo toast ───────────────────────────────────────────────────── */
+.rd-undo-toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 2600;
+  display: flex; align-items: center; gap: 14px;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 11px 15px;
+  background: var(--rdf-head); color: #F4EFE6;
+  box-shadow: 0 12px 32px rgba(20, 22, 18, .34);
+  font-family: Inter, system-ui, sans-serif; font-size: 11.2px; line-height: 1.5;
+}
+.rd-undo-toast__text { flex: 1 1 auto; min-width: 0; }
+.rd-undo-toast__text strong { font-weight: 600; }
+/* the derived consequence, dotted gold like the activity log */
+.rd-undo-toast__text em {
+  display: block; margin-top: 2px; font-style: normal;
+  font-size: 10.3px; color: var(--rdf-gold);
+}
+.rd-undo-toast__action {
+  flex: 0 0 auto; font: inherit; font-size: 10.3px; font-weight: 600;
+  padding: 5px 11px; background: transparent;
+  border: 1px solid rgba(244, 239, 230, .45); color: #F4EFE6; cursor: pointer;
+}
+.rd-undo-toast__action:hover { background: rgba(244, 239, 230, .12); }
+
+/* ── 36b · templates / trash / merge ────────────────────────────────────── */
+.rd-merge__grid { display: block; }
+.rd-merge__row {
+  display: grid; grid-template-columns: 118px 1fr 1fr;
+  gap: 12px; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--rdf-hair);
+}
+.rd-merge__lab { font-size: 9.9px; font-weight: 600; color: var(--rdf-muted); }
+.rd-merge__row label { display: flex; align-items: center; gap: 7px; font-size: 10.8px; }
+
+/* ── night / dark (applyDarkMode sets dark-mode + data-theme="dark") ───── */
+body.night, body[data-theme="night"],
+body.rd-scope.night, body.rd-scope[data-theme="night"],
+body.dark-mode, body[data-theme="dark"],
+body.rd-scope.dark-mode, body.rd-scope[data-theme="dark"] {
+  --rdf-ink: #e6e1d6;
+  --rdf-head: #e6e1d6;
+  --rdf-forest: #3f6b56;
+  --rdf-muted: #8a8271;
+  --rdf-soft: #a79f92;
+  --rdf-line: #2e2e28;
+  --rdf-hair: #26261f;
+  --rdf-sunken: #23231c;
+  --rdf-paper: #1c1c18;
+  --rdf-ok-bg: #17231b; --rdf-ok-bd: #294435; --rdf-ok: #8FB99F;
+  --rdf-warn-bg: #241d10; --rdf-warn-bd: #40341a; --rdf-warn: #e0c58a;
+  --rdf-danger-bg: #241614; --rdf-danger-bd: #43241f; --rdf-danger: #d99b92;
+}
+
+/* ── responsive · the sheets become full-screen on a phone (42a) ─────────── */
+@media (max-width: 720px) {
+  #rd-filter-builder-overlay, #rd-views-mgr-overlay, #rd-kbd-overlay,
+  #rd-bulk-edit-overlay, #rd-share-overlay, #rd-template-overlay,
+  #rd-trash-overlay, #rd-merge-overlay { padding: 0; }
+  #rd-filter-builder-overlay > .rd-filter-builder,
+  #rd-views-mgr-overlay > .rd-views-mgr,
+  #rd-kbd-overlay > .rd-kbd,
+  #rd-bulk-edit-overlay > .rd-bulk-edit,
+  #rd-share-overlay > .rd-share,
+  #rd-template-overlay > .rd-template-picker,
+  #rd-trash-overlay > .rd-trash,
+  #rd-merge-overlay > .rd-merge {
+    max-width: 100%; width: 100%; height: 100%; max-height: 100vh; border: 0;
+  }
+  .rd-kbd__body { grid-template-columns: 1fr; }
+  .rd-merge__row { grid-template-columns: 1fr; gap: 4px; }
+}

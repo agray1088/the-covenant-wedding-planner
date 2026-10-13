@@ -95,15 +95,14 @@
           <h1 class="rd-pagehead__title">Households</h1>
         </div>
         <div class="rd-pagehead__actions">
-          <button type="button" class="rd-btn" onclick="printAddressLabels()">Print labels</button>
-          <button type="button" class="rd-btn" onclick="window.print()">Print section</button>
-          <button type="button" class="rd-btn" onclick="exportSectionCSV('Households',data.guests)">Export CSV</button>
-          <button type="button" class="rd-btn rd-btn--primary" onclick="addHouseholdRow()">+ Add household</button>
+          <button type="button" class="rd-btn" onclick="printCurrentPage()">Print section</button>
+          <button type="button" class="rd-btn" onclick="rdHhFullEditor()">Full editor</button>
+          <button type="button" class="rd-btn rd-btn--primary" onclick="rdHhAddGuest()">Add guest</button>
         </div>
       </div>
       <div class="rd-stats m-stats" id="households-cards-stats"></div>
       <div class="rd-toolbar">
-        <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item">Table</button><button type="button" class="rd-viewswitch__item is-active">Cards</button><button type="button" class="rd-viewswitch__item">Labels</button></div>
+        <div class="rd-viewswitch"><button type="button" class="rd-viewswitch__item">Table</button><button type="button" class="rd-viewswitch__item">Labels</button><button type="button" class="rd-viewswitch__item is-active">Cards</button></div>
         </div>
       </div>
       <div class="rd-bulkbar" id="bulk-bar" hidden>
