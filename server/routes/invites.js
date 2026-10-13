@@ -403,7 +403,7 @@ weddingRouter.post('/invites', requireAuth, requireWeddingMember, async (req, re
     let emailResult = { sent: false, smtpConfigured: smtpConfigured() };
     if (wantSend && smtpConfigured()) {
       try {
-        await sendMail({ to: email, subject, text, html });
+        await sendMail({ to: email, subject, text, html, kind: 'partner_invite' });
         await logOutbound({
           weddingId: req.params.weddingId,
           kind: 'partner_invite',

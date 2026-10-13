@@ -33,6 +33,10 @@ ok('settings disables Google when missing', /googleConfigured/.test(settingsJs)
   && /rdCloudGoogle/.test(settingsJs));
 ok('settings disables RSVP send when SMTP missing', /rdRsvpSend/.test(settingsJs)
   && /smtpConfigured/.test(settingsJs));
+ok('setup emailTransport', /emailTransport:\s*emailTransport\(\)/.test(indexJs));
+ok('setup/test-email route', /app\.post\(['"]\/setup\/test-email['"],\s*requireAuth/.test(indexJs));
+ok('settings Send test email', /rdSendTestEmail/.test(settingsJs));
+ok('mail Resend API transport', /api\.resend\.com\/emails/.test(read('server/lib/mail.js')));
 ok('docs AUTH setup/status', /\/setup\/status/.test(read('docs/AUTH.md')));
 ok('docs HOSTED_DEPLOY setup/status', /\/setup\/status/.test(read('docs/HOSTED_DEPLOY.md')));
 ok('docs PRODUCT_ROADMAP checklist', /Hosted secrets checklist/.test(read('docs/PRODUCT_ROADMAP.md')));

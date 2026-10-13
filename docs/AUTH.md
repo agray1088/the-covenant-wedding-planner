@@ -76,7 +76,12 @@ FEATURE_EMAIL=1               # optional; omit to auto-enable when SMTP_HOST is 
                               # set 0 to force-disable
 ```
 
-Optional: install `nodemailer` in `server/` for a more robust SMTP client. Without it, the API uses a built-in STARTTLS sender.
+The API uses a built-in SMTP client (STARTTLS on 587, implicit TLS on 465) with timeouts, or the Resend HTTPS API when `RESEND_API_KEY` is set.
+
+```
+RESEND_API_KEY=               # preferred when set; HTTPS, not blocked like SMTP ports
+EMAIL_FROM=The Covenant <noreply@your-domain>   # falls back to SMTP_FROM
+```
 
 ## Google Cloud Console checklist
 
@@ -104,6 +109,27 @@ Do **not** put production Google secrets in the local demo compose file committe
 5. Settings → Cloud sync → **Send reset email** / **Send username reminder**.
 
 Without SMTP, those endpoints return **503** with `error: "smtp_not_configured"` and a clear message. The UI still exposes the buttons so wiring secrets is enough — no further code deploy required.
+
+## Email transport, test email, and troubleshooting
+
+Transport selection (`GET /setup/status` -> `emailTransport`): `resend-api` when `RESEND_API_KEY` is set (preferred, plain HTTPS to `https://api.resend.com/emails`), else `smtp` when `SMTP_HOST` is set, else `none`. Set `EMAIL_FROM` (falls back to `SMTP_FROM`) for the sender. `smtpConfigured` in `/setup/status` means "some email transport works"; `resendConfigured` / `smtpHostConfigured` show which.
+
+- **Timeouts:** SMTP connect fails after 10s (`SMTP_CONNECT_TIMEOUT_MS`), each SMTP reply after 15s (`SMTP_IO_TIMEOUT_MS`); the Resend API call after 15s (`EMAIL_API_TIMEOUT_MS`).
+- **Logging:** every attempt writes `[covenant-mail] kind=... to=j***@domain transport=... result=attempt|sent|failed code=... message=...`. Recipient is masked; keys, passwords, tokens, and reset links are never logged.
+- **Forgot password / username** always return the generic "If an account exists..." message. Failures are logged and recorded in `outbound_emails` (`status=failed`, `error`) instead of being shown to the caller.
+- **Send test email:** Settings -> Cloud sync -> Hosted setup checklist -> **Send test email** (sign in first) calls authenticated `POST /setup/test-email`, sends to your own account email, and shows the real result/error.
+- **Resend test sender:** `onboarding@resend.dev` only delivers to the email address of the Resend account owner until you verify a domain.
+- **Railway SMTP caveat:** outbound SMTP ports may be blocked on some plans (e.g. Free/Trial/Hobby), which shows up as timeouts. HTTPS (`RESEND_API_KEY`) is not affected.
+- Where to look: Railway -> your service -> **Deployments -> View logs** (search `covenant-mail`), and Resend dashboard -> **Logs** / **Emails**.
+
+| Symptom (server log `[covenant-mail] ... result=failed`) | Likely cause | Fix |
+|---|---|---|
+| `code=smtp_connect_timeout` / `smtp_timeout` / `smtp_connect_failed` | Host may block outbound SMTP ports (25/465/587) on some plans (Railway has restricted SMTP on some plan tiers — check current docs) | Set `RESEND_API_KEY` to use HTTPS instead, or upgrade/choose a host that allows SMTP |
+| `code=smtp_auth_failed` (535) or `resend_rejected` with 401 | Wrong `SMTP_USER`/`SMTP_PASS`, or revoked/mistyped API key | Re-create the key in the provider dashboard and update Railway Variables |
+| `resend_rejected` 403 "only send testing emails to your own email address" / SMTP 550 | Using `onboarding@resend.dev` with a recipient that is not the Resend account owner | Verify a domain in Resend and set `EMAIL_FROM=The Covenant <noreply@your-domain>`; or test with the account owner's email |
+| `resend_rejected` 403 "domain is not verified" | `EMAIL_FROM` domain not verified | Finish DNS verification in Resend |
+| `result=sent` but nothing in inbox | Spam folder, or provider-side bounce | Check spam; check Resend dashboard -> Logs / Emails for delivery status |
+| No `[covenant-mail]` line at all | Account does not exist for that address (forgot-password stays generic by design), or no transport configured (`/setup/status` -> `emailTransport: "none"`) | Use **Send test email** (signed in) to verify the transport |
 
 ## Security notes
 

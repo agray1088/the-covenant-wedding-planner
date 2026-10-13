@@ -1300,6 +1300,7 @@
       var smtp = typeof body.smtpConfigured === 'boolean'
         ? body.smtpConfigured
         : !!features.smtpConfigured;
+      var emailTransport = body.emailTransport || (smtp ? 'smtp' : 'none');
       var publicUrl = body.publicUrl || null;
       var publicUrlConfigured = typeof body.publicUrlConfigured === 'boolean'
         ? body.publicUrlConfigured
@@ -1335,6 +1336,9 @@
         publicUrl: publicUrl,
         googleConfigured: google,
         smtpConfigured: smtp,
+        emailTransport: emailTransport,
+        resendConfigured: !!body.resendConfigured,
+        smtpHostConfigured: !!body.smtpHostConfigured,
         objectStorageConfigured: objectStorageConfigured,
         photoStorage: body.photoStorage || features.photoStorage || null,
         clientApi: clientApi || null,
@@ -1363,6 +1367,10 @@
             }, 'unreachable');
           });
       });
+  }
+
+  function sendTestEmail() {
+    return api('/setup/test-email', { method: 'POST', body: {} });
   }
 
   function forgotPassword(email) {
@@ -3016,6 +3024,7 @@
     signOut: signOut,
     fetchAuthConfig: fetchAuthConfig,
     fetchSetupStatus: fetchSetupStatus,
+    sendTestEmail: sendTestEmail,
     forgotPassword: forgotPassword,
     resetPassword: resetPassword,
     forgotUsername: forgotUsername,

@@ -316,7 +316,7 @@ ${wedding.wedding_date ? `<p>Wedding date: ${escapeHtml(wedding.wedding_date)}</
 <p style="color:#78716c;font-size:12px">This link is unique to you — please do not forward it publicly.</p>`;
 
       try {
-        await sendMail({ to: email, subject, text, html });
+        await sendMail({ to: email, subject, text, html, kind });
         await logOutbound({
           weddingId,
           guestId: g.id,

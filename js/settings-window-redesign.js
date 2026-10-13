@@ -136,9 +136,17 @@
     var googleDesc = googleReady
       ? 'Google Sign-In is ready. Redirect URI must include <code>…/auth/google/callback</code> — steps in <code>docs/AUTH.md</code>.'
       : 'Set <code>GOOGLE_CLIENT_ID</code> + <code>GOOGLE_CLIENT_SECRET</code> on the API. Until then, use email/password (local demo: <code>demo@covenant.local</code> / <code>covenant-demo</code>). Continue with Google stays disabled.';
+    var transport = status.emailTransport || (smtpReady ? 'smtp' : 'none');
+    var transportLabel = transport === 'resend-api' ? 'Resend HTTPS API' : transport === 'smtp' ? 'SMTP' : 'none';
     var smtpDesc = smtpReady
-      ? 'SMTP is ready — password reset, RSVP invites, partner invite email, and vendor portal email can send.'
-      : 'Set <code>SMTP_HOST</code> (and usually <code>SMTP_USER</code> / <code>SMTP_PASS</code> / <code>SMTP_FROM</code>). Without SMTP, reset / RSVP / invite <b>send</b> return 503 — you can still copy links manually. See <code>docs/AUTH.md</code>.';
+      ? 'Email transport: <b>' + esc(transportLabel) + '</b> — password reset, RSVP invites, partner invite email, and vendor portal email can send. '
+        + (transport === 'smtp'
+          ? 'If mail never arrives, your host may block SMTP ports on some plans — try <code>RESEND_API_KEY</code> (HTTPS) instead. '
+          : '')
+        + 'Use <b>Send test email</b> (sign in first) to see the real result; the server log line starts with <code>[covenant-mail]</code>.'
+        + '<div style="margin-top:8px">' + btn('Send test email', 'rdSendTestEmail')
+        + '</div><div class="rd-set__note" id="rd-test-email-result" style="margin-top:6px"></div>'
+      : 'Set <code>RESEND_API_KEY</code> (recommended on hosts that block SMTP) or <code>SMTP_HOST</code> (and usually <code>SMTP_USER</code> / <code>SMTP_PASS</code> / <code>SMTP_FROM</code>). Without a transport, reset / RSVP / invite <b>send</b> return 503 — you can still copy links manually. See <code>docs/AUTH.md</code>.';
     var objectDesc = objectReady
       ? ('Object storage ready (' + esc((status.photoStorage && status.photoStorage.mode) || 's3/r2')
         + '). Portal hero and vendor packet images can use HTTPS public URLs. '
@@ -150,7 +158,7 @@
     return setupStep(publicReady, 'PUBLIC_URL', publicDesc, 'Unset')
       + setupStep(matchReady || (!publicReady && !!status.clientApi), 'Client API matches PUBLIC_URL', matchDesc, matchReady ? 'Ready' : 'Check')
       + setupStep(googleReady, 'Google OAuth', googleDesc, 'Missing')
-      + setupStep(smtpReady, 'SMTP (email)', smtpDesc, 'Missing')
+      + setupStep(smtpReady, 'Email (Resend API or SMTP)', smtpDesc, 'Missing')
       + setupStep(objectReady, 'S3 / R2 object storage', objectDesc, 'Optional')
       + '<div class="rd-set__note">Deploy tips: set <code>PUBLIC_URL</code> to the platform HTTPS URL (no trailing slash), register '
       + '<code>${PUBLIC_URL}/auth/google/callback</code> in Google Cloud, paste <code>SMTP_*</code> for RSVP/auth email, '
@@ -1086,6 +1094,28 @@
         if (bodyEl) bodyEl.innerHTML = '<div class="rd-set__note">Refreshing…</div>';
         hydrateHostedSetup();
         if (typeof showToast === 'function') showToast('Hosted setup checklist refreshed');
+        return;
+      }
+      if (name === 'rdSendTestEmail') {
+        var resEl = document.getElementById('rd-test-email-result');
+        var show = function (ok, msg) {
+          if (resEl) {
+            resEl.className = 'rd-set__note' + (ok ? '' : ' rd-set__note--amber');
+            resEl.textContent = msg;
+          }
+          if (typeof showToast === 'function') showToast(msg);
+        };
+        if (!window.CovenantCloudSync || typeof window.CovenantCloudSync.sendTestEmail !== 'function') {
+          show(false, 'Cloud bridge not loaded.');
+          return;
+        }
+        if (resEl) resEl.textContent = 'Sending test email…';
+        window.CovenantCloudSync.sendTestEmail()
+          .then(function (body) { show(true, (body && body.message) || 'Test email sent.'); })
+          .catch(function (err) {
+            var code = err && err.body && err.body.error;
+            show(false, 'Test email failed' + (code ? ' (' + code + ')' : '') + ': ' + ((err && err.message) || 'unknown error'));
+          });
         return;
       }
       if (name === 'rdCloudForgotPassword') {

@@ -555,7 +555,7 @@ CREATE TABLE IF NOT EXISTS outbound_emails (
   guest_id      TEXT,
   kind          TEXT NOT NULL CHECK (kind IN (
                   'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username',
-                  'partner_invite', 'vendor_portal'
+                  'partner_invite', 'vendor_portal', 'test_email'
                 )),
   to_email      TEXT NOT NULL,
   subject       TEXT,
@@ -579,8 +579,11 @@ ALTER TABLE outbound_emails DROP CONSTRAINT IF EXISTS outbound_emails_kind_check
 ALTER TABLE outbound_emails ADD CONSTRAINT outbound_emails_kind_check
   CHECK (kind IN (
     'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username',
-    'partner_invite', 'vendor_portal'
+    'partner_invite', 'vendor_portal', 'test_email'
   ));
+
+-- Account-level mail (password reset, username reminder, test email) has no wedding.
+ALTER TABLE outbound_emails ALTER COLUMN wedding_id DROP NOT NULL;
 
 -- Gated wedding landing / guest portal settings (NOT a public SEO directory).
 -- access_mode: unlisted | email | code | email_or_code
@@ -635,6 +638,9 @@ ALTER TABLE outbound_emails DROP CONSTRAINT IF EXISTS outbound_emails_kind_check
 ALTER TABLE outbound_emails ADD CONSTRAINT outbound_emails_kind_check
   CHECK (kind IN (
     'rsvp_invite', 'rsvp_reminder', 'custom', 'auth_reset', 'auth_username',
-    'partner_invite', 'vendor_portal'
+    'partner_invite', 'vendor_portal', 'test_email'
   ));
+
+-- Account-level mail (password reset, username reminder, test email) has no wedding.
+ALTER TABLE outbound_emails ALTER COLUMN wedding_id DROP NOT NULL;
 

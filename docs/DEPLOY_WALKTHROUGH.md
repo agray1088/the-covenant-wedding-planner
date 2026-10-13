@@ -236,7 +236,18 @@ More detail: [`AUTH.md`](./AUTH.md).
 
 Without SMTP, send endpoints return **503** `smtp_not_configured`. Couples can still **copy** RSVP / invite / reset links manually.
 
+### Example A0 — Resend HTTPS API (recommended on Railway)
+
+```
+RESEND_API_KEY=<paste in Railway Variables only — never in chat or git>
+EMAIL_FROM=The Covenant <onboarding@resend.dev>
+```
+
+Redeploy, then Settings -> Cloud sync -> Hosted setup checklist -> **Send test email**. `onboarding@resend.dev` only delivers to the email of the Resend account owner until you verify a domain and use `noreply@your-domain`.
+
 ### Example A — Resend (SMTP)
+
+SMTP ports may be blocked on some Railway plans; if you see timeouts use Example A0 instead.
 
 Typical values (confirm in Resend’s SMTP docs for your account):
 
@@ -267,7 +278,30 @@ SMTP_SECURE=0
 PASSWORD_RESET_HOURS=2
 ```
 
-Redeploy → `/setup/status` should show `smtpConfigured: true`.
+Redeploy → `/setup/status` should show `smtpConfigured: true` and `emailTransport` (`resend-api` or `smtp`).
+
+### Email transport, test email, and troubleshooting
+
+Transport selection (`GET /setup/status` -> `emailTransport`): `resend-api` when `RESEND_API_KEY` is set (preferred, plain HTTPS to `https://api.resend.com/emails`), else `smtp` when `SMTP_HOST` is set, else `none`. Set `EMAIL_FROM` (falls back to `SMTP_FROM`) for the sender. `smtpConfigured` in `/setup/status` means "some email transport works"; `resendConfigured` / `smtpHostConfigured` show which.
+
+- **Timeouts:** SMTP connect fails after 10s (`SMTP_CONNECT_TIMEOUT_MS`), each SMTP reply after 15s (`SMTP_IO_TIMEOUT_MS`); the Resend API call after 15s (`EMAIL_API_TIMEOUT_MS`).
+- **Logging:** every attempt writes `[covenant-mail] kind=... to=j***@domain transport=... result=attempt|sent|failed code=... message=...`. Recipient is masked; keys, passwords, tokens, and reset links are never logged.
+- **Forgot password / username** always return the generic "If an account exists..." message. Failures are logged and recorded in `outbound_emails` (`status=failed`, `error`) instead of being shown to the caller.
+- **Send test email:** Settings -> Cloud sync -> Hosted setup checklist -> **Send test email** (sign in first) calls authenticated `POST /setup/test-email`, sends to your own account email, and shows the real result/error.
+- **Resend test sender:** `onboarding@resend.dev` only delivers to the email address of the Resend account owner until you verify a domain.
+- **Railway SMTP caveat:** outbound SMTP ports may be blocked on some plans (e.g. Free/Trial/Hobby), which shows up as timeouts. HTTPS (`RESEND_API_KEY`) is not affected.
+- Where to look: Railway -> your service -> **Deployments -> View logs** (search `covenant-mail`), and Resend dashboard -> **Logs** / **Emails**.
+
+| Symptom (server log `[covenant-mail] ... result=failed`) | Likely cause | Fix |
+|---|---|---|
+| `code=smtp_connect_timeout` / `smtp_timeout` / `smtp_connect_failed` | Host may block outbound SMTP ports (25/465/587) on some plans (Railway has restricted SMTP on some plan tiers — check current docs) | Set `RESEND_API_KEY` to use HTTPS instead, or upgrade/choose a host that allows SMTP |
+| `code=smtp_auth_failed` (535) or `resend_rejected` with 401 | Wrong `SMTP_USER`/`SMTP_PASS`, or revoked/mistyped API key | Re-create the key in the provider dashboard and update Railway Variables |
+| `resend_rejected` 403 "only send testing emails to your own email address" / SMTP 550 | Using `onboarding@resend.dev` with a recipient that is not the Resend account owner | Verify a domain in Resend and set `EMAIL_FROM=The Covenant <noreply@your-domain>`; or test with the account owner's email |
+| `resend_rejected` 403 "domain is not verified" | `EMAIL_FROM` domain not verified | Finish DNS verification in Resend |
+| `result=sent` but nothing in inbox | Spam folder, or provider-side bounce | Check spam; check Resend dashboard -> Logs / Emails for delivery status |
+| No `[covenant-mail]` line at all | Account does not exist for that address (forgot-password stays generic by design), or no transport configured (`/setup/status` -> `emailTransport: "none"`) | Use **Send test email** (signed in) to verify the transport |
+
+
 
 ---
 
@@ -339,6 +373,8 @@ Paste names into Railway Variables. **Never commit real values.**
 | `SMTP_USER` / `SMTP_PASS` | for email | Provider credentials |
 | `SMTP_FROM` | for email | `noreply@yourdomain.com` |
 | `SMTP_SECURE` | optional | `0` for 587; `1` for 465 |
+| `RESEND_API_KEY` | alt. to SMTP | Resend HTTPS API (preferred when set) |
+| `EMAIL_FROM` | optional | From address (falls back to `SMTP_FROM`) |
 | `PHOTO_STORAGE` + `R2_*` / `S3_*` | optional | See Step 10 |
 | `BOOTSTRAP_*` | **no** on public prod | Smoke-only |
 

@@ -3,9 +3,9 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import { initSchema, pool, query, describeDatabaseUrl, databaseUrl } from './lib/db.js';
-import { hashPassword, normalizePublicUrl } from './lib/auth.js';
+import { hashPassword, normalizePublicUrl, requireAuth } from './lib/auth.js';
 import { googleConfigured } from './lib/google-oauth.js';
-import { smtpConfigured } from './lib/mail.js';
+import { smtpConfigured, emailTransport, smtpStatus, sendMail, maskEmail } from './lib/mail.js';
 import authRoutes from './routes/auth.js';
 import weddingRoutes from './routes/weddings.js';
 import guestRoutes from './routes/guests.js';
@@ -123,6 +123,11 @@ function setupStatusPayload(req) {
     publicUrl: PUBLIC_URL || null,
     googleConfigured: google,
     smtpConfigured: smtp,
+    emailConfigured: smtp,
+    emailTransport: emailTransport(),
+    resendConfigured: smtpStatus().resendConfigured,
+    smtpHostConfigured: smtpStatus().smtpHostConfigured,
+    emailFromConfigured: !!smtpStatus().from,
     objectStorageConfigured: objectStorage,
     photoStorage: {
       mode: photoStorage.mode,
@@ -208,6 +213,51 @@ app.get('/setup/status', async (req, res) => {
       error: String(e.message || e)
     });
   }
+});
+
+/** Authenticated: sends to the signed-in user's own address and returns the real result. */
+app.post('/setup/test-email', requireAuth, async (req, res) => {
+  const transport = emailTransport();
+  if (transport === 'none') {
+    res.status(503).json({
+      ok: false,
+      error: 'smtp_not_configured',
+      emailTransport: transport,
+      message: 'No email transport configured. Set RESEND_API_KEY, or SMTP_HOST / SMTP_USER / SMTP_PASS / SMTP_FROM.'
+    });
+    return;
+  }
+  const to = req.user.email;
+  const subject = 'Covenant planner test email';
+  let status = 'sent';
+  let error = null;
+  let out = null;
+  try {
+    out = await sendMail({
+      to,
+      subject,
+      kind: 'test_email',
+      text: 'This is a test email from your Covenant Wedding Planner server. Email delivery is working.',
+      html: '<p>This is a test email from your <b>Covenant Wedding Planner</b> server. Email delivery is working.</p>'
+    });
+  } catch (e) {
+    status = 'failed';
+    error = { code: (e && e.code) || 'error', message: String((e && e.message) || e).slice(0, 400) };
+  }
+  try {
+    await query(
+      `INSERT INTO outbound_emails (wedding_id, kind, to_email, subject, status, error, meta_json, sent_at)
+       VALUES (NULL, 'test_email', $1, $2, $3, $4, $5::jsonb, CASE WHEN $3 = 'sent' THEN now() ELSE NULL END)`,
+      [to, subject, status, error ? `${error.code}: ${error.message}` : null, JSON.stringify({ transport })]
+    );
+  } catch (dbErr) {
+    console.error(`[covenant-mail] could not record test_email to=${maskEmail(to)}: ${dbErr.message}`);
+  }
+  if (error) {
+    res.status(502).json({ ok: false, emailTransport: transport, to: maskEmail(to), error: error.code, message: error.message });
+    return;
+  }
+  res.json({ ok: true, emailTransport: transport, to: maskEmail(to), id: out && out.id ? out.id : null, message: `Test email accepted by ${transport}. Check the inbox for ${maskEmail(to)}.` });
 });
 
 app.use('/auth', authRoutes);

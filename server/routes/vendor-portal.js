@@ -655,7 +655,7 @@ router.post(
             <p><a href="${url}">Open your vendor portal</a></p>
             <p style="color:#78716c;font-size:0.9rem">Private link — scoped packet only, not the full planner.</p>`;
           try {
-            await sendMail({ to: toEmail, subject, text, html });
+            await sendMail({ to: toEmail, subject, text, html, kind: 'vendor_portal' });
             await logOutbound({
               weddingId: req.params.weddingId,
               kind: 'vendor_portal',

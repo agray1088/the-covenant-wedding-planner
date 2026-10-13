@@ -17,7 +17,7 @@ import {
   validUsername,
   verifyPassword
 } from '../lib/auth.js';
-import { sendMail, smtpConfigured, smtpStatus } from '../lib/mail.js';
+import { sendMail, smtpConfigured, smtpStatus, maskEmail } from '../lib/mail.js';
 import {
   createOAuthState,
   consumeOAuthState,
@@ -28,6 +28,31 @@ import {
 } from '../lib/google-oauth.js';
 
 const router = Router();
+
+/**
+ * Send account mail without leaking existence: failures are logged server-side
+ * and recorded in outbound_emails, never surfaced to the (unauthenticated) caller.
+ */
+async function sendAuthMail(kind, { to, subject, text, html }) {
+  let status = 'sent';
+  let error = null;
+  try {
+    await sendMail({ to, subject, text, html, kind });
+  } catch (e) {
+    status = 'failed';
+    error = `${e && e.code || 'error'}: ${String(e && e.message || e).slice(0, 300)}`;
+  }
+  try {
+    await query(
+      `INSERT INTO outbound_emails (wedding_id, kind, to_email, subject, status, error, meta_json, sent_at)
+       VALUES (NULL, $1, $2, $3, $4, $5, $6::jsonb, CASE WHEN $4 = 'sent' THEN now() ELSE NULL END)`,
+      [kind, to, subject, status, error, JSON.stringify({ transport: smtpStatus().transport })]
+    );
+  } catch (dbErr) {
+    console.error(`[covenant-mail] could not record outbound_emails kind=${kind} to=${maskEmail(to)}: ${dbErr.message}`);
+  }
+  return { status, error };
+}
 
 function authCapabilities(req) {
   return {
@@ -174,7 +199,7 @@ router.post('/forgot-password', async (req, res, next) => {
       const app = clientAppUrl();
       const apiLink = `${base}/auth/reset-password?token=${encodeURIComponent(token)}`;
       const appLink = `${app}/?cloudResetToken=${encodeURIComponent(token)}`;
-      await sendMail({
+      await sendAuthMail('auth_reset', {
         to: user.email,
         subject: 'Reset your Covenant planner password',
         text: [
@@ -348,7 +373,7 @@ router.post('/forgot-username', async (req, res, next) => {
       const usernameLine = user.username
         ? `Your username is: ${user.username}`
         : 'This account has no username — sign in with your email address.';
-      await sendMail({
+      await sendAuthMail('auth_username', {
         to: user.email,
         subject: 'Your Covenant planner username',
         text: [
