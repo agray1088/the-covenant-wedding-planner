@@ -373,6 +373,7 @@
       { id: 'photos', label: 'Photos' },
       { id: 'import', label: 'Import' },
       { id: 'cloud', label: 'Cloud sync (beta)' },
+      { id: 'install', label: 'Install app' },
       { id: 'rsvp', label: 'RSVP & guest portal' },
       { id: 'partners', label: 'Partner invites' },
       { id: 'vendors-portal', label: 'Vendor portal' },
@@ -386,6 +387,36 @@
       { id: 'faq', label: 'FAQ' }
     ]}
   ];
+
+  function installPaneBody() {
+    var pwa = window.CovenantPWA, st = pwa && pwa.getStatus ? pwa.getStatus() : null;
+    var html = '';
+    if (pwa && pwa.onChange && !window._rdInstallBound) {
+      window._rdInstallBound = true;
+      pwa.onChange(function () {
+        if (window._rdSetPane === 'install' && document.getElementById(OVERLAY_ID)) refreshPane('install');
+      });
+    }
+    if (!st || !st.supported && !st.error) {
+      return '<div class="rd-set__note rd-set__note--amber">Install is not available in this browser.</div>';
+    }
+    var offline = st.offlineReady ? 'Ready - the planner opens without internet.'
+      : (st.error ? esc(st.error) : (st.registered ? 'Preparing - reload once to finish.' : 'Not available on this page.'));
+    html += cardRow('Offline status', 'Network: ' + (st.online ? 'online' : 'offline')
+      + (st.version ? ' \u00b7 app version ' + esc(st.version) : ''), '<span>' + offline + '</span>');
+    if (st.installed) {
+      html += cardRow('Installed', 'You are running the installed app.', '<span>Installed</span>');
+    } else if (st.canPrompt) {
+      html += cardRow('Install app', 'Adds a Start menu / home screen icon and opens in its own window.', btn('Install app', 'rdInstallApp'));
+    } else if (st.ios) {
+      html += '<div class="rd-set__note"><b>iPhone / iPad:</b> tap the Share button in Safari, then <b>Add to Home Screen</b>.</div>';
+    } else {
+      html += '<div class="rd-set__note">Use the Install icon in the address bar, or the browser menu \u2192 <b>Apps</b> \u2192 <b>Install this site as an app</b> (Edge / Chrome). Android: menu \u2192 <b>Install app</b>.</div>';
+    }
+    if (st.registered) html += cardRow('Updates', st.updateReady ? 'An update is ready - use Reload in the banner.' : 'Updates install automatically when you are online.', btn('Check for updates', 'rdInstallCheckUpdate'));
+    html += '<div class="rd-set__note"><b>Back up regularly.</b> Browser storage can be cleared; download a backup from Backup &amp; restore. See <code>docs/PWA_INSTALL.md</code>.</div>';
+    return html;
+  }
 
   function paneShell(title, lead, body) {
     return '<div class="rd-set__pane">'
@@ -856,6 +887,11 @@
         'Optional and opt-in. Offline planning always works. When enabled, wedding data you sync is stored on the sync API. Guests, vendors, payments, budget, seating, contracts, timeline, packets, rentals, catering rentals, party, tasks, vendor arrivals, and print packet overrides sync in beta — not full multi-user realtime yet.',
         cloudSyncPaneBody());
     }
+    if (id === 'install') {
+      return paneShell('Install app',
+        'Install the planner as an app and keep working offline. Your data stays in this browser; cloud sync stays optional.',
+        installPaneBody());
+    }
     if (id === 'rsvp') {
       return paneShell('RSVP & guest portal',
         'Couple-controlled RSVP links and a gated wedding landing. Not SEO-indexed. Responses write back to guests in Postgres so cloud sync picks them up.',
@@ -1234,6 +1270,17 @@
       if (name === 'rdSetGotoBackup') {
         window._rdSetPane = 'backup';
         refreshPane('backup');
+        return;
+      }
+      if (name === 'rdInstallApp') {
+        if (window.CovenantPWA) window.CovenantPWA.promptInstall().then(function () { refreshPane('install'); });
+        return;
+      }
+      if (name === 'rdInstallCheckUpdate') {
+        if (window.CovenantPWA) window.CovenantPWA.checkForUpdate().then(function () {
+          if (typeof showToast === 'function') showToast('Checked for updates.', 'info');
+          refreshPane('install');
+        });
         return;
       }
       if (name === 'rdSetGotoCloud') {

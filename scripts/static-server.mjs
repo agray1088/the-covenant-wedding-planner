@@ -9,7 +9,7 @@ const ROOT = path.resolve(process.env.STATIC_ROOT || path.join(path.dirname(file
 const PORT = Number(process.env.PORT || 8080);
 const API_BASE_URL = String(process.env.API_BASE_URL || '').trim().replace(/\/+$/, '');
 
-const ALLOWED_TOP = new Set(['index.html', 'vendor-portal.html', 'config.js', 'favicon.ico']);
+const ALLOWED_TOP = new Set(['index.html', 'vendor-portal.html', 'config.js', 'favicon.ico', 'manifest.webmanifest', 'sw.js']);
 const ALLOWED_DIRS = ['js', 'css', 'Redesign', 'vendor', 'assets', 'img', 'fonts'];
 
 const MIME = {
@@ -30,10 +30,13 @@ const MIME = {
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
   '.ttf': 'font/ttf',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8'
 };
 
-function cacheControl(ext) {
+function cacheControl(ext, file) {
+  if (file && path.basename(file) === 'sw.js') return 'no-cache, no-store, must-revalidate';
+  if (ext === '.webmanifest') return 'no-cache';
   if (ext === '.html') return 'no-cache';
   if (ext === '.js' || ext === '.css' || ext === '.json') return 'public, max-age=60, must-revalidate';
   return 'public, max-age=86400';
@@ -99,7 +102,8 @@ const server = http.createServer((req, res) => {
       ...SECURITY,
       'Content-Type': MIME[ext] || 'application/octet-stream',
       'Content-Length': st.size,
-      'Cache-Control': cacheControl(ext)
+      'Cache-Control': cacheControl(ext, file),
+      ...(path.basename(file) === 'sw.js' ? { 'Service-Worker-Allowed': '/' } : {})
     });
     if (req.method === 'HEAD') { res.end(); return; }
     fs.createReadStream(file).on('error', () => res.destroy()).pipe(res);

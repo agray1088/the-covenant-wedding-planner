@@ -8,10 +8,14 @@ FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production STATIC_ROOT=/app/site
 COPY scripts/static-server.mjs ./static-server.mjs
-COPY index.html vendor-portal.html config.js ./site/
+COPY index.html vendor-portal.html config.js manifest.webmanifest sw.js ./site/
 COPY js ./site/js
+COPY assets ./site/assets
 COPY css ./site/css
 COPY Redesign/redesign-tokens.css Redesign/redesign-components.css Redesign/redesign-shell.css Redesign/redesign-layouts.css Redesign/autofit-columns.js ./site/Redesign/
+# Regenerate the SW precache list + version from the files actually shipped (fails the build if any is missing).
+COPY scripts/gen-sw-manifest.mjs ./gen-sw-manifest.mjs
+RUN SW_ROOT=/app/site node gen-sw-manifest.mjs && rm gen-sw-manifest.mjs
 RUN addgroup -S covenant && adduser -S covenant -G covenant
 USER covenant
 EXPOSE 8080
