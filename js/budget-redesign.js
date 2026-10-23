@@ -1,9 +1,8 @@
-/* Budget page — mock 4a + "Budget line item · 4a" drawer tabs (Batch 22).
-   Rail + pagehead + 7-stat strip + budget-used bar, then every section in one
-   scroll, in reading order: Budget by category → Reconciliation → True Total +
-   Budget Logic → Tipping Etiquette → Itemized (grouped) → Pledged & paid.
-   The 360px drawer is the full editor for a line item (Line item / Category /
-   Payment / History) — same Money drawer language as Contract · 10c.
+/* Budget page — Master §08: 4a + views 30a/30b + Budget line drawer.
+   View switcher (not a tab strip): Itemized · By category · Pledged & paid.
+   Itemized (4a) is the full reading-order scroll. By category (30a) is the
+   roll-up for cutting. Pledged & paid (30b) tracks funding sources.
+   Drawer tabs: Line · Estimate vs actual · Payments · History.
 
    Every figure is derived from the planner's own budget math (catSpent,
    catPlanned, budgetItemActual, computeTrueTotalProjection, budgetContributors)
@@ -11,7 +10,16 @@
 (function () {
   'use strict';
 
-  const BGT_DRAWER_TABS = ['Line item', 'Category', 'Payment', 'History'];
+  const BGT_DRAWER_TABS = ['Line', 'Estimate vs actual', 'Payments', 'History'];
+  const BGT_VIEWS = [
+    ['itemized', 'Itemized'],
+    ['category', 'By category'],
+    ['pledged', 'Pledged & paid']
+  ];
+  window._budgetMode = window._budgetMode || 'itemized';
+  if (window._budgetMode === 'all' || window._budgetMode === 'sections') window._budgetMode = 'itemized';
+  if (window._budgetMode === 'bycategory') window._budgetMode = 'category';
+  if (window._budgetMode === 'pledge') window._budgetMode = 'pledged';
 
   const RD_BGT_COLUMNS = [
     { key: 'name', label: 'Item' },
@@ -250,13 +258,13 @@
     panel.classList.add('ued-scope', 'budget-mockup');
     /* 4a draws one continuous scroll — bump the shell key when the anatomy
        changes so an already-mounted panel rebuilds instead of keeping tabs. */
-    if (panel.dataset.uedShell === 'budget-rd4a-scroll') {
+    if (panel.dataset.uedShell === 'budget-rd08-views1') {
       const actions = panel.querySelector('.rd-pagehead__actions');
       if (actions) actions.innerHTML = pageheadActionsHtml();
       return;
     }
-    panel.dataset.uedShell = 'budget-rd4a-scroll';
-    panel.innerHTML = `<div class="rd-page">
+    panel.dataset.uedShell = 'budget-rd08-views1';
+    panel.innerHTML = `<div class="rd-page is-bgt-itemized">
       <div class="rd-pagehead">
         <div>
           <div class="rd-pagehead__eyebrow">Money</div>
@@ -268,6 +276,7 @@
       </div>
       <div class="rd-stats m-stats" id="budget-stats"></div>
       <div class="rd-bgt-usedbar" id="budget-used-bar"></div>
+      <div class="rd-toolbar" id="budget-toolbar"></div>
       <div class="rd-surface">
         <div class="rd-surface__row" id="budget-surface-row">
           <div class="rd-surface__main">
@@ -281,6 +290,8 @@
               <section class="rd-bgt-sect" id="bgt-sect-tipping"></section>
               <section class="rd-bgt-sect" id="bgt-sect-itemized"></section>
             </div>
+            <section class="rd-bgt-view" id="bgt-view-category" hidden></section>
+            <section class="rd-bgt-view" id="bgt-view-pledged" hidden></section>
           </div>
           <div id="budget-drawer-slot"></div>
         </div>
@@ -299,13 +310,43 @@
     { id: 'bgt-sect-itemized', label: 'Itemized' }
   ];
 
-  function budgetView() {
-    /* Kept for rail callers that still ask which "view" is active. On the
-       single-scroll page the answer is always the full reading order. */
-    return 'all';
+  function budgetMode() {
+    const m = window._budgetMode;
+    if (m === 'category' || m === 'pledged') return m;
+    return 'itemized';
   }
-  function rdBudgetSetView() {
-    /* No-op: 4a is one scroll, not tabbed views. */
+  function budgetView() {
+    return budgetMode();
+  }
+  function rdBudgetSetView(mode) {
+    const next = (mode === 'category' || mode === 'pledged') ? mode : 'itemized';
+    window._budgetMode = next;
+    renderBudgetRd();
+  }
+  function applyBudgetViewMode() {
+    const mode = budgetMode();
+    const page = document.querySelector('#panel-budget .rd-page');
+    if (page) {
+      page.classList.toggle('is-bgt-itemized', mode === 'itemized');
+      page.classList.toggle('is-bgt-category', mode === 'category');
+      page.classList.toggle('is-bgt-pledged', mode === 'pledged');
+    }
+    const itemized = document.getElementById('budget-body');
+    const catView = document.getElementById('bgt-view-category');
+    const pledgeView = document.getElementById('bgt-view-pledged');
+    const used = document.getElementById('budget-used-bar');
+    if (itemized) itemized.hidden = mode !== 'itemized';
+    if (catView) catView.hidden = mode !== 'category';
+    if (pledgeView) pledgeView.hidden = mode !== 'pledged';
+    if (used) used.hidden = mode !== 'itemized';
+  }
+  function budgetViewSwitcherHtml() {
+    const mode = budgetMode();
+    return `<div class="rd-toolbar__right"><div class="rd-viewswitch" role="group" aria-label="Budget view">`
+      + BGT_VIEWS.map(([id, lab]) =>
+        `<button type="button" class="rd-viewswitch__item${mode === id ? ' is-active' : ''}" onclick="rdBudgetSetView('${id}')">${esc(lab)}</button>`
+      ).join('')
+      + `</div></div>`;
   }
 
   /* ── stat strip (7 cells) ────────────────────────────────────────────── */
@@ -782,7 +823,16 @@
     const paid = groupRefs.reduce((s, r) => s + itemPaidAmount(r.it), 0);
     const target = catTargetOf(c);
     const n = groupRefs.length;
-    return `${esc(c.cat || 'Category')} · ${n} item${n === 1 ? '' : 's'} · ${money0(spent)} committed · ${money0(paid)} paid · target ${money0(target)}`;
+    const over = target > 0 && spent > target;
+    const variance = target - spent;
+    const varTxt = variance === 0
+      ? '$0'
+      : (variance > 0 ? '+' : '\u2212') + money0(Math.abs(variance)).replace('$', '');
+    /* 30a group row: category · committed of target · variance · line count · paid */
+    return {
+      html: `${esc(c.cat || 'Category')} \u00b7 ${money0(spent)} of ${money0(target)} \u00b7 ${varTxt} \u00b7 ${n} line${n === 1 ? '' : 's'} \u00b7 ${money0(paid)} paid`,
+      over: over
+    };
   }
 
   function itemRowHtml(ref) {
@@ -873,10 +923,11 @@
     const restSpan = Math.max(1, fullSpan - 1);
 
     const bodyRows = groups.length
-      ? groups.map(g =>
-        `<tr class="rd-bgt-grouprow"><td colspan="${fullSpan}">${itemGroupHeader(g.c, g.refs)}</td></tr>`
-        + g.refs.map(itemRowHtml).join('')
-      ).join('') + `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">Add a line item…</td></tr>`
+      ? groups.map(g => {
+        const gh = itemGroupHeader(g.c, g.refs);
+        return `<tr class="rd-bgt-grouprow${gh.over ? ' is-over' : ''}"><td colspan="${fullSpan}">${gh.html}</td></tr>`
+          + g.refs.map(itemRowHtml).join('');
+      }).join('') + `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">Add a line item…</td></tr>`
       : `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="${restSpan}">No line items match these filters — add a line item…</td></tr>`;
 
     const head = `<div class="rd-bgt-sect__head is-stacked">
@@ -917,9 +968,8 @@
           <tbody>${bodyRows}</tbody>
         </table>
       </div>`
-      + pledgeBlockHtml()
       + `<div class="rd-bgt-sect__foot">
-        <span>The 360px drawer is the full editor — the Line item tab edits the row, the Category tab edits the group&rsquo;s name, target %, budget and note, History shows every change. Same component as the Guest List and Payments drawers.</span>
+        <span>The 360px drawer is the full editor \u2014 Line edits the row (estimate, commitment, gap), Estimate vs actual shows where the number came from, Payments lists what has landed and what has not, History shows every change.</span>
         <button type="button" class="rd-btn rd-btn--danger" onclick="rdBudgetDeleteCategory()">Delete category</button>
       </div>`;
     renderBudgetBulkBar();
@@ -948,7 +998,70 @@
       <button type="button" class="rd-bulkbar__clear rd-bulkbar__clear--danger" onclick="rdBudgetBulkDelete()">Delete</button>`;
   }
 
-  /* ── §7 Pledged & paid ───────────────────────────────────────────────── */
+  /* ── 30a By category ─────────────────────────────────────────────────── */
+
+  function renderBudgetByCategoryView() {
+    const host = document.getElementById('bgt-view-category');
+    if (!host) return;
+    const f = budgetFigures();
+    const allRefs = itemRefs().filter(itemMatchesFilters);
+    const groups = [];
+    allRefs.slice().sort(sortItemRefs).forEach(r => {
+      let g = groups.find(x => x.c === r.c);
+      if (!g) { g = { c: r.c, refs: [] }; groups.push(g); }
+      g.refs.push(r);
+    });
+    groups.sort((a, b) => {
+      const overA = catIsOver(a.c) ? 0 : 1;
+      const overB = catIsOver(b.c) ? 0 : 1;
+      if (overA !== overB) return overA - overB;
+      return catSpentOf(b.c) - catSpentOf(a.c);
+    });
+    const body = groups.length
+      ? groups.map(g => {
+        const gh = itemGroupHeader(g.c, g.refs);
+        return `<tr class="rd-bgt-grouprow${gh.over ? ' is-over' : ''}"><td colspan="6">${gh.html}</td></tr>`
+          + g.refs.map(ref => {
+            const it = ref.it;
+            const est = itemEstimate(it);
+            const act = itemActual(it);
+            const paid = itemPaidAmount(it);
+            const variance = est - act;
+            const id = refId(ref);
+            const over = est > 0 && act > est;
+            return `<tr class="rd-bgt-itemrow${over ? ' is-over' : ''}" data-bgt-id="${esc(id)}" onclick="rdBudgetOpenItemDrawer('${esc(id)}')">
+              <td>${esc(it.name || 'Line item')}</td>
+              <td class="rd-bgt-num">${est ? money0(est) : '<span class="rd-bgt-nil">—</span>'}</td>
+              <td class="rd-bgt-num">${act ? money0(act) : '<span class="rd-bgt-nil">—</span>'}</td>
+              ${varianceCell(variance)}
+              <td class="rd-bgt-num${paid ? ' is-paid' : ''}">${paid ? money0(paid) : '<span class="rd-bgt-nil">—</span>'}</td>
+              <td>${pillHtml(itemPill(it))}</td>
+            </tr>`;
+          }).join('');
+      }).join('')
+      : `<tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td colspan="6">No line items match these filters — add a line item…</td></tr>`;
+
+    host.innerHTML = sectHead('By category',
+      'Category-level variance. The itemized view is for editing lines; this is for deciding what to cut. Over-target categories render red at the group row.',
+      `<button type="button" class="rd-btn rd-btn--primary" onclick="rdBudgetAddItem()">+ Add item</button>`,
+      { stack: true })
+      + `<div class="rd-bgt-sect__sub" style="padding:0 20px 10px">${money0(f.committed)} committed \u00b7 ${money0(f.paid)} paid${f.overCats.length ? ` \u00b7 <span class="is-over">${f.overCats.length} categor${f.overCats.length === 1 ? 'y' : 'ies'} over target</span>` : ''}</div>`
+      + `<div class="rd-bgt-tablewrap"><table class="cwp-table rd-bgt-table rd-bgt-itemtable">
+        <thead><tr>
+          <th>Item</th>
+          <th class="rd-bgt-th--num" style="width:110px">Estimate</th>
+          <th class="rd-bgt-th--num" style="width:110px">Actual</th>
+          <th class="rd-bgt-th--num" style="width:110px">Variance</th>
+          <th class="rd-bgt-th--num" style="width:110px">Paid</th>
+          <th style="width:120px">Status</th>
+        </tr></thead>
+        <tbody>${body}
+          <tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td colspan="6">Add a line item…</td></tr>
+        </tbody>
+      </table></div>`;
+  }
+
+  /* ── §7 Pledged & paid (30b) ─────────────────────────────────────────── */
 
   /* A pledge is not budget money until it lands. Received gifts reduce what the
      couple must find; promises are shown separately and never counted in the
@@ -959,17 +1072,21 @@
       const toward = r.items && r.items.length
         ? (r.items.length === 1 ? (r.items[0].cat || r.items[0].item || 'Unrestricted') : 'Multiple lines')
         : 'Unrestricted';
+      const tied = (r.items || []).some(i => i.cat && !/^unrestricted$/i.test(String(i.cat)));
+      const unassigned = !tied || /^unspecified$/i.test(String(r.name || ''));
       const total = r.total || 0;
       const paid = r.paid || 0;
       const outstanding = Math.max(0, total - paid);
       let status = { label: 'Nothing yet', scheme: 'gray' };
-      if (paid > 0 && outstanding <= 0) status = { label: 'Paid in full', scheme: 'green' };
+      if (unassigned) status = { label: 'Unassigned', scheme: 'gold' };
+      else if (paid > 0 && outstanding <= 0) status = { label: 'Paid in full', scheme: 'green' };
       else if (paid > 0) status = { label: 'Part paid', scheme: 'gold' };
       const due = r.items && r.items.find(i => i.due);
       return {
         name: r.name,
-        group: r.group || (/church|group|colleague|friend|small/i.test(String(r.name)) ? 'Community' : 'Family'),
-        toward: toward,
+        group: unassigned ? 'Unassigned' : (r.group || (/church|group|colleague|friend|small/i.test(String(r.name)) ? 'Community' : 'Family')),
+        toward: unassigned ? 'Unassigned' : toward,
+        unassigned: unassigned,
         pledged: total,
         paid: paid,
         outstanding: outstanding,
@@ -1017,11 +1134,18 @@
     const body = groups.map(g => {
       const gp = g.rows.reduce((s, r) => s + r.pledged, 0);
       const gpd = g.rows.reduce((s, r) => s + r.paid, 0);
-      return `<tr class="rd-bgt-grouprow"><td colspan="8">${esc(g.name)} · ${g.rows.length} contributor${g.rows.length === 1 ? '' : 's'} · ${money0(gp)} pledged · ${money0(gpd)} paid</td></tr>`
+      const honoured = pctOf(gpd, gp);
+      const next = g.rows
+        .filter(r => r.outstanding > 0 && r.promisedBy && r.promisedBy !== 'Paid')
+        .map(r => r.promisedBy)
+        .sort()[0] || '—';
+      /* 30b group row: source · pledged · paid · % honoured · next promise */
+      const unassigned = g.name === 'Unassigned';
+      return `<tr class="rd-bgt-grouprow${unassigned ? ' is-unassigned' : ''}"><td colspan="8">${esc(g.name)} \u00b7 ${money0(gp)} pledged \u00b7 ${money0(gpd)} paid \u00b7 ${honoured}% honoured \u00b7 next ${esc(next)}</td></tr>`
         + g.rows.map(r => {
           const id = 'pledge:' + r.name;
           const sel = window._budgetPledgeSel.has(id);
-          return `<tr class="rd-bgt-pledgerow${sel ? ' is-selected' : ''}">
+          return `<tr class="rd-bgt-pledgerow${sel ? ' is-selected' : ''}${r.unassigned ? ' is-unassigned' : ''}">
             <td class="rd-bgt-tick"><input type="checkbox" ${sel ? 'checked' : ''} aria-label="Select ${esc(r.name)}" onchange="rdBudgetTogglePledgeSel('${esc(id)}',this.checked)"></td>
             <td><b>${esc(r.name)}</b></td>
             <td class="rd-bgt-td--muted">${esc(r.toward)}</td>
@@ -1034,6 +1158,23 @@
         }).join('');
     }).join('');
 
+    /* Not pledged — money committed with no source behind it (group, not footnote). */
+    const figs = budgetFigures();
+    const shortfall = Math.max(0, (figs.committed || figs.planned || 0) - pledged);
+    const notPledgedRow = shortfall > 0
+      ? `<tr class="rd-bgt-grouprow is-residual"><td colspan="8">Not pledged · ${money0(shortfall)} committed with no source behind it</td></tr>
+         <tr class="rd-bgt-pledgerow is-residual">
+           <td class="rd-bgt-tick"></td>
+           <td><b>Shortfall</b></td>
+           <td class="rd-bgt-td--muted">Budget · unfunded</td>
+           <td class="rd-bgt-num">—</td>
+           <td class="rd-bgt-num"><span class="rd-bgt-nil">$0</span></td>
+           <td class="rd-bgt-num is-over">${money0(shortfall)}</td>
+           <td class="rd-bgt-td--muted">—</td>
+           <td>${pillHtml({ label: 'Not pledged', scheme: 'red' })}</td>
+         </tr>`
+      : '';
+
     return `<div class="rd-bgt-pledge">
       ${sectHead('Pledged & paid',
       `Who promised what, and what has actually landed — ${money0(pledged)} pledged, ${money0(received)} received, ${money0(outstanding)} outstanding`,
@@ -1043,7 +1184,7 @@
         ${stat('Received', money0(received), pct + '% of pledges')}
         ${stat('Outstanding', money0(outstanding), nOut + ' contributor' + (nOut === 1 ? '' : 's'), outstanding ? 'over' : '')}
         ${stat('Applied to budget', money0(received), 'Offsets committed spend')}
-        ${stat('Unallocated', money0(0), 'Everything is earmarked')}
+        ${stat('Not pledged', money0(shortfall), shortfall ? 'Committed without a source' : 'Covered', shortfall ? 'over' : '')}
       </div>
       <div class="rd-bgt-pledge__bar">
         <span class="rd-bgt-eyebrow">Pledges collected</span>
@@ -1065,7 +1206,7 @@
           <th style="width:130px">Promised by</th>
           <th style="width:140px">Status</th>
         </tr></thead>
-        <tbody>${body}
+        <tbody>${body}${notPledgedRow}
           <tr class="rd-bgt-addrow" onclick="rdBudgetAddItem()"><td class="rd-bgt-tick">+</td><td colspan="7">Record a pledge — name, amount, and what it is toward</td></tr>
         </tbody>
       </table>
@@ -1092,7 +1233,13 @@
     </div>`;
   }
 
-  /* ── the 360px drawer — "Budget line item · 4a" ──────────────────────── */
+  function renderBudgetPledgedView() {
+    const host = document.getElementById('bgt-view-pledged');
+    if (!host) return;
+    host.innerHTML = pledgeBlockHtml();
+  }
+
+  /* ── the 360px drawer — Budget line · Line / Estimate vs actual / Payments / History ── */
 
   function findRefById(id) {
     return itemRefs().find(r => refId(r) === String(id)) || null;
@@ -1133,67 +1280,133 @@
     const act = itemActual(it);
     const over = est > 0 && act > est;
     const variance = act - est;
-    return fieldRow('Vendor', (itemVendorName(it) ? esc(itemVendorName(it)) + ' →' : '—'), { link: !!itemVendorName(it) })
+    const catNames = cats().map(c => c.cat || 'Category');
+    const gapLabel = over
+      ? money0(Math.abs(variance)) + ' over'
+      : (est > act ? money0(est - act) + ' under' : '$0');
+    return fieldInput('Item', 'name', it.name || '')
+      + fieldSelect('Category', 'category', ref.c.cat || '', catNames)
+      + fieldInput('Estimate', 'budgeted', est.toFixed(2), { type: 'number', step: '0.01' })
+      + fieldInput('Commitment', 'actual', act.toFixed(2), { type: 'number', step: '0.01', over: over })
+      + fieldRow('Gap', gapLabel, { over: over })
+      + fieldRow('Vendor', (itemVendorName(it) ? esc(itemVendorName(it)) + ' →' : '—'), { link: !!itemVendorName(it) })
       + fieldInput('Quantity', 'qty', itemQty(it), { type: 'number', step: '1' })
       + fieldInput('Unit price', 'unitPrice', itemUnit(it).toFixed(2), { type: 'number', step: '0.01' })
-      + fieldInput('Estimate', 'budgeted', est.toFixed(2), { type: 'number', step: '0.01' })
-      + fieldInput('Actual', 'actual', act.toFixed(2), { type: 'number', step: '0.01', over: over })
       + fieldRow('Paid', money(itemPaidAmount(it)), { muted: !itemPaidAmount(it) })
       + fieldSelect('Status', 'status', itemStatusRaw(it), ['Pending', 'Partial', 'Paid'])
       + fieldInput('Due', 'due', (it.due || '').slice(0, 10), { type: 'date' })
       + (over
         ? `<p class="rd-drawer-callout is-warn">Actual exceeds estimate by ${money0(variance)}. The variance is carried on the category, not hidden on the line — ${esc(ref.c.cat || 'this category')} now reads ${money0(Math.max(0, catSpentOf(ref.c) - catTargetOf(ref.c)))} over.</p>`
-        : '<p class="rd-drawer-callout">The line itself — quantity, unit price, estimate against actual. The one tab where a number is typed rather than derived.</p>')
+        : '<p class="rd-drawer-callout">One row of the budget, opened. Estimate, commitment and the gap between them, in that order. The one tab where a number is typed rather than derived.</p>')
       + (it.notes ? drawerSectionTitle('Notes') + `<div class="rd-drawer-note">${esc(it.notes)}</div>` : '');
   }
 
-  function drawerCategoryTab(ref) {
+  function lineProvenance(it) {
+    if (it.paymentLine || it.paymentId || (it.linkedPayments && it.linkedPayments.length)) return 'Synced from Payments';
+    if (it.contractId || itemHasContract(it)) return 'Held by a contract';
+    if (it.cateringOwned) return 'Owned by Catering & Menu';
+    return 'Typed on this page';
+  }
+
+  function drawerEstimateTab(ref) {
+    const it = ref.it;
+    const est = itemEstimate(it);
+    const act = itemActual(it);
+    const over = est > 0 && act > est;
+    const source = lineProvenance(it);
+    const moves = [];
+    if (it.paymentLine) moves.push('Created as a payment line — the amount is derived, not typed.');
+    if (est) moves.push('Estimate sits at ' + money0(est) + '.');
+    if (act && act !== est) moves.push('Commitment moved to ' + money0(act) + (over ? ' — over estimate.' : '.'));
+    else if (act) moves.push('Commitment matches the estimate.');
+    if (it.notes) moves.push('Note: ' + String(it.notes).slice(0, 80));
     const c = ref.c;
-    const target = catTargetOf(c);
     const spent = catSpentOf(c);
-    const paid = catPaidOf(c);
-    const variance = target - spent;
-    const others = catItems(c).filter(it => it !== ref.it);
-    return fieldRow('Category', esc(c.cat || 'Category') + ' →', { link: true })
-      + fieldRow('Target %', (parseFloat(c.target) || 0) + '%')
+    const target = catTargetOf(c);
+    return fieldRow('Where this number came from', source)
+      + fieldRow('Estimate', money(est))
+      + fieldRow('Commitment', money(act), { over: over })
+      + fieldRow('How it moved', moves.length ? esc(moves.join(' ')) : 'No revisions recorded yet.')
+      + drawerSectionTitle('Category roll-up · ' + (c.cat || 'Category'))
       + fieldRow('Allowance', money(target))
       + fieldRow('Committed', money(spent), { over: spent > target && target > 0 })
-      + fieldRow('Paid', money(paid))
-      + fieldRow('Variance', variance >= 0 ? money0(variance) + ' under' : money0(Math.abs(variance)) + ' over', { over: variance < 0 })
-      + fieldRow('Planning note', esc(c.tip || '—'))
-      + drawerSectionTitle('Other lines in this category · ' + others.length)
-      + (others.length
-        ? others.map(it => drawerKv(esc(it.name || 'Line item'), money0(itemActual(it)),
-          itemEstimate(it) > 0 && itemActual(it) > itemEstimate(it) ? 'over' : '')).join('')
-        : '<div class="rd-drawer-kv"><span>Nothing else in this category yet</span><span>—</span></div>')
-      + '<p class="rd-drawer-callout">Changing the category moves this money out of one allowance and into another. Both category totals re-derive; neither is typed.</p>';
+      + fieldRow('Variance', (target - spent) >= 0 ? money0(target - spent) + ' under' : money0(Math.abs(target - spent)) + ' over', { over: target - spent < 0 })
+      + '<p class="rd-drawer-callout">Where the number came from and how it moved. A budget that hides its revisions teaches nothing.</p>';
+  }
+
+  function itemPaymentRecords(it) {
+    const all = typeof safeArray === 'function' ? safeArray(data.payments) : (data.payments || []);
+    const out = [];
+    const seen = new Set();
+    const add = p => {
+      if (!p) return;
+      const id = String(p._id || p.id || '');
+      if (id && seen.has(id)) return;
+      if (id) seen.add(id);
+      out.push(p);
+    };
+    if (it.paymentId) add(all.find(p => String(p._id) === String(it.paymentId)));
+    (it.linkedPayments || []).forEach(link => {
+      add(all.find(p => String(p._id) === String(link.paymentId || link.id)));
+    });
+    const vend = itemVendorName(it).trim().toLowerCase();
+    const cat = String((it && it.budgetCat) || '').toLowerCase();
+    if (vend) {
+      all.forEach(p => {
+        const pv = String(p.vendor || p.payee || p.name || '').trim().toLowerCase();
+        if (pv && pv === vend) add(p);
+      });
+    }
+    return out;
+  }
+  function paymentIsPaid(p) {
+    const st = String(p.status || p.paidStatus || '').toLowerCase();
+    if (st === 'paid') return true;
+    const due = parseFloat(p.amount) || (typeof paymentBudgetDueTotal === 'function' ? paymentBudgetDueTotal(p) : 0) || 0;
+    const paid = parseFloat(p.paid) || (typeof paymentBudgetPaidTotal === 'function' ? paymentBudgetPaidTotal(p) : 0) || 0;
+    return due > 0 && paid >= due;
   }
 
   function drawerPaymentTab(ref) {
     const it = ref.it;
     const f = budgetFigures();
-    const payment = it.paymentId
-      ? (typeof safeArray === 'function' ? safeArray(data.payments) : []).find(p => String(p._id) === String(it.paymentId))
-      : null;
     const hasContract = itemHasContract(it);
-    const scheduled = payment && payment.date
-      ? shortDate(payment.date) + ' · ' + money0(payment.amount || itemEstimate(it))
-      : '';
-    const act = itemActual(it);
-    /* Batch 22 / Contract · 10c: a missing contract is a stated warning in the
-       tab that owns it — never left for a later reconciliation. */
-    return fieldRow('Payment record', payment ? esc((payment.vendor || payment.payee || 'Payment')) + ' →' : '—', { link: !!payment })
-      + fieldRow('Contract', hasContract ? 'On file' : 'None on file', { warn: !hasContract })
-      + fieldRow('Scheduled', scheduled || '—', { muted: !scheduled })
+    const records = itemPaymentRecords(it);
+    const paidRows = records.filter(paymentIsPaid);
+    const upcoming = records.filter(p => !paymentIsPaid(p));
+    const remaining = Math.max(0, itemEstimate(it) - itemPaidAmount(it));
+    const gratuityLeft = parseFloat(it.paymentGratuity) || 0;
+    while (upcoming.length < 2 && remaining > 0) {
+      if (upcoming.length === 0) {
+        upcoming.push({ _synthetic: true, name: 'Balance due', amount: remaining, date: it.due || '', status: 'Unpaid' });
+      } else if (gratuityLeft > 0 && !upcoming.some(p => /gratuity|tip/i.test(String(p.name || p.desc || '')))) {
+        upcoming.push({ _synthetic: true, name: 'Gratuity planned', amount: gratuityLeft, date: '', status: 'Unpaid' });
+      } else break;
+    }
+    const row = (p, unpaid) => {
+      const label = p.vendor || p.payee || p.name || p.desc || 'Payment';
+      const amt = parseFloat(p.amount) || parseFloat(p.paid) || 0;
+      const when = p.date ? shortDate(p.date) : (p._synthetic ? (it.due ? shortDate(it.due) : 'Not scheduled') : '—');
+      return drawerKv(esc(label) + (when && when !== '—' ? ' · ' + when : ''), money0(amt || remaining), unpaid ? 'warn' : 'link');
+    };
+    let html = drawerSectionTitle('Against this line')
+      + (paidRows.length
+        ? paidRows.map(p => row(p, false)).join('')
+        : '<div class="rd-drawer-kv"><span>Nothing paid yet</span><span>—</span></div>')
+      + drawerSectionTitle('Not yet')
+      + (upcoming.length
+        ? upcoming.slice(0, 2).map(p => row(p, true)).join('')
+        : '<div class="rd-drawer-kv"><span>Nothing outstanding</span><span>$0</span></div>')
       + fieldRow('Paid so far', money(itemPaidAmount(it)))
+      + fieldRow('Contract', hasContract ? 'On file' : 'None on file', { warn: !hasContract })
       + (hasContract
-        ? '<p class="rd-drawer-callout">A contract covers this line, so the amount is held by signed terms rather than a verbal quote. Editing the contract total on Contracts &amp; Invoices re-derives this Budget row.</p>'
-        : `<p class="rd-drawer-callout is-warn">No contract covers this line, so the ${money0(act)} is committed on a verbal quote. It counts toward the budget but nothing holds the vendor to it.</p>`)
+        ? '<p class="rd-drawer-callout">A contract covers this line, so the amount is held by signed terms rather than a verbal quote.</p>'
+        : `<p class="rd-drawer-callout is-warn">No contract covers this line, so the ${money0(itemActual(it))} is committed on a verbal quote.</p>`)
       + drawerSectionTitle('Where this figure appears')
-      + drawerKv('Budget · ' + esc(ref.c.cat || 'Category'), money0(act) + ' of ' + money0(catSpentOf(ref.c)), 'link')
-      + drawerKv('Payments · ' + esc(itemVendorName(it) || 'unlinked'), payment ? 'In the ' + shortDate(payment.date) + ' instalment' : 'Not linked', 'link')
-      + drawerKv('Contracts &amp; Invoices', hasContract ? 'Linked contract' : 'None on file', hasContract ? 'link' : 'warn')
+      + drawerKv('Budget · ' + esc(ref.c.cat || 'Category'), money0(itemActual(it)) + ' of ' + money0(catSpentOf(ref.c)), 'link')
+      + drawerKv('Payments', records.length ? records.length + ' record' + (records.length === 1 ? '' : 's') : 'Not linked', 'link')
       + drawerKv('Dashboard · money', 'Inside the ' + f.committedPct + '% used', 'link');
+    return html;
   }
 
   function drawerHistoryTab(ref) {
@@ -1240,18 +1453,18 @@
 
     let body = '';
     if (tabIdx === 0) body = drawerLineItemTab(ref);
-    else if (tabIdx === 1) body = drawerCategoryTab(ref);
+    else if (tabIdx === 1) body = drawerEstimateTab(ref);
     else if (tabIdx === 2) body = drawerPaymentTab(ref);
     else body = drawerHistoryTab(ref);
 
     slot.classList.add('is-open');
-    slot.innerHTML = `<aside class="rd-drawer rd-bgt-drawer" aria-label="Budget line item">
+    slot.innerHTML = `<aside class="rd-drawer rd-bgt-drawer" aria-label="Budget line">
       <div class="rd-drawer__head">
         <div class="rd-drawer__eyebrowrow">
-          <span class="rd-drawer__eyebrow">Line item · ${esc(ref.c.cat || 'Category')}</span>
+          <span class="rd-drawer__eyebrow">Budget line · ${esc(ref.c.cat || 'Category')}</span>
           <button type="button" class="rd-drawer__close" aria-label="Close" onclick="rdBudgetCloseDrawer()">&#10005;</button>
         </div>
-        <div class="rd-drawer__title">${esc(it.name || 'Line item')}</div>
+        <div class="rd-drawer__title">${esc(it.name || 'Line')}</div>
         <div class="rd-drawer__pills">${pills.map(pillHtml).join('')}</div>
         <div class="rd-drawer__tabs is-guest-tabs">${BGT_DRAWER_TABS.map((t, i) =>
       `<button type="button" class="rd-drawer__tab${i === tabIdx ? ' is-active' : ''}" onclick="rdBudgetDrawerTab(${i})">${esc(t)}</button>`).join('')}</div>
@@ -1274,6 +1487,7 @@
   function rdBudgetSelectCategory(ci) {
     /* Mock 4a: clicking a category card loads that category's itemized table
        below — set the active category, narrow the table to it, then scroll. */
+    window._budgetMode = 'itemized';
     window._budgetItemScope = 'selected';
     if (typeof setBudgetActiveCategory === 'function') {
       setBudgetActiveCategory(ci); /* calls renderBudget */
@@ -1307,9 +1521,14 @@
     renderBudgetReconSection();
   }
   function rdBudgetJumpTo(sectionId) {
+    const need = budgetMode() !== 'itemized';
+    window._budgetMode = 'itemized';
     window._budgetJumpSection = sectionId || '';
-    const el = document.getElementById(sectionId);
-    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (need) renderBudgetRd();
+    requestAnimationFrame(() => {
+      const el = document.getElementById(sectionId);
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
     if (typeof renderContextSidebar === 'function'
       && document.body.getAttribute('data-active-panel') === 'budget') {
       renderContextSidebar('budget');
@@ -1516,14 +1735,34 @@
     const ci = typeof activeBudgetCategoryIndex !== 'undefined' ? activeBudgetCategoryIndex : 0;
     const c = cats()[ci];
     if (!c) { if (typeof addBudgetCategory === 'function') addBudgetCategory(); return; }
-    if (!Array.isArray(c.items)) c.items = [];
-    const item = { name: '', budgeted: 0, actual: 0, status: 'Pending', paid: false, due: '', notes: '' };
-    if (typeof ensureNestedRowId === 'function') ensureNestedRowId(item, 'budgetItems');
-    c.items.push(item);
-    persist();
-    window._budgetDrawerRef = { id: String(item._id) };
-    window._budgetDrawerTab = 0;
-    rerender();
+    const finish = (shape) => {
+      if (!Array.isArray(c.items)) c.items = [];
+      const item = { name: '', budgeted: 0, actual: 0, status: 'Pending', paid: false, due: '', notes: '', template: shape || 'blank' };
+      if (shape === 'instalments') {
+        item.name = '';
+        item.schedule = [{ label: 'Deposit', amount: '' }, { label: 'Balance', amount: '' }];
+      } else if (shape === 'single') {
+        item.schedule = [{ label: 'Due on delivery', amount: '' }];
+      } else if (shape === 'percover') {
+        item.qty = '';
+        item.unitPrice = '';
+        item.perCover = true;
+      }
+      if (typeof ensureNestedRowId === 'function') ensureNestedRowId(item, 'budgetItems');
+      c.items.push(item);
+      persist();
+      window._budgetDrawerRef = { id: String(item._id) };
+      window._budgetDrawerTab = 0;
+      rerender();
+    };
+    if (typeof RdFurniture !== 'undefined' && RdFurniture.openTemplatePicker) {
+      RdFurniture.openTemplatePicker({
+        title: 'New from template · budget line',
+        onPick: function (id) { finish(id); }
+      });
+      return;
+    }
+    finish('blank');
   }
 
   function rdBudgetOpenItemDrawer(id) {
@@ -1550,7 +1789,7 @@
     const first = c && catItems(c)[0];
     if (!first) { rdBudgetAddItem(); return; }
     window._budgetDrawerRef = { id: refId({ it: first, c: c, ci: ci, ii: 0 }) };
-    window._budgetDrawerTab = 1;
+    window._budgetDrawerTab = 0;
     renderBudgetDrawer();
     revealDrawer();
   }
@@ -1590,6 +1829,19 @@
       return v == null || v === '' ? null : (parseFloat(v) || 0);
     };
     const it = ref.it;
+    const name = read('name');
+    if (name != null && String(name).trim()) it.name = String(name).trim();
+    const nextCat = read('category');
+    if (nextCat && String(nextCat) !== String(ref.c.cat || '')) {
+      const dest = cats().find(c => String(c.cat || '') === String(nextCat));
+      if (dest && dest !== ref.c) {
+        const srcItems = catItems(ref.c);
+        const idx = srcItems.indexOf(it);
+        if (idx >= 0) srcItems.splice(idx, 1);
+        dest.items = catItems(dest);
+        dest.items.push(it);
+      }
+    }
     const qty = num('qty');
     const unit = num('unitPrice');
     if (qty != null) it.qty = qty;
@@ -1618,6 +1870,20 @@
 
   /* ── main render ─────────────────────────────────────────────────────── */
 
+  function renderBudgetPageToolbar() {
+    const host = document.getElementById('budget-toolbar');
+    if (!host) return;
+    const mode = budgetMode();
+    let left = '';
+    if (mode !== 'pledged') {
+      left = itemFilterChip('Category', 'category') +
+        itemFilterChip('Vendor', 'vendor') +
+        itemFilterChip('Status', 'status') +
+        `<button type="button" class="rd-chip rd-chip--ghost" onclick="rdBudgetOpenItemSort(this)">${esc(itemSortLabel())}</button>`;
+    }
+    host.innerHTML = left + budgetViewSwitcherHtml();
+  }
+
   function renderBudgetRd() {
     if (typeof migrateBudget === 'function') migrateBudget();
     if (typeof ensureSuggestedGratuityLine === 'function') ensureSuggestedGratuityLine();
@@ -1633,6 +1899,7 @@
     if (typeof refreshBudgetCatOptions === 'function') refreshBudgetCatOptions();
     if (typeof renderPageUxChrome === 'function') renderPageUxChrome('budget');
 
+    renderBudgetPageToolbar();
     renderBudgetStatsRd();
     renderBudgetUsedBar();
     renderBudgetCategorySection();
@@ -1641,6 +1908,9 @@
     renderBudgetLogicSection();
     renderBudgetTippingSection();
     renderBudgetItemizedSection();
+    renderBudgetByCategoryView();
+    renderBudgetPledgedView();
+    applyBudgetViewMode();
     renderBudgetDrawer();
 
     if (typeof renderContextSidebar === 'function'

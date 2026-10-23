@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Covenant Postgres",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "covenant",
+      "Username": "covenant",
+      "PassFile": "/var/lib/pgadmin/pgpass",
+      "SSLMode": "prefer"
+    }
+  }
+}
