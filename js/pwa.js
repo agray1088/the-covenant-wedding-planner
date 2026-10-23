@@ -37,7 +37,7 @@
     var b = document.createElement('div');
     b.id = 'covenant-update-banner';
     b.setAttribute('role', 'status');
-    b.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147483000;display:flex;gap:12px;'
+    b.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147483646;display:flex;gap:12px;'
       + 'align-items:center;padding:10px 14px;background:#20362D;color:#F4EFE6;border:1px solid #B89968;border-radius:8px;'
       + 'box-shadow:0 6px 24px rgba(0,0,0,.35);font:500 14px/1.3 Inter,system-ui,sans-serif';
     b.innerHTML = '<span>Update available</span><button type="button" style="background:#B89968;color:#1A1A1A;border:0;'

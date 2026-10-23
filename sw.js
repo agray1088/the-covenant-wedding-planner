@@ -4,7 +4,7 @@
    Never touches: non-GET requests, cross-origin API calls, /auth /weddings /setup etc. */
 
 /* GEN:BEGIN */
-const VERSION = 'testbump';
+const VERSION = '0c47e2030a0c';
 const PRECACHE = [
   "./",
   "Redesign/autofit-columns.js",

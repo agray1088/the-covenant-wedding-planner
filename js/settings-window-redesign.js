@@ -403,9 +403,9 @@
     var offline = st.offlineReady ? 'Ready - the planner opens without internet.'
       : (st.error ? esc(st.error) : (st.registered ? 'Preparing - reload once to finish.' : 'Not available on this page.'));
     html += cardRow('Offline status', 'Network: ' + (st.online ? 'online' : 'offline')
-      + (st.version ? ' \u00b7 app version ' + esc(st.version) : ''), '<span>' + offline + '</span>');
+      + (st.version ? ' \u00b7 app version ' + esc(st.version) : ''), '<span style="font-size:13px">' + offline + '</span>');
     if (st.installed) {
-      html += cardRow('Installed', 'You are running the installed app.', '<span>Installed</span>');
+      html += cardRow('Installed', 'You are running the installed app.', '<span style="font-size:13px">Installed</span>');
     } else if (st.canPrompt) {
       html += cardRow('Install app', 'Adds a Start menu / home screen icon and opens in its own window.', btn('Install app', 'rdInstallApp'));
     } else if (st.ios) {
