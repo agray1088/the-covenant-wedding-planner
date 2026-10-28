@@ -1,5 +1,6 @@
 # Production image for the Covenant sync API (Node + Express).
-# Named Dockerfile at repo root so Railway auto-detects it (not Railpack on the static planner).
+# Railway API service must set Config-as-code to /railway.api.toml (this Dockerfile).
+# Default /railway.toml builds Dockerfile.hosted (static planner) — do not use that for the API.
 # Compose still uses server/Dockerfile with context ./server — see docker-compose.prod.yml.
 # Optional UI+API: Dockerfile.single + SERVE_STATIC=1.
 # Deploy checklist: docs/HOSTED_DEPLOY.md  |  Walkthrough: docs/DEPLOY_WALKTHROUGH.md

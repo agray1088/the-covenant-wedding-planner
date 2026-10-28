@@ -4,7 +4,7 @@ End-to-end operator path to put the Covenant sync API on public HTTPS with manag
 
 **Guided PC walkthrough (numbered, copy-paste):** [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · printable [`DEPLOY_WALKTHROUGH.pdf`](./DEPLOY_WALKTHROUGH.pdf).
 
-**Honest limit:** this repo ships Dockerfiles, `railway.toml` / `fly.toml`, and env templates. **You** create the Railway/Fly/Google/SMTP/(optional R2) accounts and **paste secrets in the host dashboard** (or `fly secrets set`). Agents and docs cannot log into your cloud for you.
+**Honest limit:** this repo ships Dockerfiles, `railway.api.toml` / `railway.toml` (static) / `fly.toml`, and env templates. **You** create the Railway/Fly/Google/SMTP/(optional R2) accounts and **paste secrets in the host dashboard** (or `fly secrets set`). Agents and docs cannot log into your cloud for you.
 
 Local Docker Desktop demo is unchanged — see [Local demo still works](#local-demo-still-works). Couples never install Postgres.
 
@@ -50,7 +50,7 @@ Railway fits this stack: managed Postgres, automatic HTTPS, Dockerfile deploy, d
    - **Dockerfile path** = `Dockerfile` (repo-root API image)
    - **Root Directory** = empty / `/`
    - Click **Deploy** on any pending-changes banner
-3. Root `railway.toml` also sets `builder = "DOCKERFILE"` + `dockerfilePath = "Dockerfile"`. A root `Dockerfile` is required so Railway does not Railpack the static planner (`No start command detected`).
+3. Config files: API service → Config-as-code `/railway.api.toml` (`Dockerfile` + `node index.js`). Planner page → default `/railway.toml` or `/railway.hosted.toml` (`Dockerfile.hosted` + `node static-server.mjs`). Do not leave the API on the default file or it will serve static HTML.
 4. Optional single-service UI+API: set Dockerfile path to `Dockerfile.single` and Variable `SERVE_STATIC=1`.
 
 **Already failing with Railpack?** Fix Builder/path in the dashboard first (steps above), then `git pull origin cursor/offline-cloud-sync-017e` and redeploy. Exact clicks: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) §1.
@@ -156,7 +156,7 @@ curl -s https://<PUBLIC_URL>/setup/status
 # (never secret values)
 ```
 
-Platforms also probe `/health` (see `railway.toml` `healthcheckPath`).
+Platforms also probe `/health` (see `railway.api.toml` / `railway.toml` `healthcheckPath`).
 
 In the planner: **Settings → Cloud sync → Hosted setup checklist** shows the same readiness live.
 
@@ -323,7 +323,8 @@ See [`RECONNECT_AFTER_RESTART.md`](./RECONNECT_AFTER_RESTART.md).
 | File | Role |
 |------|------|
 | `Dockerfile` | **Railway default** — API-only image (repo-root context; auto-detected) |
-| `railway.toml` | Forces Dockerfile builder + `/health` (avoids Railpack on static root) |
+| `railway.api.toml` | API: Dockerfile builder + `node index.js` + `/health` |
+| `railway.toml` / `railway.hosted.toml` | Planner page: `Dockerfile.hosted` + `static-server.mjs` + `/health` |
 | `fly.toml` | Fly app, force HTTPS, `/health` |
 | `server/Dockerfile` | Same API image when build context is `./server` (Compose) |
 | `Dockerfile.single` | Optional API + static planner |

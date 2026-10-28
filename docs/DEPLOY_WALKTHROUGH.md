@@ -441,35 +441,65 @@ Related: [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.
 
 ## 14. Host the planner itself (second Railway service) — open it on any device
 
-Goal: a permanent HTTPS link to the planner so you do not need `python -m http.server`, and partner/guest/vendor links work 24/7. This is a **second service in the same Railway project**, built from the **same GitHub repo**. It is static files only: no database, no secrets. Your API service is not touched.
+Goal: a permanent HTTPS link to the planner so you do not need `python -m http.server`, and partner/guest/vendor links work 24/7. This is a **second service in the same Railway project**, built from the **same GitHub repo**. It is static files only: no database, no secrets.
 
 Your API URL below is `https://the-covenant-wedding-planner-production.up.railway.app` (replace with yours if different).
 
-1. Open your Railway project (the one with the API + Postgres).
-2. Click **+ New** (top right of the canvas) → **GitHub Repo** → pick `the-covenant-wedding-planner`. A new service appears.
-3. Click the new service → **Settings** → **Source** → confirm branch is `cursor/offline-cloud-sync-017e` (or `master` once merged). Leave **Root Directory** empty.
-4. Click **Variables** → **New Variable** and add both:
+### Why two config files
+
+| File | Service | Image |
+|------|---------|--------|
+| `/railway.api.toml` | Sync API (`the-covenant-wedding-planner`) | `Dockerfile` (Node + Postgres) |
+| `/railway.toml` (default) or `/railway.hosted.toml` | Planner page (`romantic-perception`) | `Dockerfile.hosted` (static files only) |
+
+Railway applies `/railway.toml` to every service unless you change **Config-as-code**. If the planner page keeps crashing with `[covenant-sync]` / `password authentication failed for user "covenant"`, it is still using the API image. Fix the Config-as-code paths below.
+
+### 14a. Point the API at the API config (do this first)
+
+1. Open the **API** service (`the-covenant-wedding-planner`).
+2. **Settings** → find **Config-as-code** (sometimes under Source / Build).
+3. Set the config file path to exactly: `/railway.api.toml`
+4. Click **Deploy**. Wait for green.
+5. Check `https://the-covenant-wedding-planner-production.up.railway.app/health` still says `ok`.
+
+If you skip this and only redeploy the planner, the next API deploy may build the static image by mistake.
+
+### 14b. Fix or create the planner page service
+
+1. Open **`romantic-perception`** (or create it: **+ New** → **GitHub Repo** → same repo).
+2. **Settings → Source** → branch `cursor/offline-cloud-sync-017e`. Root Directory empty.
+3. **Settings → Config-as-code** → `/railway.toml` (or `/railway.hosted.toml`). Both mean static.
+4. **Settings → Build** → Builder = Dockerfile, Dockerfile Path = `Dockerfile.hosted` (if the field is shown).
+5. **Settings → Deploy** → Custom Start Command must be **empty** (or `node static-server.mjs`). Never `node index.js`.
+6. **Variables** — only:
 
 ```
-RAILWAY_DOCKERFILE_PATH=Dockerfile.hosted
 API_BASE_URL=https://the-covenant-wedding-planner-production.up.railway.app
 ```
 
-   (No trailing slash. Do **not** set `PORT`; Railway provides it.) Optionally rename the service to `planner-web` (Settings → Service Name).
-5. **Settings** → **Networking** → **Generate Domain**. Copy the URL, e.g. `https://planner-web-production.up.railway.app`.
-6. Wait for the deploy to go green (**Deployments** tab). Open `<new URL>/health` — it should say `ok`.
-7. Go to the **API service** → **Variables**. Edit these (comma-separated, no spaces, no trailing slashes):
+   You can delete `RAILWAY_DOCKERFILE_PATH` now; Config-as-code sets the Dockerfile. Do **not** set `DATABASE_URL`, `SESSION_SECRET`, `CORS_ORIGIN`, or `CLIENT_APP_URL` on this service.
+7. **Networking → Generate Domain** if you do not have one yet.
+8. **Deploy**. Open `<planner URL>/health` — it must say `ok`. Deploy logs must mention `static-server`, **not** `[covenant-sync]`.
+
+### 14c. Wire CORS + Google
+
+1. On the **API** service → Variables:
 
 ```
-CORS_ORIGIN=http://localhost:8000,https://planner-web-production.up.railway.app
-CLIENT_APP_URL=https://planner-web-production.up.railway.app
+CORS_ORIGIN=http://localhost:8000,https://romantic-perception-production-74be.up.railway.app
+CLIENT_APP_URL=https://romantic-perception-production-74be.up.railway.app
 ```
 
-   Sign-in redirects only return to origins listed in `CORS_ORIGIN` / `CLIENT_APP_URL` (plus localhost), so the hosted URL must be there. Let the API redeploy.
-8. **Google sign-in only:** [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → your OAuth Web client → under **Authorized JavaScript origins** add the planner URL. The **Authorized redirect URI** stays the API one (`<API URL>/auth/google/callback`) — do not change it.
-9. Open the planner URL on any device. Cloud sync defaults to your API automatically (no need to type it); click Enable / sign in under Settings → Cloud sync. If you saved a different API base before, that saved value wins. Local `localhost` use is unchanged and still offline-first.
-10. After pushing new code, Railway rebuilds both services. HTML is never cached; JS/CSS revalidate every 60 seconds, so a normal refresh picks up updates.
+2. Google Cloud Console → Credentials → OAuth client → **Authorized JavaScript origins** → add the planner URL. Redirect URI stays `<API URL>/auth/google/callback`.
 
-Alternative to step 4: Service → Settings → **Config-as-code** → file path `/railway.hosted.toml` (sets the same Dockerfile and a `/health` check).
+3. Open the planner URL, Settings → Cloud sync, sign in.
 
-Troubleshooting: sign-in returns to the wrong place → fix `CLIENT_APP_URL`/`CORS_ORIGIN` on the API. Browser console shows a CORS error → the planner origin is missing from `CORS_ORIGIN`. Planner works but no API default → check `<planner URL>/config.js` shows your `API_BASE_URL`.
+### Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|--------|-----|
+| Logs show `[covenant-sync]` / `covenant@postgres` | Planner built the API image | Set Config-as-code to `/railway.toml` and Deploy |
+| `SESSION_SECRET is unset` on planner | Same as above | Same fix — planner never needs that secret |
+| API `/health` breaks after this change | API still on default `/railway.toml` | Set API Config-as-code to `/railway.api.toml` |
+| CORS error in browser | Planner origin missing from API `CORS_ORIGIN` | Edit API variables |
+| No API default in Settings | `API_BASE_URL` missing | Check `<planner URL>/config.js` |
