@@ -110,6 +110,16 @@ const server = http.createServer((req, res) => {
   });
 });
 
+if (!Number.isFinite(PORT) || PORT <= 0) {
+  console.error(`[covenant-static] invalid PORT=${JSON.stringify(process.env.PORT)}`);
+  process.exit(1);
+}
+
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`[covenant-static] :${PORT} root=${ROOT} API_BASE_URL=${API_BASE_URL || '(unset)'}`);
+  const addr = server.address();
+  console.log(
+    `[covenant-static] listening host=0.0.0.0 port=${addr && addr.port} `
+    + `envPORT=${process.env.PORT || '(unset)'} root=${ROOT} `
+    + `API_BASE_URL=${API_BASE_URL || '(unset)'}`
+  );
 });
