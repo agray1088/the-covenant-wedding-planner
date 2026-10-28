@@ -26,6 +26,25 @@
       });
   }
 
+  /** Prefer saved localStorage, then deploy-time COVENANT_API_DEFAULT / cloud-sync cfg. */
+  function suggestedCloudApiBase() {
+    try {
+      var saved = localStorage.getItem('covenant_cloud_api');
+      if (saved && /^https?:\/\//i.test(saved)) return String(saved).replace(/\/$/, '');
+    } catch (e) { /* ignore */ }
+    try {
+      if (window.CovenantCloudSync && typeof window.CovenantCloudSync.cfg === 'function') {
+        var c = window.CovenantCloudSync.cfg();
+        if (c && c.apiBase && /^https?:\/\//i.test(c.apiBase)) return String(c.apiBase).replace(/\/$/, '');
+      }
+    } catch (e2) { /* ignore */ }
+    try {
+      var d = window.COVENANT_API_DEFAULT;
+      if (d && /^https?:\/\//i.test(d)) return String(d).replace(/\/$/, '');
+    } catch (e3) { /* ignore */ }
+    return '';
+  }
+
   function onboard() {
     try { if (typeof ensureOnboardData === 'function') return ensureOnboardData() || {}; } catch (e) {}
     try { return (typeof data !== 'undefined' && data && data.onboard) ? data.onboard : {}; } catch (e) {}
@@ -462,9 +481,9 @@
         + 'Local Docker: <code>http://localhost:18787</code>. Hosted HTTPS: your deploy <code>PUBLIC_URL</code> '
         + '(see <code>docs/HOSTED_DEPLOY.md</code>). Set <code>covenant_cloud_api</code> + <code>covenant_cloud_enabled=1</code>, then reload. '
         + 'Also: <code>docs/OFFLINE_CLOUD_SYNC.md</code>.</div>';
-      html += cardRow('API base URL', 'Stored in this browser only — local or hosted HTTPS',
+      html += cardRow('API base URL', 'Stored in this browser only — local or hosted HTTPS. On the Railway planner page this is filled from the deploy automatically.',
         '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:18787 or https://api.example.com" value="'
-        + esc((function () { try { return localStorage.getItem('covenant_cloud_api') || ''; } catch (e) { return ''; } })())
+        + esc(suggestedCloudApiBase())
         + '">');
       html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides sync in beta',
         btn('Save & enable', 'rdCloudEnable'));
@@ -1089,7 +1108,9 @@
       if (name === 'rdCloudEnable') {
         var apiEl = document.getElementById('rd-cloud-api');
         var api = apiEl ? String(apiEl.value || '').trim().replace(/\/$/, '') : '';
+        if (!api) api = suggestedCloudApiBase();
         if (!api) { cloudMsg(false, 'Enter an API base URL first.'); return; }
+        if (apiEl && !String(apiEl.value || '').trim()) apiEl.value = api;
         try {
           localStorage.setItem('covenant_cloud_api', api);
           localStorage.setItem('covenant_cloud_enabled', '1');
