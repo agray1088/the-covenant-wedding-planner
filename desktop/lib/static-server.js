@@ -1,0 +1,226 @@
+'use strict';
+
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const { pathToFileURL } = require('url');
+
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+  '.wasm': 'application/wasm',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8'
+};
+
+const ALLOWED_TOP = new Set([
+  'index.html',
+  'vendor-portal.html',
+  'config.js',
+  'favicon.ico',
+  'manifest.webmanifest',
+  'sw.js'
+]);
+const ALLOWED_DIRS = ['js', 'css', 'Redesign', 'vendor', 'assets', 'img', 'fonts'];
+
+function send(res, status, headers, body) {
+  res.writeHead(status, headers);
+  if (body === undefined) res.end();
+  else res.end(body);
+}
+
+function resolveUnderRoot(root, urlPath) {
+  let p;
+  try {
+    p = decodeURIComponent(urlPath);
+  } catch {
+    return null;
+  }
+  if (p.includes('\0')) return null;
+  p = p.replace(/^\/+/, '');
+  if (p === '') p = 'index.html';
+  const parts = p.split('/');
+  if (parts.some((s) => s === '..' || s.startsWith('.'))) return null;
+  const okTop = parts.length === 1 && ALLOWED_TOP.has(parts[0]);
+  const okDir = parts.length > 1 && ALLOWED_DIRS.includes(parts[0]);
+  if (!okTop && !okDir) return null;
+  const abs = path.resolve(root, p);
+  if (!abs.startsWith(root + path.sep) && abs !== root) return null;
+  return abs;
+}
+
+function desktopBootstrap(apiBase) {
+  const base = JSON.stringify(apiBase || '');
+  return (
+    '<script>(function(){try{' +
+    'window.COVENANT_DESKTOP={isDesktop:true,shell:"electron"};' +
+    'window.COVENANT_API_DEFAULT=' +
+    base +
+    ';' +
+    'window.COVENANT_CLOUD=Object.assign({apiBase:' +
+    base +
+    '},window.COVENANT_CLOUD||{});' +
+    '}catch(e){}})();</script>\n'
+  );
+}
+
+function injectBootstrap(html, apiBase) {
+  const boot = desktopBootstrap(apiBase);
+  if (/<head[^>]*>/i.test(html)) {
+    return html.replace(/<head[^>]*>/i, (m) => m + '\n' + boot);
+  }
+  return boot + html;
+}
+
+/**
+ * Serve the planner static tree on 127.0.0.1 (ephemeral port).
+ * Offline-first: all UI assets come from disk. Cloud sync still uses HTTPS when online.
+ * Localhost origin keeps Railway CORS happy without changing API secrets.
+ */
+function startPlannerServer(plannerRoot, apiBase) {
+  const root = path.resolve(plannerRoot);
+  if (!fs.existsSync(path.join(root, 'index.html'))) {
+    return Promise.reject(new Error('Planner index.html not found at ' + root));
+  }
+
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      send(res, 405, { Allow: 'GET, HEAD', 'Content-Type': 'text/plain' }, 'Method not allowed');
+      return;
+    }
+
+    let urlPath = '/';
+    try {
+      urlPath = new URL(req.url || '/', 'http://127.0.0.1').pathname;
+    } catch {
+      send(res, 400, { 'Content-Type': 'text/plain' }, 'Bad request');
+      return;
+    }
+
+    // Desktop does not need the PWA service worker (shell is already local).
+    if (urlPath === '/sw.js') {
+      send(res, 404, { 'Content-Type': 'text/plain' }, 'Not found');
+      return;
+    }
+
+    if (urlPath === '/config.js') {
+      const body =
+        '/* desktop shell — default API for optional cloud sync */\n' +
+        'window.COVENANT_API_DEFAULT = ' +
+        JSON.stringify(apiBase || '') +
+        ';\n';
+      send(
+        res,
+        200,
+        {
+          'Content-Type': 'text/javascript; charset=utf-8',
+          'Cache-Control': 'no-cache',
+          'X-Content-Type-Options': 'nosniff'
+        },
+        req.method === 'HEAD' ? undefined : body
+      );
+      return;
+    }
+
+    const abs = resolveUnderRoot(root, urlPath);
+    if (!abs) {
+      send(res, 404, { 'Content-Type': 'text/plain' }, 'Not found');
+      return;
+    }
+
+    fs.stat(abs, (err, st) => {
+      if (err || !st.isFile()) {
+        send(res, 404, { 'Content-Type': 'text/plain' }, 'Not found');
+        return;
+      }
+      const ext = path.extname(abs).toLowerCase();
+      const type = MIME[ext] || 'application/octet-stream';
+
+      if (ext === '.html') {
+        fs.readFile(abs, 'utf8', (readErr, html) => {
+          if (readErr) {
+            send(res, 500, { 'Content-Type': 'text/plain' }, 'Read error');
+            return;
+          }
+          const body = injectBootstrap(html, apiBase);
+          send(
+            res,
+            200,
+            {
+              'Content-Type': type,
+              'Cache-Control': 'no-cache',
+              'X-Content-Type-Options': 'nosniff'
+            },
+            req.method === 'HEAD' ? undefined : body
+          );
+        });
+        return;
+      }
+
+      const headers = {
+        'Content-Type': type,
+        'Cache-Control': ext === '.webmanifest' ? 'no-cache' : 'public, max-age=60',
+        'X-Content-Type-Options': 'nosniff',
+        'Content-Length': st.size
+      };
+      if (req.method === 'HEAD') {
+        res.writeHead(200, headers);
+        res.end();
+        return;
+      }
+      res.writeHead(200, headers);
+      fs.createReadStream(abs).on('error', () => {
+        try {
+          res.destroy();
+        } catch (_) {
+          /* ignore */
+        }
+      }).pipe(res);
+    });
+  });
+
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const addr = server.address();
+      const port = addr && addr.port;
+      resolve({
+        server,
+        port,
+        origin: 'http://127.0.0.1:' + port,
+        url: 'http://127.0.0.1:' + port + '/',
+        close: () =>
+          new Promise((resClose, rejClose) => {
+            server.close((e) => (e ? rejClose(e) : resClose()));
+          })
+      });
+    });
+  });
+}
+
+function plannerRootFromElectron(app) {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'planner');
+  }
+  return path.join(__dirname, '..', '..');
+}
+
+module.exports = {
+  startPlannerServer,
+  plannerRootFromElectron,
+  pathToFileURL
+};

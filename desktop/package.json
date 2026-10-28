@@ -1,0 +1,109 @@
+{
+  "name": "covenant-wedding-planner-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Electron desktop shell for The Covenant Wedding Planner (offline-first local UI + optional Railway cloud sync).",
+  "main": "main.js",
+  "author": "The Covenant Wedding Planner",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "syntax": "node --check main.js && node --check preload.js && node --check lib/static-server.js && node --check lib/api-config.js && node --check scripts/smoke.js && node --check scripts/electron-smoke.js",
+    "smoke": "node scripts/smoke.js",
+    "smoke:electron": "node scripts/electron-smoke.js",
+    "build:win": "electron-builder --win nsis portable zip --x64 --arm64",
+    "build:win:x64": "electron-builder --win nsis portable zip --x64",
+    "build:win:arm64": "electron-builder --win nsis portable zip --arm64",
+    "build:win:zip": "electron-builder --win zip --x64 --arm64",
+    "build:win:dir": "electron-builder --win --x64 --arm64 --dir",
+    "pack": "electron-builder --dir"
+  },
+  "build": {
+    "appId": "app.thecovenant.weddingplanner",
+    "productName": "The Covenant Wedding Planner",
+    "copyright": "Copyright © The Covenant Wedding Planner",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../index.html",
+        "to": "planner/index.html"
+      },
+      {
+        "from": "../vendor-portal.html",
+        "to": "planner/vendor-portal.html"
+      },
+      {
+        "from": "../config.js",
+        "to": "planner/config.js"
+      },
+      {
+        "from": "../manifest.webmanifest",
+        "to": "planner/manifest.webmanifest"
+      },
+      {
+        "from": "../sw.js",
+        "to": "planner/sw.js"
+      },
+      {
+        "from": "../js",
+        "to": "planner/js"
+      },
+      {
+        "from": "../css",
+        "to": "planner/css"
+      },
+      {
+        "from": "../Redesign",
+        "to": "planner/Redesign"
+      },
+      {
+        "from": "../assets",
+        "to": "planner/assets"
+      }
+    ],
+    "win": {
+      "icon": "../assets/icons/icon-512.png",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "The Covenant Wedding Planner",
+      "uninstallDisplayName": "The Covenant Wedding Planner"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-${os}-${arch}-portable.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  }
+}

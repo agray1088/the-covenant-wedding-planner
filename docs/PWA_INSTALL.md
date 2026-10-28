@@ -2,6 +2,8 @@
 
 The hosted planner is an installable Progressive Web App. After one online visit it opens with no internet. Planner data stays in the browser (localStorage / SQLite / IndexedDB); cloud sync is unchanged and optional. The service worker never caches or intercepts API/cloud-sync calls (cross-origin API, `/auth`, `/weddings`, `/setup`, ...) or non-GET requests.
 
+Want a native Windows `.exe` instead (or in addition)? See [`DESKTOP_APP.md`](./DESKTOP_APP.md) — Electron installer under `desktop/`; the PWA stays available.
+
 Requirements: HTTPS (the Railway static host) or `http://localhost`. It does not register from `file://`.
 
 ## Install

@@ -44,7 +44,13 @@
     "verify:catering-rentals-sync": "node scripts/_verify-catering-rental-sync.mjs",
     "verify:packet-overrides-sync": "node scripts/_verify-packet-overrides-sync.mjs",
     "verify:print-packet-overrides-sync": "node scripts/_verify-packet-overrides-sync.mjs",
-    "playwright:install": "npx playwright install chromium"
+    "playwright:install": "npx playwright install chromium",
+    "desktop:dev": "npm run dev --prefix desktop",
+    "desktop:smoke": "npm run smoke --prefix desktop",
+    "desktop:build:win": "npm run build:win --prefix desktop",
+    "desktop:build:win:x64": "npm run build:win:x64 --prefix desktop",
+    "desktop:build:win:arm64": "npm run build:win:arm64 --prefix desktop",
+    "desktop:build:win:zip": "npm run build:win:zip --prefix desktop"
   },
   "devDependencies": {
     "playwright": "1.55.0"
