@@ -22,6 +22,7 @@
   "build": {
     "appId": "app.thecovenant.weddingplanner",
     "productName": "The Covenant Wedding Planner",
+    "executableName": "CovenantWeddingPlanner",
     "copyright": "Copyright © The Covenant Wedding Planner",
     "directories": {
       "output": "dist",
@@ -72,6 +73,7 @@
       }
     ],
     "win": {
+      "executableName": "CovenantWeddingPlanner",
       "icon": "../assets/icons/icon-512.png",
       "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
       "signAndEditExecutable": false,
@@ -92,11 +94,13 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "The Covenant Wedding Planner",
-      "uninstallDisplayName": "The Covenant Wedding Planner"
+      "uninstallDisplayName": "The Covenant Wedding Planner",
+      "artifactName": "${productName}-${version}-${os}-${arch}-setup.${ext}"
     },
     "portable": {
       "artifactName": "${productName}-${version}-${os}-${arch}-portable.${ext}"

@@ -44,10 +44,29 @@ npm run desktop:build:win:x64
 
 Outputs land in **`desktop/dist/`**, for example:
 
-- `The Covenant Wedding Planner-1.0.0-win-arm64.exe` — NSIS installer (Surface Pro X)
+- `The Covenant Wedding Planner-1.0.0-win-arm64-setup.exe` — NSIS installer (Surface Pro X)
 - `The Covenant Wedding Planner-1.0.0-win-arm64-portable.exe` — portable
-- `The Covenant Wedding Planner-1.0.0-win-arm64.zip` — unzip and run the `.exe` inside
+- `The Covenant Wedding Planner-1.0.0-win-arm64.zip` — unzip and run `CovenantWeddingPlanner.exe` inside
 - Same names with `x64` for Intel/AMD PCs
+
+### Packaging names (important for shortcuts)
+
+| Field | Value | Why |
+|-------|--------|-----|
+| `productName` | `The Covenant Wedding Planner` | Display / branding |
+| `executableName` | `CovenantWeddingPlanner` | Actual `.exe` filename (**no spaces**) |
+| `nsis.shortcutName` | `The Covenant Wedding Planner` | Start Menu + Desktop shortcut label |
+| Install folder (per-user default) | `%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\` | electron-builder NSIS default when `oneClick: false` and `perMachine: false` |
+
+Installed binary path (current-user install):
+
+`%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\CovenantWeddingPlanner.exe`
+
+Per-machine (if you choose “all users” in the installer): typically
+
+`%ProgramFiles%\CovenantWeddingPlanner\CovenantWeddingPlanner.exe`
+
+Do **not** rely on an `.exe` named `The Covenant Wedding Planner.exe` — that spaced name was fragile for NSIS shortcuts (Windows “missing shortcut / searching for …” dialogs).
 
 ### Dev run (no installer)
 
@@ -59,12 +78,46 @@ Opens Electron against the repo’s local `index.html` / `js` / `css` / `Redesig
 
 ## Install the `.exe` (Surface Pro X)
 
-1. Build with **`arm64`** on Windows (or copy an `*-win-arm64*.exe` from a machine that produced it).
-2. Run the **NSIS** installer `.exe` (not the portable one, unless you want portable).
+1. Build with **`arm64`** on Windows (or copy an `*-win-arm64*-setup.exe` from a machine that produced it).
+2. Run the **NSIS** installer `.exe` (not the portable one, unless you want portable). Prefer **current user** install (default).
 3. If **SmartScreen** / “Windows protected your PC” appears: **More info** → **Run anyway**. Builds are **not code-signed** yet (no certificate in this repo).
 4. Launch **The Covenant Wedding Planner** from the Start Menu or Desktop shortcut.
 
 Portable: double-click `*-portable.exe`; no Start Menu entry.
+
+### If Windows says “missing shortcut” / searching for `The Covenant Wedding Planner.exe`
+
+That usually means an **old install** whose Start Menu/Desktop `.lnk` pointed at a spaced exe name or a path that no longer matches the files on disk. Fix:
+
+1. **Uninstall** the old app: Start → search **Add or remove programs** → **The Covenant Wedding Planner** → **Uninstall** (or Start Menu → right‑click the app → Uninstall if shown).
+2. Delete leftover broken shortcuts if they remain:
+   - Desktop: `The Covenant Wedding Planner.lnk`
+   - Start Menu: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\The Covenant Wedding Planner.lnk`
+3. Optionally remove the old install folder if it still exists:
+   - `%LOCALAPPDATA%\Programs\The Covenant Wedding Planner\`
+   - (after this fix) `%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\`
+4. Rebuild / reinstall a fresh `*-win-arm64-setup.exe` from this branch, then use the new Start Menu / Desktop shortcuts.
+
+Planner data under `%APPDATA%\covenant-wedding-planner-desktop\` is **not** removed by a normal uninstall — keep that folder unless you intend to wipe local data.
+
+### Launch **now** without waiting for a rebuild (workaround)
+
+If the app files are already on disk, skip the broken shortcut and run the exe directly in File Explorer or PowerShell:
+
+```bat
+REM Current-user install (electron-builder NSIS default for this config):
+%LOCALAPPDATA%\Programs\The Covenant Wedding Planner\The Covenant Wedding Planner.exe
+
+REM After reinstalling a build that sets executableName=CovenantWeddingPlanner:
+%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\CovenantWeddingPlanner.exe
+```
+
+Also try:
+
+- `%ProgramFiles%\The Covenant Wedding Planner\` or `%ProgramFiles%\CovenantWeddingPlanner\` (per-machine install)
+- Or unzip `The Covenant Wedding Planner-1.0.0-win-arm64.zip` and double-click the `.exe` inside the unpacked folder (no installer/shortcuts needed)
+
+You can also use the **portable** artifact (`*-portable.exe`) for an immediate run with no Start Menu entry.
 
 ## How the shell works
 
