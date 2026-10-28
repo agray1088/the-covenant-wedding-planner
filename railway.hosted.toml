@@ -1,0 +1,30 @@
+# Alias of the static planner config (same as railway.toml).
+# Optional: set Config-as-code to /railway.hosted.toml on the planner service.
+# API service must use /railway.api.toml — never this file.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.hosted"
+watchPatterns = [
+  "Dockerfile.hosted",
+  "railway.toml",
+  "railway.hosted.toml",
+  "scripts/static-server.mjs",
+  "scripts/gen-sw-manifest.mjs",
+  "index.html",
+  "vendor-portal.html",
+  "config.js",
+  "manifest.webmanifest",
+  "sw.js",
+  "js/**",
+  "css/**",
+  "assets/**",
+  "Redesign/**"
+]
+
+[deploy]
+startCommand = "node static-server.mjs"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

@@ -1,0 +1,36 @@
+# DEFAULT config for this repo = STATIC PLANNER PAGE (no database).
+# romantic-perception / planner-web should use this file (Railway's default path).
+#
+# The SYNC API service must set Config-as-code to /railway.api.toml instead.
+# (If the API keeps this default file, it will serve the planner HTML, not the API.)
+#
+# Variables for this service only:
+#   API_BASE_URL=https://<your-api>.up.railway.app
+# Do NOT set DATABASE_URL / SESSION_SECRET here.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.hosted"
+watchPatterns = [
+  "Dockerfile.hosted",
+  "railway.toml",
+  "railway.hosted.toml",
+  "scripts/static-server.mjs",
+  "scripts/gen-sw-manifest.mjs",
+  "index.html",
+  "vendor-portal.html",
+  "config.js",
+  "manifest.webmanifest",
+  "sw.js",
+  "js/**",
+  "css/**",
+  "assets/**",
+  "Redesign/**"
+]
+
+[deploy]
+startCommand = "node static-server.mjs"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

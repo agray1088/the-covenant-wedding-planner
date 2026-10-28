@@ -1,0 +1,24 @@
+# Static planner frontend only (second Railway service). No database, no secrets.
+# Railway planner service: Config-as-code = /railway.toml (or /railway.hosted.toml)
+#   Variable: API_BASE_URL=https://<your-api>.up.railway.app
+# API service must use /railway.api.toml + root Dockerfile — never this file.
+#   docker build -f Dockerfile.hosted -t covenant-static .
+#   docker run -p 8080:8080 -e PORT=8080 -e API_BASE_URL=https://api.example.com covenant-static
+FROM node:20-alpine
+WORKDIR /app
+ENV NODE_ENV=production STATIC_ROOT=/app/site
+COPY scripts/static-server.mjs ./static-server.mjs
+# Shim so a leftover dashboard start command "node index.js" still boots the static server.
+RUN printf '%s\n' "import './static-server.mjs';" > index.js
+COPY index.html vendor-portal.html config.js manifest.webmanifest sw.js ./site/
+COPY js ./site/js
+COPY assets ./site/assets
+COPY css ./site/css
+COPY Redesign/redesign-tokens.css Redesign/redesign-components.css Redesign/redesign-shell.css Redesign/redesign-layouts.css Redesign/autofit-columns.js ./site/Redesign/
+# Regenerate the SW precache list + version from the files actually shipped (fails the build if any is missing).
+COPY scripts/gen-sw-manifest.mjs ./gen-sw-manifest.mjs
+RUN SW_ROOT=/app/site node gen-sw-manifest.mjs && rm gen-sw-manifest.mjs
+RUN addgroup -S covenant && adduser -S covenant -G covenant
+USER covenant
+EXPOSE 8080
+CMD ["node", "static-server.mjs"]

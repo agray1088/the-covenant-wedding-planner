@@ -1,0 +1,22 @@
+# Config-as-code for the SYNC API service (Postgres + auth + email).
+# In Railway: API service → Settings → Config-as-code → /railway.api.toml
+# The planner page service must NOT use this file (use /railway.toml or /railway.hosted.toml).
+#
+# Guided walkthrough: docs/DEPLOY_WALKTHROUGH.md
+# Env template: server/.env.production.example
+#
+# Required Variables (API service only):
+#   DATABASE_URL, DATABASE_SSL=1, PUBLIC_URL, CORS_ORIGIN, SESSION_SECRET, TRUST_PROXY=1
+# Recommended: CLIENT_APP_URL, GOOGLE_*, RESEND_API_KEY / EMAIL_FROM
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+watchPatterns = ["Dockerfile", "railway.api.toml", "server/**"]
+
+[deploy]
+startCommand = "node index.js"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

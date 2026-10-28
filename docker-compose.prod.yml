@@ -1,0 +1,101 @@
+# Optional production-shaped stack (API + Postgres with password auth).
+# Prefer managed Postgres on Railway / Fly / Render for public HTTPS.
+# This file is for self-host experiments — NOT the local Windows trust stack.
+# Full hosted path: docs/HOSTED_DEPLOY.md
+#
+# Usage (from repo root):
+#   cp server/.env.production.example server/.env.production
+#   # edit POSTGRES_PASSWORD, SESSION_SECRET, PUBLIC_URL, CORS_ORIGIN,
+#   # GOOGLE_*, SMTP_*, optional PHOTO_STORAGE / S3_* / R2_*, then:
+#   docker compose -f docker-compose.prod.yml --env-file server/.env.production up -d --build
+#   curl http://127.0.0.1:18787/health && curl http://127.0.0.1:18787/setup/status
+#
+# Local demo Compose remains: docker compose up -d  (host API :18787)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: covenant-postgres-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-covenant}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-covenant}
+    volumes:
+      - covenant_pg_prod:/var/lib/postgresql/data
+      - ./server/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Do not publish 5432 publicly in real deployments — use a private network
+    # or managed Postgres. Bind localhost only if you need host-side tooling.
+    ports:
+      - "127.0.0.1:5433:5432"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: covenant-sync-api:prod
+    container_name: covenant-sync-api-prod
+    environment:
+      NODE_ENV: production
+      COVENANT_SYNC_DOCKER: "1"
+      DATABASE_URL: postgres://${POSTGRES_USER:-covenant}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-covenant}
+      DATABASE_SSL: "0"
+      PORT: "8787"
+      HOST: "0.0.0.0"
+      PUBLIC_URL: ${PUBLIC_URL:-http://127.0.0.1:18787}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8000}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET}
+      SESSION_DAYS: ${SESSION_DAYS:-30}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      SERVE_STATIC: ${SERVE_STATIC:-0}
+      CLIENT_APP_URL: ${CLIENT_APP_URL:-}
+      FEATURE_GOOGLE_AUTH: ${FEATURE_GOOGLE_AUTH:-0}
+      FEATURE_EMAIL: ${FEATURE_EMAIL:-0}
+      FEATURE_RSVP: ${FEATURE_RSVP:-0}
+      FEATURE_LANDING: ${FEATURE_LANDING:-0}
+      FEATURE_PHOTOS: ${FEATURE_PHOTOS:-0}
+      BOOTSTRAP_EMAIL: ${BOOTSTRAP_EMAIL:-}
+      BOOTSTRAP_PASSWORD: ${BOOTSTRAP_PASSWORD:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_SECURE: ${SMTP_SECURE:-0}
+      PHOTO_STORAGE: ${PHOTO_STORAGE:-local}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_REGION: ${R2_REGION:-auto}
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
+      PHOTO_PUBLIC_BASE_URL: ${PHOTO_PUBLIC_BASE_URL:-}
+    ports:
+      - "${API_HOST_PORT:-18787}:8787"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+    restart: unless-stopped
+
+volumes:
+  covenant_pg_prod:
