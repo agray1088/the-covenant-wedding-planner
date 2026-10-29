@@ -111,15 +111,20 @@ Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, priva
 
 ## Desktop native polish
 
-Windows Electron shell (`.exe`) is tracked separately from the hosted cloud track. Full checklist (PWA chrome hide, update banner → Help, API base via File menu, native destructive dialogs, zoom redundancy, favicon/manifest UI, tray/auto-update, **top-toolbar redesign**): [`DESKTOP_APP.md`](./DESKTOP_APP.md#desktop-native-polish).
+Windows Electron shell (`.exe`) is tracked separately from the hosted cloud track.
+
+- **Master implementation plan** (phased checkboxes, DONE vs TODO, Windows x64 verify): [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
+- Checklist summary: [`DESKTOP_APP.md`](./DESKTOP_APP.md#desktop-native-polish) (PWA chrome hide, update banner → Help, API base via File menu, native destructive dialogs, zoom redundancy, favicon/manifest UI, tray/auto-update/license stubs, **top-toolbar redesign**, **layout/sections/tables/tabs**)
 
 | Theme | Outcome |
 |-------|---------|
 | Compact desktop toolbar | Search + save + alerts in-bar; Undo/Redo, Dark Mode, Profile, Hub, Quick Jump via native menus (**first pass shipped**) |
-| Browser-like leftovers | PWA install / SW reload banner / loud API paste tips demoted on desktop (**partial**); native dialogs + tray + auto-update still open |
+| Browser-like leftovers | PWA install / SW reload banner / loud API paste tips demoted on desktop (**partial**); native dialogs + tray + file assoc + auto-update + license still open |
+| Layout / sections / tables / tabs | Stable chrome + one job per screen; sidebar vs sub-view tabs; table-local Add/Filter/Sort/Search; optional row inspector; density; simpler empties; less hero/stat clutter (**planned — not implemented**; order: toolbars → inspector → density → polish) |
 
 ## Docs
 
+- Desktop native polish plan: [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
 - Desktop app (Windows `.exe`): [`DESKTOP_APP.md`](./DESKTOP_APP.md)  
 - Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md)  
 - Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)  

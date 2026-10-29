@@ -253,6 +253,8 @@ Desktop install does **not** replace backups. Use **Backup & restore** in the pl
 
 Track browser-like leftovers and desktop UX gaps. Prefer native menus and a compact toolbar over web chrome. Items marked **Done (first pass)** landed with the top-bar redesign; the rest stay open.
 
+**Master plan (phased, checkbox, DONE vs TODO):** [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) — follow that file to implement all polish items end-to-end. Do not re-scope from scratch.
+
 ### Checklist
 
 | # | Item | Status |
@@ -265,6 +267,15 @@ Track browser-like leftovers and desktop UX gaps. Prefer native menus and a comp
 | 5 | **View** menu zoom already exists — ensure in-app duplicate zoom chrome isn’t redundant | **Done (first pass)** — no window-zoom chrome in the planner toolbar; page zoom stays on View |
 | 6 | Don’t surface **favicon / manifest / theme-color** concepts in the desktop UI | TODO (verify Settings / About copy) |
 | 7 | Later: tray sync status, backup file association, native file pickers polish, auto-update | TODO |
+| 8 | **License** — Help → Enter License… is a stub; real activation later | TODO (stub UI **Done**) |
+| 9 | **Stable chrome + one primary job per screen** — menu/top bar/sidebar stay put; each tool screen has one primary task | TODO (layout; plan Phases B–C) |
+| 10 | **Sidebar for app sections**; secondary **tabs only for sub-views** (not top-level nav) | TODO (layout; plan Phase C) |
+| 11 | **Table-local toolbar** — Add / Filter / Sort / Search directly above the table | TODO (layout; plan Phase D — implement before inspector) |
+| 12 | **Optional right inspector** on row select | TODO (layout; plan Phase E — after table toolbars) |
+| 13 | **Desktop density pass** — tighter rows/controls under `covenant-desktop` | TODO (layout; plan Phase F — after inspector) |
+| 14 | **Simpler empty states** + reduce webby heroes / duplicate toolbars / stat-card clutter inside tool screens | TODO (layout; plan Phases B + F — visual polish last) |
+
+**Layout implementation order:** tighten per-section toolbars (11) → row inspector (12) → density (13) → visual polish / empties (14). IA/sidebar (9–10) and clutter demote (14 early pass) come before or with those slices — see the master plan.
 
 ### Top toolbar (desktop first pass)
 
