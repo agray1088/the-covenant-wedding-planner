@@ -1,24 +1,35 @@
 /* PWA glue: service worker registration (https/localhost only), in-app update banner,
-   install prompt handling and status for Settings -> Install app. Never touches cloud sync. */
+   install prompt handling and status for Settings -> Install app. Never touches cloud sync.
+   Electron desktop shell skips SW registration and update banners (Help → Check for Updates). */
 (function () {
   'use strict';
   var state = { supported: false, registered: false, controlled: false, version: '', updateReady: false,
-    canPrompt: false, installed: false, ios: false, error: '' };
+    canPrompt: false, installed: false, ios: false, error: '', desktop: false };
   var listeners = [];
   var deferredPrompt = null;
   var waitingWorker = null;
   var reloading = false;
+
+  function isDesktopShell() {
+    try {
+      if (window.COVENANT_DESKTOP && window.COVENANT_DESKTOP.isDesktop) return true;
+      if (window.covenantDesktop && window.covenantDesktop.isDesktop) return true;
+    } catch (e) { /* ignore */ }
+    return false;
+  }
 
   function emit() { listeners.slice().forEach(function (f) { try { f(getStatus()); } catch (e) {} }); }
   function getStatus() {
     return {
       supported: state.supported, registered: state.registered, offlineReady: state.registered && state.controlled,
       version: state.version, updateReady: state.updateReady, canPrompt: state.canPrompt,
-      installed: isStandalone(), ios: isIos(), online: navigator.onLine !== false, error: state.error
+      installed: isStandalone(), ios: isIos(), online: navigator.onLine !== false, error: state.error,
+      desktop: state.desktop
     };
   }
   function isStandalone() {
     try {
+      if (state.desktop) return true;
       return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
         window.navigator.standalone === true || state.installed;
     } catch (e) { return false; }
@@ -33,6 +44,8 @@
   }
 
   function showUpdateBanner() {
+    /* Desktop uses Help → Check for Updates (real auto-update later), not SW reload. */
+    if (state.desktop || isDesktopShell()) return;
     if (document.getElementById('covenant-update-banner')) return;
     var b = document.createElement('div');
     b.id = 'covenant-update-banner';
@@ -121,7 +134,12 @@
     }
   };
 
-  if ('serviceWorker' in navigator && secureEnough()) {
+  if (isDesktopShell()) {
+    state.desktop = true;
+    state.installed = true;
+    state.supported = false;
+    state.error = '';
+  } else if ('serviceWorker' in navigator && secureEnough()) {
     if (document.readyState === 'complete') register();
     else window.addEventListener('load', register);
   } else {

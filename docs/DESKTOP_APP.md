@@ -89,9 +89,9 @@ The collapsible in-app **planner footer** was removed. Use the native menu bar i
 | Menu | Highlights |
 |------|------------|
 | **File** | Export / Import backup, Export CSV, Print Section, Preview Mode, Set Cloud API Base, Settings, Open Data Folder, Exit |
-| **Edit** | Undo / Redo / Cut / Copy / Paste / Select All (Electron roles) |
-| **View** | Reload, zoom, full screen; Toggle DevTools only in unpackaged/dev builds |
-| **Go** | Dashboard, Calendar, Budget, Guests, Payments, Packets, Get Started, Guide, FAQ, Setup |
+| **Edit** | Undo / Redo (planner history via menu bridge + ⌘/Ctrl+Z), Cut / Copy / Paste / Select All |
+| **View** | Reload, zoom, full screen; **Dark Mode**; **Profile & Display…**; Toggle DevTools only in unpackaged/dev builds |
+| **Go** | **Quick Jump…**, **Database Hub**, Dashboard, Calendar, Budget, Guests, Payments, Packets, Get Started, Guide, FAQ, Setup |
 | **Help** | Backup help, local docs (`docs/` bundled in the installer), connect/legal links, Enter License… (stub), Check for Updates… (“Coming soon”), About |
 
 After changing menu or shell code on Windows x64:
@@ -248,6 +248,35 @@ Desktop install does **not** replace backups. Use **Backup & restore** in the pl
 | `npm run desktop:build:win:zip` | repo root | Zip only (Linux-friendly cross-build) |
 | `npm run desktop:smoke` | repo root | Node smoke test (no GUI) |
 | `npm start` / `npm run build:win` | `desktop/` | Same as above without the `desktop:` prefix |
+
+## Desktop native polish
+
+Track browser-like leftovers and desktop UX gaps. Prefer native menus and a compact toolbar over web chrome. Items marked **Done (first pass)** landed with the top-bar redesign; the rest stay open.
+
+### Checklist
+
+| # | Item | Status |
+|---|------|--------|
+| **B** | **Top-toolbar desktop redesign** — compact Search + Save status + Alerts; move Profile & Display, Database Hub, Quick Jump, Dark Mode, Undo/Redo off the crowded icon row into menus / overflow | **Done (first pass)** — see “Application menu” + `body.covenant-desktop` chrome hooks |
+| 1 | Hide **PWA / Install app** chrome inside Electron (`.exe` already installed); keep Install app on hosted web only | **Done (first pass)** — Settings → Install app explains desktop shell; SW not registered |
+| 2 | Replace SW **“Update available – Reload”** banner in desktop with **Help → Check for Updates** (real auto-update later) | **Done (first pass)** — banner skipped on desktop; Help stub remains until auto-update |
+| 3 | Prefer **File → Set Cloud API Base…** over prominent in-page API URL tips; demote localhost/Railway paste tips to Help/docs | **Done (first pass)** — Cloud sync pane softens tips when `COVENANT_DESKTOP` is set |
+| 4 | **Native dialogs** for destructive actions (import wipe, sign out) where still toast-only | TODO |
+| 5 | **View** menu zoom already exists — ensure in-app duplicate zoom chrome isn’t redundant | **Done (first pass)** — no window-zoom chrome in the planner toolbar; page zoom stays on View |
+| 6 | Don’t surface **favicon / manifest / theme-color** concepts in the desktop UI | TODO (verify Settings / About copy) |
+| 7 | Later: tray sync status, backup file association, native file pickers polish, auto-update | TODO |
+
+### Top toolbar (desktop first pass)
+
+| Keep in bar | Relocated / hidden on desktop |
+|-------------|-------------------------------|
+| Brand + wedding chip (opens Profile & Display) | Undo / Redo → **Edit** menu + existing ⌘/Ctrl+Z shortcuts |
+| Search | Dark Mode → **View → Dark Mode** |
+| Save status + Save | Profile & Display button → wedding chip / **View → Profile & Display…** / Settings |
+| Alerts | Database Hub → **Go → Database Hub** |
+| Settings (gear) | Quick Jump → **Go → Quick Jump…** |
+
+Web / mobile keep the fuller toolbar. Desktop detection: `window.COVENANT_DESKTOP` (injected) and/or `window.covenantDesktop` (preload bridge); `html`/`body` get class `covenant-desktop`.
 
 ## Isolation
 

@@ -18,6 +18,14 @@
     vendorUpload: false
   };
 
+  function isDesktopShell() {
+    try {
+      if (window.COVENANT_DESKTOP && window.COVENANT_DESKTOP.isDesktop) return true;
+      if (window.covenantDesktop && window.covenantDesktop.isDesktop) return true;
+    } catch (e) { /* ignore */ }
+    return false;
+  }
+
   function esc(s) {
     return (typeof escapeHtml === 'function')
       ? escapeHtml(s == null ? '' : String(s))
@@ -392,7 +400,7 @@
       { id: 'photos', label: 'Photos' },
       { id: 'import', label: 'Import' },
       { id: 'cloud', label: 'Cloud sync (beta)' },
-      { id: 'install', label: 'Install app' },
+      { id: 'install', label: isDesktopShell() ? 'Desktop app' : 'Install app' },
       { id: 'rsvp', label: 'RSVP & guest portal' },
       { id: 'partners', label: 'Partner invites' },
       { id: 'vendors-portal', label: 'Vendor portal' },
@@ -415,6 +423,15 @@
       pwa.onChange(function () {
         if (window._rdSetPane === 'install' && document.getElementById(OVERLAY_ID)) refreshPane('install');
       });
+    }
+    /* Electron .exe is already installed — hide PWA / browser Install app chrome. */
+    if (isDesktopShell() || (st && st.desktop)) {
+      html += cardRow('Desktop app', 'You are running the Windows desktop shell (.exe). Browser “Install app” / PWA install is only for the hosted web planner.',
+        '<span style="font-size:13px">Installed</span>');
+      html += cardRow('Updates', 'Use Help → Check for Updates (automatic updates ship later). Rebuild or reinstall from a newer desktop package when available.',
+        '<span style="font-size:13px">Menu</span>');
+      html += '<div class="rd-set__note"><b>Back up regularly.</b> Desktop install does not replace file backups — see Backup &amp; restore and <code>docs/DESKTOP_APP.md</code>.</div>';
+      return html;
     }
     if (!st || !st.supported && !st.error) {
       return '<div class="rd-set__note rd-set__note--amber">Install is not available in this browser.</div>';
@@ -477,14 +494,23 @@
     html += hostedSetupShellHtml();
 
     if (!st.enabled && st.state === 'disabled') {
-      html += '<div class="rd-set__note">Cloud stays off until an API base is configured, so offline GA is unbroken. '
-        + 'Local Docker: <code>http://localhost:18787</code>. Hosted HTTPS: your deploy <code>PUBLIC_URL</code> '
-        + '(see <code>docs/HOSTED_DEPLOY.md</code>). Set <code>covenant_cloud_api</code> + <code>covenant_cloud_enabled=1</code>, then reload. '
-        + 'Also: <code>docs/OFFLINE_CLOUD_SYNC.md</code>.</div>';
-      html += cardRow('API base URL', 'Stored in this browser only — local or hosted HTTPS. On the Railway planner page this is filled from the deploy automatically.',
-        '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:18787 or https://api.example.com" value="'
-        + esc(suggestedCloudApiBase())
-        + '">');
+      if (isDesktopShell()) {
+        html += '<div class="rd-set__note">Optional cloud sync. Prefer <b>File → Set Cloud API Base…</b> (or <code>api-base.txt</code> / <code>COVENANT_API_BASE</code>) so the packaged default stays correct. '
+          + 'Details: Help → Documentation → Offline &amp; Cloud Sync / Desktop App. Local Docker and Railway paste tips are for web operators — see <code>docs/HOSTED_DEPLOY.md</code>.</div>';
+        html += cardRow('API base URL', 'Optional override stored on this device. Packaged desktop builds already carry the production default.',
+          '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="https://your-api.example.com" value="'
+          + esc(suggestedCloudApiBase())
+          + '">');
+      } else {
+        html += '<div class="rd-set__note">Cloud stays off until an API base is configured, so offline GA is unbroken. '
+          + 'Local Docker: <code>http://localhost:18787</code>. Hosted HTTPS: your deploy <code>PUBLIC_URL</code> '
+          + '(see <code>docs/HOSTED_DEPLOY.md</code>). Set <code>covenant_cloud_api</code> + <code>covenant_cloud_enabled=1</code>, then reload. '
+          + 'Also: <code>docs/OFFLINE_CLOUD_SYNC.md</code>.</div>';
+        html += cardRow('API base URL', 'Stored in this browser only — local or hosted HTTPS. On the Railway planner page this is filled from the deploy automatically.',
+          '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:18787 or https://api.example.com" value="'
+          + esc(suggestedCloudApiBase())
+          + '">');
+      }
       html += cardRow('Enable cloud sync', 'Still offline-first; guests + vendors + payments + budget + seating + contracts + timeline + packets + rentals + catering rentals + party + tasks + vendor arrivals + print packet overrides sync in beta',
         btn('Save & enable', 'rdCloudEnable'));
       html += '<div class="rd-set__note">Privacy: local by default. Enabling cloud means wedding rows you sync are stored on the API database. Photo binaries use object storage when hosted photo backup is configured — not giant base64 in Postgres. We do not sell data.</div>';
@@ -907,6 +933,11 @@
         cloudSyncPaneBody());
     }
     if (id === 'install') {
+      if (isDesktopShell()) {
+        return paneShell('Desktop app',
+          'You already have the installable Windows app. PWA “Install app” is for the hosted web planner only.',
+          installPaneBody());
+      }
       return paneShell('Install app',
         'Install the planner as an app and keep working offline. Your data stays in this browser; cloud sync stays optional.',
         installPaneBody());

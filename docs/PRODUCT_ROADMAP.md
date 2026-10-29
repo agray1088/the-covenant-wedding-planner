@@ -109,8 +109,18 @@ Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, priva
 | Buying domains / creating cloud accounts for the user | Out of scope |
 | Guided Railway PC walkthrough (`DEPLOY_WALKTHROUGH.md` + PDF) | Done |
 
+## Desktop native polish
+
+Windows Electron shell (`.exe`) is tracked separately from the hosted cloud track. Full checklist (PWA chrome hide, update banner → Help, API base via File menu, native destructive dialogs, zoom redundancy, favicon/manifest UI, tray/auto-update, **top-toolbar redesign**): [`DESKTOP_APP.md`](./DESKTOP_APP.md#desktop-native-polish).
+
+| Theme | Outcome |
+|-------|---------|
+| Compact desktop toolbar | Search + save + alerts in-bar; Undo/Redo, Dark Mode, Profile, Hub, Quick Jump via native menus (**first pass shipped**) |
+| Browser-like leftovers | PWA install / SW reload banner / loud API paste tips demoted on desktop (**partial**); native dialogs + tray + auto-update still open |
+
 ## Docs
 
+- Desktop app (Windows `.exe`): [`DESKTOP_APP.md`](./DESKTOP_APP.md)  
 - Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md)  
 - Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)  
 - RSVP + gated portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md)  

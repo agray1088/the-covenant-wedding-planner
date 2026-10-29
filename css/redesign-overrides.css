@@ -31217,3 +31217,40 @@ body.rd-scope .rd-topbar--tworow .rd-topbar__wedding:hover { background: rgba(25
 body.rd-scope .rd-topbar--tworow .rd-topbar__wedding #rd-wedding-label {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+
+/* ── Desktop (Electron) compact top chrome ─────────────────────────────
+   Menu bar owns Settings/theme/backup/help; toolbar keeps frequent actions
+   only (Search, Save, Alerts). Nodes stay in the DOM for menu bridge /
+   planner.js getElementById — they are visually suppressed, not removed. */
+html.covenant-desktop .rd-desktop-menu-only,
+body.covenant-desktop .rd-desktop-menu-only,
+html.covenant-desktop .rd-topbar--desktop .rd-topbar__undoslot,
+html.covenant-desktop .rd-topbar--desktop #undo-btn,
+html.covenant-desktop .rd-topbar--desktop #redo-btn,
+html.covenant-desktop .rd-topbar--desktop #profile-drawer-btn,
+html.covenant-desktop .rd-topbar--desktop #data-hub-btn,
+html.covenant-desktop .rd-topbar--desktop #quick-jump-wrap,
+html.covenant-desktop .rd-topbar--desktop #dark-mode-btn {
+  display: none !important;
+}
+html.covenant-desktop .rd-topbar--desktop .rd-topbar__action--compact .btn-text,
+body.covenant-desktop .rd-topbar--desktop .rd-topbar__action--compact .btn-text {
+  display: none !important;
+}
+html.covenant-desktop .rd-topbar--desktop .rd-topbar__row--actions {
+  min-height: 40px;
+}
+html.covenant-desktop .rd-topbar--desktop .rd-topbar__right {
+  gap: 6px;
+}
+/* Soften gear label on desktop — File → Settings is primary; gear remains as shortcut */
+html.covenant-desktop .rd-topbar--desktop .rd-topbar__gear-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+html.covenant-desktop .rd-topbar--desktop .rd-topbar__gear {
+  padding: 0 9px;
+}

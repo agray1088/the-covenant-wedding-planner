@@ -80,13 +80,30 @@ function desktopMenuBridgeScript() {
     "if(action==='settings'){" +
     "if(typeof openSettingsWindow==='function')return openSettingsWindow();" +
     "var g=document.getElementById('rd-gear-btn');if(g)g.click();return;}" +
+    "if(action==='undo'&&typeof undoPlannerChange==='function')return undoPlannerChange();" +
+    "if(action==='redo'&&typeof redoPlannerChange==='function')return redoPlannerChange();" +
+    "if(action==='dark-mode'&&typeof toggleDarkMode==='function')return toggleDarkMode();" +
+    "if(action==='profile-display'){" +
+    "if(typeof toggleProfileDrawer==='function')return toggleProfileDrawer();" +
+    "var w=document.getElementById('rd-wedding-btn');if(w)w.click();return;}" +
+    "if(action==='quick-jump'){" +
+    "if(typeof openCommandPalette==='function')return openCommandPalette();" +
+    "if(typeof toggleQuickJump==='function')return toggleQuickJump();" +
+    "var s=document.getElementById('gs-input');if(s){s.focus();return;}}" +
+    "if(action==='data-hub'&&typeof openDataHub==='function')return openDataHub();" +
     "if(action==='panel'&&payload&&typeof showPanel==='function')return showPanel(payload);" +
     "if(action==='backup-help'&&typeof openFooterBackupHelp==='function')return openFooterBackupHelp();" +
     "if(action==='connect'&&payload&&typeof openFooterConnect==='function')return openFooterConnect(payload);" +
     "if(action==='legal'&&payload&&typeof openFooterLegal==='function')return openFooterLegal(payload);" +
     '}catch(e){try{console.error("desktop menu",e);}catch(_){}}' +
     '}' +
+    'function markDesktopChrome(){' +
+    'try{' +
+    'document.documentElement.classList.add("covenant-desktop");' +
+    'if(document.body)document.body.classList.add("covenant-desktop");' +
+    '}catch(_){}}' +
     'function bind(){' +
+    'markDesktopChrome();' +
     'if(!window.covenantDesktop||typeof window.covenantDesktop.onMenuAction!=="function")return;' +
     'if(window.__covenantMenuBound)return;window.__covenantMenuBound=true;' +
     'window.covenantDesktop.onMenuAction(function(action,payload){return runMenu(action,payload);});' +
@@ -103,6 +120,7 @@ function desktopBootstrap(apiBase) {
   return (
     '<script>(function(){try{' +
     'window.COVENANT_DESKTOP={isDesktop:true,shell:"electron"};' +
+    'document.documentElement.classList.add("covenant-desktop");' +
     'window.COVENANT_API_DEFAULT=' +
     base +
     ';' +

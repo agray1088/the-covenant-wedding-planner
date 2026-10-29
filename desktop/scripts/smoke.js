@@ -44,6 +44,18 @@ async function main() {
     if (!/covenantDesktop\.onMenuAction/.test(index.body)) {
       failures.push('index missing desktop menu bridge inject');
     }
+    if (!/covenant-desktop/.test(index.body)) {
+      failures.push('index missing covenant-desktop chrome class bootstrap');
+    }
+    if (!/action==='dark-mode'/.test(index.body)) {
+      failures.push('menu bridge missing dark-mode action');
+    }
+    if (!/action==='quick-jump'/.test(index.body)) {
+      failures.push('menu bridge missing quick-jump action');
+    }
+    if (!/action==='data-hub'/.test(index.body)) {
+      failures.push('menu bridge missing data-hub action');
+    }
     if (!/id=["']scripture-banner["']/.test(index.body)) {
       failures.push('scripture-banner should remain after footer removal');
     }

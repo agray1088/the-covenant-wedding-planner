@@ -93,9 +93,10 @@ async function createWindow() {
           'function(){' +
           'var desk=Boolean(window.COVENANT_DESKTOP&&window.COVENANT_API_DEFAULT);' +
           'var bridge=Boolean(window.covenantDesktop&&typeof window.covenantDesktop.onMenuAction==="function");' +
+          'var chrome=document.documentElement.classList.contains("covenant-desktop")||(document.body&&document.body.classList.contains("covenant-desktop"));' +
           'var noFooter=!document.getElementById("planner-footer");' +
           'var banner=!!document.getElementById("scripture-banner");' +
-          'return {desk:desk,bridge:bridge,noFooter:noFooter,banner:banner,ok:desk&&bridge&&noFooter&&banner};' +
+          'return {desk:desk,bridge:bridge,chrome:chrome,noFooter:noFooter,banner:banner,ok:desk&&bridge&&chrome&&noFooter&&banner};' +
           '}' +
           ')()',
         true
@@ -196,6 +197,16 @@ function buildMenu() {
     { role: 'zoomIn' },
     { role: 'zoomOut' },
     { type: 'separator' },
+    {
+      label: 'Dark Mode',
+      accelerator: 'CmdOrCtrl+Shift+D',
+      click: () => sendMenuAction('dark-mode')
+    },
+    {
+      label: 'Profile & Display…',
+      click: () => sendMenuAction('profile-display')
+    },
+    { type: 'separator' },
     { role: 'togglefullscreen' }
   ];
 
@@ -266,8 +277,16 @@ function buildMenu() {
     {
       label: 'Edit',
       submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
+        {
+          label: 'Undo',
+          accelerator: 'CmdOrCtrl+Z',
+          click: () => sendMenuAction('undo')
+        },
+        {
+          label: 'Redo',
+          accelerator: 'CmdOrCtrl+Shift+Z',
+          click: () => sendMenuAction('redo')
+        },
         { type: 'separator' },
         { role: 'cut' },
         { role: 'copy' },
@@ -282,6 +301,17 @@ function buildMenu() {
     {
       label: 'Go',
       submenu: [
+        {
+          label: 'Quick Jump…',
+          accelerator: 'CmdOrCtrl+J',
+          click: () => sendMenuAction('quick-jump')
+        },
+        {
+          label: 'Database Hub',
+          accelerator: 'CmdOrCtrl+Shift+H',
+          click: () => sendMenuAction('data-hub')
+        },
+        { type: 'separator' },
         { label: 'Dashboard', click: () => sendMenuAction('panel', 'dashboard') },
         { label: 'Smart Calendar', click: () => sendMenuAction('panel', 'calendar') },
         { label: 'Budget', click: () => sendMenuAction('panel', 'budget') },

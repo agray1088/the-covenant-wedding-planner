@@ -42,6 +42,14 @@
     d.innerHTML = html.trim();
     return d.firstElementChild;
   }
+  /** Electron desktop shell (injected COVENANT_DESKTOP / preload bridge). */
+  function isDesktopShell() {
+    try {
+      if (window.COVENANT_DESKTOP && window.COVENANT_DESKTOP.isDesktop) return true;
+      if (window.covenantDesktop && window.covenantDesktop.isDesktop) return true;
+    } catch (e) { /* ignore */ }
+    return false;
+  }
   function panelOf(id) { return document.getElementById('panel-' + id); }
   function tabFor(panel) {
     for (var i = 0; i < TABS.length; i++) {
@@ -171,6 +179,49 @@
       barSlot.insertBefore(qj, barSlot.querySelector('#rd-gear-btn') || null);
     }
     orderActions();
+
+    /* Desktop: industry-style compact toolbar — Search, Save, Alerts (+ Settings).
+       Undo/Redo, Dark Mode, Profile & Display, Database Hub, Quick Jump live in
+       the native File/Edit/View/Go menus (see desktop/main.js). Web/mobile keep
+       the full icon row. */
+    if (isDesktopShell()) {
+      try {
+        document.documentElement.classList.add('covenant-desktop');
+        document.body.classList.add('covenant-desktop');
+      } catch (e) { /* ignore */ }
+      bar.classList.add('rd-topbar--desktop');
+      ['undo-btn', 'redo-btn', 'profile-drawer-btn', 'data-hub-btn', 'dark-mode-btn'].forEach(function (id) {
+        var b = document.getElementById(id);
+        if (b) {
+          b.classList.add('rd-desktop-menu-only');
+          b.setAttribute('aria-hidden', 'true');
+          b.tabIndex = -1;
+        }
+      });
+      var qjHide = document.getElementById('quick-jump-wrap');
+      if (qjHide) {
+        qjHide.classList.add('rd-desktop-menu-only');
+        qjHide.setAttribute('aria-hidden', 'true');
+      }
+      var undoSlotHide = bar.querySelector('.rd-topbar__undoslot');
+      if (undoSlotHide) undoSlotHide.classList.add('rd-desktop-menu-only');
+      /* Save status stays in the identity row; demote the redundant Save label
+         to icon-only so the actions row stays compact. */
+      var saveBtn = document.getElementById('save-btn');
+      if (saveBtn) {
+        saveBtn.classList.add('rd-topbar__action', 'rd-topbar__action--compact');
+        var saveText = saveBtn.querySelector('.btn-text');
+        if (saveText) saveText.setAttribute('hidden', '');
+        saveBtn.setAttribute('title', saveBtn.getAttribute('title') || 'Save now');
+        saveBtn.setAttribute('aria-label', 'Save');
+      }
+      var alertBtn = document.getElementById('topbar-notifications-btn');
+      if (alertBtn) {
+        alertBtn.classList.add('rd-topbar__action--compact');
+        var alertText = alertBtn.querySelector('.btn-text');
+        if (alertText) alertText.setAttribute('hidden', '');
+      }
+    }
 
     document.getElementById('rd-gear-btn').addEventListener('click', function (e) {
       e.stopPropagation();
