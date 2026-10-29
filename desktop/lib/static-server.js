@@ -63,6 +63,41 @@ function resolveUnderRoot(root, urlPath) {
   return abs;
 }
 
+/**
+ * Injected into every HTML page served by the desktop shell.
+ * Wires native menu clicks (preload → IPC) to existing planner globals.
+ */
+function desktopMenuBridgeScript() {
+  return (
+    '<script>(function(){' +
+    'function runMenu(action,payload){' +
+    'try{' +
+    "if(action==='export-backup'&&typeof downloadSqliteBackup==='function')return downloadSqliteBackup();" +
+    "if(action==='import-backup'){var i=document.getElementById('importInput');if(i)i.click();return;}" +
+    "if(action==='export-csv'&&typeof exportActivePanelCSV==='function')return exportActivePanelCSV();" +
+    "if(action==='print-section'&&typeof printSelectedSection==='function')return printSelectedSection();" +
+    "if(action==='preview-mode'&&typeof toggleReadOnlyMode==='function')return toggleReadOnlyMode();" +
+    "if(action==='settings'){" +
+    "if(typeof openSettingsWindow==='function')return openSettingsWindow();" +
+    "var g=document.getElementById('rd-gear-btn');if(g)g.click();return;}" +
+    "if(action==='panel'&&payload&&typeof showPanel==='function')return showPanel(payload);" +
+    "if(action==='backup-help'&&typeof openFooterBackupHelp==='function')return openFooterBackupHelp();" +
+    "if(action==='connect'&&payload&&typeof openFooterConnect==='function')return openFooterConnect(payload);" +
+    "if(action==='legal'&&payload&&typeof openFooterLegal==='function')return openFooterLegal(payload);" +
+    '}catch(e){try{console.error("desktop menu",e);}catch(_){}}' +
+    '}' +
+    'function bind(){' +
+    'if(!window.covenantDesktop||typeof window.covenantDesktop.onMenuAction!=="function")return;' +
+    'if(window.__covenantMenuBound)return;window.__covenantMenuBound=true;' +
+    'window.covenantDesktop.onMenuAction(function(action,payload){return runMenu(action,payload);});' +
+    '}' +
+    'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);' +
+    'else bind();' +
+    'setTimeout(bind,0);' +
+    '})();</script>\n'
+  );
+}
+
 function desktopBootstrap(apiBase) {
   const base = JSON.stringify(apiBase || '');
   return (
@@ -74,7 +109,8 @@ function desktopBootstrap(apiBase) {
     'window.COVENANT_CLOUD=Object.assign({apiBase:' +
     base +
     '},window.COVENANT_CLOUD||{});' +
-    '}catch(e){}})();</script>\n'
+    '}catch(e){}})();</script>\n' +
+    desktopMenuBridgeScript()
   );
 }
 

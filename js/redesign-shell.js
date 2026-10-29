@@ -1970,74 +1970,11 @@
     });
   }
 
-  /* ── Collapsible planner footer (redesign-step10g) ─────────────────── */
-  var FOOTER_COLLAPSE_KEY = 'covenant_footer_collapsed';
-
-  function readFooterCollapsedPref() {
-    try {
-      return localStorage.getItem(FOOTER_COLLAPSE_KEY) === '1';
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function writeFooterCollapsedPref(collapsed) {
-    try {
-      localStorage.setItem(FOOTER_COLLAPSE_KEY, collapsed ? '1' : '0');
-    } catch (e) { /* private mode / quota */ }
-  }
-
-  function applyFooterCollapsed(collapsed) {
-    var footer = document.getElementById('planner-footer');
-    var tab = document.getElementById('footer-toggle-tab');
-    var panel = document.getElementById('footer-panel');
-    if (!footer || !tab) return;
-
-    footer.classList.toggle('planner-footer--collapsed', !!collapsed);
-    document.documentElement.classList.toggle('planner-footer-collapsed-early', !!collapsed);
-    document.body.classList.toggle('planner-footer-collapsed', !!collapsed);
-
-    tab.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-    tab.setAttribute('aria-label', collapsed ? 'Show footer' : 'Hide footer');
-    tab.setAttribute('title', collapsed ? 'Show footer' : 'Hide footer');
-
-    if (panel) {
-      if (collapsed) {
-        panel.setAttribute('hidden', '');
-        panel.setAttribute('aria-hidden', 'true');
-        try { panel.inert = true; } catch (e) { /* older browsers */ }
-      } else {
-        panel.removeAttribute('hidden');
-        panel.removeAttribute('aria-hidden');
-        try { panel.inert = false; } catch (e) { /* older browsers */ }
-      }
-    }
-  }
-
-  function togglePlannerFooter() {
-    var footer = document.getElementById('planner-footer');
-    if (!footer) return;
-    var next = !footer.classList.contains('planner-footer--collapsed');
-    applyFooterCollapsed(next);
-    writeFooterCollapsedPref(next);
-  }
-
-  function initFooterToggle() {
-    var tab = document.getElementById('footer-toggle-tab');
-    if (!tab || tab._rdFooterToggleBound) return;
-    tab._rdFooterToggleBound = true;
-    tab.addEventListener('click', function (e) {
-      e.preventDefault();
-      togglePlannerFooter();
-    });
-    /* Prefer stored preference; fall back to early class if storage is empty
-       but the FOUC script already collapsed. */
-    var pref = readFooterCollapsedPref();
-    if (!pref && document.documentElement.classList.contains('planner-footer-collapsed-early')) {
-      pref = true;
-    }
-    applyFooterCollapsed(!!pref);
-  }
+  /* Planner chrome footer removed — desktop menu + in-app nav cover former links.
+     Keep no-op stubs so older callers (tests / bookmarks) do not throw. */
+  function initFooterToggle() { /* no footer */ }
+  function togglePlannerFooter() { /* no footer */ }
+  function applyFooterCollapsed() { /* no footer */ }
 
   window.togglePlannerFooter = togglePlannerFooter;
   window.applyPlannerFooterCollapsed = applyFooterCollapsed;
@@ -2061,7 +1998,6 @@
     try {
       build();
       ensureDrawer();
-      initFooterToggle();
       /* CWP's default row-click opens the full pop-out. On Tasks / Appointments /
          Logistics / Guests, route to the 360px drawer instead — Full editor still
          reaches openRecordEditor(). */

@@ -113,15 +113,6 @@
   } catch (e) { /* ignore */ }
 })();
 </script>
-<script>
-(function () {
-  try {
-    if (localStorage.getItem('covenant_footer_collapsed') === '1') {
-      document.documentElement.classList.add('planner-footer-collapsed-early');
-    }
-  } catch (e) { /* ignore */ }
-})();
-</script>
 <a href="#main" class="skip-link">Skip to content</a>
 <datalist id="dietary-options"><option value="Vegetarian"><option value="Vegan"><option value="Gluten-free"><option value="Nut allergy"><option value="Dairy-free"><option value="Halal"><option value="Kosher"><option value="Shellfish allergy"><option value="None"></datalist>
 
@@ -1315,85 +1306,8 @@
     <!-- ═══ DATABASE HUB — §07 shell · 224 rail · 360 drawer · mock 7b/7c · redesign-7b1 ═══ -->
     <div id="panel-data-hub" class="panel data-hub-mockup ued-scope"></div>
 
-<!-- Global planner footer — collapsible popup panel (redesign-step10g) -->
-<footer class="planner-footer" id="planner-footer" role="contentinfo">
-  <button type="button"
-          class="footer-toggle-tab"
-          id="footer-toggle-tab"
-          aria-expanded="true"
-          aria-controls="footer-panel"
-          aria-label="Hide footer"
-          title="Hide footer">
-    <svg class="footer-toggle-tab__chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M6 9l6 6 6-6"/>
-    </svg>
-    <span class="footer-toggle-tab__label">Footer</span>
-  </button>
-  <div class="footer-panel" id="footer-panel">
-    <div id="scripture-banner" style="display:none"></div>
-    <div class="footer-main">
-      <div class="footer-brand">
-        <h2 class="footer-brand__title">The Covenant Wedding Planner</h2>
-        <p class="footer-brand__desc">A Christ-centered wedding planning system designed to help couples organize every detail with clarity, peace, and intention.</p>
-        <div class="footer-trust-pills" id="footer-trust-pills" aria-label="Privacy and storage">
-          <span class="footer-trust-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Runs locally</span>
-          <span class="footer-trust-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> <span id="footer-save-status">Saves in browser</span></span>
-          <button type="button" class="footer-trust-pill footer-trust-pill--btn" onclick="downloadSqliteBackup()"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg> Backup anytime</button>
-        </div>
-      </div>
-      <div class="footer-column">
-        <h3 class="footer-column__title">Start Here</h3>
-        <ul>
-          <li><button type="button" class="footer-link" onclick="showPanel('instructions')">Get Started</button></li>
-          <li><button type="button" class="footer-link" onclick="showPanel('guide')">Page-by-Page Guide</button></li>
-          <li><button type="button" class="footer-link" onclick="showPanel('faq')">FAQ</button></li>
-          <li><button type="button" class="footer-link" onclick="showPanel('setup')">Wedding Setup</button></li>
-          <li><button type="button" class="footer-link" onclick="openFooterBackupHelp()">Backup &amp; Restore Help</button></li>
-        </ul>
-      </div>
-      <div class="footer-column">
-        <h3 class="footer-column__title">Key Shortcuts</h3>
-        <ul>
-          <li><button type="button" class="footer-link" onclick="showPanel('dashboard')">Dashboard</button></li>
-          <li><button type="button" class="footer-link" onclick="showPanel('calendar')">Smart Calendar</button></li>
-          <li><button type="button" class="footer-link" onclick="showPanel('budget')">Budget</button></li>
-          <li><button type="button" class="footer-link" onclick="showPanel('guests')">Guest List</button></li>
-          <li><button type="button" class="footer-link" onclick="showPanel('payments')">Payments</button></li>
-          <li><button type="button" class="footer-link" onclick="showPanel('packets')">Share Packets</button></li>
-        </ul>
-      </div>
-      <div class="footer-column">
-        <h3 class="footer-column__title">Support Tools</h3>
-        <ul>
-          <li><button type="button" class="footer-link" onclick="downloadSqliteBackup()">Download Backup</button></li>
-          <li><button type="button" class="footer-link" onclick="document.getElementById('importInput').click()">Restore Backup</button></li>
-          <li><button type="button" class="footer-link" onclick="exportActivePanelCSV()">Export CSV</button></li>
-          <li><button type="button" class="footer-link" onclick="printSelectedSection()">Print Section</button></li>
-          <li><button type="button" class="footer-link" onclick="toggleReadOnlyMode()">Preview Mode</button></li>
-        </ul>
-      </div>
-      <div class="footer-column">
-        <h3 class="footer-column__title">Connect</h3>
-        <ul id="footer-connect-links">
-          <li><button type="button" class="footer-link" onclick="openFooterConnect('support')">Contact Support</button></li>
-          <li><a class="footer-link footer-link--external" id="footer-link-website" href="#" onclick="openFooterConnect('website'); return false;">Website</a></li>
-          <li><a class="footer-link footer-link--external" id="footer-link-instagram" href="#" onclick="openFooterConnect('instagram'); return false;">Instagram</a></li>
-          <li><a class="footer-link footer-link--external" id="footer-link-pinterest" href="#" onclick="openFooterConnect('pinterest'); return false;">Pinterest</a></li>
-          <li><a class="footer-link footer-link--external" id="footer-link-etsy" href="#" onclick="openFooterConnect('etsy'); return false;">Shop / Etsy</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p class="footer-bottom__copy">&copy; 2026 The Covenant Wedding Planner. All rights reserved. For personal wedding planning use only.</p>
-      <nav class="footer-legal" aria-label="Legal">
-        <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('terms')">Terms of Use</button>
-        <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('privacy')">Privacy Policy</button>
-        <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('refund')">Refund Policy</button>
-        <button type="button" class="footer-link footer-legal__link" onclick="openFooterLegal('license')">License</button>
-      </nav>
-    </div>
-  </div>
-</footer>
+<!-- Scripture banner (optional; set in Wedding Setup). Kept after footer removal. -->
+<div id="scripture-banner" style="display:none" aria-live="polite"></div>
 
     <!-- DEV-ONLY-START: ui-system-panel -->
     <style data-dev-only="ui-system">
@@ -1495,7 +1409,7 @@
               <div>
                 <h3>Navigation &amp; shell</h3>
                 <ul>
-                  <li><code>NAV_CATEGORIES</code>, category bar, <code>showPanel()</code>, context sidebar, Quick Jump, favorites/recents, top bar, footer.</li>
+                  <li><code>NAV_CATEGORIES</code>, category bar, <code>showPanel()</code>, context sidebar, Quick Jump, favorites/recents, top bar.</li>
                 </ul>
               </div>
               <div>

@@ -38,6 +38,15 @@ async function main() {
     if (index.status !== 200) failures.push('index status ' + index.status);
     if (!/COVENANT_DESKTOP/.test(index.body)) failures.push('index missing desktop bootstrap');
     if (!index.body.includes(API)) failures.push('index missing API default inject');
+    if (/id=["']planner-footer["']/.test(index.body)) {
+      failures.push('planner-footer should be removed from shell HTML');
+    }
+    if (!/covenantDesktop\.onMenuAction/.test(index.body)) {
+      failures.push('index missing desktop menu bridge inject');
+    }
+    if (!/id=["']scripture-banner["']/.test(index.body)) {
+      failures.push('scripture-banner should remain after footer removal');
+    }
 
     const cfg = await get('/config.js', hosted.origin);
     if (cfg.status !== 200) failures.push('config.js status ' + cfg.status);

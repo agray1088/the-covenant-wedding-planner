@@ -70,6 +70,10 @@
       {
         "from": "../assets",
         "to": "planner/assets"
+      },
+      {
+        "from": "../docs",
+        "to": "docs"
       }
     ],
     "win": {

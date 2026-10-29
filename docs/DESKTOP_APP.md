@@ -82,6 +82,26 @@ npm run desktop:dev
 
 Opens Electron against the repo’s local `index.html` / `js` / `css` / `Redesign` / `assets` (not a remote-only URL).
 
+### Application menu (Windows / Linux)
+
+The collapsible in-app **planner footer** was removed. Use the native menu bar instead:
+
+| Menu | Highlights |
+|------|------------|
+| **File** | Export / Import backup, Export CSV, Print Section, Preview Mode, Set Cloud API Base, Settings, Open Data Folder, Exit |
+| **Edit** | Undo / Redo / Cut / Copy / Paste / Select All (Electron roles) |
+| **View** | Reload, zoom, full screen; Toggle DevTools only in unpackaged/dev builds |
+| **Go** | Dashboard, Calendar, Budget, Guests, Payments, Packets, Get Started, Guide, FAQ, Setup |
+| **Help** | Backup help, local docs (`docs/` bundled in the installer), connect/legal links, Enter License… (stub), Check for Updates… (“Coming soon”), About |
+
+After changing menu or shell code on Windows x64:
+
+```bat
+npm run desktop:build:win:x64
+```
+
+Then install/run the new artifact from `desktop/dist/`.
+
 ## Install the `.exe` (Surface Pro X)
 
 1. Build with **`arm64`** on Windows (or copy an `*-win-arm64*-setup.exe` from a machine that produced it). Prefer a **full** `*-setup.exe` (tens of MB), not a tiny stub.
