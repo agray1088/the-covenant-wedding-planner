@@ -55,18 +55,24 @@ Outputs land in **`desktop/dist/`**, for example:
 |-------|--------|-----|
 | `productName` | `The Covenant Wedding Planner` | Display / branding |
 | `executableName` | `CovenantWeddingPlanner` | Actual `.exe` filename (**no spaces**) |
-| `nsis.shortcutName` | `The Covenant Wedding Planner` | Start Menu + Desktop shortcut label |
-| Install folder (per-user default) | `%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\` | electron-builder NSIS default when `oneClick: false` and `perMachine: false` |
+| `nsis.shortcutName` | `The Covenant Wedding Planner` | Start Menu + Desktop shortcut **label** only |
+| `nsis.include` | `desktop/build/installer.nsh` | Custom NSIS: always recreate shortcuts → `$INSTDIR\CovenantWeddingPlanner.exe` |
+| `nsis.differentialPackage` | `false` | Full self-contained setup (no differential/web package quirks) |
+| Install folder (per-user default) | `%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\` | `APP_FILENAME` from `executableName` when `oneClick: false` |
 
-Installed binary path (current-user install):
+**Installed binary (current-user install — verify this path after every install):**
 
-`%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\CovenantWeddingPlanner.exe`
+```text
+%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\CovenantWeddingPlanner.exe
+```
 
-Per-machine (if you choose “all users” in the installer): typically
+Per-machine (“all users”): typically
 
-`%ProgramFiles%\CovenantWeddingPlanner\CovenantWeddingPlanner.exe`
+```text
+%ProgramFiles%\CovenantWeddingPlanner\CovenantWeddingPlanner.exe
+```
 
-Do **not** rely on an `.exe` named `The Covenant Wedding Planner.exe` — that spaced name was fragile for NSIS shortcuts (Windows “missing shortcut / searching for …” dialogs).
+Do **not** rely on an `.exe` named `The Covenant Wedding Planner.exe` (spaced). Do **not** treat `desktop\dist\win-arm64-unpacked\CovenantWeddingPlanner.exe` as the installed app — that is the **build** tree only.
 
 ### Dev run (no installer)
 
@@ -78,46 +84,95 @@ Opens Electron against the repo’s local `index.html` / `js` / `css` / `Redesig
 
 ## Install the `.exe` (Surface Pro X)
 
-1. Build with **`arm64`** on Windows (or copy an `*-win-arm64*-setup.exe` from a machine that produced it).
-2. Run the **NSIS** installer `.exe` (not the portable one, unless you want portable). Prefer **current user** install (default).
+1. Build with **`arm64`** on Windows (or copy an `*-win-arm64*-setup.exe` from a machine that produced it). Prefer a **full** `*-setup.exe` (tens of MB), not a tiny stub.
+2. Run the **NSIS** installer `.exe` (not the portable one, unless you want portable). Prefer **current user** install (default). Accept the default install dir under `%LOCALAPPDATA%\Programs\CovenantWeddingPlanner`.
 3. If **SmartScreen** / “Windows protected your PC” appears: **More info** → **Run anyway**. Builds are **not code-signed** yet (no certificate in this repo).
-4. Launch **The Covenant Wedding Planner** from the Start Menu or Desktop shortcut.
+4. Finish the wizard (optionally leave **Run** checked). Then **verify the Programs install** (next section) before trusting Start Menu / Desktop icons.
 
-Portable: double-click `*-portable.exe`; no Start Menu entry.
+Portable: double-click `*-portable.exe`; no Start Menu entry — good interim while fixing shortcuts.
 
-### If Windows says “missing shortcut” / searching for `The Covenant Wedding Planner.exe`
+### Post-install verification (do this once)
 
-That usually means an **old install** whose Start Menu/Desktop `.lnk` pointed at a spaced exe name or a path that no longer matches the files on disk. Fix:
+In **File Explorer** address bar or **PowerShell**:
 
-1. **Uninstall** the old app: Start → search **Add or remove programs** → **The Covenant Wedding Planner** → **Uninstall** (or Start Menu → right‑click the app → Uninstall if shown).
-2. Delete leftover broken shortcuts if they remain:
+```bat
+dir "%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\CovenantWeddingPlanner.exe"
+dir "%APPDATA%\Microsoft\Windows\Start Menu\Programs\The Covenant Wedding Planner.lnk"
+dir "%USERPROFILE%\Desktop\The Covenant Wedding Planner.lnk"
+```
+
+PowerShell — confirm the `.lnk` target is **Programs**, not the repo/`dist` folder:
+
+```powershell
+$sh = New-Object -ComObject WScript.Shell
+$lnk = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\The Covenant Wedding Planner.lnk"
+if (Test-Path $lnk) { $sh.CreateShortcut($lnk).TargetPath } else { "Start Menu .lnk missing" }
+# Expect:
+#   ...\AppData\Local\Programs\CovenantWeddingPlanner\CovenantWeddingPlanner.exe
+# Bad (build tree — do not use / do not "Fix" toward this):
+#   ...\the-covenant-wedding-planner\desktop\dist\win-arm64-unpacked\CovenantWeddingPlanner.exe
+```
+
+If the `dir` for the Programs `.exe` fails, the installer did **not** place files — re-run `*-setup.exe`, or use **portable** / **zip** until that succeeds.
+
+### “Problem with Shortcut” dialog (CovenantWeddingPlanner.exe)
+
+If Windows shows **Problem with Shortcut** and the nearest match is truncated like:
+
+`C:\Users\…\the-covenant-we…\CovenantWeddingPlanner.exe`
+
+that path is the **dev/build tree** (repo / `desktop\dist\…`), **not** `%LOCALAPPDATA%\Programs\…`.
+
+| Button | What to do |
+|--------|------------|
+| **Delete it** | **Prefer this.** Removes the broken `.lnk`. Do **not** keep a shortcut aimed at the build folder. |
+| **Fix it** | **Avoid** when the nearest match is under your repo / `desktop\dist`. “Fix” would retarget the shortcut at the **build** copy; the next rebuild/clean breaks it again. |
+| **Cancel** | Leaves the broken shortcut in place. |
+
+Then:
+
+1. Confirm Programs install exists (verification commands above). If missing → run `*-win-arm64-setup.exe` again.
+2. Remove leftover broken icons (Desktop, Start Menu, Taskbar pin):
    - Desktop: `The Covenant Wedding Planner.lnk`
    - Start Menu: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\The Covenant Wedding Planner.lnk`
-3. Optionally remove the old install folder if it still exists:
-   - `%LOCALAPPDATA%\Programs\The Covenant Wedding Planner\`
-   - (after this fix) `%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\`
-4. Rebuild / reinstall a fresh `*-win-arm64-setup.exe` from this branch, then use the new Start Menu / Desktop shortcuts.
+   - Unpin any Taskbar / Start pin that still points at `desktop\dist\…`
+3. Optionally remove stale install folders:
+   - `%LOCALAPPDATA%\Programs\The Covenant Wedding Planner\` (legacy spaced name)
+   - `%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\` (only if you intend a clean reinstall)
+4. Reinstall a fresh `*-setup.exe` from this branch (includes `desktop/build/installer.nsh` shortcut retarget). Use the **new** Start Menu / Desktop shortcuts after verifying their Target Path.
 
 Planner data under `%APPDATA%\covenant-wedding-planner-desktop\` is **not** removed by a normal uninstall — keep that folder unless you intend to wipe local data.
 
+**Why this happens:** Running or pinning `desktop\dist\win-arm64-unpacked\CovenantWeddingPlanner.exe` creates Windows shortcuts to the **build** folder. Separately, electron-builder’s default `KeepShortcuts` path can **rename** an old `.lnk` without rewriting its target across exe/path changes. The custom `installer.nsh` always recreates Start Menu + Desktop links to `$INSTDIR\CovenantWeddingPlanner.exe`.
+
+### Create a working shortcut manually
+
+If Programs install is verified but Start Menu/Desktop icons are still wrong:
+
+1. File Explorer → `%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\`
+2. Right-click `CovenantWeddingPlanner.exe` → **Show more options** → **Create shortcut** (or drag to Desktop with Alt).
+3. Rename the new shortcut to **The Covenant Wedding Planner** if you like.
+4. Optional: copy that `.lnk` into `%APPDATA%\Microsoft\Windows\Start Menu\Programs\`
+
 ### Launch **now** without waiting for a rebuild (workaround)
 
-If the app files are already on disk, skip the broken shortcut and run the exe directly in File Explorer or PowerShell:
+Skip broken shortcuts and run a known-good binary:
 
 ```bat
-REM Current-user install (electron-builder NSIS default for this config):
-%LOCALAPPDATA%\Programs\The Covenant Wedding Planner\The Covenant Wedding Planner.exe
+REM Preferred — current-user NSIS install:
+"%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\CovenantWeddingPlanner.exe"
 
-REM After reinstalling a build that sets executableName=CovenantWeddingPlanner:
-%LOCALAPPDATA%\Programs\CovenantWeddingPlanner\CovenantWeddingPlanner.exe
+REM Legacy spaced install (only if that folder still exists):
+"%LOCALAPPDATA%\Programs\The Covenant Wedding Planner\The Covenant Wedding Planner.exe"
+
+REM Per-machine:
+"%ProgramFiles%\CovenantWeddingPlanner\CovenantWeddingPlanner.exe"
 ```
 
-Also try:
+Also:
 
-- `%ProgramFiles%\The Covenant Wedding Planner\` or `%ProgramFiles%\CovenantWeddingPlanner\` (per-machine install)
-- Or unzip `The Covenant Wedding Planner-1.0.0-win-arm64.zip` and double-click the `.exe` inside the unpacked folder (no installer/shortcuts needed)
-
-You can also use the **portable** artifact (`*-portable.exe`) for an immediate run with no Start Menu entry.
+- **Portable:** `The Covenant Wedding Planner-1.0.0-win-arm64-portable.exe` — no Start Menu entry; fine for daily use until shortcuts are clean.
+- **Zip:** unzip `The Covenant Wedding Planner-1.0.0-win-arm64.zip` and run `CovenantWeddingPlanner.exe` inside (do not pin that path long-term if you will rebuild).
 
 ## How the shell works
 

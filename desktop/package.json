@@ -96,10 +96,15 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "The Covenant Wedding Planner",
       "uninstallDisplayName": "The Covenant Wedding Planner",
+      "include": "installer.nsh",
+      "differentialPackage": false,
       "artifactName": "${productName}-${version}-${os}-${arch}-setup.${ext}"
     },
     "portable": {
