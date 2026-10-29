@@ -111,21 +111,25 @@ Major cloud roadmap items (hosted deploy, accounts, backup/photos clarity, priva
 
 ## Desktop native polish
 
-Windows Electron shell (`.exe`) is tracked separately from the hosted cloud track.
+Windows Electron shell (`.exe`) is tracked separately from the hosted cloud track. The **same UI** also needs a **tablet / iPad** track (near-term PWA; optional native shell later — docs only).
 
-- **Master implementation plan** (phased checkboxes, DONE vs TODO, Windows x64 verify): [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
-- Checklist summary: [`DESKTOP_APP.md`](./DESKTOP_APP.md#desktop-native-polish) (PWA chrome hide, update banner → Help, API base via File menu, native destructive dialogs, zoom redundancy, favicon/manifest UI, tray/auto-update/license stubs, **top-toolbar redesign**, **layout/sections/tables/tabs**)
+- **Master implementation plan** (phased checkboxes, DONE vs TODO, Windows x64 + Phase T tablet): [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
+- Checklist summary: [`DESKTOP_APP.md`](./DESKTOP_APP.md#desktop-native-polish) (PWA chrome hide, update banner → Help, API base via File menu, native destructive dialogs, zoom redundancy, favicon/manifest UI, tray/auto-update/license stubs, **top-toolbar redesign**, **layout/sections/tables/tabs**, **tablet / iPad Phase T**)
+- iPad install / offline: [`PWA_INSTALL.md`](./PWA_INSTALL.md)
 
 | Theme | Outcome |
 |-------|---------|
-| Compact desktop toolbar | Search + save + alerts in-bar; Undo/Redo, Dark Mode, Profile, Hub, Quick Jump via native menus (**first pass shipped**) |
+| Compact desktop toolbar | Search + save + alerts in-bar; Undo/Redo, Dark Mode, Profile, Hub, Quick Jump via native menus (**first pass shipped**); **in-UI paths retained** for tablet/PWA |
 | Browser-like leftovers | PWA install / SW reload banner / loud API paste tips demoted on desktop (**partial**); native dialogs + tray + file assoc + auto-update + license still open |
-| Layout / sections / tables / tabs | Stable chrome + one job per screen; sidebar vs sub-view tabs; table-local Add/Filter/Sort/Search; optional row inspector; density; simpler empties; less hero/stat clutter (**planned — not implemented**; order: toolbars → inspector → density → polish) |
+| Layout / sections / tables / tabs | Stable chrome + one job per screen; sidebar vs sub-view tabs; table-local Add/Filter/Sort/Search; optional row inspector; **adaptive** density; simpler empties; less hero/stat clutter (**planned — not implemented**; order: toolbars → inspector → density → polish; tablet-aware) |
+| Tablet / iPad | Same codebase → iPad via PWA / Safari Add to Home Screen; breakpoints; collapsible sidebar / split view; ~44 px touch targets; no hover-only critical actions; touch-usable table toolbars (**Phase T — planned**); optional Capacitor/WKWebView App Store shell **docs only later** |
 
 ## Docs
 
-- Desktop native polish plan: [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
-- Desktop app (Windows `.exe`): [`DESKTOP_APP.md`](./DESKTOP_APP.md)  
+- Desktop native polish plan (incl. Phase T tablet/iPad): [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
+- Desktop app (Windows `.exe`) + tablet checklist: [`DESKTOP_APP.md`](./DESKTOP_APP.md)
+- PWA install (incl. iPad Safari Add to Home Screen): [`PWA_INSTALL.md`](./PWA_INSTALL.md)  
+
 - Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md)  
 - Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)  
 - RSVP + gated portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md)  

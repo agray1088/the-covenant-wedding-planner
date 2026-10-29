@@ -11,6 +11,8 @@ Requirements: HTTPS (the Railway static host) or `http://localhost`. It does not
 - **Android (Chrome):** menu > **Install app** / **Add to Home screen**.
 - **iPhone / iPad (Safari):** Share > **Add to Home Screen**. (iOS shows no install button; Settings > Install app shows this hint.)
 
+**Tablet / iPad product track** (responsive chrome, touch targets, offline acceptance, later optional native shell — docs/plan only until staffed): see [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) **Phase T** and [`DESKTOP_APP.md`](./DESKTOP_APP.md#tablet--ipad-track-summary).
+
 ## Verify offline
 1. Open the planner online once and wait a few seconds. Settings > **Install app** should say "Ready - the planner opens without internet".
 2. Chrome/Edge DevTools (F12) > **Application** > **Service Workers**: status "activated and running". Tick **Offline**, reload: the planner still loads. Application > **Cache Storage** lists `covenant-shell-<version>`.

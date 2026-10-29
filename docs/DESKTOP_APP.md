@@ -253,7 +253,9 @@ Desktop install does **not** replace backups. Use **Backup & restore** in the pl
 
 Track browser-like leftovers and desktop UX gaps. Prefer native menus and a compact toolbar over web chrome. Items marked **Done (first pass)** landed with the top-bar redesign; the rest stay open.
 
-**Master plan (phased, checkbox, DONE vs TODO):** [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) — follow that file to implement all polish items end-to-end. Do not re-scope from scratch.
+**Also:** the **same UI codebase** must translate well to **tablet / iPad** (near-term via PWA). Do **not** lock critical actions to the Electron menu bar only — keep in-UI paths for tablet and hosted PWA.
+
+**Master plan (phased, checkbox, DONE vs TODO):** [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) — follow that file to implement all polish items end-to-end (Phases A–G + **Phase T** tablet). Do not re-scope from scratch.
 
 ### Checklist
 
@@ -269,13 +271,26 @@ Track browser-like leftovers and desktop UX gaps. Prefer native menus and a comp
 | 7 | Later: tray sync status, backup file association, native file pickers polish, auto-update | TODO |
 | 8 | **License** — Help → Enter License… is a stub; real activation later | TODO (stub UI **Done**) |
 | 9 | **Stable chrome + one primary job per screen** — menu/top bar/sidebar stay put; each tool screen has one primary task | TODO (layout; plan Phases B–C) |
-| 10 | **Sidebar for app sections**; secondary **tabs only for sub-views** (not top-level nav) | TODO (layout; plan Phase C) |
-| 11 | **Table-local toolbar** — Add / Filter / Sort / Search directly above the table | TODO (layout; plan Phase D — implement before inspector) |
-| 12 | **Optional right inspector** on row select | TODO (layout; plan Phase E — after table toolbars) |
-| 13 | **Desktop density pass** — tighter rows/controls under `covenant-desktop` | TODO (layout; plan Phase F — after inspector) |
+| 10 | **Sidebar for app sections**; secondary **tabs only for sub-views** (not top-level nav); collapsible on tablet | TODO (layout; plan Phase C + T) |
+| 11 | **Table-local toolbar** — Add / Filter / Sort / Search directly above the table; **touch-usable** | TODO (layout; plan Phase D — implement before inspector; Phase T touch verify) |
+| 12 | **Optional right inspector** on row select; split / drawer on tablet widths | TODO (layout; plan Phase E — after table toolbars) |
+| 13 | **Adaptive density** — tighter rows under `covenant-desktop`; comfortable / touch density for tablet & PWA (not desktop-only) | TODO (layout; plan Phase F + T — after inspector) |
 | 14 | **Simpler empty states** + reduce webby heroes / duplicate toolbars / stat-card clutter inside tool screens | TODO (layout; plan Phases B + F — visual polish last) |
+| 15 | **Tablet / iPad (PWA)** — same UI fits iPad; Safari Add to Home Screen + offline verify; breakpoints; ~44 px targets; no hover-only critical actions; in-UI paths for menu-bar actions | TODO (plan **Phase T**; install docs: [`PWA_INSTALL.md`](./PWA_INSTALL.md)) |
+| 16 | **Optional native iPad shell** (Capacitor / WKWebView / App Store) | TODO — **docs only** later (plan Phase T-later); **do not implement** unless explicitly tasked |
 
-**Layout implementation order:** tighten per-section toolbars (11) → row inspector (12) → density (13) → visual polish / empties (14). IA/sidebar (9–10) and clutter demote (14 early pass) come before or with those slices — see the master plan.
+**Layout implementation order:** tighten per-section toolbars (11) → row inspector (12) → density (13) → visual polish / empties (14). IA/sidebar (9–10) and clutter demote (14 early pass) come before or with those slices. **Tablet / iPad (15)** weaves through C–F and is verified as **Phase T**. See the master plan.
+
+### Tablet / iPad track (summary)
+
+| Near-term | Later (docs only) |
+|-----------|-------------------|
+| Hosted **PWA** on iPad via Safari **Add to Home Screen**; verify install + offline | Optional native shell (Capacitor / WKWebView / App Store) — decision notes only until product scopes it |
+| Responsive breakpoints; collapsible sidebar / split view; touch targets ~44 px; no hover-only actions | — |
+| Table toolbars + **adaptive** density (not Electron-compact-only) | — |
+| Critical actions stay in-UI (Settings, Backup, Dark Mode, Profile, Hub, Jump, …) even when Electron also exposes menus | — |
+
+Full checkboxes and acceptance: [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) → **Phase T** / inventory **T**.
 
 ### Top toolbar (desktop first pass)
 
