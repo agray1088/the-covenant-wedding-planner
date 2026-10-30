@@ -6787,12 +6787,29 @@ function renderGuideAlertsHTML(guidance, emptyText){
     <span class="guide-alert-go">Open</span>
   </button>`).join('');
 }
+function isCovenantDesktopShell(){
+  try {
+    if (window.COVENANT_DESKTOP && window.COVENANT_DESKTOP.isDesktop) return true;
+    if (window.covenantDesktop && window.covenantDesktop.isDesktop) return true;
+    if (document.documentElement && document.documentElement.classList.contains('covenant-desktop')) return true;
+    if (document.body && document.body.classList.contains('covenant-desktop')) return true;
+  } catch (e) { /* ignore */ }
+  return false;
+}
 function renderPrivacyBackupCard(){
   const ob = ensureOnboardData();
   const last = ob.lastBackupTime ? new Date(ob.lastBackupTime).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
   const edits = ob.editsSinceBackup || 0;
   const editNote = edits ? ` ${edits} change${edits===1?'':'s'} since then.` : '';
-  const label = last ? `Last backup noted ${last}.${editNote} Your data still lives privately in this browser.` : 'Protect your wedding plan — download a .sqlite backup when you make meaningful changes.';
+  const desktop = isCovenantDesktopShell();
+  const privateNote = desktop
+    ? ' Your data still lives privately on this computer.'
+    : ' Your data still lives privately in this browser.';
+  const label = last
+    ? `Last backup noted ${last}.${editNote}${privateNote}`
+    : (desktop
+      ? 'Protect your wedding plan — export a .sqlite backup when you make meaningful changes.'
+      : 'Protect your wedding plan — download a .sqlite backup when you make meaningful changes.');
   return `<div class="guide-privacy-card">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
     <div><strong>Protect your wedding plan</strong><span>${escapeHtml(label)}</span></div>
@@ -6886,6 +6903,26 @@ function renderBackupEducationCallout(){
   return '';
 }
 let _backupEduModalScheduled = false;
+function backupEducationCopy(){
+  if (isCovenantDesktopShell()) {
+    return {
+      title: 'Back up your planning',
+      message:
+        'Everything saves automatically on this computer in the app\'s local data.\n\n' +
+        'Export a .sqlite backup file regularly so you can restore your work anytime. Use File → Import Backup to bring a backup back.',
+      okText: 'Export Backup',
+      cancelText: 'Remind me later'
+    };
+  }
+  return {
+    title: 'Protect your planning',
+    message:
+      'Everything saves automatically in this browser on your device.\n\n' +
+      'Download a .sqlite backup file regularly so you can restore your work anytime. Use Restore in the top bar to bring a backup back.',
+    okText: 'Download Backup',
+    cancelText: 'Remind me later'
+  };
+}
 async function maybeShowBackupEducationModal(){
   if (!shouldShowBackupEducation()) return;
   if (_backupEduModalScheduled) return;
@@ -6896,10 +6933,12 @@ async function maybeShowBackupEducationModal(){
   }
   _backupEduModalScheduled = true;
   if (typeof covConfirm !== 'function') return;
-  const download = await covConfirm(
-    'Everything saves automatically in this browser on your device.\n\nDownload a .sqlite backup file regularly so you can restore your work anytime. Use Restore in the top bar to bring a backup back.',
-    { title: 'Protect your planning', okText: 'Download Backup', cancelText: 'Remind me later' }
-  );
+  const copy = backupEducationCopy();
+  const download = await covConfirm(copy.message, {
+    title: copy.title,
+    okText: copy.okText,
+    cancelText: copy.cancelText
+  });
   if (download) startHereBackup();
   else dismissBackupEducation();
 }
@@ -12164,10 +12203,17 @@ async function runFirstRunSequence(){
   if (FIRST_RUN_SEQ.started) return;
   FIRST_RUN_SEQ.started = true;
 
-  FIRST_RUN_SEQ.phase = 'backup';
-  try {
-    if (typeof maybeShowBackupEducationModal === 'function') await maybeShowBackupEducationModal();
-  } catch (e) { console.warn('first-run backup step failed', e); }
+  /* Desktop already has a rewritten backup banner (File → Export Backup). Defer
+     the first-run backup nag until after the setup wizard so launch feels like
+     an app, not a website interstitial. Web/PWA keep backup education first. */
+  var desktopShell = typeof isCovenantDesktopShell === 'function' && isCovenantDesktopShell();
+
+  if (!desktopShell) {
+    FIRST_RUN_SEQ.phase = 'backup';
+    try {
+      if (typeof maybeShowBackupEducationModal === 'function') await maybeShowBackupEducationModal();
+    } catch (e) { console.warn('first-run backup step failed', e); }
+  }
 
   FIRST_RUN_SEQ.phase = 'wizard';
   if (firstRunNeedsWizard()) {
@@ -12193,6 +12239,13 @@ async function runFirstRunSequence(){
       ob.wizardSeen = true;
       try { save(); } catch (e) {}
     }
+  }
+
+  if (desktopShell) {
+    FIRST_RUN_SEQ.phase = 'backup';
+    try {
+      if (typeof maybeShowBackupEducationModal === 'function') await maybeShowBackupEducationModal();
+    } catch (e) { console.warn('first-run backup step failed', e); }
   }
 
   FIRST_RUN_SEQ.phase = 'coach';
