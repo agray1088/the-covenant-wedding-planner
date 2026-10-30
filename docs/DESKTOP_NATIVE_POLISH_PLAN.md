@@ -7,6 +7,7 @@ Actionable end-to-end plan for Windows Electron desktop UX **and** shared-UI tab
 - [`DESKTOP_APP.md`](./DESKTOP_APP.md) — shell, build, menus, “Desktop native polish” checklist (incl. tablet track)
 - [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md) — Desktop native polish + tablet pointer
 - [`PWA_INSTALL.md`](./PWA_INSTALL.md) — Safari / iPad Add to Home Screen + offline verify
+- [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md) — one-time app + optional cloud; license serials / Stripe plan (docs only until commerce pass)
 - Layout / sections / tables / tabs guidance (advisory; **not implemented** until Phases C–F / T)
 
 **Branch:** `cursor/desktop-electron-017e` (docs track may land on `cursor/tablet-ipad-track-3a55`)  
@@ -351,13 +352,15 @@ test -f docs/PWA_INSTALL.md && test -f docs/DESKTOP_NATIVE_POLISH_PLAN.md
 **Goal:** Finish remaining stubs from the original checklist.  
 **Depends on:** Phase A recommended; can parallelize with C–F if staffed separately, but **auto-update + license** need product decisions (feed URL, key scheme).
 
+**Licensing / packaging decisions** (prices, trial, 16-char codes, `app_licensed` / `cloud_active`, Stripe + Resend plan): see [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md). Do **not** build Stripe Checkout in this polish phase — keep Enter License… stubs until a dedicated commerce pass; Phase G can still wire validation against the agreed key scheme once the backend exists.
+
 **Work**
 
 - [ ] Tray icon + sync/backup status menu (optional show/hide in Settings)
 - [ ] File associations for backup / `.sqlite` open → import or open-in-place flow (careful with data safety)
 - [ ] Replace HTML file inputs with native open/save dialogs for backup export/import on desktop
 - [ ] Wire **auto-update** (electron-updater or similar); Help → Check for Updates becomes real; keep SW banner off
-- [ ] Wire **license** entry + validation; Keep stub messaging until backend/key format exists
+- [ ] Wire **license** entry + validation per [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md); keep stub messaging until backend/key format exists
 - [ ] Document update feed + signing requirements in `DESKTOP_APP.md`
 
 **Acceptance**

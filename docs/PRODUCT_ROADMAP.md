@@ -116,6 +116,7 @@ Windows Electron shell (`.exe`) is tracked separately from the hosted cloud trac
 - **Master implementation plan** (phased checkboxes, DONE vs TODO, Windows x64 + Phase T tablet): [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
 - Checklist summary: [`DESKTOP_APP.md`](./DESKTOP_APP.md#desktop-native-polish) (PWA chrome hide, update banner → Help, API base via File menu, native destructive dialogs, zoom redundancy, favicon/manifest UI, tray/auto-update/license stubs, **top-toolbar redesign**, **layout/sections/tables/tabs**, **tablet / iPad Phase T**)
 - iPad install / offline: [`PWA_INSTALL.md`](./PWA_INSTALL.md)
+- **Pricing / packaging** (one-time app + optional cloud; license serials — plan only): [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md)
 
 | Theme | Outcome |
 |-------|---------|
@@ -128,7 +129,8 @@ Windows Electron shell (`.exe`) is tracked separately from the hosted cloud trac
 
 - Desktop native polish plan (incl. Phase T tablet/iPad): [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
 - Desktop app (Windows `.exe`) + tablet checklist: [`DESKTOP_APP.md`](./DESKTOP_APP.md)
-- PWA install (incl. iPad Safari Add to Home Screen): [`PWA_INSTALL.md`](./PWA_INSTALL.md)  
+- PWA install (incl. iPad Safari Add to Home Screen): [`PWA_INSTALL.md`](./PWA_INSTALL.md)
+- Pricing and plans (app license + cloud add-on; Stripe/licensing plan only): [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md)
 
 - Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md)  
 - Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)  
