@@ -25071,9 +25071,25 @@ function escapeHtml(value) {
 
   window.covConfirm = function(message, opts){
     opts = opts || {};
+    var title = opts.title != null ? opts.title : 'Please confirm';
+    var msg = message == null ? '' : String(message);
+    /* Electron desktop: prefer OS-native message boxes over in-page modal chrome. */
+    try {
+      var desk = window.covenantDesktop;
+      if (desk && desk.isDesktop && typeof desk.confirm === 'function') {
+        return Promise.resolve(desk.confirm({
+          title: title,
+          message: title,
+          detail: msg,
+          okText: opts.okText || 'OK',
+          cancelText: opts.cancelText || 'Cancel',
+          danger: !!opts.danger
+        })).then(function (ok) { return !!ok; });
+      }
+    } catch (_) { /* fall through to in-page modal */ }
     return openDialog({
       kind: 'confirm',
-      title: opts.title != null ? opts.title : 'Please confirm',
+      title: title,
       message: message,
       okText: opts.okText || 'OK',
       cancelText: opts.cancelText || 'Cancel',
@@ -30327,10 +30343,14 @@ function importJSON(event) {
 
 // Apply a restored planner object (from either a JSON backup or a SQLite
 // hydration) into the live app: confirm, replace `data`, persist, re-render.
-// Returns true if applied, false if the user cancelled. Shared by both formats.
-function applyRestoredPlannerData(obj, opts) {
+// Returns a Promise<boolean> (true if applied). Shared by both formats.
+// Callers may still treat a sync boolean if they check === false after await.
+async function applyRestoredPlannerData(obj, opts) {
   opts = opts || {};
-  if (!obj || typeof obj !== 'object') { covAlert('That backup did not contain any readable planner data.'); return false; }
+  if (!obj || typeof obj !== 'object') {
+    if (typeof covAlert === 'function') covAlert('That backup did not contain any readable planner data.');
+    return false;
+  }
   const ig = (obj.guests || []).length, ip = (obj.payments || []).length, it = (obj.tasks || []).length;
   const cg = (data.guests || []).length, cp = (data.payments || []).length, ct = (data.tasks || []).length;
   const fmtLabel = opts.format === 'sqlite' ? 'SQLite database backup'
@@ -30339,7 +30359,15 @@ function applyRestoredPlannerData(obj, opts) {
   const preview = 'This ' + fmtLabel + ' contains: ' + ig + ' guests, ' + ip + ' payments, ' + it + ' tasks.\n'
     + 'Your current profile has: ' + cg + ' guests, ' + cp + ' payments, ' + ct + ' tasks.\n\n'
     + 'Restore will replace all current data in this profile. Continue?';
-  if (!opts.skipConfirm && !confirm(preview)) return false;
+  if (!opts.skipConfirm) {
+    let ok = false;
+    if (typeof covConfirm === 'function') {
+      ok = await covConfirm(preview, { title: 'Restore backup?', danger: true, okText: 'Import & replace', cancelText: 'Cancel' });
+    } else {
+      ok = window.confirm(preview);
+    }
+    if (!ok) return false;
+  }
   data = deepMergePlannerData(blankData(), obj);
   if (typeof migrateData === 'function') migrateData(data);
   save();
@@ -30349,10 +30377,13 @@ function applyRestoredPlannerData(obj, opts) {
 }
 
 // Text entry point kept for CovenantBackup / programmatic JSON restore.
-function importJSONText(text) {
+async function importJSONText(text) {
   let parsed;
   try { parsed = JSON.parse(text); }
-  catch (e) { covAlert('Error reading backup file. Make sure it is a valid Covenant Planner backup (.json).'); return false; }
+  catch (e) {
+    if (typeof covAlert === 'function') covAlert('Error reading backup file. Make sure it is a valid Covenant Planner backup (.json).');
+    return false;
+  }
   return applyRestoredPlannerData(parsed, { format: 'json' });
 }
 

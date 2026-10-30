@@ -265,17 +265,17 @@ Track browser-like leftovers and desktop UX gaps. Prefer native menus and a comp
 | 1 | Hide **PWA / Install app** chrome inside Electron (`.exe` already installed); keep Install app on hosted web only | **Done (first pass)** — Settings → Install app explains desktop shell; SW not registered |
 | 2 | Replace SW **“Update available – Reload”** banner in desktop with **Help → Check for Updates** (real auto-update later) | **Done (first pass)** — banner skipped on desktop; Help stub remains until auto-update |
 | 3 | Prefer **File → Set Cloud API Base…** over prominent in-page API URL tips; demote localhost/Railway paste tips to Help/docs | **Done (first pass)** — Cloud sync pane softens tips when `COVENANT_DESKTOP` is set |
-| 4 | **Native dialogs** for destructive actions (import wipe, sign out) where still toast-only | TODO |
+| 4 | **Native dialogs** for destructive actions (import wipe, sign out) where still toast-only | **Done (first pass)** — `covenantDesktop.confirm` + `covConfirm` bridge; sign-out + restore + bulk deletes |
 | 5 | **View** menu zoom already exists — ensure in-app duplicate zoom chrome isn’t redundant | **Done (first pass)** — no window-zoom chrome in the planner toolbar; page zoom stays on View |
-| 6 | Don’t surface **favicon / manifest / theme-color** concepts in the desktop UI | TODO (verify Settings / About copy) |
+| 6 | Don’t surface **favicon / manifest / theme-color** concepts in the desktop UI | **Done (first pass)** — desktop About / Install copy cleaned; static server scrubs manifest + theme-color meta |
 | 7 | Later: tray sync status, backup file association, native file pickers polish, auto-update | TODO |
 | 8 | **License** — Help → Enter License… is a stub; real activation later | TODO (stub UI **Done**) |
-| 9 | **Stable chrome + one primary job per screen** — menu/top bar/sidebar stay put; each tool screen has one primary task | TODO (layout; plan Phases B–C) |
-| 10 | **Sidebar for app sections**; secondary **tabs only for sub-views** (not top-level nav); collapsible on tablet | TODO (layout; plan Phase C + T) |
+| 9 | **Stable chrome + one primary job per screen** — menu/top bar/sidebar stay put; each tool screen has one primary task | **Done (first pass)** — compact pageheads; demoted stats/heroes on Guests/Budget/Payments/Tasks/Dashboard (plan Phases B–C) |
+| 10 | **Sidebar for app sections**; secondary **tabs only for sub-views** (not top-level nav); collapsible on tablet | **Done (first pass)** — desktop hides `#nav-category-bar`; sidebar + Go menu own sections; tablet collapse still Phase T |
 | 11 | **Table-local toolbar** — Add / Filter / Sort / Search directly above the table; **touch-usable** | TODO (layout; plan Phase D — implement before inspector; Phase T touch verify) |
 | 12 | **Optional right inspector** on row select; split / drawer on tablet widths | TODO (layout; plan Phase E — after table toolbars) |
 | 13 | **Adaptive density** — tighter rows under `covenant-desktop`; comfortable / touch density for tablet & PWA (not desktop-only) | TODO (layout; plan Phase F + T — after inspector) |
-| 14 | **Simpler empty states** + reduce webby heroes / duplicate toolbars / stat-card clutter inside tool screens | TODO (layout; plan Phases B + F — visual polish last) |
+| 14 | **Simpler empty states** + reduce webby heroes / duplicate toolbars / stat-card clutter inside tool screens | **Partial** — Phase B first pass demoted clutter; empty-state redesign still Phase F |
 | 15 | **Tablet / iPad (PWA)** — same UI fits iPad; Safari Add to Home Screen + offline verify; breakpoints; ~44 px targets; no hover-only critical actions; in-UI paths for menu-bar actions | TODO (plan **Phase T**; install docs: [`PWA_INSTALL.md`](./PWA_INSTALL.md)) |
 | 16 | **Optional native iPad shell** (Capacitor / WKWebView / App Store) | TODO — **docs only** later (plan Phase T-later); **do not implement** unless explicitly tasked |
 

@@ -132,12 +132,22 @@ function desktopBootstrap(apiBase) {
   );
 }
 
+/** Strip PWA / browser-install meta that should not surface as desktop concepts. */
+function scrubPwaChrome(html) {
+  return String(html || '')
+    .replace(/<link\b[^>]*\brel\s*=\s*["']manifest["'][^>]*>\s*/gi, '')
+    .replace(/<meta\b[^>]*\bname\s*=\s*["']theme-color["'][^>]*>\s*/gi, '')
+    .replace(/<meta\b[^>]*\bname\s*=\s*["']apple-mobile-web-app[^"']*["'][^>]*>\s*/gi, '')
+    .replace(/<link\b[^>]*\brel\s*=\s*["']apple-touch-icon["'][^>]*>\s*/gi, '');
+}
+
 function injectBootstrap(html, apiBase) {
+  const scrubbed = scrubPwaChrome(html);
   const boot = desktopBootstrap(apiBase);
-  if (/<head[^>]*>/i.test(html)) {
-    return html.replace(/<head[^>]*>/i, (m) => m + '\n' + boot);
+  if (/<head[^>]*>/i.test(scrubbed)) {
+    return scrubbed.replace(/<head[^>]*>/i, (m) => m + '\n' + boot);
   }
-  return boot + html;
+  return boot + scrubbed;
 }
 
 /**

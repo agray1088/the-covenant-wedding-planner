@@ -426,11 +426,11 @@
     }
     /* Electron .exe is already installed — hide PWA / browser Install app chrome. */
     if (isDesktopShell() || (st && st.desktop)) {
-      html += cardRow('Desktop app', 'You are running the Windows desktop shell (.exe). Browser “Install app” / PWA install is only for the hosted web planner.',
+      html += cardRow('Desktop app', 'Installed as a Windows application. Browser “Add to Home Screen” / Install app is only for the hosted web planner.',
         '<span style="font-size:13px">Installed</span>');
-      html += cardRow('Updates', 'Use Help → Check for Updates (automatic updates ship later). Rebuild or reinstall from a newer desktop package when available.',
+      html += cardRow('Updates', 'Use Help → Check for Updates… (automatic updates ship later). Version details: Help → About.',
         '<span style="font-size:13px">Menu</span>');
-      html += '<div class="rd-set__note"><b>Back up regularly.</b> Desktop install does not replace file backups — see Backup &amp; restore and <code>docs/DESKTOP_APP.md</code>.</div>';
+      html += '<div class="rd-set__note"><b>Back up regularly.</b> The desktop shell does not replace file backups — see Backup &amp; restore and <code>docs/DESKTOP_APP.md</code>.</div>';
       return html;
     }
     if (!st || !st.supported && !st.error) {
@@ -924,7 +924,9 @@
     }
     if (id === 'import') {
       return paneShell('Import',
-        'Restore replaces this browser\'s copy with the file you choose.',
+        isDesktopShell()
+          ? 'Restore replaces this wedding profile with the file you choose. Cancel leaves your current data untouched.'
+          : 'Restore replaces this browser\'s copy with the file you choose.',
         cardRow('Restore from file', 'Same path as backup restore (.zip / .sqlite / .json)', btn('Choose file', 'rdSetRestore')));
     }
     if (id === 'cloud') {
@@ -935,7 +937,7 @@
     if (id === 'install') {
       if (isDesktopShell()) {
         return paneShell('Desktop app',
-          'You already have the installable Windows app. PWA “Install app” is for the hosted web planner only.',
+          'This Windows build is already installed. Hosted web “Install app” / Add to Home Screen is separate and not used here.',
           installPaneBody());
       }
       return paneShell('Install app',
@@ -973,6 +975,11 @@
         + cardRow('Open Planner History', '', btn('Open history', 'rdSetHistory')));
     }
     if (id === 'about') {
+      if (isDesktopShell()) {
+        return paneShell('About',
+          'The Covenant Wedding Planner — offline-first desktop shell.',
+          '<div class="rd-set__note">You are running the Windows desktop app. Version, data folder, and cloud API default are under <b>Help → About</b> in the menu bar. Offline by default: data stays on this device until you download a backup or opt into cloud sync. Optional <b>Cloud sync (beta)</b> stores what you sync on the API when enabled — we do not sell data. Photos: local library + file zip backup. Look &amp; feel lives in Profile &amp; Display; this window holds backups, privacy, exports, printing, and history. Docs: <code>docs/DESKTOP_APP.md</code>.</div>');
+      }
       return paneShell('About',
         'The Covenant Wedding Planner — offline-first, one file per wedding.',
         '<div class="rd-set__note">Offline by default: no account required, no tracking. Data stays on this device until you download a backup or opt into cloud sync. Optional <b>Cloud sync (beta)</b> stores what you sync on the API when enabled — we do not sell data, and we do not claim “we store nothing” once cloud backup is on. Photos: local IndexedDB library + file zip backup; online object-storage scaffolding is separate. Look &amp; feel lives in Profile &amp; Display; this window holds backups, privacy, exports, printing, history and regional format. Docs: <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>');
@@ -1288,7 +1295,17 @@
       }
       if (name === 'rdCloudSignOut') {
         if (!window.CovenantCloudSync) { cloudMsg(false, 'Cloud bridge not loaded.'); return; }
-        window.CovenantCloudSync.signOut().then(function () { cloudMsg(true, 'Signed out.'); });
+        var doSignOut = function () {
+          window.CovenantCloudSync.signOut().then(function () { cloudMsg(true, 'Signed out.'); });
+        };
+        if (typeof covConfirm === 'function') {
+          Promise.resolve(covConfirm(
+            'Sign out of cloud sync on this device? Local planner data stays on this computer; only the cloud session ends.',
+            { title: 'Sign out?', danger: false, okText: 'Sign out', cancelText: 'Stay signed in' }
+          )).then(function (ok) { if (ok) doSignOut(); });
+        } else if (window.confirm('Sign out of cloud sync on this device?')) {
+          doSignOut();
+        }
         return;
       }
       if (name === 'rdCloudSyncNow') {

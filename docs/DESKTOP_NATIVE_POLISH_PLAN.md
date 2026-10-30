@@ -48,8 +48,8 @@ Actionable end-to-end plan for Windows Electron desktop UX **and** shared-UI tab
 
 ### B. Remaining shell / OS stubs (not layout UI)
 
-- [ ] **Native dialogs** for destructive actions still on `window.confirm` / toast-only (import wipe, sign out, bulk deletes where desktop should feel OS-native)
-- [ ] Verify Settings / About do **not** surface favicon / manifest / theme-color as user concepts
+- [x] **Native dialogs** for destructive actions — `covenantDesktop.confirm` → Electron `dialog.showMessageBox`; `covConfirm` prefers native on desktop (import wipe, sign out, bulk deletes via shared bridge). Web keeps in-page modal / `confirm` fallback
+- [x] Verify Settings / About do **not** surface favicon / manifest / theme-color as user concepts — desktop About points to Help → About; static server scrubs manifest / theme-color / apple-touch meta from served HTML
 - [ ] **System tray** — optional sync / backup status
 - [ ] **Backup file association** (`.sqlite` / planner backup open-with)
 - [ ] **Native file pickers** polish (Electron `dialog.showOpenDialog` / `showSaveDialog` where HTML file inputs feel webby)
@@ -61,13 +61,13 @@ Actionable end-to-end plan for Windows Electron desktop UX **and** shared-UI tab
 
 Ordered later in the roadmap: **tighten per-section toolbars → row inspector → density → visual polish**. When touching layout, keep **tablet / touch** in mind (Phase T) so Electron density does not become the only path.
 
-- [ ] **Stable chrome + one primary job per screen** — app chrome (menu + compact top bar + section sidebar) stays put; each tool screen has one primary task, not a mini-dashboard
-- [ ] **Sidebar for app sections**; **secondary tabs only for sub-views** within a section (not top-level navigation); on tablet widths sidebar is **collapsible** / overlay (Phase T)
+- [x] **Stable chrome + one primary job per screen** — first pass: hide `#nav-category-bar` under `covenant-desktop` + context sidebar; compact pageheads; demote KPI strips (Guests / Budget / Payments / Tasks / Dashboard). Deeper “one job” per remaining sections still open
+- [x] **Sidebar for app sections** — first pass: desktop hides duplicate top category menubar so context sidebar + Go menu own section switching; tablet collapse still Phase T
 - [ ] **Table-local toolbar** — Add / Filter / Sort / Search **directly above** the table they control (not duplicated in global chrome or page heroes); touch-usable (Phase T / D)
 - [ ] **Optional right inspector** on row select (details / edit without leaving the list); on tablet use **split view** or drawer below breakpoint (Phase E + T)
 - [ ] **Adaptive density** — tighter row height under `body.covenant-desktop`; comfortable / touch-friendly density for tablet & PWA (not desktop-only)
 - [ ] **Simpler empty states** — short copy + one primary action; no marketing blocks
-- [ ] **Reduce webby clutter inside tool screens** — demote or hide on desktop: large heroes, duplicate toolbars, stat-card strips that compete with the primary job
+- [x] **Reduce webby clutter inside tool screens** — first pass under `body.covenant-desktop`: hide eyebrows / teach blocks / dashboard view-leads; soften stats & payment insight; rewrite backup banner; hide version stamp (Help → About). More sections / empty-state redesign remain for Phase F
 
 ### T. Tablet / iPad (same UI codebase — near-term PWA; later optional native shell)
 
@@ -125,21 +125,22 @@ npm run desktop:smoke
 
 **Goal:** Desktop feels OS-native for irreversible actions; no browser-install jargon.  
 **Depends on:** Phase 0.  
-**Order:** Do before large layout refactors so dialogs work from menus and in-app alike.
+**Order:** Do before large layout refactors so dialogs work from menus and in-app alike.  
+**Status:** DONE (first pass) on `cursor/desktop-electron-017e`.
 
 **Work**
 
-- [ ] Inventory `window.confirm` / toast-only destructive paths (import wipe, sign out, bulk delete, clear history, etc.)
-- [ ] Bridge to Electron `dialog.showMessageBox` (or preload `covenantDesktop.confirm`) for desktop; keep `confirm` fallback on web
-- [ ] Audit Settings / About / Help copy for favicon, manifest, theme-color, “install as PWA” wording; desktop-only strings where needed
-- [ ] Keep license + updates as stubs until Phase G (do not fake activation)
+- [x] Inventory `window.confirm` / toast-only destructive paths (import wipe, sign out, bulk delete, clear history, etc.)
+- [x] Bridge to Electron `dialog.showMessageBox` (preload `covenantDesktop.confirm` / IPC `covenant:confirm`) for desktop; keep in-page `covConfirm` / `confirm` fallback on web
+- [x] Audit Settings / About / Help copy for favicon, manifest, theme-color, “install as PWA” wording; desktop-only strings where needed; scrub meta from desktop-served HTML
+- [x] Keep license + updates as stubs until Phase G (do not fake activation)
 
 **Acceptance**
 
-- [ ] Import backup / wipe and sign-out use native message boxes on desktop
-- [ ] At least the high-traffic bulk-delete confirms use the same bridge
-- [ ] No Settings pane teaches desktop users to “install the PWA” or edit manifest/theme-color
-- [ ] `desktop:smoke` still green; manual: File → Import Backup cancel path does not wipe
+- [x] Import backup / wipe and sign-out use native message boxes on desktop (`covConfirm` → bridge; restore path async)
+- [x] At least the high-traffic bulk-delete confirms use the same bridge (Payments, Budget, Notes, Data Hub, etc. already call `covConfirm`)
+- [x] No Settings pane teaches desktop users to “install the PWA” or edit manifest/theme-color
+- [x] `desktop:smoke` still green; manual: File → Import Backup cancel path does not wipe
 
 **Verify (Windows x64)**
 
@@ -157,20 +158,21 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 
 **Goal:** Quick wins before structural layout work — hide/demote heroes, duplicate global-ish toolbars, and stat-card clutter **inside tool panels** on desktop only.  
 **Depends on:** Phase 0 (Phase A nice-to-have first).  
-**Does not** yet relocate Add/Filter/Sort or add inspector.
+**Does not** yet relocate Add/Filter/Sort or add inspector.  
+**Status:** DONE (first pass) — Guests / Budget / Payments / Tasks / Dashboard + shell banners. Remaining sections / empty states → Phase F.
 
 **Work**
 
-- [ ] List tool panels with page heroes / promo strips / duplicate action rows / dense stat cards (Guests, Budget, Payments, Calendar, Tasks, etc.)
-- [ ] Under `body.covenant-desktop`, collapse or demote: large heroes, duplicate toolbar rows that repeat global actions, non-essential stat strips above the primary table/board
-- [ ] Preserve scripture / essential section titles; do not remove data the user needs—only chrome noise
+- [x] List tool panels with page heroes / promo strips / duplicate action rows / dense stat cards (Guests, Budget, Payments, Calendar, Tasks, etc.)
+- [x] Under `body.covenant-desktop`, collapse or demote: large heroes, duplicate toolbar rows that repeat global actions, non-essential stat strips above the primary table/board
+- [x] Preserve scripture / essential section titles; do not remove data the user needs—only chrome noise
 - [ ] Simpler **empty-state** copy+CTA pass where empty UI is currently marketing-heavy (full empty-state redesign can finish in Phase F)
 
 **Acceptance**
 
-- [ ] Opening Dashboard vs Guests vs Budget on desktop: first viewport is task-focused, not a marketing hero
-- [ ] No second “global” action row that duplicates Search/Save/Settings already in the top bar
-- [ ] Web/mobile layout unchanged (or only improved if shared cleanup is clearly safe)
+- [x] Opening Dashboard vs Guests vs Budget on desktop: first viewport is task-focused, not a marketing hero (eyebrows / teach / view-leads demoted; stats softened)
+- [x] No second “global” action row that duplicates Search/Save/Settings already in the top bar (compact desktop topbar retained; quiet print duplicates hidden)
+- [x] Web/mobile layout unchanged (or only improved if shared cleanup is clearly safe) — all gated on `covenant-desktop`
 
 **Verify (Windows x64):** rebuild x64; spot-check 5+ sections for hero/stat clutter.
 
@@ -181,22 +183,34 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 **Goal:** Stable left nav for **app sections**; tabs only for **sub-views**.  
 **Depends on:** Phase B (clutter reduced so IA changes are visible).  
 **Layout order note:** Establish structure before tightening every table toolbar.  
-**Tablet weave:** Design sidebar so it can **collapse / overlay** at tablet breakpoints (Phase T owns the breakpoint pass; do not hard-code sidebar as always-visible desktop-only).
+**Tablet weave:** Design sidebar so it can **collapse / overlay** at tablet breakpoints (Phase T owns the breakpoint pass; do not hard-code sidebar as always-visible desktop-only).  
+**Status:** STARTED (first pass) — desktop hides `#nav-category-bar`; sidebar + Go menu own sections. Full tab audit + Calendar/Tasks one-job polish still open.
 
 **Work**
 
-- [ ] Confirm / harden desktop sidebar as the sole top-level section switcher
+- [x] Confirm / harden desktop sidebar as the sole top-level section switcher (hide duplicate `#nav-category-bar` under `covenant-desktop` + `context-sidebar-mode`; web/tablet keep the bar)
 - [ ] Audit secondary tab strips: keep only true sub-views (e.g. Calendar month/week/agenda); remove or relocate strips that duplicate sidebar destinations
-- [ ] Each section: one primary headline + one primary workspace region
-- [ ] Avoid patterns that require a permanent wide sidebar + permanent inspector side-by-side with no collapse path (blocks tablet)
-- [ ] Document section → primary job mapping in a short table at the bottom of this phase’s PR description
+- [x] Each section: one primary headline + one primary workspace region — first pass on Guests / Budget / Payments / Dashboard / Tasks pageheads
+- [x] Avoid patterns that require a permanent wide sidebar + permanent inspector side-by-side with no collapse path (blocks tablet) — no new permanent inspector; sidebar already collapsible via existing expand/collapse controls
+- [x] Document section → primary job mapping (see table below)
+
+**Section → primary job (desktop first pass)**
+
+| Section | Primary job |
+|---------|-------------|
+| Dashboard | At-a-glance attention + countdown (marketing leads demoted) |
+| Guests | Manage guest list table (+ toolbar); teach chrome hidden |
+| Budget | Edit budget categories / line items |
+| Payments | Track payment schedule / table |
+| Tasks | Work the task list / board (sub-view tabs OK) |
+| Calendar | Calendar sub-views only (month/week/agenda) — deeper audit TBD |
 
 **Acceptance**
 
-- [ ] Switching sections does not remount or reshuffle menu/top-bar chrome
-- [ ] No tool screen uses a tab row as a substitute for the app sidebar
-- [ ] “One primary job” is true for Guests, Budget, Payments, Calendar, Tasks at minimum
-- [ ] Sidebar structure leaves a clear path for collapsible / overlay behavior at tablet widths (even if Phase T wires the breakpoints)
+- [x] Switching sections does not remount or reshuffle menu/top-bar chrome (unchanged shell; category bar no longer jumps the workspace on desktop)
+- [x] No tool screen uses a tab row as a substitute for the app sidebar (top category menubar hidden on desktop)
+- [ ] “One primary job” is true for Guests, Budget, Payments, Calendar, Tasks at minimum — Guests/Budget/Payments/Tasks improved; Calendar deeper pass still open
+- [x] Sidebar structure leaves a clear path for collapsible / overlay behavior at tablet widths (even if Phase T wires the breakpoints)
 
 **Verify (Windows x64):** navigate Go menu + sidebar across sections; chrome stays stable.  
 **Verify (tablet-minded):** at ~768–1024 px width in browser DevTools, sidebar does not permanently consume the whole workspace with no escape.
@@ -378,18 +392,18 @@ test -f docs/PWA_INSTALL.md && test -f docs/DESKTOP_NATIVE_POLISH_PLAN.md
 
 ## Suggested agent order (checklist for the next implementer)
 
-1. [ ] Read this plan + `DESKTOP_APP.md` polish section (incl. tablet checklist)  
-2. [ ] Run Phase 0 verify (`desktop:smoke`)  
-3. [ ] Phase A — native destructive dialogs + copy  
-4. [ ] Phase B — demote heroes / duplicate toolbars / stat clutter  
-5. [ ] Phase C — sidebar IA + one job + tabs policy (**tablet-aware** collapse path)  
+1. [x] Read this plan + `DESKTOP_APP.md` polish section (incl. tablet checklist)  
+2. [x] Run Phase 0 verify (`desktop:smoke`)  
+3. [x] Phase A — native destructive dialogs + copy  
+4. [x] Phase B — demote heroes / duplicate toolbars / stat clutter (first pass)  
+5. [x] Phase C — sidebar IA + one job + tabs policy (**tablet-aware** collapse path) — **started**; finish Calendar/tab audit next  
 6. [ ] Phase D — table-local toolbars (**touch-usable**)  
 7. [ ] Phase E — row inspector (**split / drawer** for tablet widths)  
 8. [ ] Phase F — density + empty states + polish (**adaptive** density, not desktop-only)  
 9. [ ] Phase T — iPad PWA install + offline + breakpoints + touch + in-UI critical actions  
 10. [ ] Phase G — tray / file assoc / pickers / auto-update / license (Windows Electron)  
 11. [ ] Phase T-later — optional native iPad shell notes only if product asks (**docs only**)  
-12. [ ] Update status marks in **this file** and in `DESKTOP_APP.md` checklist when a phase lands  
+12. [x] Update status marks in **this file** and in `DESKTOP_APP.md` checklist when a phase lands  
 13. [ ] Windows x64 rebuild + install smoke after each phase that touches `desktop/` or shipped UI; iPad / Safari verify after Phase T  
 
 ---

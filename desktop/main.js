@@ -479,6 +479,32 @@ ipcMain.handle('covenant:set-api-base', (_evt, base) => {
   return currentApiBase;
 });
 
+/**
+ * Native destructive / confirm dialogs for the renderer (import wipe, sign-out, bulk delete).
+ * Returns true when the user chooses the primary (OK) button.
+ */
+ipcMain.handle('covenant:confirm', async (evt, opts) => {
+  opts = opts || {};
+  const win = BrowserWindow.fromWebContents(evt.sender) || mainWindow;
+  const danger = !!opts.danger;
+  const okText = String(opts.okText || 'OK');
+  const cancelText = String(opts.cancelText || 'Cancel');
+  const title = String(opts.title || 'Please confirm');
+  const message = String(opts.message != null ? opts.message : title);
+  const detail = opts.detail != null ? String(opts.detail) : '';
+  const result = await dialog.showMessageBox(win && !win.isDestroyed() ? win : undefined, {
+    type: opts.type || (danger ? 'warning' : 'question'),
+    buttons: [okText, cancelText],
+    defaultId: danger ? 1 : 0,
+    cancelId: 1,
+    noLink: true,
+    title,
+    message,
+    detail: detail || undefined
+  });
+  return result.response === 0;
+});
+
 app.whenReady().then(createWindow).catch((err) => {
   dialog.showErrorBox(
     'Failed to start',

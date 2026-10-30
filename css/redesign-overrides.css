@@ -31254,3 +31254,150 @@ html.covenant-desktop .rd-topbar--desktop .rd-topbar__gear-label {
 html.covenant-desktop .rd-topbar--desktop .rd-topbar__gear {
   padding: 0 9px;
 }
+
+/* ── Desktop Phase A–C polish (gated; web/PWA unchanged) ───────────────
+   Menu bar + compact top bar + section sidebar = stable chrome.
+   Demote marketing heroes / duplicate toolbars / dense stat clutter. */
+
+/* Residual PWA / SW / install chrome must never show in the .exe shell */
+html.covenant-desktop #covenant-update-banner,
+body.covenant-desktop #covenant-update-banner,
+html.covenant-desktop .covenant-pwa-install,
+body.covenant-desktop .covenant-pwa-install,
+html.covenant-desktop [data-pwa-install],
+body.covenant-desktop [data-pwa-install] {
+  display: none !important;
+}
+
+/* Version noise → Help → About (window title / native About owns this) */
+html.covenant-desktop #app-build-stamp,
+body.covenant-desktop #app-build-stamp {
+  display: none !important;
+}
+
+/* Soften browser-centric backup banner; copy is also rewritten in JS on desktop */
+html.covenant-desktop #backup-banner .backup-banner-copy,
+body.covenant-desktop #backup-banner .backup-banner-copy {
+  max-width: 52rem;
+}
+
+/* Phase C: sidebar owns top-level sections — hide duplicate category menubar */
+html.covenant-desktop.context-sidebar-mode #nav-category-bar,
+body.covenant-desktop.context-sidebar-mode #nav-category-bar {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Compact pageheads — one title, primary actions; no marketing eyebrow */
+html.covenant-desktop .rd-pagehead__eyebrow,
+body.covenant-desktop .rd-pagehead__eyebrow {
+  display: none !important;
+}
+html.covenant-desktop .rd-pagehead,
+body.covenant-desktop .rd-pagehead {
+  margin-bottom: 0.45rem;
+  gap: 0.55rem;
+  align-items: center;
+  padding-bottom: 0.35rem;
+}
+html.covenant-desktop .rd-pagehead__title,
+body.covenant-desktop .rd-pagehead__title,
+html.covenant-desktop h1.rd-pagehead__title,
+body.covenant-desktop h1.rd-pagehead__title {
+  font-size: 1.32rem;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+html.covenant-desktop .rd-pagehead__actions,
+body.covenant-desktop .rd-pagehead__actions {
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Soften dense KPI / stat strips (still visible; not a competing hero) */
+html.covenant-desktop #panel-guests .rd-stats,
+html.covenant-desktop #panel-budget .rd-stats,
+html.covenant-desktop #panel-payments .rd-stats,
+html.covenant-desktop #panel-tasks .rd-stats,
+html.covenant-desktop #panel-dashboard .rd-stats,
+body.covenant-desktop #panel-guests .rd-stats,
+body.covenant-desktop #panel-budget .rd-stats,
+body.covenant-desktop #panel-payments .rd-stats,
+body.covenant-desktop #panel-tasks .rd-stats,
+body.covenant-desktop #panel-dashboard .rd-stats {
+  margin: 0.2rem 0 0.45rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9em;
+  opacity: 0.9;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Guest: hide marketing teach / help chrome; keep cost & workflow data compact */
+html.covenant-desktop #panel-guests .rd-guest-table-teach,
+body.covenant-desktop #panel-guests .rd-guest-table-teach {
+  display: none !important;
+}
+html.covenant-desktop #panel-guests .rd-guest-support .rd-help,
+html.covenant-desktop #panel-guests .rd-guest-support .v4-help-note,
+body.covenant-desktop #panel-guests .rd-guest-support .rd-help,
+body.covenant-desktop #panel-guests .rd-guest-support .v4-help-note {
+  display: none !important;
+}
+html.covenant-desktop #panel-guests .rd-guest-support,
+body.covenant-desktop #panel-guests .rd-guest-support {
+  margin: 0.25rem 0 0.55rem;
+  gap: 0.45rem;
+}
+html.covenant-desktop #panel-guests .rd-guest-support .rd-panel,
+body.covenant-desktop #panel-guests .rd-guest-support .rd-panel {
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0.45rem 0.55rem;
+}
+
+/* Payments insight — quieter strip, not a second hero */
+html.covenant-desktop #panel-payments .rd-pay-insight,
+body.covenant-desktop #panel-payments .rd-pay-insight {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.9em;
+  opacity: 0.92;
+}
+
+/* Budget used bar — keep useful, reduce visual weight */
+html.covenant-desktop #panel-budget .rd-bgt-usedbar,
+body.covenant-desktop #panel-budget .rd-bgt-usedbar {
+  margin: 0.25rem 0 0.55rem;
+  padding: 0.4rem 0.55rem;
+}
+
+/* Dashboard marketing leads */
+html.covenant-desktop .rd-dash-viewlead,
+body.covenant-desktop .rd-dash-viewlead {
+  display: none !important;
+}
+html.covenant-desktop #dash-countdown-sub,
+body.covenant-desktop #dash-countdown-sub {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Prefer File → Print for quiet print duplicates; keep Import / primary Add */
+html.covenant-desktop .rd-pagehead__actions > .rd-btn--quiet[onclick*="printCurrentPage"],
+body.covenant-desktop .rd-pagehead__actions > .rd-btn--quiet[onclick*="printCurrentPage"] {
+  display: none !important;
+}
+
+/* Soften gear prefs trash affordance (Trash remains reachable via Settings) */
+html.covenant-desktop .rd-prefs__trash {
+  font-size: 12px;
+}

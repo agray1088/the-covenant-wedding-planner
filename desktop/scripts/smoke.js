@@ -59,6 +59,23 @@ async function main() {
     if (!/id=["']scripture-banner["']/.test(index.body)) {
       failures.push('scripture-banner should remain after footer removal');
     }
+    /* Phase A: PWA manifest / theme-color scrubbed from desktop-served HTML */
+    if (/rel=["']manifest["']/.test(index.body)) {
+      failures.push('desktop index should scrub manifest link');
+    }
+    if (/name=["']theme-color["']/.test(index.body)) {
+      failures.push('desktop index should scrub theme-color meta');
+    }
+    /* Phase A: native confirm bridge on preload + main */
+    const fs = require('fs');
+    const preloadBody = fs.readFileSync(path.join(__dirname, '..', 'preload.js'), 'utf8');
+    if (!preloadBody.includes('covenant:confirm') || !/confirm\s*:/.test(preloadBody)) {
+      failures.push('preload missing covenantDesktop.confirm → covenant:confirm');
+    }
+    const mainBody = fs.readFileSync(path.join(__dirname, '..', 'main.js'), 'utf8');
+    if (!mainBody.includes('covenant:confirm') || !mainBody.includes('showMessageBox')) {
+      failures.push('main.js missing covenant:confirm native dialog handler');
+    }
 
     const cfg = await get('/config.js', hosted.origin);
     if (cfg.status !== 200) failures.push('config.js status ' + cfg.status);

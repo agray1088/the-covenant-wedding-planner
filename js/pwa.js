@@ -109,6 +109,13 @@
   }
 
   window.addEventListener('beforeinstallprompt', function (e) {
+    /* Desktop is already an installed .exe — never offer Add to Home Screen / Install. */
+    if (state.desktop || isDesktopShell()) {
+      try { e.preventDefault(); } catch (_) {}
+      deferredPrompt = null;
+      state.canPrompt = false;
+      return;
+    }
     e.preventDefault(); deferredPrompt = e; state.canPrompt = true; emit();
   });
   window.addEventListener('appinstalled', function () {
@@ -123,10 +130,12 @@
     offChange: function (fn) { listeners = listeners.filter(function (f) { return f !== fn; }); },
     applyUpdate: applyUpdate,
     checkForUpdate: function () {
+      if (state.desktop || isDesktopShell()) return Promise.resolve();
       if (!('serviceWorker' in navigator)) return Promise.resolve();
       return navigator.serviceWorker.getRegistration().then(function (r) { return r && r.update(); });
     },
     promptInstall: function () {
+      if (state.desktop || isDesktopShell()) return Promise.resolve('desktop');
       if (!deferredPrompt) return Promise.resolve('unavailable');
       var p = deferredPrompt; deferredPrompt = null; state.canPrompt = false;
       p.prompt();
@@ -138,7 +147,13 @@
     state.desktop = true;
     state.installed = true;
     state.supported = false;
+    state.canPrompt = false;
+    state.updateReady = false;
     state.error = '';
+    try {
+      var stale = document.getElementById('covenant-update-banner');
+      if (stale) stale.remove();
+    } catch (_) { /* ignore */ }
   } else if ('serviceWorker' in navigator && secureEnough()) {
     if (document.readyState === 'complete') register();
     else window.addEventListener('load', register);

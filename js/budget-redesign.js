@@ -1718,10 +1718,16 @@
   async function rdBudgetBulkDelete() {
     const refs = selectedRefs().filter(r => !r.it.paymentLine);
     if (!refs.length) return;
-    if (typeof rdConfirm === 'function') {
-      const ok = await rdConfirm('Delete ' + refs.length + ' line item' + (refs.length === 1 ? '' : 's') + '?');
-      if (!ok) return;
-    } else if (typeof confirm === 'function' && !confirm('Delete ' + refs.length + ' line items?')) return;
+    const msg = 'Delete ' + refs.length + ' line item' + (refs.length === 1 ? '' : 's') + '? This cannot be undone from here.';
+    let ok = true;
+    if (typeof covConfirm === 'function') {
+      ok = await covConfirm(msg, { title: 'Delete budget lines?', danger: true, okText: 'Delete', cancelText: 'Keep' });
+    } else if (typeof rdConfirm === 'function') {
+      ok = await rdConfirm(msg);
+    } else if (typeof confirm === 'function') {
+      ok = confirm('Delete ' + refs.length + ' line items?');
+    }
+    if (!ok) return;
     refs.forEach(r => {
       const arr = r.c.items || [];
       const at = arr.indexOf(r.it);

@@ -221,6 +221,18 @@
         var alertText = alertBtn.querySelector('.btn-text');
         if (alertText) alertText.setAttribute('hidden', '');
       }
+      /* Soften browser-centric backup banner; version stamp → Help → About */
+      var backupCopy = document.querySelector('#backup-banner .backup-banner-copy');
+      if (backupCopy) {
+        backupCopy.innerHTML = '<strong>Saved on this computer.</strong> Download a backup regularly from File → Export Backup or Settings → Backup &amp; restore before replacing this install or moving machines.';
+      }
+      var stamp = document.getElementById('app-build-stamp');
+      if (stamp) {
+        stamp.hidden = true;
+        stamp.setAttribute('aria-hidden', 'true');
+      }
+      var updateBanner = document.getElementById('covenant-update-banner');
+      if (updateBanner) updateBanner.remove();
     }
 
     document.getElementById('rd-gear-btn').addEventListener('click', function (e) {

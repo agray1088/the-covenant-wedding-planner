@@ -207,7 +207,7 @@
 
     let applied = true;
     if (typeof applyRestoredPlannerData === 'function') {
-      applied = applyRestoredPlannerData(obj, { format: 'sqlite' });
+      applied = await applyRestoredPlannerData(obj, { format: 'sqlite' });
     }
     if (applied === false) { try { tempDb.close(); } catch (e) {} return { format: 'sqlite', applied: false }; }
 
@@ -248,10 +248,10 @@
     } else if (byName['planner.json']) {
       var parsed = decodeJsonBytes(byName['planner.json'].data);
       if (typeof applyRestoredPlannerData === 'function') {
-        var ok = applyRestoredPlannerData(parsed, { format: 'json' });
+        var ok = await applyRestoredPlannerData(parsed, { format: 'json' });
         applied = { format: 'json', applied: ok, data: parsed };
       } else if (typeof importJSONText === 'function') {
-        applied = { format: 'json', applied: importJSONText(JSON.stringify(parsed)) };
+        applied = { format: 'json', applied: await importJSONText(JSON.stringify(parsed)) };
       } else {
         throw new Error('No JSON import path available.');
       }
@@ -333,9 +333,9 @@
 
     // JSON path — reuse the app's importer (which runs migrateData() + re-render).
     const text = await file.text();
-    if (typeof importJSONText === 'function') { return { format: 'json', applied: importJSONText(text) }; }
+    if (typeof importJSONText === 'function') { return { format: 'json', applied: await importJSONText(text) }; }
     const parsed = JSON.parse(text);
-    if (typeof applyRestoredPlannerData === 'function') { return { format: 'json', applied: applyRestoredPlannerData(parsed, { format: 'json' }) }; }
+    if (typeof applyRestoredPlannerData === 'function') { return { format: 'json', applied: await applyRestoredPlannerData(parsed, { format: 'json' }) }; }
     if (typeof loadImportedData === 'function') { loadImportedData(parsed); return { format: 'json' }; }
     throw new Error('No JSON import path available (importJSONText not found).');
   }
