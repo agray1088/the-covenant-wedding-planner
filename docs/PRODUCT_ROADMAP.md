@@ -126,7 +126,7 @@ Windows Electron shell (`.exe`) is tracked separately from the hosted cloud trac
 |-------|---------|
 | Compact desktop toolbar | Search + save + alerts in-bar; Undo/Redo, Dark Mode, Profile, Hub, Quick Jump via native menus (**first pass shipped**); **in-UI paths retained** for tablet/PWA |
 | Browser-like leftovers | PWA install / SW reload / API tips demoted; **native destructive dialogs** + favicon/manifest scrub (**first pass shipped**); tray + file assoc + auto-update + license still open |
-| Layout / sections / tables / tabs | Stable chrome + sidebar-as-sections + hero/stat demote (**first pass shipped**); table-local toolbars → inspector → density → empties still open (Phases D–F); tablet-aware |
+| Layout / sections / tables / tabs | Stable chrome + ribbon + People CRM inspector (**shipped**); table-local toolbars Guests/Payments (**shipped**); density started (pageheads); Budget/Contacts toolbars + empties + Phase T still open |
 | Tablet / iPad | Same codebase → iPad via PWA / Safari Add to Home Screen; breakpoints; collapsible sidebar / split view; ~44 px touch targets; no hover-only critical actions; touch-usable table toolbars (**Phase T — planned**); optional Capacitor/WKWebView App Store shell **docs only later** |
 
 ## Commerce, secrets, photos, security (plan track)

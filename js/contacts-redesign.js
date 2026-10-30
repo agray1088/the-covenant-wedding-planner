@@ -979,6 +979,26 @@
       field('Typed here', String(f.sheetTyped));
   }
 
+  /* Preserve desktop CRM inspector chrome / empty state when rewriting the slot. */
+  function ctPreserveInspectorNodes(slot) {
+    if (!slot) return [];
+    const keep = [];
+    slot.querySelectorAll('[data-crm-inspector-chrome], .rd-crm-inspector-empty').forEach(n => {
+      keep.push(n);
+      if (n.parentNode) n.parentNode.removeChild(n);
+    });
+    return keep;
+  }
+  function ctRestoreInspectorNodes(slot, nodes) {
+    if (!slot || !nodes || !nodes.length) return;
+    nodes.reverse().forEach(n => {
+      slot.insertBefore(n, slot.firstChild);
+    });
+    if (window.covenantDesktopShell && typeof window.covenantDesktopShell.syncInspector === 'function') {
+      try { window.covenantDesktopShell.syncInspector(); } catch (e) { /* ignore */ }
+    }
+  }
+
   function renderCtDrawer() {
     const slot = document.getElementById('contacts-drawer-slot');
     if (!slot) return;
@@ -991,8 +1011,21 @@
     if (!x) {
       if (!(shared && slot.contains(shared) && !shared.hasAttribute('hidden'))) {
         parkSharedDrawerAway(slot);
-        slot.innerHTML = '';
-        slot.classList.remove('is-open');
+        const keep = ctPreserveInspectorNodes(slot);
+        slot.querySelectorAll('.rd-drawer, .rd-ct-drawer').forEach(n => n.remove());
+        /* Drop leftover markup but restore CRM chrome for desktop inspector. */
+        if (!keep.length) slot.innerHTML = '';
+        else {
+          Array.from(slot.children).forEach(ch => {
+            if (!ch.hasAttribute('data-crm-inspector-chrome') && !ch.classList.contains('rd-crm-inspector-empty')) {
+              ch.remove();
+            }
+          });
+        }
+        ctRestoreInspectorNodes(slot, keep);
+        if (!(document.body && document.body.classList.contains('covenant-desktop'))) {
+          slot.classList.remove('is-open');
+        }
       }
       return;
     }
@@ -1014,6 +1047,7 @@
     }
 
     slot.classList.add('is-open');
+    const keep = ctPreserveInspectorNodes(slot);
     slot.innerHTML =
       `<aside class="rd-drawer rd-ct-drawer" aria-label="Contact">` +
       `<div class="rd-drawer__head">` +
@@ -1034,6 +1068,7 @@
       `<button type="button" class="rd-btn rd-btn--primary" onclick="${primaryAction}">${esc(primaryLabel)}</button>` +
       `<button type="button" class="rd-btn" onclick="${secondaryAction}">${esc(secondaryLabel)}</button>` +
       `</div></aside>`;
+    ctRestoreInspectorNodes(slot, keep);
   }
 
   /* ── actions ─────────────────────────────────────────────────────────── */
@@ -1048,8 +1083,13 @@
     const slot = document.getElementById('contacts-drawer-slot');
     if (slot) {
       parkSharedDrawerAway(slot);
-      slot.innerHTML = '';
-      slot.classList.remove('is-open');
+      const keep = ctPreserveInspectorNodes(slot);
+      slot.querySelectorAll('.rd-drawer, .rd-ct-drawer').forEach(n => n.remove());
+      if (!keep.length) slot.innerHTML = '';
+      ctRestoreInspectorNodes(slot, keep);
+      if (!(document.body && document.body.classList.contains('covenant-desktop'))) {
+        slot.classList.remove('is-open');
+      }
     }
   }
   function rdCtSetDrawerTab(i) {

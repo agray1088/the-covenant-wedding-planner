@@ -248,6 +248,15 @@
     if (f.category && f.category !== 'all' && (payCategory(p) || 'No category') !== f.category) return false;
     if (scope !== 'trk' && f.status && f.status !== 'all'
       && payPill(p).label !== f.status && payStatus(p) !== f.status) return false;
+    const q = String(window._paySearch || '').trim().toLowerCase();
+    if (q) {
+      const hay = [
+        payVendor(p), payCategory(p), payStatus(p),
+        payPill(p).label, payDueDate(p),
+        p && (p.notes || p.memo || p.label || p.name || p.method || '')
+      ].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     return true;
   }
   function tableRows() { return railRows().filter(p => matchesFilters(p)); }
@@ -389,12 +398,33 @@
 
   /* The seven controls of §08's toolbar. Both tables carry seven data columns,
      so the count is read from the column defs rather than passed in. */
+  function payToolbarLocalLeadHtml(scope) {
+    const addLabel = scope === 'trk' ? '+ Add instalment' : '+ New payment';
+    const q = window._paySearch || '';
+    if (typeof window.rdTableLocalLeadHtml === 'function') {
+      return window.rdTableLocalLeadHtml({
+        add: { label: addLabel, onclick: 'rdPayAddPayment()' },
+        search: {
+          id: scope === 'trk' ? 'pay-search-trk' : 'pay-search',
+          placeholder: 'Search payments…',
+          value: q,
+          ariaLabel: 'Search payments',
+          oninput: 'rdPayToolbarSearch(this.value)'
+        }
+      });
+    }
+    return `<button type="button" class="rd-btn rd-btn--primary rd-toolbar__add" onclick="rdPayAddPayment()">${esc(addLabel)}</button>`
+      + `<label class="rd-toolbar__search"><input type="search" class="rd-toolbar__search-input" id="${scope === 'trk' ? 'pay-search-trk' : 'pay-search'}" placeholder="Search payments…" value="${esc(q)}" aria-label="Search payments" oninput="rdPayToolbarSearch(this.value)"></label>`;
+  }
+
   function toolbarHtml(scope, _legacyCount, extraRight) {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';
     const s = scope === 'trk' ? 'trk' : 'main';
     const total = PAY_COLUMNS[s].length;
     const shown = visibleCols(s).length;
-    return `<div class="rd-toolbar rd-pay-toolbar">
+    /* Phase D: Add + Search + Filter + Sort sit directly above the payment grid. */
+    return `<div class="rd-toolbar rd-pay-toolbar rd-toolbar--table-local">
+      ${payToolbarLocalLeadHtml(s)}
       ${filterChip('Status', 'status', s)}
       ${filterChip('Vendor', 'vendor', s)}
       ${filterChip('Category', 'category', s)}
@@ -412,6 +442,7 @@
   function pageheadActionsHtml() {
     const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
     const cal = window._payMode === 'calendar';
+    /* Phase D: primary Add lives on the table-local toolbar (not pagehead). */
     if (cal) {
       return `<button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print schedule</button>
       <button type="button" class="rd-btn" data-rd-full-editor onclick="rdPayFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
@@ -421,8 +452,7 @@
     return `<button type="button" class="rd-btn rd-btn--quiet" onclick="rdPayJumpTo('pay-sect-tracker')">Payment schedule</button>
       <button type="button" class="rd-btn" onclick="exportSectionCSV('Payments',paymentsExportRows())">Export</button>
       <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
-      <button type="button" class="rd-btn" data-rd-full-editor onclick="rdPayFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
-      <button type="button" class="rd-btn rd-btn--primary" onclick="rdPayAddPayment()">+ New payment</button>`;
+      <button type="button" class="rd-btn" data-rd-full-editor onclick="rdPayFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>`;
   }
 
   function uedPaymentsShellRd() {
@@ -899,7 +929,6 @@
       </div>
       <div class="rd-pay-sect__headright">
         <button type="button" class="rd-btn rd-btn--quiet" onclick="showPanel('contracts')">Open contracts</button>
-        <button type="button" class="rd-btn rd-btn--primary" onclick="rdPayAddPayment()">+ Add payment</button>
       </div>
     </div>`;
 
@@ -1437,6 +1466,32 @@
     if (typeof openRecordEditor === 'function') { openRecordEditor('payments'); return; }
     if (typeof addPaymentRow === 'function') addPaymentRow();
   }
+  function rdPayToolbarSearch(val) {
+    window._paySearch = val == null ? '' : String(val);
+    const activeId = (document.activeElement && document.activeElement.id) || '';
+    const selStart = document.activeElement ? document.activeElement.selectionStart : null;
+    const selEnd = document.activeElement ? document.activeElement.selectionEnd : null;
+    if (window._payMode === 'calendar') {
+      renderPaymentsRd();
+    } else {
+      if (typeof renderPaymentsTracker === 'function') renderPaymentsTracker();
+      if (typeof renderPaymentsTable === 'function') renderPaymentsTable();
+      if (typeof renderPaymentStatsRd === 'function') renderPaymentStatsRd();
+    }
+    /* Restore caret after toolbar HTML rebuild. */
+    if (activeId) {
+      const el = document.getElementById(activeId);
+      if (el && el.focus) {
+        el.focus();
+        try {
+          if (selStart != null && selEnd != null && el.setSelectionRange) {
+            el.setSelectionRange(selStart, selEnd);
+          }
+        } catch (e) { /* ignore */ }
+      }
+    }
+  }
+  window.rdPayToolbarSearch = rdPayToolbarSearch;
 
   function rdPayTogglePlan(id) {
     window._payExpanded = String(window._payExpanded || '') === String(id) ? null : String(id);

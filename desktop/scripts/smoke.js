@@ -93,6 +93,24 @@ async function main() {
     if (!/Select a row/.test(layoutJs)) {
       failures.push('desktop-shell-layout missing CRM inspector empty state');
     }
+    if (!/contacts-drawer-slot/.test(layoutJs) || !/party-drawer-slot/.test(layoutJs)) {
+      failures.push('desktop-shell-layout missing Contacts/Party CRM inspector targets');
+    }
+    const tableControls = fs.readFileSync(
+      path.join(__dirname, '..', '..', 'js', 'rd-table-controls.js'),
+      'utf8'
+    );
+    if (!/rdTableLocalLeadHtml/.test(tableControls) || !/rd-toolbar__search/.test(tableControls)) {
+      failures.push('rd-table-controls missing Phase D table-local Add/Search helpers');
+    }
+    const guestJs = fs.readFileSync(path.join(__dirname, '..', '..', 'js', 'planner.js'), 'utf8');
+    if (!/rd-toolbar--table-local/.test(guestJs) || !/rdGuestToolbarSearch/.test(guestJs)) {
+      failures.push('guests toolbar missing table-local Add/Search pattern');
+    }
+    const payJs = fs.readFileSync(path.join(__dirname, '..', '..', 'js', 'payments-redesign.js'), 'utf8');
+    if (!/rd-toolbar--table-local/.test(payJs) || !/rdPayToolbarSearch/.test(payJs)) {
+      failures.push('payments toolbar missing table-local Add/Search pattern');
+    }
     if (!preloadBody.includes('covenant:show-about') || !preloadBody.includes('showAbout')) {
       failures.push('preload missing covenantDesktop.showAbout → covenant:show-about');
     }

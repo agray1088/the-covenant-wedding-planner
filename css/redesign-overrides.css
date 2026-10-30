@@ -31309,31 +31309,39 @@ body.covenant-desktop .rd-tabs.rd-tabs--desktop-app-nav {
   pointer-events: auto !important;
 }
 
-/* Compact pageheads — one title, primary actions; no marketing eyebrow */
+/* Compact pageheads — one title, primary actions; no marketing eyebrow
+   Phase F (light): tighter desktop density; primary hit targets stay ≥44px. */
 html.covenant-desktop .rd-pagehead__eyebrow,
 body.covenant-desktop .rd-pagehead__eyebrow {
   display: none !important;
 }
 html.covenant-desktop .rd-pagehead,
 body.covenant-desktop .rd-pagehead {
-  margin-bottom: 0.45rem;
-  gap: 0.55rem;
+  margin-bottom: 0.25rem;
+  gap: 0.4rem;
   align-items: center;
-  padding-bottom: 0.35rem;
+  padding: 0.15rem 0 0.25rem;
+  min-height: 0;
 }
 html.covenant-desktop .rd-pagehead__title,
 body.covenant-desktop .rd-pagehead__title,
 html.covenant-desktop h1.rd-pagehead__title,
 body.covenant-desktop h1.rd-pagehead__title {
-  font-size: 1.32rem;
+  font-size: 1.18rem;
   letter-spacing: -0.01em;
-  line-height: 1.25;
+  line-height: 1.2;
+  margin: 0;
 }
 html.covenant-desktop .rd-pagehead__actions,
 body.covenant-desktop .rd-pagehead__actions {
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+html.covenant-desktop .rd-pagehead__title-row,
+body.covenant-desktop .rd-pagehead__title-row {
+  gap: 0.35rem;
+  align-items: center;
 }
 
 /* Soften dense KPI / stat strips (still visible; not a competing hero) */
@@ -31599,9 +31607,13 @@ body.covenant-desktop .rd-ribbon__status {
   font-variant-numeric: tabular-nums;
 }
 
-/* Guests CRM inspector — persistent right column on desktop; collapsible */
+/* People CRM inspector — Guests / Contacts / Party; persistent + collapsible */
 html.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot,
-body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot {
+html.covenant-desktop.rd-crm-inspector #panel-contacts #contacts-drawer-slot,
+html.covenant-desktop.rd-crm-inspector #panel-party #party-drawer-slot,
+body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot,
+body.covenant-desktop.rd-crm-inspector #panel-contacts #contacts-drawer-slot,
+body.covenant-desktop.rd-crm-inspector #panel-party #party-drawer-slot {
   display: flex !important;
   flex-direction: column;
   flex: 0 0 360px;
@@ -31613,9 +31625,17 @@ body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot {
   position: relative;
 }
 html.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot.is-collapsed,
+html.covenant-desktop.rd-crm-inspector #panel-contacts #contacts-drawer-slot.is-collapsed,
+html.covenant-desktop.rd-crm-inspector #panel-party #party-drawer-slot.is-collapsed,
 body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot.is-collapsed,
+body.covenant-desktop.rd-crm-inspector #panel-contacts #contacts-drawer-slot.is-collapsed,
+body.covenant-desktop.rd-crm-inspector #panel-party #party-drawer-slot.is-collapsed,
 html.covenant-desktop.rd-crm-inspector-collapsed #panel-guests #guest-drawer-slot,
-body.covenant-desktop.rd-crm-inspector-collapsed #panel-guests #guest-drawer-slot {
+html.covenant-desktop.rd-crm-inspector-collapsed #panel-contacts #contacts-drawer-slot,
+html.covenant-desktop.rd-crm-inspector-collapsed #panel-party #party-drawer-slot,
+body.covenant-desktop.rd-crm-inspector-collapsed #panel-guests #guest-drawer-slot,
+body.covenant-desktop.rd-crm-inspector-collapsed #panel-contacts #contacts-drawer-slot,
+body.covenant-desktop.rd-crm-inspector-collapsed #panel-party #party-drawer-slot {
   display: none !important;
 }
 html.covenant-desktop .rd-crm-inspector-chrome,
@@ -31645,8 +31665,11 @@ body.covenant-desktop .rd-crm-inspector-toggle {
   color: var(--forest-deep, #20362D);
   font-size: 14px;
   line-height: 1;
-  width: 28px;
-  height: 28px;
+  /* Hit area ≥44px for tablet / coarse pointer; visual stays compact */
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   cursor: pointer;
   padding: 0;
 }
@@ -31685,6 +31708,7 @@ html.covenant-desktop.rd-crm-inspector-collapsed .rd-crm-inspector-expand,
 body.covenant-desktop.rd-crm-inspector-collapsed .rd-crm-inspector-expand {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   appearance: none;
   border: 1px solid var(--border-subtle, #d9cfba);
   background: #fff;
@@ -31692,7 +31716,8 @@ body.covenant-desktop.rd-crm-inspector-collapsed .rd-crm-inspector-expand {
   font: 600 11px/1 var(--font-ui, inherit);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 8px 10px;
+  padding: 0 12px;
+  min-height: 44px;
   cursor: pointer;
   position: absolute;
   right: 8px;
@@ -31700,11 +31725,19 @@ body.covenant-desktop.rd-crm-inspector-collapsed .rd-crm-inspector-expand {
   z-index: 4;
 }
 html.covenant-desktop.rd-crm-inspector #panel-guests .rd-surface__row,
-body.covenant-desktop.rd-crm-inspector #panel-guests .rd-surface__row {
+html.covenant-desktop.rd-crm-inspector #panel-contacts .rd-surface__row,
+html.covenant-desktop.rd-crm-inspector #panel-party .rd-surface__row,
+body.covenant-desktop.rd-crm-inspector #panel-guests .rd-surface__row,
+body.covenant-desktop.rd-crm-inspector #panel-contacts .rd-surface__row,
+body.covenant-desktop.rd-crm-inspector #panel-party .rd-surface__row {
   position: relative;
 }
 html.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot #record-drawer,
-body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot #record-drawer {
+html.covenant-desktop.rd-crm-inspector #panel-party #party-drawer-slot #record-drawer,
+body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot #record-drawer,
+body.covenant-desktop.rd-crm-inspector #panel-party #party-drawer-slot #record-drawer,
+html.covenant-desktop.rd-crm-inspector #panel-contacts #contacts-drawer-slot > .rd-drawer,
+body.covenant-desktop.rd-crm-inspector #panel-contacts #contacts-drawer-slot > .rd-drawer {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
@@ -31712,10 +31745,97 @@ body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot #record-
 }
 @media (max-width: 1100px) {
   html.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot,
-  body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot {
+  html.covenant-desktop.rd-crm-inspector #panel-contacts #contacts-drawer-slot,
+  html.covenant-desktop.rd-crm-inspector #panel-party #party-drawer-slot,
+  body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot,
+  body.covenant-desktop.rd-crm-inspector #panel-contacts #contacts-drawer-slot,
+  body.covenant-desktop.rd-crm-inspector #panel-party #party-drawer-slot {
     flex-basis: 300px;
     width: 300px;
     max-width: 300px;
     min-width: 240px;
+  }
+}
+
+/* ── Phase D: table-local toolbars (Add / Filter / Sort / Search) ─────── */
+.rd-toolbar.rd-toolbar--table-local,
+body.rd-scope .rd-toolbar.rd-toolbar--table-local {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  row-gap: 8px;
+}
+.rd-toolbar__local-lead {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-right: 4px;
+}
+.rd-toolbar__add,
+body.rd-scope .rd-toolbar .rd-toolbar__add,
+#main#main .rd-toolbar .rd-toolbar__add {
+  flex: 0 0 auto;
+  min-height: 44px !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 0 14px !important;
+  box-sizing: border-box !important;
+}
+.rd-toolbar__search {
+  display: inline-flex;
+  align-items: center;
+  min-width: 160px;
+  flex: 1 1 180px;
+  max-width: 280px;
+}
+.rd-toolbar__search-input,
+body.rd-scope .rd-toolbar__search-input,
+#main#main .rd-toolbar__search-input {
+  width: 100%;
+  min-height: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--border-control, #d9cfba);
+  background: var(--surface-content, #fff);
+  color: var(--text-body, #20362D);
+  font: 400 13px/1.2 var(--font-ui, inherit);
+  border-radius: 0;
+}
+.rd-toolbar__search-input:focus,
+body.rd-scope .rd-toolbar__search-input:focus {
+  outline: 2px solid var(--forest, #2D4A3E);
+  outline-offset: 1px;
+}
+
+/* Desktop density: slightly tighter toolbar strip; primary targets stay 44px */
+html.covenant-desktop .rd-toolbar.rd-toolbar--table-local,
+body.covenant-desktop .rd-toolbar.rd-toolbar--table-local {
+  gap: 6px;
+  row-gap: 6px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+html.covenant-desktop .rd-toolbar__search,
+body.covenant-desktop .rd-toolbar__search {
+  max-width: 240px;
+  flex-basis: 160px;
+}
+
+/* Touch / coarse pointer: keep primary toolbar controls ≥44px (Phase T weave) */
+@media (pointer: coarse) {
+  body.rd-scope .rd-toolbar .rd-chip,
+  body.rd-scope .rd-toolbar .rd-btn,
+  #main#main .rd-toolbar .rd-chip,
+  #main#main .rd-toolbar .rd-btn {
+    min-height: 44px !important;
+  }
+  body.rd-scope .rd-toolbar .rd-viewswitch,
+  #main#main .rd-toolbar .rd-viewswitch {
+    min-height: 44px !important;
+    height: 44px !important;
+    max-height: none !important;
   }
 }

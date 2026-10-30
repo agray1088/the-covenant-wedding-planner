@@ -575,6 +575,43 @@
       + ICO_SORT + esc(label || 'Sort') + CHEV + '</button>';
   }
 
+  /* Phase D — table-local primary strip: Add + Search live above the grid.
+     Shared markup preferred for web/PWA/tablet; desktop CSS tightens density. */
+  function tableAddBtnHtml(opts) {
+    opts = opts || {};
+    var label = opts.label || '+ Add';
+    var onclick = opts.onclick || '';
+    var cls = 'rd-btn rd-btn--primary rd-toolbar__add';
+    return '<button type="button" class="' + cls + '" onclick="' + onclick + '">' + esc(label) + '</button>';
+  }
+
+  function tableSearchHtml(opts) {
+    opts = opts || {};
+    var id = opts.id || '';
+    var placeholder = opts.placeholder || 'Search…';
+    var value = opts.value != null ? String(opts.value) : '';
+    var oninput = opts.oninput || '';
+    var aria = opts.ariaLabel || placeholder;
+    return '<label class="rd-toolbar__search">'
+      + '<input type="search"'
+      + (id ? ' id="' + esc(id) + '"' : '')
+      + ' class="rd-toolbar__search-input"'
+      + ' placeholder="' + esc(placeholder) + '"'
+      + ' value="' + esc(value) + '"'
+      + ' aria-label="' + esc(aria) + '"'
+      + (oninput ? ' oninput="' + oninput + '"' : '')
+      + '></label>';
+  }
+
+  function tableLocalLeadHtml(opts) {
+    opts = opts || {};
+    var parts = ['<div class="rd-toolbar__local-lead">'];
+    if (opts.add) parts.push(tableAddBtnHtml(opts.add));
+    if (opts.search) parts.push(tableSearchHtml(opts.search));
+    parts.push('</div>');
+    return parts.join('');
+  }
+
   /* Build a full Tasks-style toolbar for a CWP table key. Relies on the CWP
      public helpers registered below (rdCwp*). */
   function cwpToolbarHtml(key) {
@@ -658,6 +695,9 @@
   window.rdStandardRightHtml = standardRightHtml;
   window.rdFilterChipHtml = filterChipHtml;
   window.rdSortChipHtml = sortChipHtml;
+  window.rdTableAddBtnHtml = tableAddBtnHtml;
+  window.rdTableSearchHtml = tableSearchHtml;
+  window.rdTableLocalLeadHtml = tableLocalLeadHtml;
   window.rdCwpToolbarShell = cwpToolbarHtml;
 
   /* True when the page (not an in-mount CWP bar) already exposes

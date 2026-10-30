@@ -40489,12 +40489,44 @@ function guestGroupHeaderLabel(meta, groupRows){
 
 function guestPageheadActionsHtml(){
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round"';
+  /* Phase D: primary Add lives on the table-local toolbar (not pagehead). */
   return `<button type="button" class="rd-btn rd-btn--quiet" onclick="openGuestCSVImport('guests')">Import</button>
         <button type="button" class="rd-btn" onclick="(typeof exportGuestCSV==='function'?exportGuestCSV():exportSectionCSV('Guest List',data.guests))">Export</button>
         <button type="button" class="rd-btn" onclick="printCurrentPage()"><svg ${svg} stroke-width="1.7"><path d="M6 9V4h12v5"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M7 16h10v4H7z"/></svg>Print section</button>
-        <button type="button" class="rd-btn" data-rd-full-editor onclick="rdGuestFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>
-        <button type="button" class="rd-btn rd-btn--primary" onclick="addGuestRow()">+ New guest</button>`;
+        <button type="button" class="rd-btn" data-rd-full-editor onclick="rdGuestFullEditor()"><svg ${svg} stroke-width="1.8"><path d="M14 4h6v6"/><path d="M20 4l-7 7"/><path d="M10 20H4v-6"/><path d="M4 20l7-7"/></svg>Full editor</button>`;
 }
+function guestToolbarLocalLeadHtml(){
+  window._guestUiFilters = window._guestUiFilters || {};
+  const q = window._guestUiFilters.q || '';
+  if (typeof window.rdTableLocalLeadHtml === 'function') {
+    return window.rdTableLocalLeadHtml({
+      add: { label: '+ New guest', onclick: 'addGuestRow()' },
+      search: {
+        id: 'guest-search',
+        placeholder: 'Search guests…',
+        value: q,
+        ariaLabel: 'Search guests',
+        oninput: 'rdGuestToolbarSearch(this.value)'
+      }
+    });
+  }
+  return '<button type="button" class="rd-btn rd-btn--primary rd-toolbar__add" onclick="addGuestRow()">+ New guest</button>'
+    + '<label class="rd-toolbar__search"><input id="guest-search" type="search" class="rd-toolbar__search-input" placeholder="Search guests…" value="'
+    + escapeHtml(q) + '" aria-label="Search guests" oninput="rdGuestToolbarSearch(this.value)"></label>';
+}
+function rdGuestToolbarSearch(val){
+  window._guestUiFilters = window._guestUiFilters || {};
+  window._guestUiFilters.q = val == null ? '' : String(val);
+  /* Re-filter the active view without rebuilding the toolbar (keeps search focus). */
+  const view = typeof rdGetGuestView === 'function' ? rdGetGuestView() : 'table';
+  if (view === 'households' && typeof renderGuestHouseholdsView === 'function') renderGuestHouseholdsView();
+  else if (view === 'seating' && typeof renderGuestSeatingView === 'function') renderGuestSeatingView();
+  else if (typeof renderGuestPreviewTable === 'function') renderGuestPreviewTable();
+  else if (typeof cwpRenderTable === 'function') cwpRenderTable('guests');
+  if (typeof renderGuestStats === 'function') renderGuestStats();
+  else if (typeof renderGuestStatsRd === 'function') renderGuestStatsRd();
+}
+window.rdGuestToolbarSearch = rdGuestToolbarSearch;
 function guestSurfaceRowHtml(){
   return `<div class="rd-surface__row" id="guest-surface-row">
     <div class="rd-surface__main" id="guest-view-host">
@@ -40976,10 +41008,12 @@ window.applyGuestRailGroupBy = applyGuestRailGroupBy;
 function renderGuestToolbar(){
   const host = document.getElementById('guest-toolbar');
   if (!host) return;
+  host.classList.add('rd-toolbar--table-local');
   const view = rdGetGuestView();
   const height = rdGuestRowHeightLabel();
   const { shown, total } = typeof rdGuestColCounts === 'function' ? rdGuestColCounts() : { shown: 6, total: 24 };
   const svg = 'viewBox="0 0 24 24" aria-hidden="true" style="width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round"';
+  const lead = guestToolbarLocalLeadHtml();
   const viewswitch = `<div class="rd-viewswitch" role="tablist" aria-label="Guest views">`
     + `<button type="button" class="rd-viewswitch__item${view==='table'?' is-active':''}" onclick="rdSetGuestView('table')">Table</button>`
     + `<button type="button" class="rd-viewswitch__item${view==='households'?' is-active':''}" onclick="rdSetGuestView('households')">Households</button>`
@@ -40987,9 +41021,11 @@ function renderGuestToolbar(){
     + `</div>`;
   if (view === 'households') {
     /* Mock 21b left chips: Side · Invitation · Address; right: Row height · viewswitch (no column picker — households is a fixed 6-field view) */
-    host.innerHTML = guestChip('Side', 'side')
+    host.innerHTML = lead
+      + guestChip('Side', 'side')
       + guestChip('Invitation', 'invitation')
       + guestChip('Address', 'address')
+      + guestSortChip()
       + `<div class="rd-toolbar__right">`
       + `<button type="button" class="rd-chip" onclick="rdCycleGuestRowHeight()">Row height · ${escapeHtml(height)}<svg ${svg}><path d="m6 9 6 6 6-6"/></svg></button>`
       + viewswitch
@@ -40999,13 +41035,16 @@ function renderGuestToolbar(){
   if (view === 'seating') {
     window._guestUiFilters = window._guestUiFilters || {};
     if (!window._guestUiFilters.seated) window._guestUiFilters.seated = 'unseated-first';
-    host.innerHTML = guestChip('Side', 'side')
+    host.innerHTML = lead
+      + guestChip('Side', 'side')
       + guestChip('Seated', 'seated')
+      + guestSortChip()
       + `<div class="rd-toolbar__right">${viewswitch}</div>`;
     return;
   }
-  /* Mock 21a left chips: Side · RSVP · Table · Dietary; then Event + Sort; right: Columns · Auto-fit · Row height · viewswitch */
-  host.innerHTML = guestChip('Side', 'side')
+  /* Phase D: Add + Search + Filter chips + Sort immediately above the guest grid */
+  host.innerHTML = lead
+    + guestChip('Side', 'side')
     + guestChip('RSVP', 'rsvp')
     + guestChip('Table', 'table')
     + guestChip('Dietary', 'dietary')

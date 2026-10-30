@@ -6,8 +6,8 @@
      2. Compact green brand bar — redesign-shell rd-topbar--desktop
      3. Horizontal section tabs (.rd-tabs) — Overview…Documents
      4. Light ribbon: Home | Plan | View | Help + grouped commands
-     5. Per-page toolbars (unchanged)
-     6. Content + optional right CRM inspector (Guests v1)
+     5. Per-page table-local toolbars (Add / Filter / Sort / Search)
+     6. Content + optional right CRM inspector (People: Guests, Contacts, Party)
      7. In-page left panels stay (views/filters) — not app section nav
 
    Web / PWA: this module no-ops unless desktop detection succeeds.
@@ -18,9 +18,36 @@
   'use strict';
 
   var RIBBON_ID = 'rd-desktop-ribbon';
-  var INSPECTOR_EMPTY_ID = 'rd-crm-inspector-empty';
   var LS_INSPECTOR = 'covenant_desktop_inspector_collapsed';
   var LS_RIBBON_TAB = 'covenant_desktop_ribbon_tab';
+
+  /* People-area right inspectors — same chrome/empty/collapse pattern as Guests. */
+  var CRM_TARGETS = [
+    {
+      panel: 'guests',
+      panelId: 'panel-guests',
+      slotId: 'guest-drawer-slot',
+      emptyId: 'rd-crm-inspector-empty-guests',
+      entity: 'guest',
+      drawerKind: 'record'
+    },
+    {
+      panel: 'contacts',
+      panelId: 'panel-contacts',
+      slotId: 'contacts-drawer-slot',
+      emptyId: 'rd-crm-inspector-empty-contacts',
+      entity: 'contact',
+      drawerKind: 'custom'
+    },
+    {
+      panel: 'party',
+      panelId: 'panel-party',
+      slotId: 'party-drawer-slot',
+      emptyId: 'rd-crm-inspector-empty-party',
+      entity: 'party member',
+      drawerKind: 'record'
+    }
+  ];
 
   function isDesktopShell() {
     try {
@@ -313,7 +340,7 @@
     if (node) node.textContent = saveStatusText();
   }
 
-  /* ── CRM inspector (Guests / People v1) ─────────────────────────────── */
+  /* ── CRM inspector (People: Guests / Contacts / Party) ──────────────── */
   function inspectorCollapsed() {
     try { return localStorage.getItem(LS_INSPECTOR) === '1'; } catch (e) { return false; }
   }
@@ -321,44 +348,75 @@
   function setInspectorCollapsed(on) {
     try { localStorage.setItem(LS_INSPECTOR, on ? '1' : '0'); } catch (e) { /* ignore */ }
     document.body.classList.toggle('rd-crm-inspector-collapsed', !!on);
-    syncGuestInspector();
+    syncCrmInspectors();
   }
 
-  function ensureInspectorEmpty(slot) {
-    var empty = document.getElementById(INSPECTOR_EMPTY_ID);
+  function activePanelId() {
+    try {
+      return document.body.getAttribute('data-active-panel') || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function slotHasLiveDrawer(slot, target) {
+    if (!slot || !target) return false;
+    if (target.drawerKind === 'custom') {
+      return !!(slot.querySelector('.rd-drawer:not(.rd-crm-inspector-empty)'));
+    }
+    var drawer = document.getElementById('record-drawer');
+    return !!(drawer && !drawer.hasAttribute('hidden') && drawer.parentElement === slot);
+  }
+
+  function ensureInspectorEmpty(slot, target) {
+    var empty = document.getElementById(target.emptyId);
     if (!empty) {
       empty = el(
-        '<div class="rd-crm-inspector-empty" id="' + INSPECTOR_EMPTY_ID + '" hidden>' +
+        '<div class="rd-crm-inspector-empty" id="' + target.emptyId + '" hidden>' +
           '<div class="rd-crm-inspector-empty__title">Select a row</div>' +
-          '<p class="rd-crm-inspector-empty__copy">Choose a guest in the list to review and edit details here. Collapse this panel anytime to give the table more room.</p>' +
+          '<p class="rd-crm-inspector-empty__copy">Choose a ' + target.entity +
+            ' in the list to review and edit details here. Collapse this panel anytime to give the table more room.</p>' +
         '</div>'
       );
       slot.appendChild(empty);
+    } else if (empty.parentElement !== slot) {
+      slot.appendChild(empty);
+    }
+    /* Legacy Guests empty id from earlier shell pass */
+    if (target.panel === 'guests') {
+      var legacy = document.getElementById('rd-crm-inspector-empty');
+      if (legacy && legacy !== empty) {
+        try { legacy.remove(); } catch (e) { /* ignore */ }
+      }
     }
     return empty;
   }
 
   function ensureInspectorChrome(slot) {
-    if (!slot || slot.querySelector('[data-crm-inspector-toggle]')) return;
-    var bar = el(
-      '<div class="rd-crm-inspector-chrome" data-crm-inspector-chrome>' +
-        '<span class="rd-crm-inspector-chrome__label">Details</span>' +
-        '<button type="button" class="rd-crm-inspector-toggle" data-crm-inspector-toggle ' +
-          'aria-label="Collapse details panel" title="Collapse">‹</button>' +
-      '</div>'
-    );
-    slot.insertBefore(bar, slot.firstChild);
-    bar.querySelector('[data-crm-inspector-toggle]').addEventListener('click', function () {
-      setInspectorCollapsed(true);
-    });
+    if (!slot) return;
+    var bar = slot.querySelector('[data-crm-inspector-chrome]');
+    if (!bar) {
+      bar = el(
+        '<div class="rd-crm-inspector-chrome" data-crm-inspector-chrome>' +
+          '<span class="rd-crm-inspector-chrome__label">Details</span>' +
+          '<button type="button" class="rd-crm-inspector-toggle" data-crm-inspector-toggle ' +
+            'aria-label="Collapse details panel" title="Collapse">‹</button>' +
+        '</div>'
+      );
+      slot.insertBefore(bar, slot.firstChild);
+      bar.querySelector('[data-crm-inspector-toggle]').addEventListener('click', function () {
+        setInspectorCollapsed(true);
+      });
+    } else if (slot.firstChild !== bar) {
+      slot.insertBefore(bar, slot.firstChild);
+    }
   }
 
-  function ensureInspectorExpandBtn() {
-    var panel = document.getElementById('panel-guests');
-    if (!panel) return;
-    var existing = panel.querySelector('[data-crm-inspector-expand]');
+  function ensureInspectorExpandBtn(panelEl) {
+    if (!panelEl) return;
+    var existing = panelEl.querySelector('[data-crm-inspector-expand]');
     if (existing) return;
-    var surface = panel.querySelector('.rd-surface__row') || panel.querySelector('.rd-surface');
+    var surface = panelEl.querySelector('.rd-surface__row') || panelEl.querySelector('.rd-surface');
     if (!surface) return;
     var btn = el(
       '<button type="button" class="rd-crm-inspector-expand" data-crm-inspector-expand ' +
@@ -368,22 +426,19 @@
     surface.appendChild(btn);
   }
 
-  function syncGuestInspector() {
-    if (!isDesktopShell()) return;
-    var panel = document.getElementById('panel-guests');
-    var slot = document.getElementById('guest-drawer-slot');
+  function syncOneInspector(target) {
+    var panel = document.getElementById(target.panelId);
+    var slot = document.getElementById(target.slotId);
     if (!panel || !slot) return;
 
-    document.body.classList.add('rd-crm-inspector');
-    document.body.classList.toggle('rd-crm-inspector-collapsed', inspectorCollapsed());
     ensureInspectorChrome(slot);
-    ensureInspectorEmpty(slot);
-    ensureInspectorExpandBtn();
+    ensureInspectorEmpty(slot, target);
+    ensureInspectorExpandBtn(panel);
 
-    var drawer = document.getElementById('record-drawer');
-    var open = drawer && !drawer.hasAttribute('hidden') && drawer.parentElement === slot;
-    var empty = document.getElementById(INSPECTOR_EMPTY_ID);
+    var open = slotHasLiveDrawer(slot, target);
+    var empty = document.getElementById(target.emptyId);
     var collapsed = inspectorCollapsed();
+    var active = activePanelId() === target.panel;
 
     if (collapsed) {
       slot.classList.remove('is-open');
@@ -393,47 +448,93 @@
     }
 
     slot.classList.remove('is-collapsed');
-    /* Keep the inspector column visible with empty or live drawer. */
+    /* Keep the inspector column visible with empty or live drawer on desktop. */
     slot.classList.add('is-open');
     if (empty) {
       if (open) empty.setAttribute('hidden', '');
       else empty.removeAttribute('hidden');
     }
+    /* Contacts custom drawer wipe can drop chrome — reassert when active. */
+    if (active && target.drawerKind === 'custom' && !open) {
+      ensureInspectorChrome(slot);
+      ensureInspectorEmpty(slot, target);
+    }
+  }
+
+  function syncCrmInspectors() {
+    if (!isDesktopShell()) return;
+    document.body.classList.add('rd-crm-inspector');
+    document.body.classList.toggle('rd-crm-inspector-collapsed', inspectorCollapsed());
+    CRM_TARGETS.forEach(syncOneInspector);
+  }
+
+  /* Back-compat alias used by earlier shell hooks / smoke. */
+  function syncGuestInspector() {
+    syncCrmInspectors();
   }
 
   function observeDrawer() {
     var drawer = document.getElementById('record-drawer');
-    if (!drawer || drawer._rdCrmObserved) return;
-    drawer._rdCrmObserved = true;
-    try {
-      new MutationObserver(function () { syncGuestInspector(); })
-        .observe(drawer, { attributes: true, attributeFilter: ['hidden'] });
-    } catch (e) { /* ignore */ }
+    if (drawer && !drawer._rdCrmObserved) {
+      drawer._rdCrmObserved = true;
+      try {
+        new MutationObserver(function () { syncCrmInspectors(); })
+          .observe(drawer, { attributes: true, attributeFilter: ['hidden'] });
+      } catch (e) { /* ignore */ }
+    }
+    CRM_TARGETS.forEach(function (t) {
+      var slot = document.getElementById(t.slotId);
+      if (!slot || slot._rdCrmSlotObserved) return;
+      slot._rdCrmSlotObserved = true;
+      try {
+        new MutationObserver(function () { syncCrmInspectors(); })
+          .observe(slot, { childList: true, subtree: false });
+      } catch (e) { /* ignore */ }
+    });
   }
 
   function wrapDrawerHooks() {
     if (window._rdCrmDrawerWrapped) return;
     window._rdCrmDrawerWrapped = true;
+    var peopleKeys = { guests: 1, party: 1, contacts: 1 };
     var open = window.rdOpenDrawer;
     var close = window.rdCloseDrawer;
     if (typeof open === 'function') {
-      window.rdOpenDrawer = function (key, index, seed) {
-        if (isDesktopShell() && key === 'guests' && inspectorCollapsed()) {
+      window.rdOpenDrawer = function (key) {
+        if (isDesktopShell() && peopleKeys[key] && inspectorCollapsed()) {
           setInspectorCollapsed(false);
         }
         var r = open.apply(this, arguments);
-        syncGuestInspector();
+        syncCrmInspectors();
         return r;
       };
     }
     if (typeof close === 'function') {
       window.rdCloseDrawer = function () {
         var r = close.apply(this, arguments);
-        setTimeout(syncGuestInspector, 0);
-        setTimeout(syncGuestInspector, 50);
+        setTimeout(syncCrmInspectors, 0);
+        setTimeout(syncCrmInspectors, 50);
         return r;
       };
     }
+    /* Contacts uses a page-local drawer (not #record-drawer). */
+    function wrapCt(name) {
+      var fn = window[name];
+      if (typeof fn !== 'function' || fn._rdCrmWrapped) return;
+      window[name] = function () {
+        if (isDesktopShell() && name === 'rdCtOpen' && inspectorCollapsed()) {
+          setInspectorCollapsed(false);
+        }
+        var r = fn.apply(this, arguments);
+        setTimeout(syncCrmInspectors, 0);
+        setTimeout(syncCrmInspectors, 40);
+        return r;
+      };
+      window[name]._rdCrmWrapped = true;
+    }
+    wrapCt('rdCtOpen');
+    wrapCt('rdCtCloseDrawer');
+    wrapCt('rdCtSetDrawerTab');
   }
 
   function ensureHorizontalSectionTabs() {
@@ -463,14 +564,15 @@
     buildRibbon();
     wrapDrawerHooks();
     observeDrawer();
-    syncGuestInspector();
+    syncCrmInspectors();
 
     try {
       new MutationObserver(function () {
         ensureHorizontalSectionTabs();
         buildRibbon();
+        wrapDrawerHooks();
         observeDrawer();
-        syncGuestInspector();
+        syncCrmInspectors();
         refreshSaveStatus();
       }).observe(document.body, {
         attributes: true,
@@ -485,7 +587,8 @@
   window.covenantDesktopShell = {
     boot: boot,
     runMenu: runMenu,
-    syncInspector: syncGuestInspector,
+    syncInspector: syncCrmInspectors,
+    syncCrmInspectors: syncCrmInspectors,
     refreshRibbon: renderRibbonCommands,
     setInspectorCollapsed: setInspectorCollapsed
   };

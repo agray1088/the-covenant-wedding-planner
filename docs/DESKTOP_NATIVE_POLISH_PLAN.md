@@ -64,9 +64,9 @@ Ordered later in the roadmap: **tighten per-section toolbars → row inspector �
 - [x] **Stable chrome + one primary job per screen** — compact forest brand bar + horizontal `.rd-tabs` section nav + pageheads demoted; KPI strips softened (Guests / Budget / Payments / Tasks / Dashboard). Deeper “one job” per remaining sections still open
 - [x] **Horizontal app section nav (not left app sidebar)** — Overview · Planning · People · Money · Vendors · The Day · Covenant · Documents stay as top `.rd-tabs`; legacy `#nav-category-bar` stays retired; **in-page** left rails (views/filters) preserved. See **Decided shell layout** below
 - [x] **Light command ribbon** — Home | Plan | View | Help under section tabs (`js/desktop-shell-layout.js`); additive to native menus; critical actions remain in-UI (Phase T)
-- [ ] **Table-local toolbar** — Add / Filter / Sort / Search **directly above** the table they control (not duplicated in global chrome or page heroes); touch-usable (Phase T / D)
-- [x] **Optional right inspector** on row select — Guests v1: persistent / collapsible CRM column with “Select a row” empty state; reuses `#record-drawer`. Tablet split/stack still Phase T
-- [ ] **Adaptive density** — tighter row height under `body.covenant-desktop`; comfortable / touch-friendly density for tablet & PWA (not desktop-only)
+- [x] **Table-local toolbar** — Add / Filter / Sort / Search **directly above** the table they control (Guests + Payments first pass; shared `rdTableLocalLeadHtml`); touch-usable targets ≥44px on primary Add/Search (Phase T verifies remaining tables)
+- [x] **Optional right inspector** on row select — People: Guests + Contacts + Party; persistent / collapsible CRM column with “Select a row” empty state; Guests/Party reuse `#record-drawer`, Contacts keeps page drawer. Tablet split/stack still Phase T
+- [ ] **Adaptive density** — tighter row height under `body.covenant-desktop`; comfortable / touch-friendly density for tablet & PWA (not desktop-only). **Started:** tighter desktop pageheads; primary hit targets stay ≥44px
 - [ ] **Simpler empty states** — short copy + one primary action; no marketing blocks
 - [x] **Reduce webby clutter inside tool screens** — first pass under `body.covenant-desktop`: hide eyebrows / teach blocks / dashboard view-leads; soften stats & payment insight; rewrite backup banner; hide version stamp (Help → About). More sections / empty-state redesign remain for Phase F
 
@@ -97,7 +97,7 @@ Same planner UI must translate well to **tablet**, especially **iPad**. Near-ter
 | 3 | Horizontal section tabs | Overview · Planning · People · Money · Vendors · The Day · Covenant · Documents (`.rd-tabs`). **Do not** move these to a left app sidebar |
 | 4 | Light ribbon | Home \| Plan \| View \| Help with grouped commands (Undo/Redo, backup, Quick Jump, Hub, Dark Mode, Profile, Zoom, About, docs stubs). Wired to existing actions / preload bridges. **Additive** — not ribbon-only for critical actions |
 | 5 | Page toolbar | Existing per-section Add/Filter/Sort etc. kept |
-| 6 | Content + optional right CRM inspector | Guests v1: select row → `#record-drawer` in inspector; empty “Select a row”; collapsible |
+| 6 | Content + optional right CRM inspector | People: Guests / Contacts / Party — select row → drawer in inspector; empty “Select a row”; collapsible |
 | 7 | In-page left panels | Views/filters/details **within** a section stay; only **app** section nav is horizontal across the top |
 
 **Gate:** `COVENANT_DESKTOP` / `covenantDesktop` / `body.covenant-desktop`. Implementation: `js/desktop-shell-layout.js` + desktop compact topbar in `js/redesign-shell.js`.
@@ -242,24 +242,26 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 **Goal:** Add / Filter / Sort / Search sit **above the table they control**.  
 **Depends on:** Phase C.  
 **Priority:** First layout implementation slice after IA (per advisory order).  
-**Tablet weave:** Toolbar pattern must be **touch-usable** (spacing, overflow menus, no hover-only filter chips). Phase T verifies on iPad; this phase must not ship mouse-only affordances.
+**Tablet weave:** Toolbar pattern must be **touch-usable** (spacing, overflow menus, no hover-only filter chips). Phase T verifies on iPad; this phase must not ship mouse-only affordances.  
+**Status:** DONE (first pass) — shared `rdTableLocalLeadHtml` + Guests + Payments; Budget/Contacts toolbars still Filter/Sort-heavy without local Search/Add lead.
 
 **Work**
 
-- [ ] Define a shared table-toolbar pattern (structure + CSS; desktop gate OK, but shared markup preferred for PWA/tablet)
-- [ ] Migrate high-traffic tables first: Guests, Budget lines, Payments, Contacts/Vendors as applicable
-- [ ] Remove duplicate Add/Filter/Sort/Search from page headers / distant toolbars once local toolbar exists
-- [ ] Keyboard: keep existing shortcuts; ensure focus order is toolbar → table → inspector (if present later)
-- [ ] Touch: ensure primary toolbar controls have adequate hit targets; wrap / overflow rather than clipping on narrow tablet widths
+- [x] Define a shared table-toolbar pattern (structure + CSS; desktop gate OK, but shared markup preferred for PWA/tablet) — `rdTableLocalLeadHtml` / `rd-toolbar--table-local`
+- [x] Migrate high-traffic tables first: Guests, Payments (Budget lines / Contacts still open)
+- [x] Remove duplicate Add from Guests / Payments pageheads (and Payments section-head Add) once local toolbar exists
+- [x] Keyboard: search updates filter without stealing focus; focus order remains toolbar → table → inspector
+- [x] Touch: primary Add + Search min-height ~44px; coarse-pointer media keeps toolbar chips ≥44px
 
 **Acceptance**
 
-- [ ] On desktop, primary CRUD tables show Add + Filter + Sort + Search in one strip immediately above the grid
-- [ ] No orphan duplicate of those controls higher on the same screen
-- [ ] Web / PWA keeps a usable toolbar (shared component or web-specific layout OK)
-- [ ] No critical table action is hover-only (visible on tap / focus)
+- [x] On desktop, Guests + Payments show Add + Filter + Sort + Search in one strip immediately above the grid
+- [x] No orphan duplicate Add for Guests / Payments in pagehead (Import/Export/Full editor remain)
+- [x] Web / PWA keeps the same shared toolbar markup
+- [x] No critical table action is hover-only (visible on tap / focus) for migrated tables
+- [ ] Budget + Contacts/Vendors table-local lead still TODO
 
-**Verify (Windows x64):** Guests/Budget/Payments — add row, filter, sort, search without using top app bar.  
+**Verify (Windows x64):** Guests/Payments — add row, filter, sort, search without using top app bar.  
 **Verify (touch / DevTools coarse pointer):** same flows without relying on hover.
 
 ---
@@ -270,24 +272,24 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 **Depends on:** Phase D preferred; Guests v1 shipped with shell layout ahead of full table-toolbar pass.  
 **Priority:** After per-section toolbars for remaining sections.  
 **Tablet weave:** Prefer **split view** on wide tablets; **drawer / full-sheet** below breakpoint. Same shell as desktop inspector — responsive behavior, not a second product.  
-**Status:** DONE (Guests v1 first pass) — collapsible CRM column + empty state; reuses `#record-drawer` / existing guest editor.
+**Status:** DONE (People first pass) — Guests + Contacts + Party collapsible CRM column + empty state; Guests/Party reuse `#record-drawer`; Contacts reuses page drawer.
 
 **Work**
 
-- [x] Inspector shell: open on row select (existing `rdOpenDrawer`); empty state when none selected; collapse control
-- [x] Start with Guests / People; pattern reusable via `#*-drawer-slot` + empty chrome
+- [x] Inspector shell: open on row select (existing `rdOpenDrawer` / `rdCtOpen`); empty state when none selected; collapse control
+- [x] People slots: Guests / Contacts / Party via shared `CRM_TARGETS` + `#*-drawer-slot` + empty chrome
 - [x] Collapse path on desktop (persist preference); tablet breakpoint polish still Phase T
 - [x] Reuse existing detail / drawer / editors rather than rewriting forms
 - [x] Close / collapse control is visible (not hover-dismiss only)
 
 **Acceptance**
 
-- [x] Selecting a guest row opens inspector with that record; changing selection updates it
+- [x] Selecting a guest / contact / party row opens inspector with that record; changing selection updates it
 - [x] Collapsing inspector returns space to the table; expand control restores it
-- [x] No full-page navigation required for common field edits on Guests
+- [x] No full-page navigation required for common field edits on Guests / Contacts / Party
 - [ ] Below tablet breakpoint, inspector does not permanently crush the table (Phase T verify)
 
-**Verify (Windows x64):** select/deselect guest rows; edit a field; collapse / expand inspector.  
+**Verify (Windows x64):** select/deselect guest, contact, party rows; edit a field; collapse / expand inspector.  
 **Verify (tablet width):** open inspector in portrait-like width; dismiss via visible control.
 
 ---
@@ -301,8 +303,9 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 
 **Work**
 
-- [ ] Density tokens / CSS for `body.covenant-desktop` (row height, cell padding, control height) aligned with Profile density where possible
-- [ ] Keep separate (or media-query / pointer-based) comfortable density for touch / tablet so Phase T is not blocked by desktop-only tokens
+- [x] **Started:** tighter `covenant-desktop` pageheads (title size / padding); primary toolbar Add/Search + inspector expand keep min ~44px
+- [ ] Density tokens / CSS for row height, cell padding, control height aligned with Profile density where possible
+- [x] Keep separate (pointer: coarse) comfortable targets for touch so Phase T is not blocked by desktop-only tokens — first pass on table toolbars
 - [ ] Finish **simpler empty states** (title, one sentence, one primary button)
 - [ ] Visual polish: alignment of sidebar, table toolbar, inspector; reduce leftover cards that aren’t interactive containers
 - [ ] Regression pass: Calendar / floorplan / vision board still usable (density must not break canvas tools)
@@ -310,7 +313,7 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 **Acceptance**
 
 - [ ] Default desktop list density shows more rows than web “comfortable” without feeling cramped vs Profile compact
-- [ ] Touch / tablet path is not forced into desktop-compact row heights
+- [x] Touch / tablet path is not forced into sub-44px primary hit targets (pagehead tighten only; Add/Search/inspector stay ≥44px)
 - [ ] Empty Guests/Budget/Payments match the simple pattern
 - [ ] No new purple-marketing / hero regressions in tool screens
 
@@ -418,9 +421,9 @@ test -f docs/PWA_INSTALL.md && test -f docs/DESKTOP_NATIVE_POLISH_PLAN.md
 3. [x] Phase A — native destructive dialogs + copy  
 4. [x] Phase B — demote heroes / duplicate toolbars / stat clutter (first pass)  
 5. [x] Phase C — sidebar IA + one job + tabs policy (**tablet-aware** collapse path) — **started**; finish Calendar/tab audit next  
-6. [ ] Phase D — table-local toolbars (**touch-usable**)  
-7. [ ] Phase E — row inspector (**split / drawer** for tablet widths)  
-8. [ ] Phase F — density + empty states + polish (**adaptive** density, not desktop-only)  
+6. [x] Phase D — table-local toolbars (**touch-usable**) — Guests + Payments first pass; Budget/Contacts remain  
+7. [x] Phase E — row inspector — People (Guests / Contacts / Party); tablet split/drawer still Phase T  
+8. [ ] Phase F — density + empty states + polish (**adaptive** density) — **started** (tighter pageheads + 44px primary targets)  
 9. [ ] Phase T — iPad PWA install + offline + breakpoints + touch + in-UI critical actions  
 10. [ ] Phase G — tray / file assoc / pickers / auto-update / license (Windows Electron)  
 11. [ ] Phase T-later — optional native iPad shell notes only if product asks (**docs only**)  
