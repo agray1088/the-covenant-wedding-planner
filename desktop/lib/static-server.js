@@ -95,6 +95,12 @@ function desktopMenuBridgeScript() {
     "if(action==='backup-help'&&typeof openFooterBackupHelp==='function')return openFooterBackupHelp();" +
     "if(action==='connect'&&payload&&typeof openFooterConnect==='function')return openFooterConnect(payload);" +
     "if(action==='legal'&&payload&&typeof openFooterLegal==='function')return openFooterLegal(payload);" +
+    "if(action==='about'){" +
+    "if(window.covenantDesktop&&typeof window.covenantDesktop.showAbout==='function')return window.covenantDesktop.showAbout();" +
+    "if(typeof openSettingsWindow==='function')return openSettingsWindow('about');}" +
+    "if(action==='zoom-in'&&window.covenantDesktop&&typeof window.covenantDesktop.zoomIn==='function')return window.covenantDesktop.zoomIn();" +
+    "if(action==='zoom-out'&&window.covenantDesktop&&typeof window.covenantDesktop.zoomOut==='function')return window.covenantDesktop.zoomOut();" +
+    "if(action==='zoom-reset'&&window.covenantDesktop&&typeof window.covenantDesktop.zoomReset==='function')return window.covenantDesktop.zoomReset();" +
     '}catch(e){try{console.error("desktop menu",e);}catch(_){}}' +
     '}' +
     'function markDesktopChrome(){' +

@@ -476,6 +476,23 @@ ipcMain.handle('covenant:set-api-base', (_evt, base) => {
   return currentApiBase;
 });
 
+ipcMain.handle('covenant:show-about', () => {
+  showAbout();
+  return true;
+});
+
+ipcMain.handle('covenant:zoom', (evt, dir) => {
+  const wc = evt.sender;
+  if (!wc || wc.isDestroyed()) return 1;
+  const cur = typeof wc.getZoomFactor === 'function' ? wc.getZoomFactor() : 1;
+  let next = cur;
+  if (dir === 'in') next = Math.min(3, Math.round((cur + 0.1) * 10) / 10);
+  else if (dir === 'out') next = Math.max(0.5, Math.round((cur - 0.1) * 10) / 10);
+  else next = 1;
+  if (typeof wc.setZoomFactor === 'function') wc.setZoomFactor(next);
+  return next;
+});
+
 /**
  * Native destructive / confirm dialogs for the renderer (import wipe, sign-out, bulk delete).
  * Returns true when the user chooses the primary (OK) button.

@@ -180,16 +180,47 @@
     }
     orderActions();
 
-    /* Desktop: industry-style compact toolbar — Search, Save, Alerts (+ Settings).
-       Undo/Redo, Dark Mode, Profile & Display, Database Hub, Quick Jump live in
-       the native File/Edit/View/Go menus (see desktop/main.js). Web/mobile keep
-       the full icon row. */
+    /* Desktop: compact green brand toolbar — brand + search + save + alerts +
+       settings. Undo/Redo / Dark Mode / Profile / Hub / Jump also live in the
+       native menus AND the new Home|Plan|View|Help ribbon (desktop-shell-layout.js).
+       Horizontal .rd-tabs stay as app section nav (not a left app sidebar). */
     if (isDesktopShell()) {
       try {
         document.documentElement.classList.add('covenant-desktop');
         document.body.classList.add('covenant-desktop');
       } catch (e) { /* ignore */ }
       bar.classList.add('rd-topbar--desktop');
+      bar.classList.add('rd-topbar--desktop-compact');
+      /* Collapse two marketing rows into one toolbar-height brand bar. */
+      try {
+        var idRow = bar.querySelector('.rd-topbar__row--identity');
+        var actRow = bar.querySelector('.rd-topbar__row--actions');
+        var brand = bar.querySelector('.rd-topbar__brand');
+        var searchSlot = bar.querySelector('.rd-topbar__searchslot');
+        var idRight = bar.querySelector('.rd-topbar__idright');
+        var right = bar.querySelector('.rd-topbar__right');
+        if (idRow && actRow && brand && searchSlot && right) {
+          var compact = el('<div class="rd-topbar__row rd-topbar__row--compact"></div>');
+          compact.appendChild(brand);
+          var wedding = bar.querySelector('.rd-topbar__wedding');
+          if (wedding) compact.appendChild(wedding);
+          compact.appendChild(searchSlot);
+          if (idRight) {
+            var saveslot = idRight.querySelector('.rd-topbar__saveslot');
+            if (saveslot) compact.appendChild(saveslot);
+          }
+          compact.appendChild(right);
+          bar.insertBefore(compact, idRow);
+          idRow.setAttribute('hidden', '');
+          actRow.setAttribute('hidden', '');
+          bar.classList.remove('rd-topbar--tworow');
+          bar.classList.add('rd-topbar--onerow');
+        }
+        var sub = bar.querySelector('.rd-topbar__sub');
+        if (sub) sub.setAttribute('hidden', '');
+        var cdHide = bar.querySelector('#rd-topbar-countdown');
+        if (cdHide) { cdHide.setAttribute('hidden', ''); cdHide.setAttribute('aria-hidden', 'true'); }
+      } catch (eCompact) { /* keep tworow fallback */ }
       ['undo-btn', 'redo-btn', 'profile-drawer-btn', 'data-hub-btn', 'dark-mode-btn'].forEach(function (id) {
         var b = document.getElementById(id);
         if (b) {
@@ -205,8 +236,8 @@
       }
       var undoSlotHide = bar.querySelector('.rd-topbar__undoslot');
       if (undoSlotHide) undoSlotHide.classList.add('rd-desktop-menu-only');
-      /* Save status stays in the identity row; demote the redundant Save label
-         to icon-only so the actions row stays compact. */
+      /* Save status stays in the brand bar; demote the redundant Save label
+         to icon-only so the bar stays compact. */
       var saveBtn = document.getElementById('save-btn');
       if (saveBtn) {
         saveBtn.classList.add('rd-topbar__action', 'rd-topbar__action--compact');
@@ -224,7 +255,7 @@
       /* Soften browser-centric banners / wizard notes; version stamp → Help → About */
       var backupCopy = document.querySelector('#backup-banner .backup-banner-copy');
       if (backupCopy) {
-        backupCopy.innerHTML = '<strong>Saved on this computer.</strong> Export a backup regularly from File → Export Backup or Settings → Backup &amp; restore before replacing this install or moving machines.';
+        backupCopy.innerHTML = '<strong>Saved on this computer.</strong> Export a backup regularly from File → Export Backup, the Home ribbon, or Settings → Backup &amp; restore before replacing this install or moving machines.';
       }
       var storageWarn = document.querySelector('#storage-warning > span');
       if (storageWarn) {
@@ -234,7 +265,7 @@
       if (storageBackupBtn) storageBackupBtn.textContent = 'Export Backup';
       var essBanner = document.querySelector('#simple-mode-banner .simple-mode-banner-text');
       if (essBanner) {
-        essBanner.innerHTML = '<strong>Essentials View is on.</strong> Advanced planning pages are hidden from the menu, but no data is deleted. Open <strong>Profile &amp; Display</strong> (View menu or wedding chip) and click <strong>Full Planner</strong> (or turn off Focus on Essentials) to show every page again.';
+        essBanner.innerHTML = '<strong>Essentials View is on.</strong> Advanced planning pages are hidden from the menu, but no data is deleted. Open <strong>Profile &amp; Display</strong> (View menu, View ribbon, or wedding chip) and click <strong>Full Planner</strong> (or turn off Focus on Essentials) to show every page again.';
       }
       document.querySelectorAll('.wizard-transparency-note').forEach(function (note) {
         note.textContent = 'Saved on this computer only. Export a backup anytime from File → Export Backup — nothing leaves your computer unless you export.';
@@ -251,6 +282,12 @@
       }
       var updateBanner = document.getElementById('covenant-update-banner');
       if (updateBanner) updateBanner.remove();
+      /* Horizontal section tabs are the app section nav — never hide .rd-tabs. */
+      tabs.removeAttribute('hidden');
+      tabs.removeAttribute('aria-hidden');
+      if (window.covenantDesktopShell && typeof window.covenantDesktopShell.boot === 'function') {
+        try { window.covenantDesktopShell.boot(); } catch (eBoot) { /* soft */ }
+      }
     }
 
     document.getElementById('rd-gear-btn').addEventListener('click', function (e) {

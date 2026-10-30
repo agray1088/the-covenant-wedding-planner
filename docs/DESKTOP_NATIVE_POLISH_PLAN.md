@@ -61,10 +61,11 @@ Actionable end-to-end plan for Windows Electron desktop UX **and** shared-UI tab
 
 Ordered later in the roadmap: **tighten per-section toolbars → row inspector → density → visual polish**. When touching layout, keep **tablet / touch** in mind (Phase T) so Electron density does not become the only path.
 
-- [x] **Stable chrome + one primary job per screen** — first pass: hide `#nav-category-bar` under `covenant-desktop` + context sidebar; compact pageheads; demote KPI strips (Guests / Budget / Payments / Tasks / Dashboard). Deeper “one job” per remaining sections still open
-- [x] **Sidebar for app sections** — first pass: desktop hides duplicate top category menubar so context sidebar + Go menu own section switching; tablet collapse still Phase T
+- [x] **Stable chrome + one primary job per screen** — compact forest brand bar + horizontal `.rd-tabs` section nav + pageheads demoted; KPI strips softened (Guests / Budget / Payments / Tasks / Dashboard). Deeper “one job” per remaining sections still open
+- [x] **Horizontal app section nav (not left app sidebar)** — Overview · Planning · People · Money · Vendors · The Day · Covenant · Documents stay as top `.rd-tabs`; legacy `#nav-category-bar` stays retired; **in-page** left rails (views/filters) preserved. See **Decided shell layout** below
+- [x] **Light command ribbon** — Home | Plan | View | Help under section tabs (`js/desktop-shell-layout.js`); additive to native menus; critical actions remain in-UI (Phase T)
 - [ ] **Table-local toolbar** — Add / Filter / Sort / Search **directly above** the table they control (not duplicated in global chrome or page heroes); touch-usable (Phase T / D)
-- [ ] **Optional right inspector** on row select (details / edit without leaving the list); on tablet use **split view** or drawer below breakpoint (Phase E + T)
+- [x] **Optional right inspector** on row select — Guests v1: persistent / collapsible CRM column with “Select a row” empty state; reuses `#record-drawer`. Tablet split/stack still Phase T
 - [ ] **Adaptive density** — tighter row height under `body.covenant-desktop`; comfortable / touch-friendly density for tablet & PWA (not desktop-only)
 - [ ] **Simpler empty states** — short copy + one primary action; no marketing blocks
 - [x] **Reduce webby clutter inside tool screens** — first pass under `body.covenant-desktop`: hide eyebrows / teach blocks / dashboard view-leads; soften stats & payment insight; rewrite backup banner; hide version stamp (Help → About). More sections / empty-state redesign remain for Phase F
@@ -85,15 +86,33 @@ Same planner UI must translate well to **tablet**, especially **iPad**. Near-ter
 
 ---
 
+## Decided shell layout (Electron — `covenant-desktop`)
+
+**Direction (agreed):** top → bottom stack. Web/PWA keep closer to the current look unless shared structure helps.
+
+| # | Layer | Notes |
+|---|--------|--------|
+| 1 | Native Electron menu | File / Edit / View / Go / Help (already shipped) |
+| 2 | Compact green brand bar | Brand + search + alerts (+ Save/settings as fits). Toolbar height — not a marketing hero. Forest accent kept |
+| 3 | Horizontal section tabs | Overview · Planning · People · Money · Vendors · The Day · Covenant · Documents (`.rd-tabs`). **Do not** move these to a left app sidebar |
+| 4 | Light ribbon | Home \| Plan \| View \| Help with grouped commands (Undo/Redo, backup, Quick Jump, Hub, Dark Mode, Profile, Zoom, About, docs stubs). Wired to existing actions / preload bridges. **Additive** — not ribbon-only for critical actions |
+| 5 | Page toolbar | Existing per-section Add/Filter/Sort etc. kept |
+| 6 | Content + optional right CRM inspector | Guests v1: select row → `#record-drawer` in inspector; empty “Select a row”; collapsible |
+| 7 | In-page left panels | Views/filters/details **within** a section stay; only **app** section nav is horizontal across the top |
+
+**Gate:** `COVENANT_DESKTOP` / `covenantDesktop` / `body.covenant-desktop`. Implementation: `js/desktop-shell-layout.js` + desktop compact topbar in `js/redesign-shell.js`.
+
+---
+
 ## Principles (apply in every layout phase)
 
-1. **Stable chrome** — menu bar + compact top bar + left section nav do not jump when switching tools (Electron); on tablet/PWA, top bar + section nav stay stable even without a native menu bar.
+1. **Stable chrome** — menu bar + compact brand bar + horizontal section tabs (+ ribbon on desktop) do not jump when switching tools; on tablet/PWA, top bar + section nav stay stable even without a native menu bar.
 2. **One job per screen** — headline + primary workspace; secondary stats/helpers below or in inspector, not in the first viewport of a tool.
 3. **Tables own their chrome** — Add / Filter / Sort / Search live above that table only; controls must work with touch.
-4. **Sidebar = sections; tabs = sub-views** — do not add another top-level tab strip that mirrors the sidebar; collapse sidebar on tablet widths.
+4. **App sections stay horizontal; in-page left rails OK** — do not replace Overview…Documents with a left app sidebar; keep page-local views/filters sidebars. Collapse page rails on tablet widths (Phase T).
 5. **Desktop ≠ marketing site** — gate hero / promo / install / “this week” clutter with `covenant-desktop` where appropriate; tablet PWA still gets a task-focused first viewport.
 6. **Web / tablet stay capable** — prefer CSS/class gates and desktop-only branches; do not gut mobile/web/tablet layouts. **Adaptive density**, not desktop-only density.
-7. **Menu bar is additive, not exclusive** — Electron menus may relocate chrome, but critical actions keep in-UI entry points for tablet / PWA / iPad.
+7. **Menu bar + ribbon are additive, not exclusive** — Electron menus / ribbon may surface chrome, but critical actions keep in-UI entry points for tablet / PWA / iPad.
 
 ---
 
@@ -178,21 +197,22 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 
 ---
 
-### Phase C — Information architecture: sidebar + one job + tabs policy
+### Phase C — Information architecture: horizontal sections + one job + tabs policy
 
-**Goal:** Stable left nav for **app sections**; tabs only for **sub-views**.  
+**Goal:** Stable **horizontal** nav for **app sections** (`.rd-tabs`); page-local left rails for views/filters; sub-view tabs only inside a section.  
 **Depends on:** Phase B (clutter reduced so IA changes are visible).  
 **Layout order note:** Establish structure before tightening every table toolbar.  
-**Tablet weave:** Design sidebar so it can **collapse / overlay** at tablet breakpoints (Phase T owns the breakpoint pass; do not hard-code sidebar as always-visible desktop-only).  
-**Status:** STARTED (first pass) — desktop hides `#nav-category-bar`; sidebar + Go menu own sections. Full tab audit + Calendar/Tasks one-job polish still open.
+**Tablet weave:** Page-local left rails collapse / overlay at tablet breakpoints (Phase T); do not invent a left app-section sidebar.  
+**Status:** DONE (decided layout first pass) — compact brand bar + `.rd-tabs` + Home|Plan|View|Help ribbon; legacy `#nav-category-bar` stays hidden. Calendar/Tasks deeper one-job polish still open.
 
 **Work**
 
-- [x] Confirm / harden desktop sidebar as the sole top-level section switcher (hide duplicate `#nav-category-bar` under `covenant-desktop` + `context-sidebar-mode`; web/tablet keep the bar)
-- [ ] Audit secondary tab strips: keep only true sub-views (e.g. Calendar month/week/agenda); remove or relocate strips that duplicate sidebar destinations
+- [x] Restore / keep horizontal category menubar (`.rd-tabs`) as sole top-level section switcher; do **not** move Overview…Documents into a left app sidebar
+- [x] Add light command ribbon (Home | Plan | View | Help) under section tabs; wire to existing menu/preload actions; keep in-UI duplicates for tablet
+- [ ] Audit secondary tab strips: keep only true sub-views (e.g. Calendar month/week/agenda); remove or relocate strips that duplicate app-section destinations
 - [x] Each section: one primary headline + one primary workspace region — first pass on Guests / Budget / Payments / Dashboard / Tasks pageheads
-- [x] Avoid patterns that require a permanent wide sidebar + permanent inspector side-by-side with no collapse path (blocks tablet) — no new permanent inspector; sidebar already collapsible via existing expand/collapse controls
-- [x] Document section → primary job mapping (see table below)
+- [x] Inspector + page rail must remain collapsible (Guests CRM inspector collapses; context sidebar already collapses)
+- [x] Document section → primary job mapping (see table below) + decided shell stack
 
 **Section → primary job (desktop first pass)**
 
@@ -207,13 +227,13 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 
 **Acceptance**
 
-- [x] Switching sections does not remount or reshuffle menu/top-bar chrome (unchanged shell; category bar no longer jumps the workspace on desktop)
-- [x] No tool screen uses a tab row as a substitute for the app sidebar (top category menubar hidden on desktop)
+- [x] Switching sections does not remount or reshuffle menu / brand bar / section tabs / ribbon
+- [x] App section nav remains horizontal (`.rd-tabs`); in-page left panels stay page-local
 - [ ] “One primary job” is true for Guests, Budget, Payments, Calendar, Tasks at minimum — Guests/Budget/Payments/Tasks improved; Calendar deeper pass still open
-- [x] Sidebar structure leaves a clear path for collapsible / overlay behavior at tablet widths (even if Phase T wires the breakpoints)
+- [x] Inspector + page rails leave a clear collapse path for tablet widths (even if Phase T wires the breakpoints)
 
-**Verify (Windows x64):** navigate Go menu + sidebar across sections; chrome stays stable.  
-**Verify (tablet-minded):** at ~768–1024 px width in browser DevTools, sidebar does not permanently consume the whole workspace with no escape.
+**Verify (Windows x64):** navigate Go menu + horizontal tabs across sections; chrome stays stable; ribbon commands fire.  
+**Verify (tablet-minded):** at ~768–1024 px width in browser DevTools, page rails / inspector do not permanently consume the whole workspace with no escape.
 
 ---
 
@@ -247,26 +267,27 @@ REM Exercise: Import Backup → Cancel; Sign out; one bulk delete Cancel/OK
 ### Phase E — Optional right inspector on row select
 
 **Goal:** Select a row → details/edit in a right inspector; list stays put.  
-**Depends on:** Phase D (table chrome stable).  
-**Priority:** After per-section toolbars.  
-**Tablet weave:** Prefer **split view** on wide tablets; **drawer / full-sheet** below breakpoint. Same shell as desktop inspector — responsive behavior, not a second product.
+**Depends on:** Phase D preferred; Guests v1 shipped with shell layout ahead of full table-toolbar pass.  
+**Priority:** After per-section toolbars for remaining sections.  
+**Tablet weave:** Prefer **split view** on wide tablets; **drawer / full-sheet** below breakpoint. Same shell as desktop inspector — responsive behavior, not a second product.  
+**Status:** DONE (Guests v1 first pass) — collapsible CRM column + empty state; reuses `#record-drawer` / existing guest editor.
 
 **Work**
 
-- [ ] Inspector shell: open on row select / Enter; close on Escape / clear selection
-- [ ] Start with one section (recommend Guests or Payments), then replicate pattern
-- [ ] Do not force inspector on tiny windows — collapse to drawer/modal below a width breakpoint (shared with tablet)
-- [ ] Avoid stacking inspector + unrelated side panels
-- [ ] Ensure close / back control is tap-sized (not hover-dismiss only)
+- [x] Inspector shell: open on row select (existing `rdOpenDrawer`); empty state when none selected; collapse control
+- [x] Start with Guests / People; pattern reusable via `#*-drawer-slot` + empty chrome
+- [x] Collapse path on desktop (persist preference); tablet breakpoint polish still Phase T
+- [x] Reuse existing detail / drawer / editors rather than rewriting forms
+- [x] Close / collapse control is visible (not hover-dismiss only)
 
 **Acceptance**
 
-- [ ] Selecting a row opens inspector with that record; changing selection updates it
-- [ ] Closing inspector returns focus to the table
-- [ ] No full-page navigation required for common field edits in the pilot section
-- [ ] Below the chosen breakpoint, inspector does not permanently crush the table to unusable width
+- [x] Selecting a guest row opens inspector with that record; changing selection updates it
+- [x] Collapsing inspector returns space to the table; expand control restores it
+- [x] No full-page navigation required for common field edits on Guests
+- [ ] Below tablet breakpoint, inspector does not permanently crush the table (Phase T verify)
 
-**Verify (Windows x64):** select/deselect rows; edit a field; Escape closes.  
+**Verify (Windows x64):** select/deselect guest rows; edit a field; collapse / expand inspector.  
 **Verify (tablet width):** open inspector in portrait-like width; dismiss via visible control.
 
 ---

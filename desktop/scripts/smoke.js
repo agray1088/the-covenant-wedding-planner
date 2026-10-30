@@ -56,8 +56,15 @@ async function main() {
     if (!/action==='data-hub'/.test(index.body)) {
       failures.push('menu bridge missing data-hub action');
     }
+    if (!/action==='about'/.test(index.body)) {
+      failures.push('menu bridge missing about action');
+    }
     if (!/id=["']scripture-banner["']/.test(index.body)) {
       failures.push('scripture-banner should remain after footer removal');
+    }
+    /* Desktop shell layout module + Guests inspector / ribbon hooks */
+    if (!/desktop-shell-layout\.js/.test(index.body)) {
+      failures.push('index missing desktop-shell-layout.js script');
     }
     /* Phase A: PWA manifest / theme-color scrubbed from desktop-served HTML */
     if (/rel=["']manifest["']/.test(index.body)) {
@@ -75,6 +82,25 @@ async function main() {
     const mainBody = fs.readFileSync(path.join(__dirname, '..', 'main.js'), 'utf8');
     if (!mainBody.includes('covenant:confirm') || !mainBody.includes('showMessageBox')) {
       failures.push('main.js missing covenant:confirm native dialog handler');
+    }
+    const layoutJs = fs.readFileSync(
+      path.join(__dirname, '..', '..', 'js', 'desktop-shell-layout.js'),
+      'utf8'
+    );
+    if (!/rd-desktop-ribbon/.test(layoutJs) || !/Home/.test(layoutJs)) {
+      failures.push('desktop-shell-layout missing ribbon Home tab');
+    }
+    if (!/Select a row/.test(layoutJs)) {
+      failures.push('desktop-shell-layout missing CRM inspector empty state');
+    }
+    if (!preloadBody.includes('covenant:show-about') || !preloadBody.includes('showAbout')) {
+      failures.push('preload missing covenantDesktop.showAbout → covenant:show-about');
+    }
+    if (!preloadBody.includes('covenant:zoom')) {
+      failures.push('preload missing covenant:zoom bridge');
+    }
+    if (!mainBody.includes('covenant:show-about') || !mainBody.includes('covenant:zoom')) {
+      failures.push('main.js missing show-about / zoom IPC handlers');
     }
 
     const cfg = await get('/config.js', hosted.origin);

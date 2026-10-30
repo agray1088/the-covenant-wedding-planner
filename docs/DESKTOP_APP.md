@@ -274,10 +274,10 @@ Track browser-like leftovers and desktop UX gaps. Prefer native menus and a comp
 | 6 | Don’t surface **favicon / manifest / theme-color** concepts in the desktop UI | **Done (first pass)** — desktop About / Install copy cleaned; static server scrubs manifest + theme-color meta |
 | 7 | Later: tray sync status, backup file association, native file pickers polish, auto-update | TODO |
 | 8 | **License** — Help → Enter License… is a stub; real activation later | TODO (stub UI **Done**) |
-| 9 | **Stable chrome + one primary job per screen** — menu/top bar/sidebar stay put; each tool screen has one primary task | **Done (first pass)** — compact pageheads; demoted stats/heroes on Guests/Budget/Payments/Tasks/Dashboard (plan Phases B–C) |
-| 10 | **Sidebar for app sections**; secondary **tabs only for sub-views** (not top-level nav); collapsible on tablet | **Done (first pass)** — desktop hides `#nav-category-bar`; sidebar + Go menu own sections; tablet collapse still Phase T |
-| 11 | **Table-local toolbar** — Add / Filter / Sort / Search directly above the table; **touch-usable** | TODO (layout; plan Phase D — implement before inspector; Phase T touch verify) |
-| 12 | **Optional right inspector** on row select; split / drawer on tablet widths | TODO (layout; plan Phase E — after table toolbars) |
+| 9 | **Stable chrome + one primary job per screen** — menu / compact brand bar / horizontal section tabs (+ ribbon) stay put; each tool screen has one primary task | **Done (first pass)** — compact forest brand bar; demoted stats/heroes; see plan **Decided shell layout** |
+| 10 | **Horizontal app section nav** (Overview…Documents); **in-page** left rails for views/filters; secondary tabs only for sub-views; tablet collapse still Phase T | **Done (first pass)** — `.rd-tabs` kept; light Home\|Plan\|View\|Help ribbon; legacy `#nav-category-bar` retired |
+| 11 | **Table-local toolbar** — Add / Filter / Sort / Search directly above the table; **touch-usable** | TODO (layout; plan Phase D; Phase T touch verify) |
+| 12 | **Optional right inspector** on row select; split / drawer on tablet widths | **Done (Guests v1)** — collapsible CRM inspector + “Select a row”; reuses record drawer; tablet polish Phase T |
 | 13 | **Adaptive density** — tighter rows under `covenant-desktop`; comfortable / touch density for tablet & PWA (not desktop-only) | TODO (layout; plan Phase F + T — after inspector) |
 | 14 | **Simpler empty states** + reduce webby heroes / duplicate toolbars / stat-card clutter inside tool screens | **Partial** — Phase B first pass demoted clutter; empty-state redesign still Phase F |
 | 15 | **Tablet / iPad (PWA)** — same UI fits iPad; Safari Add to Home Screen + offline verify; breakpoints; ~44 px targets; no hover-only critical actions; in-UI paths for menu-bar actions | TODO (plan **Phase T**; install docs: [`PWA_INSTALL.md`](./PWA_INSTALL.md)) |
@@ -298,15 +298,19 @@ Full checkboxes and acceptance: [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATI
 
 ### Top toolbar (desktop first pass)
 
-| Keep in bar | Relocated / hidden on desktop |
+| Keep in bar | Relocated / also on ribbon + menus |
 |-------------|-------------------------------|
-| Brand + wedding chip (opens Profile & Display) | Undo / Redo → **Edit** menu + existing ⌘/Ctrl+Z shortcuts |
-| Search | Dark Mode → **View → Dark Mode** |
-| Save status + Save | Profile & Display button → wedding chip / **View → Profile & Display…** / Settings |
-| Alerts | Database Hub → **Go → Database Hub** |
-| Settings (gear) | Quick Jump → **Go → Quick Jump…** |
+| Brand + wedding chip (opens Profile & Display) | Undo / Redo → **Edit** menu + **Home** ribbon + ⌘/Ctrl+Z |
+| Search | Dark Mode → **View** menu + **View** ribbon |
+| Save status + Save | Profile & Display → wedding chip / **View** menu & ribbon / Settings |
+| Alerts | Database Hub → **Go** menu + **Plan** ribbon |
+| Settings (gear) | Quick Jump → **Go** menu + **Plan** ribbon |
 
-Web / mobile keep the fuller toolbar. Desktop detection: `window.COVENANT_DESKTOP` (injected) and/or `window.covenantDesktop` (preload bridge); `html`/`body` get class `covenant-desktop`.
+### Decided desktop chrome stack
+
+See [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) → **Decided shell layout**: native menu → compact green brand bar → horizontal section tabs → Home\|Plan\|View\|Help ribbon → page toolbars → content + optional right CRM inspector. App section nav stays horizontal; in-page left panels stay page-local.
+
+Web / mobile keep the fuller toolbar (no ribbon). Desktop detection: `window.COVENANT_DESKTOP` (injected) and/or `window.covenantDesktop` (preload bridge); `html`/`body` get class `covenant-desktop`.
 
 ## Isolation
 

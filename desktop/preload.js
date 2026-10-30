@@ -12,6 +12,11 @@ contextBridge.exposeInMainWorld('covenantDesktop', {
    * @returns {Promise<boolean>} true if the user chose OK / primary action
    */
   confirm: (opts) => ipcRenderer.invoke('covenant:confirm', opts || {}),
+  /** Native Help → About (also used by the desktop ribbon). */
+  showAbout: () => ipcRenderer.invoke('covenant:show-about'),
+  zoomIn: () => ipcRenderer.invoke('covenant:zoom', 'in'),
+  zoomOut: () => ipcRenderer.invoke('covenant:zoom', 'out'),
+  zoomReset: () => ipcRenderer.invoke('covenant:zoom', 'reset'),
   /** Subscribe to native menu commands from the main process. Returns unsubscribe. */
   onMenuAction: (handler) => {
     if (typeof handler !== 'function') return () => {};

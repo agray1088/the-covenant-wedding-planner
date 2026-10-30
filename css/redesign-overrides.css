@@ -31281,7 +31281,9 @@ body.covenant-desktop #backup-banner .backup-banner-copy {
   max-width: 52rem;
 }
 
-/* Phase C: sidebar owns top-level sections — hide duplicate category menubar */
+/* Legacy #nav-category-bar stays retired — horizontal .rd-tabs is app section nav.
+   Do NOT move Overview…Documents into a left app sidebar. In-page left rails
+   (views/filters) remain. */
 html.covenant-desktop.context-sidebar-mode #nav-category-bar,
 body.covenant-desktop.context-sidebar-mode #nav-category-bar {
   display: none !important;
@@ -31293,6 +31295,18 @@ body.covenant-desktop.context-sidebar-mode #nav-category-bar {
   overflow: hidden !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+/* Agreed desktop IA: keep redesign horizontal section tabs visible */
+html.covenant-desktop .rd-tabs,
+body.covenant-desktop .rd-tabs,
+html.covenant-desktop .rd-tabs.rd-tabs--desktop-app-nav,
+body.covenant-desktop .rd-tabs.rd-tabs--desktop-app-nav {
+  display: flex !important;
+  visibility: visible !important;
+  height: auto !important;
+  min-height: 40px !important;
+  pointer-events: auto !important;
 }
 
 /* Compact pageheads — one title, primary actions; no marketing eyebrow */
@@ -31400,4 +31414,308 @@ body.covenant-desktop .rd-pagehead__actions > .rd-btn--quiet[onclick*="printCurr
 /* Soften gear prefs trash affordance (Trash remains reachable via Settings) */
 html.covenant-desktop .rd-prefs__trash {
   font-size: 12px;
+}
+
+/* ── Desktop shell layout (agreed stack) ────────────────────────────────
+   Native menu → compact green brand bar → horizontal section tabs →
+   light Home|Plan|View|Help ribbon → page toolbars → content + CRM inspector.
+   Gated on covenant-desktop; web/PWA unchanged. */
+
+html.covenant-desktop .rd-topbar.rd-topbar--desktop-compact,
+html.covenant-desktop .rd-topbar.rd-topbar--onerow,
+body.covenant-desktop .rd-topbar.rd-topbar--desktop-compact,
+body.covenant-desktop .rd-topbar.rd-topbar--onerow {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  background: var(--shell-topbar-bg, var(--forest, #2D4A3E)) !important;
+  border-bottom: 1px solid rgba(212, 184, 150, 0.22);
+}
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__row--compact,
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__row--compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  box-sizing: border-box;
+}
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__brand,
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__brand {
+  flex: 0 0 auto;
+  max-width: 280px;
+}
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__name,
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__name {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__searchslot,
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__searchslot {
+  flex: 1 1 auto;
+  max-width: 380px;
+  min-width: 140px;
+}
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__right,
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__wedding,
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__wedding {
+  max-width: 180px;
+  flex: 0 1 auto;
+}
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__saveslot,
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__saveslot {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: rgba(244, 239, 230, 0.78);
+}
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__row--identity[hidden],
+html.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__row--actions[hidden],
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__row--identity[hidden],
+body.covenant-desktop .rd-topbar--desktop-compact .rd-topbar__row--actions[hidden] {
+  display: none !important;
+}
+
+/* Light ribbon under section tabs */
+html.covenant-desktop .rd-ribbon,
+body.covenant-desktop .rd-ribbon {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--surface-content-alt, #f7f3ec);
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4);
+  color: var(--text-heading, #20362D);
+}
+html.covenant-desktop .rd-ribbon__tabs,
+body.covenant-desktop .rd-ribbon__tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 10px;
+  min-height: 28px;
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4);
+  background: rgba(45, 74, 62, 0.04);
+}
+html.covenant-desktop .rd-ribbon__tab,
+body.covenant-desktop .rd-ribbon__tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-subtle, #6b645d);
+  font: 600 11px/1 var(--font-ui, inherit);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 12px 7px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+html.covenant-desktop .rd-ribbon__tab:hover,
+body.covenant-desktop .rd-ribbon__tab:hover {
+  color: var(--forest, #2D4A3E);
+}
+html.covenant-desktop .rd-ribbon__tab.is-active,
+body.covenant-desktop .rd-ribbon__tab.is-active {
+  color: var(--forest, #2D4A3E);
+  border-bottom-color: var(--forest, #2D4A3E);
+}
+html.covenant-desktop .rd-ribbon__commands,
+body.covenant-desktop .rd-ribbon__commands {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0;
+  min-height: 44px;
+  padding: 4px 8px 6px;
+}
+html.covenant-desktop .rd-ribbon__group,
+body.covenant-desktop .rd-ribbon__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 10px;
+  border-right: 1px solid var(--border-subtle, #e7e1d4);
+}
+html.covenant-desktop .rd-ribbon__group:last-child,
+body.covenant-desktop .rd-ribbon__group:last-child {
+  border-right: 0;
+}
+html.covenant-desktop .rd-ribbon__group-label,
+body.covenant-desktop .rd-ribbon__group-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-subtle, #8a7e6b);
+  font-weight: 700;
+}
+html.covenant-desktop .rd-ribbon__group-row,
+body.covenant-desktop .rd-ribbon__group-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+html.covenant-desktop .rd-ribbon__btn,
+body.covenant-desktop .rd-ribbon__btn {
+  appearance: none;
+  border: 1px solid var(--border-subtle, #d9cfba);
+  background: #fff;
+  color: var(--forest-deep, #20362D);
+  font: 500 12px/1.2 var(--font-ui, inherit);
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 0;
+  min-height: 28px;
+}
+html.covenant-desktop .rd-ribbon__btn:hover,
+body.covenant-desktop .rd-ribbon__btn:hover {
+  border-color: var(--forest, #2D4A3E);
+  background: rgba(45, 74, 62, 0.06);
+}
+html.covenant-desktop .rd-ribbon__btn:disabled,
+body.covenant-desktop .rd-ribbon__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+html.covenant-desktop .rd-ribbon__status,
+body.covenant-desktop .rd-ribbon__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--text-subtle, #6b645d);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Guests CRM inspector — persistent right column on desktop; collapsible */
+html.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot,
+body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot {
+  display: flex !important;
+  flex-direction: column;
+  flex: 0 0 360px;
+  width: 360px;
+  max-width: 360px;
+  min-width: 280px;
+  border-left: 1px solid var(--border-subtle, #e7e1d4);
+  background: var(--surface-content, #fff);
+  position: relative;
+}
+html.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot.is-collapsed,
+body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot.is-collapsed,
+html.covenant-desktop.rd-crm-inspector-collapsed #panel-guests #guest-drawer-slot,
+body.covenant-desktop.rd-crm-inspector-collapsed #panel-guests #guest-drawer-slot {
+  display: none !important;
+}
+html.covenant-desktop .rd-crm-inspector-chrome,
+body.covenant-desktop .rd-crm-inspector-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-subtle, #e7e1d4);
+  background: rgba(45, 74, 62, 0.04);
+  flex: 0 0 auto;
+}
+html.covenant-desktop .rd-crm-inspector-chrome__label,
+body.covenant-desktop .rd-crm-inspector-chrome__label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--forest, #2D4A3E);
+}
+html.covenant-desktop .rd-crm-inspector-toggle,
+body.covenant-desktop .rd-crm-inspector-toggle {
+  appearance: none;
+  border: 1px solid var(--border-subtle, #d9cfba);
+  background: #fff;
+  color: var(--forest-deep, #20362D);
+  font-size: 14px;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  padding: 0;
+}
+html.covenant-desktop .rd-crm-inspector-empty,
+body.covenant-desktop .rd-crm-inspector-empty {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 24px 18px;
+  color: var(--text-subtle, #6b645d);
+}
+html.covenant-desktop .rd-crm-inspector-empty[hidden],
+body.covenant-desktop .rd-crm-inspector-empty[hidden] {
+  display: none !important;
+}
+html.covenant-desktop .rd-crm-inspector-empty__title,
+body.covenant-desktop .rd-crm-inspector-empty__title {
+  font: 600 15px/1.3 var(--font-display, Georgia, serif);
+  color: var(--forest-deep, #20362D);
+}
+html.covenant-desktop .rd-crm-inspector-empty__copy,
+body.covenant-desktop .rd-crm-inspector-empty__copy {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-width: 28ch;
+}
+html.covenant-desktop .rd-crm-inspector-expand,
+body.covenant-desktop .rd-crm-inspector-expand {
+  display: none;
+}
+html.covenant-desktop.rd-crm-inspector-collapsed .rd-crm-inspector-expand,
+body.covenant-desktop.rd-crm-inspector-collapsed .rd-crm-inspector-expand {
+  display: inline-flex;
+  align-items: center;
+  appearance: none;
+  border: 1px solid var(--border-subtle, #d9cfba);
+  background: #fff;
+  color: var(--forest, #2D4A3E);
+  font: 600 11px/1 var(--font-ui, inherit);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  cursor: pointer;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 4;
+}
+html.covenant-desktop.rd-crm-inspector #panel-guests .rd-surface__row,
+body.covenant-desktop.rd-crm-inspector #panel-guests .rd-surface__row {
+  position: relative;
+}
+html.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot #record-drawer,
+body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot #record-drawer {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+}
+@media (max-width: 1100px) {
+  html.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot,
+  body.covenant-desktop.rd-crm-inspector #panel-guests #guest-drawer-slot {
+    flex-basis: 300px;
+    width: 300px;
+    max-width: 300px;
+    min-width: 240px;
+  }
 }
