@@ -2,7 +2,7 @@
 
 Checkbox runbook for rotating secrets after a **Railway incident (Oct 2025 / 2026)** and/or **secrets pasted into chat**. Written for a non-expert Windows operator. Do **not** implement app code here — only rotate credentials and verify.
 
-**Related:** [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md) · [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md) (when Stripe exists)
+**Related:** [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md) · [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md) (when Stripe exists) · [`SECURITY_PLAN.md`](./SECURITY_PLAN.md) (no-backdoor / social-engineering policy; never unlock accounts via chat)
 
 ---
 

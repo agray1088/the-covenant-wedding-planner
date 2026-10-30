@@ -2,7 +2,7 @@
 
 Checkbox / phased build plan for trial, serial codes, Stripe Checkout, entitlements, and desktop unlock wiring. **Follow this file** when implementing commerce; do **not** invent a parallel pricing model.
 
-**Docs / plan only until a dedicated commerce pass.** Align prices and packaging with [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md). Desktop Help → Enter License stub: [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) Phase G. Mail stack: [`AUTH.md`](./AUTH.md). Hosted env: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md).
+**Docs / plan only until a dedicated commerce pass.** Align prices and packaging with [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md). Desktop Help → Enter License stub: [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) Phase G. Mail stack: [`AUTH.md`](./AUTH.md). Hosted env: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md). Security / no master key / “lost my license” playbook: [`SECURITY_PLAN.md`](./SECURITY_PLAN.md).
 
 **Status legend**
 
@@ -79,7 +79,7 @@ Client stores entitlements: app_licensed, cloud_active(+expiresAt)
         └── Cloud features: require cloud_active + signed-in sync host
 ```
 
-**Security notes (non-negotiable)**
+**Security notes (non-negotiable)** — full policy: [`SECURITY_PLAN.md`](./SECURITY_PLAN.md)
 
 - [ ] No master unlock key in Electron / renderer / shipped assets
 - [ ] Store only **hashes** of serials (e.g. SHA-256 of normalized code + server pepper); pepper in Railway env, never in client
@@ -87,7 +87,8 @@ Client stores entitlements: app_licensed, cloud_active(+expiresAt)
 - [ ] Rate-limit redeem attempts; do not echo whether a code “almost” matched
 - [ ] Revoke sets a server flag; next online redeem / entitlement refresh fails; local cache TTL should expire so revoke eventually sticks
 - [ ] Never log full serials, Stripe secrets, or Resend keys (same discipline as auth mailer)
-- [ ] Admin create-code endpoints require operator auth (session or separate ops secret) — not public
+- [ ] Admin create-code endpoints require operator auth (session or separate ops secret) — not public; **audited**; no support god-mode
+- [ ] Re-issue / “lost my key” only via verified purchase email or audited admin — never chat/DM claim alone
 
 ---
 
@@ -292,4 +293,4 @@ Planner static service (`romantic-perception`): **do not** set Stripe / DB / ses
 7. [ ] Phase 5 docs / Railway checklist  
 8. [ ] Mark checkboxes DONE in this file when each phase lands  
 
-Related: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md) · [`DESKTOP_APP.md`](./DESKTOP_APP.md) · [`OFFLINE_CLOUD_SYNC.md`](./OFFLINE_CLOUD_SYNC.md)
+Related: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md) · [`DESKTOP_APP.md`](./DESKTOP_APP.md) · [`OFFLINE_CLOUD_SYNC.md`](./OFFLINE_CLOUD_SYNC.md) · [`SECURITY_PLAN.md`](./SECURITY_PLAN.md) · [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md)

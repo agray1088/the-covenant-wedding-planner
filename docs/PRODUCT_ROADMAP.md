@@ -119,6 +119,7 @@ Windows Electron shell (`.exe`) is tracked separately from the hosted cloud trac
 - **Pricing / packaging** (one-time app + optional cloud; license serials — plan only): [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md)
 - **Licensing + Stripe build plan** (trial, serials, webhooks, tab gates — plan only): [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md)
 - **Secret rotation** (Railway / chat-leak operator checklist): [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md)
+- **Security plan** (no backdoors, social-engineering playbook, hardening phases — plan only): [`SECURITY_PLAN.md`](./SECURITY_PLAN.md)
 - **Cloud photos ops plan** (R2/S3 phases beyond foundation): [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md)
 
 | Theme | Outcome |
@@ -128,13 +129,14 @@ Windows Electron shell (`.exe`) is tracked separately from the hosted cloud trac
 | Layout / sections / tables / tabs | Stable chrome + one job per screen; sidebar vs sub-view tabs; table-local Add/Filter/Sort/Search; optional row inspector; **adaptive** density; simpler empties; less hero/stat clutter (**planned — not implemented**; order: toolbars → inspector → density → polish; tablet-aware) |
 | Tablet / iPad | Same codebase → iPad via PWA / Safari Add to Home Screen; breakpoints; collapsible sidebar / split view; ~44 px touch targets; no hover-only critical actions; touch-usable table toolbars (**Phase T — planned**); optional Capacitor/WKWebView App Store shell **docs only later** |
 
-## Commerce, secrets, photos (plan track)
+## Commerce, secrets, photos, security (plan track)
 
 | Doc | Outcome |
 |-----|---------|
 | [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md) | Locked prices / tiers / entitlements (product decisions) |
 | [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md) | Phased Stripe + serial + desktop unlock implementation |
 | [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md) | Operator rotate Postgres / session / Google / Resend after incident or chat leak |
+| [`SECURITY_PLAN.md`](./SECURITY_PLAN.md) | No-backdoor policy, social-engineering playbook, controls checklist (docs only until security pass) |
 | [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md) | Phased R2/S3 ops + client polish on top of shipped foundation |
 
 ## Docs
@@ -145,6 +147,7 @@ Windows Electron shell (`.exe`) is tracked separately from the hosted cloud trac
 - Pricing and plans (app license + cloud add-on): [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md)
 - Licensing + Stripe (build plan): [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md)
 - Secret rotation (operator checklist): [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md)
+- Security plan (no backdoors / social engineering / phased hardening): [`SECURITY_PLAN.md`](./SECURITY_PLAN.md)
 - Cloud photos (R2/S3 plan): [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md)
 
 - Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md)  

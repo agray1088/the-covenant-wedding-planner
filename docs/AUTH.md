@@ -138,6 +138,7 @@ Transport selection (`GET /setup/status` -> `emailTransport`): `resend-api` when
 - Reset tokens are single-use, hashed at rest, short-lived (default 2 hours via `PASSWORD_RESET_HOURS`).
 - Google-only accounts may have `password_hash = NULL`; they sign in via Google until a password is set through a future “set password” flow (not in this pass).
 - CORS still restricts browser origins; OAuth state is one-time to mitigate CSRF.
+- **No support backdoor:** never unlock accounts or share passwords because someone claims they lost access in chat — use forgot-password (email ownership) or audited admin only. Full policy: [`SECURITY_PLAN.md`](./SECURITY_PLAN.md). Rotate leaked secrets with [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md).
 
 ## Client (Settings → Cloud sync)
 
@@ -171,4 +172,4 @@ Google / live SMTP paths are manual once secrets exist (see checklists above).
 
 ## What’s next
 
-**Polish trio done** (hosted checklist + S3/R2 foundation + Railway/Fly deploy wiring). Paste Google + SMTP (+ optional R2/S3) secrets in your host dashboard — guided: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md); reference: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md). RSVP portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+**Polish trio done** (hosted checklist + S3/R2 foundation + Railway/Fly deploy wiring). Paste Google + SMTP (+ optional R2/S3) secrets in your host dashboard — guided: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md); reference: [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md). RSVP portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). Backup/photos: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Security / social-engineering policy: [`SECURITY_PLAN.md`](./SECURITY_PLAN.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

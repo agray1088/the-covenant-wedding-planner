@@ -335,6 +335,6 @@ See [`RECONNECT_AFTER_RESTART.md`](./RECONNECT_AFTER_RESTART.md).
 
 **Polish trio done:** (1) hosted secrets checklist UX, (2) S3/R2 photo foundation, (3) Railway/Fly deploy wiring docs + config. Operator still pastes real Google + SMTP (+ optional R2/S3) secrets in the host dashboard.
 
-After an incident or chat leak, rotate secrets with [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md) (never paste secrets in chat). Optional photo ops phases: [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md).
+After an incident or chat leak, rotate secrets with [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md) (never paste secrets in chat). Optional photo ops phases: [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md). Security policy (no backdoors, “lost my key” playbook, Postgres not public): [`SECURITY_PLAN.md`](./SECURITY_PLAN.md).
 
-Related: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md) · [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md) · [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) · [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+Related: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md) · [`SECURITY_PLAN.md`](./SECURITY_PLAN.md) · [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md) · [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) · [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
