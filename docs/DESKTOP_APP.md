@@ -221,9 +221,13 @@ Menu **File → Open Data Folder** opens `userData`.
 
 Uninstalling the NSIS app may leave `userData` behind (normal for Electron). Deleting that folder wipes on-device planner data for the desktop app.
 
+### User-facing wording (not “browser”)
+
+Under the hood the desktop shell still uses Chromium storage APIs inside `%APPDATA%` (same IndexedDB / localStorage / sql.js path as the web planner). That is an implementation detail — **do not** tell users their data lives “in the browser,” “site data,” or “cookies.” Prefer **on this computer**, **this app’s local data**, and **File → Export Backup** / **File → Import Backup**. Web / PWA copy may still mention browser storage. Helpers: `isCovenantDesktopShell`, `shellCopy`, `desktopizeUserFacingCopy` in `js/planner.js`.
+
 ### Backup reminder
 
-Desktop install does **not** replace backups. Use **Backup & restore** in the planner regularly, or enable optional cloud sync. Clearing `userData`, OS resets, or a broken disk can lose local-only data.
+Desktop install does **not** replace backups. Use **File → Export Backup** or **Backup & restore** in the planner regularly, or enable optional cloud sync. Clearing `userData`, OS resets, or a broken disk can lose local-only data.
 
 ## Code signing / SmartScreen
 

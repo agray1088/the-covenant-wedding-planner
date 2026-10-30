@@ -761,7 +761,9 @@
         '<div><span>' + ic.pays + ' payments</span><em>Relative schedules only</em></div>' +
         '<div><span>' + ic.appts + ' appointments</span><em>Kept absolute</em></div>' +
         (ic.counseling ? ('<div><span>' + ic.counseling + ' counseling sessions</span><em>Re-spaced</em></div>') : '') +
-        '<div><span>Countdown</span><em>Dashboard, top bar</em></div></div>' +
+        '<div><span>Countdown</span><em>' +
+        ((typeof shellCopy === 'function') ? shellCopy('Dashboard, top bar', 'Dashboard') : 'Dashboard') +
+        '</em></div></div>' +
         '<p class="rd-drawer__note">Eleven fields on Wedding Setup feed the rest of the planner. This is the one that feeds the most, and the only one whose edit is a confirmed action.</p>' +
         '<p class="rd-drawer__note">A date change is a confirmed action: you get a before-and-after list of every moved due date and approve it as one change.</p>';
     } else if (tab === 1) {

@@ -2047,14 +2047,16 @@ function buildDataHubPrintSheets(){
 /* FAQ — common questions about the planner. */
 function buildFaqPrintSheets(){
   const items = (typeof FAQ_ITEMS !== 'undefined') ? FAQ_ITEMS : [];
-  const body = items.map(it => '<h3 class="cvp-q">' + escapeHtml(String(it[0] || '')) + '</h3><div class="cvp-rich">' + String(it[1] || '') + '</div>').join('') || '<div class="cvp-empty">No FAQs available.</div>';
+  const dz = (typeof desktopizeUserFacingCopy === 'function') ? desktopizeUserFacingCopy : function(t){ return t; };
+  const body = items.map(it => '<h3 class="cvp-q">' + escapeHtml(dz(String(it[0] || ''))) + '</h3><div class="cvp-rich">' + dz(String(it[1] || '')) + '</div>').join('') || '<div class="cvp-empty">No FAQs available.</div>';
   return _cvpPage(_CVP_BRAND + ' &middot; Start Planning', 'FAQ', 'Answers to common questions', _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()), _cvpSec('Frequently asked questions') + body, 'If any of you lack wisdom, let him ask of God.', 'FAQ');
 }
 
 /* Page-by-Page Guide — what each page does. */
 function buildGuidePrintSheets(){
   const g = (typeof PAGE_GUIDE !== 'undefined') ? PAGE_GUIDE : [];
-  const body = g.map(e => '<h3 class="cvp-q">' + escapeHtml(String(e[0] || '')) + (e[1] ? ' <span style="color:var(--muted);font-size:9px">&middot; ' + escapeHtml(String(e[1])) + '</span>' : '') + '</h3><div class="cvp-rich">' + String(e[2] || '') + '</div>').join('') || '<div class="cvp-empty">No guide available.</div>';
+  const dz = (typeof desktopizeUserFacingCopy === 'function') ? desktopizeUserFacingCopy : function(t){ return t; };
+  const body = g.map(e => '<h3 class="cvp-q">' + escapeHtml(String(e[0] || '')) + (e[1] ? ' <span style="color:var(--muted);font-size:9px">&middot; ' + escapeHtml(String(e[1])) + '</span>' : '') + '</h3><div class="cvp-rich">' + dz(String(e[2] || '')) + '</div>').join('') || '<div class="cvp-empty">No guide available.</div>';
   return _cvpPage(_CVP_BRAND + ' &middot; Start Planning', 'Page-by-Page Guide', 'What each page does and how to use it', _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()), _cvpSec('Guide') + body, 'Wisdom is the principal thing; therefore get wisdom.', 'Page-by-Page Guide');
 }
 
@@ -2062,9 +2064,14 @@ function buildGuidePrintSheets(){
 function buildInstructionsPrintSheets(){
   const g = (typeof PAGE_GUIDE !== 'undefined') ? PAGE_GUIDE : [];
   const entry = g.find(e => /get started/i.test(String(e[0] || '')));
+  const dz = (typeof desktopizeUserFacingCopy === 'function') ? desktopizeUserFacingCopy : function(t){ return t; };
+  const fallbackWelcome = shellCopy(
+    '<div class="cvp-rich"><h4>Welcome</h4><p>Everything you type saves automatically in this browser. Download a <code>.sqlite</code> backup to protect your work and to move it between devices.</p><h4>Getting started</h4><ul><li>Begin with Wedding Setup — names, date, and budget.</li><li>Work through the pages by category using the top menu.</li><li>Use Print section on any page for a clean handoff.</li></ul></div>',
+    '<div class="cvp-rich"><h4>Welcome</h4><p>Everything you type saves automatically on this computer. Export a <code>.sqlite</code> backup (File → Export Backup) to protect your work and to move it between computers.</p><h4>Getting started</h4><ul><li>Begin with Wedding Setup — names, date, and budget.</li><li>Work through the pages by category using the sidebar or Go menu.</li><li>Use Print section on any page for a clean handoff.</li></ul></div>'
+  );
   const body = (entry && entry[2])
-    ? ('<div class="cvp-rich">' + String(entry[2]) + '</div>')
-    : ('<div class="cvp-rich"><h4>Welcome</h4><p>Everything you type saves automatically in this browser. Download a <code>.sqlite</code> backup to protect your work and to move it between devices.</p><h4>Getting started</h4><ul><li>Begin with Wedding Setup — names, date, and budget.</li><li>Work through the pages by category using the top menu.</li><li>Use Print section on any page for a clean handoff.</li></ul></div>');
+    ? ('<div class="cvp-rich">' + dz(String(entry[2])) + '</div>')
+    : fallbackWelcome;
   return _cvpPage(_CVP_BRAND + ' &middot; Start Planning', 'Get Started', 'How the planner works', _cvpInfoCell('Couple', _cvpCouple()) + _cvpInfoCell('Wedding date', _cvpWedDate()), _cvpSec('Welcome') + body, 'Prepare thy work, and make it fit for thyself.', 'Get Started');
 }
 
@@ -4730,8 +4737,9 @@ function renderFooterTrustRow(){
   const savedEl = document.getElementById('last-saved');
   const footerSave = document.getElementById('footer-save-status');
   if (!footerSave) return;
-  const savedText = savedEl ? savedEl.textContent : 'Saves in browser';
-  footerSave.textContent = /saved/i.test(savedText) ? savedText : 'Saves in browser';
+  const saveFallback = shellCopy('Saves in browser', 'Saves on this computer');
+  const savedText = savedEl ? savedEl.textContent : saveFallback;
+  footerSave.textContent = /saved/i.test(savedText) ? savedText : saveFallback;
 }
 function openFooterBackupHelp(){
   showPanel('faq', true);
@@ -5227,7 +5235,7 @@ const ESSENTIALS_HUB_LINKS = [
   { id:'plan', label:'Planning Timeline', note:'Month-by-month steps' },
   { id:'calendar', label:'Smart Calendar', note:'Dates in one place' },
   { id:'tasks', label:'Tasks', note:'To-dos & deadlines' },
-  { action:'startHereBackup()', label:'Download Backup', note:'Protect your work' }
+  { action:'startHereBackup()', label:(typeof shellCopy==='function'?shellCopy('Download Backup','Export Backup'):'Download Backup'), note:'Protect your work' }
 ];
 const BLENDED_FAMILY_PROMPTS = {
   setup: {
@@ -6796,6 +6804,114 @@ function isCovenantDesktopShell(){
   } catch (e) { /* ignore */ }
   return false;
 }
+/** Pick web vs desktop user-facing copy (Electron .exe must not say "browser"). */
+function shellCopy(web, desktop){
+  return isCovenantDesktopShell() ? desktop : web;
+}
+/**
+ * Rewrite browser/PWA-centric help strings for the desktop shell.
+ * Honest framing: storage still uses Chromium APIs under %APPDATA% — say
+ * "on this computer" / "this app's local data" / "File → Export Backup", never "browser".
+ */
+function desktopizeUserFacingCopy(text){
+  if (!isCovenantDesktopShell() || text == null) return text;
+  var s = String(text);
+  var reps = [
+    [/Will edits stay if I close the browser tab\?/g, 'Will edits stay if I close the app?'],
+    [/What device or browser works best\?/g, 'What computer works best?'],
+    [/It cannot recover a cleared browser/g, 'It cannot recover deleted app data'],
+    [/Everything saves automatically in this browser on your device/gi, "Everything saves automatically on this computer in the app's local data"],
+    [/Everything you type saves automatically in this browser/gi, 'Everything you type saves automatically on this computer'],
+    [/private SQLite database in this browser/gi, 'private SQLite database on this computer'],
+    [/private database in this browser/gi, "private database in this app's local data"],
+    [/saved automatically in this browser using/gi, 'saved automatically on this computer using'],
+    [/saves automatically in this browser as you type/gi, 'saves automatically on this computer as you type'],
+    [/saves automatically in this browser/gi, 'saves automatically on this computer'],
+    [/lives only in this browser/gi, 'lives only on this computer'],
+    [/lives privately in this browser/gi, 'lives privately on this computer'],
+    [/in this browser, with a localStorage mirror/gi, 'on this computer, with a local data mirror'],
+    [/with a localStorage mirror/gi, 'with a local data mirror'],
+    [/the only copy that leaves this browser/gi, 'the only copy that leaves this computer'],
+    [/leaves this browser/gi, 'leaves this computer'],
+    [/in this browser/gi, 'on this computer'],
+    [/this browser's storage limit/gi, "this app's local storage limit"],
+    [/this browser's copy/gi, 'this wedding profile'],
+    [/Browsers typically allow limited local storage/gi, 'This app has limited local storage on your computer'],
+    [/unavailable in your browser session/gi, 'unavailable in this app session'],
+    [/reopen the file in the same browser/gi, 'reopen the app on this computer'],
+    [/Always reopen the planner in the same browser unless you restore from a backup\./gi, 'Always reopen this app on the same computer unless you restore from a backup.'],
+    [/in the same browser/gi, 'on the same computer'],
+    [/switching browsers/gi, 'moving installs'],
+    [/Clearing browser history or site data erases it/gi, "Uninstalling the app or deleting its local data folder erases it"],
+    [/If you clear your browser history, cookies or site data/gi, 'If you uninstall the app or delete its local data folder'],
+    [/If you clear browser history, cookies, or site data/gi, 'If you uninstall the app or delete its local data folder'],
+    [/before clearing browser data, switching browsers, or moving devices/gi, 'before replacing this install or moving to another computer'],
+    [/clearing browser data, switching browsers, or moving devices/gi, 'replacing this install or moving to another computer'],
+    [/browser data, switching browsers, or moving devices/gi, 'replacing this install or moving to another computer'],
+    [/losing the browser profile/gi, "losing this app's local data"],
+    [/survives a cleared browser/gi, 'survives cleared app data'],
+    [/a cleared browser/gi, 'cleared app data'],
+    [/cleared browser/gi, 'cleared app data'],
+    [/If site data goes without a backup/gi, 'If app local data is deleted without a backup'],
+    [/Browser storage can be cleared/gi, 'App local data can be cleared'],
+    [/Device settings live in this browser/gi, 'Notification preferences live in this app'],
+    [/live in this browser \(localStorage \+ SQLite\/IndexedDB\)/gi, "live in this app's local data on this computer (SQLite / IndexedDB)"],
+    [/live in this browser/gi, "live in this app's local data"],
+    [/Stored in this browser only/gi, 'Stored on this computer only'],
+    [/full local web app/gi, 'local desktop application'],
+    [/local downloadable planner/gi, 'desktop planner on your computer'],
+    [/Runs offline in Chrome, Edge, Firefox, and Safari\. No login, no cloud, no uploads\./gi, 'Runs offline on this computer. No login, no cloud, no uploads.'],
+    [/This file works in Chrome, Edge, Firefox, and Safari\. It can run offline with no login, no subscription, and no cloud account\./gi, 'This app runs offline on your computer with no login, no subscription, and no cloud account required.'],
+    [/This file works in Chrome, Edge, Firefox, and Safari\. It runs entirely offline/gi, 'This app runs entirely offline on your computer'],
+    [/For setup and heavy editing, use a desktop or laptop in <strong>Chrome<\/strong> or <strong>Edge<\/strong>\. The planner is viewable on tablets and phones, but large tables, CSV imports, backups, and detailed budget\/guest work are much easier on a larger screen\./gi, 'This desktop app is built for Windows PCs and laptops. Large tables, CSV imports, backups, and detailed budget/guest work are easiest on a full-size screen.'],
+    [/<strong>Download Backup<\/strong>/g, '<strong>File → Export Backup</strong>'],
+    [/Download Full Backup/g, 'Export Full Backup'],
+    [/Download full backup/g, 'Export full backup'],
+    [/Download Backup/g, 'Export Backup'],
+    [/Download backup/g, 'Export backup'],
+    [/download a \.sqlite/gi, 'export a .sqlite'],
+    [/Download a \.sqlite/g, 'Export a .sqlite'],
+    [/download a <code>\.sqlite<\/code>/gi, 'export a <code>.sqlite</code>'],
+    [/download a backup/gi, 'export a backup'],
+    [/downloaded backup/gi, 'exported backup'],
+    [/A downloaded file is the only copy/gi, 'An exported file is the only copy'],
+    [/Downloads a \.sqlite/gi, 'Exports a .sqlite'],
+    [/Use Restore in the top bar/gi, 'Use File → Import Backup'],
+    [/Restore in the top bar/gi, 'File → Import Backup'],
+    [/Use Backup in the top bar to download a copy\./gi, 'Use File → Export Backup to save a copy.'],
+    [/Use Restore from file in the top bar/gi, 'Use File → Import Backup'],
+    [/from Get Started or the top bar/gi, 'from Get Started or File → Export Backup'],
+    [/Database Hub<\/strong> \(Start Planning menu or top bar\)/gi, 'Database Hub</strong> (Go → Database Hub or Start Planning menu)'],
+    [/from the top bar or Start Planning menu/gi, 'from Go → Database Hub or the Start Planning menu'],
+    [/Open <strong>Profile &amp; Display<\/strong> in the top bar/gi, 'Open <strong>Profile &amp; Display</strong> (View menu or wedding chip)'],
+    [/open <strong>Profile &amp; Display<\/strong> in the top bar/gi, 'open <strong>Profile &amp; Display</strong> (View menu or wedding chip)'],
+    [/Profile &amp; Display<\/strong> in the top bar/gi, 'Profile &amp; Display</strong> (View menu or wedding chip)'],
+    [/Profile &amp; Display — open it from the top bar/gi, 'Profile &amp; Display — open it from the View menu or wedding chip'],
+    [/Open Profile & Display in the top bar/gi, 'Open Profile & Display (View menu or wedding chip)'],
+    [/open Profile & Display in the top bar/gi, 'open Profile & Display (View menu or wedding chip)'],
+    [/Profile & Display in the top bar/gi, 'Profile & Display (View menu or wedding chip)'],
+    [/click <strong>Print<\/strong> in the top bar/gi, 'use <strong>Print section</strong> or File → Print'],
+    [/from the dropdowns in the top bar/gi, 'from Theme and Font in Profile &amp; Display'],
+    [/Choose a Theme and Font from the top bar dropdowns/gi, 'Choose a Theme and Font in Profile &amp; Display'],
+    [/banner under the top bar/gi, 'banner near the top of the window'],
+    [/Undo · redo — buttons in the top bar/gi, 'Undo · redo — Edit menu'],
+    [/now in the top bar on every screen/gi, 'available from Edit → Undo / Redo on every screen'],
+    [/buttons in the top bar/gi, 'Edit menu or keyboard shortcuts'],
+    [/Reached from the top bar/gi, 'Reached from View or Help'],
+    [/Download a backup anytime from the top bar overflow menu/gi, 'Export a backup anytime from File → Export Backup'],
+    [/from the top bar overflow menu/gi, 'from File → Export Backup'],
+    [/\(browser time zone\)/gi, '(system time zone)'],
+    [/Browser time zone/g, 'System time zone'],
+    [/Saves in browser/g, 'Saves on this computer']
+  ];
+  for (var i = 0; i < reps.length; i++) s = s.replace(reps[i][0], reps[i][1]);
+  return s;
+}
+try {
+  window.isCovenantDesktopShell = isCovenantDesktopShell;
+  window.shellCopy = shellCopy;
+  window.desktopizeUserFacingCopy = desktopizeUserFacingCopy;
+} catch (e) { /* ignore */ }
 function renderPrivacyBackupCard(){
   const ob = ensureOnboardData();
   const last = ob.lastBackupTime ? new Date(ob.lastBackupTime).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
@@ -6981,7 +7097,7 @@ function renderEssentialsHubCard(compact){
       <div>
         <div class="ess-hub-kicker">Feeling overwhelmed?</div>
         <h3 class="ess-hub-title">Essentials View</h3>
-        <p class="ess-hub-lead">Hide advanced pages and focus on guests, budget, timeline, and backup. Nothing is deleted — open <strong>Profile &amp; Display</strong> in the top bar for <strong>Focus on Essentials</strong> or a <strong>Focus</strong> preset anytime.</p>
+        <p class="ess-hub-lead">Hide advanced pages and focus on guests, budget, timeline, and backup. Nothing is deleted — open <strong>Profile &amp; Display</strong> ${shellCopy('in the top bar', '(View menu or wedding chip)')} for <strong>Focus on Essentials</strong> or a <strong>Focus</strong> preset anytime.</p>
       </div>
       <button type="button" class="m-btn m-btn-primary" onclick="toggleSimpleMode()">${escapeHtml(toggleLabel)}</button>
     </div>
@@ -7088,7 +7204,7 @@ function renderStartHere(){
     <div class="sh-head">
       <div class="sh-kicker">Guided Planning Path</div>
       <div class="sh-title">A calmer way to know what needs attention</div>
-      '<div class="sh-lead">Start with the essentials and download a <code>.sqlite</code> backup early. Use Share Packets (print/PDF) or partner sync files when someone else needs to help on <strong>their</strong> device. <strong>Minimal pages</strong> (Guest List, Budget, Catering) show stats and short previews; open the <strong>Database Hub</strong> from the top bar or Start Planning menu for full tables and bulk editing.</div>'
+      '<div class="sh-lead">Start with the essentials and ' + shellCopy('download', 'export') + ' a <code>.sqlite</code> backup early. Use Share Packets (print/PDF) or partner sync files when someone else needs to help on <strong>their</strong> device. <strong>Minimal pages</strong> (Guest List, Budget, Catering) show stats and short previews; open the <strong>Database Hub</strong> from ' + shellCopy('the top bar or Start Planning menu', 'Go → Database Hub or the Start Planning menu') + ' for full tables and bulk editing.</div>'
       <div class="sh-progress">${guidance.doneCount} of ${guidance.stageCount} planning stages ready</div>
     </div>
     <div class="sh-bar"><i style="width:${guidance.progressPct}%"></i></div>
@@ -12472,7 +12588,7 @@ window.spacingAuditBatch = spacingAuditBatch;
 const PAGE_HELP = {
   'ui-system': {title:'UI/UX System',text:'Developer reference for UI components and the UX principles the planner is designed around. Stripped from the customer download.'},
   dashboard: {title:'Dashboard',text:'Your command center. Everything here updates automatically from other pages — countdown, budget health, task progress, RSVP breakdown, the vertical Wedding Day Timeline, and upcoming events. Click the photo circle to upload a couple photo.'},
-  setup: {title:'Wedding Setup',text:'Set your foundation here. Names, date, and budget flow into the Dashboard and Smart Calendar. Per-person costs feed Catering estimates. The Banner Scripture appears at the top of every page. Choose a Theme and Font from the top bar dropdowns.'},
+  setup: {title:'Wedding Setup',text:'Set your foundation here. Names, date, and budget flow into the Dashboard and Smart Calendar. Per-person costs feed Catering estimates. The Banner Scripture appears at the top of every page. Choose a Theme and Font from Profile & Display.'},
   tasks: {title:'Tasks',text:'Your detailed task list with categories, due dates, priorities, assignments, status, and notes. Assign any task to people from your <strong>Guest List and Wedding Party</strong> — the assignee list updates automatically as you add people, and an <strong>"Assign 2 witnesses"</strong> task is seeded for you. Use <strong>filters</strong> to view by category, status, or priority, and checkboxes for <strong>bulk edits</strong>. Tasks with due dates appear in the Smart Calendar, and completion feeds the Dashboard progress bar.'},
   budget: {title:'Budget',text:'Track spending by category. Click a category card to edit its line items in a centered pop-out window. <strong>Load Full Budget Categories</strong> adds empty shells; <strong>Load Full Itemized Budget</strong> adds categories with pre-filled items and merges missing items into existing ones. The <strong>Budget Reconciliation</strong> table shows planned, paid, remaining, and % used. Catering & Payments pages auto-sync their items here as read-only lines. <strong>Tip:</strong> Payment categories auto-sync best when they match a Budget category. The planner now uses forgiving matching for small wording differences, and it warns you if a payment still cannot be matched.'},
   payments: {title:'Payments',text:'Track every vendor payment. Assign a <strong>Budget Category</strong> to auto-sync the amount into your budget. Link to a <strong>Contract</strong> to see payment totals on the Contracts page. Click the installment link on any row to expand a sub-table for tracking deposit/balance schedules.'},
@@ -24524,7 +24640,9 @@ function dashboardCountdownTimezoneId(){
 function dashboardCountdownTimezoneLabel(tzid){
   const selected = String((data.setup && data.setup.timezone) || '').trim();
   if (selected) return selected;
-  return tzid ? `${tzid} (browser time zone)` : 'Browser time zone';
+  const zoneWord = shellCopy('browser time zone', 'system time zone');
+  const bare = shellCopy('Browser time zone', 'System time zone');
+  return tzid ? `${tzid} (${zoneWord})` : bare;
 }
 
 function dashboardFormatWeddingDate(){
@@ -33809,7 +33927,7 @@ function pgJourney(){
     <div class="pg-track"><div class="pg-fill" style="width:${Math.round((i+1)/n*100)}%"></div></div>
     <div class="pg-step">Step ${i+1} of ${n} · ${escapeHtml(cat)}</div>
     <h3 class="pg-j-title">${escapeHtml(title)}</h3>
-    <div class="pg-j-body">${body}</div>
+    <div class="pg-j-body">${desktopizeUserFacingCopy(body)}</div>
     <div class="pg-j-nav">
       <button class="pg-btn" type="button" onclick="guideNav(-1)" ${i===0?'disabled':''}>← Back</button>
       <div class="pg-dots">${dots}</div>
@@ -33826,7 +33944,7 @@ function pgMasterDetail(){
   return `<div class="pg-md-detail">
     <div class="pg-md-tag">${escapeHtml(c)}</div>
     <h3 class="pg-md-title">${escapeHtml(t)}</h3>
-    <div class="pg-md-body">${b}</div>
+    <div class="pg-md-body">${desktopizeUserFacingCopy(b)}</div>
   </div>`;
 }
 
@@ -33868,7 +33986,9 @@ function renderFAQ() {
   const items = FAQ_ITEMS.map(([q,a], index) => ({ q, a, index, cat: FAQ_CATS[index]||'Features' })).filter(item => {
     if (activeFaqCat !== 'All' && item.cat !== activeFaqCat) return false;
     if (!term) return true;
-    return (item.q + ' ' + stripFaqHtml(item.a)).toLowerCase().includes(term);
+    const qSearch = desktopizeUserFacingCopy(item.q);
+    const aSearch = desktopizeUserFacingCopy(item.a);
+    return (qSearch + ' ' + stripFaqHtml(aSearch)).toLowerCase().includes(term);
   });
   if (!items.length) {
     el.innerHTML = `<div class="faq-empty">No FAQ answers match "${escapeHtml(term)}"${activeFaqCat!=='All'?' in '+activeFaqCat:''}. Try a different category or search term.</div>`;
@@ -33876,9 +33996,11 @@ function renderFAQ() {
   }
   el.innerHTML = items.map(({q,a,index}) => {
     const iconName = FAQ_ICON_NAMES[index % FAQ_ICON_NAMES.length];
+    const qOut = desktopizeUserFacingCopy(q);
+    const aOut = desktopizeUserFacingCopy(a);
     return `<article class="faq-card open" data-faq-index="${index}" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFAQCard(this.querySelector('.faq-toggle'));}">
       <span class="faq-icon">${faqLineIcon(iconName)}</span>
-      <div class="faq-copy"><h3 class="faq-q">${q}</h3><div class="faq-a">${a}</div></div>
+      <div class="faq-copy"><h3 class="faq-q">${qOut}</h3><div class="faq-a">${aOut}</div></div>
       <button class="faq-toggle" type="button" onclick="toggleFAQCard(this)" aria-label="Toggle answer" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     </article>`;
   }).join('');

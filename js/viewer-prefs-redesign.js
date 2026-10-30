@@ -320,13 +320,22 @@
       '" onclick="rdVaTogglePreview()"><span class="rd-gaps-switch__dot"></span></button></div>' +
       '<div class="rd-va-menu__grp">Keyboard</div>' +
       '<div class="rd-va-menu__kbdrow"><span>Search</span><kbd class="rd-menu__kbd">⌘K</kbd></div>' +
-      '<div class="rd-va-menu__kbdrow"><span>Undo · redo — buttons in the top bar</span><kbd class="rd-menu__kbd">⌘Z</kbd><kbd class="rd-menu__kbd">⇧⌘Z</kbd></div>' +
+      '<div class="rd-va-menu__kbdrow"><span>' +
+      ((typeof shellCopy === 'function')
+        ? shellCopy('Undo · redo — buttons in the top bar', 'Undo · redo — Edit menu')
+        : 'Undo · redo') +
+      '</span><kbd class="rd-menu__kbd">⌘Z</kbd><kbd class="rd-menu__kbd">⇧⌘Z</kbd></div>' +
       '<div class="rd-va-menu__kbdrow"><span>Next record</span><kbd class="rd-menu__kbd">↑↓</kbd></div>' +
       '<div class="rd-va-menu__kbdrow"><span>Close drawer</span><kbd class="rd-menu__kbd">Esc</kbd></div>' +
-      '<p class="rd-va-shortcut">Undo <kbd>⌘Z</kbd> · Redo <kbd>⇧⌘Z</kbd> — now in the top bar on every screen.</p>' +
+      '<p class="rd-va-shortcut">Undo <kbd>⌘Z</kbd> · Redo <kbd>⇧⌘Z</kbd> — ' +
+      ((typeof shellCopy === 'function')
+        ? shellCopy('now in the top bar on every screen.', 'available from Edit → Undo / Redo on every screen.')
+        : 'available on every screen.') + '</p>' +
       '</div>' +
       '<div class="rd-va-menu__links">' +
-      '<button type="button" class="rd-menu__row" onclick="rdVaDownloadBackup()"><span class="rd-menu__label">Download backup →</span><span class="rd-va-menu__meta">' + esc(relBackup()) + '</span></button>' +
+      '<button type="button" class="rd-menu__row" onclick="rdVaDownloadBackup()"><span class="rd-menu__label">' +
+      ((typeof shellCopy === 'function') ? shellCopy('Download backup →', 'Export backup →') : 'Download backup →') +
+      '</span><span class="rd-va-menu__meta">' + esc(relBackup()) + '</span></button>' +
       '<button type="button" class="rd-menu__row" onclick="rdVaOpenHistory()"><span class="rd-menu__label">Planner History →</span><span class="rd-va-menu__meta">' + esc(histMeta()) + '</span></button>' +
       '<button type="button" class="rd-menu__row" onclick="rdVaNav(\'setup\')"><span class="rd-menu__label">Wedding Setup →</span></button>' +
       '<button type="button" class="rd-menu__row" onclick="rdVaNav(\'instructions\')"><span class="rd-menu__label">Get Started →</span></button>' +

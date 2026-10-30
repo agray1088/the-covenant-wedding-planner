@@ -72,6 +72,11 @@
     return days + ' day' + (days === 1 ? '' : 's') + ' ago';
   }
 
+  function shellTxt(web, desktop) {
+    if (typeof shellCopy === 'function') return shellCopy(web, desktop);
+    return isDesktopShell() ? desktop : web;
+  }
+
   function bannerHtml() {
     var ob = onboard();
     var last = relTime(ob.lastBackupTime);
@@ -79,9 +84,10 @@
     var stale = !ob.lastBackupTime || edits >= 10;
     return '<div class="rd-set__banner' + (stale ? ' rd-set__banner--amber' : '') + '" id="rd-set-banner">'
       + '<span class="rd-set__banner-icon">' + CHECK_SVG + '</span>'
-      + '<span class="rd-set__banner-text"><b>Saved on this device by default.</b> Download a file backup before clearing '
-      + 'browser data, switching browsers, or moving devices. Cloud sync is optional and opt-in — when enabled, '
-      + 'wedding data you sync is stored on the server. We do not sell your data.</span>'
+      + '<span class="rd-set__banner-text">' + shellTxt(
+        '<b>Saved on this device by default.</b> Download a file backup before clearing browser data, switching browsers, or moving devices. Cloud sync is optional and opt-in — when enabled, wedding data you sync is stored on the server. We do not sell your data.',
+        '<b>Saved on this computer by default.</b> Export a file backup (File → Export Backup) before replacing this install or moving to another computer. Cloud sync is optional and opt-in — when enabled, wedding data you sync is stored on the server. We do not sell your data.'
+      ) + '</span>'
       + '<span class="rd-set__banner-meta">Last backup ' + esc(last || 'never') + ' · '
       + edits + ' edit' + (edits === 1 ? '' : 's') + ' since</span>'
       + '</div>';
@@ -335,8 +341,11 @@
       + cardRow('Where they appear', 'No email, no push. The planner has no mail account and no server to send from.',
         segControl('delivery', [{ value: 'topbar', label: 'Top bar only' }], 'topbar'))
       + '<div class="rd-set__note">The notification panel behind the bell decides what needs you today. '
-      + 'This pane decides what is allowed to reach it. Device settings live in this browser — restoring a backup '
-      + 'on another machine brings the wedding, not these preferences.</div>',
+      + 'This pane decides what is allowed to reach it. '
+      + shellTxt(
+        'Device settings live in this browser — restoring a backup on another machine brings the wedding, not these preferences.',
+        'Notification preferences live in this app — restoring a backup on another computer brings the wedding, not these preferences.'
+      ) + '</div>',
       'rd-set__card--wide', 'rd-set-alert-rules');
   }
 
@@ -353,10 +362,15 @@
   function cardsHtml() {
     var ob = onboard();
     return '<div class="rd-set__cards">'
-      + card('Save & backup', 'Everything saves automatically on this device. A downloaded backup is the only copy that survives a cleared browser.',
+      + card('Save & backup', shellTxt(
+        'Everything saves automatically on this device. A downloaded backup is the only copy that survives a cleared browser.',
+        'Everything saves automatically on this computer. An exported backup is the only copy that survives cleared app data.'
+      ),
         cardRow('Save now', 'Last saved ' + (relTime(ob.lastSaveTime) || 'a moment ago'), btn('Save now', 'saveNow'))
-        + cardRow('Protect plan (backup)', 'Downloads a .sqlite planner file', btn('Download backup', 'downloadSqliteBackup'))
-        + cardRow('Full backup with photos', 'Zip: planner + local photo library', btn('Download full backup', 'downloadFullBackup'))
+        + cardRow('Protect plan (backup)', shellTxt('Downloads a .sqlite planner file', 'Exports a .sqlite planner file'),
+          btn(shellTxt('Download backup', 'Export backup'), 'downloadSqliteBackup'))
+        + cardRow('Full backup with photos', 'Zip: planner + local photo library',
+          btn(shellTxt('Download full backup', 'Export full backup'), 'downloadFullBackup'))
         + cardRow('Restore from backup', 'Accepts .zip, .sqlite, .db or .json', btn('Restore', 'rdSetRestore')))
       + card('History', 'Undo and redo cover recent changes on this device.',
         cardRow('Undo', '', undoControl('undo'))
@@ -426,11 +440,11 @@
     }
     /* Electron .exe is already installed — hide PWA / browser Install app chrome. */
     if (isDesktopShell() || (st && st.desktop)) {
-      html += cardRow('Desktop app', 'Installed as a Windows application. Browser “Add to Home Screen” / Install app is only for the hosted web planner.',
+      html += cardRow('Desktop app', 'Installed as a Windows application on this computer.',
         '<span style="font-size:13px">Installed</span>');
       html += cardRow('Updates', 'Use Help → Check for Updates… (automatic updates ship later). Version details: Help → About.',
         '<span style="font-size:13px">Menu</span>');
-      html += '<div class="rd-set__note"><b>Back up regularly.</b> The desktop shell does not replace file backups — see Backup &amp; restore and <code>docs/DESKTOP_APP.md</code>.</div>';
+      html += '<div class="rd-set__note"><b>Back up regularly.</b> Use File → Export Backup or Backup &amp; restore. The desktop install does not replace file backups — see <code>docs/DESKTOP_APP.md</code>.</div>';
       return html;
     }
     if (!st || !st.supported && !st.error) {
@@ -506,7 +520,10 @@
           + 'Local Docker: <code>http://localhost:18787</code>. Hosted HTTPS: your deploy <code>PUBLIC_URL</code> '
           + '(see <code>docs/HOSTED_DEPLOY.md</code>). Set <code>covenant_cloud_api</code> + <code>covenant_cloud_enabled=1</code>, then reload. '
           + 'Also: <code>docs/OFFLINE_CLOUD_SYNC.md</code>.</div>';
-        html += cardRow('API base URL', 'Stored in this browser only — local or hosted HTTPS. On the Railway planner page this is filled from the deploy automatically.',
+        html += cardRow('API base URL', shellTxt(
+          'Stored in this browser only — local or hosted HTTPS. On the Railway planner page this is filled from the deploy automatically.',
+          'Stored on this computer only — local or hosted HTTPS. Prefer File → Set Cloud API Base… when available.'
+        ),
           '<input type="url" class="rd-set__input" id="rd-cloud-api" placeholder="http://localhost:18787 or https://api.example.com" value="'
           + esc(suggestedCloudApiBase())
           + '">');
@@ -897,12 +914,18 @@
     }
     if (id === 'backup') {
       return paneShell('Backup & restore',
-        'Local file backup — no Postgres on this device. A downloaded file is the only copy that survives a cleared browser.',
-        cardRow('Download backup', 'Planner as a single .sqlite file', btn('Download backup', 'downloadSqliteBackup'))
-        + cardRow('Full backup with photos', '.zip with planner + photo library blobs', btn('Download full backup', 'downloadFullBackup'))
+        shellTxt(
+          'Local file backup — no Postgres on this device. A downloaded file is the only copy that survives a cleared browser.',
+          'Local file backup — no Postgres on this computer. An exported file is the only copy that survives cleared app data.'
+        ),
+        cardRow(shellTxt('Download backup', 'Export backup'), 'Planner as a single .sqlite file',
+          btn(shellTxt('Download backup', 'Export backup'), 'downloadSqliteBackup'))
+        + cardRow('Full backup with photos', '.zip with planner + photo library blobs',
+          btn(shellTxt('Download full backup', 'Export full backup'), 'downloadFullBackup'))
         + cardRow('Restore from backup', 'Accepts .zip, .sqlite, .db or .json', btn('Restore', 'rdSetRestore'))
         + cardRow('Save now', '', btn('Save now', 'saveNow'))
-        + '<div class="rd-set__note">Offline by default. Optional cloud sync (separate pane) stores what you opt in to sync — it is not a substitute for downloading a file backup. See <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>');
+        + '<div class="rd-set__note">Offline by default. Optional cloud sync (separate pane) stores what you opt in to sync — it is not a substitute for '
+        + shellTxt('downloading', 'exporting') + ' a file backup. See <code>docs/BACKUP_AND_PHOTOS.md</code>.</div>');
     }
     if (id === 'photos') {
       var lib = [];
@@ -937,7 +960,7 @@
     if (id === 'install') {
       if (isDesktopShell()) {
         return paneShell('Desktop app',
-          'This Windows build is already installed. Hosted web “Install app” / Add to Home Screen is separate and not used here.',
+          'This Windows build is already installed on this computer.',
           installPaneBody());
       }
       return paneShell('Install app',
@@ -962,10 +985,15 @@
     if (id === 'privacy') {
       return paneShell('Privacy',
         'Local-first by design. You should never need to install Postgres to plan a wedding.',
-        '<div class="rd-set__note"><b>Local by default.</b> Planner data and the photo library live in this browser (localStorage + SQLite/IndexedDB). No account is required for core planning.</div>'
+        '<div class="rd-set__note"><b>Local by default.</b> '
+        + shellTxt(
+          'Planner data and the photo library live in this browser (localStorage + SQLite/IndexedDB). No account is required for core planning.',
+          "Planner data and the photo library live in this app's local data on this computer (SQLite / IndexedDB). No account is required for core planning."
+        ) + '</div>'
         + '<div class="rd-set__note"><b>Optional cloud.</b> Cloud sync is opt-in. When you enable it and sign in, we store the wedding rows you sync on the API database (managed Postgres on the host — not on your laptop). That is online backup of synced domains, not “we store nothing.”</div>'
-        + '<div class="rd-set__note"><b>We do not sell your data.</b> File backups you download stay under your control. Photo binaries prefer object storage (S3/R2) or local disk when online photo backup is configured — metadata in the database, blobs elsewhere.</div>'
-        + cardRow('Open backup & restore', 'Download or restore a local file', btn('Open', 'rdSetGotoBackup'))
+        + '<div class="rd-set__note"><b>We do not sell your data.</b> File backups you '
+        + shellTxt('download', 'export') + ' stay under your control. Photo binaries prefer object storage (S3/R2) or local disk when online photo backup is configured — metadata in the database, blobs elsewhere.</div>'
+        + cardRow('Open backup & restore', shellTxt('Download or restore a local file', 'Export or restore a local file'), btn('Open', 'rdSetGotoBackup'))
         + cardRow('Open cloud sync', 'Optional; offline still works with it off', btn('Open', 'rdSetGotoCloud')));
     }
     if (id === 'trash') {
@@ -978,7 +1006,7 @@
       if (isDesktopShell()) {
         return paneShell('About',
           'The Covenant Wedding Planner — offline-first desktop shell.',
-          '<div class="rd-set__note">You are running the Windows desktop app. Version, data folder, and cloud API default are under <b>Help → About</b> in the menu bar. Offline by default: data stays on this device until you download a backup or opt into cloud sync. Optional <b>Cloud sync (beta)</b> stores what you sync on the API when enabled — we do not sell data. Photos: local library + file zip backup. Look &amp; feel lives in Profile &amp; Display; this window holds backups, privacy, exports, printing, and history. Docs: <code>docs/DESKTOP_APP.md</code>.</div>');
+          '<div class="rd-set__note">You are running the Windows desktop app. Version, data folder, and cloud API default are under <b>Help → About</b> in the menu bar. Offline by default: data stays on this computer until you export a backup (File → Export Backup) or opt into cloud sync. Optional <b>Cloud sync (beta)</b> stores what you sync on the API when enabled — we do not sell data. Photos: local library + file zip backup. Look &amp; feel lives in Profile &amp; Display; this window holds backups, privacy, exports, printing, and history. Docs: <code>docs/DESKTOP_APP.md</code>.</div>');
       }
       return paneShell('About',
         'The Covenant Wedding Planner — offline-first, one file per wedding.',

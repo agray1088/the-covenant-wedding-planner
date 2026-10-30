@@ -346,11 +346,8 @@ function buildMenu() {
             {
               label: 'Offline & Cloud Sync',
               click: () => openDocFile('OFFLINE_CLOUD_SYNC.md')
-            },
-            {
-              label: 'PWA Install',
-              click: () => openDocFile('PWA_INSTALL.md')
             }
+            /* PWA Install docs are for the hosted web/PWA only — omit from desktop Help. */
           ]
         },
         { type: 'separator' },

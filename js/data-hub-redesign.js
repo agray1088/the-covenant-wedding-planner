@@ -1410,7 +1410,14 @@
   function rdDhRestore() {
     const input = document.getElementById('importInput');
     if (input) input.click();
-    else if (typeof covAlert === 'function') covAlert('Use Restore from file in the top bar, or choose a .sqlite / .json backup.');
+    else if (typeof covAlert === 'function') {
+      var restoreMsg = (typeof shellCopy === 'function')
+        ? shellCopy(
+          'Use Restore from file in the top bar, or choose a .sqlite / .json backup.',
+          'Use File → Import Backup, or choose a .sqlite / .json backup.')
+        : 'Use Restore from file, or choose a .sqlite / .json backup.';
+      covAlert(restoreMsg);
+    }
   }
   function rdDhPrint() {
     if (typeof printCurrentPage === 'function') printCurrentPage();

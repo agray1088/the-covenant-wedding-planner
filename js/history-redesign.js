@@ -366,7 +366,7 @@
     panel.innerHTML = `<div class="rd-page">
       <div class="rd-pagehead">
         <div>
-          <div class="rd-pagehead__eyebrow">Reached from the top bar</div>
+          <div class="rd-pagehead__eyebrow">${(typeof shellCopy === 'function') ? shellCopy('Reached from the top bar', 'Reached from View or Help') : 'Reached from the top bar'}</div>
           <div class="rd-pagehead__title-row"><h1 class="rd-pagehead__title">Planner History</h1></div>
         </div>
         <div class="rd-pagehead__actions">${pageheadActionsHtml()}</div>
@@ -532,7 +532,13 @@
       `<div class="rd-grid-3 rd-hist-explainer" id="history-explainer">` +
       `<article><h3>The log · ${f.logLimit}</h3><p>Every change is written here as a readable line. When the log fills, the oldest lines drop — the planner itself is untouched.</p></article>` +
       `<article><h3>Snapshots · ${f.snapLimit}</h3><p>Undo restores a whole planner snapshot. Only the last ${f.snapLimit} are kept, so older rows read “snapshot aged out.”</p></article>` +
-      `<article><h3>Neither is a backup</h3><p>Clearing history or losing the browser profile still needs a downloaded backup from Get Started or the top bar.</p></article>` +
+      `<article><h3>Neither is a backup</h3><p>` +
+      ((typeof shellCopy === 'function')
+        ? shellCopy(
+          'Clearing history or losing the browser profile still needs a downloaded backup from Get Started or the top bar.',
+          "Clearing history or losing this app's local data still needs an exported backup from Get Started or File → Export Backup.")
+        : 'Clearing history still needs a downloaded backup from Get Started or Backup.') +
+      `</p></article>` +
       `</div>` +
       `<p class="rd-help rd-hist-clear-note">Clearing the log lives on <b>Wedding Setup</b>, in the danger zone with the other irreversible actions — not here, where it would sit one click from the thing it destroys. ` +
       `<button type="button" class="rd-linkbtn" onclick="typeof showPanel==='function'&&showPanel('setup',true)">Open Wedding Setup →</button></p>`;

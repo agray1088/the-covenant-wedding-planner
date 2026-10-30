@@ -64,13 +64,31 @@
     ['FAQ', 'Overview', 'Nothing', '—', '—', 'No']
   ];
 
-  const FAQ_QUICK = [
-    ['Auto-save', 'Your work saves automatically in this browser as you type. There is no save button to forget.'],
-    ['Back up regularly', 'Download a .sqlite file weekly. It is the only copy that leaves this browser.'],
-    ['Print beautifully', 'Every page has Print section. Working documents print plain; keepsakes keep the serif.'],
-    ['Edit anywhere', 'Every table edits in place and every total re-derives immediately.'],
-    ['Nothing is uploaded', 'No account, no cloud, no tracking. The trade-off is that backups are your job.']
-  ];
+  function isDesktopShell() {
+    try {
+      if (typeof isCovenantDesktopShell === 'function' && isCovenantDesktopShell()) return true;
+      if (window.COVENANT_DESKTOP && window.COVENANT_DESKTOP.isDesktop) return true;
+      if (window.covenantDesktop && window.covenantDesktop.isDesktop) return true;
+    } catch (e) { /* ignore */ }
+    return false;
+  }
+  function shellTxt(web, desktop) {
+    if (typeof shellCopy === 'function') return shellCopy(web, desktop);
+    return isDesktopShell() ? desktop : web;
+  }
+  function FAQ_QUICK() {
+    return [
+      ['Auto-save', shellTxt(
+        'Your work saves automatically in this browser as you type. There is no save button to forget.',
+        'Your work saves automatically on this computer as you type. There is no save button to forget.')],
+      ['Back up regularly', shellTxt(
+        'Download a .sqlite file weekly. It is the only copy that leaves this browser.',
+        'Export a .sqlite file weekly (File → Export Backup). It is the only copy that leaves this computer.')],
+      ['Print beautifully', 'Every page has Print section. Working documents print plain; keepsakes keep the serif.'],
+      ['Edit anywhere', 'Every table edits in place and every total re-derives immediately.'],
+      ['Nothing is uploaded', 'No account, no cloud, no tracking. The trade-off is that backups are your job.']
+    ];
+  }
 
   const GUIDE_BLURBS = {
     Dashboard: 'Shows what needs attention today and the single next best step.',
@@ -158,7 +176,7 @@
 
   function renderGetStarted() {
     const panel = ensureHead('panel-instructions', 'Overview · start planning',
-      'Get Started', 'Download backup', 'rdGuideBackup()',
+      'Get Started', shellTxt('Download backup', 'Export backup'), 'rdGuideBackup()',
       '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'guide\',true)">Open the guide</button>' +
       '<button type="button" class="rd-btn" onclick="typeof printActivePanel===\'function\'&&printActivePanel()">Print section</button>' +
       '<button type="button" class="rd-btn" onclick="typeof rdOpenFullEditor===\'function\'&&rdOpenFullEditor()">Full editor</button>' +
@@ -185,7 +203,7 @@
     const target = parseInt((d.setup && d.setup.guests) || 0, 10) || 0;
     return [
       ['Fill in Wedding Setup', 'Names, date, venues, budget, guest target', !!(d.setup && d.setup.bride && d.setup.date)],
-      ['Download your first backup', 'Before typing anything else', false],
+      [shellTxt('Download your first backup', 'Export your first backup'), 'Before typing anything else', false],
       ['Add your households', 'Addresses first, guests follow', Array.isArray(d.households) && d.households.length > 0],
       ['Set the budget target and categories', 'Eight categories, one target', Array.isArray(d.budget) && d.budget.length > 0],
       ['Enter the guest list', (target ? target + ' to go' : 'Guests') + ' · ' + guests + ' entered', guests > 0, 'guests'],
@@ -271,7 +289,7 @@
       { id: 'guests', label: 'Guest List', note: 'RSVPs & headcount' },
       { id: 'budget', label: 'Budget', note: 'Spending & categories' },
       { id: 'calendar', label: 'Smart Calendar', note: 'Dates in one place' },
-      { action: 'startHereBackup()', label: 'Download Backup', note: 'Protect your work' }
+      { action: 'startHereBackup()', label: shellTxt('Download Backup', 'Export Backup'), note: 'Protect your work' }
     ]).map(l => {
       const action = l.action || "typeof showPanel==='function'&&showPanel('" + l.id + "')";
       return '<button type="button" class="rd-hub-link" onclick="' + action + '"><span class="rd-hub-link__label">' + esc(l.label) + '</span><span class="rd-hub-link__note">' + esc(l.note) + '</span></button>';
@@ -349,9 +367,11 @@
       '<article class="rd-cta-card"><h3>Reset all data</h3>' +
       '<p>Clear the planner and begin fresh when you are ready for your own plan.</p>' +
       '<button type="button" class="rd-btn" onclick="typeof openResetModal===\'function\'&&openResetModal()">Reset all data</button>' +
-      '<p class="rd-help">Download a backup first — this cannot be undone.</p></article>' +
-      '<article class="rd-cta-card"><h3>Compatibility &amp; privacy</h3>' +
-      '<p>Runs offline in Chrome, Edge, Firefox, and Safari. No login, no cloud, no uploads.</p>' +
+      '<p class="rd-help">' + shellTxt('Download a backup first — this cannot be undone.', 'Export a backup first — this cannot be undone.') + '</p></article>' +
+      '<article class="rd-cta-card"><h3>' + shellTxt('Compatibility &amp; privacy', 'Privacy on this computer') + '</h3>' +
+      '<p>' + shellTxt(
+        'Runs offline in Chrome, Edge, Firefox, and Safari. No login, no cloud, no uploads.',
+        'Runs offline on this computer. No login, no cloud, no uploads.') + '</p>' +
       '<button type="button" class="rd-btn" onclick="typeof showPanel===\'function\'&&showPanel(\'dashboard\')">Continue to Dashboard →</button></article>' +
       '</div></div>';
   }
@@ -372,16 +392,20 @@
       '<div class="rd-getstarted-hero" id="rd-sec-before">' +
       '<div class="rd-getstarted-hero__main">' +
       '<div class="rd-getstarted-hero__rule"></div>' +
-      '<p class="rd-getstarted-lead">This planner runs entirely on your own computer. Everything you type saves automatically to a private database in this browser. Nothing is uploaded, and nothing is kept anywhere else unless you download a backup yourself.</p>' +
+      '<p class="rd-getstarted-lead">' + shellTxt(
+        'This planner runs entirely on your own computer. Everything you type saves automatically to a private database in this browser. Nothing is uploaded, and nothing is kept anywhere else unless you download a backup yourself.',
+        'This planner runs entirely on your own computer. Everything you type saves automatically to a private database in this app\'s local data. Nothing is uploaded, and nothing is kept anywhere else unless you export a backup yourself.') + '</p>' +
       '<p class="rd-getstarted-sub">That is the whole promise of the product, and it is also the one risk. Read the next box before you type anything you would be upset to lose.</p>' +
       '</div>' +
       '<aside class="rd-getstarted-readfirst">' +
       '<div class="rd-getstarted-readfirst__k">Read this first</div>' +
-      '<p>If you clear your browser history, cookies or site data — or open the planner on another device without restoring a backup — <strong>your saved work will not be there.</strong></p>' +
+      '<p>' + shellTxt(
+        'If you clear your browser history, cookies or site data — or open the planner on another device without restoring a backup — <strong>your saved work will not be there.</strong>',
+        'If you uninstall the app or delete its local data folder — or open the planner on another computer without restoring a backup — <strong>your saved work will not be there.</strong>') + '</p>' +
       '<p class="rd-getstarted-readfirst__note">Wait a few seconds after opening the planner before your first backup, so the database finishes loading.</p>' +
       backupMetaHtml() +
       '<div class="rd-getstarted-readfirst__actions">' +
-      '<button type="button" class="rd-btn rd-btn--primary" onclick="rdGuideBackup()">Download backup</button>' +
+      '<button type="button" class="rd-btn rd-btn--primary" onclick="rdGuideBackup()">' + shellTxt('Download backup', 'Export backup') + '</button>' +
       '<button type="button" class="rd-btn" onclick="rdSetupRestore()">Restore</button></div></aside></div>' +
       '<div class="rd-setup-band" id="rd-sec-connects"><div class="rd-setup-band__head"><span>How the planner connects</span>' +
       '<span class="rd-setup-band__meta">Six links that mean you never type the same detail twice</span>' +
@@ -405,7 +429,7 @@
       '<section class="rd-getstarted-panel" id="rd-sec-partner"><div class="rd-setup-band__head"><span>Planning with your partner</span><span class="rd-setup-band__meta">No account, no cloud — three files</span>' +
       '<button type="button" class="rd-setup-band__link" onclick="typeof showPanel===\'function\'&&showPanel(\'packets\',true)">Open Share Packets</button></div>' +
       '<div class="rd-getstarted-panel__body"><div class="rd-partner-flow">' +
-      '<div><div class="rd-partner-flow__k">You</div><div>Download backup</div><code>.sqlite</code></div>' +
+      '<div><div class="rd-partner-flow__k">You</div><div>' + shellTxt('Download backup', 'Export backup') + '</div><code>.sqlite</code></div>' +
       '<div><div class="rd-partner-flow__k">Partner</div><div>Restores it</div><code>same file</code></div>' +
       '<div><div class="rd-partner-flow__k">Partner</div><div>Sends one back</div><code>.sqlite</code></div>' +
       '<div><div class="rd-partner-flow__k">You</div><div>Import packet</div><code>merges</code></div>' +
@@ -416,7 +440,11 @@
       cannotCard('It cannot send email', 'No invitations, no RSVP reminders, no vendor mail. Email Templates writes the letters and you send them from your own mail app.') +
       cannotCard('It cannot collect RSVPs', 'There is no web form. Replies are entered on the Guest List by whoever hears them.') +
       cannotCard('It cannot sync between devices', 'Two devices means two planners. The backup file is the only bridge.') +
-      cannotCard('It cannot recover a cleared browser', 'If site data goes without a backup, the planner is gone. This is the only unrecoverable failure.') +
+      cannotCard(
+        shellTxt('It cannot recover a cleared browser', 'It cannot recover deleted app data'),
+        shellTxt(
+          'If site data goes without a backup, the planner is gone. This is the only unrecoverable failure.',
+          'If this app\'s local data is deleted without a backup, the planner is gone. This is the only unrecoverable failure.')) +
       '</div></div>' +
       '<div class="rd-setup-band" id="rd-sec-firsthour"><div class="rd-setup-band__head"><span>Your first hour</span>' +
       '<span class="rd-setup-band__meta">Seven steps · ' + hourDone + ' done</span>' +
@@ -536,7 +564,9 @@
             ? '<div class="rd-guide-acc-syncs">' + syncItems.map(s =>
               '<div class="rd-guide-acc-sync"><span>' + esc(s) + '</span></div>').join('') + '</div>'
             : '<p class="rd-guide-acc-empty">—</p>') +
-          '</div><div><div class="rd-guide-acc-k">When to use it</div><div class="rd-guide-acc-when">' + body + '</div></div></div>';
+          '</div><div><div class="rd-guide-acc-k">When to use it</div><div class="rd-guide-acc-when">' +
+          ((typeof desktopizeUserFacingCopy === 'function') ? desktopizeUserFacingCopy(body) : body) +
+          '</div></div></div>';
       }
       html += '</div>';
     });
@@ -782,7 +812,7 @@
         '<div class="rd-faq-quick rd-faq-quick--master">' +
         '<div class="rd-faq-quick__head"><div class="rd-faq-quick__title">Quick answers</div>' +
         '<div class="rd-faq-quick__subtitle">The five things everyone asks</div></div>' +
-        FAQ_QUICK.map(q =>
+        FAQ_QUICK().map(q =>
           '<div class="rd-faq-quick__item rd-faq-quick__item--check">' +
           '<span class="rd-faq-quick__icon" aria-hidden="true">✓</span>' +
           '<div><b>' + esc(q[0]) + '</b><p>' + esc(q[1]) + '</p></div></div>').join('') +
@@ -849,7 +879,11 @@
   function rdGuideBackup() {
     if (typeof downloadSqliteBackup === 'function') downloadSqliteBackup();
     else if (typeof exportData === 'function') exportData();
-    else if (typeof showToast === 'function') showToast('Use Backup in the top bar to download a copy.');
+    else if (typeof showToast === 'function') {
+      showToast(shellTxt(
+        'Use Backup in the top bar to download a copy.',
+        'Use File → Export Backup to save a copy.'));
+    }
   }
   function rdGuideSetView(v) {
     window._guideView = PAGE_VIEWS.some(([id]) => id === v) ? v : 'entries';

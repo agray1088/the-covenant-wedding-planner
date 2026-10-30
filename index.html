@@ -427,16 +427,16 @@
 <div id="app-shell">
 <!-- BACKUP BANNER -->
 <div id="backup-banner" role="status" aria-live="polite">
-  <span class="backup-banner-copy"><strong>Saved on this device.</strong> This planner is not a cloud account. Use <strong>Download Backup</strong> before clearing browser data, switching browsers, or moving devices.</span>
+  <span class="backup-banner-copy"><strong>Saved on this device.</strong> This planner is not a cloud account. Use <strong>Download Backup</strong> before clearing browser data, switching browsers, or moving devices.</span><!-- desktop: rewritten by redesign-shell to File → Export Backup / this computer -->
   <button type="button" class="backup-banner-dismiss" onclick="dismissBackupBanner()" aria-label="Dismiss backup reminder">Dismiss</button>
 </div>
 <div id="backup-reminder" style="display:none" aria-live="polite"></div>
-<div class="simple-mode-banner" id="simple-mode-banner"><button type="button" class="simple-mode-banner-dismiss" aria-label="Dismiss this message" onclick="this.parentElement.classList.add('dismissed');try{sessionStorage.setItem('covenant_essentials_banner_dismissed','1')}catch(e){}">&times;</button><span class="simple-mode-banner-text"><strong>Essentials View is on.</strong> Advanced planning pages are hidden from the menu, but no data is deleted. Open <strong>Profile &amp; Display</strong> in the top bar and click <strong>Full Planner</strong> (or turn off Focus on Essentials) to show every page again.</span></div>
+<div class="simple-mode-banner" id="simple-mode-banner"><button type="button" class="simple-mode-banner-dismiss" aria-label="Dismiss this message" onclick="this.parentElement.classList.add('dismissed');try{sessionStorage.setItem('covenant_essentials_banner_dismissed','1')}catch(e){}">&times;</button><span class="simple-mode-banner-text"><strong>Essentials View is on.</strong> Advanced planning pages are hidden from the menu, but no data is deleted. Open <strong>Profile &amp; Display</strong> in the top bar and click <strong>Full Planner</strong> (or turn off Focus on Essentials) to show every page again.</span></div><!-- desktop: Profile path rewritten by redesign-shell -->
 <script>try{if(sessionStorage.getItem('covenant_essentials_banner_dismissed')==='1'){var _emb=document.getElementById('simple-mode-banner');if(_emb)_emb.classList.add('dismissed');}}catch(e){}</script>
 
 <!-- STORAGE WARNING BANNER (shown on save failure) -->
 <div id="storage-warning" role="alert">
-  <span>⚠ <strong>Storage full — your last save did not go through.</strong> Your planner data may exceed this browser's storage limit, often caused by large Vision Board images. Download a backup now to protect your work, then remove large images or old history entries.</span>
+  <span>⚠ <strong>Storage full — your last save did not go through.</strong> Your planner data may exceed this browser's storage limit, often caused by large Vision Board images. Download a backup now to protect your work, then remove large images or old history entries.</span><!-- desktop: rewritten by redesign-shell -->
   <div class="sw-actions">
     <button class="sw-btn sw-backup" onclick="downloadSqliteBackup()">Download Backup</button>
     <button class="sw-btn sw-dismiss" onclick="document.getElementById('storage-warning').classList.remove('visible'); if (typeof placeNavigationBelowTopbar === 'function') placeNavigationBelowTopbar();">Dismiss</button>
@@ -1697,7 +1697,7 @@
           <button type="button" class="wiz-chip" onclick="wizardSetChip('wz-budget','35000')">$35k</button>
         </div>
       </div>
-      <p class="wizard-transparency-note">Saved on this device only. Download a backup anytime from the top bar overflow menu — nothing leaves your computer unless you export.</p>
+      <p class="wizard-transparency-note">Saved on this device only. Download a backup anytime from the top bar overflow menu — nothing leaves your computer unless you export.</p><!-- desktop: File → Export Backup via redesign-shell -->
       <div class="wz-actions">
         <button class="wz-skip" onclick="wizardGoStep(3)">&larr; Back</button>
         <div class="wz-right"><button class="btn btn-gold" onclick="wizardGoStep(5)">Continue &rarr;</button></div>
@@ -1712,7 +1712,7 @@
         <div><strong>Budget</strong><span>Payments and category actuals can reconcile without duplicate totals.</span></div>
         <div><strong>Guests</strong><span>RSVPs, meals, companions, and seating feed headcount planning.</span></div>
       </div>
-      <p class="wizard-transparency-note">Saved on this device only. Download a backup anytime from the top bar overflow menu - nothing leaves your computer unless you export.</p>
+      <p class="wizard-transparency-note">Saved on this device only. Download a backup anytime from the top bar overflow menu - nothing leaves your computer unless you export.</p><!-- desktop: File → Export Backup via redesign-shell -->
       <div class="wz-actions">
         <button class="wz-skip" onclick="wizardGoStep(4)">&larr; Back</button>
         <div class="wz-right"><button class="btn btn-forest" onclick="wizardSaveFinish()">Save &amp; open my dashboard</button></div>

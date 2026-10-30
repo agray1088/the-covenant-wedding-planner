@@ -221,11 +221,29 @@
         var alertText = alertBtn.querySelector('.btn-text');
         if (alertText) alertText.setAttribute('hidden', '');
       }
-      /* Soften browser-centric backup banner; version stamp → Help → About */
+      /* Soften browser-centric banners / wizard notes; version stamp → Help → About */
       var backupCopy = document.querySelector('#backup-banner .backup-banner-copy');
       if (backupCopy) {
-        backupCopy.innerHTML = '<strong>Saved on this computer.</strong> Download a backup regularly from File → Export Backup or Settings → Backup &amp; restore before replacing this install or moving machines.';
+        backupCopy.innerHTML = '<strong>Saved on this computer.</strong> Export a backup regularly from File → Export Backup or Settings → Backup &amp; restore before replacing this install or moving machines.';
       }
+      var storageWarn = document.querySelector('#storage-warning > span');
+      if (storageWarn) {
+        storageWarn.innerHTML = '⚠ <strong>Storage full — your last save did not go through.</strong> Your planner data may exceed this app\'s local storage limit on this computer, often caused by large Vision Board images. Export a backup now (File → Export Backup) to protect your work, then remove large images or old history entries.';
+      }
+      var storageBackupBtn = document.querySelector('#storage-warning .sw-backup');
+      if (storageBackupBtn) storageBackupBtn.textContent = 'Export Backup';
+      var essBanner = document.querySelector('#simple-mode-banner .simple-mode-banner-text');
+      if (essBanner) {
+        essBanner.innerHTML = '<strong>Essentials View is on.</strong> Advanced planning pages are hidden from the menu, but no data is deleted. Open <strong>Profile &amp; Display</strong> (View menu or wedding chip) and click <strong>Full Planner</strong> (or turn off Focus on Essentials) to show every page again.';
+      }
+      document.querySelectorAll('.wizard-transparency-note').forEach(function (note) {
+        note.textContent = 'Saved on this computer only. Export a backup anytime from File → Export Backup — nothing leaves your computer unless you export.';
+      });
+      document.querySelectorAll('.faq-quick-item p').forEach(function (p) {
+        if (/in this browser/i.test(p.textContent || '')) {
+          p.textContent = 'Your work saves automatically on this computer using SQLite.';
+        }
+      });
       var stamp = document.getElementById('app-build-stamp');
       if (stamp) {
         stamp.hidden = true;
@@ -402,7 +420,9 @@
           });
         } else {
           subnav.classList.remove('rd-subnav--context');
-          subnav.appendChild(el('<span class="rd-subnav__note">Reached from the top bar</span>'));
+          subnav.appendChild(el('<span class="rd-subnav__note">' +
+            (isDesktopShell() ? 'Reached from View or Help' : 'Reached from the top bar') +
+            '</span>'));
         }
       }
       return;
