@@ -4,6 +4,7 @@ Product-owner decisions for how The Covenant Wedding Planner is sold and unlocke
 
 **Related**
 
+- **Full Stripe / serial / tab-gate build plan:** [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md)
 - License UI stubs + Phase G: [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md) (Phase G — license activation)
 - Roadmap pointer: [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md)
 - Desktop shell overview: [`DESKTOP_APP.md`](./DESKTOP_APP.md)
@@ -126,7 +127,7 @@ Client and server should treat these as separate gates. Offline app use depends 
 
 ## Implementation notes (plan only)
 
-Do **not** build Stripe or paid gates in the polish-doc pass. When commerce is scheduled:
+Do **not** build Stripe or paid gates in the polish-doc pass. When commerce is scheduled, follow the phased checkboxes in [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md):
 
 1. **Stripe Checkout**
    - One product / price for the **app license** (one-time)
@@ -137,7 +138,7 @@ Do **not** build Stripe or paid gates in the polish-doc pass. When commerce is s
    - Validate code against server; persist `app_licensed` / `cloud_active` (+ cloud expiry) locally for offline checks where safe
 4. **Ops**
    - Support tooling to issue promo/support/test codes and revoke leaked ones
-   - Document Stripe webhook secrets and Resend from-address alongside hosted deploy secrets (not in this file)
+   - Document Stripe webhook secrets and Resend from-address alongside hosted deploy secrets ([`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md); rotate via [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md))
 
 Until that pass, desktop builds remain full local planners with honest stub messaging for license entry.
 

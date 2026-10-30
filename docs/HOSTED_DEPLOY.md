@@ -143,7 +143,7 @@ Transport selection (`GET /setup/status` -> `emailTransport`): `resend-api` when
 
 1. Create a Cloudflare R2 or AWS S3 bucket + API keys + public/CDN base URL.
 2. Set `PHOTO_STORAGE=r2` (or `s3`) and the matching `R2_*` / `S3_*` vars from `.env.production.example`.
-3. Confirm `/setup/status` → `objectStorageConfigured: true`. Details: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md).
+3. Confirm `/setup/status` → `objectStorageConfigured: true`. Details: [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md). Phased ops / hardening checklist: [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md).
 
 ### 7. Verify after deploy
 
@@ -335,4 +335,6 @@ See [`RECONNECT_AFTER_RESTART.md`](./RECONNECT_AFTER_RESTART.md).
 
 **Polish trio done:** (1) hosted secrets checklist UX, (2) S3/R2 photo foundation, (3) Railway/Fly deploy wiring docs + config. Operator still pastes real Google + SMTP (+ optional R2/S3) secrets in the host dashboard.
 
-Related: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) · [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).
+After an incident or chat leak, rotate secrets with [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md) (never paste secrets in chat). Optional photo ops phases: [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md).
+
+Related: [`DEPLOY_WALKTHROUGH.md`](./DEPLOY_WALKTHROUGH.md) · [`AUTH.md`](./AUTH.md) · [`BACKUP_AND_PHOTOS.md`](./BACKUP_AND_PHOTOS.md) · [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md) · [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md) · [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md) · [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

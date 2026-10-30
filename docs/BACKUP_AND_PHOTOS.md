@@ -131,6 +131,8 @@ npm run verify:auth                       # must stay green (when API up)
 1. ~~S3/R2 photo storage foundation~~ (shipped)  
 2. ~~Railway/Fly production secrets wiring~~ (shipped — [`HOSTED_DEPLOY.md`](./HOSTED_DEPLOY.md); operator pastes real secrets)  
 3. Optional: cloud pull of photo metadata alongside other sync domains  
+4. **Operator / polish phases** (choose R2 vs S3, Railway paste, client wiring, portal URL smoke, private bucket review): [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md) — plan only until that pass  
+5. Rotate photo keys if leaked: [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md)
 
 Vendor portal tokens: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md). Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md).  
 RSVP + gated guest portal: [`RSVP_AND_GUEST_PORTAL.md`](./RSVP_AND_GUEST_PORTAL.md). See [`PRODUCT_ROADMAP.md`](./PRODUCT_ROADMAP.md).

@@ -117,6 +117,9 @@ Windows Electron shell (`.exe`) is tracked separately from the hosted cloud trac
 - Checklist summary: [`DESKTOP_APP.md`](./DESKTOP_APP.md#desktop-native-polish) (PWA chrome hide, update banner → Help, API base via File menu, native destructive dialogs, zoom redundancy, favicon/manifest UI, tray/auto-update/license stubs, **top-toolbar redesign**, **layout/sections/tables/tabs**, **tablet / iPad Phase T**)
 - iPad install / offline: [`PWA_INSTALL.md`](./PWA_INSTALL.md)
 - **Pricing / packaging** (one-time app + optional cloud; license serials — plan only): [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md)
+- **Licensing + Stripe build plan** (trial, serials, webhooks, tab gates — plan only): [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md)
+- **Secret rotation** (Railway / chat-leak operator checklist): [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md)
+- **Cloud photos ops plan** (R2/S3 phases beyond foundation): [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md)
 
 | Theme | Outcome |
 |-------|---------|
@@ -125,12 +128,24 @@ Windows Electron shell (`.exe`) is tracked separately from the hosted cloud trac
 | Layout / sections / tables / tabs | Stable chrome + one job per screen; sidebar vs sub-view tabs; table-local Add/Filter/Sort/Search; optional row inspector; **adaptive** density; simpler empties; less hero/stat clutter (**planned — not implemented**; order: toolbars → inspector → density → polish; tablet-aware) |
 | Tablet / iPad | Same codebase → iPad via PWA / Safari Add to Home Screen; breakpoints; collapsible sidebar / split view; ~44 px touch targets; no hover-only critical actions; touch-usable table toolbars (**Phase T — planned**); optional Capacitor/WKWebView App Store shell **docs only later** |
 
+## Commerce, secrets, photos (plan track)
+
+| Doc | Outcome |
+|-----|---------|
+| [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md) | Locked prices / tiers / entitlements (product decisions) |
+| [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md) | Phased Stripe + serial + desktop unlock implementation |
+| [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md) | Operator rotate Postgres / session / Google / Resend after incident or chat leak |
+| [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md) | Phased R2/S3 ops + client polish on top of shipped foundation |
+
 ## Docs
 
 - Desktop native polish plan (incl. Phase T tablet/iPad): [`DESKTOP_NATIVE_POLISH_PLAN.md`](./DESKTOP_NATIVE_POLISH_PLAN.md)
 - Desktop app (Windows `.exe`) + tablet checklist: [`DESKTOP_APP.md`](./DESKTOP_APP.md)
 - PWA install (incl. iPad Safari Add to Home Screen): [`PWA_INSTALL.md`](./PWA_INSTALL.md)
-- Pricing and plans (app license + cloud add-on; Stripe/licensing plan only): [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md)
+- Pricing and plans (app license + cloud add-on): [`PRICING_AND_PLANS.md`](./PRICING_AND_PLANS.md)
+- Licensing + Stripe (build plan): [`LICENSING_AND_STRIPE_PLAN.md`](./LICENSING_AND_STRIPE_PLAN.md)
+- Secret rotation (operator checklist): [`SECRET_ROTATION_PLAN.md`](./SECRET_ROTATION_PLAN.md)
+- Cloud photos (R2/S3 plan): [`CLOUD_PHOTOS_PLAN.md`](./CLOUD_PHOTOS_PLAN.md)
 
 - Vendor portal: [`VENDOR_PORTAL.md`](./VENDOR_PORTAL.md)  
 - Partner invites: [`PARTNER_INVITES.md`](./PARTNER_INVITES.md)  
